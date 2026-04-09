@@ -64,7 +64,7 @@ class _LabTestCatalogScreenState extends State<LabTestCatalogScreen> {
                 borderRadius: BorderRadius.circular(8),
               ),
               child: CustomText(
-                AppStrings.addManually,
+                AppStrings.addManually.tr,
                 color: AppColors.primaryColor,
                 fontWeight: FontWeight.w600,
                 fontSize: 12,
@@ -152,9 +152,9 @@ class _LabTestCatalogScreenState extends State<LabTestCatalogScreen> {
                                   text: TextSpan(
                                     style: TextStyle(color: Colors.black87, fontSize: SizeConfig.small),
                                     children: [
-                                      const TextSpan(text: "Reports within "),
+                                      TextSpan(text: "${AppStrings.labReportsWithinPrefix.tr} "),
                                       TextSpan(
-                                        text: "${item.estimatedReportHours ?? 0} hours",
+                                        text: "${item.estimatedReportHours ?? 0} ${AppStrings.labHoursWord.tr}",
                                         style: const TextStyle(fontWeight: FontWeight.bold),
                                       ),
                                     ],
@@ -171,7 +171,7 @@ class _LabTestCatalogScreenState extends State<LabTestCatalogScreen> {
                                   border: Border.all(color: Colors.black12),
                                 ),
                                 child: CustomText(
-                                  "INR-${item.suggestedCustomerPrice ?? '0'}",
+                                  "${AppStrings.labInrPrefix.tr}${item.suggestedCustomerPrice ?? '0'}",
                                   fontWeight: FontWeight.bold,
                                   fontSize: SizeConfig.size14,
                                 ),
@@ -198,8 +198,8 @@ class _LabTestCatalogScreenState extends State<LabTestCatalogScreen> {
                                 children: [
                                   Icon(Icons.circle, size: 8, color: Colors.grey.shade600),
                                   const SizedBox(width: 8),
-                                  const CustomText(
-                                    "Home sample collection available",
+                                  CustomText(
+                                    AppStrings.labHomeSampleAvailable.tr,
                                     fontSize: 13,
                                     color: Colors.black54,
                                   ),
@@ -269,24 +269,24 @@ class _LabTestCatalogScreenState extends State<LabTestCatalogScreen> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CustomText("Check Details",
+                CustomText(AppStrings.labCheckDetails.tr,
                     fontWeight: FontWeight.w700, fontSize: SizeConfig.size16),
                 SizedBox(height: SizeConfig.size12),
                 CommonTextField(
                   textEditController: nameCtrl,
-                  title: "Hemoglobin (Hb)",
-                  hintText: "13.8",
+                  title: AppStrings.labHintHemoglobin.tr,
+                  hintText: AppStrings.labHint138.tr,
                 ),
                 SizedBox(height: SizeConfig.size8),
                 CommonTextField(
                   textEditController: paramsCtrl,
-                  title: "Test Parameters",
-                  hintText: "13.8",
+                  title: AppStrings.labTestParameters.tr,
+                  hintText: AppStrings.labHint138.tr,
                   maxLine: 2,
                 ),
                 SizedBox(height: SizeConfig.size8),
                 if (methodOptions.isNotEmpty) ...[
-                  CustomText("Test Method",
+                  CustomText(AppStrings.labTestMethod.tr,
                       fontWeight: FontWeight.w500, fontSize: SizeConfig.size14),
                   SizedBox(height: SizeConfig.size8),
                   Obx(() => Wrap(
@@ -328,7 +328,7 @@ class _LabTestCatalogScreenState extends State<LabTestCatalogScreen> {
                 SizedBox(height: SizeConfig.size8),
                 CommonTextField(
                   textEditController: hoursCtrl,
-                  title: "Estimated Report Hours",
+                  title: AppStrings.labEstimatedReportHours.tr,
                   keyBoardType: TextInputType.number,
                 ),
                 SizedBox(height: SizeConfig.size8),
@@ -337,7 +337,7 @@ class _LabTestCatalogScreenState extends State<LabTestCatalogScreen> {
                     Expanded(
                       child: CommonTextField(
                         textEditController: feesCtrl,
-                        title: "Test Fees",
+                        title: AppStrings.labTestFees.tr,
                         keyBoardType: TextInputType.number,
                       ),
                     ),
@@ -345,7 +345,7 @@ class _LabTestCatalogScreenState extends State<LabTestCatalogScreen> {
                     Expanded(
                       child: CommonTextField(
                         textEditController: priceCtrl,
-                        title: "Customer Price",
+                        title: AppStrings.labCustomerPrice.tr,
                         keyBoardType: TextInputType.number,
                       ),
                     ),

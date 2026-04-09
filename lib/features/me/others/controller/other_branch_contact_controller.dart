@@ -54,7 +54,7 @@ class OtherBranchContactController extends GetxController {
   }) async {
     if (selectedLat == null || selectedLng == null) {
       commonSnackBar(
-          message: "Please select a valid location from the search.");
+          message: AppStrings.hotelSelectValidLocation.tr);
       return;
     }
 
@@ -88,7 +88,7 @@ class OtherBranchContactController extends GetxController {
       if (response.isSuccess) {
         commonSnackBar(
             message: response.response?.data['message'] ??
-                "Branch details added successfully");
+                AppStrings.hotelBranchAddedSuccess.tr);
         await getBranchDetailsController();
         _refreshHomeScreen();
         Get.back();

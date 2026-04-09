@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/me/others/controller/other_branch_contact_controller.dart';
 import 'package:BlueEra/features/me/others/model/business_profile_full_model.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
@@ -52,7 +53,7 @@ class _OtherDepartmentOnlyScreenState extends State<OtherDepartmentOnlyScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: "Department",
+        title: AppStrings.department.tr,
       ),
       body: CommonCardWidget(
         child: SingleChildScrollView(
@@ -62,22 +63,22 @@ class _OtherDepartmentOnlyScreenState extends State<OtherDepartmentOnlyScreen> {
             children: [
               CommonTextField(
                 textEditController: titleController,
-                hintText: "E.g.Admission Cell",
-                title: "Department/Role",
+                hintText: AppStrings.otherHintAdmissionCell.tr,
+                title: AppStrings.otherDepartmentRoleTitle.tr,
                 onChange: (_) => _runValidation(),
               ),
               SizedBox(height: 12),
               CommonTextField(
                 textEditController: emailController,
-                hintText: "dpsdehradun@gmail.com",
-                title: "Email Address",
+                hintText: AppStrings.hotelEmailExampleHint.tr,
+                title: AppStrings.otherEmailAddressTitle.tr,
                 onChange: (_) => _runValidation(),
               ),
               SizedBox(height: 12),
               CommonTextField(
                 textEditController: phoneController,
-                hintText: "+91 1234567890",
-                title: "Phone Number",
+                hintText: AppStrings.hotelPhoneExampleHint.tr,
+                title: AppStrings.phoneNumber.tr,
                 maxLength: 10,
                 onChange: (_) => _runValidation(),
               ),
@@ -110,7 +111,7 @@ class _OtherDepartmentOnlyScreenState extends State<OtherDepartmentOnlyScreen> {
                         // addBranchDepartmentController
                       }
                     },
-                    title: "Submit");
+                    title: AppStrings.submit.tr);
               }),
             ],
           ),

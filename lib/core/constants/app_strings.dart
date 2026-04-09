@@ -4726,5 +4726,382 @@ class AppStrings {
   static const String guestCreateAccountMessage = "guestCreateAccountMessage";
   static const String createProfile = "createProfile";
 
+  ///HOTEL MODULE
+  static const String hotelRoomDetails = "hotelRoomDetails";
+  static const String hotelRoomAmenities = "hotelRoomAmenities";
+  static const String hotelAmenitiesTitle = "hotelAmenitiesTitle";
+  static const String hotelPoliciesTitle = "hotelPoliciesTitle";
+  static const String hotelPropertyPhotos = "hotelPropertyPhotos";
+  static const String hotelCareer = "hotelCareer";
+  static const String hotelMyHotelTab = "hotelMyHotelTab";
+  static const String hotelStaticsTab = "hotelStaticsTab";
+  static const String hotelChooseRoom = "hotelChooseRoom";
+  static const String hotelNoRoomsAdded = "hotelNoRoomsAdded";
+  static const String hotelNoRoomsForType = "hotelNoRoomsForType";
+  static const String hotelGallery = "hotelGallery";
+  static const String hotelNoPhotosAdded = "hotelNoPhotosAdded";
+  static const String hotelNoAmenitiesAdded = "hotelNoAmenitiesAdded";
+  static const String hotelNoPoliciesAdded = "hotelNoPoliciesAdded";
+  static const String hotelNoContactDetailsAdded = "hotelNoContactDetailsAdded";
+  static const String hotelAddNow = "hotelAddNow";
+  static const String hotelCheckInLabel = "hotelCheckInLabel";
+  static const String hotelCheckOutLabel = "hotelCheckOutLabel";
+  static const String hotelEarlyCheckInAllowed = "hotelEarlyCheckInAllowed";
+  static const String hotelLateCheckOutAllowed = "hotelLateCheckOutAllowed";
+  static const String hotelFreeCancellation = "hotelFreeCancellation";
+  static const String hotelLocalIdAccepted = "hotelLocalIdAccepted";
+  static const String hotelMarriedCouplesAllowed = "hotelMarriedCouplesAllowed";
+  static const String hotelBachelorsStudentsAllowed =
+      "hotelBachelorsStudentsAllowed";
+  static const String hotelAmenityWifi = "hotelAmenityWifi";
+  static const String hotelAmenityAc = "hotelAmenityAc";
+  static const String hotelAmenityTv = "hotelAmenityTv";
+  static const String hotelAmenityRoomService = "hotelAmenityRoomService";
+  static const String hotelAmenityPowerBank = "hotelAmenityPowerBank";
+  static const String hotelAmenityBalcony = "hotelAmenityBalcony";
+  static const String hotelAmenityBathroom = "hotelAmenityBathroom";
+  static const String hotelAmenityWardrobe = "hotelAmenityWardrobe";
+  static const String hotelAmenityDeskChair = "hotelAmenityDeskChair";
+  static const String hotelAmenityRoomRefrigerators =
+      "hotelAmenityRoomRefrigerators";
+  static const String hotelAmenityElectricKettle = "hotelAmenityElectricKettle";
 
+  static const String hotelFreeParking = "hotelFreeParking";
+  static const String hotelRestaurant = "hotelRestaurant";
+  static const String hotelFrontDesk247 = "hotelFrontDesk247";
+  static const String hotelElevatorLift = "hotelElevatorLift";
+  static const String hotelCctvSurveillance = "hotelCctvSurveillance";
+  static const String hotelPowerBackup = "hotelPowerBackup";
+  static const String hotelLaundryService = "hotelLaundryService";
+  static const String hotelSwimmingPool = "hotelSwimmingPool";
+  static const String hotelAirportTransportation = "hotelAirportTransportation";
+  static const String hotelBar = "hotelBar";
+  static const String hotelGym = "hotelGym";
+
+  static const String hotelAirConditioning = "hotelAirConditioning";
+  static const String hotelFreeWifi = "hotelFreeWifi";
+  static const String hotelTelevision = "hotelTelevision";
+  static const String hotelRoomServiceItem = "hotelRoomServiceItem";
+  static const String hotelBalcony = "hotelBalcony";
+  static const String hotelAttachedBathroom = "hotelAttachedBathroom";
+  static const String hotelWardrobe = "hotelWardrobe";
+  static const String hotelDeskChair = "hotelDeskChair";
+  static const String hotelRoomRefrigerators = "hotelRoomRefrigerators";
+  static const String hotelElectricKettle = "hotelElectricKettle";
+
+  static const String hotelCheckInCheckOut = "hotelCheckInCheckOut";
+  static const String hotelHours24 = "hotelHours24";
+  static const String hotelCheckIn = "hotelCheckIn";
+  static const String hotelCheckOut = "hotelCheckOut";
+  static const String hotelEarlyCheckInAllowedQ = "hotelEarlyCheckInAllowedQ";
+  static const String hotelLateCheckOutAllowedQ = "hotelLateCheckOutAllowedQ";
+  static const String hotelAllowUnmarriedCouple = "hotelAllowUnmarriedCouple";
+  static const String hotelFreeCancelation = "hotelFreeCancelation";
+  static const String hotelLocalIdAllowed = "hotelLocalIdAllowed";
+  static const String hotelAadharMandatory = "hotelAadharMandatory";
+  static const String hotelSmokingDrinkingAllowed =
+      "hotelSmokingDrinkingAllowed";
+
+  static const String hotelStepOneOfTwo = "hotelStepOneOfTwo";
+  static const String hotelTotalRooms = "hotelTotalRooms";
+  static const String hotelHintTotalRooms = "hotelHintTotalRooms";
+  static const String hotelRoomSize = "hotelRoomSize";
+  static const String hotelHintLength = "hotelHintLength";
+  static const String hotelHintWidth = "hotelHintWidth";
+  static const String hotelSelectBedType = "hotelSelectBedType";
+  static const String hotelHintSingleBed = "hotelHintSingleBed";
+  static const String hotelMaximumOccupancy = "hotelMaximumOccupancy";
+  static const String hotelHintFamilyOccupancy = "hotelHintFamilyOccupancy";
+  static const String hotelPricePerDay = "hotelPricePerDay";
+  static const String hotelHintPricePerDay = "hotelHintPricePerDay";
+  static const String hotelDiscountCoupon = "hotelDiscountCoupon";
+  static const String hotelCouponAdded = "hotelCouponAdded";
+  static const String hotelAddMoreCoupon = "hotelAddMoreCoupon";
+  static const String hotelDiscountWorth = "hotelDiscountWorth";
+  static const String hotelTcs = "hotelTcs";
+  static const String hotelCouponName = "hotelCouponName";
+  static const String hotelHintCouponName = "hotelHintCouponName";
+  static const String hotelDescriptionTerms = "hotelDescriptionTerms";
+  static const String hotelHintLoremIpsum = "hotelHintLoremIpsum";
+  static const String hotelCodeNameOptional = "hotelCodeNameOptional";
+  static const String hotelHintCouponCode = "hotelHintCouponCode";
+  static const String hotelTotalOff = "hotelTotalOff";
+  static const String hotelInRupees = "hotelInRupees";
+  static const String hotelInPercentage = "hotelInPercentage";
+  static const String hotelHintPercentageOff = "hotelHintPercentageOff";
+
+  static const String hotelImagesAppBar = "hotelImagesAppBar";
+  static const String hotelUploadExteriorImages = "hotelUploadExteriorImages";
+  static const String hotelUploadWashroomImages = "hotelUploadWashroomImages";
+  static const String hotelUploadAmenitiesImagesOptional =
+      "hotelUploadAmenitiesImagesOptional";
+  static const String hotelMin2Images = "hotelMin2Images";
+
+  static const String hotelUploadPropertyPhoto = "hotelUploadPropertyPhoto";
+  static const String hotelImagesSuffix = "hotelImagesSuffix";
+  static const String hotelLastUpdate = "hotelLastUpdate";
+
+  static const String hotelNoRoomsCreate = "hotelNoRoomsCreate";
+
+  static const String hotelUploadImages = "hotelUploadImages";
+  static const String hotelSelectCategoryLabel = "hotelSelectCategoryLabel";
+  static const String hotelSelectCategoryDialog = "hotelSelectCategoryDialog";
+  static const String hotelHintRooms = "hotelHintRooms";
+  static const String hotelUploadImagesMaxSix = "hotelUploadImagesMaxSix";
+  static const String hotelErrorSelectCategory = "hotelErrorSelectCategory";
+  static const String hotelErrorUploadOneImage = "hotelErrorUploadOneImage";
+
+  static const String hotelConfirmDeleteImage = "hotelConfirmDeleteImage";
+
+  static const String hotelWebsiteHint = "hotelWebsiteHint";
+  static const String hotelEmailExampleHint = "hotelEmailExampleHint";
+  static const String hotelPhoneExampleHint = "hotelPhoneExampleHint";
+  static const String hotelBranchTitle = "hotelBranchTitle";
+  static const String hotelHintBranchName = "hotelHintBranchName";
+  static const String hotelHintBranchUrl = "hotelHintBranchUrl";
+
+  static const String hotelRoomStandard = "hotelRoomStandard";
+  static const String hotelRoomEconomy = "hotelRoomEconomy";
+  static const String hotelRoomDeluxe = "hotelRoomDeluxe";
+  static const String hotelRoomSuperDeluxe = "hotelRoomSuperDeluxe";
+  static const String hotelRoomPremium = "hotelRoomPremium";
+  static const String hotelRoomExecutive = "hotelRoomExecutive";
+  static const String hotelRoomFamily = "hotelRoomFamily";
+  static const String hotelRoomSuite = "hotelRoomSuite";
+  static const String hotelRoomLuxurySuite = "hotelRoomLuxurySuite";
+  static const String hotelRoomStudio = "hotelRoomStudio";
+  static const String hotelRoomVillaCottage = "hotelRoomVillaCottage";
+  static const String hotelAddBtn = "hotelAddBtn";
+
+  // Hotel controller messages
+  static const String hotelLimitReached4Images = "hotelLimitReached4Images";
+  static const String hotelLimitReached6Images = "hotelLimitReached6Images";
+  static const String hotelSelectValidLocation = "hotelSelectValidLocation";
+  static const String hotelBranchAddedSuccess = "hotelBranchAddedSuccess";
+  static const String hotelBranchUpdatedSuccess = "hotelBranchUpdatedSuccess";
+  static const String hotelServicesUpdatedSuccess = "hotelServicesUpdatedSuccess";
+  static const String hotelFailedToUpdateServices = "hotelFailedToUpdateServices";
+  static const String hotelFailedLoadAmenities = "hotelFailedLoadAmenities";
+  static const String hotelUpdateFailed = "hotelUpdateFailed";
+  static const String hotelErrorPrefix = "hotelErrorPrefix";
+
+  // Laboratory controller messages
+  static const String labDescriptionSaved = "labDescriptionSaved";
+  static const String labFailedToSave = "labFailedToSave";
+  static const String labServiceCreatedSuccess = "labServiceCreatedSuccess";
+  static const String labMaxImagesAllowed = "labMaxImagesAllowed";
+  static const String labImageUploadFailed = "labImageUploadFailed";
+  static const String labHealthCampCreated = "labHealthCampCreated";
+  static const String labFailedToCreate = "labFailedToCreate";
+  static const String labHealthCampUpdated = "labHealthCampUpdated";
+  static const String labFailedToUpdate = "labFailedToUpdate";
+  static const String labHealthCampDeleted = "labHealthCampDeleted";
+  static const String labFailedToDelete = "labFailedToDelete";
+  static const String labMaxFiveFacilities = "labMaxFiveFacilities";
+  static const String labFacilitiesSaved = "labFacilitiesSaved";
+  static const String labSelectedSuccess = "labSelectedSuccess";
+  static const String labFailedToSelect = "labFailedToSelect";
+  static const String labTestAddedSuccess = "labTestAddedSuccess";
+  static const String labFailedToAddTest = "labFailedToAddTest";
+  static const String labTestUpdatedSuccess = "labTestUpdatedSuccess";
+  static const String labFailedToUpdateTest = "labFailedToUpdateTest";
+  static const String labTestDeletedSuccess = "labTestDeletedSuccess";
+  static const String labFailedToDeleteTest = "labFailedToDeleteTest";
+
+  // Laboratory view labels
+  static const String labFacilityToggleInfo = "labFacilityToggleInfo";
+  static const String labCoreFacilities = "labCoreFacilities";
+  static const String labCoreFacilitiesSub = "labCoreFacilitiesSub";
+  static const String labConsultationInsurance = "labConsultationInsurance";
+  static const String labConsultationInsuranceSub = "labConsultationInsuranceSub";
+  static const String labPaymentOptions = "labPaymentOptions";
+  static const String labPaymentOptionsSub = "labPaymentOptionsSub";
+
+  static const String labStartDate = "labStartDate";
+  static const String labEndDate = "labEndDate";
+  static const String labTestDetails = "labTestDetails";
+  static const String labReportsWithinPrefix = "labReportsWithinPrefix";
+  static const String labHrsSuffix = "labHrsSuffix";
+  static const String labHoursWord = "labHoursWord";
+
+  static const String labHintHours = "labHintHours";
+  static const String labHint1000 = "labHint1000";
+  static const String labHint800 = "labHint800";
+  static const String labHintCampPrice = "labHintCampPrice";
+  static const String labHintCampDiscountPrice = "labHintCampDiscountPrice";
+  static const String labHintCampDiscountedPrice = "labHintCampDiscountedPrice";
+  static const String labHintHappyHealth = "labHintHappyHealth";
+
+  static const String labInrPrefix = "labInrPrefix";
+  static const String labInrSpace = "labInrSpace";
+  static const String labHomeSampleAvailable = "labHomeSampleAvailable";
+  static const String labCheckDetails = "labCheckDetails";
+  static const String labHintHemoglobin = "labHintHemoglobin";
+  static const String labHint138 = "labHint138";
+  static const String labTestParameters = "labTestParameters";
+  static const String labTestMethod = "labTestMethod";
+  static const String labEstimatedReportHours = "labEstimatedReportHours";
+  static const String labTestFees = "labTestFees";
+  static const String labCustomerPrice = "labCustomerPrice";
+
+  static const String labSearchLocationGoogle = "labSearchLocationGoogle";
+  static const String labAddDiscountTest = "labAddDiscountTest";
+  static const String labAddTestOffer = "labAddTestOffer";
+  static const String labAddDiscountedTest = "labAddDiscountedTest";
+  static const String labSelectTest = "labSelectTest";
+  static const String labPostBtn = "labPostBtn";
+  static const String labNoTestsFound = "labNoTestsFound";
+  static const String labSampleCollection = "labSampleCollection";
+
+  static const String labAddDescriptionForLab = "labAddDescriptionForLab";
+  static const String labAddTestsToShowcase = "labAddTestsToShowcase";
+  static const String labAddFacilityDetails = "labAddFacilityDetails";
+  static const String labAddContactInfo = "labAddContactInfo";
+
+  static const String labAddDescHelp = "labAddDescHelp";
+  static const String labTellAboutLab = "labTellAboutLab";
+  static const String labHintEnterDescription = "labHintEnterDescription";
+
+  static const String labPersonalInfo = "labPersonalInfo";
+  static const String labPersonalInfoSub = "labPersonalInfoSub";
+  static const String labHintDspDehradun = "labHintDspDehradun";
+  static const String labHintLabWebsite = "labHintLabWebsite";
+  static const String labContactDetailsTitle = "labContactDetailsTitle";
+  static const String labContactDetailsSub = "labContactDetailsSub";
+  static const String labHintLabEmail = "labHintLabEmail";
+  static const String labHintLabPhone = "labHintLabPhone";
+
+  static const String labClose = "labClose";
+  static const String labViewMore = "labViewMore";
+  static const String labUpdateYourTest = "labUpdateYourTest";
+
+  // Generic + others controller messages
+  static const String genericCreatedSuccess = "genericCreatedSuccess";
+  static const String genericUpdatedSuccess = "genericUpdatedSuccess";
+  static const String genericDeletedSuccess = "genericDeletedSuccess";
+  static const String genericSavedSuccess = "genericSavedSuccess";
+  static const String genericImageUploadFailed = "genericImageUploadFailed";
+
+  static const String otherPleaseEnterTitle = "otherPleaseEnterTitle";
+  static const String otherPleaseEnterDescription = "otherPleaseEnterDescription";
+  static const String otherPleaseEnterNews = "otherPleaseEnterNews";
+  static const String otherPleaseEnterBlog = "otherPleaseEnterBlog";
+  static const String otherPleaseEnterName = "otherPleaseEnterName";
+  static const String otherPleaseEnterPosition = "otherPleaseEnterPosition";
+  static const String otherPleaseEnterQualification = "otherPleaseEnterQualification";
+  static const String otherPleaseEnterMessage = "otherPleaseEnterMessage";
+  static const String otherPleaseSelectImage = "otherPleaseSelectImage";
+  static const String otherPleaseSelectJoiningDate = "otherPleaseSelectJoiningDate";
+  static const String otherPleaseSelectEndingDate = "otherPleaseSelectEndingDate";
+  static const String otherEndingBeforeJoining = "otherEndingBeforeJoining";
+
+  static const String otherUploadPicture = "otherUploadPicture";
+  static const String otherServiceCreatedSuccess = "otherServiceCreatedSuccess";
+  static const String otherAvailabilityUpdated = "otherAvailabilityUpdated";
+  static const String otherFailedUpdateAvailability = "otherFailedUpdateAvailability";
+  static const String otherAnErrorOccurred = "otherAnErrorOccurred";
+
+  // Others view labels
+  static const String otherOurStaffs = "otherOurStaffs";
+  static const String otherAddStaffMembers = "otherAddStaffMembers";
+  static const String otherProduct = "otherProduct";
+  static const String otherOurOrganisation = "otherOurOrganisation";
+  static const String otherOurBlogs = "otherOurBlogs";
+  static const String otherAddBlogPosts = "otherAddBlogPosts";
+  static const String otherAddEdit = "otherAddEdit";
+  static const String otherAddGalleryPhotos = "otherAddGalleryPhotos";
+  static const String otherNoOrganisationInfoAdded = "otherNoOrganisationInfoAdded";
+  static const String otherShareOrgStory = "otherShareOrgStory";
+  static const String otherAddOrganisation = "otherAddOrganisation";
+
+  static const String otherTimingTitle = "otherTimingTitle";
+  static const String otherOpen = "otherOpen";
+  static const String otherClosed = "otherClosed";
+
+  static const String otherServicePhotos = "otherServicePhotos";
+  static const String otherUploadServicePhoto = "otherUploadServicePhoto";
+
+  static const String otherNewsTitle = "otherNewsTitle";
+  static const String otherNoNewsFound = "otherNoNewsFound";
+  static const String otherConfirmDeleteNews = "otherConfirmDeleteNews";
+  static const String otherAddNews = "otherAddNews";
+  static const String otherEditNews = "otherEditNews";
+  static const String otherUploadPhoto = "otherUploadPhoto";
+  static const String otherTellAboutNews = "otherTellAboutNews";
+  static const String otherNewsFieldLabel = "otherNewsFieldLabel";
+
+  static const String otherAddMember = "otherAddMember";
+  static const String otherEditMember = "otherEditMember";
+  static const String otherEnterName = "otherEnterName";
+  static const String otherHintPositionFounder = "otherHintPositionFounder";
+  static const String otherHintQualificationPhd = "otherHintQualificationPhd";
+  static const String otherTellAboutManagement = "otherTellAboutManagement";
+  static const String otherManagementTitle = "otherManagementTitle";
+  static const String otherNoManagementFound = "otherNoManagementFound";
+  static const String otherConfirmDeleteMember = "otherConfirmDeleteMember";
+
+  static const String otherAnnouncements = "otherAnnouncements";
+  static const String otherJobsTitle = "otherJobsTitle";
+  static const String otherCreateJob = "otherCreateJob";
+
+  static const String otherNoContactUsFound = "otherNoContactUsFound";
+  static const String otherBranchPrefix = "otherBranchPrefix";
+  static const String otherAtLeastOneBranchRequired = "otherAtLeastOneBranchRequired";
+  static const String otherConfirmDeleteBranch = "otherConfirmDeleteBranch";
+  static const String otherAtLeastOneDepartmentRequired = "otherAtLeastOneDepartmentRequired";
+  static const String otherConfirmDeleteDepartment = "otherConfirmDeleteDepartment";
+  static const String otherAddMoreDepartment = "otherAddMoreDepartment";
+  static const String otherAddAnotherBranch = "otherAddAnotherBranch";
+
+  static const String otherDepartmentRoleTitle = "otherDepartmentRoleTitle";
+  static const String otherEmailAddressTitle = "otherEmailAddressTitle";
+  static const String otherWebsiteUrlTitle = "otherWebsiteUrlTitle";
+  static const String otherBranchNameTitle = "otherBranchNameTitle";
+  static const String otherHintAdmissionCell = "otherHintAdmissionCell";
+
+  static const String otherAddStaff = "otherAddStaff";
+  static const String otherEditStaff = "otherEditStaff";
+  static const String otherHintPositionDesigner = "otherHintPositionDesigner";
+  static const String otherHintQualificationDiploma = "otherHintQualificationDiploma";
+  static const String otherJoiningDate = "otherJoiningDate";
+  static const String otherEndingDate = "otherEndingDate";
+  static const String otherStaffsTitle = "otherStaffsTitle";
+  static const String otherNoStaffFound = "otherNoStaffFound";
+  static const String otherConfirmDeleteStaff = "otherConfirmDeleteStaff";
+
+  static const String otherAboutUsTitle = "otherAboutUsTitle";
+  static const String otherAboutOrganizationTitle = "otherAboutOrganizationTitle";
+  static const String otherNoOrganizationFound = "otherNoOrganizationFound";
+  static const String otherConfirmDeleteData = "otherConfirmDeleteData";
+  static const String otherAddOrganization = "otherAddOrganization";
+  static const String otherEditOrganization = "otherEditOrganization";
+  static const String otherTellAboutOrganization = "otherTellAboutOrganization";
+
+  static const String otherPrivacyTncTitle = "otherPrivacyTncTitle";
+  static const String otherNoPrivacyTncFound = "otherNoPrivacyTncFound";
+  static const String otherConfirmDeletePrivacyTnc = "otherConfirmDeletePrivacyTnc";
+  static const String otherAddPrivacyTnc = "otherAddPrivacyTnc";
+  static const String otherEditPrivacyTnc = "otherEditPrivacyTnc";
+  static const String otherTncLabel = "otherTncLabel";
+  static const String otherTellAboutPrivacyTnc = "otherTellAboutPrivacyTnc";
+
+  static const String otherBlogsTitle = "otherBlogsTitle";
+  static const String otherNoBlogsFound = "otherNoBlogsFound";
+  static const String otherConfirmDeleteBlog = "otherConfirmDeleteBlog";
+  static const String otherAddBlogs = "otherAddBlogs";
+  static const String otherEditBlogs = "otherEditBlogs";
+  static const String otherBlogLabel = "otherBlogLabel";
+  static const String otherTellAboutBlogs = "otherTellAboutBlogs";
+
+  static const String otherDownloadsTitle = "otherDownloadsTitle";
+  static const String otherNoDownloadsFound = "otherNoDownloadsFound";
+  static const String otherConfirmDeleteDownload = "otherConfirmDeleteDownload";
+  static const String otherAddDownloads = "otherAddDownloads";
+  static const String otherEditDownloads = "otherEditDownloads";
+  static const String otherTellAboutDownloads = "otherTellAboutDownloads";
+
+  static const String otherFieldName = "otherFieldName";
+  static const String otherFieldPosition = "otherFieldPosition";
+  static const String otherFieldQualification = "otherFieldQualification";
+  static const String otherFieldMessage = "otherFieldMessage";
 }

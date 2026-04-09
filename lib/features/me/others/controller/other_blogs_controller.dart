@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import 'package:BlueEra/features/me/others/model/other_blogs_model.dart';
@@ -42,7 +43,7 @@ class OtherBlogsController extends GetxController {
 
   Future<void> pickImage(BuildContext context) async {
     final String? path = await SelectProfilePictureDialog.showLogoDialog(
-        context, "Upload Picture");
+        context, AppStrings.otherUploadPicture.tr);
     if (path != null && path.isNotEmpty) {
       selectedImage.value = File(path);
     }
@@ -70,15 +71,15 @@ class OtherBlogsController extends GetxController {
 
   Future<void> createBlogRepo() async {
     if (selectedImage.value == null) {
-      commonSnackBar(message: "Please select an image");
+      commonSnackBar(message: AppStrings.otherPleaseSelectImage.tr);
       return;
     }
     if (titleController.text.isEmpty) {
-      commonSnackBar(message: "Please enter title");
+      commonSnackBar(message: AppStrings.otherPleaseEnterTitle.tr);
       return;
     }
     if (descriptionController.text.isEmpty) {
-      commonSnackBar(message: "Please enter blog");
+      commonSnackBar(message: AppStrings.otherPleaseEnterBlog.tr);
       return;
     }
 
@@ -96,17 +97,17 @@ class OtherBlogsController extends GetxController {
 
         final response = await _repo.createBlogsRepo(body);
         if (response != null && response.isSuccess) {
-          commonSnackBar(message: "Created successfully");
+          commonSnackBar(message: AppStrings.genericCreatedSuccess.tr);
           Get.back(); // Close form/screen
           getBlogRepo(); // Refresh list
         } else {
-          commonSnackBar(message: response?.message ?? "Failed to create");
+          commonSnackBar(message: response?.message ?? AppStrings.labFailedToCreate.tr);
         }
       } else {
-        commonSnackBar(message: "Image upload failed");
+        commonSnackBar(message: AppStrings.genericImageUploadFailed.tr);
       }
     } catch (e) {
-      commonSnackBar(message: "Error: $e");
+      commonSnackBar(message: "${AppStrings.hotelErrorPrefix.tr} $e");
     } finally {
       isLoading.value = false;
     }
@@ -115,11 +116,11 @@ class OtherBlogsController extends GetxController {
   Future<void> updateBlogRepo(String id,
       {String? existingImageUrl}) async {
     if (titleController.text.isEmpty) {
-      commonSnackBar(message: "Please enter title");
+      commonSnackBar(message: AppStrings.otherPleaseEnterTitle.tr);
       return;
     }
     if (descriptionController.text.isEmpty) {
-      commonSnackBar(message: "Please enter description");
+      commonSnackBar(message: AppStrings.otherPleaseEnterDescription.tr);
       return;
     }
 
@@ -133,7 +134,7 @@ class OtherBlogsController extends GetxController {
         if (uploadResult.isSuccess) {
           imageUrl = uploadResult.url;
         } else {
-          commonSnackBar(message: "Image upload failed");
+          commonSnackBar(message: AppStrings.genericImageUploadFailed.tr);
           isLoading.value = false;
           return;
         }
@@ -147,14 +148,14 @@ class OtherBlogsController extends GetxController {
 
       final response = await _repo.updateBlogsRepo(id, body);
       if (response != null && response.isSuccess) {
-        commonSnackBar(message: "Updated successfully");
+        commonSnackBar(message: AppStrings.genericUpdatedSuccess.tr);
         Get.back();
         getBlogRepo();
       } else {
-        commonSnackBar(message: response?.message ?? "Failed to update");
+        commonSnackBar(message: response?.message ?? AppStrings.labFailedToUpdate.tr);
       }
     } catch (e) {
-      commonSnackBar(message: "Error: $e");
+      commonSnackBar(message: "${AppStrings.hotelErrorPrefix.tr} $e");
     } finally {
       isLoading.value = false;
     }
@@ -165,13 +166,13 @@ class OtherBlogsController extends GetxController {
     try {
       final response = await _repo.deleteBlogsRepo(id);
       if (response != null && response.isSuccess) {
-        commonSnackBar(message: "Deleted successfully");
+        commonSnackBar(message: AppStrings.genericDeletedSuccess.tr);
         getBlogRepo();
       } else {
-        commonSnackBar(message: response?.message ?? "Failed to delete");
+        commonSnackBar(message: response?.message ?? AppStrings.labFailedToDelete.tr);
       }
     } catch (e) {
-      commonSnackBar(message: "Error: $e");
+      commonSnackBar(message: "${AppStrings.hotelErrorPrefix.tr} $e");
     } finally {
       isLoading.value = false;
     }

@@ -24,7 +24,7 @@ class OtherPrivacyConditionScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: "Privacy Policy, Terms & Condition",
+        title: AppStrings.otherPrivacyTncTitle.tr,
       ),
       body: Obx(() {
         if (controller.isLoading.value) {
@@ -44,7 +44,7 @@ class OtherPrivacyConditionScreen extends StatelessWidget {
                     )
                   : Center(
                       child: CustomText(
-                          "No Privacy Policy, Terms & Condition Found")),
+                          AppStrings.otherNoPrivacyTncFound.tr)),
             ),
             SafeArea(
               child: Padding(
@@ -105,7 +105,7 @@ class OtherPrivacyConditionScreen extends StatelessWidget {
                       await showCommonDialog(
                           context: context,
                           text:
-                              'Are you sure you want to delete this Privacy Policy & Condition?',
+                              AppStrings.otherConfirmDeletePrivacyTnc.tr,
                           confirmCallback: () async {
                             Get.back();
                             await controller

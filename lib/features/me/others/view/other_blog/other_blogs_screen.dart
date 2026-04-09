@@ -26,7 +26,7 @@ class OtherBlogsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: "Blogs",
+        title: AppStrings.otherBlogsTitle.tr,
       ),
       body: Obx(() {
         if (controller.isLoading.value) {
@@ -44,7 +44,7 @@ class OtherBlogsScreen extends StatelessWidget {
                         return _buildItemCard(context, item);
                       },
                     )
-                  : Center(child: CustomText("No Blogs Found")),
+                  : Center(child: CustomText(AppStrings.otherNoBlogsFound.tr)),
             ),
             SafeArea(
               child: Padding(
@@ -130,7 +130,7 @@ class OtherBlogsScreen extends StatelessWidget {
                     onPressed: () async {
                       await showCommonDialog(
                           context: context,
-                          text: 'Are you sure you want to delete this blog?',
+                          text: AppStrings.otherConfirmDeleteBlog.tr,
                           confirmCallback: () async {
                             Get.back();
                             await controller.deleteBlogRepo(item.sId!);

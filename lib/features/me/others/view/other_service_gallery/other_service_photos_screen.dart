@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/me/others/controller/other_service_photo_controller.dart';
 import 'package:BlueEra/features/me/others/view/other_service_gallery/other_service_category_details_screen.dart';
 import 'package:BlueEra/features/me/others/view/other_service_gallery/upload_other_service_photos_screen.dart';
@@ -15,7 +16,7 @@ class OtherServicePhotosPhotoScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: "Other Service Photos",
+        title: AppStrings.otherServicePhotos.tr,
       ),
       bottomNavigationBar: SafeArea(
         child: Padding(
@@ -24,7 +25,7 @@ class OtherServicePhotosPhotoScreen extends StatelessWidget {
               onTap: () {
                 Get.to(UploadOtherServicePhotosScreen());
               },
-              title: "Upload Other Service Photo"),
+              title: AppStrings.otherUploadServicePhoto.tr),
         ),
       ),
       body: Obx(() {
@@ -82,7 +83,7 @@ class OtherServicePhotosPhotoScreen extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: CustomText(
-                                "+${images.length} Images",
+                                "+${images.length} ${AppStrings.hotelImagesSuffix.tr}",
                                 textAlign: TextAlign.center,
 
                                     color: Colors.white, fontSize: 10),
@@ -106,7 +107,7 @@ class OtherServicePhotosPhotoScreen extends StatelessWidget {
                               ],
                             ),
                             SizedBox(height: 4),
-                            CustomText("Last Update: ${formatIsoDate(item.updatedAt??"")}",
+                            CustomText("${AppStrings.hotelLastUpdate.tr} ${formatIsoDate(item.updatedAt??"")}",
 
                                     color: Colors.grey, fontSize: 12),
 

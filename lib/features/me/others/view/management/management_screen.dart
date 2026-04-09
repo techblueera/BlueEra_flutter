@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/others/controller/management_controller.dart';
 import 'package:BlueEra/features/me/others/model/management_model.dart';
@@ -23,7 +24,7 @@ class ManagementScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: "Management",
+        title: AppStrings.otherManagementTitle.tr,
         isLeading: true,
       ),
       body: Obx(() {
@@ -41,7 +42,7 @@ class ManagementScreen extends StatelessWidget {
                         return _buildManagementCard(context, controller, item);
                       },
                     )
-                  : Center(child: CustomText("No Management Found")),
+                  : Center(child: CustomText(AppStrings.otherNoManagementFound.tr)),
             ),
             SafeArea(
               child: Padding(
@@ -129,7 +130,7 @@ class ManagementScreen extends StatelessWidget {
                                 commonConformationDialog(
                                   context: context,
                                   text:
-                                      "Are you sure you want to delete this member?",
+                                      AppStrings.otherConfirmDeleteMember.tr,
                                   confirmCallback: () {
                                     Get.back();
                                     controller.deleteManagement(item.sId ?? "");
@@ -139,10 +140,10 @@ class ManagementScreen extends StatelessWidget {
                               }
                             },
                             itemBuilder: (context) => [
-                              const PopupMenuItem(
-                                  value: 'Edit', child: Text('Edit')),
-                              const PopupMenuItem(
-                                  value: 'Delete', child: Text('Delete')),
+                              PopupMenuItem(
+                                  value: 'Edit', child: Text(AppStrings.edit.tr)),
+                              PopupMenuItem(
+                                  value: 'Delete', child: Text(AppStrings.delete.tr)),
                             ],
                           ),
                         )

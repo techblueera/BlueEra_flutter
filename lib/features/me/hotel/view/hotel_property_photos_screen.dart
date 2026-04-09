@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/me/hotel/controller/property_photo_controller.dart';
 import 'package:BlueEra/features/me/hotel/view/category_details_screen.dart';
 import 'package:BlueEra/features/me/hotel/view/upload_property_photos_screen.dart';
@@ -15,7 +16,7 @@ class PropertyPhotoScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: "Property Photos",
+        title: AppStrings.hotelPropertyPhotos.tr,
       ),
       bottomNavigationBar: SafeArea(
         child: Padding(
@@ -24,7 +25,7 @@ class PropertyPhotoScreen extends StatelessWidget {
               onTap: () {
                 Get.to(UploadPropertyPhotosScreen());
               },
-              title: "Upload Property Photo"),
+              title: AppStrings.hotelUploadPropertyPhoto.tr),
         ),
       ),
       body: Obx(() {
@@ -82,7 +83,7 @@ class PropertyPhotoScreen extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: CustomText(
-                                "+${images.length} Images",
+                                "+${images.length} ${AppStrings.hotelImagesSuffix.tr}",
                                 textAlign: TextAlign.center,
 
                                     color: Colors.white, fontSize: 10),
@@ -106,7 +107,7 @@ class PropertyPhotoScreen extends StatelessWidget {
                               ],
                             ),
                             SizedBox(height: 4),
-                            CustomText("Last Update: ${formatIsoDate(item.updatedAt??"")}",
+                            CustomText("${AppStrings.hotelLastUpdate.tr} ${formatIsoDate(item.updatedAt??"")}",
 
                                     color: Colors.grey, fontSize: 12),
 

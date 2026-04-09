@@ -130,20 +130,20 @@ class _LabContactUsScreenState extends State<LabContactUsScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _sectionIcon(Icons.person_outline, "Personal Info",
-                          "Your name and website"),
+                      _sectionIcon(Icons.person_outline, AppStrings.labPersonalInfo.tr,
+                          AppStrings.labPersonalInfoSub.tr),
                       const SizedBox(height: 16),
                       CommonTextField(
                         textEditController: branchNameController,
-                        hintText: "E.g. DSP Dehradun",
-                        title: AppStrings.fullName,
+                        hintText: AppStrings.labHintDspDehradun.tr,
+                        title: AppStrings.fullName.tr,
                         onChange: (_) => _triggerValidation(),
                       ),
                       const SizedBox(height: 12),
                       HttpsTextField(
                         controller: websiteController,
-                        hintText: "https://yourlaboratory.com",
-                        title: AppStrings.website,
+                        hintText: AppStrings.labHintLabWebsite.tr,
+                        title: AppStrings.website.tr,
                         onChange: (_) => _triggerValidation(),
                       ),
                     ],
@@ -160,20 +160,20 @@ class _LabContactUsScreenState extends State<LabContactUsScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _sectionIcon(Icons.phone_outlined, "Contact Details",
-                          "Email and phone"),
+                      _sectionIcon(Icons.phone_outlined, AppStrings.labContactDetailsTitle.tr,
+                          AppStrings.labContactDetailsSub.tr),
                       const SizedBox(height: 16),
                       CommonTextField(
                         textEditController: emailController,
-                        hintText: "yourlaboratory@gmail.com",
-                        title: AppStrings.email,
+                        hintText: AppStrings.labHintLabEmail.tr,
+                        title: AppStrings.email.tr,
                         onChange: (_) => _triggerValidation(),
                       ),
                       const SizedBox(height: 12),
                       CommonTextField(
                         textEditController: phoneController,
-                        hintText: "+91 1234567890",
-                        title: AppStrings.phoneNumber,
+                        hintText: AppStrings.labHintLabPhone.tr,
+                        title: AppStrings.phoneNumber.tr,
                         maxLength: 10,
                         keyBoardType: TextInputType.phone,
                         onChange: (_) => _triggerValidation(),

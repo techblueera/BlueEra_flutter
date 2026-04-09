@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/api/model/service_option_model.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/others/view/about_us/about_organization.dart';
 import 'package:BlueEra/features/me/others/view/management/management_screen.dart';
@@ -46,7 +47,7 @@ class _AddOthersServicesState extends State<OthersAboutUs> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: "About Us",
+        title: AppStrings.otherAboutUsTitle.tr,
       ),
       body: Column(
         children: [

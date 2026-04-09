@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/hotel/controller/room_detail_controller.dart';
 import 'package:BlueEra/features/me/hotel/view/room_listing_screen.dart';
@@ -18,26 +19,26 @@ class _RoomSelectionScreenState extends State<RoomSelectionScreen> {
   final controller = Get.put(RoomDetailController());
 
   final List<Map<String, dynamic>> roomDetailsList = [
-    {"name": "Standard Room", "key_id": "standardRoom", "key": "STANDARD_ROOM"},
-    {"name": "Economy Room", "key_id": "economyRoom", "key": "ECONOMY_ROOM"},
-    {"name": "Deluxe Room", "key_id": "deluxeRoom", "key": "DELUXE_ROOM"},
+    {"name": AppStrings.hotelRoomStandard, "key_id": "standardRoom", "key": "STANDARD_ROOM"},
+    {"name": AppStrings.hotelRoomEconomy, "key_id": "economyRoom", "key": "ECONOMY_ROOM"},
+    {"name": AppStrings.hotelRoomDeluxe, "key_id": "deluxeRoom", "key": "DELUXE_ROOM"},
     {
-      "name": "Super Deluxe Room",
+      "name": AppStrings.hotelRoomSuperDeluxe,
       "key_id": "superDeluxeRoom",
       "key": "SUPER_DELUXE_ROOM"
     },
-    {"name": "Premium Room", "key_id": "premiumRoom", "key": "PREMIUM_ROOM"},
+    {"name": AppStrings.hotelRoomPremium, "key_id": "premiumRoom", "key": "PREMIUM_ROOM"},
     {
-      "name": "Executive Room",
+      "name": AppStrings.hotelRoomExecutive,
       "key_id": "executiveRoom",
       "key": "EXECUTIVE_ROOM"
     },
-    {"name": "Family Room", "key_id": "familyRoom", "key": "FAMILY_ROOM"},
-    {"name": "Suite Room", "key_id": "suiteRoom", "key": "SUITE_ROOM"},
-    {"name": "Luxury Suite", "key_id": "luxurySuite", "key": "LUXURY_SUITE"},
-    {"name": "Studio Room", "key_id": "studioRoom", "key": "STUDIO_ROOM"},
+    {"name": AppStrings.hotelRoomFamily, "key_id": "familyRoom", "key": "FAMILY_ROOM"},
+    {"name": AppStrings.hotelRoomSuite, "key_id": "suiteRoom", "key": "SUITE_ROOM"},
+    {"name": AppStrings.hotelRoomLuxurySuite, "key_id": "luxurySuite", "key": "LUXURY_SUITE"},
+    {"name": AppStrings.hotelRoomStudio, "key_id": "studioRoom", "key": "STUDIO_ROOM"},
     {
-      "name": "Villa / Cottage (if applicable)",
+      "name": AppStrings.hotelRoomVillaCottage,
       "key_id": "villaCottage",
       "key": "VILLA_COTTAGE"
     },
@@ -47,7 +48,7 @@ class _RoomSelectionScreenState extends State<RoomSelectionScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: "Room Details",
+        title: AppStrings.hotelRoomDetails.tr,
       ),
       body: SafeArea(
         child: Obx(() {
@@ -80,7 +81,7 @@ class _RoomSelectionScreenState extends State<RoomSelectionScreen> {
                             ),
                             Expanded(
                               child: CustomText(
-                                item['name'],
+                                (item['name'] as String).tr,
                                 color: AppColors.secondaryTextColor,
                                 fontSize: 18,
                               ),
@@ -89,11 +90,11 @@ class _RoomSelectionScreenState extends State<RoomSelectionScreen> {
                               onTap: () {
                                 Get.to(RoomListingScreen(
                                   roomType: keyId,
-                                  roomName: item['name'],
+                                  roomName: (item['name'] as String).tr,
                                 ));
                               },
                               child: CustomText(
-                                "Add",
+                                AppStrings.hotelAddBtn.tr,
                                 color: AppColors.primaryColor,
                                 fontWeight: FontWeight.bold,
                               ),

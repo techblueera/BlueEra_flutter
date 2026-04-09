@@ -78,7 +78,7 @@ class HotelPolicyController extends GetxController {
         commonSnackBar(message: AppStrings.somethingWentWrong);
       }
     } catch (e) {
-      commonSnackBar(message:"Error Failed to load amenities");
+      commonSnackBar(message: AppStrings.hotelFailedLoadAmenities.tr);
     } finally {
       isLoading(false);
     }

@@ -57,7 +57,7 @@ class _FacilityScreenState extends State<FacilityScreen> {
                       const SizedBox(width: 10),
                       Expanded(
                         child: CustomText(
-                          "Toggle the facilities available at your laboratory",
+                          AppStrings.labFacilityToggleInfo.tr,
                           color: AppColors.primaryColor,
                           fontSize: SizeConfig.small,
                         ),
@@ -77,8 +77,8 @@ class _FacilityScreenState extends State<FacilityScreen> {
                       children: [
                         _sectionIcon(
                           Icons.medical_services_outlined,
-                          "Core Facilities",
-                          "Sample collection and reporting",
+                          AppStrings.labCoreFacilities.tr,
+                          AppStrings.labCoreFacilitiesSub.tr,
                         ),
                         const SizedBox(height: 16),
                         _buildSwitch(AppStrings.homeSampleCollection.tr,
@@ -103,8 +103,8 @@ class _FacilityScreenState extends State<FacilityScreen> {
                       children: [
                         _sectionIcon(
                           Icons.health_and_safety_outlined,
-                          "Consultation & Insurance",
-                          "Doctor tie-ups and insurance support",
+                          AppStrings.labConsultationInsurance.tr,
+                          AppStrings.labConsultationInsuranceSub.tr,
                         ),
                         const SizedBox(height: 16),
                         _buildSwitch(AppStrings.doctorConsultationTieUp.tr,
@@ -129,8 +129,8 @@ class _FacilityScreenState extends State<FacilityScreen> {
                       children: [
                         _sectionIcon(
                           Icons.payment_outlined,
-                          "Payment Options",
-                          "Accepted payment methods",
+                          AppStrings.labPaymentOptions.tr,
+                          AppStrings.labPaymentOptionsSub.tr,
                         ),
                         const SizedBox(height: 16),
                         _buildSwitch(AppStrings.online_upi_payment,

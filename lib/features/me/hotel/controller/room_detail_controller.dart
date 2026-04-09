@@ -217,7 +217,7 @@ class RoomDetailController extends GetxController {
   Future<void> pickImage(ImageSource source, RxList<XFile> targetList) async {
     if (targetList.length >= 4) {
       commonSnackBar(
-          message: "Limit Reached You can only upload a maximum of 4 images.");
+          message: AppStrings.hotelLimitReached4Images.tr);
       return;
     }
 

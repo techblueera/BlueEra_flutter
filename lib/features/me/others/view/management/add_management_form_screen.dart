@@ -23,7 +23,7 @@ class ManagementFormScreen extends StatelessWidget {
     return Scaffold(
       // backgroundColor: AppColors.white,
       appBar: CommonBackAppBar(
-        title: controller.editingId == null ? "Add Member" : "Edit Member",
+        title: controller.editingId == null ? AppStrings.otherAddMember.tr : AppStrings.otherEditMember.tr,
       ),
       body: SafeArea(
         child: Column(
@@ -48,7 +48,7 @@ class ManagementFormScreen extends StatelessWidget {
                         Center(
                           child: CommonProfileImage(
                             imagePath: imagePath,
-                            dialogTitle: "Upload Picture",
+                            dialogTitle: AppStrings.otherUploadPicture.tr,
                             onImageUpdate: (path) {
                               controller.selectedImage.value = File(path);
                             },
@@ -59,36 +59,36 @@ class ManagementFormScreen extends StatelessWidget {
                         ),
                         SizedBox(height: SizeConfig.size30),
                         CommonTextField(
-                          title: "Name",
+                          title: AppStrings.otherFieldName.tr,
                           textEditController: controller.nameController,
-                          hintText: "Enter name",
+                          hintText: AppStrings.otherEnterName.tr,
                           onChange: (val) {
                             controller.name.value = val;
                           },
                         ),
                         SizedBox(height: SizeConfig.size15),
                         CommonTextField(
-                          title: "Position",
+                          title: AppStrings.otherFieldPosition.tr,
                           textEditController: controller.positionController,
-                          hintText: "Enter position (e.g. Co-Founder)",
+                          hintText: AppStrings.otherHintPositionFounder.tr,
                           onChange: (val) {
                             controller.position.value = val;
                           },
                         ),
                         SizedBox(height: SizeConfig.size15),
                         CommonTextField(
-                          title: "Qualification",
+                          title: AppStrings.otherFieldQualification.tr,
                           textEditController:
                               controller.qualificationController,
-                          hintText: "Enter qualification (e.g. PhD in Math)",
+                          hintText: AppStrings.otherHintQualificationPhd.tr,
                           onChange: (val) {
                             controller.qualification.value = val;
                           },
                         ),
                         SizedBox(height: SizeConfig.size15),
                         AiDescriptionField(
-                          label: AppStrings.message,
-                          hintText: "Tell us more about the management...",
+                          label: AppStrings.otherFieldMessage.tr,
+                          hintText: AppStrings.otherTellAboutManagement.tr,
                           controller: controller.messageController,
                           rxValue: controller.description,
                           // Your RX variable from the controller
@@ -117,7 +117,7 @@ class ManagementFormScreen extends StatelessWidget {
                           controller.saveManagement();
                         }
                       },
-                      title: controller.editingId == null ? "Add" : "Update",
+                      title: controller.editingId == null ? AppStrings.add.tr : AppStrings.update.tr,
                       bgColor: AppColors.primaryColor,
                       textColor: AppColors.white,
                       isLoading: controller.isUploading.value,

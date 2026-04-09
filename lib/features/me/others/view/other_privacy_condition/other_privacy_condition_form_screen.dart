@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/me/others/controller/other_privacy_condition_controller.dart';
 import 'package:BlueEra/features/me/others/model/otherTNC_model.dart';
 import 'package:BlueEra/widgets/ai_description_field_screen.dart';
@@ -42,8 +43,8 @@ class _OtherPrivacyConditionFormScreenState
     return Scaffold(
       appBar: CommonBackAppBar(
         title: widget.item == null
-            ? "Add Privacy Policy & Condition"
-            : "Edit Privacy Policy & Condition",
+            ? AppStrings.otherAddPrivacyTnc.tr
+            : AppStrings.otherEditPrivacyTnc.tr,
       ),
       body: CommonCardWidget(
         child: SingleChildScrollView(
@@ -53,9 +54,9 @@ class _OtherPrivacyConditionFormScreenState
             children: [
               const SizedBox(height: 16),
               CommonTextField(
-                title: "Title",
+                title: AppStrings.title.tr,
                 textEditController: controller.titleController,
-                hintText: "Enter Title",
+                hintText: AppStrings.enterTitle.tr,
                 onChange: (val) {
                   controller.title.value = val;
                 },
@@ -63,9 +64,9 @@ class _OtherPrivacyConditionFormScreenState
               const SizedBox(height: 16),
               Obx(() {
                 return AiDescriptionField(
-                  label: "Privacy Policy & Condition",
+                  label: AppStrings.otherTncLabel.tr,
                   hintText:
-                      "Tell us more about the Privacy Policy & Condition...",
+                      AppStrings.otherTellAboutPrivacyTnc.tr,
                   controller: controller.descriptionController,
                   rxValue: controller.description,
                   // Your RX variable from the controller
@@ -99,7 +100,7 @@ class _OtherPrivacyConditionFormScreenState
                     ),
                   ),
                   child: CustomText(
-                    widget.item == null ? "Create" : "Update",
+                    widget.item == null ? AppStrings.create.tr : AppStrings.update.tr,
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                     color: Colors.white,

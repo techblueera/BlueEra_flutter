@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/others/controller/staff_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
@@ -22,7 +23,7 @@ class StaffFormScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: controller.editingId == null ? "Add Staff" : "Edit Staff",
+        title: controller.editingId == null ? AppStrings.otherAddStaff.tr : AppStrings.otherEditStaff.tr,
       ),
       body: SafeArea(
         child: Column(
@@ -47,7 +48,7 @@ class StaffFormScreen extends StatelessWidget {
                         Center(
                           child: CommonProfileImage(
                             imagePath: imagePath,
-                            dialogTitle: "Upload Picture",
+                            dialogTitle: AppStrings.otherUploadPicture.tr,
                             onImageUpdate: (path) {
                               controller.selectedImage.value = File(path);
                             },
@@ -58,28 +59,28 @@ class StaffFormScreen extends StatelessWidget {
                         ),
                         SizedBox(height: SizeConfig.size30),
                         CommonTextField(
-                          title: "Name",
+                          title: AppStrings.otherFieldName.tr,
                           textEditController: controller.nameController,
-                          hintText: "Enter name",
+                          hintText: AppStrings.otherEnterName.tr,
                         ),
                         SizedBox(height: SizeConfig.size15),
                         CommonTextField(
-                          title: "Position",
+                          title: AppStrings.otherFieldPosition.tr,
                           textEditController: controller.positionController,
-                          hintText: "Enter position (e.g. Designer)",
+                          hintText: AppStrings.otherHintPositionDesigner.tr,
                         ),
                         SizedBox(height: SizeConfig.size15),
                         CommonTextField(
-                          title: "Qualification",
+                          title: AppStrings.otherFieldQualification.tr,
                           textEditController:
                               controller.qualificationController,
-                          hintText: "Enter qualification (e.g. Diploma)",
+                          hintText: AppStrings.otherHintQualificationDiploma.tr,
                         ),
                         SizedBox(height: SizeConfig.size15),
                         
                         // Joining Date (From)
                         CustomText(
-                          "Joining Date",
+                          AppStrings.otherJoiningDate.tr,
                           fontSize: SizeConfig.medium,
                           color: AppColors.mainTextColor,
                         ),
@@ -119,7 +120,7 @@ class StaffFormScreen extends StatelessWidget {
                             ),
                             SizedBox(width: 8),
                             CustomText(
-                              "Present",
+                              AppStrings.present.tr,
                               fontSize: SizeConfig.medium,
                               color: AppColors.mainTextColor,
                             ),
@@ -130,7 +131,7 @@ class StaffFormScreen extends StatelessWidget {
                         if (!controller.isPresent.value) ...[
                           SizedBox(height: SizeConfig.size15),
                           CustomText(
-                            "Ending Date",
+                            AppStrings.otherEndingDate.tr,
                             fontSize: SizeConfig.medium,
                             color: AppColors.mainTextColor,
                           ),
@@ -170,7 +171,7 @@ class StaffFormScreen extends StatelessWidget {
                           controller.saveStaff();
                         }
                       },
-                      title: controller.editingId == null ? "Add" : "Update",
+                      title: controller.editingId == null ? AppStrings.add.tr : AppStrings.update.tr,
                       bgColor: AppColors.primaryColor,
                       textColor: AppColors.white,
                       isLoading: controller.isUploading.value,

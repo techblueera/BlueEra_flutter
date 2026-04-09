@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/others/controller/staff_controller.dart';
 import 'package:BlueEra/features/me/others/model/staff_model.dart';
@@ -21,7 +22,7 @@ class StaffScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: "Staffs",
+        title: AppStrings.otherStaffsTitle.tr,
         isLeading: true,
       ),
       body: Obx(() {
@@ -39,7 +40,7 @@ class StaffScreen extends StatelessWidget {
                         return _buildStaffCard(context, controller, item);
                       },
                     )
-                  : Center(child: CustomText("No Staff Found")),
+                  : Center(child: CustomText(AppStrings.otherNoStaffFound.tr)),
             ),
             SafeArea(
               child: Padding(
@@ -65,7 +66,7 @@ class StaffScreen extends StatelessWidget {
         final fromDate = DateTime.parse(item.joinedFrom!);
         final fromStr = DateFormat('d MMM, yyyy').format(fromDate);
         
-        String toStr = "Present";
+        String toStr = AppStrings.present.tr;
         if (item.joinedTo != null) {
           final toDate = DateTime.parse(item.joinedTo!);
            // Assuming if joinedTo is same as joinedFrom or some logic, but usually it's a range.
@@ -79,7 +80,7 @@ class StaffScreen extends StatelessWidget {
            // If joinedTo is available, use it.
            toStr = DateFormat('d MMM, yyyy').format(toDate);
         } else {
-           toStr = "Present";
+           toStr = AppStrings.present.tr;
         }
         
         // However, if the user explicitly checked "Present", the API might send null or omitted joinedTo.
@@ -87,7 +88,7 @@ class StaffScreen extends StatelessWidget {
         // Let's assume null joinedTo means Present.
         
         if (item.joinedTo == null) {
-          toStr = "Present";
+          toStr = AppStrings.present.tr;
         }
         
         dateRange = "$fromStr - $toStr";
@@ -158,7 +159,7 @@ class StaffScreen extends StatelessWidget {
                                 commonConformationDialog(
                                   context: context,
                                   text:
-                                      "Are you sure you want to delete this staff member?",
+                                      AppStrings.otherConfirmDeleteStaff.tr,
                                   confirmCallback: () {
                                     Get.back();
                                     controller.deleteStaff(item.sId ?? "");
@@ -168,10 +169,10 @@ class StaffScreen extends StatelessWidget {
                               }
                             },
                             itemBuilder: (context) => [
-                              const PopupMenuItem(
-                                  value: 'Edit', child: Text('Edit')),
-                              const PopupMenuItem(
-                                  value: 'Delete', child: Text('Delete')),
+                              PopupMenuItem(
+                                  value: 'Edit', child: Text(AppStrings.edit.tr)),
+                              PopupMenuItem(
+                                  value: 'Delete', child: Text(AppStrings.delete.tr)),
                             ],
                           ),
                         )

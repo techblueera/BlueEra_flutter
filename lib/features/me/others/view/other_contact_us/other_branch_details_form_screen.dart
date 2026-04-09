@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/api/model/place_details.dart';
 import 'package:BlueEra/core/common_bloc/place/repo/place_repo.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_http_links_textfiled_widget.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -45,31 +46,31 @@ class _OtherBranchDetailsFormScreenState extends State<OtherBranchDetailsFormScr
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(title: "Contact Us"),
+      appBar: CommonBackAppBar(title: AppStrings.contactUs.tr),
       body: CommonCardWidget(
         padding: 0,
         child: SingleChildScrollView(
           padding: EdgeInsets.all(16),
           child: Column(
             children: [
-              _buildHeader("Branch"),
+              _buildHeader(AppStrings.branch.tr),
               CommonTextField(
                 textEditController: branchNameController,
-                hintText: "E.g. DPS Dehradun",
-                title: "Branch Name",
+                hintText: AppStrings.hotelHintBranchName.tr,
+                title: AppStrings.otherBranchNameTitle.tr,
                 onChange: (_) => _triggerValidation(),
               ),
               SizedBox(height: 12),
               HttpsTextField(
                 controller: websiteController,
-                hintText: "https://dpsdehradun.com",
-                title: "Website URL",
+                hintText: AppStrings.hotelHintBranchUrl.tr,
+                title: AppStrings.otherWebsiteUrlTitle.tr,
                 onChange: (_) => _triggerValidation(),
               ),
               SizedBox(height: 12),
               CommonLocationSearchField(
                 controller: addressController,
-                title: "Location",
+                title: AppStrings.location.tr,
                 onSelected: (placeId, lat, lng, address) async {
                   addressController.text = address;
 
@@ -97,26 +98,26 @@ class _OtherBranchDetailsFormScreenState extends State<OtherBranchDetailsFormScr
               ),
 
               SizedBox(height: 24),
-              _buildHeader("Department"),
+              _buildHeader(AppStrings.department.tr),
 
               CommonTextField(
                 textEditController: titleController,
-                hintText: "E.g. Admission Cell",
-                title: "Department/Role",
+                hintText: AppStrings.otherHintAdmissionCell.tr,
+                title: AppStrings.otherDepartmentRoleTitle.tr,
                 onChange: (_) => _triggerValidation(),
               ),
               SizedBox(height: 12),
               CommonTextField(
                 textEditController: emailController,
-                hintText: "dpsdehradun@gmail.com",
-                title: "Email Address",
+                hintText: AppStrings.hotelEmailExampleHint.tr,
+                title: AppStrings.otherEmailAddressTitle.tr,
                 onChange: (_) => _triggerValidation(),
               ),
               SizedBox(height: 12),
               CommonTextField(
                 textEditController: phoneController,
-                hintText: "+91 1234567890",
-                title: "Phone Number",
+                hintText: AppStrings.hotelPhoneExampleHint.tr,
+                title: AppStrings.phoneNumber.tr,
                 maxLength: 10,
                 onChange: (_) => _triggerValidation(),
               ),
@@ -136,7 +137,7 @@ class _OtherBranchDetailsFormScreenState extends State<OtherBranchDetailsFormScr
                               phone: phoneController.text,
                             ),
                         // : null, // Button disabled if form invalid
-                    title: "Submit",
+                    title: AppStrings.submit.tr,
                     isValidate: true
                   )),
             ],

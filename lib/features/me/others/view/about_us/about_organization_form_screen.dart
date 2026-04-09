@@ -45,7 +45,7 @@ class _AboutOrganizationFormScreenState
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: widget.item == null ? "Add Organization" : "Edit Organization",
+        title: widget.item == null ? AppStrings.otherAddOrganization.tr : AppStrings.otherEditOrganization.tr,
       ),
       body: CommonCardWidget(
         child: SingleChildScrollView(
@@ -95,7 +95,7 @@ class _AboutOrganizationFormScreenState
                             width: 24),
                         const SizedBox(height: 8),
                         CustomText(
-                          "Upload Photo",
+                          AppStrings.otherUploadPhoto.tr,
                           fontSize: 16,
                           color: AppColors.secondaryTextColor,
                           fontWeight: FontWeight.w400,
@@ -109,14 +109,14 @@ class _AboutOrganizationFormScreenState
 
               // Title
               CustomText(
-                "Title",
+                AppStrings.title.tr,
                 fontSize: 12,
                 fontWeight: FontWeight.w400,
               ),
               const SizedBox(height: 8),
               CommonTextField(
                 textEditController: controller.titleController,
-                hintText: "Enter Title",
+                hintText: AppStrings.enterTitle.tr,
                 onChange: (val) {
                   controller.title.value = val;
                 },
@@ -124,8 +124,8 @@ class _AboutOrganizationFormScreenState
               const SizedBox(height: 16),
               Obx(() {
                 return AiDescriptionField(
-                  label: AppStrings.description,
-                  hintText: "Tell us more about the organization...",
+                  label: AppStrings.description.tr,
+                  hintText: AppStrings.otherTellAboutOrganization.tr,
                   controller: controller.descriptionController,
                   rxValue: controller.description,
                   // Your RX variable from the controller
@@ -159,7 +159,7 @@ class _AboutOrganizationFormScreenState
                     ),
                   ),
                   child: CustomText(
-                    widget.item == null ? "Create" : "Update",
+                    widget.item == null ? AppStrings.create.tr : AppStrings.update.tr,
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                     color: Colors.white,

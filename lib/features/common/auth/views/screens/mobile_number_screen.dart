@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
@@ -33,6 +34,7 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
   AutovalidateMode _autoValidate = AutovalidateMode.disabled;
   final _authController = Get.put(AuthController());
   late LanguageListController langController;
+  bool _acceptedTerms = false;
 
   @override
   void initState() {
@@ -132,58 +134,82 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
 
                   SizedBox(height: SizeConfig.size6),
                   SizedBox(height: SizeConfig.size10),
-                  Center(
-                    child: RichText(
-                      textAlign: TextAlign.center,
-                      text: TextSpan(
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Colors.black87,
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      SizedBox(
+                        height: 24,
+                        width: 24,
+                        child: Checkbox(
+                          value: _acceptedTerms,
+                          activeColor: AppColors.primaryColor,
+                          checkColor: AppColors.white,
+                          materialTapTargetSize:
+                              MaterialTapTargetSize.shrinkWrap,
+                          visualDensity: VisualDensity.compact,
+                          onChanged: (val) {
+                            setState(() {
+                              _acceptedTerms = val ?? false;
+                            });
+                          },
                         ),
-                        children: [
-                          TextSpan(
-                            text: AppStrings.byContinuingYouAgree.tr,
-                            style: const TextStyle(
-                              fontFamily: AppConstants.OpenSans,
-                            ),
-                          ),
-                          TextSpan(
-                            text: " ${AppStrings.termsConditions.tr}",
-                            style: const TextStyle(
-                              color: AppColors.primaryColor,
-                              fontFamily: AppConstants.OpenSans,
-                            ),
-                            recognizer: TapGestureRecognizer()
-                              ..onTap = () {
-                                Get.to(CommonWebView(
-                                  urlLink: tncLink,
-                                  urlTitle: AppStrings.termsConditions.tr,
-                                ));
-                                // Handle Terms & Conditions tap
-                                print('Tapped Terms & Conditions');
-                              },
-                          ),
-                          TextSpan(text: AppStrings.andText.tr),
-                          TextSpan(
-                            text: AppStrings.privacyPolicyDot.tr,
-                            style: TextStyle(
-                              color: AppColors.primaryColor,
-                              fontFamily: AppConstants.OpenSans,
-                            ),
-                            recognizer: TapGestureRecognizer()
-                              ..onTap = () {
-                                Get.to(CommonWebView(
-                                  urlLink: privacyLink,
-                                  urlTitle: AppStrings.privacyPolicy.tr,
-                                ));
-
-                                // Handle Privacy Policy tap
-                                print('Tapped Privacy Policy');
-                              },
-                          ),
-                        ],
                       ),
-                    ),
+                      SizedBox(width: SizeConfig.size8),
+                      Expanded(
+                        child: RichText(
+                          textAlign: TextAlign.left,
+                          text: TextSpan(
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: Colors.black87,
+                            ),
+                            children: [
+                              TextSpan(
+                                text: AppStrings.byContinuingYouAgree.tr,
+                                style: const TextStyle(
+                                  fontFamily: AppConstants.OpenSans,
+                                  fontSize: 14,
+
+                                ),
+                              ),
+                              TextSpan(
+                                text: " ${AppStrings.termsConditions.tr}",
+                                style: const TextStyle(
+                                  color: AppColors.primaryColor,
+                                  fontFamily: AppConstants.OpenSans,
+                                  fontSize: 14,
+
+                                ),
+                                recognizer: TapGestureRecognizer()
+                                  ..onTap = () {
+                                    Get.to(CommonWebView(
+                                      urlLink: tncLink,
+                                      urlTitle: AppStrings.termsConditions.tr,
+                                    ));
+                                  },
+                              ),
+                              TextSpan(text: " ${AppStrings.andText.tr} "),
+                              TextSpan(
+                                text: " ${AppStrings.privacyPolicyDot.tr}",
+                                style: TextStyle(
+                                  color: AppColors.primaryColor,
+                                  fontSize: 14,
+
+                                  fontFamily: AppConstants.OpenSans,
+                                ),
+                                recognizer: TapGestureRecognizer()
+                                  ..onTap = () {
+                                    Get.to(CommonWebView(
+                                      urlLink: privacyLink,
+                                      urlTitle: AppStrings.privacyPolicy.tr,
+                                    ));
+                                  },
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
 
                   SizedBox(height: SizeConfig.size20),
@@ -219,6 +245,11 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
   ///Show Bottom sheet...
   Future<void> _onNextButtonPressed(BuildContext context) async {
     if (_formKey.currentState?.validate() ?? false) {
+      if (!_acceptedTerms) {
+        commonSnackBar(
+            message: AppStrings.pleaseAcceptTermsAndConditions.tr);
+        return;
+      }
       Get.find<AuthController>().isOtpType.value = AppConstants.SMS;
       await Get.find<AuthController>().sendOTP();
       unFocus();

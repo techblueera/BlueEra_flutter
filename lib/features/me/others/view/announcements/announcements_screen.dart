@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/api/model/service_option_model.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/others/view/other_blog/other_blogs_screen.dart';
 import 'package:BlueEra/features/me/others/view/other_downloads/other_downloads_screen.dart';
@@ -41,7 +42,7 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: "Announcements",
+        title: AppStrings.otherAnnouncements.tr,
       ),
       body: Column(
         children: [

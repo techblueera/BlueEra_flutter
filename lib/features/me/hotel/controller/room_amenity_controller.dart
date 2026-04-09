@@ -44,7 +44,7 @@ class RoomAmenityController extends GetxController {
         commonSnackBar(message: AppStrings.somethingWentWrong);
       }
     } catch (e) {
-      commonSnackBar(message:"Error Failed to load amenities");
+      commonSnackBar(message: AppStrings.hotelFailedLoadAmenities.tr);
     } finally {
       isLoading(false);
     }
@@ -60,7 +60,7 @@ class RoomAmenityController extends GetxController {
     } catch (e) {
       // Revert if API fails
       roomAmenityStatus[key] = !value;
-      commonSnackBar(message: "Error Update failed");
+      commonSnackBar(message: AppStrings.hotelUpdateFailed.tr);
     }
   }
 

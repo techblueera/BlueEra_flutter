@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/api/apiService/response_model.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/me/laboratory/model/facility_model.dart';
@@ -56,7 +57,7 @@ class FacilityController extends GetxController {
         }
       }
     } catch (e) {
-      commonSnackBar(message: "Error fetching facilities: $e");
+      commonSnackBar(message: "${AppStrings.hotelErrorPrefix.tr} $e");
     } finally {
       isLoading.value = false;
       validateForm();
@@ -74,7 +75,7 @@ class FacilityController extends GetxController {
 
   void addOther() {
     if (others.length >= 5) {
-      commonSnackBar(message: "You can add up to 5 facilities");
+      commonSnackBar(message: AppStrings.labMaxFiveFacilities.tr);
       return;
     }
     others.add(FacilityOther(label: "", isActive: false, details: ""));
@@ -156,15 +157,15 @@ class FacilityController extends GetxController {
           .toJson();
       ResponseModel res = await _repo.createOrUpdateFacilities(payload);
       if (res.isSuccess) {
-        commonSnackBar(message: "Facilities saved");
+        commonSnackBar(message: AppStrings.labFacilitiesSaved.tr);
         return true;
       } else {
         commonSnackBar(
-            message: res.response?.data['message'] ?? "Failed to save");
+            message: res.response?.data['message'] ?? AppStrings.labFailedToSave.tr);
         return false;
       }
     } catch (e) {
-      commonSnackBar(message: "Error saving facilities: $e");
+      commonSnackBar(message: "${AppStrings.hotelErrorPrefix.tr} $e");
       return false;
     } finally {
       isLoading.value = false;

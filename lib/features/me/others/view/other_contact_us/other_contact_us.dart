@@ -42,7 +42,7 @@ class _OtherContactUsState extends State<OtherContactUs> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: "Contact Us",
+        title: AppStrings.contactUs.tr,
       ),
       body: SafeArea(
         child: Column(
@@ -52,7 +52,7 @@ class _OtherContactUsState extends State<OtherContactUs> {
                 if (controller.getSchoolContactUsResponse.value.status ==
                     Status.COMPLETE) {
                   if (controller.schoolContactUsData?.isEmpty ?? false) {
-                    return Center(child: CustomText("No Contact Us Found "));
+                    return Center(child: CustomText(AppStrings.otherNoContactUsFound.tr));
                   }
                   return ListView.builder(
                     shrinkWrap: true,
@@ -68,7 +68,7 @@ class _OtherContactUsState extends State<OtherContactUs> {
                             Row(
                               children: [
                                 CustomText(
-                                  "Branch: ",
+                                  AppStrings.otherBranchPrefix.tr,
                                   color: AppColors.secondaryTextColor,
                                   fontSize: SizeConfig.large,
                                 ),
@@ -100,12 +100,12 @@ class _OtherContactUsState extends State<OtherContactUs> {
                                         1) {
                                       commonSnackBar(
                                           message:
-                                              "At least one school branch contact info is required");
+                                              AppStrings.otherAtLeastOneBranchRequired.tr);
                                     } else {
                                       await showCommonDialog(
                                           context: context,
                                           text:
-                                              'Are you sure you want to delete this school branch contact info?',
+                                              AppStrings.otherConfirmDeleteBranch.tr,
                                           confirmCallback: () async {
                                             await controller
                                                 .deleteSchoolBranchController(
@@ -184,12 +184,12 @@ class _OtherContactUsState extends State<OtherContactUs> {
                                                   1) {
                                                 commonSnackBar(
                                                     message:
-                                                        "At least one department is required");
+                                                        AppStrings.otherAtLeastOneDepartmentRequired.tr);
                                               } else {
                                                 await showCommonDialog(
                                                     context: context,
                                                     text:
-                                                        'Are you sure you want to delete this department?',
+                                                        AppStrings.otherConfirmDeleteDepartment.tr,
                                                     confirmCallback: () async {
                                                       await controller
                                                           .deleteSchoolBranchDepartmentController(
@@ -260,7 +260,7 @@ class _OtherContactUsState extends State<OtherContactUs> {
                                   color: AppColors.primaryColor,
                                 ),
                                 label: CustomText(
-                                  "Add More Department",
+                                  AppStrings.otherAddMoreDepartment.tr,
                                   color: AppColors.primaryColor,
                                 ),
                                 onPressed: () {
@@ -279,7 +279,7 @@ class _OtherContactUsState extends State<OtherContactUs> {
                 }
                 if (controller.getSchoolContactUsResponse.value.status ==
                     Status.ERROR) {
-                  return Center(child: CustomText(AppStrings.noDataFound));
+                  return Center(child: CustomText(AppStrings.noDataFound.tr));
                 }
                 return SizedBox();
               }),
@@ -293,7 +293,7 @@ class _OtherContactUsState extends State<OtherContactUs> {
               onTapEvent: () {
                 Get.to(OtherBranchDetailsFormScreen());
               },
-              buttonName: "Add Another Branch",
+              buttonName: AppStrings.otherAddAnotherBranch.tr,
             ),
             SizedBox(
               height: SizeConfig.size25,

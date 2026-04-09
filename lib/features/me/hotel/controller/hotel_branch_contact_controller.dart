@@ -53,7 +53,7 @@ class HotelBranchContactController extends GetxController {
   }) async {
     if (selectedLat == null || selectedLng == null) {
       commonSnackBar(
-          message: "Please select a valid location from the search.");
+          message: AppStrings.hotelSelectValidLocation.tr);
       return;
     }
 
@@ -74,7 +74,7 @@ class HotelBranchContactController extends GetxController {
       if (response.isSuccess) {
         commonSnackBar(
             message: response.response?.data['message'] ??
-                "Branch details added successfully");
+                AppStrings.hotelBranchAddedSuccess.tr);
         Get.back();
         await getBranchDetailsController();
         try {
@@ -125,7 +125,7 @@ class HotelBranchContactController extends GetxController {
       if (response.isSuccess) {
         commonSnackBar(
             message: response.response?.data['message'] ??
-                "Branch details update successfully");
+                AppStrings.hotelBranchUpdatedSuccess.tr);
         Get.back();
         await getBranchDetailsController();
         try {

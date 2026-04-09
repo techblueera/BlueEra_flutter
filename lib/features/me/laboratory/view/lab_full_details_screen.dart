@@ -73,7 +73,7 @@ class _LabFullDetailsScreenState extends State<LabFullDetailsScreen> {
                 if ((profile?.description ?? '').isEmpty)
                   _emptySection(
                     title: AppStrings.description.tr,
-                    subtitle: "Add a description for your laboratory",
+                    subtitle: AppStrings.labAddDescriptionForLab.tr,
                     icon: Icons.description_outlined,
                     onEdit: () => Get.to(() => const LabDescriptionScreen())
                         ?.then((_) => controller.fetchFullDetails()),
@@ -121,7 +121,7 @@ class _LabFullDetailsScreenState extends State<LabFullDetailsScreen> {
                 if (tests.isEmpty)
                   _emptySection(
                     title: AppStrings.ourPopularServices.tr,
-                    subtitle: "Add tests to showcase your popular services",
+                    subtitle: AppStrings.labAddTestsToShowcase.tr,
                     icon: Icons.medical_services_outlined,
                     onEdit: null,
                   )
@@ -136,7 +136,7 @@ class _LabFullDetailsScreenState extends State<LabFullDetailsScreen> {
                 if (_isFacilityEmpty(facility))
                   _emptySection(
                     title: AppStrings.facility.tr,
-                    subtitle: "Add facility details for your laboratory",
+                    subtitle: AppStrings.labAddFacilityDetails.tr,
                     icon: Icons.local_hospital_outlined,
                     onEdit: () => Get.to(() => FacilityScreen())
                         ?.then((_) => controller.fetchFullDetails()),
@@ -157,7 +157,7 @@ class _LabFullDetailsScreenState extends State<LabFullDetailsScreen> {
                 if (contact == null)
                   _emptySection(
                     title: AppStrings.contactUs.tr,
-                    subtitle: "Add contact information for your laboratory",
+                    subtitle: AppStrings.labAddContactInfo.tr,
                     icon: Icons.contact_phone_outlined,
                     onEdit: () => Get.to(() => LabContactUsScreen())
                         ?.then((_) => controller.fetchFullDetails()),

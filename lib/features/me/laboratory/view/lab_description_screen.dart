@@ -60,7 +60,7 @@ class _LabDescriptionScreenState extends State<LabDescriptionScreen> {
                       const SizedBox(width: 10),
                       Expanded(
                         child: CustomText(
-                          "Add a description to help patients understand your laboratory",
+                          AppStrings.labAddDescHelp.tr,
                           color: AppColors.primaryColor,
                           fontSize: SizeConfig.small,
                         ),
@@ -81,12 +81,12 @@ class _LabDescriptionScreenState extends State<LabDescriptionScreen> {
                         _sectionIcon(
                           Icons.description_outlined,
                           AppStrings.description.tr,
-                          "Tell patients about your lab services",
+                          AppStrings.labTellAboutLab.tr,
                         ),
                         const SizedBox(height: 16),
                         CommonTextField(
                           title: "",
-                          hintText: "Enter description (max 500 characters)",
+                          hintText: AppStrings.labHintEnterDescription.tr,
                           textEditController: controller.descController,
                           maxLine: 6,
                           maxLength: 500,

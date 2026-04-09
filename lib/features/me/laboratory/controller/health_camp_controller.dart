@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/response_model.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/me/laboratory/model/health_camp_model.dart';
@@ -125,7 +126,7 @@ class HealthCampController extends GetxController {
   void addImages(List<String> paths) {
     final remaining = maxImages - selectedImages.length;
     if (remaining <= 0) {
-      commonSnackBar(message: "Maximum $maxImages images allowed");
+      commonSnackBar(message: "${AppStrings.labMaxImagesAllowed.tr} ($maxImages)");
       return;
     }
     final newFiles = paths.take(remaining).map((e) => File(e)).toList();
@@ -156,7 +157,7 @@ class HealthCampController extends GetxController {
       if (result.isSuccess) {
         urls.add(result.url);
       } else {
-        commonSnackBar(message: "Image upload failed: ${result.message}");
+        commonSnackBar(message: "${AppStrings.labImageUploadFailed.tr} ${result.message}");
       }
     }
     return urls;
@@ -292,16 +293,16 @@ class HealthCampController extends GetxController {
 
       ResponseModel res = await _repo.createHealthCamp(payload);
       if (res.isSuccess) {
-        commonSnackBar(message: "Health camp created");
+        commonSnackBar(message: AppStrings.labHealthCampCreated.tr);
         await fetchCamps();
         return true;
       } else {
         commonSnackBar(
-            message: res.response?.data['message'] ?? "Failed to create");
+            message: res.response?.data['message'] ?? AppStrings.labFailedToCreate.tr);
         return false;
       }
     } catch (e) {
-      commonSnackBar(message: "Error creating camp: $e");
+      commonSnackBar(message: "${AppStrings.hotelErrorPrefix.tr} $e");
       return false;
     } finally {
       isLoading.value = false;
@@ -348,16 +349,16 @@ class HealthCampController extends GetxController {
 
       ResponseModel res = await _repo.updateHealthCamp(existing.id!, payload);
       if (res.isSuccess) {
-        commonSnackBar(message: "Health camp updated");
+        commonSnackBar(message: AppStrings.labHealthCampUpdated.tr);
         await fetchCamps();
         return true;
       } else {
         commonSnackBar(
-            message: res.response?.data['message'] ?? "Failed to update");
+            message: res.response?.data['message'] ?? AppStrings.labFailedToUpdate.tr);
         return false;
       }
     } catch (e) {
-      commonSnackBar(message: "Error updating camp: $e");
+      commonSnackBar(message: "${AppStrings.hotelErrorPrefix.tr} $e");
       return false;
     } finally {
       isLoading.value = false;
@@ -369,15 +370,15 @@ class HealthCampController extends GetxController {
     try {
       ResponseModel res = await _repo.deleteHealthCamp(id);
       if (res.isSuccess) {
-        commonSnackBar(message: "Health camp deleted");
+        commonSnackBar(message: AppStrings.labHealthCampDeleted.tr);
         campDetail.value = null;
         await fetchCamps();
       } else {
         commonSnackBar(
-            message: res.response?.data['message'] ?? "Failed to delete");
+            message: res.response?.data['message'] ?? AppStrings.labFailedToDelete.tr);
       }
     } catch (e) {
-      commonSnackBar(message: "Error deleting camp: $e");
+      commonSnackBar(message: "${AppStrings.hotelErrorPrefix.tr} $e");
     } finally {
       isLoading.value = false;
     }

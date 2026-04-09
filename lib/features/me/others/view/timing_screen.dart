@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -16,15 +17,15 @@ class TimingScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: "Timing",
+        title: AppStrings.otherTimingTitle.tr,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const CustomText(
-              "Set your Availability",
+            CustomText(
+              AppStrings.setYourAvailability.tr,
               fontSize: 16,
               fontWeight: FontWeight.w600,
               color: AppColors.mainTextColor,
@@ -92,12 +93,12 @@ class TimingScreen extends StatelessWidget {
                                   // Status Text or Time Pickers
                                   dayTiming.isOpen.value
                                       ? CustomText(
-                                    "Open",
+                                    AppStrings.otherOpen.tr,
                                     color: AppColors.secondaryTextColor,
                                     fontSize: SizeConfig.size12,
                                   )
-                                      : const CustomText(
-                                    "Closed",
+                                      : CustomText(
+                                    AppStrings.otherClosed.tr,
                                     color: AppColors.mainTextColor,
                                   ),
 
@@ -159,8 +160,8 @@ class TimingScreen extends StatelessWidget {
                             height: 24,
                             child: CircularProgressIndicator(
                                 color: Colors.white, strokeWidth: 2))
-                        : const CustomText(
-                            "Submit",
+                        : CustomText(
+                            AppStrings.submit.tr,
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
                             color: AppColors.white,

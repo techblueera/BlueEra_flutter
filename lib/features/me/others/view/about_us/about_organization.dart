@@ -27,7 +27,7 @@ class AboutOrganization extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: "About Organization",
+        title: AppStrings.otherAboutOrganizationTitle.tr,
       ),
       body: Obx(() {
         if (controller.isLoading.value) {
@@ -45,7 +45,7 @@ class AboutOrganization extends StatelessWidget {
                         return _buildItemCard(context, item);
                       },
                     )
-                  : Center(child: CustomText("No Organization Found")),
+                  : Center(child: CustomText(AppStrings.otherNoOrganizationFound.tr)),
             ),
             SafeArea(
               child: Padding(
@@ -131,7 +131,7 @@ class AboutOrganization extends StatelessWidget {
                     onPressed: () async {
                       await showCommonDialog(
                           context: context,
-                          text: 'Are you sure you want to delete this data?',
+                          text: AppStrings.otherConfirmDeleteData.tr,
                           confirmCallback: () async {
                             Get.back();
                             await controller.deleteAboutOrganisation(item.sId!);
