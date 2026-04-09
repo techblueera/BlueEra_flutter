@@ -275,7 +275,7 @@ Widget  ChatListTile({
         chatViewController.selectedChatList.add(chat);
         onSelect();
       } else {
-      commonSnackBar(message: "Only Five Members Can Choose");
+      commonSnackBar(message: AppStrings.onlyFiveMembersCanChoose.tr);
       }
     }
   }
@@ -543,20 +543,20 @@ Widget  ChatListTile({
                       SizedBox(width: SizeConfig.size4),
                       CustomText(
                         lastMessageType == "document"
-                            ? "Document"
+                            ? AppStrings.documentLabel.tr
                             : lastMessageType == "contact"
-                            ? "Contact"
+                            ? AppStrings.contactLabel.tr
                             : lastMessageType == "audio"
-                            ? "Audio"
+                            ? AppStrings.audioLabel.tr
                             : lastMessageType == "video"
-                            ? "Video"
+                            ? AppStrings.videoLabel.tr
                             : lastMessageType == "location"
-                            ? "Location"
+                            ? AppStrings.locationLabel.tr
                             : lastMessageType == "live_location"
                             ? (chat?.isEnded == true
-                                ? "Live location ended"
-                                : "Live location")
-                            : "Image",
+                                ? AppStrings.liveLocationEnded.tr
+                                : AppStrings.liveLocationMsgType.tr)
+                            : AppStrings.imageLabel.tr,
                         fontSize: SizeConfig.size14,
                         color: AppColors.grey9A,
                         overflow: TextOverflow.ellipsis,
@@ -787,7 +787,7 @@ Widget replyMessageTypeIconWithLabel(Messages message) {
         width: SizeConfig.size4,
       ),
       CustomText(
-        "Image",
+        AppStrings.imageLabel.tr,
         fontWeight: FontWeight.w500,
         color: AppColors.grayText,
         fontSize: SizeConfig.size13,
@@ -802,7 +802,7 @@ Widget replyMessageTypeIconWithLabel(Messages message) {
         width: SizeConfig.size4,
       ),
       CustomText(
-        "Video",
+        AppStrings.videoLabel.tr,
         fontWeight: FontWeight.w500,
         color: AppColors.grayText,
         fontSize: SizeConfig.size13,
@@ -817,7 +817,7 @@ Widget replyMessageTypeIconWithLabel(Messages message) {
         width: SizeConfig.size4,
       ),
       CustomText(
-        "Location",
+        AppStrings.locationLabel.tr,
         fontWeight: FontWeight.w500,
         color: AppColors.grayText,
         fontSize: SizeConfig.size13,
@@ -832,7 +832,7 @@ Widget replyMessageTypeIconWithLabel(Messages message) {
         width: SizeConfig.size4,
       ),
       CustomText(
-        "Document",
+        AppStrings.documentLabel.tr,
         fontWeight: FontWeight.w500,
         color: AppColors.grayText,
         fontSize: SizeConfig.size13,
@@ -847,7 +847,7 @@ Widget replyMessageTypeIconWithLabel(Messages message) {
         width: SizeConfig.size4,
       ),
       CustomText(
-        "Contact",
+        AppStrings.contactLabel.tr,
         fontWeight: FontWeight.w500,
         color: AppColors.grayText,
         fontSize: SizeConfig.size13,
@@ -862,7 +862,7 @@ Widget replyMessageTypeIconWithLabel(Messages message) {
         width: SizeConfig.size4,
       ),
       CustomText(
-        "Audio",
+        AppStrings.audioLabel.tr,
         fontWeight: FontWeight.w500,
         color: AppColors.grayText,
         fontSize: SizeConfig.size13,
@@ -887,7 +887,7 @@ Widget messageTypeIconWithLabel(Messages message) {
         width: SizeConfig.size4,
       ),
       CustomText(
-        "Image",
+        AppStrings.imageLabel.tr,
         fontWeight: FontWeight.w500,
         color: Colors.black,
         fontSize: SizeConfig.size13,
@@ -902,7 +902,7 @@ Widget messageTypeIconWithLabel(Messages message) {
         width: SizeConfig.size4,
       ),
       CustomText(
-        "Video",
+        AppStrings.videoLabel.tr,
         fontWeight: FontWeight.w500,
         color: Colors.black,
         fontSize: SizeConfig.size13,
@@ -917,7 +917,7 @@ Widget messageTypeIconWithLabel(Messages message) {
         width: SizeConfig.size4,
       ),
       CustomText(
-        "Location",
+        AppStrings.locationLabel.tr,
         fontWeight: FontWeight.w500,
         color: Colors.black,
         fontSize: SizeConfig.size13,
@@ -932,7 +932,7 @@ Widget messageTypeIconWithLabel(Messages message) {
         width: SizeConfig.size4,
       ),
       CustomText(
-        "Document",
+        AppStrings.documentLabel.tr,
         fontWeight: FontWeight.w500,
         color: Colors.black,
         fontSize: SizeConfig.size13,
@@ -947,7 +947,7 @@ Widget messageTypeIconWithLabel(Messages message) {
         width: SizeConfig.size4,
       ),
       CustomText(
-        "Contact",
+        AppStrings.contactLabel.tr,
         fontWeight: FontWeight.w500,
         color: Colors.black,
         fontSize: SizeConfig.size13,
@@ -962,7 +962,7 @@ Widget messageTypeIconWithLabel(Messages message) {
         width: SizeConfig.size4,
       ),
       CustomText(
-        "Audio",
+        AppStrings.audioLabel.tr,
         fontWeight: FontWeight.w500,
         color: Colors.black,
         fontSize: SizeConfig.size13,
@@ -1497,7 +1497,7 @@ AppBar getChatTitleAppBar(BuildContext context, {
               border: Border.all(color: AppColors.primaryColor)
             ),
             padding: EdgeInsets.symmetric(horizontal: 8,vertical: 2),
-            child: CustomText("New",color: AppColors.primaryColor,)),
+            child: CustomText(AppStrings.newTag.tr,color: AppColors.primaryColor,)),
       ),
       SizedBox(width: SizeConfig.size12),
       // SvgPicture.asset(AppIconAssets.chat_video_call),
@@ -1792,7 +1792,7 @@ void showMessageEditDialog(String userId,
               keyboardType: TextInputType.text,
               textCapitalization: TextCapitalization.words,
               decoration: InputDecoration(
-                hintText: 'Type your message...',
+                hintText: AppStrings.typeYourMessage.tr,
                 filled: true,
                 fillColor: Colors.white.withValues(alpha: 0.05),
                 contentPadding:
@@ -1911,7 +1911,7 @@ class _BusinessToRiderOtpVerificationCardState
           mainAxisSize: MainAxisSize.min,
           children: [
             CustomText(
-              "Enter OTP",
+              AppStrings.enterOtp.tr,
               fontSize: SizeConfig.size20,
               fontWeight: FontWeight.w700,
 
@@ -1934,13 +1934,13 @@ class _BusinessToRiderOtpVerificationCardState
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   CustomText(
-                      "Wrong OTP! ",
+                      "${AppStrings.wrongOtp.tr} ",
                       color: Colors.red, fontSize: SizeConfig.size12
                   ),
                   GestureDetector(
                     onTap: () {},
                     child: CustomText(
-                      "Re-enter",
+                      AppStrings.reEnter.tr,
 
                       color: Colors.blue,
                       fontSize: SizeConfig.size12,

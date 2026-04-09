@@ -203,7 +203,7 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
                                             horizontal: 8, vertical: 2),
                                         child: Center(
                                           child: CustomText(
-                                            "${details.publicGroup==true?"Public":"Private"}",
+                                            "${details.publicGroup==true?AppStrings.publicGroupLabel.tr:AppStrings.privateGroupLabel.tr}",
                                             fontSize: 12,
                                           ),
                                         ),
@@ -215,7 +215,7 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
                                   ),
                                   ExpandableText(
                                     text: " ${(details.description!=null&&details.description!='')?
-                                    details.description:"No group description added yet"}",
+                                    details.description:AppStrings.noGroupDescriptionAdded.tr}",
                                     trimLines: 4,
                                     style: TextStyle(
                                       fontSize: SizeConfig.small,
@@ -238,10 +238,10 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
 
                     HorizontalTabSelector(
                         tabs: [
-                          "Members",
-                          "Gallery",
-                          "Add",
-                          "Documents"
+                          AppStrings.membersTab.tr,
+                          AppStrings.galleryTab.tr,
+                          AppStrings.addTab.tr,
+                          AppStrings.documentsTab.tr
                         ],
                         selectedIndex: selectedIndex,
                         onTabSelected: (index, dd) {
@@ -293,7 +293,7 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
         return Center(
           child: Padding(
             padding: const EdgeInsets.all(20.0),
-            child: CustomText("No Record Found We Update You Soon"),
+            child: CustomText(AppStrings.noRecordFoundUpdate.tr),
           ),
         );
     }

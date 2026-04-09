@@ -1,4 +1,7 @@
+import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import '../../auth/model/chat_theme_model.dart';
 class ThemePreviewScreen extends StatefulWidget {
@@ -30,7 +33,7 @@ class _ThemePreviewScreenState extends State<ThemePreviewScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Preview"),
+        title: CustomText(AppStrings.previewLabel.tr),
         actions: [
           IconButton(
             icon: const Icon(Icons.check_circle, color: Colors.green),

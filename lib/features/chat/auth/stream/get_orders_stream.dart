@@ -24,8 +24,6 @@ Stream<dynamic> getOrderFromUserStream() async* {
     'Connection': 'keep-alive',
   });
 
-  print("Connecting to: $url");
-  print("Auth token length: ${authTokenGlobal}");
 
   final response = await request.send();
 
@@ -59,8 +57,7 @@ Stream<dynamic> getOrderFromUserStream() async* {
           final decoded = jsonDecode(jsonStr);
           yield decoded;
         } catch (e) {
-          log('❌ JSON decode failed');
-          log(jsonStr);
+
         }
       }
     }

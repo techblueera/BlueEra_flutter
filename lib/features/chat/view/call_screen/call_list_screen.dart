@@ -1,6 +1,8 @@
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/chat/auth/controller/call_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/auth/model/GetChatListModel.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -218,14 +220,12 @@ class _CallListScreenState extends State<CallListScreen>
         icon: const Icon(Icons.arrow_back, color: Colors.white),
         onPressed: () => Get.back(),
       ),
-      title: const Text(
-        'Calls',
-        style: TextStyle(
-          color: Colors.white,
-          fontSize: 20,
-          fontWeight: FontWeight.w600,
-          fontFamily: 'OpenSans',
-        ),
+      title: CustomText(
+        AppStrings.callsTab.tr,
+        color: Colors.white,
+        fontSize: 20,
+        fontWeight: FontWeight.w600,
+        fontFamily: 'OpenSans',
       ),
       actions: [
         IconButton(
@@ -252,9 +252,9 @@ class _CallListScreenState extends State<CallListScreen>
           fontSize: 14,
           fontFamily: 'OpenSans',
         ),
-        tabs: const [
-          Tab(text: 'Contacts'),
-          Tab(text: 'Recent'),
+        tabs: [
+          Tab(text: AppStrings.contactsTab.tr),
+          Tab(text: AppStrings.recentTab.tr),
         ],
       ),
     );
@@ -276,7 +276,7 @@ class _CallListScreenState extends State<CallListScreen>
             style: const TextStyle(color: Colors.white, fontSize: 14),
             cursorColor: _kGreen,
             decoration: InputDecoration(
-              hintText: 'Search name or number...',
+              hintText: AppStrings.searchNameOrNumber.tr,
               hintStyle: const TextStyle(color: _kSubtext, fontSize: 14),
               prefixIcon: const Icon(Icons.search, color: _kSubtext, size: 20),
               suffixIcon: Obx(() => _searchQuery.value.isNotEmpty
@@ -313,7 +313,7 @@ class _CallListScreenState extends State<CallListScreen>
             if (useDummy && dummyContacts.isEmpty) {
               return _buildEmptyState(
                 icon: Icons.people_outline_rounded,
-                title: 'No contacts found',
+                title: AppStrings.noContactsFound.tr,
               );
             }
 
@@ -321,10 +321,10 @@ class _CallListScreenState extends State<CallListScreen>
               return _buildEmptyState(
                 icon: Icons.people_outline_rounded,
                 title: _searchQuery.value.isNotEmpty
-                    ? 'No contacts found'
-                    : 'No contacts yet',
+                    ? AppStrings.noContactsFound.tr
+                    : AppStrings.noContactsYet.tr,
                 subtitle: _searchQuery.value.isEmpty
-                    ? 'Start chatting to see contacts here'
+                    ? AppStrings.startChattingToSee.tr
                     : null,
               );
             }
@@ -623,17 +623,18 @@ class _CallListScreenState extends State<CallListScreen>
         children: [
           Icon(icon, size: 64, color: _kSubtext.withValues(alpha: 0.3)),
           const SizedBox(height: 16),
-          Text(
+          CustomText(
             title,
-            style: const TextStyle(color: _kSubtext, fontSize: 15),
+            color: _kSubtext,
+            fontSize: 15,
           ),
           if (subtitle != null)
             Padding(
               padding: const EdgeInsets.only(top: 6),
-              child: Text(
+              child: CustomText(
                 subtitle,
-                style: TextStyle(
-                    color: _kSubtext.withValues(alpha: 0.6), fontSize: 13),
+                color: _kSubtext.withValues(alpha: 0.6),
+                fontSize: 13,
               ),
             ),
         ],

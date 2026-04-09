@@ -45,7 +45,7 @@ class LiveLocationService {
             message: response.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
-      log("Location error: $e");
+
     }
   }
 }

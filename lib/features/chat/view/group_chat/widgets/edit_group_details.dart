@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -29,7 +30,7 @@ class _EditGroupDetailsDialogState extends State<EditGroupDetailsDialog> {
         child: Column(crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            CustomText("Edit Group Details",
+            CustomText(AppStrings.editGroupDetailsLabel.tr,
               fontSize: 16,
               fontWeight: FontWeight.w600,
             ),
@@ -65,15 +66,15 @@ class _EditGroupDetailsDialogState extends State<EditGroupDetailsDialog> {
                               SizedBox(width: 10,),
                               CustomText(
                                 (!chatViewController.isPublicGroup.value)
-                                    ? "Private group"
-                                    : "Public group",
+                                    ? AppStrings.privateGroupLabel.tr
+                                    : AppStrings.publicGroupLabel.tr,
                                 color: AppColors.black,
                                 fontSize: 16,
                               )
                             ],
                           ),
                           CustomText(
-                            (!chatViewController.isPublicGroup.value) ? "On" : "Off",
+                            (!chatViewController.isPublicGroup.value) ? AppStrings.onLabel.tr : AppStrings.offLabel.tr,
                             color: AppColors.black,
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -89,20 +90,20 @@ class _EditGroupDetailsDialogState extends State<EditGroupDetailsDialog> {
 
             /// 🔹 GROUP NAME FIELD
             CommonTextField(
-              title: "Group Name",
+              title: AppStrings.groupName.tr,
               textEditController:
               chatViewController.groupNameController,
-              hintText: "Group Name",
+              hintText: AppStrings.groupName.tr,
             ),
 
             const SizedBox(height: 12),
 
             /// 🔹 GROUP DESCRIPTION FIELD
             CommonTextField(
-              title: "Group Description",
+              title: AppStrings.groupDescriptionLabel.tr,
               textEditController:
               chatViewController.groupDescriptionController,
-              hintText: "Enter Group Description",
+              hintText: AppStrings.enterGroupDescription.tr,
               maxLine: 6,
             ),
             const SizedBox(height: 20),
@@ -129,7 +130,7 @@ class _EditGroupDetailsDialogState extends State<EditGroupDetailsDialog> {
                       Navigator.pop(context);
                     }
                   },
-                  title: "Edit"),
+                  title: AppStrings.editLabel.tr),
             ),
           ],
         ),

@@ -351,7 +351,7 @@ class AddChatSymbolController extends GetxController {
 
     if (responseModel.isSuccess) {
       Get.find<SymbolFeedController>().fetchSymbolFeed();
-      commonSnackBar(message: "Symbol Added Successfully");
+      commonSnackBar(message: AppStrings.symbolAddedSuccessfully.tr);
      await getSymbolsForPartUser(userId);
       isPosting.value = false;
       clearData();

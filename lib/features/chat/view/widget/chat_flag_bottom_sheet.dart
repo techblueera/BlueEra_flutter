@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../core/constants/app_colors.dart';
@@ -48,15 +49,15 @@ class _ChatFlagBottomSheetState extends State<ChatFlagBottomSheet> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const CustomText(
-                "Label Chat",
+              CustomText(
+                AppStrings.labelChat.tr,
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
               TextButton(
                 onPressed: () => _showAddNewLabelDialog(context),
-                child: const CustomText(
-                  "+ New Label",
+                child: CustomText(
+                  AppStrings.newLabelBtn.tr,
                   color: AppColors.primaryColor,
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
@@ -152,8 +153,8 @@ class _ChatFlagBottomSheetState extends State<ChatFlagBottomSheet> {
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),
-                    child: const CustomText(
-                      "Remove Label",
+                    child: CustomText(
+                      AppStrings.removeLabelBtn.tr,
                       color: AppColors.red,
                       fontWeight: FontWeight.w600,
                     ),
@@ -232,14 +233,14 @@ void showAddFlagLabelDialog(BuildContext context, ChatFlagController flagControl
           return AlertDialog(
             shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16)),
-            title: const Text("Add New Label"),
+            title: Text(AppStrings.addNewLabel.tr),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 TextField(
                   controller: nameController,
                   decoration: InputDecoration(
-                    labelText: "Label Name",
+                    labelText: AppStrings.labelName.tr,
                     border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10)),
                   ),
@@ -248,16 +249,16 @@ void showAddFlagLabelDialog(BuildContext context, ChatFlagController flagControl
                 TextField(
                   controller: emojiController,
                   decoration: InputDecoration(
-                    labelText: "Emoji (e.g. \uD83D\uDCCC)",
+                    labelText: AppStrings.emojiLabel.tr,
                     border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10)),
                   ),
                 ),
                 const SizedBox(height: 12),
-                const Align(
+                Align(
                   alignment: Alignment.centerLeft,
-                  child: Text("Pick Color",
-                      style: TextStyle(fontWeight: FontWeight.w600)),
+                  child: CustomText(AppStrings.pickColor.tr,
+                      fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 8),
                 Wrap(
@@ -294,7 +295,7 @@ void showAddFlagLabelDialog(BuildContext context, ChatFlagController flagControl
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx),
-                child: const Text("Cancel"),
+                child: Text(AppStrings.cancel.tr),
               ),
               ElevatedButton(
                 onPressed: () {
@@ -314,8 +315,8 @@ void showAddFlagLabelDialog(BuildContext context, ChatFlagController flagControl
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primaryColor,
                 ),
-                child: const Text("Add",
-                    style: TextStyle(color: Colors.white)),
+                child: Text(AppStrings.addLabel.tr,
+                    style: const TextStyle(color: Colors.white)),
               ),
             ],
           );
@@ -451,14 +452,14 @@ class _ChatFlagDropdownState extends State<ChatFlagDropdown> {
                         .removeFlagFromConversation(widget.conversationId);
                     Get.back();
                   },
-                  child: const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 10, horizontal: 14),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
                     child: Row(
                       children: [
-                        Icon(Icons.close, color: AppColors.red, size: 16),
-                        SizedBox(width: 10),
+                        const Icon(Icons.close, color: AppColors.red, size: 16),
+                        const SizedBox(width: 10),
                         CustomText(
-                          "Remove Label",
+                          AppStrings.removeLabelBtn.tr,
                           color: AppColors.red,
                           fontSize: 13,
                           fontWeight: FontWeight.w600,

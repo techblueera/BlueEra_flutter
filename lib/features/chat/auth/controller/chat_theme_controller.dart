@@ -400,7 +400,7 @@ class ChatThemeController extends GetxController {
 
     await reminderChatBox.put(listKey, jsonEncode(chatList));
 
-    commonSnackBar(message: "Reminder Message Added");
+    commonSnackBar(message: AppStrings.reminderMessageAdded.tr);
     resetSelection();
     Get.back();
   }
@@ -514,7 +514,7 @@ class ChatThemeController extends GetxController {
     // Refresh the in-memory list
     reminderMessageModel.value =
         await getReminderMessagesByConversationId(conversationId);
-    commonSnackBar(message: "Reminder removed");
+    commonSnackBar(message: AppStrings.reminderRemoved.tr);
   }
 
   Future<void> _removeConversationFromReminderList(String conversationId) async {
@@ -544,7 +544,7 @@ class ChatThemeController extends GetxController {
     final box = await Hive.openBox<String>('reminder_messages_box');
     await box.delete(conversationId);
     await _removeConversationFromReminderList(conversationId);
-    commonSnackBar(message: "All reminders removed");
+    commonSnackBar(message: AppStrings.allRemindersRemoved.tr);
   }
 
   Future<void> _updateReminderChatListCount(

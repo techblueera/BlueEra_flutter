@@ -1,4 +1,6 @@
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -56,7 +58,7 @@ class _PersonalChatsListState extends State<PersonalChatsList> {
               if(widget.isForwardUI==false)
               HorizontalTabSelector(horizontalMargin: 14,
                 horizontalPadding: 10,
-                  tabs: ['All',"Group","Pinned","Flagged","Records"],
+                  tabs: [AppStrings.allTab.tr, AppStrings.groupTab.tr, AppStrings.pinnedTab.tr, AppStrings.flaggedTab.tr, AppStrings.recordsTab.tr],
                   selectedIndex: chatViewController.personalTabSelectedIndex.value,
                   onTabSelected: (index,val){
                 chatViewController.personalTabSelectedIndex.value=index;
@@ -108,13 +110,11 @@ class _PersonalChatsListState extends State<PersonalChatsList> {
                     Icon(Icons.archive_outlined, color: Colors.grey.shade600),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: Text(
-                        "Records ($count)",
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.grey.shade700,
-                        ),
+                      child: CustomText(
+                        "${AppStrings.recordsLabel.tr} ($count)",
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.grey.shade700,
                       ),
                     ),
                     Icon(Icons.arrow_forward_ios,
@@ -266,13 +266,11 @@ Widget personalChatListWidget(GetChatListModel? data,ThemeData theme ){
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: Text(
-                  "Records",
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.grey.shade700,
-                  ),
+                child: CustomText(
+                  AppStrings.recordsLabel.tr,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey.shade700,
                 ),
               ),
               Text(

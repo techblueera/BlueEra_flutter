@@ -1,3 +1,5 @@
+import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -135,15 +137,13 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
                           size: 16,
                         ),
                         const SizedBox(width: 6),
-                        Text(
+                        CustomText(
                           controller.callType.value == CallType.video
-                              ? 'BlueEra Video Call'
-                              : 'BlueEra Voice Call',
-                          style: const TextStyle(
-                            fontSize: 14,
-                            color: Color(0xFF8696A0),
-                            fontFamily: 'OpenSans',
-                          ),
+                              ? AppStrings.blueEraVideoCall.tr
+                              : AppStrings.blueEraVoiceCall.tr,
+                          fontSize: 14,
+                          color: const Color(0xFF8696A0),
+                          fontFamily: 'OpenSans',
                         ),
                       ],
                     )),
@@ -173,14 +173,11 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
         Icon(Icons.lock_outline_rounded,
             color: Colors.white.withValues(alpha: 0.35), size: 13),
         const SizedBox(width: 4),
-        Text(
-          'End-to-end encrypted',
-          style: TextStyle(
-            fontSize: 11,
-            fontFamily: 'OpenSans',
-            color: Colors.white.withValues(alpha: 0.35),
-            letterSpacing: 0.2,
-          ),
+        CustomText(
+          AppStrings.endToEndEncrypted.tr,
+          fontSize: 11,
+          fontFamily: 'OpenSans',
+          color: Colors.white.withValues(alpha: 0.35),
         ),
       ],
     );
@@ -273,13 +270,11 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
               ),
             ),
             const SizedBox(height: 12),
-            const Text(
-              'Connecting...',
-              style: TextStyle(
-                color: Color(0xFF8696A0),
-                fontSize: 14,
-                fontFamily: 'OpenSans',
-              ),
+            CustomText(
+              AppStrings.connectingLabel.tr,
+              color: const Color(0xFF8696A0),
+              fontSize: 14,
+              fontFamily: 'OpenSans',
             ),
           ],
         );
@@ -295,7 +290,7 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
               children: [
                 _buildSmallAction(
                   icon: Icons.message_rounded,
-                  label: 'Message',
+                  label: AppStrings.messageLabel.tr,
                   onTap: () {
                     _stopRingtone();
                     controller.declineCall();
@@ -315,7 +310,7 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
                 _buildCallButton(
                   icon: Icons.call_end_rounded,
                   color: const Color(0xFFEA4335),
-                  label: 'Decline',
+                  label: AppStrings.declineLabel.tr,
                   onTap: () {
                     _stopRingtone();
                     controller.declineCall();
@@ -327,7 +322,7 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
                       ? Icons.videocam_rounded
                       : Icons.call_rounded,
                   color: const Color(0xFF00A884),
-                  label: 'Accept',
+                  label: AppStrings.acceptLabel.tr,
                   onTap: () async {
                     _stopRingtone();
                     setState(() => _isAccepting = true);

@@ -2,6 +2,7 @@ import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../core/api/apiService/api_response.dart';
+import '../../../../core/constants/app_strings.dart';
 import '../../auth/model/messageMediaUrl.dart';
 import '../../../../core/services/local_strorage_helper.dart';
 import '../model/GetListOfMessageData.dart';
@@ -33,10 +34,10 @@ class LoadChatMediasController extends GetxController {
       final timeString = DateFormat('h:mm a').format(dateTime); // 12:30 PM
 
       if (today == messageDay) {
-        return 'Today, $timeString';
+        return '${AppStrings.todayTime.tr}, $timeString';
       }
       if (today.subtract(Duration(days: 1)) == messageDay) {
-        return 'Yesterday, $timeString';
+        return '${AppStrings.yesterdayTime.tr}, $timeString';
       }
 
       final dateString = DateFormat('MMM d').format(dateTime);

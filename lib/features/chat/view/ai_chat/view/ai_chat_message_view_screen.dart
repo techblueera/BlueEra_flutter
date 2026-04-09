@@ -236,7 +236,7 @@ class _AiChatMessageViewScreenState extends State<AiChatMessageViewScreen> {
                                           fontWeight: FontWeight.w500,
                                           fontSize: 16),
                                       decoration: InputDecoration(
-                                        hintText: "Type Message...",
+                                        hintText: AppStrings.typeMessage.tr,
                                         hintStyle: TextStyle(
                                             color: Colors.grey,
                                             fontSize: 14,
@@ -255,12 +255,12 @@ class _AiChatMessageViewScreenState extends State<AiChatMessageViewScreen> {
                                       ),
                                       validator: (value) {
                                         if (value == null || value.isEmpty) {
-                                          return 'Please enter a URL';
+                                          return AppStrings.pleaseEnterAUrl.tr;
                                         }
                                         final httpsUrlRegex = RegExp(
                                             'r^https:\/\/[a-zA-Z0-9\-._~:\/?#\[\]@!\$&\'()*+,;=%]+\$');
                                         if (!httpsUrlRegex.hasMatch(value)) {
-                                          return 'Only HTTPS URLs are allowed';
+                                          return AppStrings.onlyHttpsUrlsAllowed.tr;
                                         }
                                         return null;
                                       },

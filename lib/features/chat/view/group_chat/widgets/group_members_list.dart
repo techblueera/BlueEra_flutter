@@ -62,7 +62,7 @@ class _GroupMembersListState extends State<GroupMembersList> {
                 ),
                 const SizedBox(height: 16),
                 CustomText(
-                  member.name ?? 'Unknown Member',
+                  member.name ?? AppStrings.unknownMember.tr,
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
@@ -80,7 +80,7 @@ class _GroupMembersListState extends State<GroupMembersList> {
                 // const SizedBox(height: 12),
                 _buildBottomSheetButton(
                   icon: Icons.message_outlined,
-                  text: 'Message',
+                  text: AppStrings.messageLabel.tr,
                   onTap: () {
                     Navigator.pop(context);
                   },
@@ -89,7 +89,7 @@ class _GroupMembersListState extends State<GroupMembersList> {
                   const SizedBox(height: 12),
                   _buildBottomSheetButton(
                     icon: member.isAdmin == true ? Icons.security_outlined : Icons.admin_panel_settings_outlined,
-                    text: member.isAdmin == true ? 'Remove as Admin' : 'Make Admin',
+                    text: member.isAdmin == true ? AppStrings.removeAsAdmin.tr : AppStrings.makeAdmin.tr,
                     onTap: () {
                       Navigator.pop(context);
                     },
@@ -97,7 +97,7 @@ class _GroupMembersListState extends State<GroupMembersList> {
                   const SizedBox(height: 12),
                   _buildBottomSheetButton(
                     icon: Icons.remove_circle_outline,
-                    text: 'Remove from group',
+                    text: AppStrings.removeFromGroup.tr,
                     iconColor: Colors.red.shade700,
                     textColor: Colors.red.shade700,
                     onTap: () {

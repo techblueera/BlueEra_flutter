@@ -132,7 +132,7 @@ class _AddNewGroupPageState extends State<AddNewGroupPage> {
     final theme = Theme.of(context);
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: "New Group",
+        title: AppStrings.newGroup.tr,
       ),
       body: SingleChildScrollView(
         child: Form(
@@ -164,14 +164,14 @@ class _AddNewGroupPageState extends State<AddNewGroupPage> {
                     Expanded(
                       child: CommonTextField(
                         validator: (val) =>
-                            val!.isEmpty ? "Enter Group Name" : null,
+                            val!.isEmpty ? AppStrings.enterGroupName.tr : null,
                         maxLine: 1,
                         textEditController: groupNameController,
                         inputLength: AppConstants.inputCharterLimit50,
                         keyBoardType: TextInputType.text,
                         regularExpression:
                             RegularExpressionUtils.alphabetSpacePattern,
-                        hintText: "Group Name",
+                        hintText: AppStrings.groupName.tr,
                         isValidate: false,
                       ),
                     ),
@@ -186,12 +186,12 @@ class _AddNewGroupPageState extends State<AddNewGroupPage> {
                   size: 22,
                 ),
                 title: CustomText(
-                  (!publicGroup) ? "Private group" : "Public group",
+                  (!publicGroup) ? AppStrings.privateGroupLabel.tr : AppStrings.publicGroupLabel.tr,
                   color: AppColors.black,
                   fontSize: 16,
                 ),
                 trailing: CustomText(
-                  (!publicGroup) ? "On" : "Off",
+                  (!publicGroup) ? AppStrings.onLabel.tr : AppStrings.offLabel.tr,
                   color: AppColors.black,
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -225,7 +225,7 @@ class _AddNewGroupPageState extends State<AddNewGroupPage> {
                               CircularProgressIndicator(
                                   color: AppColors.primaryColor),
                               SizedBox(height: 16),
-                              CustomText("Loading members...",
+                              CustomText(AppStrings.loadingMembersLabel.tr,
                                   color: AppColors.black),
                             ],
                           ),
@@ -239,7 +239,7 @@ class _AddNewGroupPageState extends State<AddNewGroupPage> {
                                       size: 64, color: AppColors.grey9B),
                                   SizedBox(height: 16),
                                   CustomText(
-                                    "No members found",
+                                    AppStrings.noMembersFound.tr,
                                     color: AppColors.grey9B,
                                   ),
                                 ],

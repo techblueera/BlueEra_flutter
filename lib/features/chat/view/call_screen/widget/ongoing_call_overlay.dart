@@ -1,4 +1,6 @@
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -96,17 +98,14 @@ class OngoingCallOverlay extends StatelessWidget {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        Text(
+                        CustomText(
                           isConnected
                               ? controller.formattedCallDuration
-                              : 'Connecting...',
-                          style: const TextStyle(
-                            color: Colors.white70,
-                            fontSize: 11,
-                            fontFamily: 'OpenSans',
-                            fontWeight: FontWeight.normal,
-                            decoration: TextDecoration.none,
-                          ),
+                              : AppStrings.connectingLabel.tr,
+                          color: Colors.white70,
+                          fontSize: 11,
+                          fontFamily: 'OpenSans',
+                          fontWeight: FontWeight.normal,
                         ),
                       ],
                     ),

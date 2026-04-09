@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/constants/app_strings.dart';
 import '../../../../core/constants/size_config.dart';
 import '../../../../widgets/custom_text_cm.dart';
 import '../../auth/controller/chat_theme_controller.dart';
@@ -87,9 +88,9 @@ class _ReminderChatListState extends State<ReminderChatList> {
                                   ),
                                 ),
                                 const SizedBox(width: 12),
-                                const Expanded(
+                                Expanded(
                                   child: Text(
-                                    "Remove All Reminders",
+                                    AppStrings.removeAllReminders.tr,
                                     style: TextStyle(
                                       fontSize: 17,
                                       fontWeight: FontWeight.w600,
@@ -99,7 +100,7 @@ class _ReminderChatListState extends State<ReminderChatList> {
                               ],
                             ),
                             content: Text(
-                              "Remove all reminders for $senderName?",
+                              "${AppStrings.removeAllRemindersConfirm.tr} $senderName?",
                               style: const TextStyle(
                                 fontSize: 14,
                                 color: Colors.black54,
@@ -108,12 +109,12 @@ class _ReminderChatListState extends State<ReminderChatList> {
                             actions: [
                               TextButton(
                                 onPressed: () => Navigator.pop(ctx, false),
-                                child: const Text("Cancel",
+                                child: Text(AppStrings.cancel.tr,
                                     style: TextStyle(color: Colors.grey)),
                               ),
                               TextButton(
                                 onPressed: () => Navigator.pop(ctx, true),
-                                child: const Text("Remove",
+                                child: Text(AppStrings.removeLabel.tr,
                                     style: TextStyle(color: Colors.red)),
                               ),
                             ],
@@ -134,17 +135,17 @@ class _ReminderChatListState extends State<ReminderChatList> {
                           color: Colors.red.withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(10),
                         ),
-                        child: const Column(
+                        child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(
+                            const Icon(
                               Icons.notifications_off_rounded,
                               color: Colors.red,
                               size: 24,
                             ),
-                            SizedBox(height: 2),
+                            const SizedBox(height: 2),
                             Text(
-                              "Remove",
+                              AppStrings.removeLabel.tr,
                               style: TextStyle(
                                 color: Colors.red,
                                 fontSize: 11,
@@ -231,7 +232,7 @@ class _ReminderChatListState extends State<ReminderChatList> {
                                   SizedBox(height: SizeConfig.size2),
                                   CustomText(
                                     maxLines: 1,
-                                    "Reminder Message",
+                                    AppStrings.reminderMessageLabel.tr,
                                     fontSize: SizeConfig.size14,
                                     color: AppColors.grey9A,
                                     overflow: TextOverflow.ellipsis,

@@ -1,7 +1,10 @@
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:get/get.dart';
 
 import '../../../../../core/constants/app_colors.dart';
+import '../../../../../widgets/custom_text_cm.dart';
 import '../../../auth/model/group_details_model.dart';
 import '../../../auth/model/messageMediaUrl.dart';
 import '../../widget/media_message_full_view.dart';
@@ -34,10 +37,10 @@ class _GroupMediasListState extends State<GroupMediasList> {
     });
 
     if (allMediaUrls.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.symmetric(vertical: 20),
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 20),
         child: Center(
-          child: Text("No media found"),
+          child: CustomText(AppStrings.noMediaFoundLabel.tr),
         ),
       );
     }

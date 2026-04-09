@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../../core/constants/app_strings.dart';
 import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/api/apiService/api_response.dart';
 import '../../../../widgets/custom_text_cm.dart';
@@ -107,10 +108,10 @@ class _ViewReqProfileDialogState extends State<ViewReqProfileDialog> {
                               Row(crossAxisAlignment: CrossAxisAlignment.start,
                                 mainAxisAlignment: MainAxisAlignment
                                     .spaceBetween,
-                                children: const [
-                                  _StatBlock(count: "0", label: "Posts"),
-                                  _StatBlock(count: "0k", label: "Followers"),
-                                  _StatBlock(count: "0K", label: "Following"),
+                                children: [
+                                  _StatBlock(count: "0", label: AppStrings.postsLabel.tr),
+                                  _StatBlock(count: "0k", label: AppStrings.followersLabel.tr),
+                                  _StatBlock(count: "0K", label: AppStrings.followingLabel.tr),
                                 ],
                               ),
                             ],
@@ -130,7 +131,7 @@ class _ViewReqProfileDialogState extends State<ViewReqProfileDialog> {
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
                       _DialogButton(
-                          text: "Block",
+                          text: AppStrings.blockLabel.tr,
                           color: Colors.transparent,
                           borderColor: Colors.red,
                           textColor: Colors.red),
@@ -144,23 +145,23 @@ class _ViewReqProfileDialogState extends State<ViewReqProfileDialog> {
                           chatViewController
                               .acceptOrRejectRequest(data);
                         },
-                        child: _DialogButton(text: "Accept",
+                        child: _DialogButton(text: AppStrings.acceptLabel.tr,
                             color: Color(0xFF0085FF),
                             textColor: Colors.white),
                       ),
                       const SizedBox(width: 12),
                       _DialogButton(
-                          text: "Decline",
+                          text: AppStrings.declineLabel.tr,
                           color: Colors.transparent,
                           borderColor: Color(0xFF0085FF),
                           textColor: Color(0xFF0085FF)),
                     ],
                   ),
                   const SizedBox(height: 20),
-                  const Align(
+                  Align(
                     alignment: Alignment.centerLeft,
                     child: CustomText(
-                        "Bio",
+                        AppStrings.bioLabel.tr,
                         fontSize: 15, fontWeight: FontWeight.w900),
                   ),
                   const SizedBox(height: 8),

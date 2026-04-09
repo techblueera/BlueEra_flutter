@@ -24,9 +24,9 @@ class SocketKeepAliveService {
     if (Platform.isAndroid) {
       try {
         await _channel.invokeMethod('startService');
-        if (kDebugMode) print('SocketKeepAliveService started (Android)');
+
       } catch (e) {
-        if (kDebugMode) print('Failed to start SocketKeepAliveService: $e');
+
       }
     } else if (Platform.isIOS) {
       _startIosKeepAlive();
@@ -38,9 +38,7 @@ class SocketKeepAliveService {
     if (Platform.isAndroid) {
       try {
         await _channel.invokeMethod('stopService');
-        if (kDebugMode) print('SocketKeepAliveService stopped (Android)');
       } catch (e) {
-        if (kDebugMode) print('Failed to stop SocketKeepAliveService: $e');
       }
     } else if (Platform.isIOS) {
       _stopIosKeepAlive();
@@ -55,16 +53,13 @@ class SocketKeepAliveService {
     _iosKeepAliveTimer = Timer.periodic(const Duration(seconds: 10), (_) {
       final socket = ChatSocketService();
       if (!socket.isConnected) {
-        if (kDebugMode) print('iOS keep-alive: socket disconnected, reconnecting...');
         socket.reconnectNow();
       }
     });
-    if (kDebugMode) print('SocketKeepAliveService started (iOS)');
   }
 
   static void _stopIosKeepAlive() {
     _iosKeepAliveTimer?.cancel();
     _iosKeepAliveTimer = null;
-    if (kDebugMode) print('SocketKeepAliveService stopped (iOS)');
   }
 }

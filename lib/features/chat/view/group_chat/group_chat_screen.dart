@@ -130,7 +130,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                           unSelectedBackgroundColor: AppColors.white,
                           horizontalMargin: 14,
                           horizontalPadding: 10,
-                          tabs: ['All', "Mentioned", "Assigned", "Pinned"],
+                          tabs: [AppStrings.allTab.tr, AppStrings.mentionedTab.tr, AppStrings.assignedTab.tr, AppStrings.pinnedTab.tr],
                           selectedIndex: chatViewController
                               .groupChatScreenSelectedTab.value,
                           onTabSelected: (index, val) {
@@ -197,7 +197,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
         onTap: () {
           chatViewController.sendInitialMessage({
             ApiKeys.conversation_id: widget.conversationId,
-            ApiKeys.message: "Namaste \u{1F64F}",
+            ApiKeys.message: AppStrings.namasteSayHi.tr,
             ApiKeys.message_type: "text",
           });
         },

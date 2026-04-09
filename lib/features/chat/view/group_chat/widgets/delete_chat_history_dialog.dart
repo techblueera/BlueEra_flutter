@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -20,14 +21,14 @@ class DeleteChatHistoryDialog extends StatelessWidget {
       child: Column(crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          const CustomText(
-            "Delete Chat",
+          CustomText(
+            AppStrings.deleteChatLabel.tr,
             fontSize: 18,
             fontWeight: FontWeight.bold,
           ),
           const SizedBox(height: 12),
-          const CustomText(
-              "Are you sure you want to delete chat history?",
+          CustomText(
+              AppStrings.deleteChatConfirm.tr,
               textAlign: TextAlign.center,
               fontSize: 14
           ),
@@ -40,7 +41,7 @@ class DeleteChatHistoryDialog extends StatelessWidget {
                 Expanded(
                   child: CustomBtn(onTap: () {
                     Get.back();
-                  }, title: "Cancel"),
+                  }, title: AppStrings.cancel.tr),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -59,7 +60,7 @@ class DeleteChatHistoryDialog extends StatelessWidget {
                         }
 
                       },
-                      title: "Delete"),
+                      title: AppStrings.delete.tr),
                 ),
               ],
             );

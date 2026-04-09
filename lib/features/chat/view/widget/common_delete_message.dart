@@ -1,4 +1,7 @@
+import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class CommonDeleteDialog extends StatelessWidget {
   final VoidCallback onDeleteForMe;
@@ -13,7 +16,7 @@ class CommonDeleteDialog extends StatelessWidget {
     this.onDeleteForEveryone,
     this.showDeleteForEveryone = false,
     this.showDeleteFromDevice = false,
-    this.title = "Are you sure you want to delete?",
+    this.title = "",
   });
 
   @override
@@ -22,16 +25,17 @@ class CommonDeleteDialog extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
-      title: Text(
-        title,
-        style: const TextStyle(color: Colors.black, fontSize: 16),
+      title: CustomText(
+        title.isEmpty ? AppStrings.areYouSureDelete.tr : title,
+        color: Colors.black,
+        fontSize: 16,
       ),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           /// Delete for me
           _deleteButton(
-            text: "Delete for me",
+            text: AppStrings.deleteForMe.tr,
             onTap: onDeleteForMe,
           ),
 
@@ -41,8 +45,8 @@ class CommonDeleteDialog extends StatelessWidget {
             /// Delete for everyone (also removes from device if media)
             _deleteButton(
               text: showDeleteFromDevice
-                  ? "Delete for everyone & device"
-                  : "Delete for everyone",
+                  ? AppStrings.deleteForEveryoneDevice.tr
+                  : AppStrings.deleteForEveryone.tr,
               onTap: onDeleteForEveryone!,
             ),
           ],
@@ -65,12 +69,10 @@ class CommonDeleteDialog extends StatelessWidget {
           borderRadius: BorderRadius.circular(10),
         ),
         child: Center(
-          child: Text(
+          child: CustomText(
             text,
-            style: const TextStyle(
-              color: Colors.red,
-              fontWeight: FontWeight.bold,
-            ),
+            color: Colors.red,
+            fontWeight: FontWeight.bold,
           ),
         ),
       ),

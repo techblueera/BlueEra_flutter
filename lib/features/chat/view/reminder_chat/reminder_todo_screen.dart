@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:get/get.dart';
 import 'reminder_chat_list.dart';
 
 class ReminderTodoScreen extends StatefulWidget {
@@ -41,7 +43,7 @@ class _ReminderTodoScreenState extends State<ReminderTodoScreen>
           onPressed: () => Navigator.pop(context),
         ),
         title: CustomText(
-          "Reminder & To Do",
+          AppStrings.reminderAndToDo.tr,
           fontSize: 18,
           fontWeight: FontWeight.w600,
           color: Colors.black,
@@ -64,7 +66,7 @@ class _ReminderTodoScreenState extends State<ReminderTodoScreen>
                   ),
                   const SizedBox(width: 12),
                   CustomText(
-                    "Reminder",
+                    AppStrings.reminderLabel.tr,
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
                   ),
@@ -82,7 +84,7 @@ class _ReminderTodoScreenState extends State<ReminderTodoScreen>
                   ),
                   const SizedBox(width: 12),
                   CustomText(
-                    "To Do List",
+                    AppStrings.toDoList.tr,
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
                   ),
@@ -159,14 +161,14 @@ class ReminderEmptyState extends StatelessWidget {
             ),
             const SizedBox(height: 28),
             CustomText(
-              "No Reminders Yet",
+              AppStrings.noRemindersYet.tr,
               fontSize: 18,
               fontWeight: FontWeight.w700,
               color: AppColors.black,
             ),
             const SizedBox(height: 10),
             CustomText(
-              "Your reminders will appear here.\nSet a reminder from any chat message\nto stay on track.",
+              AppStrings.remindersAppearHere.tr,
               fontSize: 13,
               fontWeight: FontWeight.w400,
               color: AppColors.grey9A,
@@ -254,14 +256,14 @@ class _TodoEmptyState extends StatelessWidget {
             ),
             const SizedBox(height: 28),
             CustomText(
-              "No To-Do Items",
+              AppStrings.noToDoItems.tr,
               fontSize: 18,
               fontWeight: FontWeight.w700,
               color: AppColors.black,
             ),
             const SizedBox(height: 10),
             CustomText(
-              "Your to-do list is empty.\nCreate tasks to keep track of things\nyou need to get done.",
+              AppStrings.toDoListEmpty.tr,
               fontSize: 13,
               fontWeight: FontWeight.w400,
               color: AppColors.grey9A,

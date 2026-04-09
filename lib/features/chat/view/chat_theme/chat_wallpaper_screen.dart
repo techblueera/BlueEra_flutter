@@ -1,4 +1,8 @@
+import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+
 class ChatWallpaperScreen extends StatelessWidget {
   final List<String> wallpapers = [
     "assets/wall1.png",
@@ -11,7 +15,7 @@ class ChatWallpaperScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Wallpaper")),
+      appBar: AppBar(title: CustomText(AppStrings.wallpaperLabel.tr)),
       body: GridView.builder(
         padding: const EdgeInsets.all(12),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
