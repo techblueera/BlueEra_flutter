@@ -7,15 +7,17 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 
 class SubscriptionSuccessDialog extends StatelessWidget {
-  final String title;
+  // final String title;
   final String message;
   final VoidCallback onBtnPressed;
+  final String buttonTitle;
 
   const SubscriptionSuccessDialog({
     super.key,
-    required this.title,
+    // required this.title,
     required this.message,
     required this.onBtnPressed,
+    this.buttonTitle = "Go to Home",
   });
 
   @override
@@ -43,14 +45,14 @@ class SubscriptionSuccessDialog extends StatelessWidget {
 
             SizedBox(height: SizeConfig.paddingM),
 
-            // 2. Title
-            CustomText(
-              title,
-              fontSize: 26,
-              fontWeight: FontWeight.bold,
-              color: AppColors.mainTextColor
-            ),
-            SizedBox(height: SizeConfig.paddingS),
+            // // 2. Title
+            // CustomText(
+            //   title,
+            //   fontSize: 26,
+            //   fontWeight: FontWeight.bold,
+            //   color: AppColors.mainTextColor
+            // ),
+            // SizedBox(height: SizeConfig.paddingS),
 
             // 3. Message
             CustomText(
@@ -67,7 +69,7 @@ class SubscriptionSuccessDialog extends StatelessWidget {
               width: double.infinity,
               textColor: AppColors.white,
               bgColor: AppColors.primaryColor,
-              title: "Go to Home",
+              title: buttonTitle,
               onTap: onBtnPressed,
             )
 

@@ -128,10 +128,10 @@ import 'package:BlueEra/features/me/medical_new/view/my_medical_listing/my_medic
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/my_enquires_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/received_enquiries_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/send_enquiry_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/add_self_work_service_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_available_options_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/rider_service_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/add_self_work_service_screen.dart';
+import 'package:BlueEra/features/common/delivery_partner/view/gig_work_options_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/self_employee_screen.dart';
+import 'package:BlueEra/features/common/delivery_partner/view/rider_service_screen.dart';
 import 'package:BlueEra/features/me/product/controller/product_controller.dart';
 import 'package:BlueEra/features/me/product/model/get_product_model.dart';
 import 'package:BlueEra/features/me/product/view/product/add_product_text_or_snap_screen.dart';
@@ -403,7 +403,8 @@ class RouteHelper {
   static String getProductCartScreenRoute() =>
       RouteConstant.productCartScreen;
 
-  static String getEarnServiceScreenRoute() => RouteConstant.earnServiceScreen;
+  static String getSelfEmployeeScreenRoute() =>
+      RouteConstant.selfEmployeeScreen;
 
   static String getInventoryBusinessCardsScreenRoute() =>
       RouteConstant.inventoryBusinessCardsScreen;
@@ -532,8 +533,8 @@ class RouteHelper {
   static String getCreateAccountTypeScreenRoute() =>
       RouteConstant.createAccountTypeScreen;
 
-  static String getEarnServiceAvailableOptionsScreenRoute() =>
-      RouteConstant.earnServiceAvailableOptionsScreen;
+  static String getGigWorkerOptionsScreenRoute() =>
+      RouteConstant.gigWorkerOptionsScreen;
 
   static String getMedicalScreenRoute() =>
       RouteConstant.medicalScreen;
@@ -1292,10 +1293,10 @@ class RouteHelper {
                 ),
             settings: RouteSettings(name: getCreateVariantScreenRoute()));
 
-      case RouteConstant.earnServiceScreen:
+      case RouteConstant.selfEmployeeScreen:
         return MaterialPageRoute(
-            builder: (_) => EarnServiceScreen(),
-            settings: RouteSettings(name: getEarnServiceScreenRoute()));
+            builder: (_) => SelfEmployeeScreen(),
+            settings: RouteSettings(name: getSelfEmployeeScreenRoute()));
       case RouteConstant.inventoryBusinessCardsScreen:
         return MaterialPageRoute(
             builder: (_) => InventoryBusinessCardsScreen(),
@@ -1697,10 +1698,10 @@ class RouteHelper {
         return MaterialPageRoute(
             builder: (_) => CreateAccountTypeScreen(),
             settings: RouteSettings(name: getCreateAccountTypeScreenRoute()));
-      case RouteConstant.earnServiceAvailableOptionsScreen:
+      case RouteConstant.gigWorkerOptionsScreen:
         return MaterialPageRoute(
-            builder: (_) => EarnServiceAvailableOptionsScreen(),
-            settings: RouteSettings(name: getEarnServiceAvailableOptionsScreenRoute())
+            builder: (_) => GigWorkOptionsScreen(),
+            settings: RouteSettings(name: getGigWorkerOptionsScreenRoute())
         );
 
       case RouteConstant.medicalScreen:

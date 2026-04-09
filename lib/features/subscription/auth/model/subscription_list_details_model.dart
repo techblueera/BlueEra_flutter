@@ -52,6 +52,7 @@ class SubscriptionPlanData {
   String? tier;
   List<String>? perks;
   int? rangeInKm;
+  String? mode;
   String? createdAt;
   String? updatedAt;
   int? v;
@@ -71,6 +72,7 @@ class SubscriptionPlanData {
     this.tier,
     this.perks,
     this.rangeInKm,
+    this.mode,
     this.createdAt,
     this.updatedAt,
     this.v,
@@ -104,6 +106,7 @@ class SubscriptionPlanData {
       rangeInKm: json['rangeInKm'] is int
           ? json['rangeInKm']
           : int.tryParse('${json['rangeInKm']}'),
+      mode: json['mode']?.toString(),
       createdAt: json['created_at']?.toString(),
         updatedAt: json['updated_at']?.toString(),
         v: json['__v'] is int
@@ -128,6 +131,7 @@ class SubscriptionPlanData {
       'tier': tier,
       'perks': perks,
       'rangeInKm': rangeInKm,
+      'mode': mode,
       'created_at': createdAt,
       'updated_at': updatedAt,
       '__v': v,
@@ -149,6 +153,7 @@ class SubscriptionPlanData {
     String? tier,
     List<String>? perks,
     int? rangeInKm,
+    String? mode,
     String? createdAt,
     String? updatedAt,
     int? v,
@@ -168,6 +173,7 @@ class SubscriptionPlanData {
       tier: tier ?? this.tier,
       perks: perks ?? this.perks,
       rangeInKm: rangeInKm ?? this.rangeInKm,
+      mode: mode ?? this.mode,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       v: v ?? this.v,

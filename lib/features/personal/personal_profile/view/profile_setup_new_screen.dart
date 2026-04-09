@@ -2312,10 +2312,10 @@ class _PersonalProfileSetupNewScreenState
 
 
               if (userProfessionGlobal == BIKE_RIDER) {
-                Get.toNamed(RouteHelper.getEarnServiceAvailableOptionsScreenRoute());
+                Get.toNamed(RouteHelper.getGigWorkerOptionsScreenRoute());
               } else {
                 Get.toNamed(
-                    RouteHelper.getEarnServiceScreenRoute());
+                    RouteHelper.getSelfEmployeeScreenRoute());
               }
 
             }

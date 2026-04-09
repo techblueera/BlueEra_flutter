@@ -40,7 +40,7 @@ class AppImageAssets {
   static String leftQuotation = "${imgPath}left_quotation.png";
   static String rightQuotation = "${imgPath}right_quotation.png";
   static const String storeNewBackground = "assets/store/store_baground_bg.png";
-  static const String earnWithBlueeraVideoThumbnail = "${imgPath}earn_with_blueera_video_thumbnail.png";
+  static const String earnWithBlueeraVideoThumbnail = "${imgPath}self_employed_video_thumbnail.png";
   static const String riderStoreBanner = "${imgPath}rider_store_banner.png";
   static const String localMarketProducts = "${imgPath}local_market_products.png";
   static const String bookProfessional = "${imgPath}book_professional.png";

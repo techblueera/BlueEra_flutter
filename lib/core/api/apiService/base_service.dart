@@ -351,8 +351,8 @@ abstract class BaseService {
   final String postBusinessRating = 'user-service/business/rating';
 
   ///SUBSCRIPTION....
-  final String subscriptionCreate =
-      'subscription-service/subscription/create-subscription';
+  // final String subscriptionCreate =
+  //     'subscription-service/subscription/create-subscription';
   final String subscriptionVerification =
       'subscription-service/subscription/verify-subscription-payment';
   final String subscriptionCancel =
@@ -360,10 +360,10 @@ abstract class BaseService {
 
   final String FollowersAndPostsCount =
       'user-service/user/getUserWithFollowersAndPostsCount';
-  final String getSubscriptionPlans =
-      'subscription-service/subscription/subscription-plans';
-  final String getSubscriptionOffer =
-      'subscription-service/subscription/subscription-offers';
+  // final String getSubscriptionPlans =
+  //     'subscription-service/subscription/subscription-plans';
+  // final String getSubscriptionOffer =
+  //     'subscription-service/subscription/subscription-offers';
   final String getAllProducts = 'inventory-service/product/getAllProducts';
   final String getParticularRating = 'user-service/business/rating';
   final String subscriptionTrialInitiate =

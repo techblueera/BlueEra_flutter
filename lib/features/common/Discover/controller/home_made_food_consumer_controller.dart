@@ -3,9 +3,9 @@ import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/common/Discover/model/consumer_tiffin_response_model.dart';
 import 'package:BlueEra/features/me/food/repo/food_repo.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/model/food_item_model.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/model/food_response_model.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/repo/tiffin_repo.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/self_employed/model/food_item_model.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/self_employed/model/food_response_model.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/self_employed/repo/tiffin_repo.dart';
 import 'package:get/get.dart';
 
 class HomeMadeFoodConsumerController extends GetxController {

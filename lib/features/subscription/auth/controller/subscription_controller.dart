@@ -10,6 +10,7 @@ import 'package:BlueEra/core/constants/string_utils.dart';
 import 'package:BlueEra/features/personal/personal_profile/repo/user_repo.dart';
 import 'package:BlueEra/features/subscription/auth/model/subscription_trial_initiate.dart';
 import 'package:BlueEra/features/subscription/auth/repo/subscription_repo.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import '../model/subscription_list_details_model.dart';
 import '../model/user_subscription_model.dart';
@@ -106,51 +107,84 @@ class SubscriptionController extends GetxController {
   String? bannerVideoUrl;
   Rx<SubscriptionPlanDetailsNewModel> subscriptionPlanDetailsNewModel = SubscriptionPlanDetailsNewModel().obs;
 
+  static String? resolveEntityType() {
+    if(isIndividualUser()){
+      debugPrint('user profile type -- $userProfileTypeGlobal');
+    }else{
+      debugPrint('business type -- $businessTypeGlobal');
+    }
+
+    // ─── Individual profile types ─────────────────────────────────
+    if (userProfileTypeGlobal == SELF_EMPLOYED) return 'SELF_EMPLOYED';
+
+    // Gig worker is allowlisted only for the three rider professions —
+    // other gig roles (delivery helpers, etc.) deliberately fall through.
+    if (userProfileTypeGlobal == GIG_WORKER) {
+      if (userProfessionGlobal == BIKE_RIDER) return 'BIKE_RIDER';
+      if (userProfessionGlobal == AUTO_TAXI) return 'AUTO_TAXI';
+      if (userProfessionGlobal == CAR_TAXI_DRIVER) return 'CAR_DRIVER_TAXI';
+      return null;
+    }
+
+    // ─── Business types ───────────────────────────────────────────
+    if (businessTypeGlobal.equalsIgnoreCase(BusinessType.Food.name)) {
+      return 'FOOD';
+    }
+    if (businessTypeGlobal.equalsIgnoreCase(BusinessType.Grocery.name)) {
+      return 'GROCERY';
+    }
+    if (businessTypeGlobal.equalsIgnoreCase(BusinessType.Product.name)) {
+      return 'PRODUCT';
+    }
+    if (businessTypeGlobal.equalsIgnoreCase(BusinessType.Service.name)) {
+      return 'SERVICE';
+    }
+
+    // Automotive sub-sectors fold into PRODUCT (sales/parts) or SERVICE
+    // (rental / service / support / transport-logistic) so the dealership
+    // and the workshop both still get a subscription, just under the
+    // closest matching umbrella entity.
+    if (businessTypeGlobal.equalsIgnoreCase(BusinessType.Automotive.name)) {
+      final isProductLike = [
+        AppConstants.SALES_SECTOR,
+        AppConstants.PARTS_SECTOR,
+      ].any((s) => s.equalsIgnoreCase(businessCategoryGlobal));
+      return isProductLike ? 'PRODUCT' : 'SERVICE';
+    }
+
+    return null;
+  }
+
+  // In-flight dedupe flags. Multiple UI surfaces (bottom nav, peek sheet,
+  // statistics tab, single-plan page) can each call these endpoints in
+  // their initState; without this guard a single Me-screen entry can
+  // trigger 2-3 concurrent hits to the same endpoint. The flags coalesce
+  // overlapping callers into one HTTP request — sequential calls (after
+  // the previous one completes) still go through, so screen entries get
+  // fresh data.
+  bool _planFetchInFlight = false;
+  bool _userPlanFetchInFlight = false;
+
   Future<void> subscriptionPlansGetApi() async {
-    print('user profile type -- $userProfileTypeGlobal');
+    if (_planFetchInFlight) return;
+
+    final entityType = resolveEntityType();
+    if (entityType == null) {
+      // Profile/business not on the subscription allowlist — no plans
+      // to fetch. Park the response in a non-loading state so any UI
+      // listening to it doesn't sit on a perpetual spinner.
+      getSubscriptionPlanResponse.value = ApiResponse.initial('Initial');
+      return;
+    }
+
+    _planFetchInFlight = true;
     try {
-
-      // Gig Worker
-      // Skill Worker
-      // Grocery
-      // Food
-      // Product
-      // Other
-
-      String entityType;
-      if(userProfileTypeGlobal == GIG_WORKER){
-        entityType = 'Gig Worker';
-      }else if(userProfileTypeGlobal == SELF_EMPLOYED ||
-          userProfileTypeGlobal == PROFESSIONAL){
-        entityType = 'Skill Worker';
-      }
-      else if(
-      businessTypeGlobal.equalsIgnoreCase(BusinessType.Grocery.name)
-      ){
-        entityType = 'Grocery';
-      }else if(businessTypeGlobal.equalsIgnoreCase(BusinessType.Food.name) ||
-          (businessTypeGlobal.equalsIgnoreCase(BusinessType.Healthcare.name) &&
-              businessCategoryGlobal.equalsIgnoreCase(AppConstants.INSTRUMENTS_PHARMACY)
-          )){
-        entityType = 'Food';
-      }else if(businessTypeGlobal.equalsIgnoreCase(BusinessType.Product.name) ||
-          businessTypeGlobal.equalsIgnoreCase(BusinessType.Automotive.name) &&
-              [AppConstants.SALES_SECTOR, AppConstants.PARTS_SECTOR]
-                  .any((s) => s.equalsIgnoreCase(businessCategoryGlobal))
-      ){
-        entityType = 'Product';
-      }else{
-        entityType = 'Other';
-      }
-
-      Map<String, String> _queryParams = {
-          'entity_type': entityType
-        };
-
+      final Map<String, String> queryParams = {'entity_type': entityType};
 
       getSubscriptionPlanResponse.value = ApiResponse.initial('Initial');
 
-      ResponseModel response = await SubscriptionRepo().subscriptionPlansGetApi(queryParams: _queryParams);
+      ResponseModel response = await SubscriptionRepo()
+          .subscriptionPlansGetApi(queryParams: queryParams);
       if (response.isSuccess) {
         subscriptionPlanDetailsNewModel.value =
             SubscriptionPlanDetailsNewModel.fromJson(response.response?.data);
@@ -161,6 +195,8 @@ class SubscriptionController extends GetxController {
       }
     } catch (e) {
       getSubscriptionPlanResponse.value = ApiResponse.error('error');
+    } finally {
+      _planFetchInFlight = false;
     }
   }
 
@@ -181,6 +217,8 @@ class SubscriptionController extends GetxController {
     }
   }
   Future<void> userCurrentPlanApi({Map<String, dynamic>? params}) async {
+    if (_userPlanFetchInFlight) return;
+    _userPlanFetchInFlight = true;
     try {
       ResponseModel responseModel =
           await SubscriptionRepo().userCurrentPlanApi(params);
@@ -197,6 +235,8 @@ class SubscriptionController extends GetxController {
       }
     } catch (e) {
       userSubscriptionResponse.value = ApiResponse.error('error');
+    } finally {
+      _userPlanFetchInFlight = false;
     }
   }
 

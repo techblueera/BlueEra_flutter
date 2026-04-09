@@ -7,11 +7,12 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/features/me/me_tab_registry.dart';
 import 'package:BlueEra/features/me/product/controller/product_business_profile_full_controller.dart';
+import 'package:BlueEra/features/subscription/view/subscription_status_view.dart';
 import 'package:BlueEra/features/me/product/view/product_home_screen.dart';
 import 'package:BlueEra/features/business/widgets/empty_website_tab.dart';
 import 'package:BlueEra/widgets/common_search_bar.dart';
-import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/tab_bar_delegate.dart';
 import 'package:BlueEra/widgets/user_profile_widget.dart';
@@ -95,10 +96,11 @@ class _InventoryScreenState extends State<InventoryScreen>
     _tabViews = [
       ProductHomeScreen(),
       const WebsiteTab(),
-      Center(child: CustomText('Coming soon...')),
+      const SubscriptionStatusView(),
     ];
 
     _tabController = TabController(length: _tabs.length, vsync: this);
+    MeTabRegistry.register(_tabController!);
     setState(() => _isLoading = false);
   }
 
@@ -170,6 +172,7 @@ class _InventoryScreenState extends State<InventoryScreen>
     // deleteIfRegistered<ProductController>();
     // deleteIfRegistered<InventoryController>();
     // RouteHelper.routeObserver.unsubscribe(this);
+    if (_tabController != null) MeTabRegistry.unregister(_tabController!);
     _tabController?.dispose();
     _searchFocusNode.dispose();
     super.dispose();

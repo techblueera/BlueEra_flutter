@@ -5,10 +5,10 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/school/controller/school_about_us_controller.dart';
+import 'package:BlueEra/features/me/school/view/school_statics_screen.dart';
 import 'package:BlueEra/features/me/school/controller/school_controller.dart';
 import 'package:BlueEra/features/me/school/repo/school_repo.dart';
 import 'package:BlueEra/features/me/school/view/category/school_home/school_home_screen.dart';
-import 'package:BlueEra/features/me/school/view/school_statics_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 

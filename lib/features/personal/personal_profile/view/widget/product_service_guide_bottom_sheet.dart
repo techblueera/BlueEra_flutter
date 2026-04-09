@@ -67,7 +67,7 @@ class ProductServiceGuideBottomSheet extends StatelessWidget {
                 Get.offNamedUntil(
                   // RouteHelper.getAddProductScreenRoute(),
                   RouteHelper.getAddProductViaAiStep1Route(),
-                  ModalRoute.withName(RouteHelper.getEarnServiceAvailableOptionsScreenRoute()),
+                  ModalRoute.withName(RouteHelper.getGigWorkerOptionsScreenRoute()),
                   arguments: {
                     ApiKeys.id: userId,
                     ApiKeys.providerType: ProviderType.user,
@@ -76,7 +76,7 @@ class ProductServiceGuideBottomSheet extends StatelessWidget {
               } else {
                 Get.offNamedUntil(
                   RouteHelper.getAddProductTextOrSnapScreenRoute(),
-                  ModalRoute.withName(RouteHelper.getEarnServiceScreenRoute()),
+                  ModalRoute.withName(RouteHelper.getSelfEmployeeScreenRoute()),
                   arguments: {
                     ApiKeys.id: userId,
                     ApiKeys.providerType: ProviderType.user,

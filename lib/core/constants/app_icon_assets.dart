@@ -236,7 +236,7 @@ class AppIconAssets {
       '${iconPath}profile_intro_vid_icon.svg';
   static const String links_profile_header_icon =
       '${iconPath}links_profile_header_icon.svg';
-  static const String earn_with_blueera = '${iconPath}earn_with_blueera.svg';
+  static const String self_employed = '${iconPath}self_employed.svg';
   static const String profile_v_settings = '${iconPath}profile_v_settings.svg';
   static const String verify_v_profile = '${iconPath}verify_v_profile.svg';
   static const String chat_call = '${iconPath}chat_call.svg';

@@ -8,12 +8,13 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/widgets/empty_website_tab.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
+import 'package:BlueEra/features/me/me_tab_registry.dart';
+import 'package:BlueEra/features/subscription/view/subscription_status_view.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_selfpickup_consumer_controller.dart';
 import 'package:BlueEra/features/me/grocery/view/my_grocery_listing/my_grocery_store_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/my_grocery_orders/my_grocery_orders.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/common_search_bar.dart';
-import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/tab_bar_delegate.dart';
 import 'package:BlueEra/widgets/user_profile_widget.dart';
@@ -53,14 +54,16 @@ class _GroceryScreenState extends State<GroceryScreen> with SingleTickerProvider
       MyGroceryOrders(),
       MyGroceryStoreScreen(),
       const WebsiteTab(),
-      Center(child: CustomText(AppStrings.comingSoon)),
+      const SubscriptionStatusView(),
     ];
 
     _tabController = TabController(length: _tabs.length, vsync: this);
+    MeTabRegistry.register(_tabController!);
   }
 
   @override
   void dispose() {
+    if (_tabController != null) MeTabRegistry.unregister(_tabController!);
     _tabController?.dispose();
     deleteIfRegistered<GroceryController>();
     deleteIfRegistered<GrocerySelfPickupConsumerController>();

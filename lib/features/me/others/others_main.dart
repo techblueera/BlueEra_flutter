@@ -1,8 +1,8 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/features/me/me_tab_registry.dart';
 import 'package:BlueEra/features/me/others/controller/business_profile_full_controller.dart';
+import 'package:BlueEra/features/subscription/view/subscription_status_view.dart';
 import 'package:BlueEra/features/me/others/view/business_profile_full_screen.dart';
-import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/webview_common.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -35,6 +35,7 @@ class _OthersMainState extends State<OthersMain>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    MeTabRegistry.register(_tabController);
     _apiCalling();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -44,12 +45,14 @@ class _OthersMainState extends State<OthersMain>
         if (newHasWebsite != _hasWebsite) {
           _hasWebsite = newHasWebsite;
           final currentIndex = _tabController.index;
+          MeTabRegistry.unregister(_tabController);
           _tabController.dispose();
           _tabController = TabController(
             length: _hasWebsite ? 3 : 2,
             vsync: this,
             initialIndex: currentIndex.clamp(0, _hasWebsite ? 2 : 1),
           );
+          MeTabRegistry.register(_tabController);
           setState(() {});
         }
       });
@@ -62,6 +65,7 @@ class _OthersMainState extends State<OthersMain>
 
   @override
   void dispose() {
+    MeTabRegistry.unregister(_tabController);
     _tabController.dispose();
     super.dispose();
   }
@@ -99,7 +103,7 @@ class _OthersMainState extends State<OthersMain>
                       urlTitle: '',
                       hideAppBar: true,
                     ),
-                  const Center(child: CustomText(AppStrings.comingSoon)),
+                  const SubscriptionStatusView(),
                 ],
               ),
             ),

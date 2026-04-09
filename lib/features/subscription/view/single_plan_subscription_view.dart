@@ -5,13 +5,13 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
-import 'package:BlueEra/core/constants/date_time_utils.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/jobs/create_job_post/create_job.dart';
 import 'package:BlueEra/features/subscription/auth/controller/subscription_controller.dart';
 import 'package:BlueEra/features/subscription/auth/model/subscription_list_details_model.dart';
 import 'package:BlueEra/features/subscription/auth/model/user_subscription_model.dart';
+import 'package:BlueEra/features/subscription/widget/subscription_live_plan_card.dart';
 import 'package:BlueEra/features/subscription/widget/subscription_payment_handler.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -47,8 +47,19 @@ class _SinglePlanSubscriptionViewState
   @override
   void initState() {
     super.initState();
-    controller.userCurrentPlanApi();
-    controller.subscriptionPlansGetApi();
+    // Only fire each request if no prior caller has already kicked it off.
+    // This widget is embedded inside SubscriptionBottomSheet, which fetches
+    // both endpoints in its own initState — calling them again here would
+    // double the network hits and flip the response back to LOADING mid-
+    // frame. When mounted standalone (drawer / account settings), the
+    // status is still INITIAL so the calls go through normally.
+    if (controller.userSubscriptionResponse.value == Status.INITIAL) {
+      controller.userCurrentPlanApi();
+    }
+    if (controller.getSubscriptionPlanResponse.value.status ==
+        Status.INITIAL) {
+      controller.subscriptionPlansGetApi();
+    }
   }
 
   @override
@@ -61,7 +72,12 @@ class _SinglePlanSubscriptionViewState
         appBarColor: AppColors.white,
         title: "Contribution",
       ),
-      body: SingleChildScrollView(child: body),
+      body: SingleChildScrollView(
+          // padding: EdgeInsets.symmetric(
+          //   horizontal: SizeConfig.size8,
+          //   vertical: SizeConfig.size16
+          // ),
+          child: body),
     );
   }
 
@@ -178,75 +194,87 @@ class _SinglePlanSubscriptionViewState
         bodyText: (plan.description == null || plan.description!.isEmpty)
             ? 'Upload and showcase your products, increase visibility to local clients and expand your business with us. Get found, get noticed and get more orders here.'
             : plan.description!,
+        // Razorpay's trial flow requires a real ₹5 charge to authenticate
+        // the auto-pay mandate — that ₹5 is refunded automatically once
+        // the trial finishes successfully. We surface this up-front so the
+        // user doesn't think they were billed for the trial.
+        extraBlocks: isTrial
+            ? [
+                SizedBox(height: SizeConfig.paddingS),
+                _trialRefundNote(),
+              ]
+            : const [],
         perks: plan.perks ?? const [],
       ),
       cta: _primaryButton(
-        title: 'Go Live in just $priceText',
+        title: 'Go Live Now',
         onTap: _handlePay,
       ),
     );
   }
 
-  // ─────────────────────── State 2: trial in progress ───────────────────────
-  // Status == 'authenticated': user activated the trial; show congrats +
-  // trial start/end dates inside the card chrome.
-  Widget _trialActiveContent(UserSubscription userSub) {
-    final plan = userSub.subscriptionPlanData;
-    return _screen(
-      card: _planCard(
-        plan: plan,
-        tagText: 'Trial Active',
-        priceText: 'Active',
-        periodText: 'Free Trial',
-        subtitle: null,
-        bodyText:
-            'Congratulations! Enjoy your free trial — explore every premium feature.',
-        extraBlocks: [
-          SizedBox(height: SizeConfig.paddingS),
-          _datesRow(
-            startLabel: 'Start',
-            startDate: formatISO8601Date(userSub.trialStart),
-            endLabel: 'End',
-            endDate: formatISO8601Date(userSub.trialEnd),
+  /// Inline info banner explaining the ₹5 trial-charge refund. Shown only
+  /// inside the trial offer card so users understand why Razorpay is asking
+  /// for ₹5 upfront on what's labelled as a "free" trial.
+  Widget _trialRefundNote() {
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: SizeConfig.size12,
+        vertical: SizeConfig.size10,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.primaryColor.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(8),
+        border:
+            Border.all(color: AppColors.primaryColor.withValues(alpha: 0.30)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.info_outline_rounded,
+              size: 18, color: AppColors.primaryColor),
+          SizedBox(width: SizeConfig.size8),
+          Expanded(
+            child: CustomText(
+              'Razorpay charges ${AppConstants.rupeeSymbol}5 to start your free trial — '
+              'this amount is refunded automatically once the trial begins.',
+              fontSize: SizeConfig.small,
+              fontWeight: FontWeight.w500,
+              color: AppColors.mainTextColor,
+              maxLines: 3,
+            ),
           ),
         ],
-        perks: plan.perks ?? const [],
       ),
-      cta: null, // No CTA — trial is already running.
+    );
+  }
+
+  // ─────────────────────── State 2: trial in progress ───────────────────────
+  // Status == 'authenticated' — user activated the trial. Delegated to the
+  // shared [SubscriptionLivePlanCard] so the chrome stays identical to the
+  // statistics-tab surface. Edge-to-edge wrapper here mirrors the previous
+  // standalone-page padding behaviour.
+  Widget _trialActiveContent(UserSubscription userSub) {
+    return Padding(
+      padding: EdgeInsets.symmetric(
+          vertical: SizeConfig.size12,
+          horizontal: SizeConfig.size8,
+      ),
+      child: SubscriptionLivePlanCard(userSub: userSub),
     );
   }
 
   // ───────────────────── State 3: paid subscription active ─────────────────
+  // Status == 'active' — paid plan currently running. Same shared widget,
+  // which renders the cancel-subscription CTA itself, so this surface only
+  // has to provide the outer padding.
   Widget _activeSubscriptionContent(UserSubscription userSub) {
-    final plan = userSub.subscriptionPlanData;
-    final priceText =
-        '${AppConstants.rupeeSymbol}${plan.amount != null ? (plan.amount! / 100).toStringAsFixed(0) : '0'}';
-    final periodText = (plan.period ?? '').capitalizeFirst ?? '';
-
-    return _screen(
-      card: _planCard(
-        plan: plan,
-        tagText: 'Active',
-        priceText: priceText,
-        periodText: periodText,
-        subtitle: null,
-        bodyText:
-            'Your subscription is active. Enjoy uninterrupted access to all premium features.',
-        extraBlocks: [
-          SizedBox(height: SizeConfig.paddingS),
-          _validUntilRow(formatISO8601Date(userSub.validUpto)),
-        ],
-        perks: plan.perks ?? const [],
+    return Padding(
+      padding: EdgeInsets.symmetric(
+        horizontal: SizeConfig.size8,
+        vertical: SizeConfig.size12,
       ),
-      cta: _secondaryButton(
-        title: 'Cancel Subscription',
-        onTap: () {
-          controller.cancelSubscriptionController(params: {
-            'subscriptionId': userSub.subscriptionId,
-            'cancel_at_cycle_end': true,
-          });
-        },
-      ),
+      child: SubscriptionLivePlanCard(userSub: userSub),
     );
   }
 
@@ -277,10 +305,19 @@ class _SinglePlanSubscriptionViewState
 
   // ───────────────────────────── Shared chrome ─────────────────────────────
   /// Outer column wrapper used by every state. Keeps padding consistent.
-  Widget _screen({required Widget card, Widget? cta}) {
+  ///
+  /// [edgeToEdge] drops the horizontal gutters so the card stretches to
+  /// the full width of its parent — used by the trial-active state where
+  /// the card is purely informational (no CTA) and reads better as a
+  /// full-bleed celebratory surface than as a padded pill.
+  Widget _screen({
+    required Widget card,
+    Widget? cta,
+    bool edgeToEdge = false,
+  }) {
     return Padding(
       padding: EdgeInsets.symmetric(
-        horizontal: SizeConfig.size12,
+        horizontal: edgeToEdge ? 0 : SizeConfig.size12,
         vertical: SizeConfig.size12,
       ),
       child: Column(
@@ -331,61 +368,6 @@ class _SinglePlanSubscriptionViewState
     );
   }
 
-  /// "Valid until <date>" row used in the active subscription state.
-  Widget _validUntilRow(String date) {
-    return Row(
-      children: [
-        Icon(Icons.event_available_outlined,
-            size: 16, color: AppColors.primaryColor),
-        SizedBox(width: SizeConfig.size8),
-        CustomText(
-          'Valid until $date',
-          fontSize: SizeConfig.medium,
-          fontWeight: FontWeight.w600,
-          color: AppColors.mainTextColor,
-        ),
-      ],
-    );
-  }
-
-  /// Start/end dates row used by the trial-active state.
-  Widget _datesRow({
-    required String startLabel,
-    required String startDate,
-    required String endLabel,
-    required String endDate,
-  }) {
-    Widget cell(String label, String date) {
-      return Expanded(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            CustomText(
-              label,
-              fontSize: SizeConfig.small,
-              fontWeight: FontWeight.w500,
-              color: AppColors.secondaryTextColor,
-            ),
-            SizedBox(height: SizeConfig.size2),
-            CustomText(
-              date,
-              fontSize: SizeConfig.medium,
-              fontWeight: FontWeight.w600,
-              color: AppColors.mainTextColor,
-            ),
-          ],
-        ),
-      );
-    }
-
-    return Row(
-      children: [
-        cell(startLabel, startDate),
-        cell(endLabel, endDate),
-      ],
-    );
-  }
-
   Widget _primaryButton({required String title, required VoidCallback onTap}) {
     return CustomBtn(
       width: double.infinity,
@@ -393,19 +375,6 @@ class _SinglePlanSubscriptionViewState
       bgColor: AppColors.primaryColor,
       borderColor: AppColors.primaryColor,
       textColor: AppColors.white,
-      radius: 10.0,
-      onTap: onTap,
-    );
-  }
-
-  Widget _secondaryButton(
-      {required String title, required VoidCallback onTap}) {
-    return CustomBtn(
-      width: double.infinity,
-      title: title,
-      bgColor: AppColors.white,
-      borderColor: AppColors.red,
-      textColor: AppColors.red,
       radius: 10.0,
       onTap: onTap,
     );
@@ -428,6 +397,7 @@ class _SinglePlanSubscriptionViewState
   Widget _planCard({
     required SubscriptionPlanData plan,
     required String tagText,
+    Widget? tagLeading,
     required String priceText,
     required String periodText,
     Widget? subtitle,
@@ -451,13 +421,25 @@ class _SinglePlanSubscriptionViewState
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Top row: premium icon + state tag pill
+                // Top row: premium icon + (optional) TEST badge + state tag pill.
+                // The TEST badge surfaces backend `mode == 'test'` plans so QA
+                // can tell at a glance whether they're looking at a test plan
+                // versus a live one. Hidden entirely in production / live mode.
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     _buildPremiumIcon(),
-                    _tagPill(tagText),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (plan.mode?.toLowerCase() == 'test') ...[
+                          _testBadge(),
+                          SizedBox(width: SizeConfig.size8),
+                        ],
+                        _tagPill(tagText, leading: tagLeading),
+                      ],
+                    ),
                   ],
                 ),
                 SizedBox(height: SizeConfig.size8),
@@ -533,9 +515,7 @@ class _SinglePlanSubscriptionViewState
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 1000, sigmaY: 1000),
         child: Container(
-          padding: EdgeInsets.all(
-             SizeConfig.size10,
-          ),
+          padding: EdgeInsets.all(SizeConfig.size10),
           decoration: BoxDecoration(
             color: AppColors.white.withValues(alpha: 0.6),
             borderRadius: BorderRadius.circular(100),
@@ -552,7 +532,30 @@ class _SinglePlanSubscriptionViewState
     );
   }
 
-  Widget _tagPill(String text) {
+  /// Solid orange "TEST" badge shown next to [_tagPill] when the plan is
+  /// in test mode (Razorpay sandbox / non-production keys). Deliberately
+  /// loud — it's a debug aid, not a marketing pill.
+  Widget _testBadge() {
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: SizeConfig.size10,
+        vertical: SizeConfig.size4,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.orange,
+        borderRadius: BorderRadius.circular(100),
+        border: Border.all(color: AppColors.white, width: 1.5),
+      ),
+      child: CustomText(
+        'TEST',
+        fontSize: SizeConfig.small,
+        fontWeight: FontWeight.w700,
+        color: AppColors.white,
+      ),
+    );
+  }
+
+  Widget _tagPill(String text, {Widget? leading}) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(100),
       child: BackdropFilter(
@@ -567,11 +570,20 @@ class _SinglePlanSubscriptionViewState
             borderRadius: BorderRadius.circular(100),
             border: Border.all(color: AppColors.white),
           ),
-          child: CustomText(
-            text,
-            fontSize: SizeConfig.medium,
-            fontWeight: FontWeight.w400,
-            color: AppColors.mainTextColor,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (leading != null) ...[
+                leading,
+                SizedBox(width: SizeConfig.size6),
+              ],
+              CustomText(
+                text,
+                fontSize: SizeConfig.medium,
+                fontWeight: FontWeight.w400,
+                color: AppColors.mainTextColor,
+              ),
+            ],
           ),
         ),
       ),
@@ -603,5 +615,7 @@ class _SinglePlanSubscriptionViewState
       ),
     );
   }
+
+
 
 }
