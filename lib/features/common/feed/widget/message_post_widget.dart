@@ -198,9 +198,13 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                                         ),
                                       ),
 
-                                      // Show Translate Option if NOT English OR if already translated (to allow toggle back)
-                                      if (!transController.translator
-                                              .isEnglishText(subTitle) ||
+                                      // Show Translate Option only when at least one of title/subtitle
+                                      // is non-English (i.e. hide only if BOTH are pure English),
+                                      // or if already translated (to allow toggle back).
+                                      if (!(transController.translator
+                                                  .isEnglishText(_post.title ?? '') &&
+                                              transController.translator
+                                                  .isEnglishText(subTitle)) ||
                                           transController.isTranslated.value)
                                         Padding(
                                           padding: EdgeInsets.only(

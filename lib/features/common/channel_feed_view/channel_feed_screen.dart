@@ -11,8 +11,7 @@ import 'package:BlueEra/features/common/channel_feed_view/channel_card_widget.da
 import 'package:BlueEra/features/common/channel_feed_view/channel_feed_controllar.dart';
 import 'package:BlueEra/features/common/channel_feed_view/channel_feed_post_listing_screen.dart';
 import 'package:BlueEra/features/common/channel_feed_view/unjoin_channel_card_widget.dart';
-import 'package:BlueEra/features/common/channel_feed_view/view_all_joined_channel_list_screen.dart';
-import 'package:BlueEra/features/common/channel_feed_view/whats_new_channel_list_screen.dart';
+
 import 'package:BlueEra/features/common/feed/view/home_feed_screen_new.dart';
 import 'package:BlueEra/features/common/home/controller/home_screen_controller.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
@@ -75,8 +74,6 @@ class _ChannelFeedScreenState extends State<ChannelFeedScreen> {
     // TODO: implement initState
     super.initState();
     _guardedChannelFetch();
-    // channelFeedController.fetchChannelData(loadMore: false);
-    // channelFeedController.fetchUnJoinChannelData(loadMore: false);
   }
 
   @override
@@ -198,38 +195,6 @@ class _ChannelFeedScreenState extends State<ChannelFeedScreen> {
                   ),
                 ),
               if (channelFeedController.communityIndex.value == 0) ...[
-                /*   SliverToBoxAdapter(
-                  child: Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        // Obx(() {
-                        //   return Padding(
-                        //     padding: const EdgeInsets.only(top: 8.0),
-                        //     child: CustomText(
-                        //       "${AppStrings.joined.tr}  ${AppStrings.channels.tr}",
-                        //       fontWeight: FontWeight.w500,
-                        //       fontSize: SizeConfig.size16,
-                        //       color: AppColors.mainTextColor,
-                        //     ),
-                        //   );
-                        // }),
-                        InkWell(
-                          onTap: () => Get.to(ViewAllJoinedChannelListScreen()),
-                          child: CustomText(
-                            AppStrings.viewAll,
-                            fontWeight: FontWeight.w500,
-                            fontSize: SizeConfig.size16,
-                            color: AppColors.primaryColor,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),*/
-
                 // Joined Channels
                 Obx(() => SliverList(
                       delegate: SliverChildBuilderDelegate(
@@ -250,35 +215,6 @@ class _ChannelFeedScreenState extends State<ChannelFeedScreen> {
               ],
 
               if (channelFeedController.communityIndex.value == 1) ...[
-                // Suggested Header
-                // SliverToBoxAdapter(
-                //   child: Padding(
-                //     padding:
-                //         const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                //     child: Row(
-                //       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                //       children: [
-                //         CustomText(
-                //           AppStrings.suggested,
-                //           fontWeight: FontWeight.w500,
-                //           fontSize: SizeConfig.size16,
-                //           color: AppColors.mainTextColor,
-                //         ),
-                //         InkWell(
-                //           onTap: () => Get.to(WhatsNewChannelListScreen()),
-                //           child: CustomText(
-                //             AppStrings.viewAll,
-                //             fontWeight: FontWeight.w500,
-                //             fontSize: SizeConfig.size16,
-                //             color: AppColors.primaryColor,
-                //           ),
-                //         ),
-                //       ],
-                //     ),
-                //   ),
-                // ),
-
-                // Suggested Channels
                 Obx(() => SliverList(
                       delegate: SliverChildBuilderDelegate(
                         (context, index) {

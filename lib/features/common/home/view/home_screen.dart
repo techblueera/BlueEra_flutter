@@ -256,10 +256,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         headerHeight: _headerHeight,
                         onHeaderVisibilityChanged: _toggleAppBarAndBottomNav,
                       ),
-                      // OttScreen(
-                      //   headerHeight: _headerHeight,
-                      //   onHeaderVisibilityChanged: _toggleAppBarAndBottomNav,
-                      // ),
                     ],
                   ),
                 ),
@@ -353,8 +349,6 @@ class _HomeScreenState extends State<HomeScreen> {
                               }),
                             ),
                           ),
-                          // if (selectedIndex == 0) _buildSubFilterRow(),
-
                           if (selectedIndex == 1) _buildCommunitySubFilterRow(),
                         ],
                       ),
@@ -367,38 +361,36 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildSubFilterRow() {
-    return Container(
-      padding: const EdgeInsets.only(top: 6, right: 16, left: 16, bottom: 6),
-      // color: AppColors.appBackgroundColor,
-      child: Row(
-        children: [
-          LocalAssets(imagePath: AppIconAssets.filterIcon),
-          const SizedBox(width: 12),
-          _subFilterChip("For You", index: 0),
-          const SizedBox(width: 8),
-          _subFilterChip("Near Me", index: 1),
-          const SizedBox(width: 8),
-          _subFilterChip("Treanding", index: 2),
-        ],
-      ),
-    );
-  }
 
   Widget _buildCommunitySubFilterRow() {
-    return Container(
-      padding: const EdgeInsets.only(top: 6, right: 16, left: 16, bottom: 6),
-      color: AppColors.white,
-      child: Row(
-        children: [
-          LocalAssets(imagePath: AppIconAssets.filterIcon),
-          const SizedBox(width: 12),
-          _communitySubFilterChip("Joined", index: 0),
-          const SizedBox(width: 8),
-          _communitySubFilterChip("Suggested", index: 1),
-        ],
-      ),
-    );
+    return Obx(() {
+      final channelFeedController = Get.find<ChannelFeedController>();
+      final hasJoined = channelFeedController.channelDataList.isNotEmpty;
+      // If joined chip is hidden, force-select Suggested as default.
+      // Schedule outside the build phase to avoid markNeedsBuild while
+      // the widget tree is locked.
+      if (!hasJoined && channelFeedController.communityIndex.value != 1) {
+        Future.microtask(() {
+          if (!mounted) return;
+          channelFeedController.communityIndex.value = 1;
+        });
+      }
+      return Container(
+        padding: const EdgeInsets.only(top: 6, right: 16, left: 16, bottom: 6),
+        color: AppColors.white,
+        child: Row(
+          children: [
+            LocalAssets(imagePath: AppIconAssets.filterIcon),
+            const SizedBox(width: 12),
+            if (hasJoined) ...[
+              _communitySubFilterChip(AppStrings.joined, index: 0),
+              const SizedBox(width: 8),
+            ],
+            _communitySubFilterChip(AppStrings.suggested, index: 1),
+          ],
+        ),
+      );
+    });
   }
 
 // Logic to handle tab switching
@@ -448,13 +440,16 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _communitySubFilterChip(String title, {required int index}) {
-    bool isActive = selectedSubIndex == index;
+    final channelFeedController = Get.find<ChannelFeedController>();
+    bool isActive = channelFeedController.communityIndex.value == index;
     return GestureDetector(
       onTap: () {
-        Get.find<ChannelFeedController>().communityIndex.value = index;
-        setState(() {
-          selectedSubIndex = index;
-        });
+        channelFeedController.communityIndex.value = index;
+        if (mounted) {
+          setState(() {
+            selectedSubIndex = index;
+          });
+        }
       },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),

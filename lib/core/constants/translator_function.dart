@@ -19,15 +19,38 @@ class CustomTranslator {
     // Outputs: Hello, how are you?
   }
 
-  bool isTranslationRequired(String text,Locale locale) {
+  // Covers the major Indian scripts: Devanagari (Hindi/Marathi/Sanskrit),
+  // Bengali/Assamese, Gurmukhi (Punjabi), Gujarati, Oriya, Tamil, Telugu,
+  // Kannada, Malayalam, Sinhala. Any character in these ranges means the
+  // text is NOT pure English and translation should be offered.
+  static final RegExp _indicScriptRegex = RegExp(
+    r'[\u0900-\u097F'    // Devanagari
+    r'\u0980-\u09FF'    // Bengali / Assamese
+    r'\u0A00-\u0A7F'    // Gurmukhi
+    r'\u0A80-\u0AFF'    // Gujarati
+    r'\u0B00-\u0B7F'    // Oriya
+    r'\u0B80-\u0BFF'    // Tamil
+    r'\u0C00-\u0C7F'    // Telugu
+    r'\u0C80-\u0CFF'    // Kannada
+    r'\u0D00-\u0D7F'    // Malayalam
+    r'\u0D80-\u0DFF'    // Sinhala
+    r']',
+  );
+
+  bool isTranslationRequired(String text, Locale locale) {
     if (text == '') {
       return true;
     }
 
-    // Check if all characters in the text are within the ASCII range (a-z, A-Z, space, etc.)
-    final asciiRange = locale.languageCode == 'en'? RegExp(r'^[\x00-\x7F]+$'):RegExp(r'^[\u0900-\u097F\s]+$');
-
-    return asciiRange.hasMatch(text);
+    // Detect by presence of any Indic script character, ignoring emojis/symbols.
+    final hasIndic = _indicScriptRegex.hasMatch(text);
+    if (locale.languageCode == 'en') {
+      // "English" if there is no Indic content.
+      return !hasIndic;
+    } else {
+      // Non-English locale: needs translation if any Indic content is present.
+      return hasIndic;
+    }
   }
 
   bool isEnglishText(String text) {
@@ -35,10 +58,12 @@ class CustomTranslator {
       return true;
     }
 
-    // Check if all characters in the text are within the ASCII range (a-z, A-Z, space, etc.)
-    final asciiRange = RegExp(r'^[\x00-\x7F]+$');
-
-    return asciiRange.hasMatch(text);
+    // Treat as English ONLY if the text contains no characters from any
+    // Indian script. Emojis, punctuation, digits and Latin letters are
+    // ignored, so captions like "Hello 😀" are still detected as English,
+    // while "வணக்கம்", "ਸਤ ਸ੍ਰੀ ਅਕਾਲ", "નમસ્તે", "নমস্কার", "నమస్తే" etc.
+    // are correctly detected as non-English and the Translate button shows.
+    return !_indicScriptRegex.hasMatch(text);
   }
 }
 
@@ -82,12 +107,17 @@ class FeedTranslationController extends GetxController {
       // Translate to English (or Hindi if original is English)
       isLoading.value = true;
 
-      // Determine target language based on current content
-      String targetLanguage = translator.isEnglishText(originalText) ? 'hi' : 'en';
-      String targetTitleLanguage = translator.isEnglishText(originalTitleText) ? 'hi' : 'en';
+      // Determine ONE target language for the whole post so title and
+      // subtitle never diverge (e.g. Hindi subtitle + English-looking title).
+      // Prefer the subtitle's language since the Translate button visibility
+      // is driven by the subtitle; fall back to the title if subtitle is empty.
+      final String sourceForDetection =
+          originalText.trim().isNotEmpty ? originalText : originalTitleText;
+      final String targetLanguage =
+          translator.isEnglishText(sourceForDetection) ? 'hi' : 'en';
 
       String result = await translator.translateToOtherLanguage(originalText, targetLanguage);
-      String resultTitle = await translator.translateToOtherLanguage(originalTitleText, targetTitleLanguage);
+      String resultTitle = await translator.translateToOtherLanguage(originalTitleText, targetLanguage);
 
       currentText.value = result;
       currentTitleText.value = resultTitle;
