@@ -729,9 +729,18 @@ class _BusinessDetailsEditPageOneState
                                   return;
                                 }
 
-                                if (mobileController.text.isEmpty) {
-                                  commonSnackBar(message: AppStrings.pleaseEnterMobileNumber);
-                                  return;
+                                if (selectedType == ContactType.Mobile) {
+                                  String? phoneError = ValidationMethod.validatePhone(mobileController.text);
+                                  if (phoneError != null) {
+                                    commonSnackBar(message: phoneError);
+                                    return;
+                                  }
+                                } else if (selectedType == ContactType.Landline) {
+                                  String? landlineError = ValidationMethod.validateLandline(landlineNumberController.text);
+                                  if (landlineError != null) {
+                                    commonSnackBar(message: landlineError);
+                                    return;
+                                  }
                                 }
 
                                 // if (picCodeController.text.isEmpty) {

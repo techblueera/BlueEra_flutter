@@ -61,11 +61,16 @@ class ValidationMethod {
 
   /// PHONE VALIDATION METHOD
   static String? validatePhone(value) {
-    bool regex = RegExp(r"\d{10}").hasMatch(value);
-    if (value == '') {
-      return AppStrings.mobileIsRequired;
-    } else if (regex == false) {
-      return AppStrings.mobileIsRequired;
+    if (value == null || value.isEmpty) {
+      return AppStrings.mobileIsRequired.tr;
+    }
+    
+    // Indian mobile numbers: exactly 10 digits, starting with 6, 7, 8, or 9.
+    // Anchored with ^ and $ to ensure no extra characters are present.
+    bool regex = RegExp(r"^[6-9]\d{9}$").hasMatch(value);
+    
+    if (regex == false) {
+      return AppStrings.enterValidPhoneNumber.tr;
     }
 
     return null;

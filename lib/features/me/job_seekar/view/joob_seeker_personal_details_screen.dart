@@ -15,6 +15,7 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 import '../../../../core/constants/app_enum.dart';
+import '../../../../core/constants/regular_expression.dart';
 
 class JobSeekerPersonalDetailsScreen extends StatefulWidget {
   const JobSeekerPersonalDetailsScreen({Key? key}) : super(key: key);
@@ -69,7 +70,7 @@ class _JobSeekerPersonalDetailsScreenState
 
   void _validate() {
     final phoneValid =
-        RegExp(r'^\d{10}$').hasMatch(phoneController.text.trim());
+        ValidationMethod.validatePhone(phoneController.text.trim()) == null;
     final valid = nameController.text.trim().isNotEmpty &&
         emailController.text.trim().isNotEmpty &&
         careerObjController.text.trim().isNotEmpty &&
@@ -278,9 +279,7 @@ class _JobSeekerPersonalDetailsScreenState
                       CustomBtn(
                         title: AppStrings.update.tr,
                         isValidate: isValid,
-                        onTap: (isValid == false ||
-                                phoneController.text.isEmpty ||
-                                phoneController.text.length < 10)
+                        onTap: (isValid == false)
                             ? null
                             : () async {
                                 await controller.updateProfileDetails(

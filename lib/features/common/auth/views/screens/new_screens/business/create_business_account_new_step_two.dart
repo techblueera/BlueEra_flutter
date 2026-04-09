@@ -101,8 +101,7 @@ class _CreateBusinessAccountNewStepTwoState
 
       if (selectedType == ContactType.Mobile) {
         isFormValid = commonValid &&
-            mobileController.text.trim().isNotEmpty &&
-            mobileController.text.length == 10;
+            ValidationMethod.validatePhone(mobileController.text) == null;
       } else if (selectedType == ContactType.Landline) {
 
         isFormValid = commonValid &&
@@ -451,10 +450,9 @@ class _CreateBusinessAccountNewStepTwoState
                               onTap: isFormValid
                                   ? () async {
                                 if (selectedType == ContactType.Mobile) {
-                                  if (mobileController.length != 10) {
-                                    commonSnackBar(
-                                        message:
-                                        AppStrings.pleaseEnterValidMobileNo.tr);
+                                  String? phoneError = ValidationMethod.validatePhone(mobileController.text);
+                                  if (phoneError != null) {
+                                    commonSnackBar(message: phoneError);
                                     return;
                                   }
                                 }

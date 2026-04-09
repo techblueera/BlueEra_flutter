@@ -96,7 +96,7 @@ class _CreateJobPostScreenState extends State<CreateJobPostScreen> {
                 "";
 
         // Initialize benefits (compensation perks)
-       if (createJobPostController.jobDetails.value?.job?.benefits != null &&
+        if (createJobPostController.jobDetails.value?.job?.benefits != null &&
             createJobPostController
                 .jobDetails.value!.job!.benefits!.isNotEmpty) {
           createJobPostController.selectedCompensationPerks.clear();
@@ -104,11 +104,9 @@ class _CreateJobPostScreenState extends State<CreateJobPostScreen> {
               .addAll(createJobPostController.jobDetails.value!.job!.benefits!);
           createJobPostController.selectedJobDescriptionPerks.addAll(
               createJobPostController.jobDetails.value!.job!.jobHighlights!);
-
-      } else {
+        } else {
           createJobPostController.selectedCompensationPerks.clear();
         }
-
 
         try {
           // Extract the JSON string from benefits[0][0]
@@ -125,7 +123,6 @@ class _CreateJobPostScreenState extends State<CreateJobPostScreen> {
           createJobPostController.selectedCompensationPerks
             ..clear()
             ..addAll(stringList);
-
         } catch (e) {
           createJobPostController.selectedCompensationPerks.clear();
 
@@ -136,7 +133,7 @@ class _CreateJobPostScreenState extends State<CreateJobPostScreen> {
             createJobPostController.selectedJobDescriptionPerks.clear();
             createJobPostController.selectedJobDescriptionPerks.addAll(
                 createJobPostController.jobDetails.value!.job!.jobHighlights!);
-         } else {
+          } else {
             createJobPostController.selectedJobDescriptionPerks.clear();
           }
 
@@ -146,10 +143,8 @@ class _CreateJobPostScreenState extends State<CreateJobPostScreen> {
             setState(() {});
           }
         }
-      }).catchError((error) {
-      });
-    } else {
-    }
+      }).catchError((error) {});
+    } else {}
 
     // Use addPostFrameCallback to ensure the controller is properly initialized
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -167,7 +162,6 @@ class _CreateJobPostScreenState extends State<CreateJobPostScreen> {
       // No longer using reactive listeners since we're using setState
 
       // Debug logging
-
     });
   }
 
@@ -275,8 +269,7 @@ class _CreateJobPostScreenState extends State<CreateJobPostScreen> {
                       children: [
                         // Job Details Section
                         GestureDetector(
-                          onTap: () {
-                          },
+                          onTap: () {},
                           child: CustomText(AppStrings.jobDetails,
                               color: Colors.black,
                               fontWeight: FontWeight.bold,
@@ -333,7 +326,7 @@ class _CreateJobPostScreenState extends State<CreateJobPostScreen> {
                                   SizedBox(width: SizeConfig.size10),
                                   (_imagePath == null || _imagePath!.isEmpty)
                                       ? CustomText(
-                                    AppStrings.selectBannerTemplate,
+                                          AppStrings.selectBannerTemplate,
                                           color: AppColors.grey99,
                                           fontWeight: FontWeight.w500,
                                           fontSize: SizeConfig.large,
@@ -380,8 +373,7 @@ class _CreateJobPostScreenState extends State<CreateJobPostScreen> {
                               RouteHelper.getSearchLocationScreenRoute(),
                               arguments: {
                                 'onPlaceSelected': (double? lat, double? lng,
-                                    String? address
-                                    ) {
+                                    String? address) {
                                   if (address != null) {
                                     createJobPostController
                                         .addressEditController.text = address;
@@ -417,7 +409,7 @@ class _CreateJobPostScreenState extends State<CreateJobPostScreen> {
                               createJobPostController.jobTitleController,
                           title: AppStrings.jobTitleDesignation,
                           titleColor: AppColors.black,
-                          hintText:AppStrings.jobTitleHint,
+                          hintText: AppStrings.jobTitleHint,
                           isValidate: false,
                           hintTextColor: AppColors.grey9B,
                           fontSize: SizeConfig.medium,
@@ -684,8 +676,7 @@ class _CreateJobPostScreenState extends State<CreateJobPostScreen> {
                           textEditController:
                               createJobPostController.jobDescriptionController,
                           title: AppStrings.typeYourJobDescription,
-                          hintText:
-                          AppStrings.jobDescriptionHint,
+                          hintText: AppStrings.jobDescriptionHint,
                           isValidate: false,
                           hintTextColor: AppColors.grey9B,
                           fontSize: SizeConfig.medium,
@@ -710,12 +701,26 @@ class _CreateJobPostScreenState extends State<CreateJobPostScreen> {
                       Expanded(
                           child: CustomBtn(
                         onTap: () {
-
                           // Validate required fields including image
                           if (!createJobPostController.isEditMode.value &&
                               (_imagePath == null || _imagePath!.isEmpty)) {
                             commonSnackBar(
-                                message:AppStrings.pleaseSelectBanner);
+                                message: AppStrings.pleaseSelectBanner);
+                            return;
+                          }
+
+                          // Validate salary range
+                          int minSalary = int.tryParse(createJobPostController
+                                  .minSalaryController.text) ??
+                              0;
+                          int maxSalary = int.tryParse(createJobPostController
+                                  .maxSalaryController.text) ??
+                              0;
+                          if (minSalary > 0 &&
+                              maxSalary > 0 &&
+                              minSalary >= maxSalary) {
+                            commonSnackBar(
+                                message: AppStrings.salaryRangeError.tr);
                             return;
                           }
 
@@ -766,11 +771,12 @@ class _CreateJobPostScreenState extends State<CreateJobPostScreen> {
                             );
                           } else {
                             createJobPostController.postJobApi(
-                                imagePath: _imagePath,createJobVia: widget.createJobVia);
+                                imagePath: _imagePath,
+                                createJobVia: widget.createJobVia);
                           }
                         },
                         title: createJobPostController.isEditMode.value
-                            ?AppStrings.updateJob
+                            ? AppStrings.updateJob
                             : AppStrings.continueTxt,
                         bgColor: AppColors.primaryColor,
                         textColor: Colors.white,

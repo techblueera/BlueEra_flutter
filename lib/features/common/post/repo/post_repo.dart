@@ -33,18 +33,16 @@ class PostRepo extends BaseService {
     return response;
   }
 
-  Future<ResponseModel> addPostNewRepo(
-      {required FormData? formData, }) async {
-    final response = await ApiBaseHelper().postMultiImage(
-      addPost,
-      params: formData,
-      isArrayReq: true,
-      showProgress: false,
-      onSendProgress: (sent, total) {
-      },onError: (e){
-        commonSnackBar(message: "${e}");
-    }
-    );
+  Future<ResponseModel> addPostNewRepo({
+    required FormData? formData,
+  }) async {
+    final response = await ApiBaseHelper().postMultiImage(addPost,
+        params: formData,
+        isArrayReq: true,
+        showProgress: false,
+        onSendProgress: (sent, total) {}, onError: (e) {
+      commonSnackBar(message: "${e}");
+    });
     return response;
   }
 
@@ -274,10 +272,10 @@ class PostRepo extends BaseService {
     return response;
   }
 
-
   ///UPLOAD INIT...
-  Future<ResponseModel?> uploadMessagePostVideoRepo(
-      {required Map<String, dynamic> queryParams, }) async {
+  Future<ResponseModel?> uploadMessagePostVideoRepo({
+    required Map<String, dynamic> queryParams,
+  }) async {
     final response = await ApiBaseHelper().postHTTP(
       initPostServiceUpload,
       params: queryParams,
@@ -287,12 +285,13 @@ class PostRepo extends BaseService {
     );
     return response;
   }
+
   ///UPLOAD TO S3...
   Future<ResponseModel?> uploadMessagePostVideoRepoToS3(
       {required Function(double progress) onProgress,
-        required File file,
-        required String fileType,
-        required String preSignedUrl}) async {
+      required File file,
+      required String fileType,
+      required String preSignedUrl}) async {
     final response = await ApiBaseHelper().uploadVideoToS3(
       preSignedUrl,
       file: file,
@@ -303,12 +302,11 @@ class PostRepo extends BaseService {
     return response;
   }
 
-
-  Future<ResponseModel> aiSocialPostGenerateRepo({Map<String, dynamic>? queryParam}) async {
-
+  Future<ResponseModel> aiSocialPostGenerateRepo(
+      {Map<String, dynamic>? queryParam}) async {
     final response = await ApiBaseHelper().postHTTP(
       aiSocialPostGenerate,
-      params:queryParam,
+      params: queryParam,
       isMultipart: true,
       showProgress: true,
       onError: (error) {},

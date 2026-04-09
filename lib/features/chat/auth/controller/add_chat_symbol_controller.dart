@@ -1,4 +1,3 @@
-
 import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
@@ -39,17 +38,17 @@ class AddChatSymbolController extends GetxController {
   RxString selectedBgImage = ''.obs,
       selectedFontFamily = 'OpenSans'.obs,
       uploadMsgPostUrl = "".obs;
-  RxDouble selectedFontSize=16.0.obs;
-  RxString selectedFontWeight='Medium'.obs;
-  final List<String> fontWeightList=[
-    "Medium","Bold","Large"
-  ];
+  RxDouble selectedFontSize = 16.0.obs;
+  RxString selectedFontWeight = 'Medium'.obs;
+  final List<String> fontWeightList = ["Medium", "Bold", "Large"];
   void changeFontFamily(String family) {
     selectedFontFamily.value = family;
   }
+
   void changeFontSize(double size) {
     selectedFontSize.value = size;
   }
+
   void changeFontWeight(String weight) {
     selectedFontWeight.value = weight;
   }
@@ -61,8 +60,13 @@ class AddChatSymbolController extends GetxController {
     {'name': 'Style', 'family': 'Artifika'},
     {'name': 'Style', 'family': 'AsapCondensed'},
   ];
-  final List<double> fontSizeList=[
-    16.0,18.0,20.0,22.0,24.0,26.0,
+  final List<double> fontSizeList = [
+    16.0,
+    18.0,
+    20.0,
+    22.0,
+    24.0,
+    26.0,
   ];
   FontWeight getFontWeight(String selectedFontWeight) {
     switch (selectedFontWeight) {
@@ -328,13 +332,15 @@ class AddChatSymbolController extends GetxController {
       ApiKeys.content: itTextOrLinkPost()
           ? linkTextSymbolController.text
           : MediaUploadRes?.files?.first.publicUrl,
-      if(selectedPostType.value == PostType.text||selectedPostType.value == PostType.link)
-        ApiKeys.backgroundColor : "#${selectedBgColor.value.value.toRadixString(16).padLeft(8, '0').substring(2).toUpperCase()}",
-      if(selectedPostType.value == PostType.text)
+      if (selectedPostType.value == PostType.text ||
+          selectedPostType.value == PostType.link)
+        ApiKeys.backgroundColor:
+            "#${selectedBgColor.value.value.toRadixString(16).padLeft(8, '0').substring(2).toUpperCase()}",
+      if (selectedPostType.value == PostType.text)
         ApiKeys.fontFamily: selectedFontFamily.value,
-      if(selectedPostType.value == PostType.text)
+      if (selectedPostType.value == PostType.text)
         ApiKeys.fontSize: selectedFontSize.value,
-      if(selectedPostType.value == PostType.text)
+      if (selectedPostType.value == PostType.text)
         ApiKeys.fontWeight: "${selectedFontWeight.value}",
       ApiKeys.caption: "${captionController.text}",
       ApiKeys.duration_days: selectedDays.value,
@@ -352,7 +358,7 @@ class AddChatSymbolController extends GetxController {
     if (responseModel.isSuccess) {
       Get.find<SymbolFeedController>().fetchSymbolFeed();
       commonSnackBar(message: "Symbol Added Successfully");
-     await getSymbolsForPartUser(userId);
+      await getSymbolsForPartUser(userId);
       isPosting.value = false;
       clearData();
       Get.back();
@@ -363,43 +369,47 @@ class AddChatSymbolController extends GetxController {
       return false;
     }
   }
-  Future<void> getSymbolsForPartUser(String userId)async{
-    ResponseModel responseModel = await symbolRepo.getAllSymbolsSingleUser(userId);
-    if(responseModel.isSuccess){
-      mySymbols.value =
-      (responseModel.response?.data as List)
+
+  Future<void> getSymbolsForPartUser(String userId) async {
+    ResponseModel responseModel =
+        await symbolRepo.getAllSymbolsSingleUser(userId);
+    if (responseModel.isSuccess) {
+      mySymbols.value = (responseModel.response?.data as List)
           .map((e) => SymbolDetailsModel.fromJson(e))
           .toList();
     }
-
   }
-  Future<List<SymbolDetailsModel>?> deleteSymbol({required SymbolDetailsModel symbolData})async{
-    ResponseModel responseModel = await symbolRepo.deleteSymbol(symbolData.id??'');
-    if(responseModel.isSuccess){
+
+  Future<List<SymbolDetailsModel>?> deleteSymbol(
+      {required SymbolDetailsModel symbolData}) async {
+    ResponseModel responseModel =
+        await symbolRepo.deleteSymbol(symbolData.id ?? '');
+    if (responseModel.isSuccess) {
       mySymbols.remove(symbolData);
       return mySymbols;
-    }else{
+    } else {
       return null;
     }
-
   }
-  Future<List<SymbolDetailsModel>?> getSymbolsForOtherUser(String userId)async{
-    ResponseModel responseModel = await symbolRepo.getAllSymbolsSingleUser(userId);
-    if(responseModel.isSuccess){
 
+  Future<List<SymbolDetailsModel>?> getSymbolsForOtherUser(
+      String userId) async {
+    ResponseModel responseModel =
+        await symbolRepo.getAllSymbolsSingleUser(userId);
+    if (responseModel.isSuccess) {
       return (responseModel.response?.data as List)
           .map((e) => SymbolDetailsModel.fromJson(e))
           .toList();
-    }else{
+    } else {
       return null;
     }
-
   }
-  void clearData(){
-   selectedPostType.value=null;
-   isPosting.value=false;
-   captionController.clear();
-   linkTextSymbolController.clear();
-   imagesList.clear();
+
+  void clearData() {
+    selectedPostType.value = null;
+    isPosting.value = false;
+    captionController.clear();
+    linkTextSymbolController.clear();
+    imagesList.clear();
   }
 }
