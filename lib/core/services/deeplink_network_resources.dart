@@ -15,19 +15,10 @@ class DeepLinkNetworkResources {
   /// Get Video By ID for deep link handling
   Future<ShortFeedItem?> getVideoById(String videoId) async {
     try {
-      // logs('DEEPLINK_DEBUG: Fetching video with ID: $videoId');
       final response = await FeedRepo().getVideoById(videoId: videoId);
-      //
-      // logs('DEEPLINK_DEBUG: API Response - Success: ${response.isSuccess}');
-      // logs('DEEPLINK_DEBUG: API Response - Message: ${response.message}');
-      // logs('DEEPLINK_DEBUG: API Response - Data: ${response.response?.data}');
-
       if (response.isSuccess) {
         final responseData = response.response?.data;
         if (responseData != null) {
-          logs(
-              'DEEPLINK_DEBUG: Response data found, extracting video from nested structure');
-
           // The API returns: { data: { videos: [VideoFeedItem] } }
           // We need to extract the first video from the videos array
           final videosData = responseData['data'];
@@ -35,25 +26,11 @@ class DeepLinkNetworkResources {
               videosData['videos'] != null &&
               videosData['videos'].isNotEmpty) {
             final videoData = videosData['videos'][0];
-            // logs('DEEPLINK_DEBUG: Extracted video data from nested structure');
-
             final videoFeedItem = ShortFeedItem.fromJson(videoData);
-
-            // Log the parsed video details
-            // logs('DEEPLINK_DEBUG: Parsed VideoFeedItem - Video URL: ${videoFeedItem.video?.videoUrl}');
-            // logs('DEEPLINK_DEBUG: Parsed VideoFeedItem - Video ID: ${videoFeedItem.video?.id}');
-            // logs('DEEPLINK_DEBUG: Parsed VideoFeedItem - Video Title: ${videoFeedItem.video?.title}');
-
             return videoFeedItem;
-          } else {
-            logs('DEEPLINK_DEBUG: No videos found in nested data structure');
           }
-        } else {
-          logs('DEEPLINK_DEBUG: Video data is null in successful response');
         }
       } else {
-        logs(
-            'DEEPLINK_DEBUG: API call failed with message: ${response.message}');
         commonSnackBar(
             message: response.message ?? AppStrings.somethingWentWrong);
       }
@@ -75,7 +52,6 @@ class DeepLinkNetworkResources {
       }
 
       final videoType = videoFeedItem.video?.type;
-logs("videoType====== ${videoType}");
       switch (videoType) {
         case 'long':
           Get.toNamed(

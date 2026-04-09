@@ -11,6 +11,7 @@ import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/auth/repo/chat_view_repo.dart';
+import 'package:BlueEra/features/common/feed/view/post_detail_screen.dart';
 import 'package:BlueEra/main.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -46,12 +47,17 @@ String chatNotificationSound = 'sound/messenger.mp3';
 @pragma('vm:entry-point')
 void onBackgroundNotificationResponse(NotificationResponse response) {
   // Delegate to async handler — use .then() to keep isolate alive until complete
-  _handleBackgroundNotificationResponse(response).then((_) {}).catchError((_) {});
+  _handleBackgroundNotificationResponse(response)
+      .then((_) {})
+      .catchError((_) {});
 }
 
-Future<void> _handleBackgroundNotificationResponse(NotificationResponse response) async {
+Future<void> _handleBackgroundNotificationResponse(
+    NotificationResponse response) async {
   if (response.payload == null) return;
   final data = json.decode(response.payload!) as Map<String, dynamic>;
+  logs("NOTIFICATION DATA 1 ${data}");
+
   final actionId = response.actionId ?? '';
 
   // Initialize a local plugin instance (background isolate may not have the static one)
@@ -64,10 +70,13 @@ Future<void> _handleBackgroundNotificationResponse(NotificationResponse response
   );
 
   // --- Inline reply (WhatsApp-style, no app open) ---
-  if (actionId.startsWith('reply_message_') && response.input != null && response.input!.isNotEmpty) {
+  if (actionId.startsWith('reply_message_') &&
+      response.input != null &&
+      response.input!.isNotEmpty) {
     final conversationId = data['conversationId'] ?? '';
     // Send reply via REST API (works in background isolate without GetX context)
-    await _sendReplyViaApi(conversationId: conversationId, message: response.input!);
+    await _sendReplyViaApi(
+        conversationId: conversationId, message: response.input!);
     // Update notification to show sent reply (no sound/vibration)
     await plugin.show(
       response.id ?? 0,
@@ -95,7 +104,8 @@ Future<void> _handleBackgroundNotificationResponse(NotificationResponse response
   }
 
   // --- Chat actions (view chat / view conversation) ---
-  if (actionId.startsWith('view_chat_') || actionId.startsWith('view_conversation_')) {
+  if (actionId.startsWith('view_chat_') ||
+      actionId.startsWith('view_conversation_')) {
     final senderId = data['senderId'] ?? '';
     if (senderId.isNotEmpty) {
       final chatViewController = getOrPut(() => ChatViewController());
@@ -108,22 +118,28 @@ Future<void> _handleBackgroundNotificationResponse(NotificationResponse response
   }
 
   // --- Connection actions ---
-  if (actionId.startsWith('accept_connection_') || actionId.startsWith('decline_connection_') ||
-      actionId.startsWith('view_profile_') || actionId.startsWith('message_')) {
+  if (actionId.startsWith('accept_connection_') ||
+      actionId.startsWith('decline_connection_') ||
+      actionId.startsWith('view_profile_') ||
+      actionId.startsWith('message_')) {
     Get.toNamed(RouteHelper.getNotificationScreenRoute());
     return;
   }
 
   // --- Ride actions ---
-  if (actionId.startsWith('track_ride_') || actionId.startsWith('view_order_') ||
-      actionId.startsWith('accept_order_') || actionId.startsWith('contact_rider_')) {
+  if (actionId.startsWith('track_ride_') ||
+      actionId.startsWith('view_order_') ||
+      actionId.startsWith('accept_order_') ||
+      actionId.startsWith('contact_rider_')) {
     Get.toNamed(RouteHelper.getRiderServiceScreenRoute());
     return;
   }
 
   // --- Post / Reel actions ---
-  if (actionId.startsWith('view_post_') || actionId.startsWith('view_comment_') ||
-      actionId.startsWith('view_reel_') || actionId.startsWith('view_response_')) {
+  if (actionId.startsWith('view_post_') ||
+      actionId.startsWith('view_comment_') ||
+      actionId.startsWith('view_reel_') ||
+      actionId.startsWith('view_response_')) {
     Get.toNamed(RouteHelper.getNotificationScreenRoute());
     return;
   }
@@ -132,10 +148,10 @@ Future<void> _handleBackgroundNotificationResponse(NotificationResponse response
   if (actionId.startsWith('open_chat_')) {
     final chat = ChatViewController.personalAiChatModule;
     Get.to(() => AiChatScreen(
-      profileImage: chat?.sender?.profileImage,
-      name: chat?.sender?.name,
-      type: chat?.sender?.accountType,
-    ));
+          profileImage: chat?.sender?.profileImage,
+          name: chat?.sender?.name,
+          type: chat?.sender?.accountType,
+        ));
     return;
   }
 
@@ -154,8 +170,10 @@ Future<void> _sendReplyViaApi({
   try {
     const storage = FlutterSecureStorage();
     final token = await storage.read(key: SharedPreferenceUtils.authToken);
-    final storedBaseUrl = await storage.read(key: SharedPreferenceUtils.baseURL);
-    final apiUrl = (storedBaseUrl ?? baseUrl ?? '') + 'chat-service/chat/send-message';
+    final storedBaseUrl =
+        await storage.read(key: SharedPreferenceUtils.baseURL);
+    final apiUrl =
+        (storedBaseUrl ?? baseUrl ?? '') + 'chat-service/chat/send-message';
 
     if (token == null || token.isEmpty) return;
 
@@ -195,28 +213,32 @@ class AppNotificationHandler {
     }
 
     /// Android Notification Channels per backend documentation
-    const AndroidNotificationChannel defaultChannel = AndroidNotificationChannel(
+    const AndroidNotificationChannel defaultChannel =
+        AndroidNotificationChannel(
       'default',
       'General Notifications',
       description: 'All standard push notifications',
       importance: Importance.high,
     );
 
-    const AndroidNotificationChannel incomingCallChannel = AndroidNotificationChannel(
+    const AndroidNotificationChannel incomingCallChannel =
+        AndroidNotificationChannel(
       'incoming_calls',
       'Incoming Calls',
       description: 'Incoming voice and video call alerts',
       importance: Importance.max,
     );
 
-    const AndroidNotificationChannel missedCallChannel = AndroidNotificationChannel(
+    const AndroidNotificationChannel missedCallChannel =
+        AndroidNotificationChannel(
       'missed_calls',
       'Missed Calls',
       description: 'Missed call notifications',
       importance: Importance.defaultImportance,
     );
 
-    const AndroidNotificationChannel messagesChannel = AndroidNotificationChannel(
+    const AndroidNotificationChannel messagesChannel =
+        AndroidNotificationChannel(
       'messages',
       'Messages',
       description: 'Chat messages and tagged messages',
@@ -230,21 +252,24 @@ class AppNotificationHandler {
       importance: Importance.high,
     );
 
-    const AndroidNotificationChannel announcementsChannel = AndroidNotificationChannel(
+    const AndroidNotificationChannel announcementsChannel =
+        AndroidNotificationChannel(
       'announcements',
       'Announcements',
       description: 'Admin and system announcements',
       importance: Importance.defaultImportance,
     );
 
-    const AndroidNotificationChannel channelsChannel = AndroidNotificationChannel(
+    const AndroidNotificationChannel channelsChannel =
+        AndroidNotificationChannel(
       'channels',
       'Channels',
       description: 'Channel and follower updates',
       importance: Importance.defaultImportance,
     );
 
-    const AndroidNotificationChannel ongoingCallChannel = AndroidNotificationChannel(
+    const AndroidNotificationChannel ongoingCallChannel =
+        AndroidNotificationChannel(
       'ongoing_call',
       'Ongoing Calls',
       description: 'Shows when a call is in progress',
@@ -255,8 +280,8 @@ class AppNotificationHandler {
     FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
     flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
-    final androidPlugin = flutterLocalNotificationsPlugin
-        .resolvePlatformSpecificImplementation<
+    final androidPlugin =
+        flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin>();
     await androidPlugin?.createNotificationChannel(defaultChannel);
     await androidPlugin?.createNotificationChannel(incomingCallChannel);
@@ -375,29 +400,39 @@ class AppNotificationHandler {
             if (response.input != null && response.input!.isNotEmpty) {
               replyText = response.input;
             }
-            _handleActionButtonTap(response.actionId!, data, replyText: replyText);
+            _handleActionButtonTap(response.actionId!, data,
+                replyText: replyText);
           } else {
             _onTapNotificationFromStatusBar(data);
           }
         }
       },
       // Background: handles Reply & Mark as Read WITHOUT opening the app
-      onDidReceiveBackgroundNotificationResponse: onBackgroundNotificationResponse,
+      onDidReceiveBackgroundNotificationResponse:
+          onBackgroundNotificationResponse,
     );
   }
 
   /// Handle action button taps from notification
-  static void _handleActionButtonTap(String actionId, Map<String, dynamic> data, {String? replyText}) {
+  static void _handleActionButtonTap(String actionId, Map<String, dynamic> data,
+      {String? replyText}) {
     // Inline reply from notification (WhatsApp-style)
-    if (actionId.startsWith('reply_message_') && replyText != null && replyText.isNotEmpty) {
+    if (actionId.startsWith('reply_message_') &&
+        replyText != null &&
+        replyText.isNotEmpty) {
       final conversationId = data['conversationId'] ?? '';
       final senderId = data['senderId'] ?? '';
-      _sendQuickReply(conversationId: conversationId, senderId: senderId, message: replyText);
+      _sendQuickReply(
+          conversationId: conversationId,
+          senderId: senderId,
+          message: replyText);
       return;
     }
 
     // Chat actions - open chat screen
-    if (actionId.startsWith('reply_message_') || actionId.startsWith('view_chat_') || actionId.startsWith('view_conversation_')) {
+    if (actionId.startsWith('reply_message_') ||
+        actionId.startsWith('view_chat_') ||
+        actionId.startsWith('view_conversation_')) {
       final senderId = data['senderId'] ?? '';
       _openChatWithUser(senderId);
       return;
@@ -411,22 +446,28 @@ class AppNotificationHandler {
     }
 
     // Connection actions
-    if (actionId.startsWith('accept_connection_') || actionId.startsWith('decline_connection_') ||
-        actionId.startsWith('view_profile_') || actionId.startsWith('message_')) {
+    if (actionId.startsWith('accept_connection_') ||
+        actionId.startsWith('decline_connection_') ||
+        actionId.startsWith('view_profile_') ||
+        actionId.startsWith('message_')) {
       Get.toNamed(RouteHelper.getNotificationScreenRoute());
       return;
     }
 
     // Ride actions
-    if (actionId.startsWith('track_ride_') || actionId.startsWith('view_order_') ||
-        actionId.startsWith('accept_order_') || actionId.startsWith('contact_rider_')) {
+    if (actionId.startsWith('track_ride_') ||
+        actionId.startsWith('view_order_') ||
+        actionId.startsWith('accept_order_') ||
+        actionId.startsWith('contact_rider_')) {
       Get.toNamed(RouteHelper.getRiderServiceScreenRoute());
       return;
     }
 
     // Post/Reel actions
-    if (actionId.startsWith('view_post_') || actionId.startsWith('view_comment_') ||
-        actionId.startsWith('view_reel_') || actionId.startsWith('view_response_')) {
+    if (actionId.startsWith('view_post_') ||
+        actionId.startsWith('view_comment_') ||
+        actionId.startsWith('view_reel_') ||
+        actionId.startsWith('view_response_')) {
       Get.toNamed(RouteHelper.getNotificationScreenRoute());
       return;
     }
@@ -435,10 +476,10 @@ class AppNotificationHandler {
     if (actionId.startsWith('open_chat_')) {
       final chat = ChatViewController.personalAiChatModule;
       Get.to(() => AiChatScreen(
-        profileImage: chat?.sender?.profileImage,
-        name: chat?.sender?.name,
-        type: chat?.sender?.accountType,
-      ));
+            profileImage: chat?.sender?.profileImage,
+            name: chat?.sender?.name,
+            type: chat?.sender?.accountType,
+          ));
       return;
     }
 
@@ -471,7 +512,8 @@ class AppNotificationHandler {
     } catch (e) {
       // Fallback: try direct API call
       try {
-        await _sendReplyViaApi(conversationId: conversationId, message: message);
+        await _sendReplyViaApi(
+            conversationId: conversationId, message: message);
         flutterLocalNotificationsPlugin.cancelAll();
       } catch (_) {
         // Last resort: open chat screen
@@ -482,7 +524,8 @@ class AppNotificationHandler {
 
   ///show notification msg
   Future<void> showMsg(RemoteMessage message) async {
-    final operation = (message.data['operation'] ?? '').toString().toLowerCase();
+    final operation =
+        (message.data['operation'] ?? '').toString().toLowerCase();
 
     // Handle fare-call incoming call — show IncomingRiderOrderScreen with ride details.
     // Regular calls are handled by socket `call:incoming` in CallController.
@@ -511,133 +554,24 @@ class AppNotificationHandler {
     await showFromData(message.data);
   }
 
-  /// Handle incoming call when app is in foreground — open in-app call screen directly
-  // void _handleIncomingCallForeground(RemoteMessage message) {
-  //   final data = message.data;
-  //   final senderId = data['senderId'] ?? '';
-  //   final convId = data['conversationId'] ?? '';
-  //   final callerNameStr = data['senderName'] ?? 'Unknown';
-  //   final callerImageStr = data['senderProfileImage'] ?? '';
-  //   final callTypeStr = (data['message'] ?? '').toString().contains('video')
-  //       ? 'video_call'
-  //       : 'voice_call';
-  //
-  //   // Ensure CallController exists
-  //   if (!Get.isRegistered<CallController>()) {
-  //     Get.put(CallController(), permanent: true);
-  //   }
-  //   final callController = Get.find<CallController>();
-  //
-  //   // If already ringing/active (socket event may have arrived first), skip
-  //   if (callController.callStatus.value != CallStatus.idle) return;
-  //
-  //   // Use initStateFromCallKitExtra which sets all state including _remoteUserId & socket
-  //   callController.initStateFromCallKitExtra({
-  //     'senderId': senderId,
-  //     'conversationId': convId,
-  //     'callType': callTypeStr,
-  //     'callerName': callerNameStr,
-  //     'callerImage': callerImageStr,
-  //     'callId': data['callId'] ?? data['notificationId'] ?? '',
-  //     'roomId': data['roomId'] ?? data['room_id'] ?? '',
-  //     'operation': 'incoming_call',
-  //   });
-  //
-  //   // Navigate to the in-app incoming call screen (avoid duplicate)
-  //   if (Get.currentRoute != '/IncomingCallScreen') {
-  //     Get.toNamed('/IncomingCallScreen');
-  //   }
-  // }
-
-  /// Handle incoming call push notification — works in foreground, background, and killed state.
-  void _handleIncomingCallPush(RemoteMessage message) {
-    try {
-      final data = message.data;
-      final callerName = data['senderName'] ?? 'Unknown';
-      final callerImage = data['senderProfileImage'] ?? '';
-
-      // Parse payload — may be a JSON string or already decoded
-      Map<String, dynamic> payload = {};
-      try {
-        final rawPayload = data['payload'];
-        if (rawPayload is String && rawPayload.isNotEmpty) {
-          payload = jsonDecode(rawPayload);
-        } else if (rawPayload is Map) {
-          payload = Map<String, dynamic>.from(rawPayload);
-        }
-      } catch (e) {
-        log('_handleIncomingCallPush: payload parse error: $e');
-      }
-
-      final callType = payload['call_type'] ?? data['callType'] ?? 'audio_call';
-      final callId = payload['call_id'] ?? data['callId'] ?? data['notificationId'] ?? '';
-      final roomId = payload['room_id'] ?? data['roomId'] ?? '';
-
-      // Parse caller data for designation (if available)
-      String designation = '';
-      try {
-        final rawCallerData = data['callerData'];
-        if (rawCallerData != null) {
-          Map<String, dynamic> callerData = rawCallerData is String
-              ? jsonDecode(rawCallerData)
-              : Map<String, dynamic>.from(rawCallerData);
-
-          final accountType = callerData['account_type']?.toString() ?? '';
-          if (accountType == 'BUSINESS') {
-            var biz = callerData['businessData'];
-            if (biz is String) biz = jsonDecode(biz);
-            if (biz is Map) {
-              designation = (biz['category_of_business'] ?? biz['sub_category_of_business'] ?? '').toString();
-            }
-          } else {
-            designation = (callerData['designation'] ?? '').toString();
-          }
-        }
-      } catch (_) {}
-
-      log('_handleIncomingCallPush: callId=$callId, roomId=$roomId, type=$callType, caller=$callerName');
-
-      // Check if this is a fare-call (ride request via call)
-      final metadata = payload['metadata'];
-      final isFareCall = metadata != null && metadata['orderType'] == 'fare-call';
-
-      showFlutterCallNotification(
-        desiginations: isFareCall
-            ? 'Ride Request'
-            : (designation.isNotEmpty ? designation : 'Incoming Call'),
-        callSessionId: callId,
-        callerName: callerName,
-        callerImage: callerImage.isNotEmpty ? callerImage : null,
-        callType: callType,
-        extra: {
-          'senderId': data['senderId'] ?? '',
-          'conversationId': data['conversationId'] ?? '',
-          'callType': callType,
-          'callerName': callerName,
-          'callerImage': callerImage,
-          'callId': callId,
-          'roomId': roomId,
-          'operation': 'incoming_call',
-          if (isFareCall) 'isFareCall': 'true',
-          if (isFareCall) 'fareCallOrderId': metadata['orderId'] ?? '',
-          if (isFareCall) 'fareCallRideDetails': jsonEncode(metadata['rideDetails'] ?? {}),
-        },
-      );
-    } catch (e, stack) {
-      log('_handleIncomingCallPush ERROR: $e');
-      log('Stack: $stack');
-    }
-  }
-  Future<void> showFullCallScreen(NotificationData rideNotification )async{
-    String? pickupLocation=await getAddressFromLatLngAsString(lat:double.parse(rideNotification.deliveryLat.toString()),lng:double.parse(rideNotification.deliveryLong.toString()));
-    String? dropLocation=await getAddressFromLatLngAsString(lat:double.parse(rideNotification.metadata?.dropAddress?.lat.toString()??''),lng:double.parse(rideNotification.metadata?.dropAddress?.long.toString()??''));
-    Get.to(()=> NewDeliveryRequestScreen(
-      notificationData: rideNotification,
-      orderId: '${rideNotification.metadata?.orderId}',
-      customerImage: ''
-      , distance: '${rideNotification.deliveryLong}',
-      pickupAddress: '$pickupLocation', amount: '${rideNotification.metadata?.ridefare}', dropAddress: '$dropLocation',));
-
+  Future<void> showFullCallScreen(NotificationData rideNotification) async {
+    String? pickupLocation = await getAddressFromLatLngAsString(
+        lat: double.parse(rideNotification.deliveryLat.toString()),
+        lng: double.parse(rideNotification.deliveryLong.toString()));
+    String? dropLocation = await getAddressFromLatLngAsString(
+        lat: double.parse(
+            rideNotification.metadata?.dropAddress?.lat.toString() ?? ''),
+        lng: double.parse(
+            rideNotification.metadata?.dropAddress?.long.toString() ?? ''));
+    Get.to(() => NewDeliveryRequestScreen(
+          notificationData: rideNotification,
+          orderId: '${rideNotification.metadata?.orderId}',
+          customerImage: '',
+          distance: '${rideNotification.deliveryLong}',
+          pickupAddress: '$pickupLocation',
+          amount: '${rideNotification.metadata?.ridefare}',
+          dropAddress: '$dropLocation',
+        ));
   }
 
   /// Handle ride_order_received notification — parse payload, populate
@@ -668,8 +602,8 @@ class AppNotificationHandler {
         log('_showRiderOrderScreen: payload parse error: $e');
       }
 
-      Map? metadata = payload['metadata'] ;
-      if(metadata==null){
+      Map? metadata = payload['metadata'];
+      if (metadata == null) {
         return;
       }
 
@@ -678,7 +612,12 @@ class AppNotificationHandler {
       final bool isGuideFormat = rideDetails != null;
 
       late final double pickupLat, pickupLng, dropLat, dropLng, fare, distance;
-      late final String pickupAddress, dropAddress, orderId, customerPhone, modeOfPayment, orderFor;
+      late final String pickupAddress,
+          dropAddress,
+          orderId,
+          customerPhone,
+          modeOfPayment,
+          orderFor;
       late final double etaDistanceKm, etaDurationMin;
 
       if (isGuideFormat) {
@@ -734,10 +673,13 @@ class AppNotificationHandler {
       final callController = Get.find<CallController>();
 
       // Extract call connection details from notification data/payload
-      final callId = payload['call_id'] ?? data['callId'] ?? data['notificationId'] ?? '';
+      final callId =
+          payload['call_id'] ?? data['callId'] ?? data['notificationId'] ?? '';
       final roomId = payload['room_id'] ?? data['roomId'] ?? '';
       final ownerDetails = (metadata['owner details'] ?? {});
-      final senderId = data['senderId'] ?? ((ownerDetails is Map ? ownerDetails['userid'] : null) ?? '').toString();
+      final senderId = data['senderId'] ??
+          ((ownerDetails is Map ? ownerDetails['userid'] : null) ?? '')
+              .toString();
       final conversationId = data['conversationId'] ?? '';
 
       log('[RIDE_ORDER] callId=$callId, roomId=$roomId, senderId=$senderId');
@@ -759,7 +701,8 @@ class AppNotificationHandler {
       // Set fare-call ride details (initStateFromCallKitExtra doesn't handle these)
       callController.fareCallRideDetails.value = {
         'pickup': {
-          'address': pickupAddress.isNotEmpty ? pickupAddress : 'Pickup location',
+          'address':
+              pickupAddress.isNotEmpty ? pickupAddress : 'Pickup location',
           'lat': pickupLat,
           'lng': pickupLng,
         },
@@ -773,10 +716,11 @@ class AppNotificationHandler {
         'modeOfPayment': modeOfPayment,
         'orderFor': orderFor,
         if (customerPhone.isNotEmpty) 'customerPhone': customerPhone,
-        if (etaDurationMin > 0) 'eta': {
-          'distanceKm': etaDistanceKm,
-          'durationMin': etaDurationMin,
-        },
+        if (etaDurationMin > 0)
+          'eta': {
+            'distanceKm': etaDistanceKm,
+            'durationMin': etaDurationMin,
+          },
       };
 
       // Navigate to IncomingRiderOrderScreen
@@ -797,7 +741,8 @@ class AppNotificationHandler {
     return 0.0;
   }
 
-  Future<String?> getAddressFromLatLngAsString({required double lat ,required double lng}) async {
+  Future<String?> getAddressFromLatLngAsString(
+      {required double lat, required double lng}) async {
     try {
       List<Placemark> placemarks = await placemarkFromCoordinates(
         lat,
@@ -809,24 +754,30 @@ class AppNotificationHandler {
         // Build clean string (area, city, pincode)
 
         String locationString =
-        "${place.name ?? ''}, ${place.subLocality ?? ''}, ${place.subAdministrativeArea ?? ''}, ${place.locality ?? ''} - ${place.postalCode ?? ''}".trim();
+            "${place.name ?? ''}, ${place.subLocality ?? ''}, ${place.subAdministrativeArea ?? ''}, ${place.locality ?? ''} - ${place.postalCode ?? ''}"
+                .trim();
 
         return locationString;
       } else {
-
         return "View Order you get address";
       }
     } catch (e) {
       return "View Order you get address";
     }
   }
-  Future<void>  callShow({required String orderId,required double lat,required double lng, Map<String, dynamic>? rideNotificationData })async{
+
+  Future<void> callShow(
+      {required String orderId,
+      required double lat,
+      required double lng,
+      Map<String, dynamic>? rideNotificationData}) async {
     CallKitParams callKitParams = CallKitParams(
       id: "_currentUuid",
       nameCaller: 'New Ride Request',
       appName: 'Callkit',
       avatar: '',
-      handle: "Drop Location : ${await getAddressFromLatLngAsString(lat:lat,lng:lng)}",
+      handle:
+          "Drop Location : ${await getAddressFromLatLngAsString(lat: lat, lng: lng)}",
       type: 0,
       textAccept: 'View',
       textDecline: 'Reject',
@@ -836,7 +787,7 @@ class AppNotificationHandler {
         subtitle: 'You Missed an Order ',
         callbackText: 'Chat Now',
       ),
-      callingNotification:  NotificationParams(
+      callingNotification: NotificationParams(
         showNotification: true,
         isShowCallback: true,
         subtitle: 'order waiting for your confirmation',
@@ -846,10 +797,11 @@ class AppNotificationHandler {
       extra: <String, dynamic>{
         'orderId': '$orderId',
         'operation': 'ride_order_received',
-        if (rideNotificationData != null) 'rideNotificationData': jsonEncode(rideNotificationData),
+        if (rideNotificationData != null)
+          'rideNotificationData': jsonEncode(rideNotificationData),
       },
       headers: <String, dynamic>{'apiKey': 'Abc@123!', 'platform': 'flutter'},
-      android:  AndroidParams(
+      android: AndroidParams(
           isImportant: true,
           isCustomNotification: true,
           isShowLogo: false,
@@ -861,8 +813,7 @@ class AppNotificationHandler {
           textColor: '#ffffff',
           incomingCallNotificationChannelName: "New Delivery Order",
           missedCallNotificationChannelName: "You Missed an Order",
-          isShowCallID: true
-      ),
+          isShowCallID: true),
       ios: IOSParams(
         iconName: 'CallKitLogo',
         handleType: 'generic',
@@ -883,55 +834,6 @@ class AppNotificationHandler {
     await FlutterCallkitIncoming.showCallkitIncoming(callKitParams);
   }
 
-  Future<void> showNotification(
-    RemoteMessage notification, {
-    String channelId = 'default',
-    String channelName = 'General Notifications',
-    Importance importance = Importance.high,
-  }) async {
-    final data = notification.data;
-    final operation = (data['operation'] ?? '').toString().toLowerCase();
-    final title = notification.notification?.title ?? data['title'] ?? "";
-    final body = notification.notification?.body ?? data['message'] ?? "";
-    final isChatMessage = _isChatOperation(operation);
-
-    // Build action buttons
-    final List<AndroidNotificationAction> androidActions = isChatMessage
-        ? _buildChatActions(data)
-        : _parseNotificationActions(data);
-
-    // Use BigTextStyle so notification expands on swipe down (like WhatsApp)
-    final styleInformation = BigTextStyleInformation(
-      body,
-      contentTitle: title,
-      summaryText: isChatMessage ? (data['senderContact'] ?? '') : null,
-    );
-
-    flutterLocalNotificationsPlugin.show(
-      notification.hashCode,
-      title,
-      body,
-      NotificationDetails(
-          android: AndroidNotificationDetails(
-            channelId,
-            channelName,
-            channelDescription: '',
-            enableVibration: true,
-            importance: importance,
-            icon: '@drawable/ic_stat',
-            playSound: true,
-            styleInformation: styleInformation,
-            category: isChatMessage ? AndroidNotificationCategory.message : null,
-            actions: androidActions,
-          ),
-          iOS: DarwinNotificationDetails(
-            presentBanner: true,
-            presentSound: true,
-          )),
-      payload: jsonEncode(data),
-    );
-  }
-
   // ─── Generic data-only FCM renderer (per backend notification guide) ───
 
   /// Show notification from a data-only FCM payload.
@@ -944,9 +846,12 @@ class AppNotificationHandler {
     final style = (data['style'] ?? 'default').toString();
     final channelId = (data['channelId'] ?? 'default').toString();
     final channelName = (data['channelName'] ?? 'Notifications').toString();
-    final channelImportance = (data['channelImportance'] ?? 'default').toString();
+    final channelImportance =
+        (data['channelImportance'] ?? 'default').toString();
     final groupKey = (data['groupKey'] ?? '').toString();
-    final notificationId = (data['notificationId'] ?? '${DateTime.now().millisecondsSinceEpoch}').toString();
+    final notificationId =
+        (data['notificationId'] ?? '${DateTime.now().millisecondsSinceEpoch}')
+            .toString();
     final actionsJson = (data['actions'] ?? '[]').toString();
     final operation = (data['operation'] ?? '').toString().toLowerCase();
     final isChatMessage = _isChatOperation(operation);
@@ -967,7 +872,8 @@ class AppNotificationHandler {
     }
 
     // Build style information
-    final styleInformation = _buildStyleInformation(style, body, bigPicture, title);
+    final styleInformation =
+        _buildStyleInformation(style, body, bigPicture, title);
 
     // Build action buttons: prefer chat-specific actions for chat messages,
     // otherwise use backend-provided actions
@@ -1084,8 +990,8 @@ class AppNotificationHandler {
   Future<ByteArrayAndroidBitmap?> _downloadImageAsBitmap(String url) async {
     try {
       final response = await http.get(Uri.parse(url)).timeout(
-        const Duration(seconds: 5),
-      );
+            const Duration(seconds: 5),
+          );
       if (response.statusCode == 200) {
         return ByteArrayAndroidBitmap(response.bodyBytes);
       }
@@ -1131,7 +1037,8 @@ class AppNotificationHandler {
   }
 
   /// Parse action buttons from the FCM data 'actions' field (for non-chat notifications)
-  List<AndroidNotificationAction> _parseNotificationActions(Map<String, dynamic> data) {
+  List<AndroidNotificationAction> _parseNotificationActions(
+      Map<String, dynamic> data) {
     final List<AndroidNotificationAction> actions = [];
     try {
       final actionsJson = data['actions'] ?? '[]';
@@ -1220,7 +1127,8 @@ class AppNotificationHandler {
   ///call when click on notification
   void onMsgOpen() {
     FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
-      final operation = (message.data['operation'] ?? '').toString().toLowerCase();
+      final operation =
+          (message.data['operation'] ?? '').toString().toLowerCase();
       log("jhsjhsbajhbdasjdhb  For ${message.data}");
 
       // Incoming call in foreground: show native CallKit UI immediately
@@ -1240,7 +1148,6 @@ class AppNotificationHandler {
 
     /// when app is in background and user tap on it.
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-
       if (message != null && message.data != null) {
         _onTapNotificationFromStatusBar(message.data);
       }
@@ -1271,7 +1178,9 @@ class AppNotificationHandler {
     }
 
     final operation = (data['operation'] ?? '').toString().toLowerCase();
-
+    logs("operation==== ${operation}");
+    // logs("operation==== ${data['payload']['post_id']}");
+    // logs("operation==== ${data['payload']['post_id'].runtimeType}");
     switch (operation) {
       // Call operations
       case 'incoming_call':
@@ -1304,6 +1213,8 @@ class AppNotificationHandler {
       case 'reacted_to_post':
       case 'reacted_to_comment':
       case 'replied_on_comment':
+      _handlePostNavigation(data);
+      break;
       case 'answered_question':
         Get.toNamed(RouteHelper.getNotificationScreenRoute());
         break;
@@ -1356,10 +1267,10 @@ class AppNotificationHandler {
       case 'send_nightly_greeting':
         final chat = ChatViewController.personalAiChatModule;
         Get.to(() => AiChatScreen(
-          profileImage: chat?.sender?.profileImage,
-          name: chat?.sender?.name,
-          type: chat?.sender?.accountType,
-        ));
+              profileImage: chat?.sender?.profileImage,
+              name: chat?.sender?.name,
+              type: chat?.sender?.accountType,
+            ));
         break;
 
       // Admin notifications
@@ -1385,7 +1296,16 @@ class AppNotificationHandler {
     /// Clear all local notifications
     flutterLocalNotificationsPlugin.cancelAll();
   }
+  static void _handlePostNavigation(Map<String, dynamic> data) {
+    if (data['payload'] != null) {
+      final payloadMap = jsonDecode(data['payload']);
 
+      Get.to(
+            () => PostDeatilPage(),
+        arguments: {"postId": payloadMap['post_id']},
+      );
+    }
+  }
   /// Helper to open chat with a user by their ID
   static void _openChatWithUser(String userId) {
     if (userId.isEmpty) return;
@@ -1398,7 +1318,9 @@ class AppNotificationHandler {
 
   ///SET AUDIO SOUND....
   Future<void> playCustomSound(RemoteMessage dataNotificationResponse) async {
-    final operation = (dataNotificationResponse.data['operation'] ?? '').toString().toLowerCase();
+    final operation = (dataNotificationResponse.data['operation'] ?? '')
+        .toString()
+        .toLowerCase();
     String playNotificationSound;
 
     // Don't play custom sound for incoming calls (CallKit handles its own ringtone)
@@ -1467,7 +1389,6 @@ class AppNotificationHandler {
                       final newStatus = await Permission.notification.request();
                       if (newStatus.isGranted) {
                         Get.back(); // Close dialog if granted
-
                       } else {
                         // If still denied, open settings
                         await openAppSettings();
@@ -1476,7 +1397,7 @@ class AppNotificationHandler {
                     title: "Grant Permission"),
                 const SizedBox(height: 10),
                 InkWell(
-                  onTap: (){
+                  onTap: () {
                     Get.back();
                   },
                   child: CustomText(
@@ -1497,7 +1418,6 @@ class AppNotificationHandler {
       );
     }
   }
-
 
 /*
   static Future<void> sendMessage(
@@ -1576,91 +1496,4 @@ class AppNotificationHandler {
       }
     }
   }*/
-
 }
-class OpenedMessageDataModel {
-  final String? conversationId;
-  final String? messageId;
-  final String? senderProfileImage;
-  final String? priority;
-  final String? type;
-  final String? title;
-  final String? message;
-  final String? userId;
-  final String? conversationType;
-  final String? senderName;
-  final String? senderId;
-  final String? messageType;
-  final String? senderContact;
-  final String? notificationId;
-  final String? senderType;
-  final String? operation;
-  final DateTime? timestamp;
-
-  OpenedMessageDataModel({
-    this.conversationId,
-    this.messageId,
-    this.senderProfileImage,
-    this.priority,
-    this.type,
-    this.title,
-    this.message,
-    this.userId,
-    this.conversationType,
-    this.senderName,
-    this.senderId,
-    this.messageType,
-    this.senderContact,
-    this.notificationId,
-    this.senderType,
-    this.operation,
-    this.timestamp,
-  });
-
-  factory OpenedMessageDataModel.fromJson(Map<String, dynamic> json) {
-    return OpenedMessageDataModel(
-      conversationId: json['conversationId'],
-      messageId: json['messageId'],
-      senderProfileImage: json['senderProfileImage'],
-      priority: json['priority'],
-      type: json['type'],
-      title: json['title'],
-      message: json['message'],
-      userId: json['userId'],
-      conversationType: json['conversationType'],
-      senderName: json['senderName'],
-      senderId: json['senderId'],
-      messageType: json['messageType'],
-      senderContact: json['senderContact']?.toString(),
-      notificationId: json['notificationId']?.toString(),
-      senderType: json['senderType'],
-      operation: json['operation'],
-      timestamp: json['timestamp'] != null
-          ? DateTime.parse(json['timestamp'])
-          : null,
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'conversationId': conversationId,
-      'messageId': messageId,
-      'senderProfileImage': senderProfileImage,
-      'priority': priority,
-      'type': type,
-      'title': title,
-      'message': message,
-      'userId': userId,
-      'conversationType': conversationType,
-      'senderName': senderName,
-      'senderId': senderId,
-      'messageType': messageType,
-      'senderContact': senderContact,
-      'notificationId': notificationId,
-      'senderType': senderType,
-      'operation': operation,
-      'timestamp': timestamp?.toIso8601String(),
-    };
-  }
-}
-

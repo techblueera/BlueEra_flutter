@@ -2,10 +2,13 @@ import 'dart:convert';
 import 'dart:developer';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/api/apiService/response_model.dart';
+import 'package:BlueEra/core/api/model/guest_model_response.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/language_localization_service/language_model_new.dart';
 import 'package:BlueEra/core/language_localization_service/language_service_app.dart';
 import 'package:BlueEra/environment_config.dart';
+import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/auth/repo/personal_profile_repo.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
@@ -123,10 +126,31 @@ class LanguageControllerNew extends GetxController {
     final token = authTokenGlobal;
     if (token == null || token.isEmpty) return;
     try {
-      await PersonalProfileRepo().updateUser(
+      ResponseModel responseModel =  await PersonalProfileRepo().updateUser(
         formData: {ApiKeys.language: langCode},
         showProgress: false,
       );
+
+
+      // ResponseModel responseModel = await PersonalProfileRepo().updateUser(
+      //     formData: params,
+      //     showProgress: showProgress
+      // );
+
+      if (responseModel.isSuccess) {
+        GuestUserResModel guestUserResModel =
+        GuestUserResModel.fromJson(responseModel.response?.data);
+        await Get.find<ViewPersonalDetailsController>().viewPersonalProfile();
+        // if(!isFromProfileOnly)
+        // {
+        //   Get.back();
+        // }
+        await SharedPreferenceUtils.setSecureValue(
+            SharedPreferenceUtils.authToken, guestUserResModel.token);
+        await getUserAuthToken();
+
+      }
+
     } catch (e) {
       log('⚠️ Failed to sync language preference to server: $e');
     }
