@@ -5267,4 +5267,108 @@ class AppStrings {
   static const String otherFailedUpdateAvailability = "otherFailedUpdateAvailability";
   static const String otherAnErrorOccurred = "otherAnErrorOccurred";
 
+
+  // Others view labels
+  static const String otherOurStaffs = "otherOurStaffs";
+  static const String otherAddStaffMembers = "otherAddStaffMembers";
+  static const String otherProduct = "otherProduct";
+  static const String otherOurOrganisation = "otherOurOrganisation";
+  static const String otherOurBlogs = "otherOurBlogs";
+  static const String otherAddBlogPosts = "otherAddBlogPosts";
+  static const String otherAddEdit = "otherAddEdit";
+  static const String otherAddGalleryPhotos = "otherAddGalleryPhotos";
+  static const String otherNoOrganisationInfoAdded = "otherNoOrganisationInfoAdded";
+  static const String otherShareOrgStory = "otherShareOrgStory";
+  static const String otherAddOrganisation = "otherAddOrganisation";
+
+  static const String otherTimingTitle = "otherTimingTitle";
+  static const String otherOpen = "otherOpen";
+  static const String otherClosed = "otherClosed";
+
+  static const String otherServicePhotos = "otherServicePhotos";
+  static const String otherUploadServicePhoto = "otherUploadServicePhoto";
+
+  static const String otherNewsTitle = "otherNewsTitle";
+  static const String otherNoNewsFound = "otherNoNewsFound";
+  static const String otherConfirmDeleteNews = "otherConfirmDeleteNews";
+  static const String otherAddNews = "otherAddNews";
+  static const String otherEditNews = "otherEditNews";
+  static const String otherUploadPhoto = "otherUploadPhoto";
+  static const String otherTellAboutNews = "otherTellAboutNews";
+  static const String otherNewsFieldLabel = "otherNewsFieldLabel";
+
+  static const String otherAddMember = "otherAddMember";
+  static const String otherEditMember = "otherEditMember";
+  static const String otherEnterName = "otherEnterName";
+  static const String otherHintPositionFounder = "otherHintPositionFounder";
+  static const String otherHintQualificationPhd = "otherHintQualificationPhd";
+  static const String otherTellAboutManagement = "otherTellAboutManagement";
+  static const String otherManagementTitle = "otherManagementTitle";
+  static const String otherNoManagementFound = "otherNoManagementFound";
+  static const String otherConfirmDeleteMember = "otherConfirmDeleteMember";
+
+  static const String otherAnnouncements = "otherAnnouncements";
+  static const String otherJobsTitle = "otherJobsTitle";
+  static const String otherCreateJob = "otherCreateJob";
+
+  static const String otherNoContactUsFound = "otherNoContactUsFound";
+  static const String otherBranchPrefix = "otherBranchPrefix";
+  static const String otherAtLeastOneBranchRequired = "otherAtLeastOneBranchRequired";
+  static const String otherConfirmDeleteBranch = "otherConfirmDeleteBranch";
+  static const String otherAtLeastOneDepartmentRequired = "otherAtLeastOneDepartmentRequired";
+  static const String otherConfirmDeleteDepartment = "otherConfirmDeleteDepartment";
+  static const String otherAddMoreDepartment = "otherAddMoreDepartment";
+  static const String otherAddAnotherBranch = "otherAddAnotherBranch";
+
+  static const String otherDepartmentRoleTitle = "otherDepartmentRoleTitle";
+  static const String otherEmailAddressTitle = "otherEmailAddressTitle";
+  static const String otherWebsiteUrlTitle = "otherWebsiteUrlTitle";
+  static const String otherBranchNameTitle = "otherBranchNameTitle";
+  static const String otherHintAdmissionCell = "otherHintAdmissionCell";
+
+  static const String otherAddStaff = "otherAddStaff";
+  static const String otherEditStaff = "otherEditStaff";
+  static const String otherHintPositionDesigner = "otherHintPositionDesigner";
+  static const String otherHintQualificationDiploma = "otherHintQualificationDiploma";
+  static const String otherJoiningDate = "otherJoiningDate";
+  static const String otherEndingDate = "otherEndingDate";
+  static const String otherStaffsTitle = "otherStaffsTitle";
+  static const String otherNoStaffFound = "otherNoStaffFound";
+  static const String otherConfirmDeleteStaff = "otherConfirmDeleteStaff";
+
+  static const String otherAboutUsTitle = "otherAboutUsTitle";
+  static const String otherAboutOrganizationTitle = "otherAboutOrganizationTitle";
+  static const String otherNoOrganizationFound = "otherNoOrganizationFound";
+  static const String otherConfirmDeleteData = "otherConfirmDeleteData";
+  static const String otherAddOrganization = "otherAddOrganization";
+  static const String otherEditOrganization = "otherEditOrganization";
+  static const String otherTellAboutOrganization = "otherTellAboutOrganization";
+
+  static const String otherPrivacyTncTitle = "otherPrivacyTncTitle";
+  static const String otherNoPrivacyTncFound = "otherNoPrivacyTncFound";
+  static const String otherConfirmDeletePrivacyTnc = "otherConfirmDeletePrivacyTnc";
+  static const String otherAddPrivacyTnc = "otherAddPrivacyTnc";
+  static const String otherEditPrivacyTnc = "otherEditPrivacyTnc";
+  static const String otherTncLabel = "otherTncLabel";
+  static const String otherTellAboutPrivacyTnc = "otherTellAboutPrivacyTnc";
+
+  static const String otherBlogsTitle = "otherBlogsTitle";
+  static const String otherNoBlogsFound = "otherNoBlogsFound";
+  static const String otherConfirmDeleteBlog = "otherConfirmDeleteBlog";
+  static const String otherAddBlogs = "otherAddBlogs";
+  static const String otherEditBlogs = "otherEditBlogs";
+  static const String otherBlogLabel = "otherBlogLabel";
+  static const String otherTellAboutBlogs = "otherTellAboutBlogs";
+
+  static const String otherDownloadsTitle = "otherDownloadsTitle";
+  static const String otherNoDownloadsFound = "otherNoDownloadsFound";
+  static const String otherConfirmDeleteDownload = "otherConfirmDeleteDownload";
+  static const String otherAddDownloads = "otherAddDownloads";
+  static const String otherEditDownloads = "otherEditDownloads";
+  static const String otherTellAboutDownloads = "otherTellAboutDownloads";
+
+  static const String otherFieldName = "otherFieldName";
+  static const String otherFieldPosition = "otherFieldPosition";
+  static const String otherFieldQualification = "otherFieldQualification";
+  static const String otherFieldMessage = "otherFieldMessage";
 }

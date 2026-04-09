@@ -720,7 +720,7 @@ class _CreateJobPostScreenState extends State<CreateJobPostScreen> {
                               maxSalary > 0 &&
                               minSalary >= maxSalary) {
                             commonSnackBar(
-                                message: AppStrings.salaryRangeError.tr);
+                                message: "Required ");
                             return;
                           }
 
