@@ -168,6 +168,16 @@ class AppStrings {
   static const franchiseMessageHint = "franchiseMessageHint";
   static const franchiseAuthorizationConsent = "franchiseAuthorizationConsent";
   static const sendMessage = "sendMessage";
+  static const franchiseSubmitSuccess = "franchiseSubmitSuccess";
+  static const firstNameRequired = "firstNameRequired";
+  static const lastNameRequired = "lastNameRequired";
+  static const validEmailRequired = "validEmailRequired";
+  static const validPhoneRequired = "validPhoneRequired";
+  static const qualificationRequired = "qualificationRequired";
+  static const partnerTypeRequired = "partnerTypeRequired";
+  static const investmentAmountRequired = "investmentAmountRequired";
+  static const cityRequired = "cityRequired";
+  static const acceptTermsRequired = "acceptTermsRequired";
 
   ///NOTIFICATION SETTING SCREEN
   static const notificationSetting = "notificationSetting";
