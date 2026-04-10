@@ -894,5 +894,7 @@ abstract class BaseService {
   final String homeFood = "earn-service/homeFood";
   final String homeFoodByUserId = "earn-service/homeFood/user/$userId";
 
+  /// Franchise Inquiry
+  final String franchiseInquiry = "user-service/inquiries";
 
 }

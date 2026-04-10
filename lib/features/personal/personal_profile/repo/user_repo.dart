@@ -293,6 +293,17 @@ class UserRepo extends BaseService {
     return response;
   }
 
+  Future<ResponseModel> submitFranchiseInquiry({required Map<String, dynamic>? bodyRequest}) async {
+    final response = await ApiBaseHelper().postHTTP(
+      franchiseInquiry,
+      params: bodyRequest,
+      isMultipart: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
   Future<ResponseModel> bdmRegisterStepOneRepo(Map<String,dynamic> params) async {
     final response = await ApiBaseHelper().postHTTP(
         bdmRegisterStepOne,
