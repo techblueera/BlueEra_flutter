@@ -214,7 +214,7 @@ class AppNotificationHandler {
         try {
           final data = jsonDecode(payLoad) as Map<String, dynamic>;
           // Delay to ensure GetMaterialApp navigator is ready after cold start
-          await Future.delayed(const Duration(milliseconds: 500));
+          await Future.delayed(const Duration(seconds: 1));
           _onTapNotificationFromStatusBar(data);
         } catch (e) {
           print("Error parsing launch notification payload: $e");
