@@ -111,7 +111,7 @@ class JobRepo extends BaseService {
   /// GET All RESUMES
   Future<ResponseModel> getAllResumesRepo() async {
     final response = await ApiBaseHelper().getHTTP(
-      getAllResumes,
+      "$getAllResumes?userId=$userId",
       onError: (error) {},
       onSuccess: (res) {},
     );

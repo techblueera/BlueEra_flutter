@@ -68,8 +68,7 @@ class _SchoolMainState extends State<SchoolMain>
   Widget build(BuildContext context) {
     return Scaffold(
         backgroundColor: AppColors.white,
-        body: Obx(() {
-          return SafeArea(
+        body: SafeArea(
             child:Column(
               children: [
                 SizedBox(
@@ -102,7 +101,6 @@ class _SchoolMainState extends State<SchoolMain>
                     ))
               ],
             ),
-          );
-        }));
+          ));
   }
 }

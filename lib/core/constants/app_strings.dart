@@ -912,6 +912,8 @@ class AppStrings {
   static const jobDescription = "job_description";
   static const jobHighlights = "job_highlights";
   static const noHighlightsAvailable = "no_highlights_available";
+  static const noSkillsAvailable = "noSkillsAvailable";
+  static const noLanguagesAvailable = "noLanguagesAvailable";
   static const jobRequirements = "job_requirements";
   static const experience = "experience";
   static const min = "min";

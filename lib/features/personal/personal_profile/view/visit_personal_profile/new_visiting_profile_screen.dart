@@ -13,6 +13,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_p
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/testimonials_screen.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:share_plus/share_plus.dart';
@@ -98,65 +99,26 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
           }
 
           final user = visitController.userData.value?.user;
-          final bannerUrl = (user?.coverPicture?.isNotEmpty ?? false)
-              ? user!.coverPicture!
-              : (user?.profileImage ?? '');
 
           return NestedScrollView(
             headerSliverBuilder: (context, innerBoxIsScrolled) {
               return [
-                // Collapsing banner + back/actions
-                SliverAppBar(
-                  expandedHeight: 180,
-                  pinned: true,
-                  backgroundColor: AppColors.white,
-                  leading: _circleButton(
-                    icon: Icons.arrow_back,
-                    onTap: _onBack,
-                  ),
-                  actions: [
-                    _circleButton(
-                      icon: Icons.share_outlined,
-                      onTap: () async {
-                        final link = profileDeepLink(
-                            userId: user?.id,
-                            accountType: AppConstants.individual);
-                        await SharePlus.instance.share(
-                          ShareParams(
-                              text: "See my profile on BlueEra:\n$link\n",
-                              subject: user?.name),
-                        );
-                      },
-                    ),
-                    _circleButton(
-                      icon: Icons.more_vert,
-                      onTap: () {},
-                    ),
-                    SizedBox(width: 4),
-                  ],
-                  flexibleSpace: FlexibleSpaceBar(
-                    background: bannerUrl.isNotEmpty
-                        ? Image.network(
-                            bannerUrl,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => Container(
-                              color: Color(0xFF8DD0F7),
-                            ),
-                          )
-                        : Container(color: Color(0xFF8DD0F7)),
-                  ),
+                // Safe area spacing
+                SliverToBoxAdapter(
+                  child: SizedBox(
+                      height: MediaQuery.of(context).padding.top),
                 ),
 
-                // Profile info section
+                // Header section (banner + avatar + profile info)
                 SliverToBoxAdapter(
-                  child: _buildProfileInfo(user),
+                  child: _buildHeaderSection(user),
                 ),
 
                 // Pinned tab bar
                 SliverPersistentHeader(
                   pinned: true,
                   delegate: _TabBarDelegate(
-                    TabBar(
+                    tabBar: TabBar(
                       controller: _tabController,
                       labelColor: AppColors.mainTextColor,
                       unselectedLabelColor: AppColors.secondaryTextColor,
@@ -179,6 +141,7 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
                         Tab(text: AppStrings.channel.tr),
                       ],
                     ),
+                    topPadding: MediaQuery.of(context).padding.top,
                   ),
                 ),
               ];
@@ -187,20 +150,25 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
               controller: _tabController,
               children: [
                 // Posts
-                FeedScreen(
-                  key: ValueKey('feedScreen_user_posts_${widget.authorId}'),
-                  postFilterType: PostType.otherPosts,
-                  isInParentScroll: true,
-                  id: widget.authorId,
+                Container(
+                  color: AppColors.lightBlueE9,
+                  child: FeedScreen(
+                    key: ValueKey('feedScreen_user_posts_${widget.authorId}'),
+                    postFilterType: PostType.otherPosts,
+                    isInParentScroll: true,
+                    id: widget.authorId,
+                  ),
                 ),
                 // Testimonials
-                TestimonialsScreen(
-                  userName:
-                      visitController.userData.value?.user?.name ?? 'N/A',
-                  visitUserID: widget.authorId,
-                  isSelfTestimonial: false,
-                  screenFromName: widget.screenFromName,
-                ),
+                Center(child: CustomText('Coming soon')),
+
+                // TestimonialsScreen(
+                //   userName:
+                //       visitController.userData.value?.user?.name ?? 'N/A',
+                //   visitUserID: widget.authorId,
+                //   isSelfTestimonial: false,
+                //   screenFromName: widget.screenFromName,
+                // ),
                 // Channel
                 Center(child: CustomText('Coming soon')),
               ],
@@ -212,196 +180,261 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
   }
 
   // ─────────────────────────────────────────────
-  // PROFILE INFO (below banner, above tabs)
+  // HEADER SECTION (banner + avatar + info)
+  // Same pattern as social_home_screen _buildHeaderSection
   // ─────────────────────────────────────────────
-  Widget _buildProfileInfo(dynamic user) {
-    const double avatarRadius = 36;
-    const double borderWidth = 4;
-    const double avatarOverlap = 30;
-    const double avatarTotalSize = (avatarRadius + borderWidth) * 2;
+  Widget _buildHeaderSection(dynamic user) {
+    final bannerUrl = (user?.coverPicture?.isNotEmpty ?? false)
+        ? user!.coverPicture!
+        : (user?.profileImage ?? '');
 
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Avatar row + Follow button — uses Stack to overlap into banner
-          SizedBox(
-            height: avatarTotalSize - avatarOverlap + 10, // visible height below banner
-            child: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                // Avatar positioned to overlap banner
-                Positioned(
-                  left: 0,
-                  top: -avatarOverlap,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(color: AppColors.white, width: borderWidth),
-                    ),
-                    child: CircleAvatar(
-                      radius: avatarRadius,
-                      backgroundImage: (user?.profileImage != null &&
-                              (user?.profileImage?.isNotEmpty ?? false))
-                          ? NetworkImage(user?.profileImage ?? "")
-                          : null,
-                      backgroundColor: AppColors.primaryColor,
-                      child: (user?.profileImage == null ||
-                              (user?.profileImage?.isEmpty ?? false))
-                          ? CustomText(
-                              getInitials(user?.name),
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 20,
-                            )
-                          : null,
-                    ),
-                  ),
-                ),
-                // Follow button aligned right, vertically centered
-                if (user?.id != null)
-                  Positioned(
-                    right: 0,
-                    top: 4,
-                    child: Obx(() {
-                      final isFollowing = visitController.isFollow.value;
-                      return GestureDetector(
-                        onTap: () async {
-                          if (isGuestUser()) {
-                            createProfileScreen();
-                          } else {
-                            if (isFollowing) {
-                              await visitController.unFollowUserController(
-                                  candidateResumeId: user?.id);
-                            } else {
-                              await visitController.followUserController(
-                                  candidateResumeId: user?.id);
-                            }
-                          }
-                        },
-                        child: Container(
-                          padding:
-                              EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                          decoration: BoxDecoration(
-                            color: isFollowing
-                                ? Colors.transparent
-                                : AppColors.mainTextColor,
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color: isFollowing
-                                  ? AppColors.secondaryTextColor
-                                  : AppColors.mainTextColor,
-                            ),
-                          ),
-                          child: CustomText(
-                            isFollowing
-                                ? AppStrings.unfollow
-                                : AppStrings.follow,
-                            color: isFollowing
-                                ? AppColors.mainTextColor
-                                : Colors.white,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 13,
-                          ),
-                        ),
-                      );
-                    }),
-                  ),
-              ],
-            ),
-          ),
-
-          // Name + username + bio + stats
-          CustomText(
-            user?.name ?? '',
-            fontSize: 22,
-            fontWeight: FontWeight.w800,
-            color: AppColors.mainTextColor,
-          ),
-          SizedBox(height: 2),
-          if (user?.username != null && user!.username!.isNotEmpty)
-            CustomText(
-              "@${user.username}",
-              fontSize: 14,
-              color: AppColors.secondaryTextColor,
-            ),
-          if (user?.profession != null &&
-              user?.profession != "null" &&
-              (user?.profession?.isNotEmpty ?? false)) ...[
-            SizedBox(height: 4),
-            CustomText(
-              user.profession,
-              fontSize: 13,
-              color: AppColors.secondaryTextColor,
-            ),
-          ],
-
-          // Bio
-          if ((user?.bio ?? '').trim().isNotEmpty) ...[
-            SizedBox(height: 8),
-            ExpandableText(
-              text: user.bio ?? '',
-              trimLines: 3,
-              style: TextStyle(
-                color: AppColors.mainTextColor,
-                fontSize: 14,
-                height: 1.4,
-                fontFamily: AppConstants.OpenSans,
-              ),
-              expandMode: ExpandMode.expandable,
-            ),
-          ],
-
-          SizedBox(height: 12),
-
-          // Stats row
-          Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Banner + Avatar + Actions (Stack)
+        SizedBox(
+          height: 180,
+          child: Stack(
+            clipBehavior: Clip.none,
             children: [
-              _statItem(
-                count:
-                    visitController.userData.value?.totalPosts?.toString() ?? "0",
-                label: AppStrings.post,
+              // Banner image
+              ClipRRect(
+                child: Container(
+                  height: 140,
+                  width: double.infinity,
+                  color: const Color(0xFF8DD0F7),
+                  child: bannerUrl.isNotEmpty
+                      ? CachedNetworkImage(
+                          imageUrl: bannerUrl,
+                          fit: BoxFit.cover,
+                          placeholder: (context, url) => Container(
+                            color: Colors.grey[300],
+                          ),
+                          errorWidget: (context, url, error) => Container(
+                            color: const Color(0xFF8DD0F7),
+                          ),
+                        )
+                      : null,
+                ),
               ),
-              SizedBox(width: 20),
-              GestureDetector(
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => FollowersFollowingPage(
-                      tabIndex: 0,
-                      userID: user?.id ?? "",
-                    ),
+
+              // Profile avatar — overlaps banner
+              Positioned(
+                left: 20,
+                top: 100,
+                child: CircleAvatar(
+                  radius: 40,
+                  backgroundColor: AppColors.white,
+                  child: CircleAvatar(
+                    radius: 37,
+                    backgroundImage: (user?.profileImage != null &&
+                            (user?.profileImage?.isNotEmpty ?? false))
+                        ? NetworkImage(user?.profileImage ?? "")
+                        : null,
+                    backgroundColor: AppColors.primaryColor,
+                    child: (user?.profileImage == null ||
+                            (user?.profileImage?.isEmpty ?? false))
+                        ? CustomText(
+                            getInitials(user?.name),
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 20,
+                          )
+                        : null,
                   ),
                 ),
-                child: _statItem(
-                  count: visitController.userData.value?.followingCount
-                          ?.toString() ??
-                      "0",
-                  label: AppStrings.following,
+              ),
+
+              // Back button
+              Positioned(
+                left: 8,
+                top: 8,
+                child: _circleButton(
+                  icon: Icons.arrow_back_ios_new,
+                  onTap: _onBack,
                 ),
               ),
-              SizedBox(width: 20),
-              Obx(() => GestureDetector(
+
+              // Share + More buttons
+              Positioned(
+                right: 8,
+                top: 8,
+                child: Row(
+                  children: [
+                    _circleButton(
+                      icon: Icons.share_outlined,
+                      onTap: () async {
+                        final link = profileDeepLink(
+                            userId: user?.id,
+                            accountType: AppConstants.individual);
+                        await SharePlus.instance.share(
+                          ShareParams(
+                              text: "See my profile on BlueEra:\n$link\n",
+                              subject: user?.name),
+                        );
+                      },
+                    ),
+                    // const SizedBox(width: 4),
+                    // _circleButton(
+                    //   icon: Icons.more_vert,
+                    //   onTap: () {},
+                    // ),
+                  ],
+                ),
+              ),
+
+              // Follow button — positioned at right, below banner
+              if (user?.id != null)
+                Positioned(
+                  right: 12,
+                  top: 144,
+                  child: Obx(() {
+                    final isFollowing = visitController.isFollow.value;
+                    return GestureDetector(
+                      onTap: () async {
+                        if (isGuestUser()) {
+                          createProfileScreen();
+                        } else {
+                          if (isFollowing) {
+                            await visitController.unFollowUserController(
+                                candidateResumeId: user?.id);
+                          } else {
+                            await visitController.followUserController(
+                                candidateResumeId: user?.id);
+                          }
+                        }
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: isFollowing
+                              ? AppColors.greyLite
+                              : AppColors.primaryColor,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: CustomText(
+                          isFollowing
+                              ? AppStrings.unfollow.tr
+                              : AppStrings.follow.tr,
+                          color: isFollowing
+                              ? AppColors.secondaryTextColor
+                              : Colors.white,
+                          fontWeight: FontWeight.w700,
+                          fontSize: SizeConfig.size10,
+                        ),
+                      ),
+                    );
+                  }),
+                ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 10),
+
+        // Name + Username + Profession
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: SizeConfig.size16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CustomText(
+                user?.name ?? '',
+                fontSize: 22,
+                fontWeight: FontWeight.w800,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                color: AppColors.mainTextColor,
+              ),
+              const SizedBox(height: 4),
+              if (user?.username != null && user!.username!.isNotEmpty)
+                CustomText(
+                  "@${user.username}",
+                  fontSize: 14,
+                  color: AppColors.secondaryTextColor,
+                ),
+              if (user?.profession != null &&
+                  user?.profession != "null" &&
+                  (user?.profession?.isNotEmpty ?? false)) ...[
+                const SizedBox(height: 4),
+                CustomText(
+                  user.profession,
+                  fontSize: 13,
+                  color: AppColors.secondaryTextColor,
+                ),
+              ],
+
+              // Bio
+              if ((user?.bio ?? '').trim().isNotEmpty) ...[
+                const SizedBox(height: 8),
+                ExpandableText(
+                  text: user.bio ?? '',
+                  trimLines: 3,
+                  style: TextStyle(
+                    color: AppColors.mainTextColor,
+                    fontSize: 14,
+                    height: 1.4,
+                    fontFamily: AppConstants.OpenSans,
+                  ),
+                  expandMode: ExpandMode.expandable,
+                ),
+              ],
+
+              const SizedBox(height: 12),
+
+              // Stats row
+              Row(
+                children: [
+                  _statItem(
+                    count: visitController.userData.value?.totalPosts
+                            ?.toString() ??
+                        "0",
+                    label: AppStrings.post.tr,
+                  ),
+                  const SizedBox(width: 20),
+                  GestureDetector(
                     onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (_) => FollowersFollowingPage(
-                          tabIndex: 1,
+                          tabIndex: 0,
                           userID: user?.id ?? "",
                         ),
                       ),
                     ),
                     child: _statItem(
-                      count: visitController.followerCount.value.toString(),
-                      label: AppStrings.followers,
+                      count: visitController.userData.value?.followingCount
+                              ?.toString() ??
+                          "0",
+                      label: AppStrings.following.tr,
                     ),
-                  )),
+                  ),
+                  const SizedBox(width: 20),
+                  Obx(() => GestureDetector(
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => FollowersFollowingPage(
+                              tabIndex: 1,
+                              userID: user?.id ?? "",
+                            ),
+                          ),
+                        ),
+                        child: _statItem(
+                          count:
+                              visitController.followerCount.value.toString(),
+                          label: AppStrings.followers.tr,
+                        ),
+                      )),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Divider(color: AppColors.whiteEE, thickness: 1, height: 1),
             ],
           ),
-          SizedBox(height: 12),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -450,25 +483,32 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
 // PINNED TAB BAR DELEGATE
 // ─────────────────────────────────────────────
 class _TabBarDelegate extends SliverPersistentHeaderDelegate {
-  final TabBar _tabBar;
+  final TabBar tabBar;
+  final double topPadding;
 
-  _TabBarDelegate(this._tabBar);
-
-  @override
-  double get minExtent => _tabBar.preferredSize.height;
+  _TabBarDelegate({required this.tabBar, required this.topPadding});
 
   @override
-  double get maxExtent => _tabBar.preferredSize.height;
+  double get minExtent => tabBar.preferredSize.height + topPadding;
+
+  @override
+  double get maxExtent => tabBar.preferredSize.height + topPadding;
 
   @override
   Widget build(
       BuildContext context, double shrinkOffset, bool overlapsContent) {
     return Container(
       color: AppColors.white,
-      child: _tabBar,
+      child: Column(
+        children: [
+          SizedBox(height: topPadding),
+          tabBar,
+        ],
+      ),
     );
   }
 
   @override
-  bool shouldRebuild(covariant _TabBarDelegate oldDelegate) => false;
+  bool shouldRebuild(covariant _TabBarDelegate oldDelegate) =>
+      topPadding != oldDelegate.topPadding;
 }

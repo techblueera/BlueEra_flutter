@@ -35,13 +35,13 @@ class MeMenuCardDesign extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+      margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 3),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(10),
         border: Border.all(color: AppColors.greyE5),
         color: AppColors.white,
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 18),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
       child: Column(
         children: [
           Row(
@@ -55,7 +55,7 @@ class MeMenuCardDesign extends StatelessWidget {
                   ] ,
                   CustomText(
                     title,
-                    fontSize: SizeConfig.size18,
+                    fontSize: SizeConfig.size14,
                     color:AppColors.mainTextColor,
                   ),
                 ],

@@ -87,22 +87,10 @@ class _AllJobPostScreenState extends State<AllJobPostScreen> {
       headerHeight: widget.headerHeight,
       onVisibilityChanged: (visible, offset) {
         final controller = Get.find<JobScreenController>();
-        final currentOffset = controller.headerOffset.value;
 
-        // Linear animation step (same speed up/down)
-        const step = 0.25; // smaller = smoother, larger = faster
-
-        double newOffset = currentOffset;
-
-        if (visible) {
-          // show header → decrease offset
-          newOffset = (currentOffset - step).clamp(0.0, 1.0);
-        } else {
-          // hide header → increase offset
-          newOffset = (currentOffset + step).clamp(0.0, 1.0);
-        }
-
-        controller.headerOffset.value = newOffset;
+        // Set offset directly — AnimatedPositioned/AnimatedPadding in JobsScreen
+        // handles the smooth 400ms transition
+        controller.headerOffset.value = visible ? 0.0 : 1.0;
 
         controller.isHeaderVisible.value = visible;
         widget.onHeaderVisibilityChanged.call(visible);

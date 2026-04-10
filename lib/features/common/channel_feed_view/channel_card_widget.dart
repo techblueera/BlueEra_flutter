@@ -86,6 +86,7 @@ class ChannelCardWidget extends StatelessWidget {
             ),
           ],
         ),
+
       ),
     );
   }

@@ -136,10 +136,7 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
         },
         child: Container(
           color: AppColors.lightBlueE9,
-          // color: AppColors.white,
-          margin: EdgeInsetsDirectional.only(top: 12),
-          // margin: EdgeInsetsDirectional.zero,
-
+          margin: EdgeInsetsDirectional.only(top: 8),
           child: FeedCardWidget(
               horizontalPadding: widget.horizontalPadding,
               bottomPadding: widget.bottomPadding,

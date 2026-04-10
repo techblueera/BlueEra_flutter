@@ -12,7 +12,6 @@ import 'package:BlueEra/features/common/jobs/controller/create_job_post_controll
 import 'package:BlueEra/features/common/jobs/controller/job_details_screen_controller.dart';
 import 'package:BlueEra/features/common/jobs/widget/job_header_row.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
-import 'package:BlueEra/widgets/common_draggable_bottom_sheet.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
@@ -47,6 +46,9 @@ class JobDetailScreen extends StatefulWidget {
 class _JobDetailScreenState extends State<JobDetailScreen> {
   late JobDetailsScreenController controller;
   String JOBID = '';
+
+  String _orNA(String? value) =>
+      (value == null || value.trim().isEmpty) ? AppStrings.na.tr : value;
 
   // late final JobBloc bloc;
   //
@@ -124,62 +126,56 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
   }
 
   Widget _buildJobDetailContent(Job job) {
-    return Stack(
-      alignment: Alignment.topCenter,
-      children: [
-        InkWell(
-          onTap: () {
-            navigatePushTo(
-              context,
-              ImageViewScreen(
-                appBarTitle: AppStrings.imageViewer,
-                imageUrls: [job.jobPostImage ?? ""],
-                initialIndex: 0,
-              ),
-            );
-          },
-          child: CachedNetworkImage(
-            imageUrl: job.jobPostImage ?? "",
-            fit: BoxFit.cover,
-            width: double.infinity,
-            height: double.infinity,
-            placeholder: (context, url) =>
-                const Center(child: CircularProgressIndicator()),
-            errorWidget: (context, url, error) => Container(
-              width: SizeConfig.screenWidth,
-              height: SizeConfig.size140,
-              color: Colors.grey[300],
-              child: LocalAssets(imagePath: AppIconAssets.blueEraIcon),
-            ),
-          ),
-        ),
-        CommonDraggableBottomSheet(
-          maxChildSize: 1.0,
-          minChildSize: 0.5,
-          padding: EdgeInsets.zero,
-          backgroundColor: AppColors.whiteF3,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
-          builder: (scrollController) =>
-              _buildJobDetailsCard(scrollController, job),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildJobDetailsCard(ScrollController scrollController, Job job) {
     return SingleChildScrollView(
-      controller: scrollController,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          topCard(job),
-          SizedBox(height: SizeConfig.size10),
-          jobDescriptionCard(job),
-          SizedBox(height: SizeConfig.size10),
-          jobRequirementCard(job),
-          SizedBox(height: SizeConfig.size10),
-          aboutCompanyCard(job),
-          SizedBox(height: SizeConfig.size15)
+          // Job Image Header
+          GestureDetector(
+            onTap: () {
+              navigatePushTo(
+                context,
+                ImageViewScreen(
+                  appBarTitle: AppStrings.imageViewer,
+                  imageUrls: [job.jobPostImage ?? ""],
+                  initialIndex: 0,
+                ),
+              );
+            },
+            child: CachedNetworkImage(
+              imageUrl: job.jobPostImage ?? "",
+              fit: BoxFit.cover,
+              width: double.infinity,
+              height: SizeConfig.screenHeight * 0.30,
+              placeholder: (context, url) =>
+                  const Center(child: CircularProgressIndicator()),
+              errorWidget: (context, url, error) => Container(
+                width: double.infinity,
+                height: SizeConfig.screenHeight * 0.30,
+                color: Colors.grey[300],
+                child: Center(
+                  child: LocalAssets(imagePath: AppIconAssets.blueEraIcon),
+                ),
+              ),
+            ),
+          ),
+          // Job Detail Cards
+          Container(
+            color: AppColors.whiteF3,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                topCard(job),
+                SizedBox(height: SizeConfig.size10),
+                jobDescriptionCard(job),
+                SizedBox(height: SizeConfig.size10),
+                jobRequirementCard(job),
+                SizedBox(height: SizeConfig.size10),
+                aboutCompanyCard(job),
+                SizedBox(height: SizeConfig.size15),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -197,11 +193,11 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
         children: [
           titleText(AppStrings.department),
           SizedBox(height: SizeConfig.size8),
-          subtitleText(job.department ?? ""),
+          subtitleText(_orNA(job.department)),
           SizedBox(height: SizeConfig.size20),
           titleText(AppStrings.jobDescription),
           SizedBox(height: SizeConfig.size8),
-          ExpandableText(text: job.jobDescription ?? "", trimLines: 3),
+          ExpandableText(text: _orNA(job.jobDescription), trimLines: 3),
           SizedBox(height: SizeConfig.size20),
           Container(
             width: double.infinity,
@@ -259,9 +255,9 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
         children: [
           JobHeaderRow(
             logoUrl: job.businessDetails?.buisness_logo ?? "",
-            title: job.jobTitle ?? "",
+            title: _orNA(job.jobTitle),
             jobId: job.sId ?? "",
-            companyName: job.companyName ?? "",
+            companyName: _orNA(job.companyName),
             trailingIconPath:
                 widget.isShowSaveJob ?? false ? AppIconAssets.unsaved : null,
             businessUserId: job.businessDetails?.id,
@@ -269,16 +265,19 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
           SizedBox(height: SizeConfig.size20),
           iconTextRow(
               iconPath: AppIconAssets.locationJobIcon,
-              text: job.location?.addressString ?? "address"),
+              text: _orNA(job.location?.addressString)),
           SizedBox(height: SizeConfig.size12),
           iconTextRow(
               iconPath: AppIconAssets.stipendJobIcon,
-              text:
-                  '₹ ${formatNumber(job.compensation?.minSalary ?? 0)} - ₹ ${formatNumber(job.compensation?.maxSalary ?? 0)} monthly'),
+              text: (job.compensation?.minSalary != null || job.compensation?.maxSalary != null)
+                  ? '₹ ${formatNumber(job.compensation?.minSalary ?? 0)} - ₹ ${formatNumber(job.compensation?.maxSalary ?? 0)} ${AppStrings.monthly.tr}'
+                  : AppStrings.na.tr),
           SizedBox(height: SizeConfig.size12),
           iconTextRow(
               iconPath: AppIconAssets.bagIcon,
-              text: '${job.jobType ?? ""} - ${job.workMode ?? ""}'),
+              text: (job.jobType != null && job.jobType!.isNotEmpty) || (job.workMode != null && job.workMode!.isNotEmpty)
+                  ? '${_orNA(job.jobType)} - ${_orNA(job.workMode)}'
+                  : AppStrings.na.tr),
           SizedBox(height: SizeConfig.size14),
           Row(
             children: [
@@ -386,15 +385,16 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
           JobHeaderRow(
             jobId: job.sId ?? "",
             logoUrl: job.businessDetails?.buisness_logo ?? "",
-            companyName:
-                "${AppStrings.since.tr} ${job.businessDetails?.dateOfIncorporation?.year}",
-            title: job.businessDetails?.businessName ?? "",
+            companyName: job.businessDetails?.dateOfIncorporation?.year != null
+                ? "${AppStrings.since.tr} ${job.businessDetails!.dateOfIncorporation!.year}"
+                : AppStrings.na.tr,
+            title: _orNA(job.businessDetails?.businessName),
             companyNameColor: AppColors.grey9A,
             businessUserId: job.businessDetails?.id ?? "",
           ),
           SizedBox(height: SizeConfig.size15),
           ExpandableText(
-            text: job.businessDetails?.businessDescription ?? "",
+            text: _orNA(job.businessDetails?.businessDescription),
             trimLines: 4,
             style: TextStyle(
                 fontSize: SizeConfig.small, fontWeight: FontWeight.w400),
@@ -423,7 +423,9 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
                 imagePath: AppIconAssets.experienceJobIcon,
                 imgColor: AppColors.black28),
             label: AppStrings.experience,
-            value: "${AppStrings.min}. " + (job.experience?.toString() ?? "") + "${AppStrings.years}",
+            value: (job.experience != null && job.experience.toString().isNotEmpty)
+                ? "${AppStrings.min.tr}. ${job.experience} ${AppStrings.years.tr}"
+                : AppStrings.na.tr,
           ),
           SizedBox(height: SizeConfig.size15),
           requirementItem(
@@ -431,7 +433,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
                 imagePath: AppIconAssets.educationJobIcon,
                 imgColor: AppColors.black28),
             label: AppStrings.education,
-            value: job.qualifications ?? "",
+            value: _orNA(job.qualifications),
           ),
           SizedBox(height: SizeConfig.size20),
           // --- Skills Section as Pills ---
@@ -456,24 +458,30 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
             ],
           ),
           SizedBox(height: 8),
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: SizeConfig.size50),
-            child: Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: (job.skills ?? [])
-                  .map((skill) => Container(
-                        padding:
-                            EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: AppColors.whiteF3,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: CustomText(skill, color: AppColors.black28),
-                      ))
-                  .toList(),
+          if (job.skills != null && job.skills!.isNotEmpty)
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: SizeConfig.size50),
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: job.skills!
+                    .map((skill) => Container(
+                          padding:
+                              EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: AppColors.whiteF3,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: CustomText(skill, color: AppColors.black28),
+                        ))
+                    .toList(),
+              ),
+            )
+          else
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: SizeConfig.size50),
+              child: subtitleText(AppStrings.noSkillsAvailable.tr),
             ),
-          ),
           SizedBox(height: SizeConfig.size20),
           // --- Languages Section as Pills ---
           Row(
@@ -497,25 +505,31 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
             ],
           ),
           SizedBox(height: 8),
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: SizeConfig.size50),
-            child: Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: (job.languages ?? [])
-                  .map((lang) => Container(
-                        padding:
-                            EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: AppColors.whiteF3,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(lang,
-                            style: TextStyle(color: AppColors.black28)),
-                      ))
-                  .toList(),
+          if (job.languages != null && job.languages!.isNotEmpty)
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: SizeConfig.size50),
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: job.languages!
+                    .map((lang) => Container(
+                          padding:
+                              EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: AppColors.whiteF3,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(lang,
+                              style: TextStyle(color: AppColors.black28)),
+                        ))
+                    .toList(),
+              ),
+            )
+          else
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: SizeConfig.size50),
+              child: subtitleText(AppStrings.noLanguagesAvailable.tr),
             ),
-          ),
         ],
       ),
     );

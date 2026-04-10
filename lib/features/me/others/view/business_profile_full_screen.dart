@@ -205,8 +205,8 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
 
                     /// Website Section
                     Obx(() {
-                      final website = contactController.website.isNotEmpty 
-                          ? contactController.website 
+                      final website = contactController.website.isNotEmpty
+                          ? contactController.website
                           : controller.website;
                       if (website.isEmpty) return const SizedBox.shrink();
                       return Column(
@@ -249,17 +249,23 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
                     ),
 
                     /// Map Section
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: BusinessLocationWidget(
-                          locationText: data.contactUs?.firstOrNull?.branch?.location?.name,
-                          latitude: double.parse(data.contactUs?.firstOrNull?.branch?.location?.coordinates?[0].toString() ?? "0.0"),
-                          longitude: double.parse(data.contactUs?.firstOrNull?.branch?.location?.coordinates?[1].toString() ?? "0.0"),
-                          businessName: data.profile?.profileName ?? "",
-                          padding: 10,
-                          isTitleShow: true),
-                    ),
-                    const SizedBox(height: 40),
+                    if ((data.contactUs?.firstOrNull?.branch?.location?.coordinates != null &&
+                        data.contactUs!.firstOrNull!.branch!.location!.coordinates!.length >= 2 &&
+                        (double.tryParse(data.contactUs!.firstOrNull!.branch!.location!.coordinates![0].toString()) ?? 0.0) != 0.0 &&
+                        (double.tryParse(data.contactUs!.firstOrNull!.branch!.location!.coordinates![1].toString()) ?? 0.0) != 0.0))
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: BusinessLocationWidget(
+                            locationText: data.contactUs?.firstOrNull?.branch?.location?.name,
+                            latitude: double.parse(data.contactUs!.firstOrNull!.branch!.location!.coordinates![0].toString()),
+                            longitude: double.parse(data.contactUs!.firstOrNull!.branch!.location!.coordinates![1].toString()),
+                            businessName: data.profile?.profileName ?? "",
+                            padding: 10,
+                            isTitleShow: true),
+                      ),
+                    const SizedBox(height: kBottomNavigationBarHeight),
+                    const SizedBox(height: 20),
+
                   ],
                 ),
               ),
@@ -273,7 +279,7 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
   Widget _buildOrgEmptyCard({required VoidCallback onTap}) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 16),
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
       decoration: BoxDecoration(
         color: Colors.grey[50],
         borderRadius: BorderRadius.circular(12),
@@ -282,26 +288,26 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.business_center_outlined, size: 48, color: Colors.grey[350]),
-          const SizedBox(height: 12),
+          Icon(Icons.business_center_outlined, size: 36, color: Colors.grey[350]),
+          const SizedBox(height: 8),
           CustomText(
             AppStrings.otherNoOrganisationInfoAdded.tr,
-            fontSize: 15,
+            fontSize: 13,
             fontWeight: FontWeight.w600,
             color: AppColors.mainTextColor,
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 4),
           CustomText(
             AppStrings.otherShareOrgStory.tr,
-            fontSize: 12,
+            fontSize: 11,
             color: AppColors.secondaryTextColor,
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 10),
           GestureDetector(
             onTap: onTap,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
               decoration: BoxDecoration(
                 color: AppColors.primaryColor,
                 borderRadius: BorderRadius.circular(8),
@@ -314,7 +320,7 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
                   CustomText(
                     AppStrings.otherAddOrganisation.tr,
                     color: Colors.white,
-                    fontSize: 13,
+                    fontSize: 12,
                     fontWeight: FontWeight.w600,
                   ),
                 ],
@@ -722,7 +728,7 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
                         children: const [
                           Icon(Icons.edit_outlined, size: 14, color: AppColors.primaryColor),
                           SizedBox(width: 4),
-                          CustomText('Edit', fontSize: 12, color: AppColors.primaryColor),
+                          CustomText(AppStrings.edit, fontSize: 12, color: AppColors.primaryColor),
                         ],
                       ),
                     ),
@@ -760,7 +766,7 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
               children: const [
                 Icon(Icons.add, size: 16, color: AppColors.primaryColor),
                 SizedBox(width: 6),
-                CustomText('Add More', fontSize: 13, color: AppColors.primaryColor, fontWeight: FontWeight.w600),
+                CustomText(AppStrings.addMore, fontSize: 13, color: AppColors.primaryColor, fontWeight: FontWeight.w600),
               ],
             ),
           ),

@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/auth/model/get_all_resumes_model.dart';
 import 'package:BlueEra/features/common/auth/model/get_job_details_byId_model.dart';
@@ -92,7 +93,6 @@ class JobDetailsScreenController extends GetxController{
       if (response.isSuccess && response.response?.data != null) {
         try {
           getResumes.value = GetAllResumesModel.fromJson(response.response!.data);
-          // final userId = getResumes.value?.resumes?[0].userId ?? "";
           getSelfResumeSelectionResponse.value = ApiResponse.complete(response);
 
           Get.to(()=>ShowResumes(),
@@ -101,21 +101,18 @@ class JobDetailsScreenController extends GetxController{
           });
         } catch (parseError) {
           getSelfResumeSelectionResponse.value = ApiResponse.error('error');
-
           error.value = 'Error parsing job details: ${parseError.toString()}';
-          jobDetails.value = null;
+          commonSnackBar(message: AppStrings.somethingWentWrong);
         }
       } else {
         getSelfResumeSelectionResponse.value = ApiResponse.error('error');
-
         error.value = response.message ?? 'Failed to fetch job details';
-        jobDetails.value = null;
+        commonSnackBar(message: AppStrings.somethingWentWrong);
       }
     } catch (e) {
       getSelfResumeSelectionResponse.value = ApiResponse.error('error');
-
       error.value = 'Something went wrong: $e';
-      jobDetails.value = null;
+      commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {
 
       // Ensure we're still mounted before updating state

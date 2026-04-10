@@ -81,7 +81,7 @@ class _RatingSummaryWidgetState extends State<RatingSummaryWidget> {
                 // Rating number
                 CustomText(
                   widget.rating.toStringAsFixed(1),
-                  fontSize: SizeConfig.size50,
+                  fontSize: SizeConfig.size30,
                   fontWeight: FontWeight.bold,
                   color: AppColors.secondaryTextColor,
                 ),

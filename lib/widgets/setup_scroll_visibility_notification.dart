@@ -78,14 +78,6 @@ class _ScrollVisibilityNotifierState extends State<ScrollVisibilityNotifier> {
 
   void _resetIdleTimer() {
     _idleTimer?.cancel();
-    if (_isHeaderVisible) {
-      _idleTimer = Timer(_idleTimeout, () {
-        if (mounted && _isHeaderVisible) {
-          _isHeaderVisible = false;
-          widget.onVisibilityChanged?.call(false, 1.0);
-        }
-      });
-    }
   }
 
   @override

@@ -157,8 +157,10 @@ class UnjoinChannelCardWidget extends StatelessWidget {
                   postFilteredType: PostType.otherChannelPosts,
                   isFromDetailsScreen: true,
                 ),
-              )
+              ),
             ],
+            SizedBox(height: SizeConfig.size10),
+            Divider(height: 0.5, thickness: 0.5, color: AppColors.greyE5),
           ],
         ),
       ),

@@ -305,7 +305,8 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
                                     // ),
 
                                     BusinessLocationWidget(
-                                        locationText: businessData?.address,
+                                        locationText: "",
+                                        // locationText: businessData?.address,
                                         latitude: (businessData
                                                 ?.businessLocation?.lat
                                                 ?.toDouble() ??

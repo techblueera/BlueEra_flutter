@@ -15,9 +15,6 @@ class FeedCardWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       margin: EdgeInsets.only(
-        // top: 0,
-        // bottom: 1,
-
           bottom: bottomPadding??SizeConfig.paddingXSL,
           left: horizontalPadding ?? SizeConfig.paddingXS,
           right: horizontalPadding ?? SizeConfig.paddingXS
@@ -25,9 +22,6 @@ class FeedCardWidget extends StatelessWidget {
       decoration: BoxDecoration(
           color: AppColors.white,
           borderRadius: BorderRadius.circular(20)
-          // color: AppColors.white,
-          // boxShadow: [AppShadows.cardShadow],
-          // borderRadius: BorderRadius.circular(12)
       ),
       child: childWidget,
     );
