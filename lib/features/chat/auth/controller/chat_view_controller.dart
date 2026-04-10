@@ -917,7 +917,7 @@ class ChatViewController extends GetxController {
         if (typingUserId == null) return;
 
         final name = typingUser?['name'] ?? 'Someone';
-        typingText.value = '$name is typing...';
+        typingText.value =  'typing...';
 
         // Auto-hide after 3 seconds
         _typingHideTimers[typingUserId]?.cancel();
