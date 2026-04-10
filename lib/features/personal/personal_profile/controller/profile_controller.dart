@@ -16,7 +16,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 
 import '../../../../core/constants/app_constant.dart';
-import '../../../common/franchise/franchise_google_sheet.dart';
 import '../repo/user_repo.dart';
 
 class VisitProfileController extends GetxController {
@@ -28,6 +27,7 @@ class VisitProfileController extends GetxController {
       ApiResponse.initial('Initial').obs;
   var userData = Rxn<UserProfileRes>();
   final fullNameController = TextEditingController();
+  final lastNameController = TextEditingController();
   final emailController = TextEditingController();
   final phoneController = TextEditingController();
   final investmentController = TextEditingController();
@@ -413,35 +413,49 @@ class VisitProfileController extends GetxController {
     return null;
   }
 
-  Future<void> enquiryFranchise()async{
+  Future<void> enquiryFranchise() async {
     try {
       enquiryBtnLoading.value = true;
       Map<String, dynamic> params = {
-        ApiKeys.firstName: fullNameController.text,
-        ApiKeys.lastName: "",
-        ApiKeys.email: emailController.text,
-        ApiKeys.phone: phoneController.text,
-        ApiKeys.educationalQualification: selectQualification.value,
-        ApiKeys.partnerType: "",
-        ApiKeys.investmentAmount: investmentController.text,
-        ApiKeys.state: selectedState.value,
-        ApiKeys.city: cityController.text,
-        ApiKeys.hasExistingBusiness: haveYouWorkedHere.value,
-        ApiKeys.businessName: "",
-        ApiKeys.businessPincode: "",
-        ApiKeys.businessCity: "",
-        ApiKeys.businessState: "",
-        ApiKeys.gstNumber: "",
-        ApiKeys.hasBusinessExperience: "",
-        ApiKeys.experienceCompany: "",
-        ApiKeys.message: messageController.text,
-        ApiKeys.agreeToPolicy: true
+        ApiKeys.firstName: fullNameController.text.trim(),
+        ApiKeys.lastName: lastNameController.text.trim(),
+        ApiKeys.email: emailController.text.trim(),
+        ApiKeys.phone: "+91${phoneController.text.trim()}",
+        'state': selectedState.value,
+        'city': cityController.text.trim(),
+        'qualification': selectQualification.value,
+        ApiKeys.partnerType: partnerType.value,
+        ApiKeys.investmentAmount: int.tryParse(investmentController.text.trim()) ?? 0,
+        ApiKeys.hasExistingBusiness: haveYouWorkedHere.value == "Yes",
+        'hasExperience': haveYouWorkedHere.value == "Yes",
+        'message': messageController.text.trim(),
       };
-      await askFranchiseEnquiryApi(params);
-      enquiryBtnLoading.value = false;
-    }catch(e){
+      final response = await UserRepo().submitFranchiseInquiry(bodyRequest: params);
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        _clearFranchiseForm();
+        commonSnackBar(message: AppStrings.franchiseSubmitSuccess.tr);
+        Get.offAllNamed('/BottomNavigationBarScreen');
+      } else {
+        commonSnackBar(message: AppStrings.somethingWentWrong.tr);
+      }
+    } catch (e) {
+      commonSnackBar(message: AppStrings.somethingWentWrong.tr);
+    } finally {
       enquiryBtnLoading.value = false;
     }
+  }
+
+  void _clearFranchiseForm() {
+    fullNameController.clear();
+    lastNameController.clear();
+    emailController.clear();
+    phoneController.clear();
+    investmentController.clear();
+    cityController.clear();
+    messageController.clear();
+    selectQualification.value = '';
+    partnerType.value = '';
+    haveYouWorkedHere.value = 'No';
   }
 }
 

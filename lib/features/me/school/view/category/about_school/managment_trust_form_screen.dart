@@ -13,11 +13,16 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/constants/regular_expression.dart';
 
 import '../../../../../../core/api/model/school_about_us_model.dart';
 
 class ManagementTrustFormScreen extends StatefulWidget {
-  ManagementTrustFormScreen({super.key, required this.isEdit, this.management, this.editItemIndex=0});
+  ManagementTrustFormScreen(
+      {super.key,
+      required this.isEdit,
+      this.management,
+      this.editItemIndex = 0});
 
   final int editItemIndex;
   final bool isEdit;
@@ -88,7 +93,9 @@ class _ManagementTrustFormScreenState extends State<ManagementTrustFormScreen> {
                   textEditController: nameEditController,
                   hintText: "E.g. Ramesh Gupta",
                   title: AppStrings.fullName,
+                  isValidate: true,
                   maxLength: 50,
+                  validator: (v) => ValidationMethod.validateName(v),
                   onChange: (_) => _runValidation(),
                 ),
                 SizedBox(height: SizeConfig.paddingM),
@@ -160,7 +167,9 @@ class _ManagementTrustFormScreenState extends State<ManagementTrustFormScreen> {
                   textEditController: professionEditController,
                   hintText: "E.g. Managing Director",
                   title: AppStrings.profession,
+                  isValidate: true,
                   maxLength: 50,
+                  validator: (v) => ValidationMethod.validatePosition(v),
                   onChange: (_) => _runValidation(),
                 ),
                 SizedBox(height: SizeConfig.paddingM),
@@ -173,28 +182,29 @@ class _ManagementTrustFormScreenState extends State<ManagementTrustFormScreen> {
                     AIGeneratorButton(
                       type: "Management,Trust",
                       data: {
-                        "name":nameEditController.text,
-                        "profession":professionEditController.text,
-                        "qualification": schoolAboutUsController.qualifications.join(","),
+                        "name": nameEditController.text,
+                        "profession": professionEditController.text,
+                        "qualification":
+                            schoolAboutUsController.qualifications.join(","),
                       },
                       onSelected: (generatedText) {
-                        schoolAboutUsController.managementDescriptionText.value =
-                            generatedText;
+                        schoolAboutUsController
+                            .managementDescriptionText.value = generatedText;
                         messageEditController.text = generatedText;
                         _runValidation();
-
                       },
                     ),
                   ],
                 ),
                 CommonTextField(
                   textEditController: messageEditController,
-                  title:"",
+                  title: "",
                   hintText:
                       "Hello Everyone @India User Now I am Using https://blueera.ai It’s Amazing, I suggest to Join Me.",
                   maxLine: 5,
                   maxLength: 1000,
-                  isValidate: false,
+                  isValidate: true,
+                  validator: (v) => ValidationMethod.validateDescription(v),
                   keyBoardType: TextInputType.multiline,
                   textInputAction: TextInputAction.newline,
                   onChange: (value) {
@@ -223,7 +233,7 @@ class _ManagementTrustFormScreenState extends State<ManagementTrustFormScreen> {
                               if (widget.isEdit) {
                                 await schoolAboutUsController
                                     .editManagementTrustController(
-                                  currentIndex:widget.editItemIndex ,
+                                  currentIndex: widget.editItemIndex,
                                   name: nameEditController.text,
                                   bio: schoolAboutUsController
                                       .managementDescriptionText.value,
@@ -275,9 +285,8 @@ class _ManagementTrustFormScreenState extends State<ManagementTrustFormScreen> {
               schoolAboutUsController.managementProfileImageFile.value?.path ??
                   "";
           _runValidation();
-        },onImageSelected: (){
-
-      },
+        },
+        onImageSelected: () {},
         title: '',
         context: context,
       );
@@ -286,7 +295,7 @@ class _ManagementTrustFormScreenState extends State<ManagementTrustFormScreen> {
     // If no local file but we have a NETWORK image from API
     // Default: Show Upload Placeholder
     return CommonProfileImageUpload(
-      title:AppStrings.uploadImages,
+      title: AppStrings.uploadImages,
       context: context,
       imgUrl: widget.management?.photo ?? "",
       onImageSelected: () async {
@@ -301,8 +310,6 @@ class _ManagementTrustFormScreenState extends State<ManagementTrustFormScreen> {
       imageFile: schoolAboutUsController.managementProfileImageFile,
     );
   }
-
-
 
 // Helper to trigger validation
   void _runValidation() {

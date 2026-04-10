@@ -359,7 +359,7 @@ class _ContextMenuCard extends StatelessWidget {
                 chatThemeController.activateSelection(message);
                 showDialog(
                   context: context,
-                  builder: (_) => CommonDeleteDialog(
+                  builder: (dialogContext) => CommonDeleteDialog(
                     showDeleteForEveryone: message.myMessage == true,
                     showDeleteFromDevice: _isMediaMessage,
                     onDeleteForMe: () async {
@@ -373,7 +373,7 @@ class _ContextMenuCard extends StatelessWidget {
                           data, userId ?? '');
                       chatThemeController.resetSelection();
                       chatThemeController.deActivateSelection();
-                      Navigator.pop(context);
+                      Navigator.pop(dialogContext);
                     },
                     onDeleteForEveryone: () async {
                       // Delete from server
@@ -391,7 +391,7 @@ class _ContextMenuCard extends StatelessWidget {
 
                       chatThemeController.resetSelection();
                       chatThemeController.deActivateSelection();
-                      Navigator.pop(context);
+                      Navigator.pop(dialogContext);
                     },
                   ),
                 );

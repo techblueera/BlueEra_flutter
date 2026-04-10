@@ -48,7 +48,6 @@ import 'features/chat/view/call_screen/widget/call_floating_overlay.dart';
 import 'features/chat/view/call_screen/rider_call/ride_navigation_floating_overlay.dart';
 import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 import 'features/personal/personal_profile/controller/languge_list_controller.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 final AudioPlayer audioPlayer = AudioPlayer();
 
@@ -58,10 +57,28 @@ SharedMedia? pendingSharedMedia;
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   ///INIT FIREBASE NOTIFICATION...
+
   await firebaseInitializeApp();
 
-  final operation = (message.data['operation'] ?? '').toString().toLowerCase();
+  // NOTE: Do NOT call getInitialMsg(), onMsgOpen(), or _onTapNotificationFromStatusBar() here.
+  // This handler runs in a separate isolate with no UI engine — GetX navigation
+  // (Get.to, Get.toNamed) will crash with "contextless navigation" error.
+  // Navigation on notification tap is handled by flutter_local_notifications'
+  // getNotificationAppLaunchDetails() in firebaseNotificationSetup().
 
+  final operation = (message.data['operation'] ?? '').toString().toLowerCase();
+  print("messageKILLLLL ==== ${operation}");
+  if (message.data['payload'] != null) {
+    final payloadMap = jsonDecode(message.data['payload']);
+    logs("payloadMap=== 0  ${ message.data}");
+    logs("payloadMap=== 1  ${ payloadMap}");
+    logs("payloadMap=== 2  ${ payloadMap['post_id']}");
+    //
+    // Get.to(
+    //       () => PostDeatilPage(),
+    //   arguments: {"postId": payloadMap['post_id']},
+    // );
+  }
   // Handle incoming call in background - show native call UI
   if (operation == 'incoming_call') {
     final data = message.data;
@@ -80,41 +97,47 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       desiginations: isFareCall
           ? 'Ride Request'
           : () {
-        final accountType = callerData['account_type']?.toString() ?? '';
+              final accountType = callerData['account_type']?.toString() ?? '';
 
-        if (accountType == 'BUSINESS') {
-          var biz = callerData['businessData'];
+              if (accountType == 'BUSINESS') {
+                var biz = callerData['businessData'];
 
-          if (biz is String) {
-            biz = jsonDecode(biz);
-          }
+                if (biz is String) {
+                  biz = jsonDecode(biz);
+                }
 
-          if (biz is Map<String, dynamic>) {
-            // First try category_of_business
-            final cat = biz['category_of_business'];
-            if (cat != null && cat.toString().isNotEmpty) {
-              return cat.toString();
-            }
+                if (biz is Map<String, dynamic>) {
+                  // First try category_of_business
+                  final cat = biz['category_of_business'];
+                  if (cat != null && cat.toString().isNotEmpty) {
+                    return cat.toString();
+                  }
 
-            // Then try sub_category_of_business.name
-            final subCat = biz['sub_category_of_business'];
-            if (subCat is Map<String, dynamic>) {
-              final name = subCat['name'];
-              if (name != null && name.toString().isNotEmpty) {
-                return name.toString(); // ✅ ONLY NAME
+                  // Then try sub_category_of_business.name
+                  final subCat = biz['sub_category_of_business'];
+                  if (subCat is Map<String, dynamic>) {
+                    final name = subCat['name'];
+                    if (name != null && name.toString().isNotEmpty) {
+                      return name.toString(); // ✅ ONLY NAME
+                    }
+                  }
+                }
+
+                return 'Incoming Call';
               }
-            }
-          }
 
-          return 'Incoming Call';
-        }
-
-        final designation = callerData['designation']?.toString() ?? '';
-        return designation.isEmpty ? 'Incoming Call' : designation.toLowerCase();
-      }(),
+              final designation = callerData['designation']?.toString() ?? '';
+              return designation.isEmpty
+                  ? 'Incoming Call'
+                  : designation.toLowerCase();
+            }(),
       callSessionId: payload["call_id"],
-      callerName: isFareCall ? (callerName.isNotEmpty ? callerName : 'Ride Request') : callerName,
-      callerImage: callerData['profile_image'].isNotEmpty ? callerData['profile_image'] : null,
+      callerName: isFareCall
+          ? (callerName.isNotEmpty ? callerName : 'Ride Request')
+          : callerName,
+      callerImage: callerData['profile_image'].isNotEmpty
+          ? callerData['profile_image']
+          : null,
       callType: callType,
       extra: {
         'senderId': data['senderId'] ?? '',
@@ -122,12 +145,13 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
         'callType': callType,
         'callerName': callerName,
         'callerImage': callerImage,
-        'callId':payload["call_id"],
-        'roomId':payload["room_id"],
+        'callId': payload["call_id"],
+        'roomId': payload["room_id"],
         'operation': 'incoming_call',
         if (isFareCall) 'isFareCall': 'true',
         if (isFareCall) 'fareCallOrderId': metadata['orderId'] ?? '',
-        if (isFareCall) 'fareCallRideDetails': jsonEncode(metadata['rideDetails'] ?? {}),
+        if (isFareCall)
+          'fareCallRideDetails': jsonEncode(metadata['rideDetails'] ?? {}),
       },
     );
     // final controller=Get.put(CallController());
@@ -148,7 +172,8 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       android: AndroidInitializationSettings('@drawable/ic_stat'),
       iOS: DarwinInitializationSettings(),
     ),
-    onDidReceiveBackgroundNotificationResponse: onBackgroundNotificationResponse,
+    onDidReceiveBackgroundNotificationResponse:
+        onBackgroundNotificationResponse,
   );
 
   // Small delay to ensure Firebase's auto-shown notification is posted first
@@ -157,24 +182,29 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   // Cancel ALL notifications (including Firebase's auto-shown ones).
   await plugin.cancelAll();
 
-
   // Use the generic showFromData renderer which reads all backend fields:
   // channelId, channelName, channelImportance, style, imageUrl, groupKey, actions, etc.
   AppNotificationHandler.flutterLocalNotificationsPlugin = plugin;
   await AppNotificationHandler().showFromData(message.data);
 }
 
+// _onTapNotificationFromStatusBar, _openChatWithUser, _handlePostNavigation
+// were removed from main.dart — they used GetX navigation which crashes in the
+// background isolate. The same logic lives in AppNotificationHandler._onTapNotificationFromStatusBar
+// (app_notification.dart) and is triggered via flutter_local_notifications'
+// getNotificationAppLaunchDetails() when the app launches from a notification tap.
+
 getDeviceInfo() async {
   DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
   if (Platform.isAndroid) {
     AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
-    // Get the major OS version number (e.g., "14", "15")
+// Get the major OS version number (e.g., "14", "15")
     deviceOsVersionGlobal = androidInfo.version.release;
     print('Android Release Version: $deviceOsVersionGlobal');
   } else if (Platform.isIOS) {
     IosDeviceInfo iosDeviceInfo = await deviceInfo.iosInfo;
-    // Get the major OS version number (e.g., "14", "15")
-    deviceOsVersionGlobal= iosDeviceInfo.systemVersion;
+// Get the major OS version number (e.g., "14", "15")
+    deviceOsVersionGlobal = iosDeviceInfo.systemVersion;
 
     print('iosDeviceInfo Release Version: $deviceOsVersionGlobal');
   }
@@ -192,7 +222,7 @@ void _setupOverlayListener() {
       if (action == 'hangup') {
         callController.endCall();
       } else if (action == 'expand') {
-        // Bring app to foreground and navigate to active call screen
+// Bring app to foreground and navigate to active call screen
         if (Get.currentRoute != '/CallRoomScreen') {
           Get.toNamed('/CallRoomScreen');
         }
@@ -209,9 +239,9 @@ void callMain() => call_entry.callMainImpl();
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // PHASE 1 -- Critical path: only what's needed for the first frame
-  // ═══════════════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════════
+// PHASE 1 -- Critical path: only what's needed for the first frame
+// ═══════════════════════════════════════════════════════════════════════════
 
   /// Env config + Firebase + Hive in parallel
   await Future.wait<void>([
@@ -256,7 +286,8 @@ Future<void> main() async {
   try {
     final activeCalls = await FlutterCallkitIncoming.activeCalls();
     if (activeCalls is List && activeCalls.isNotEmpty) {
-      final extra = Map<String, dynamic>.from(activeCalls[0]['extra'] as Map? ?? {});
+      final extra =
+          Map<String, dynamic>.from(activeCalls[0]['extra'] as Map? ?? {});
       final operation = (extra['operation'] ?? '').toString();
       final accepted = activeCalls[0]['accepted'] == true;
       if (operation == 'incoming_call' && accepted) {
@@ -283,27 +314,26 @@ Future<void> main() async {
   /// Lifecycle observer
   WidgetsBinding.instance.addObserver(AppLifecycleHandler());
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // LAUNCH APP -- first frame renders immediately
-  // ═══════════════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════════
+// LAUNCH APP -- first frame renders immediately
+// ═══════════════════════════════════════════════════════════════════════════
 
   if (kReleaseMode) {
-    // Catches sync errors from the Flutter framework
-    FlutterError.onError =
-        FirebaseCrashlytics.instance.recordFlutterFatalError;
-    // Catches async errors that aren't handled by Flutter itself
+// Catches sync errors from the Flutter framework
+    FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+// Catches async errors that aren't handled by Flutter itself
     PlatformDispatcher.instance.onError = (error, stack) {
       FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
       return true;
     };
   }
 
-  // IMPORTANT: do NOT wrap runApp in runZonedGuarded.
-  // runZonedGuarded creates a new Zone, and GetX translations registered
-  // in the root zone via Get.addTranslations(...) are not visible to the
-  // GetMaterialApp built inside that guarded zone — breaking localization
-  // in release mode. FlutterError.onError + PlatformDispatcher.instance.onError
-  // already cover all uncaught errors, so runZonedGuarded is unnecessary.
+// IMPORTANT: do NOT wrap runApp in runZonedGuarded.
+// runZonedGuarded creates a new Zone, and GetX translations registered
+// in the root zone via Get.addTranslations(...) are not visible to the
+// GetMaterialApp built inside that guarded zone — breaking localization
+// in release mode. FlutterError.onError + PlatformDispatcher.instance.onError
+// already cover all uncaught errors, so runZonedGuarded is unnecessary.
   runApp(MyApp(initialLocale: locale));
   _initDeferred(localizationService);
 }
@@ -332,7 +362,8 @@ Future<void> _initDeferred(LocalizationService localizationService) async {
 
   /// Share handler -- check if app was launched via share intent
   try {
-    pendingSharedMedia = await ShareHandlerPlatform.instance.getInitialSharedMedia();
+    pendingSharedMedia =
+        await ShareHandlerPlatform.instance.getInitialSharedMedia();
   } catch (_) {}
 
   /// Overlay listener for floating call window
@@ -345,9 +376,10 @@ Future<void> _initDeferred(LocalizationService localizationService) async {
   if (kDebugMode) {
     await resetLanguageLocalization();
   } else {
-    // In release mode, re-apply translations to GetX after deferred init
-    // to ensure they survive GetMaterialApp initialization inside runZonedGuarded
-    final savedLang = LocalizationService.box.get('selectedLanguage', defaultValue: 'en');
+// In release mode, re-apply translations to GetX after deferred init
+// to ensure they survive GetMaterialApp initialization inside runZonedGuarded
+    final savedLang =
+        LocalizationService.box.get('selectedLanguage', defaultValue: 'en');
     await localizationService.loadTranslations(savedLang);
     Get.clearTranslations();
     Get.addTranslations(localizationService.keys);
@@ -369,8 +401,7 @@ void debugPrintKeys() {
       : 'iOS App ID: $firebaseAppId');
   print(Platform.isAndroid
       ? 'Android Firebase Key: $firebaseApiKey'
-      : 'iOS Firebase Key: $firebaseApiKey'
-  );
+      : 'iOS Firebase Key: $firebaseApiKey');
   print('Messaging Sender ID: $messagingSenderId');
   print('----------------------');
 }
@@ -381,7 +412,7 @@ final GlobalKey<NavigatorState> navKey = GlobalKey<NavigatorState>();
 class MyApp extends StatefulWidget {
   final Locale initialLocale;
 
-  // final LocalizationService localizationService;
+// final LocalizationService localizationService;
   const MyApp({super.key, required this.initialLocale});
 
   @override
@@ -396,7 +427,7 @@ class _MyAppState extends State<MyApp> {
 
   final appController = Get.find<AppMaintenanceController>();
 
-  // This widget is the root of your application.
+// This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     SizeConfig.init(context);
@@ -404,9 +435,12 @@ class _MyAppState extends State<MyApp> {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.dark, // Android Black
-        statusBarBrightness: Brightness.light, // iOS Black
-        systemNavigationBarColor: Colors.white,   // Bottom nav bar color
+        statusBarIconBrightness: Brightness.dark,
+        // Android Black
+        statusBarBrightness: Brightness.light,
+        // iOS Black
+        systemNavigationBarColor: Colors.white,
+        // Bottom nav bar color
         systemNavigationBarIconBrightness: Brightness.dark, // Bottom nav icons
       ),
       child: GetMaterialApp(
@@ -422,24 +456,25 @@ class _MyAppState extends State<MyApp> {
         builder: (context, child) {
           return Stack(
             children: [
-              // Safe null handling:
+// Safe null handling:
               if (child != null) child,
               const GlobalMessage(),
-              // Draggable floating call overlay -- shown when back from call screens
+// Draggable floating call overlay -- shown when back from call screens
               const CallFloatingOverlay(),
-              // Floating mini-map for ride navigation
+// Floating mini-map for ride navigation
               const RideNavigationFloatingOverlay(),
             ],
           );
         },
         home: Obx(() {
-          print("CallController.launchedForCall.value ${CallController.launchedForCall.value}");
-          // Call accepted from killed state -- show ONLY the call screen
+          print(
+              "CallController.launchedForCall.value ${CallController.launchedForCall.value}");
+// Call accepted from killed state -- show ONLY the call screen
           if (CallController.launchedForCall.value) {
             return const CallActivityRoomScreen();
           }
 
-          // Still loading (null or loading flag)
+// Still loading (null or loading flag)
           if (appController.isLoading.value ||
               appController.isInMaintenance.value == null) {
             return const Scaffold(
@@ -447,12 +482,12 @@ class _MyAppState extends State<MyApp> {
             );
           }
 
-          // App under maintenance
+// App under maintenance
           if (appController.isInMaintenance.value == true) {
             return const MaintenanceScreen();
           }
 
-          // Normal operation → Go to your normal entry point
+// Normal operation → Go to your normal entry point
           return const SplashScreen(); // or SplashScreen / whatever your entry route is
         }),
       ),

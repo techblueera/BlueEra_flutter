@@ -4,9 +4,11 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 import '../../../../../core/constants/app_colors.dart';
+import '../../../../../core/constants/app_enum.dart';
 import '../../../../../core/constants/app_strings.dart';
 import '../../../../../core/constants/getx_utils.dart';
 import '../../../../../core/constants/size_config.dart';
+import '../../../../../core/constants/snackbar_helper.dart';
 import '../../../../../widgets/commom_textfield.dart';
 import '../../../../../widgets/common_back_app_bar.dart';
 import '../../../../../widgets/custom_btn.dart';
@@ -24,14 +26,12 @@ class FranchiseInquiryScreen extends StatefulWidget {
 
 class _FranchiseInquiryScreenState extends State<FranchiseInquiryScreen> {
 
-
   final controller = getOrPut(() => VisitProfileController());
-
+  final _formKey = GlobalKey<FormState>();
   bool isAuthorized = false;
 
   @override
   Widget build(BuildContext context) {
-    final _formKey = GlobalKey<FormState>();
     return Scaffold(
       appBar: const CommonBackAppBar(title: AppStrings.franchiseInquiry),
       body: SafeArea(
@@ -42,7 +42,7 @@ class _FranchiseInquiryScreenState extends State<FranchiseInquiryScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
+          /*    Container(
                 height: SizeConfig.size200,
                 width: double.infinity,
                 decoration: BoxDecoration(
@@ -74,7 +74,7 @@ class _FranchiseInquiryScreenState extends State<FranchiseInquiryScreen> {
               ),
 
               SizedBox(height: SizeConfig.size10),
-
+*/
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                 margin: EdgeInsets.symmetric(horizontal: 8),
@@ -87,9 +87,18 @@ class _FranchiseInquiryScreenState extends State<FranchiseInquiryScreen> {
                   children: [
 
                     CommonTextField(
-                      title: AppStrings.fullName.tr,
+                      title:"First Name",
                       textEditController: controller.fullNameController,
                       hintText: AppStrings.fullNameHint.tr,
+                      validationMessage: AppStrings.firstNameRequired.tr,
+                    ),
+
+                    SizedBox(height: SizeConfig.paddingM),
+                    CommonTextField(
+                      title: "Last Name",
+                      textEditController: controller.lastNameController,
+                      hintText: "Patel",
+                      validationMessage: AppStrings.lastNameRequired.tr,
                     ),
 
                     SizedBox(height: SizeConfig.paddingM),
@@ -98,6 +107,8 @@ class _FranchiseInquiryScreenState extends State<FranchiseInquiryScreen> {
                       textEditController: controller.emailController,
                       hintText: AppStrings.emailHint.tr,
                       keyBoardType: TextInputType.emailAddress,
+                      validationType: ValidationTypeEnum.email,
+                      validationMessage: AppStrings.validEmailRequired.tr,
                     ),
                     SizedBox(height: SizeConfig.paddingM),
 
@@ -128,9 +139,11 @@ class _FranchiseInquiryScreenState extends State<FranchiseInquiryScreen> {
                         Expanded(
                           child: CommonTextField(
                             textEditController: controller.phoneController,
-                            hintText: "1234567890",
+                            hintText: "9934567890",
                             maxLength: 10,
                             keyBoardType: TextInputType.number,
+                            validationType: ValidationTypeEnum.pNumber,
+                            validationMessage: AppStrings.validPhoneRequired.tr,
                           ),
                         ),
                       ],
@@ -164,12 +177,14 @@ class _FranchiseInquiryScreenState extends State<FranchiseInquiryScreen> {
                     Obx(() {
                       return CommonDropdown(
                         isExpanded: true,
-                        items: const ["Business Partner", "Marketing Partner"],
-                        selectedValue: controller.partnerType.value,
+                        items: const ["Business Partner", "Marketing Partner", "Franchise Partner"],
+                        selectedValue: controller.partnerType.value.isEmpty
+                            ? null
+                            : controller.partnerType.value,
                         hintText: AppStrings.partnerTypeHint.tr,
                         onChanged: (value) {
                           controller.partnerType.value =
-                              value ?? "Business Partner";
+                              value ?? "";
                         },
                         displayValue: (value) => value,
                       );
@@ -183,6 +198,7 @@ class _FranchiseInquiryScreenState extends State<FranchiseInquiryScreen> {
                       hintText: AppStrings.enterAmount.tr,
                       maxLength: 12,
                       keyBoardType: TextInputType.number,
+                      validationMessage: AppStrings.investmentAmountRequired.tr,
                     ),
 
 
@@ -215,6 +231,7 @@ class _FranchiseInquiryScreenState extends State<FranchiseInquiryScreen> {
                             hintText: AppStrings.cityHint.tr,
                             textEditController: controller
                                 .cityController,
+                            validationMessage: AppStrings.cityRequired.tr,
                           ),
                         ),
                       ],
@@ -261,7 +278,7 @@ class _FranchiseInquiryScreenState extends State<FranchiseInquiryScreen> {
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Checkbox(
-                          value: isAuthorized,
+                          value: isAuthorized,checkColor: AppColors.white,
                           activeColor: AppColors.primaryColor,
                           onChanged: (value) {
                             setState(() {
@@ -285,13 +302,23 @@ class _FranchiseInquiryScreenState extends State<FranchiseInquiryScreen> {
                       return CustomBtn(
                         isLoading: controller.enquiryBtnLoading.value,
                         isValidate: true,
-
-                        title: AppStrings.sendMessage.tr, onTap: () {
-                        if (_formKey.currentState!.validate()) {
+                        title: AppStrings.sendMessage.tr,
+                        onTap: () {
+                          if (!_formKey.currentState!.validate()) return;
+                          if (controller.selectQualification.value.isEmpty) {
+                            commonSnackBar(message: AppStrings.qualificationRequired.tr);
+                            return;
+                          }
+                          if (controller.partnerType.value.isEmpty) {
+                            commonSnackBar(message: AppStrings.partnerTypeRequired.tr);
+                            return;
+                          }
+                          if (!isAuthorized) {
+                            commonSnackBar(message: AppStrings.acceptTermsRequired.tr);
+                            return;
+                          }
                           controller.enquiryFranchise();
-                        }
-                        //
-                      },
+                        },
                       );
                     }),
 

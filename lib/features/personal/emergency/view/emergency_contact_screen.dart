@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
@@ -45,9 +46,20 @@ class _EmergencyContactScreenState extends State<EmergencyContactScreen> {
               CommonTextField(
                 title: AppStrings.emergencyMobileNumber,
                 hintText: AppStrings.emergencyContactMobileHint,
-                keyBoardType: TextInputType.phone,
+                keyBoardType: TextInputType.number,
+                regularExpression: RegularExpressionUtils.digitsPattern,
                 maxLength: 10,
+                isValidate: true,
                 textEditController: controller.mobileController,
+                validator: (value) {
+                  if (value == null || value.isEmpty) return 'Required';
+                  if (value.startsWith('0')) return 'Leading zeros not allowed';
+                  if (value.length < 10) return 'Minimum 10 digits required';
+                  if (RegExp(r'^0+$').hasMatch(value)) return 'All zeros not allowed';
+                  if (!RegExp(r'^[6-9]').hasMatch(value)) return 'Enter a valid mobile number';
+                  return null;
+                },
+                onChange: (_) => controller.update(),
               ),
               SizedBox(height: 16),
               CommonTextField(

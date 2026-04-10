@@ -11,6 +11,7 @@ import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/business_description/business_description_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
@@ -279,6 +280,19 @@ class _CreateBusinessAccountNewStepThreeState
                             radius: 10,
                             onTap: isFormValid
                                 ? () async {
+                              if (nameTextController.text.trim().length < 4) {
+                                commonSnackBar(message: "Name must be at least 4 characters.");
+                                return;
+                              }
+                              if (yourRoleController.text.trim().length < 4) {
+                                commonSnackBar(message: "Role must be at least 4 characters.");
+                                return;
+                              }
+                              String? emailError = ValidationMethod.validateEmail(emailTextController.text.trim());
+                              if (emailError != null) {
+                                commonSnackBar(message: emailError);
+                                return;
+                              }
           
                               /// Submit action
                               Map<String, dynamic> reqParam = {

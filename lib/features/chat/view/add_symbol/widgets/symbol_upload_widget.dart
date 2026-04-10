@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:typed_data';
+import 'dart:ui';
 
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -93,6 +94,13 @@ class _SymbolUploadWidgetState extends State<SymbolUploadWidget> {
             // Media preview
             if (isPhoto) _buildPhotoGrid(),
             if (isVideo) _buildVideoPreview(),
+          ],
+
+          // --- MEDIA NOT SELECTED BUT TYPE CHOSEN ---
+          if (!hasMedia && (isPhoto || isVideo)) ...[
+            _buildMediaHeader(),
+            const SizedBox(height: 16),
+            _buildEmptyMediaPlaceholder(),
           ],
         ],
       );
@@ -246,20 +254,22 @@ class _SymbolUploadWidgetState extends State<SymbolUploadWidget> {
           ),
         ),
 
-        // Add more (photos only, max 4)
-        if (isPhoto && count < 4)
+        // Add more / Pick button
+        if (count < (isPhoto ? 4 : 1))
           GestureDetector(
-            onTap: () => controller.pickMedia(),
+            onTap: () => isPhoto ? controller.pickMedia() : controller.pickVideoMedia(),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF667EEA), Color(0xFF764BA2)],
+                gradient: LinearGradient(
+                  colors: isPhoto 
+                      ? [const Color(0xFF667EEA), const Color(0xFF764BA2)]
+                      : [const Color(0xFFFF6B6B), const Color(0xFFEE5A24)],
                 ),
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF667EEA).withValues(alpha: 0.25),
+                    color: (isPhoto ? const Color(0xFF667EEA) : const Color(0xFFFF6B6B)).withValues(alpha: 0.25),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -272,7 +282,7 @@ class _SymbolUploadWidgetState extends State<SymbolUploadWidget> {
                       size: 16, color: Colors.white),
                   const SizedBox(width: 4),
                   CustomText(
-                    AppStrings.addMoreLabel.tr,
+                    count == 0 ? AppStrings.selectLabel.tr : AppStrings.addMoreLabel.tr,
                     color: Colors.white,
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -664,6 +674,90 @@ class _SymbolUploadWidgetState extends State<SymbolUploadWidget> {
     );
   }
 
+  // ─── EMPTY STATE PLACEHOLDER ───────────────────────────────────────
+
+  Widget _buildEmptyMediaPlaceholder() {
+    final isPhoto = controller.selectedPostType.value == PostType.image;
+    final option = isPhoto ? _options[0] : _options[1];
+
+    return GestureDetector(
+      onTap: () =>
+          isPhoto ? controller.pickMedia() : controller.pickVideoMedia(),
+      child: Container(
+        height: 180,
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: option.gradient.first.withValues(alpha: 0.2),
+            width: 2,
+            style: BorderStyle.none, // We'll use a dotted border effect via decoration if possible, or just a nice shadow
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: option.gradient.first.withValues(alpha: 0.05),
+              blurRadius: 20,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Stack(
+          children: [
+            // Dotted border simulator
+            Positioned.fill(
+              child: CustomPaint(
+                painter: _DottedBorderPainter(
+                  color: option.gradient.first.withValues(alpha: 0.3),
+                  borderRadius: 20,
+                ),
+              ),
+            ),
+            Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: option.gradient,
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: option.gradient.first.withValues(alpha: 0.3),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Icon(option.icon, color: Colors.white, size: 32),
+                  ),
+                  const SizedBox(height: 16),
+                  CustomText(
+                    isPhoto ? AppStrings.addPhotos.tr : AppStrings.addVideo.tr,
+                    color: const Color(0xFF2D3142),
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                  ),
+                  const SizedBox(height: 4),
+                  CustomText(
+                    option.subtitle,
+                    color: const Color(0xFF2D3142).withValues(alpha: 0.5),
+                    fontSize: 13,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   // ─── SHARED COMPONENTS ─────────────────────────────────────────────
 
   Widget _buildRemoveButton(int index) {
@@ -867,4 +961,47 @@ void openVideoPreview(File file) async {
   if (trimmedPath != null) {
     Get.find<AddChatSymbolController>().imagesList[0] = File(trimmedPath);
   }
+}
+
+class _DottedBorderPainter extends CustomPainter {
+  final Color color;
+  final double borderRadius;
+
+  _DottedBorderPainter({required this.color, required this.borderRadius});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 2
+      ..style = PaintingStyle.stroke;
+
+    const double dashWidth = 5;
+    const double dashSpace = 5;
+
+    final path = Path()
+      ..addRRect(RRect.fromRectAndRadius(
+        Rect.fromLTWH(0, 0, size.width, size.height),
+        Radius.circular(borderRadius),
+      ));
+
+    final dashPath = Path();
+    double distance = 0.0;
+
+    for (final metric in path.computeMetrics()) {
+      while (distance < metric.length) {
+        dashPath.addPath(
+          metric.extractPath(distance, distance + dashWidth),
+          Offset.zero,
+        );
+        distance += dashWidth + dashSpace;
+      }
+      distance = 0.0;
+    }
+
+    canvas.drawPath(dashPath, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

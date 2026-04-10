@@ -34,7 +34,8 @@ class HospitalHistoryController extends GetxController {
       error.value = '';
       final ResponseModel res = await _repo.get();
       if (res.isSuccess) {
-        final HospitalHistoryRes hr = HospitalHistoryRes.fromJson(res.response?.data);
+        final HospitalHistoryRes hr =
+            HospitalHistoryRes.fromJson(res.response?.data);
         data.value = hr.data;
         historyController.text = hr.data?.history ?? '';
         initialImageUrl = hr.data?.imageUrl ?? '';
@@ -63,11 +64,13 @@ class HospitalHistoryController extends GetxController {
       isSaving.value = true;
       String imageUrl = initialImageUrl;
       if (selectedImage.value != null) {
-        final UploadResult? uploadResult = await S3UploadService.uploadFile(selectedImage.value!);
+        final UploadResult? uploadResult =
+            await S3UploadService.uploadFile(selectedImage.value!);
         if (uploadResult != null && uploadResult.isSuccess) {
           imageUrl = uploadResult.url;
         } else {
-          commonSnackBar(message: uploadResult?.message ?? AppStrings.somethingWentWrong);
+          commonSnackBar(
+              message: uploadResult?.message ?? AppStrings.somethingWentWrong);
           isSaving.value = false;
           return;
         }
@@ -80,7 +83,8 @@ class HospitalHistoryController extends GetxController {
       if (data.value == null || (data.value?.id?.isEmpty ?? true)) {
         final ResponseModel res = await _repo.create(body: body);
         if (res.isSuccess) {
-          final HospitalHistoryRes hr = HospitalHistoryRes.fromJson(res.response?.data);
+          final HospitalHistoryRes hr =
+              HospitalHistoryRes.fromJson(res.response?.data);
           data.value = hr.data;
           initialImageUrl = hr.data?.imageUrl ?? '';
           commonSnackBar(message: AppStrings.hospitalCtrlSaved.tr);
@@ -88,9 +92,11 @@ class HospitalHistoryController extends GetxController {
           commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong);
         }
       } else {
-        final ResponseModel res = await _repo.update(id: data.value!.id!, body: body);
+        final ResponseModel res =
+            await _repo.update(id: data.value!.id!, body: body);
         if (res.isSuccess) {
-          final HospitalHistoryRes hr = HospitalHistoryRes.fromJson(res.response?.data);
+          final HospitalHistoryRes hr =
+              HospitalHistoryRes.fromJson(res.response?.data);
           data.value = hr.data;
           initialImageUrl = hr.data?.imageUrl ?? '';
           commonSnackBar(message: AppStrings.hospitalCtrlUpdated.tr);

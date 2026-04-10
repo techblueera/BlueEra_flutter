@@ -35,14 +35,15 @@ class AiDescriptionField extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            CustomText(label.tr, fontWeight: FontWeight.w400),
+            Expanded(child: CustomText(label.tr, fontWeight: FontWeight.w400)),
             AIGeneratorButton(
               type: aiType,
               data: aiData,
               onSelected: (generatedText) {
                 controller.text = generatedText;
                 rxValue.value = generatedText;
-                if (onChanged != null) onChanged!(generatedText); // Trigger callback
+                if (onChanged != null)
+                  onChanged!(generatedText); // Trigger callback
               },
             )
           ],
@@ -77,10 +78,10 @@ class AiDescriptionField extends StatelessWidget {
         Align(
           alignment: Alignment.centerRight,
           child: Obx(() => CustomText(
-            "${rxValue.value.length}/$maxChars",
-            color: Colors.grey,
-            fontSize: 12,
-          )),
+                "${rxValue.value.length}/$maxChars",
+                color: Colors.grey,
+                fontSize: 12,
+              )),
         ),
       ],
     );

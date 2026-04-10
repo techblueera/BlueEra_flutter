@@ -21,7 +21,8 @@ class RegularExpressionUtils {
   static final String courseNameRegex = r"^[a-zA-Z .'-]*$";
   static final String institutionNameRegex = r"^[a-zA-Z0-9 .'-]*$";
   static final String phoneWithPrefixPattern = r'^[+0-9]*$';
-  static final String linkRegex =   r'^(https?:\/\/)?(www\.)?[a-zA-Z0-9\-]+\.[a-zA-Z]{2,}([\/\w\.-]*)*\/?$';
+  static final String linkRegex =
+      r'^(https?:\/\/)?(www\.)?[a-zA-Z0-9\-]+\.[a-zA-Z]{2,}([\/\w\.-]*)*\/?$';
 
   static final String date = r"[0-9a-zA-Z/,\- ]";
   bool containsCharter(String text) {
@@ -36,16 +37,25 @@ bool containsHttpButNotHttps(String text) {
   final httpRegex = RegExp(r'http:\/\/[^\s]+');
   return httpRegex.hasMatch(text);
 }
+
 /// VALIDATION METHOD
 class ValidationMethod {
   /// EMAIL VALIDATION METHOD
   static String? validateEmail(value) {
+    if (value == null || value.toString().trim().isEmpty) {
+      return AppStrings.emailIsRequired.tr;
+    }
+
     bool regex = RegExp(
             r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$')
         .hasMatch(value);
-    if (value == null) {
-      return AppStrings.emailIsRequired.tr;
-    } else if (regex == false) {
+
+    if (regex == false) {
+      return AppStrings.pleaseEnterValidEmail.tr;
+    }
+
+    final localPart = value.toString().split('@')[0];
+    if (RegExp(r'^[0-9]+$').hasMatch(localPart)) {
       return AppStrings.pleaseEnterValidEmail.tr;
     }
 
@@ -64,11 +74,11 @@ class ValidationMethod {
     if (value == null || value.isEmpty) {
       return AppStrings.mobileIsRequired.tr;
     }
-    
+
     // Indian mobile numbers: exactly 10 digits, starting with 6, 7, 8, or 9.
     // Anchored with ^ and $ to ensure no extra characters are present.
     bool regex = RegExp(r"^[6-9]\d{9}$").hasMatch(value);
-    
+
     if (regex == false) {
       return AppStrings.enterValidPhoneNumber.tr;
     }
@@ -89,18 +99,20 @@ class ValidationMethod {
       return "Landline must be 6 to 8 digits";
     }
 
+    if (RegExp(r'^0+$').hasMatch(value)) {
+      return "Landline cannot be all zeros";
+    }
+
     return null;
   }
 
-
- static bool isValidURL(String url) {
-    final Uri? uri = Uri.tryParse(url);
-
-    return uri != null && uri.isAbsolute && (uri.hasScheme && uri.hasAuthority);
+  static bool isValidURL(String url) {
+    return RegExp(RegularExpressionUtils.linkRegex).hasMatch(url);
   }
 
- static String? urlValidation(value) {
+  static String? urlValidation(value, {bool isOptional = true}) {
     if (value == null || value.trim().isEmpty) {
+      if (isOptional) return null;
       return 'Please enter a link';
     } else if (!isValidURL(value.trim())) {
       return 'Enter a valid URL';
@@ -134,8 +146,10 @@ class ValidationMethod {
   }
 
   String? validateProductDescription(String? value) {
-    if (value == null || value.isEmpty) return 'Product description is required';
-    if (value.length <= 15) return 'Product description name must be at least 15 characters';
+    if (value == null || value.isEmpty)
+      return 'Product description is required';
+    if (value.length <= 15)
+      return 'Product description name must be at least 15 characters';
     return null;
   }
 
@@ -175,7 +189,7 @@ class ValidationMethod {
     return null;
   }
 
- String? validatePrice(String? priceText, String? mrpText) {
+  String? validatePrice(String? priceText, String? mrpText) {
     if (priceText == null || priceText.isEmpty) return "Enter price";
     if (mrpText == null || mrpText.isEmpty) return "Enter MRP";
 
@@ -229,7 +243,8 @@ class ValidationMethod {
   String? instructionValidation(value) {
     if (value == null || value.trim().isEmpty) {
       return 'Please enter your instructions';
-    } if (value.length < 10) {
+    }
+    if (value.length < 10) {
       return "Validation Error, Instructions must be at least 10 characters";
     }
 
@@ -254,8 +269,8 @@ class ValidationMethod {
       return 'PAN number is required';
     }
 
-    bool isValid = RegExp(r'^[A-Z]{5}[0-9]{4}[A-Z]{1}$')
-        .hasMatch(value.toUpperCase());
+    bool isValid =
+        RegExp(r'^[A-Z]{5}[0-9]{4}[A-Z]{1}$').hasMatch(value.toUpperCase());
     if (!isValid) {
       return 'Please enter a valid PAN number (e.g. ABCDE1234F)';
     }
@@ -282,8 +297,8 @@ class ValidationMethod {
       return 'Driving license number is required';
     }
 
-    bool isValid = RegExp(r'^[A-Z]{2}[0-9]{2}\d{11,13}$')
-        .hasMatch(value.toUpperCase());
+    bool isValid =
+        RegExp(r'^[A-Z]{2}[0-9]{2}\d{11,13}$').hasMatch(value.toUpperCase());
     if (!isValid) {
       return 'Please enter a valid driving license number (e.g. DL0420110148936)';
     }
@@ -306,20 +321,25 @@ class ValidationMethod {
   }
 
   String? validatePropertyDescription(String? value) {
-    if (value == null || value.isEmpty) return 'Property description is required';
-    if (value.length <= 20) return 'Property description name must be at least 20 characters';
+    if (value == null || value.isEmpty)
+      return 'Property description is required';
+    if (value.length <= 20)
+      return 'Property description name must be at least 20 characters';
     return null;
   }
 
   String? validateHomeStayDescription(String? value) {
     if (value == null || value.isEmpty) return 'House description is required';
-    if (value.length <= 20) return 'House description must be at least 20 characters';
+    if (value.length <= 20)
+      return 'House description must be at least 20 characters';
     return null;
   }
 
   String? validateVehicleDescription(String? value) {
-    if (value == null || value.isEmpty) return 'Vehicle description is required';
-    if (value.length <= 20) return 'Vehicle description must be at least 20 characters';
+    if (value == null || value.isEmpty)
+      return 'Vehicle description is required';
+    if (value.length <= 20)
+      return 'Vehicle description must be at least 20 characters';
     return null;
   }
 
@@ -337,19 +357,63 @@ class ValidationMethod {
       return 'Name is required';
     }
 
-    // Optional: Validates that the name contains only alphabets and spaces
-    // Allows for names like "John Doe" or "D'souza" if you adjust the regex
-    bool isValid = RegExp(r"^[a-zA-Z\s']+$").hasMatch(value);
+    // Must contain at least 2 letters
+    bool hasLetters = RegExp(r'[a-zA-Z]').allMatches(value).length >= 2;
+    if (!hasLetters) {
+      return 'Please enter a valid name (at least 2 letters)';
+    }
 
-    if (!isValid) {
+    // Validates that the name contains only alphabets, spaces and '
+    bool isAllowedChars = RegExp(r"^[a-zA-Z\s']+$").hasMatch(value);
+    if (!isAllowedChars) {
       return 'Please enter a valid name (letters only)';
     }
 
-    // Optional: Check for minimum length
-    if (value.trim().length < 2) {
-      return 'Name must be at least 2 characters long';
-    }
+    return null;
+  }
 
+  static String? validatePosition(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Position is required';
+    }
+    String trimmed = value.trim();
+    if (trimmed.length < 2) {
+      return 'Position must be at least 2 characters long';
+    }
+    // Must contain at least one letter or number
+    if (!RegExp(r'[a-zA-Z0-9]').hasMatch(trimmed)) {
+      return 'Please enter a valid position (letters/numbers required)';
+    }
+    return null;
+  }
+
+  static String? validateEducation(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Education is required';
+    }
+    String trimmed = value.trim();
+    if (trimmed.length < 2) {
+      return 'Education must be at least 2 characters long';
+    }
+    // Must contain at least one letter or number
+    if (!RegExp(r'[a-zA-Z0-9]').hasMatch(trimmed)) {
+      return 'Please enter a valid education (letters/numbers required)';
+    }
+    return null;
+  }
+
+  static String? validateDescription(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Description is required';
+    }
+    String trimmed = value.trim();
+    if (trimmed.length < 10) {
+      return 'Description must be at least 10 characters long';
+    }
+    // Must contain at least one letter or number
+    if (!RegExp(r'[a-zA-Z0-9]').hasMatch(trimmed)) {
+      return 'Description must contain actual letters or numbers';
+    }
     return null;
   }
 
@@ -448,7 +512,8 @@ class ValidationMethod {
     }
 
     // Standard GST Regex
-    if (!RegExp(r'^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$').hasMatch(value)) {
+    if (!RegExp(r'^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$')
+        .hasMatch(value)) {
       return "Invalid GSTIN format";
     }
     return null;
@@ -465,7 +530,8 @@ class ValidationMethod {
   String? professionDescValidation(value) {
     if (value == null || value.trim().isEmpty) {
       return 'Please enter your description';
-    } if (value.length < 10) {
+    }
+    if (value.length < 10) {
       return "Validation Error, Instructions must be at least 10 characters";
     }
 
@@ -502,7 +568,8 @@ class ValidationMethod {
 
     // 3. Check for valid format (Alphanumeric only)
     // This prevents users from entering spaces, symbols, or emojis
-    if (!RegExp(r'^(?=.*[A-Za-z])(?=.*\d)[A-Za-z0-9]+$').hasMatch(trimmedValue)) {
+    if (!RegExp(r'^(?=.*[A-Za-z])(?=.*\d)[A-Za-z0-9]+$')
+        .hasMatch(trimmedValue)) {
       return "Code must contain both letters and numbers";
     }
 
@@ -538,11 +605,7 @@ class ValidationMethod {
 
     return null;
   }
-
-
 }
-
-
 
 String removeSpaceFromString(String data) {
   return data.toLowerCase().replaceAll(' ', '');

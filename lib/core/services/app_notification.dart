@@ -57,7 +57,6 @@ Future<void> _handleBackgroundNotificationResponse(
   if (response.payload == null) return;
   final data = json.decode(response.payload!) as Map<String, dynamic>;
   logs("NOTIFICATION DATA 1 ${data}");
-
   final actionId = response.actionId ?? '';
 
   // Initialize a local plugin instance (background isolate may not have the static one)
@@ -210,6 +209,17 @@ class AppNotificationHandler {
     if (notificationAppLaunchDetails?.didNotificationLaunchApp ?? false) {
       final payLoad =
           notificationAppLaunchDetails!.notificationResponse?.payload;
+      print("Launch notification payload: $payLoad");
+      if (payLoad != null && payLoad.isNotEmpty) {
+        try {
+          final data = jsonDecode(payLoad) as Map<String, dynamic>;
+          // Delay to ensure GetMaterialApp navigator is ready after cold start
+          await Future.delayed(const Duration(seconds: 1));
+          _onTapNotificationFromStatusBar(data);
+        } catch (e) {
+          print("Error parsing launch notification payload: $e");
+        }
+      }
     }
 
     /// Android Notification Channels per backend documentation
@@ -1153,14 +1163,11 @@ class AppNotificationHandler {
       }
     });
 
-    /// when app is in terminated and user tap on it.
-    FirebaseMessaging.instance
-        .getInitialMessage()
-        .then((RemoteMessage? message) async {
-      if (message != null && message.data != null) {
-        _onTapNotificationFromStatusBar(message.data);
-      }
-    });
+    // NOTE: getInitialMessage() is NOT used here because our backend sends
+    // data-only FCM messages. We render notifications via flutter_local_notifications,
+    // so FCM's getInitialMessage() will always return null.
+    // Terminated-state tap is handled by getNotificationAppLaunchDetails()
+    // at the top of firebaseNotificationSetup().
   }
 
   ///DELETE FCM AND REGENERATE...

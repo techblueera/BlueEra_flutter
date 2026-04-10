@@ -86,16 +86,15 @@ class SocialProfileIdentityScreen extends StatelessWidget {
                         try {
                           final detailsResponse = await PlaceRepo()
                               .getCompletePlaceDetails(placeId: placeId);
-                          final detailsData =
-                              detailsResponse.response?.data;
+                          final detailsData = detailsResponse.response?.data;
                           final placeDetails =
                               PlaceDetailsResponse.fromJson(detailsData);
-                          controller.lat.value = placeDetails
-                                  .result?.geometry?.location?.lat ??
-                              0.0;
-                          controller.lng.value = placeDetails
-                                  .result?.geometry?.location?.lng ??
-                              0.0;
+                          controller.lat.value =
+                              placeDetails.result?.geometry?.location?.lat ??
+                                  0.0;
+                          controller.lng.value =
+                              placeDetails.result?.geometry?.location?.lng ??
+                                  0.0;
                         } catch (e) {
                           debugPrint("Error fetching place details: $e");
                         }
@@ -130,8 +129,7 @@ class SocialProfileIdentityScreen extends StatelessWidget {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Icon(Icons.add_circle_outline,
-                                    size: 18,
-                                    color: AppColors.primaryColor),
+                                    size: 18, color: AppColors.primaryColor),
                                 const SizedBox(width: 8),
                                 CustomText(
                                   AppStrings.add,
@@ -149,8 +147,8 @@ class SocialProfileIdentityScreen extends StatelessWidget {
                             mainAxisAlignment: MainAxisAlignment.end,
                             children: [
                               InkWell(
-                                onTap: () => controller
-                                    .isAddingBackground.value = false,
+                                onTap: () =>
+                                    controller.isAddingBackground.value = false,
                                 child: Icon(Icons.close,
                                     color: AppColors.red, size: 20),
                               ),
@@ -168,14 +166,13 @@ class SocialProfileIdentityScreen extends StatelessWidget {
                             keyBoardType: TextInputType.multiline,
                             textInputAction: TextInputAction.newline,
                             onChange: (value) {
-                              String formatted = value.replaceAll(
-                                  RegExp(r'\n{3,}'), '\n\n');
+                              String formatted =
+                                  value.replaceAll(RegExp(r'\n{3,}'), '\n\n');
                               if (formatted != value) {
+                                controller.familyBackgroundController.text =
+                                    formatted;
                                 controller.familyBackgroundController
-                                    .text = formatted;
-                                controller.familyBackgroundController
-                                        .selection =
-                                    TextSelection.fromPosition(
+                                    .selection = TextSelection.fromPosition(
                                   TextPosition(
                                       offset: controller
                                           .familyBackgroundController
@@ -221,13 +218,12 @@ class SocialProfileIdentityScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.primaryColor.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-            color: AppColors.primaryColor.withValues(alpha: 0.15)),
+        border:
+            Border.all(color: AppColors.primaryColor.withValues(alpha: 0.15)),
       ),
       child: Row(
         children: [
-          Icon(Icons.info_outline,
-              color: AppColors.primaryColor, size: 20),
+          Icon(Icons.info_outline, color: AppColors.primaryColor, size: 20),
           const SizedBox(width: 10),
           Expanded(
             child: CustomText(
@@ -262,8 +258,7 @@ class SocialProfileIdentityScreen extends StatelessWidget {
                     color: AppColors.primaryColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Icon(icon,
-                      color: AppColors.primaryColor, size: 20),
+                  child: Icon(icon, color: AppColors.primaryColor, size: 20),
                 ),
                 const SizedBox(width: 12),
                 Expanded(

@@ -8,6 +8,7 @@ import 'package:BlueEra/features/me/hospital/repo/hospital_management_repo.dart'
 import 'package:BlueEra/features/me/school/repo/upload_file_to_s3.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 
 class HospitalManagementController extends GetxController {
@@ -38,7 +39,7 @@ class HospitalManagementController extends GetxController {
   Future<void> loadMembers() async {
     isLoading.value = true;
     try {
-      final String hid = hospitalIdArg ?? (await getHospitalID() ?? "");
+      final String hid = hospitalIdArg ?? await getHospitalID();
       final ResponseModel res = await _repo.getByHospital(hospitalId: hid);
       if (res.isSuccess) {
         members.assignAll(ManagementMember.listFromJson(res.response?.data));
@@ -77,10 +78,16 @@ class HospitalManagementController extends GetxController {
   }
 
   void validate() {
-    final ok = nameController.text.trim().isNotEmpty &&
-        positionController.text.trim().isNotEmpty &&
-        educationController.text.trim().isNotEmpty &&
-        descriptionController.text.trim().isNotEmpty &&
+    final nameErr = ValidationMethod.validateName(nameController.text);
+    final posErr = ValidationMethod.validatePosition(positionController.text);
+    final eduErr = ValidationMethod.validateEducation(educationController.text);
+    final descErr =
+        ValidationMethod.validateDescription(descriptionController.text);
+
+    final ok = nameErr == null &&
+        posErr == null &&
+        eduErr == null &&
+        descErr == null &&
         ((selectedImage.value != null) || initialImageUrl.isNotEmpty);
     isFormValid.value = ok;
   }
@@ -91,7 +98,8 @@ class HospitalManagementController extends GetxController {
     try {
       String imageUrl = initialImageUrl;
       if (selectedImage.value != null) {
-        final uploadRes = await S3UploadService.uploadFile(selectedImage.value!);
+        final uploadRes =
+            await S3UploadService.uploadFile(selectedImage.value!);
         if (uploadRes.isSuccess) {
           imageUrl = uploadRes.url;
         } else {
@@ -107,7 +115,7 @@ class HospitalManagementController extends GetxController {
         "education": educationController.text.trim(),
         ApiKeys.description: descriptionController.text.trim(),
         "position": positionController.text.trim(),
-        ApiKeys.hospitalId: hospitalIdArg ?? (await getHospitalID() ?? ""),
+        ApiKeys.hospitalId: hospitalIdArg ?? await getHospitalID(),
       };
 
       if (editingMember == null) {
