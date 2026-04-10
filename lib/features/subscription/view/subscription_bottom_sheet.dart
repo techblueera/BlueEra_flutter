@@ -47,14 +47,6 @@ class _SubscriptionDraggableSheetState
   @override
   void initState() {
     super.initState();
-    // Canonical "fresh load on Me-screen entry" point. The peek mounts
-    // once per Me-screen visit, so we always refetch here to keep the
-    // user's plan/subscription state current — pricing changes, freshly
-    // started trials and post-payment status flips all surface here. The
-    // sibling consumers ([SubscriptionStatusView] in the statistics tab
-    // and [SinglePlanSubscriptionView] embedded in the expanded sheet)
-    // both guard their own initState fetches against INITIAL, so they
-    // won't pile a duplicate request on top of this one.
     _subController.userCurrentPlanApi();
     _subController.subscriptionPlansGetApi();
   }
@@ -221,41 +213,32 @@ class _SubscriptionDraggableSheetState
       padding: EdgeInsets.only(bottom: widget.bottomPadding),
       child: Align(
         alignment: Alignment.bottomCenter,
-        child: AnimatedSize(
-          duration: const Duration(milliseconds: 280),
-          curve: Curves.easeOut,
-          alignment: Alignment.bottomCenter,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: _toggleSheet,
-                child: _buildHeader(),
-              ),
-              if (_isExpanded)
-                ConstrainedBox(
-                  constraints: BoxConstraints(maxHeight: maxBodyHeight),
-                  child: Container(
-                    color: AppColors.whiteFC,
-                    width: double.infinity,
-                    // shrinkWrap = true makes the ListView take only the
-                    // intrinsic height of its child (the plan view's natural
-                    // Column), capped by the ConstrainedBox above. If the
-                    // content is taller than the cap it scrolls; if shorter
-                    // the bottom sheet shrinks to match.
-                    child: ListView(
-                      shrinkWrap: true,
-                      physics: const ClampingScrollPhysics(),
-                      padding: EdgeInsets.zero,
-                      children: const [
-                        SinglePlanSubscriptionView(),
-                      ],
-                    ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: _toggleSheet,
+              child: _buildHeader(),
+            ),
+            AnimatedClipRect(
+              isExpanded: _isExpanded,
+              duration: const Duration(milliseconds: 280),
+              curve: Curves.easeOut,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxHeight: maxBodyHeight),
+                child: Container(
+                  color: AppColors.whiteFC,
+                  width: double.infinity,
+                  child: SingleChildScrollView(
+                    physics: const ClampingScrollPhysics(),
+                    padding: EdgeInsets.zero,
+                    child: const SinglePlanSubscriptionView(),
                   ),
                 ),
-            ],
-          ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -325,15 +308,15 @@ class _SubscriptionDraggableSheetState
               ),
             ),
 
-            if (!_isExpanded)
-              Positioned(
-                left: SizeConfig.size16,
-                right: SizeConfig.size16,
-                top: _PeakHeaderClipper.peakHeight + 10,
-                child: Obx(() => _buildHeaderTitle()),
-              ),
-          ],
-        ),
+                if (!_isExpanded)
+                  Positioned(
+                    left: SizeConfig.size16,
+                    right: SizeConfig.size16,
+                    top: _PeakHeaderClipper.peakHeight + 10,
+                    child: Obx(() => _buildHeaderTitle()),
+                  ),
+              ],
+            ),
             ],
           ),
         ),
@@ -453,4 +436,68 @@ class _PeakHeaderClipper extends CustomClipper<Path> {
 
   @override
   bool shouldReclip(covariant CustomClipper<Path> oldClipper) => false;
+}
+
+/// Clips and animates a child's vertical reveal using [SizeTransition].
+/// Works reliably on both Android and iOS — the child keeps its intrinsic
+/// height (content-hugging) and the reveal fraction animates from 0 → 1.
+class AnimatedClipRect extends StatefulWidget {
+  final bool isExpanded;
+  final Duration duration;
+  final Curve curve;
+  final Widget child;
+
+  const AnimatedClipRect({
+    super.key,
+    required this.isExpanded,
+    required this.duration,
+    required this.curve,
+    required this.child,
+  });
+
+  @override
+  State<AnimatedClipRect> createState() => _AnimatedClipRectState();
+}
+
+class _AnimatedClipRectState extends State<AnimatedClipRect>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: widget.duration,
+      value: widget.isExpanded ? 1.0 : 0.0,
+    );
+    _animation = CurvedAnimation(
+      parent: _controller,
+      curve: widget.curve,
+    );
+  }
+
+  @override
+  void didUpdateWidget(covariant AnimatedClipRect oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isExpanded != oldWidget.isExpanded) {
+      widget.isExpanded ? _controller.forward() : _controller.reverse();
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizeTransition(
+      sizeFactor: _animation,
+      axisAlignment: -1.0,
+      child: widget.child,
+    );
+  }
 }

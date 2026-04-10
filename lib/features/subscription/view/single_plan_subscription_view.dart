@@ -73,10 +73,6 @@ class _SinglePlanSubscriptionViewState
         title: "Contribution",
       ),
       body: SingleChildScrollView(
-          // padding: EdgeInsets.symmetric(
-          //   horizontal: SizeConfig.size8,
-          //   vertical: SizeConfig.size16
-          // ),
           child: body),
     );
   }

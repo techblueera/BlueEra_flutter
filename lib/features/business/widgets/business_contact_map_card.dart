@@ -18,10 +18,12 @@ import 'package:get/get.dart';
 
 class BusinessContactMapCard extends StatelessWidget {
   final BusinessProfileDetails? businessProfileDetails;
+  final bool showEditButton;
 
   const BusinessContactMapCard({
     super.key,
     this.businessProfileDetails,
+    this.showEditButton = true,
   });
 
 
@@ -147,16 +149,17 @@ class BusinessContactMapCard extends StatelessWidget {
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              InkWell(
-                onTap: () => updateLocationDialog(
-                    context,
-                    businessProfileDetails
+              if (showEditButton)
+                InkWell(
+                  onTap: () => updateLocationDialog(
+                      context,
+                      businessProfileDetails
+                  ),
+                  child: LocalAssets(
+                    height: 16,
+                    imagePath: AppIconAssets.pen_line,
+                  ),
                 ),
-                child: LocalAssets(
-                  height: 16,
-                  imagePath: AppIconAssets.pen_line,
-                ),
-              ),
             ],
           ),
           const SizedBox(height: 10),

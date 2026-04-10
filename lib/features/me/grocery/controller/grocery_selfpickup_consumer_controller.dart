@@ -40,6 +40,9 @@ class GrocerySelfPickupConsumerController extends GetxController {
   // Map to store business info for each variant ID: { "variant_id": { businessId, businessName, logo, address } }
   var cartBusinessInfo = <String, Map<String, String>>{}.obs;
 
+  /// Product image per variant id — fallback when the variant itself has no images.
+  var cartProductImages = <String, String>{}.obs;
+
   // Map to store delivery type for each variant ID: { "variant_id": "SELF" | "RIDER" | "PARTNER" }
   // var cartDeliveryType = <String, String>{}.obs;
 
@@ -48,6 +51,7 @@ class GrocerySelfPickupConsumerController extends GetxController {
       ProductVariants variant,
       {String? productId, String? inventoryId,
       String? businessId, String? businessName, String? businessLogo, String? businessAddress,
+      String? productImage,
       // String? deliveryType
       }) {
     if (variant.sId == null) return;
@@ -71,6 +75,9 @@ class GrocerySelfPickupConsumerController extends GetxController {
           'address': businessAddress ?? '',
         };
       }
+      if (productImage != null && productImage.isNotEmpty) {
+        cartProductImages[variant.sId!] = productImage;
+      }
       // if (deliveryType != null) {
       //   cartDeliveryType[variant.sId!] = deliveryType;
       // }
@@ -90,6 +97,7 @@ class GrocerySelfPickupConsumerController extends GetxController {
       cartProductIds.remove(variant.sId);
       cartInventoryIds.remove(variant.sId);
       cartBusinessInfo.remove(variant.sId);
+      cartProductImages.remove(variant.sId);
       // cartDeliveryType.remove(variant.sId);
       selectedGroceriesVariants.removeWhere((v) => v.sId == variant.sId);
     }
@@ -215,6 +223,7 @@ class GrocerySelfPickupConsumerController extends GetxController {
       selectedGroceriesVariants.clear();
       cartQuantities.clear();
       cartBusinessInfo.clear();
+      cartProductImages.clear();
 
 
 

@@ -10,7 +10,7 @@ import 'package:BlueEra/features/me/food/model/category_food_product_res_model.d
 import 'package:BlueEra/features/me/food/view/widget/food_dietary_and_tag_row.dart';
 import 'package:BlueEra/features/me/food/view/widget/food_product_des_widget.dart';
 import 'package:BlueEra/features/me/food/view/widget/food_product_image_widget.dart';
-import 'package:BlueEra/features/me/food/view/widget/food_self_pickup_cart_bar.dart';
+import 'package:BlueEra/features/me/food/view/widget/food_self_pickup_cart.dart';
 import 'package:BlueEra/features/me/food/view/widget/food_self_pickup_variants_sheet.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -113,7 +113,7 @@ class _FoodCustomerListingScreenState extends State<FoodCustomerListingScreen> {
               _buildRightContent(),
             ],
           ),
-          FoodSelfPickupCartBar(controller: controller),
+          FoodSelfPickupCart(controller: controller),
         ],
       ),
     );

@@ -7,12 +7,12 @@ import 'package:BlueEra/features/common/Discover/widget/common_generic_left_side
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
 import 'package:BlueEra/features/common/store/controller/new_store_controller.dart';
-import 'package:BlueEra/features/common/store/view/business_store_card.dart';
+import 'package:BlueEra/features/common/store/view/product_store_card.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/view/ai_chat/view/ai_common_search_screen.dart';
 import 'package:BlueEra/features/me/product/controller/product_selfpickup_controller.dart';
 import 'package:BlueEra/features/me/product/view/product_self_pickup_cart_screen.dart';
-import 'package:BlueEra/features/me/product/view/widget/product_self_pickup_cart_bar.dart';
+import 'package:BlueEra/features/me/product/view/widget/product_self_pickup_cart.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -236,7 +236,7 @@ class _ProductsStoreScreenState extends State<ProductsStoreScreen> {
                 Expanded(child: _buildStoreContent(dynamicSize)),
               ],
             ),
-            ProductSelfPickupCartBar(controller: productCartController),
+            ProductSelfPickupCart(controller: productCartController),
           ],
         ),
       ),
@@ -338,7 +338,7 @@ class _ProductsStoreScreenState extends State<ProductsStoreScreen> {
                   },
                   child: Padding(
                     padding: EdgeInsets.only(bottom: dynamicSize(10)),
-                    child: BusinessStoreCard(
+                    child: ProductStoreCard(
                       ds: dynamicSize,
                       getAllStoreResData: storeData,
                     ),

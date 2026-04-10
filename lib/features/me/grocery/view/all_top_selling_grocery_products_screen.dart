@@ -2,24 +2,18 @@ import 'dart:developer' as dev;
 
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
-import 'package:BlueEra/features/me/grocery/view/grocery_self_pickup_cart_screen.dart';
+import 'package:BlueEra/features/me/grocery/widget/grocery_self_pickup_cart.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_selfpickup_consumer_controller.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_business_products_model.dart';
-import 'package:BlueEra/features/me/grocery/widget/food_type_indicator.dart';
-import 'package:BlueEra/features/me/grocery/widget/price_row.dart';
+import 'package:BlueEra/features/me/grocery/widget/grocery_top_selling_tile.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
-import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
-import 'package:BlueEra/widgets/local_assets.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
@@ -176,6 +170,14 @@ class _AllTopSellingGroceryProductsScreenState
     final bDetails = _viewBusinessDetailsController
         ?.visitedBusinessProfileDetails
         ?.data;
+    // Resolve image: prefer product-level image, fallback to variant image.
+    String? productImage;
+    if (item.product?.images?.isNotEmpty ?? false) {
+      productImage = item.product!.images!.first.url;
+    } else if (productVariant.images?.isNotEmpty ?? false) {
+      productImage = productVariant.images!.first.url;
+    }
+
     ctrl.addToCart(
       productVariant,
       inventoryId: item.sId,
@@ -184,6 +186,7 @@ class _AllTopSellingGroceryProductsScreenState
       businessName: bDetails?.businessName,
       businessLogo: bDetails?.logo,
       businessAddress: bDetails?.address,
+      productImage: productImage,
     );
     dev.log(
       '[AllTopSelling] after addToCart len=${ctrl.selectedGroceriesVariants.length} '
@@ -281,87 +284,9 @@ class _AllTopSellingGroceryProductsScreenState
             );
           }),
 
-          // Cart bar — placed as a direct Positioned child of this Stack
-          // (not wrapped in SelfPickupCommonCartUi) so that layout and
-          // StackParentData propagation are unambiguous even with
-          // StackFit.expand. Driven by its own Obx that reads
-          // `length` (a directly-tracked RxList accessor) so it
-          // reliably reacts to every cart mutation.
           if (_isCustomerMode && _groceryCustomerController != null)
-            Positioned(
-              left: 16,
-              right: 16,
-              bottom: 20,
-              child: Obx(() {
-                final cart = _groceryCustomerController!
-                    .selectedGroceriesVariants;
-                final itemCount = cart.length;
-                dev.log(
-                  '[AllTopSelling] cart-bar Obx rebuild itemCount=$itemCount '
-                  'ids=${cart.map((v) => v.sId).toList()}',
-                  name: 'AllTopSelling',
-                );
-                if (itemCount == 0) return const SizedBox.shrink();
-                return SafeArea(
-                  child: GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const GrocerySelfPickUpCartScreen(),
-                        ),
-                      );
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 12, horizontal: 16),
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryColor,
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.primaryColor
-                                .withValues(alpha: 0.3),
-                            blurRadius: 12,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.2),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: CustomText(
-                              '$itemCount ${itemCount == 1 ? AppStrings.groceryViewItemLabel.tr : AppStrings.groceryViewItemsLabel.tr}',
-                              fontSize: 13,
-                              color: AppColors.white,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          const Spacer(),
-                          CustomText(
-                            AppStrings.groceryViewViewCart.tr,
-                            fontSize: 16,
-                            color: AppColors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          const SizedBox(width: 4),
-                          Icon(
-                            Icons.arrow_forward_ios_rounded,
-                            color: AppColors.white,
-                            size: 16,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              }),
+            GrocerySelfPickupCart(
+              controller: _groceryCustomerController!,
             ),
         ],
       ),
@@ -372,14 +297,8 @@ class _AllTopSellingGroceryProductsScreenState
 class _TopSellingProductTile extends StatelessWidget {
   final BusinessProductData item;
 
-  /// Non-null ⇒ customer mode: renders the add/remove overlay on the
-  /// image and subscribes its `Obx` to the controller's cart list so it
-  /// stays in sync with every other surface (visit store, product
-  /// listing, cart bar, etc.).
   final GrocerySelfPickupConsumerController? customerController;
 
-  /// Called when the user taps the add/remove icon. Ignored when
-  /// [customerController] is null.
   final VoidCallback? onToggleCart;
 
   const _TopSellingProductTile({
@@ -392,29 +311,6 @@ class _TopSellingProductTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hasImage = item.product?.images?.isNotEmpty ?? false;
-    final imageUrl = hasImage ? item.product?.images!.first.url ?? '' : '';
-
-    final imageChild = hasImage
-        ? CachedNetworkImage(
-            imageUrl: imageUrl,
-            fit: BoxFit.cover,
-            placeholder: (context, url) => Container(
-              color: Colors.grey.shade200,
-              child: const Center(
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
-            ),
-            errorWidget: (context, url, error) => LocalAssets(
-              imagePath: AppIconAssets.place_holder_image,
-              boxFix: BoxFit.cover,
-            ),
-          )
-        : LocalAssets(
-            imagePath: AppIconAssets.place_holder_image,
-            boxFix: BoxFit.cover,
-          );
-
     return Container(
       decoration: BoxDecoration(
         color: AppColors.white,
@@ -431,113 +327,47 @@ class _TopSellingProductTile extends StatelessWidget {
             ),
             child: AspectRatio(
               aspectRatio: 1.05,
-              child: _isCustomerMode
-                  ? Stack(
-                      children: [
-                        Positioned.fill(child: imageChild),
-                        Positioned(
-                          top: 0,
-                          right: 0,
-                          child: Obx(() {
-                            // Explicitly touch `.length` first — that
-                            // read always registers this Obx as a
-                            // listener on the cart RxList. Then do the
-                            // actual membership check. Without the
-                            // explicit length read, GetX may not
-                            // register the subscription reliably.
-                            final cart = customerController!
-                                .selectedGroceriesVariants;
-                            final cartLen = cart.length;
-                            final variantId = item.productVariant?.sId;
-                            final added = variantId != null &&
-                                cart.any((v) => v.sId == variantId);
-                            dev.log(
-                              '[AllTopSelling] tile Obx variantId=$variantId '
-                              'cartLen=$cartLen added=$added '
-                              'ctrlHash=${identityHashCode(customerController)} '
-                              'listHash=${identityHashCode(cart)} '
-                              'cartIds=${cart.map((v) => v.sId).toList()}',
-                              name: 'AllTopSelling',
-                            );
-                            return IconButton(
-                              onPressed: onToggleCart,
-                              icon: Container(
-                                padding: const EdgeInsets.all(4),
-                                decoration: BoxDecoration(
-                                  color: added
-                                      ? AppColors.greenShade
-                                      : AppColors.blackMite,
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: Icon(
-                                  added ? Icons.check : Icons.add,
-                                  size: SizeConfig.size16,
-                                  color: AppColors.white,
-                                ),
-                              ),
-                            );
-                          }),
-                        ),
-                      ],
-                    )
-                  : imageChild,
+              child: GroceryTopSellingImage(
+                item: item,
+                cartOverlay: _isCustomerMode
+                    ? Obx(() {
+                        final cart = customerController!
+                            .selectedGroceriesVariants;
+                        final cartLen = cart.length;
+                        final variantId = item.productVariant?.sId;
+                        final added = variantId != null &&
+                            cart.any((v) => v.sId == variantId);
+                        dev.log(
+                          '[AllTopSelling] tile Obx variantId=$variantId '
+                          'cartLen=$cartLen added=$added '
+                          'ctrlHash=${identityHashCode(customerController)} '
+                          'listHash=${identityHashCode(cart)} '
+                          'cartIds=${cart.map((v) => v.sId).toList()}',
+                          name: 'AllTopSelling',
+                        );
+                        return IconButton(
+                          onPressed: onToggleCart,
+                          icon: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: added
+                                  ? AppColors.greenShade
+                                  : AppColors.blackMite,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Icon(
+                              added ? Icons.check : Icons.add,
+                              size: SizeConfig.size16,
+                              color: AppColors.white,
+                            ),
+                          ),
+                        );
+                      })
+                    : null,
+              ),
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(
-                horizontal: 8.0,
-                vertical: 6.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CustomText(
-                  '${item.product?.name ?? ''}',
-                  fontSize: SizeConfig.small,
-                  maxLines: 1,
-                  color: AppColors.mainTextColor,
-                  overflow: TextOverflow.ellipsis,
-                  fontWeight: FontWeight.w600,
-                ),
-                SizedBox(height: SizeConfig.size6),
-                FittedBox(
-                  child: Row(
-                    children: [
-                      if (item.productVariant?.isVegetarian != null) ...[
-                        FoodTypeIndicator(
-                          isVegetarian:
-                              item.productVariant?.isVegetarian! ?? false,
-                        ),
-                        SizedBox(width: SizeConfig.size6),
-                      ],
-                      Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(4),
-                          border: Border.all(
-                              width: 0.5, color: AppColors.greyE5),
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 2, vertical: 0.5),
-                        child: CustomText(
-                          '${item.productVariant?.variantName ?? ''}',
-                          fontSize: 11,
-                          color: Colors.grey,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(height: SizeConfig.size6),
-                PriceRow(
-                  sellingPrice:
-                      "${AppConstants.rupeeSymbol}${item.minSellingPrice}",
-                  mrp: "${AppConstants.rupeeSymbol}${item.minMrp}",
-                  discount: "${item.avgDiscount}% OFF",
-                ),
-                SizedBox(height: SizeConfig.size4),
-              ],
-            ),
-          ),
+          GroceryTopSellingInfoSection(item: item),
         ],
       ),
     );

@@ -5,7 +5,7 @@ import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_selfpickup_consumer_controller.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
 import 'package:BlueEra/features/me/grocery/view/my_grocery_listing/grocery_product_card.dart';
-import 'package:BlueEra/features/me/grocery/widget/self_pickup_common_cart_ui.dart';
+import 'package:BlueEra/features/me/grocery/widget/grocery_self_pickup_cart.dart';
 import 'package:BlueEra/widgets/common_search_bar.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
@@ -152,8 +152,8 @@ class _VisitGroceryProductsScreenState extends State<VisitGroceryProductsScreen>
             ],
           ),
 
-          SelfPickupCommonCartUi(
-            selectedVariants: groceryCustomerController.selectedGroceriesVariants,
+          GrocerySelfPickupCart(
+            controller: groceryCustomerController,
           ),
         ],
       )

@@ -229,6 +229,7 @@ class _FoodSelfPickupVariantsSheet extends StatelessWidget {
                     businessName: args.visitBusinessName,
                     businessLogo: args.visitBusinessLogo,
                     businessAddress: args.visitBusinessAddress,
+                    productImage: args.imageUrl,
                   );
                 }
               },

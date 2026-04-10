@@ -21,14 +21,13 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class BusinessStoreCard extends StatelessWidget {
+class ProductStoreCard extends StatelessWidget {
   final GetAllStoreResModel? getAllStoreResData;
   final double Function(double) ds;
-  const BusinessStoreCard({Key? key, required this.ds, this.getAllStoreResData}) : super(key: key);
+  const ProductStoreCard({Key? key, required this.ds, this.getAllStoreResData}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    bool selfBusiness = getAllStoreResData?.userId == userId;
 
     return Container(
       padding: EdgeInsets.all(ds(10)),
@@ -49,13 +48,9 @@ class BusinessStoreCard extends StatelessWidget {
           /// Store info row
           InkWell(
             onTap: (){
-              if(!selfBusiness){
-                Get.to(() => VisitProductStoreDetailsScreen(
-                      visitBusinessId: getAllStoreResData?.id ?? "",
-                    ));
-              }else{
-                Get.to(() =>  BusinessOwnProfileScreen());
-              }
+              Get.to(() => VisitProductStoreDetailsScreen(
+                visitBusinessId: getAllStoreResData?.id ?? "",
+              ));
             },
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -107,7 +102,6 @@ class BusinessStoreCard extends StatelessWidget {
                             ),
                           ),
 
-                          if(!selfBusiness)
                           InkWell(
                             onTap: () async {
                               if (isGuestUser()) {

@@ -10,7 +10,7 @@ import 'package:BlueEra/features/me/product/controller/product_selfpickup_contro
 import 'package:BlueEra/features/me/product/model/get_product_model.dart';
 import 'package:BlueEra/features/me/product/model/product_category_with_inventory_model.dart';
 import 'package:BlueEra/features/me/product/model/product_nested_category_response.dart';
-import 'package:BlueEra/features/me/product/view/widget/product_self_pickup_cart_bar.dart';
+import 'package:BlueEra/features/me/product/view/widget/product_self_pickup_cart.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
@@ -184,7 +184,7 @@ class _VisitProductProductsScreenState
               Expanded(child: _buildRightContent()),
             ],
           ),
-          ProductSelfPickupCartBar(controller: cartController),
+          ProductSelfPickupCart(controller: cartController),
         ],
       ),
     );

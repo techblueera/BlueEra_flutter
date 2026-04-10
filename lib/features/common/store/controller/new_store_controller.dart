@@ -81,7 +81,7 @@ class NewStoreController extends GetxController{
   final ScrollController aiChatScrollController = ScrollController();
   RxBool chatBotReading = false.obs;
 
-  Rx<CategoryData?> selectedGroceryOrFoodCategoryData = Rx<CategoryData?>(null);
+  Rx<CategoryData?> selectedGroceryCategoryData = Rx<CategoryData?>(null);
 
   // RxBool isBannerVisible = false.obs;
   RxBool isBannerVisible = true.obs;
