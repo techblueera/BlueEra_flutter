@@ -2235,22 +2235,17 @@ final List<OnboardingCategoryModel> businessOnboardingHospitalityStayCategories 
 
 /// tagId → local icon mapping for product categories
 final Map<String, String> productCategoryIcons = {
-  FASHION_LIFESTYLE: AppImageAssets.fashionLifestyle,
   ELECTRONICS_MOBILE_STORE: AppImageAssets.electronicsApplianceStore,
   FURNITURE_CONSTRUCTION: AppImageAssets.furnitureHomeDecor,
+  // FASHION_LIFESTYLE: AppImageAssets.fashionLifestyle, // will changed
+  FASHION_LIFESTYLE: AppImageAssets.artsCraftsSewing, // will changed
   JEWELRY_LUXURY_STORE: AppImageAssets.jewelleryLuxuryStore,
   BEAUTY_WELLNESS: AppImageAssets.beautyAndCosmetics,
   BOOKS_TOYS_BABY: AppImageAssets.booksStationary,
-  HOME_APPLIANCES_KITCHEN: AppImageAssets.homeKitchenAndUtensils,
+  HOME_APPLIANCES_KITCHEN: AppImageAssets.homeKitchenUtensils,
   SPORTS_FITNESS_STORE: AppImageAssets.sportsFitnessStore,
-  RELIGIOUS_AGRI_PETS: AppImageAssets.petSuppliesStore,
+  RELIGIOUS_AGRI_PETS: AppImageAssets.farmingLawnGarden,
   INDUSTRIAL_WHOLESALE: AppImageAssets.industrialWholesale,
-  ELECTRONICS_TECHNOLOGY: AppImageAssets.electronicsApplianceStore,
-  HOME_KITCHEN_FURNITURE: AppImageAssets.homeKitchenAndUtensils,
-  FASHION_BEAUTY_PERSONAL_CARE: AppImageAssets.beautyAndCosmetics,
-  BABY_KIDS_TOYS: AppImageAssets.babyToysProductStore,
-  SPORTS_HEALTH_OFFICE: AppImageAssets.sportsFitnessStore,
-  TOOLS_GARDEN_PET: AppImageAssets.constructionHardware,
 };
 
 String getProductCategoryIcon(String? tagId) {

@@ -17,11 +17,22 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class ShoppingCardWidget extends StatelessWidget {
+class ShoppingCardWidget extends StatefulWidget {
   const ShoppingCardWidget({super.key});
 
   @override
+  State<ShoppingCardWidget> createState() => _ShoppingCardWidgetState();
+}
+
+class _ShoppingCardWidgetState extends State<ShoppingCardWidget> {
+  bool _showAll = false;
+
+  @override
   Widget build(BuildContext context) {
+    final allCategories = Get.find<AuthController>().businessOnboardingProductsCategories;
+    final showMoreButton = allCategories.length > 9;
+    final displayCategories = _showAll ? allCategories : allCategories.take(9).toList();
+
     return CustomFormCard(
         color: AppColors.whiteFC,
         padding: EdgeInsets.all(SizeConfig.size10),
@@ -35,15 +46,32 @@ class ShoppingCardWidget extends StatelessWidget {
                 SizedBox(
                   width: SizeConfig.size8,
                 ),
-                ViewAllButton(
-                  onTap: () => _showShoppingOptionDialog(context),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (showMoreButton)
+                      GestureDetector(
+                        onTap: () => setState(() => _showAll = !_showAll),
+                        child: CustomText(
+                          _showAll ? AppStrings.showLess.tr : AppStrings.more.tr,
+                          fontSize: SizeConfig.medium,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.primaryColor,
+                        ),
+                      ),
+                    SizedBox(width: SizeConfig.size8),
+                    ViewAllButton(
+                      onTap: () => _showShoppingOptionDialog(context),
+                    ),
+                  ],
                 ),
               ],
             ),
             SizedBox(height: SizeConfig.paddingXSL),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 18.0),
-              child: LayoutBuilder(builder: (context, constraints) {
+              child: LayoutBuilder(
+                  builder: (context, constraints) {
                 const double spacing = 6;
                 const int columns = 3;
                 final double itemWidth =
@@ -51,7 +79,7 @@ class ShoppingCardWidget extends StatelessWidget {
                 return Wrap(
                   spacing: spacing,
                   runSpacing: spacing,
-                  children: Get.find<AuthController>().businessOnboardingProductsCategories.take(9).map((categoryItem) {
+                  children: displayCategories.map((categoryItem) {
                     return SizedBox(
                       width: itemWidth,
                       child: CommonServiceCard(

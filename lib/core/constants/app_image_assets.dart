@@ -82,29 +82,30 @@ class AppImageAssets {
   static const String planTagIcon = '${imgPath}plan_tag_icon.png';
 
   /// Business products images
+  static String pharmacyMedicalStore = "${imgPath}pharmacy_medical_store_icon.png";
+
+  static String fashionLifestyle = "${imgPath}fashion_lifestyle_icon.png";
+
   static String furnitureHomeDecor = "${imgPath}furniture_home_decor_icon.png";
-  static String sportsFitnessStore = "${imgPath}sports_fitness_store_icon.png";
   static String jewelleryLuxuryStore = "${imgPath}jewellery_luxury_store_icon.png";
   static String automotiveStore = "${imgPath}automotive_store_icon.png";
   static String constructionHardware = "${imgPath}construction_hardware_icon.png";
   static String booksStationary = "${imgPath}books_stationary.png";
-  static String pharmacyMedicalStore = "${imgPath}pharmacy_medical_store_icon.png";
-  static String petSuppliesStore = "${imgPath}pet_supplies_store_icon.png";
   static String babyToysProductStore = "${imgPath}baby_toys_product_store_icon.png";
   static String electronicsApplianceStore = "${imgPath}electronics_appliance_store_icon.png";
-  static String constructionHomeEsse = "${imgPath}construction_home_esse_icon.png";
-  static String fashionLifestyle = "${imgPath}fashion_lifestyle_icon.png";
   static String beautyAndCosmetics = "${imgPath}beauty_and_cosmetics.png";
-  static String homeAppliances = "${imgPath}home_appliances.png";
-  static String homeKitchenAndUtensils = "${imgPath}home_kitchen_and_utensils.png";
-  static String packagingAndDisposable = "${imgPath}packaging_and_disposable.png";
-  static String agricultureAndFarming = "${imgPath}agriculture_and_farming.png";
-  static String industrialWholesale = "${imgPath}industrial_wholesale.png";
-  static String religiousAndSpeciality = "${imgPath}religious_and_speciality.png";
   static String mobileAccessories = "${imgPath}mobile_accessories.png";
-  static String artAndCraft = "${imgPath}art_and_craft.png";
+  static String artsCraftsSewing = "${imgPath}arts_crafts_sewing.png";
+  static String farmingLawnGarden = "${imgPath}farming_lawn_garden.png";
+  static String homeKitchenUtensils = "${imgPath}home_kitchen_utensils.png";
+  static String petSupplies = "${imgPath}pet_supplies.png";
+  static String toysGames = "${imgPath}toys_games.png";
+  static String homeAppliances = "${imgPath}home_appliances.png";
+  static String industrialWholesale = "${imgPath}industrial_wholesale.png";
   static String musicalInstruments = "${imgPath}musical_instruments.png";
-  static String toysAndGames = "${imgPath}toys_and_games.png";
+  static String sportsFitnessStore = "${imgPath}sports_fitness_store_icon.png";
+
+
 
   /// Business services images
   // static String consultingService = "${imgPath}consulting_service_icon.png";

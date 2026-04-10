@@ -35,11 +35,11 @@ String googleGeoCode =
 String googleCountryCode = "&language=en&components=country:IN";
 String pinCodeUrl(String pinCode) => "https://api.postalpincode.in/pincode/$pinCode";
 
-String takeFranchise ="https://bluecs.in/partner";
+String takeFranchise = "https://bluecs.in/partner";
 String privacyLink =
-    "https://www.freeprivacypolicy.com/live/f1d1be8d-4563-43e0-9275-c439f46390ad";
+    "https://www.bluecs.in/privacypolicy";
 String tncLink =
-    "https://www.freeprivacypolicy.com/live/2c1f2002-02e5-4acc-8142-e371734c9d9c";
+    "https://www.bluecs.in/termscondition";
 String bdoTncLink =
     "https://bluecs.in/bdotc";
 

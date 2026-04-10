@@ -28,6 +28,7 @@ import 'package:BlueEra/features/common/auth/repo/auth_repo.dart';
 import 'package:BlueEra/features/common/feed/models/block_user_response.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_service_ai_controller.dart';
 import 'package:BlueEra/features/me/hotel/controller/hotel_service_controller.dart';
+import 'package:flutter/foundation.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:BlueEra/features/me/laboratory/controller/lab_service_ai_controller.dart';
 import 'package:BlueEra/features/me/others/controller/business_profile_full_controller.dart';
@@ -1032,5 +1033,43 @@ class AuthController extends GetxController {
           break;
       }
     }
+
+    // 2. Call the debug printer
+    // debugPrintBusinessCategories();
+
   }
+
+  void debugPrintBusinessCategories() {
+    if (kDebugMode) {
+      final categoryGroups = {
+        'Services': businessOnboardingServicesCategories,
+        'Products': businessOnboardingProductsCategories,
+        'Groceries': businessOnboardingGroceriesCategories,
+        'Foods': businessOnboardingFoodsCategories,
+        'Manufacturing': businessOnboardingManufacturingCategories,
+        'Automotive': businessOnboardingAutomotiveServicesCategories,
+        'Healthcare': businessOnboardingHealthcareSectorsCategories,
+        'Hospitality': businessOnboardingHospitalityStayCategories,
+        'Education': businessOnboardingEducationTrainingCategories,
+        'Finance': businessOnboardingFinancialSectorsCategories,
+      };
+
+      log('=== BUSINESS CATEGORIES DEBUG START ===', name: 'CategorySync');
+
+      categoryGroups.forEach((name, list) {
+        if (list.isNotEmpty) {
+          log('--- $name (${list.length} items) ---', name: 'CategorySync');
+          for (var item in list) {
+            // Replace 'name' with whatever property identifies your CategoryData
+            log('  ID: ${item.id} | Title: ${item.name} | Tag Id: ${item.tagId}', name: 'CategorySync');
+          }
+        } else {
+          log('--- $name (Empty) ---', name: 'CategorySync');
+        }
+      });
+
+      log('=== BUSINESS CATEGORIES DEBUG END ===', name: 'CategorySync');
+    }
+    }
+
 }

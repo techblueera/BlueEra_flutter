@@ -182,7 +182,7 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
                                 ),
                                 recognizer: TapGestureRecognizer()
                                   ..onTap = () {
-                                    Get.to(CommonWebView(
+                                    Get.to(()=> CommonWebView(
                                       urlLink: tncLink,
                                       urlTitle: AppStrings.termsConditions.tr,
                                     ));
@@ -199,7 +199,7 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
                                 ),
                                 recognizer: TapGestureRecognizer()
                                   ..onTap = () {
-                                    Get.to(CommonWebView(
+                                    Get.to(()=> CommonWebView(
                                       urlLink: privacyLink,
                                       urlTitle: AppStrings.privacyPolicy.tr,
                                     ));
