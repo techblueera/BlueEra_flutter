@@ -1,7 +1,5 @@
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/core/constants/app_icon_assets.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shimmer_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -11,22 +9,19 @@ import 'package:BlueEra/features/business/widgets/business_contact_map_card.dart
 import 'package:BlueEra/features/business/widgets/business_qrcode_widget.dart';
 import 'package:BlueEra/features/common/store/controller/new_store_controller.dart';
 import 'package:BlueEra/features/common/store/widget/store_live_photo_widget.dart';
-import 'package:BlueEra/features/me/grocery/widget/price_row.dart';
 import 'package:BlueEra/features/me/product/controller/inventory_controller.dart';
 import 'package:BlueEra/features/me/product/controller/product_selfpickup_controller.dart';
 import 'package:BlueEra/features/me/product/view/all_top_selling_products_screen.dart';
 import 'package:BlueEra/features/me/product/view/visit_product_products_screen.dart';
-import 'package:BlueEra/features/me/product/view/widget/product_self_pickup_cart_bar.dart';
-import 'package:BlueEra/features/me/product/widget/attribute_two_rows.dart';
+import 'package:BlueEra/features/me/product/view/widget/product_self_pickup_cart.dart';
+import 'package:BlueEra/features/me/product/widget/product_top_selling_tile.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
-import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/visit_business_common_header.dart';
 import 'package:BlueEra/widgets/visit_business_stats_card.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
@@ -144,7 +139,7 @@ class _VisitProductStoreDetailsScreenState
               if (controller.ownDraftAndPublicProductResponse.value.status ==
                   Status.INITIAL) {
                 return Padding(
-                  padding: EdgeInsets.only(top: SizeConfig.paddingM),
+                  padding: EdgeInsets.only(top: SizeConfig.paddingXSL),
                   child: buildHorizontalListSkeleton(),
                 );
               }
@@ -227,6 +222,7 @@ class _VisitProductStoreDetailsScreenState
                   .visitedBusinessProfileDetails?.data;
               return BusinessContactMapCard(
                 businessProfileDetails: details,
+                showEditButton: false,
               );
             }),
 
@@ -237,17 +233,14 @@ class _VisitProductStoreDetailsScreenState
               }
               final details = viewBusinessDetailsController
                   .visitedBusinessProfileDetails?.data;
-              return Padding(
-                padding: EdgeInsets.only(top: 10),
-                child: BusinessQrCodeWidget(data: details),
-              );
+              return BusinessQrCodeWidget(data: details);
             }),
 
             SizedBox(height: SizeConfig.size100),
           ],
         ),
       ),
-          ProductSelfPickupCartBar(controller: cartController),
+          ProductSelfPickupCart(controller: cartController),
         ],
       ),
     );
@@ -259,7 +252,7 @@ class _VisitProductStoreDetailsScreenState
   Widget _topSellingProduct() {
     return CustomFormCard(
       padding: EdgeInsets.all(SizeConfig.size10),
-      margin: EdgeInsets.only(top: SizeConfig.paddingM),
+      margin: EdgeInsets.only(top: SizeConfig.paddingXSL),
       color: AppColors.primaryColor.withValues(alpha: 0.1),
       child: Column(
         children: [
@@ -304,45 +297,6 @@ class _VisitProductStoreDetailsScreenState
                 itemCount: previewCount,
                 itemBuilder: (context, index) {
                   final product = controller.allProducts[index];
-                  final details = product.product.details;
-                  final variants =
-                      product.product.sellerClassification?.variants ?? [];
-                  final img = (details?.media.isNotEmpty ?? false)
-                      ? details!.media.first
-                      : '';
-
-                  final Map<String, List<dynamic>> uniqueAttributes = {};
-                  final firstKeys = <String>[];
-                  for (var v in variants) {
-                    for (var key in v.attributes.keys) {
-                      if (!firstKeys.contains(key)) firstKeys.add(key);
-                      if (firstKeys.length == 1) break;
-                    }
-                    if (firstKeys.length == 1) break;
-                  }
-                  for (var key in firstKeys) {
-                    uniqueAttributes[key] = [];
-                    for (var v in variants) {
-                      final value = v.attributes[key];
-                      if (value == null) continue;
-                      if (key == 'color' && value is Map<String, dynamic>) {
-                        final colorMap = {
-                          'color_name': value['color_name'] ?? '',
-                          'color_code': value['color_code'] ?? '',
-                        };
-                        if (!uniqueAttributes[key]!.any((e) =>
-                            e is Map &&
-                            e['color_name'] == colorMap['color_name'] &&
-                            e['color_code'] == colorMap['color_code'])) {
-                          uniqueAttributes[key]!.add(colorMap);
-                        }
-                      } else {
-                        if (!uniqueAttributes[key]!.contains(value)) {
-                          uniqueAttributes[key]!.add(value);
-                        }
-                      }
-                    }
-                  }
 
                   return Container(
                     width: SizeConfig.size160,
@@ -356,109 +310,44 @@ class _VisitProductStoreDetailsScreenState
                       children: [
                         SizedBox(height: SizeConfig.size4),
                         Expanded(
-                          child: Stack(
-                            children: [
-                              Positioned.fill(
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(10.0),
-                                  child: img.isNotEmpty
-                                      ? CachedNetworkImage(
-                                          imageUrl: img,
-                                          fit: BoxFit.cover,
-                                          placeholder: (context, url) => Container(
-                                            color: Colors.grey.shade200,
-                                            child: const Center(
-                                              child: CircularProgressIndicator(
-                                                  strokeWidth: 2),
-                                            ),
-                                          ),
-                                          errorWidget: (context, url, error) =>
-                                              LocalAssets(
-                                            imagePath:
-                                                AppIconAssets.place_holder_image,
-                                            boxFix: BoxFit.cover,
-                                          ),
-                                        )
-                                      : LocalAssets(
-                                          imagePath:
-                                              AppIconAssets.place_holder_image,
-                                          boxFix: BoxFit.cover,
-                                        ),
+                          child: ProductTopSellingImage(
+                            product: product,
+                            cartOverlay: Obx(() {
+                              final cart =
+                                  cartController.selectedProductVariants;
+                              // ignore: unused_local_variable
+                              final _ = cart.length;
+                              final id = _firstVariantId(product);
+                              final added =
+                                  cartController.isVariantInCart(id);
+                              return IconButton(
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(
+                                    minWidth: 28, minHeight: 28),
+                                onPressed: id == null
+                                    ? null
+                                    : () => _onToggleTopSellingCart(
+                                        product),
+                                icon: Container(
+                                  padding: const EdgeInsets.all(4),
+                                  decoration: BoxDecoration(
+                                    color: added
+                                        ? AppColors.greenShade
+                                        : AppColors.blackMite,
+                                    borderRadius:
+                                        BorderRadius.circular(20),
+                                  ),
+                                  child: Icon(
+                                    added ? Icons.check : Icons.add,
+                                    size: SizeConfig.size16,
+                                    color: AppColors.white,
+                                  ),
                                 ),
-                              ),
-                              Positioned(
-                                top: 0,
-                                right: 0,
-                                child: Obx(() {
-                                  // `.length` read subscribes this Obx
-                                  // to the cart list so the icon stays
-                                  // in sync with the cart bar.
-                                  final cart =
-                                      cartController.selectedProductVariants;
-                                  // ignore: unused_local_variable
-                                  final _ = cart.length;
-                                  final id = _firstVariantId(product);
-                                  final added =
-                                      cartController.isVariantInCart(id);
-                                  return IconButton(
-                                    padding: EdgeInsets.zero,
-                                    constraints: const BoxConstraints(
-                                        minWidth: 28, minHeight: 28),
-                                    onPressed: id == null
-                                        ? null
-                                        : () => _onToggleTopSellingCart(
-                                            product),
-                                    icon: Container(
-                                      padding: const EdgeInsets.all(4),
-                                      decoration: BoxDecoration(
-                                        color: added
-                                            ? AppColors.greenShade
-                                            : AppColors.blackMite,
-                                        borderRadius:
-                                            BorderRadius.circular(20),
-                                      ),
-                                      child: Icon(
-                                        added ? Icons.check : Icons.add,
-                                        size: SizeConfig.size16,
-                                        color: AppColors.white,
-                                      ),
-                                    ),
-                                  );
-                                }),
-                              ),
-                            ],
+                              );
+                            }),
                           ),
                         ),
-                        Padding(
-                          padding: EdgeInsets.symmetric(
-                              horizontal: 9.0, vertical: SizeConfig.size6),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              CustomText(
-                                details?.name ?? '',
-                                fontSize: SizeConfig.small,
-                                maxLines: 1,
-                                color: AppColors.mainTextColor,
-                                overflow: TextOverflow.ellipsis,
-                                fontWeight: FontWeight.w600,
-                              ),
-                              SizedBox(height: SizeConfig.size6),
-                              if (variants.isNotEmpty)
-                                PriceRow(
-                                  sellingPrice:
-                                      '${AppConstants.rupeeSymbol}${variants[0].sellingPrice}',
-                                  mrp:
-                                      '${AppConstants.rupeeSymbol}${variants[0].mrp}',
-                                  discount:
-                                      "${calculateDiscount('${variants[0].sellingPrice}', '${variants[0].mrp}')}% OFF",
-                                ),
-                              AttributeRows(attributeMap: uniqueAttributes),
-                              SizedBox(height: SizeConfig.size4),
-                            ],
-                          ),
-                        ),
+                        ProductTopSellingInfoSection(product: product),
                       ],
                     ),
                   );

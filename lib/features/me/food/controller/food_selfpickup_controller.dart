@@ -44,6 +44,9 @@ class FoodSelfPickupController extends GetxController {
   /// Shape: `{ variantId: { businessId, businessName, logo, address } }`.
   var cartBusinessInfo = <String, Map<String, String>>{}.obs;
 
+  /// Product image per variant id — used to display images in the floating cart.
+  var cartProductImages = <String, String>{}.obs;
+
   // ─────────────────────────────────────────────────────────────────────
   //  Mutations
   // ─────────────────────────────────────────────────────────────────────
@@ -55,6 +58,7 @@ class FoodSelfPickupController extends GetxController {
     String? businessName,
     String? businessLogo,
     String? businessAddress,
+    String? productImage,
   }) {
     if (variant.id == null) return;
 
@@ -74,6 +78,9 @@ class FoodSelfPickupController extends GetxController {
           'address': businessAddress ?? '',
         };
       }
+      if (productImage != null && productImage.isNotEmpty) {
+        cartProductImages[variant.id!] = productImage;
+      }
     }
   }
 
@@ -87,6 +94,7 @@ class FoodSelfPickupController extends GetxController {
       cartQuantities.remove(variant.id);
       cartProductIds.remove(variant.id);
       cartBusinessInfo.remove(variant.id);
+      cartProductImages.remove(variant.id);
       selectedFoodVariants.removeWhere((v) => v.id == variant.id);
     }
   }
@@ -98,6 +106,7 @@ class FoodSelfPickupController extends GetxController {
     cartQuantities.clear();
     cartProductIds.clear();
     cartBusinessInfo.clear();
+    cartProductImages.clear();
   }
 
   bool isVariantInCart(String? variantId) {

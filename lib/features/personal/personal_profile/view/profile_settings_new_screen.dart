@@ -1,15 +1,11 @@
-import 'dart:developer';
-
+import 'package:BlueEra/core/constants/logout_helper.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/core/language_localization_service/language_controller_new.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
-import 'package:BlueEra/core/services/hive_services.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/account_setting_screen/account_settings_screen.dart';
@@ -23,11 +19,7 @@ import 'package:BlueEra/widgets/webview_common.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:hive/hive.dart';
-import 'package:path_provider/path_provider.dart';
 
-import '../../../chat/auth/controller/chat_view_controller.dart';
-import '../../../chat/auth/service/location_update_service.dart';
 import '../../../common/referral/view/referral_page.dart';
 
 class ProfileSettingsNewScreen extends StatelessWidget {
@@ -35,8 +27,6 @@ class ProfileSettingsNewScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final LiveLocationService locationService = LiveLocationService();
-
     return Scaffold(
       appBar: CommonBackAppBar(
         title: AppStrings.settings,
@@ -106,25 +96,7 @@ class ProfileSettingsNewScreen extends StatelessWidget {
                 child: Column(
               children: [
                 CustomBtn(
-                    onTap: () async {
-                      await showCommonDialog(
-                          context: context,
-                          text: AppStrings.logoutConfirmationMessage,
-                          confirmCallback: () async {
-                            deleteIfRegistered<ChatViewController>();
-                            await SharedPreferenceUtils.clearPreference();
-                            locationService.stop();
-                            await clearAllLocalDataOnLogout();
-                            Navigator.of(context).pushNamedAndRemoveUntil(
-                                RouteHelper.getMobileNumberLoginRoute(),
-                                (Route<dynamic> route) => false);
-                          },
-                          cancelCallback: () {
-                            Navigator.of(context).pop(); // Close the dialog
-                          },
-                          confirmText: AppStrings.yes,
-                          cancelText: AppStrings.no);
-                    },
+                    onTap: () => LogoutHelper.showLogoutDialog(context),
                     title: AppStrings.logout,
                     bgColor: Colors.white,
                     textColor: AppColors.primaryColor,
@@ -226,33 +198,6 @@ class ProfileSettingsNewScreen extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  Future<void> clearAllLocalDataOnLogout() async {
-    try {
-      // 1️⃣ Clear all Hive boxes
-      await Hive.deleteFromDisk();
-
-      // 2️⃣ Clear stored media files
-      final dir = await getApplicationDocumentsDirectory();
-      if (dir.existsSync()) {
-        await dir.delete(recursive: true);
-      }
-      log("✅ Local storage cleared successfully");
-
-      await HiveServices.init();
-      log("✅ All Hive data wiped and boxes re-opened successfully.");
-
-      // Reset language controller so its cached (now-closed) box reference
-      // and in-memory selection don't leak into the next session.
-      try {
-        if (Get.isRegistered<LanguageControllerNew>()) {
-          await Get.find<LanguageControllerNew>().reset();
-        }
-      } catch (_) {}
-    } catch (e) {
-      log("❌ Error clearing local data: $e");
-    }
   }
 
   Widget _buildTile(String icon, String title, {VoidCallback? onTap}) {

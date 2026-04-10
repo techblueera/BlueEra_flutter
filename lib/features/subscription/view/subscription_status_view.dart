@@ -30,7 +30,6 @@ class SubscriptionStatusView extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = getOrPut(() => SubscriptionController());
     return Container(
-      color: AppColors.whiteFC,
       width: double.infinity,
       alignment: Alignment.topCenter,
       child: Obx(() {

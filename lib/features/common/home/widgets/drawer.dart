@@ -1,16 +1,11 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
-import 'package:BlueEra/features/common/referral/view/bdm_document_verified_page.dart';
-import 'package:BlueEra/features/common/referral/view/join_as_bdm_screen.dart';
 import 'package:BlueEra/features/common/visiting_card/view/all_visting_cards.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/profile_settings_new_screen.dart';
-import 'package:BlueEra/features/personal/resume/sections/profile_section.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:BlueEra/core/constants/logout_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:hive/hive.dart';
-import 'package:path_provider/path_provider.dart';
 import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/constants/app_constant.dart';
 import '../../../../core/constants/app_strings.dart';
@@ -19,12 +14,8 @@ import '../../../../core/constants/shared_preference_utils.dart';
 import '../../../../core/constants/size_config.dart';
 import '../../../../core/language_localization_service/language_controller_new.dart';
 import '../../../../core/routes/route_helper.dart';
-import '../../../../widgets/common_dialog.dart';
 import '../../../../widgets/custom_btn.dart';
 import '../../../business/auth/controller/view_business_details_controller.dart';
-import '../../../business/visiting_card/view/business_own_profile_screen.dart';
-import '../../../chat/auth/controller/chat_view_controller.dart';
-import '../../../chat/auth/service/location_update_service.dart';
 import '../../../personal/auth/controller/view_personal_details_controller.dart';
 import '../../../personal/personal_profile/view/account_setting_screen/account_settings_screen.dart';
 import '../../../personal/personal_profile/view/create_profile_screen.dart';
@@ -33,8 +24,6 @@ import '../../../personal/personal_profile/view/franchise/request_to_franchise.d
 import '../../../personal/personal_profile/view/help_and_support_screen/help_and_support_screen.dart';
 import '../../../personal/personal_profile/view/manage_notification/notification.dart';
 import '../../../personal/personal_profile/view/payment/view/payment_setting_screen.dart';
-import '../../../personal/personal_profile/view/profile_settings_drawer.dart';
-import '../../../personal/personal_profile/view/profile_setup_new_screen.dart';
 import '../../../personal/personal_profile/view/wallet/wallet_screen.dart';
 import '../../../personal/personal_profile/view/widget/changes_languages_screen.dart';
 import '../../../subscription/view/single_plan_subscription_view.dart';
@@ -55,7 +44,6 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
   final viewBusinessProfileController =
   Get.put(ViewBusinessDetailsController());
 
-  final LiveLocationService locationService = LiveLocationService();
   final lang = getOrPut(() => LanguageControllerNew());
 
   @override
@@ -111,23 +99,6 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
             '',
       );
     }
-  }
-
-  Future<void> clearAllLocalDataOnLogout() async {
-    try {
-      await Hive.deleteFromDisk();
-      final dir = await getApplicationDocumentsDirectory();
-      if (dir.existsSync()) {
-        await dir.delete(recursive: true);
-      }
-    } catch (e) {}
-    // Reset language controller so its cached (now-closed) box reference and
-    // in-memory selection don't leak into the next session.
-    try {
-      if (Get.isRegistered<LanguageControllerNew>()) {
-        await Get.find<LanguageControllerNew>().reset();
-      }
-    } catch (_) {}
   }
 
   @override
@@ -476,27 +447,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
       child: Column(
         children: [
           CustomBtn(
-            onTap: () async {
-              await showCommonDialog(
-                context: context,
-                text: AppStrings.logoutConfirmationMessage.tr,
-                confirmCallback: () async {
-                  deleteIfRegistered<ChatViewController>();
-                  await SharedPreferenceUtils.clearPreference();
-                  locationService.stop();
-                  await clearAllLocalDataOnLogout();
-                  Navigator.of(context).pushNamedAndRemoveUntil(
-                    RouteHelper.getMobileNumberLoginRoute(),
-                        (Route<dynamic> route) => false,
-                  );
-                },
-                cancelCallback: () {
-                  Navigator.of(context).pop();
-                },
-                confirmText: AppStrings.yes,
-                cancelText: AppStrings.no,
-              );
-            },
+            onTap: () => LogoutHelper.showLogoutDialog(context),
             title: AppStrings.logout,
             bgColor: Colors.white,
             textColor: AppColors.primaryColor,

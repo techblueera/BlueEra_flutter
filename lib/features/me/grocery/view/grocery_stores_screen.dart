@@ -9,7 +9,7 @@ import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
 import 'package:BlueEra/features/common/store/controller/new_store_controller.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_selfpickup_consumer_controller.dart';
-import 'package:BlueEra/features/me/grocery/widget/self_pickup_common_cart_ui.dart';
+import 'package:BlueEra/features/me/grocery/widget/grocery_self_pickup_cart.dart';
 import 'package:BlueEra/features/me/grocery/widget/grocery_store_card.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -54,13 +54,12 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
 
     controller.typeOfBusiness = BusinessType.Grocery.name;
 
-    if(controller.selectedGroceryOrFoodCategoryData.value != null){
-      controller.businessCategoryId = controller.selectedGroceryOrFoodCategoryData.value?.tagId;
-    }
-    else if (_arrCategories.isNotEmpty) {
+    if(controller.selectedGroceryCategoryData.value != null){
+      controller.businessCategoryId = controller.selectedGroceryCategoryData.value?.tagId;
+    } else if (_arrCategories.isNotEmpty) {
       controller.businessCategoryId = _arrCategories.first.tagId;
+      controller.selectedGroceryCategoryData.value = _arrCategories.first;
     }
-
 
     controller.getAllStoreNearBy();
 
@@ -119,9 +118,9 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
       child: Scaffold(
         appBar: CommonBackAppBar(
           isCustomTitleWidget: () => Obx(() => Text(
-            controller.selectedGroceryOrFoodCategoryData.value == null
+            controller.selectedGroceryCategoryData.value == null
                 ? AppStrings.groceryNdStationary.tr
-                : controller.selectedGroceryOrFoodCategoryData.value?.name ?? '',
+                : controller.selectedGroceryCategoryData.value?.name ?? '',
             style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -148,8 +147,8 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
                 ],
               ),
 
-              SelfPickupCommonCartUi(
-                selectedVariants: groceryCustomerController.selectedGroceriesVariants,
+              GrocerySelfPickupCart(
+                controller: groceryCustomerController,
               ),
             ],
           )
@@ -175,7 +174,7 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
         // if (item.slugId == 'RECENTLY_VISITED') {
         //   return controller.selectedGroceryOrFoodCategoryData.value == null;
         // }
-        return controller.selectedGroceryOrFoodCategoryData.value?.tagId == item.tagId;
+        return controller.selectedGroceryCategoryData.value?.tagId == item.tagId;
       },
       onTap: (item, index) {
         // if (item.slugId == 'RECENTLY_VISITED') {
@@ -183,7 +182,7 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
         // } else {
         //   controller.selectedGroceryOrFoodCategoryData.value = item;
         // }
-        controller.selectedGroceryOrFoodCategoryData.value = item;
+        controller.selectedGroceryCategoryData.value = item;
         controller.businessCategoryId = item.tagId;
 
         // Single API Call (Clean & Shared)

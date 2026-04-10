@@ -30,7 +30,7 @@ class _SelfPickupStoreScreenState extends State<SelfPickupStoreScreen> {
   }) {
     final controller = getOrPut(() => NewStoreController());
     if (categoryData != null) {
-      controller.selectedGroceryOrFoodCategoryData.value = categoryData;
+      controller.selectedGroceryCategoryData.value = categoryData;
     }
     Get.toNamed(
       RouteHelper.getGroceryStoresScreenRoute(),

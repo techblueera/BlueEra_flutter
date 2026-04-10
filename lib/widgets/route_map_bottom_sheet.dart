@@ -5,6 +5,8 @@ import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/features/common/store/widget/store_live_photo_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -326,8 +328,15 @@ class _RouteMapBottomSheetState extends State<RouteMapBottomSheet> {
                     markers: _markers,
                     polylines: _polylines,
                     myLocationEnabled: false,
-                    zoomControlsEnabled: false,
+                    zoomControlsEnabled: true,
+                    zoomGesturesEnabled: true,
+                    scrollGesturesEnabled: true,
+                    rotateGesturesEnabled: true,
+                    tiltGesturesEnabled: true,
                     mapToolbarEnabled: false,
+                    gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>{
+                      Factory<OneSequenceGestureRecognizer>(() => EagerGestureRecognizer()),
+                    },
                     onMapCreated: (controller) {
                       _mapController = controller;
                       Future.delayed(const Duration(milliseconds: 500), _fitBounds);

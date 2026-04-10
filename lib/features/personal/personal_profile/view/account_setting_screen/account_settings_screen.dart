@@ -2,6 +2,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/logout_helper.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/language_localization_service/language_controller_new.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/account_setting_screen/two_step_verify_screen.dart';
@@ -10,8 +11,6 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:hive/hive.dart';
-import 'package:path_provider/path_provider.dart';
 
 import '../../../../../core/constants/getx_utils.dart';
 import '../../../../../core/constants/shared_preference_utils.dart';
@@ -193,31 +192,8 @@ class _AccountSettingScreenState extends State<AccountSettingScreen> {
 
               _helpServiceCard(
                 AppIconAssets.logout,
-
                 AppStrings.deviceLogout,
-                    () async{
-                      await showCommonDialog(
-                      context: context,
-                      text: AppStrings.logoutConfirmationMessage.tr,
-                      confirmCallback: () async {
-                        deleteIfRegistered<ChatViewController>();
-                        await SharedPreferenceUtils.clearPreference();
-                        locationService.stop();
-                        await clearAllLocalDataOnLogout();
-                        Navigator.of(context).pushNamedAndRemoveUntil(
-                          RouteHelper.getMobileNumberLoginRoute(),
-                              (Route<dynamic> route) => false,
-                        );
-                      },
-                      cancelCallback: () {
-                        Navigator.of(context).pop();
-                      },
-                      confirmText: AppStrings.yes,
-                      cancelText: AppStrings.no,
-                      );
-                  // accountController.setIndex("11");
-                  // accountController.setTitle("Device Logout");
-                },
+                () => LogoutHelper.showLogoutDialog(context),
               ),
 
               SizedBox(height: SizeConfig.size30),
@@ -227,22 +203,6 @@ class _AccountSettingScreenState extends State<AccountSettingScreen> {
       ),
     );
   }
-}
-Future<void> clearAllLocalDataOnLogout() async {
-  try {
-    await Hive.deleteFromDisk();
-    final dir = await getApplicationDocumentsDirectory();
-    if (dir.existsSync()) {
-      await dir.delete(recursive: true);
-    }
-  } catch (e) {}
-  // Reset language controller so its cached (now-closed) box reference and
-  // in-memory selection don't leak into the next session.
-  try {
-    if (Get.isRegistered<LanguageControllerNew>()) {
-      await Get.find<LanguageControllerNew>().reset();
-    }
-  } catch (_) {}
 }
 
 Widget _helpServiceCard(

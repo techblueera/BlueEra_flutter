@@ -62,9 +62,9 @@ class _RiderLinkStoresScreenState extends State<RiderLinkStoresScreen> {
 
     controller.typeOfBusiness =
         widget.isGroceryStore ? BusinessType.Grocery.name : BusinessType.Food.name;
-    controller.selectedGroceryOrFoodCategoryData.value = widget.selectedCategory;
+    controller.selectedGroceryCategoryData.value = widget.selectedCategory;
     controller.businessCategoryId =
-        controller.selectedGroceryOrFoodCategoryData.value?.tagId;
+        controller.selectedGroceryCategoryData.value?.tagId;
 
     controller.getAllStoreNearBy();
 
@@ -112,11 +112,11 @@ class _RiderLinkStoresScreenState extends State<RiderLinkStoresScreen> {
       getLabel: (item) => item.name ?? '',
       getIcon: (item) => item.imageUrl ?? '',
       isSelected: (item) {
-        return controller.selectedGroceryOrFoodCategoryData.value?.tagId ==
+        return controller.selectedGroceryCategoryData.value?.tagId ==
             item.tagId;
       },
       onTap: (item, index) {
-        controller.selectedGroceryOrFoodCategoryData.value = item;
+        controller.selectedGroceryCategoryData.value = item;
         controller.businessCategoryId = item.tagId;
         controller.getAllStoreNearBy();
       },

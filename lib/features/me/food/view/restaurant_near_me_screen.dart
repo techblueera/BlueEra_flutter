@@ -17,7 +17,7 @@ import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
 import 'package:BlueEra/features/common/store/controller/new_store_controller.dart';
 import 'package:BlueEra/features/me/food/controller/food_selfpickup_controller.dart';
-import 'package:BlueEra/features/me/food/view/widget/food_self_pickup_cart_bar.dart';
+import 'package:BlueEra/features/me/food/view/widget/food_self_pickup_cart.dart';
 import 'package:BlueEra/widgets/RatingBadge.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -219,7 +219,7 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
                   Expanded(child: _buildRestaurantList()),
                 ],
               ),
-              FoodSelfPickupCartBar(controller: foodCartController),
+              FoodSelfPickupCart(controller: foodCartController),
             ],
           ),
         ),

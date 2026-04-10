@@ -13,6 +13,7 @@ import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/me/food/controller/food_service_controller.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
+import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -40,6 +41,9 @@ class _FoodCategoryMenuScreenState extends State<FoodCategoryMenuScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: CommonBackAppBar(
+        title: AppStrings.foodFoodItemsLabel.tr,
+      ),
       body: SingleChildScrollView(
         padding: EdgeInsets.symmetric(
           horizontal: SizeConfig.size8,
@@ -54,12 +58,7 @@ class _FoodCategoryMenuScreenState extends State<FoodCategoryMenuScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      CustomText(
-                          AppStrings.foodUploadBulkProduct.tr,
-                          fontSize: SizeConfig.large,
-                          color: AppColors.mainTextColor,
-                          fontWeight: FontWeight.w600
-                      ),
+                      _title(AppStrings.foodUploadBulkProduct.tr),
                       SizedBox(height: SizeConfig.paddingXSL),
                       MasonryGridView.count(
                         shrinkWrap: true,
@@ -164,71 +163,78 @@ class _FoodCategoryMenuScreenState extends State<FoodCategoryMenuScreen> {
                 if (foodServiceController.getFoodCategoryResponse.value.status ==
                     Status.COMPLETE) {
                   if (foodServiceController.foodNestedCateList.isNotEmpty) {
-                    return MasonryGridView.count(
-                      crossAxisCount: 3,
-                      crossAxisSpacing: 6,
-                      mainAxisSpacing: 6,
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
-                      itemCount: foodServiceController.foodNestedCateList.length,
-                      shrinkWrap: true,
-                      primary: false,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemBuilder: (context, index) {
-                        final item = foodServiceController.foodNestedCateList[index];
-                        return CommonServiceCard<GroceryNestedCategoryModel>(
-                          service: item,
-                          getName: (item) => item.name??'',
-                            getIcon: (item) =>  item.image??'',
-                          // getIcon: (item) => "${AppConstants.baseFoodAssetsPath}${item.key ?? " "}.svg",
-                          iconHeight: SizeConfig.size60,
-                          boxShadow: [],
-                          onTap: (item) {
-                            foodServiceController.selectedFoodTypeID.value =
-                                item.sId ?? "";
+                    return CustomFormCard(
+                      padding: EdgeInsets.all(SizeConfig.size10),
+                      margin: EdgeInsets.only(top: SizeConfig.size10),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _title(AppStrings.category.tr),
+                          SizedBox(height: SizeConfig.paddingXSL),
+                          MasonryGridView.count(
+                            crossAxisCount: 3,
+                            crossAxisSpacing: 6,
+                            mainAxisSpacing: 6,
+                            // padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                            itemCount: foodServiceController.foodNestedCateList.length,
+                            shrinkWrap: true,
+                            primary: false,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemBuilder: (context, index) {
+                              final item = foodServiceController.foodNestedCateList[index];
+                              return CommonServiceCard<GroceryNestedCategoryModel>(
+                                service: item,
+                                getName: (item) => item.name??'',
+                                  getIcon: (item) =>  item.image??'',
+                                // getIcon: (item) => "${AppConstants.baseFoodAssetsPath}${item.key ?? " "}.svg",
+                                iconHeight: SizeConfig.size60,
+                                boxShadow: [],
+                                onTap: (item) {
+                                  foodServiceController.selectedFoodTypeID.value =
+                                      item.sId ?? "";
 
-                            // Action for item tap
-                            Get.toNamed(RouteHelper.getProductSelectionScreenRoute(),
-                            arguments: {
-                              ApiKeys.argCategoryData: item
-                            });
-                          },
-                        );
+                                  // Action for item tap
+                                  Get.toNamed(RouteHelper.getProductSelectionScreenRoute(),
+                                  arguments: {
+                                    ApiKeys.argCategoryData: item
+                                  });
+                                },
+                              );
 
-                      },
+                            },
+                          ),
+                        ],
+                      ),
                     );
                   } else {
                     return Center(
                         child: Padding(
-                          padding: EdgeInsets.symmetric(vertical: 10.0),
+                          padding: EdgeInsets.only(top: 10),
                           child: CustomText(AppStrings.noDataFound),
                         ));
                   }
-                } else if (foodServiceController.getFoodCategoryResponse.value ==
+                } else if (foodServiceController.getFoodCategoryResponse.value.status ==
                     Status.ERROR) {
                   return Center(
                       child: Padding(
-                      padding: EdgeInsets.symmetric(vertical: 10.0),
+                      padding: EdgeInsets.only(top: 10),
                       child: CustomText(AppStrings.somethingWentWrong),
                   ));
                 }
                 return Center(
                     child: Padding(
-                      padding: EdgeInsets.symmetric(vertical: 10.0),
+                      padding: EdgeInsets.only(top: 10),
                       child: CircularProgressIndicator(),
                     ));
               }),
 
               CustomFormCard(
                   padding: EdgeInsets.all(SizeConfig.size10),
+                  margin: EdgeInsets.only(top: SizeConfig.size10),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      CustomText(
-                          AppStrings.foodRestaurantSpecial.tr,
-                          fontSize: SizeConfig.large,
-                          color: AppColors.mainTextColor,
-                          fontWeight: FontWeight.w600
-                      ),
+                      _title(AppStrings.foodRestaurantSpecial.tr),
                       SizedBox(height: SizeConfig.paddingXSL),
                       ClipRRect(
                         borderRadius: BorderRadius.circular(10.0),
@@ -310,6 +316,15 @@ class _FoodCategoryMenuScreenState extends State<FoodCategoryMenuScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _title(String title){
+    return CustomText(
+        title,
+        fontSize: SizeConfig.large,
+        color: AppColors.mainTextColor,
+        fontWeight: FontWeight.w600
     );
   }
 }

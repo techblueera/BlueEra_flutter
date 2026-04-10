@@ -10,6 +10,7 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/logger_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
+import 'package:BlueEra/core/constants/logout_helper.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/environment_config.dart';
@@ -19,7 +20,6 @@ import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/view/home_feed_screen_new.dart';
 import 'package:BlueEra/core/language_localization_service/language_controller_new.dart';
 import 'package:BlueEra/core/language_localization_service/language_service_app.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/account_setting_screen/account_settings_screen.dart';
 import 'package:BlueEra/widgets/progrss_dialog.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:dio/dio.dart';
@@ -44,7 +44,7 @@ class AuthManager {
     final LiveLocationService locationService = LiveLocationService();
 
     locationService.stop();
-    await clearAllLocalDataOnLogout();
+    await LogoutHelper.clearAllLocalData();
 
     // Re-init localization Hive box after logout clears disk
     await LocalizationService().init();

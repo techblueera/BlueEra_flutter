@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/api/model/journey_status_model.dart';
+import 'package:BlueEra/core/constants/logout_helper.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/popup_menu_builders.dart';
@@ -18,7 +19,6 @@ import 'package:BlueEra/features/personal/personal_profile/view/profile_settings
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_new_screen.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/common_button_with_icon.dart';
-import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:BlueEra/widgets/common_search_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -512,22 +512,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                     child: IconButton(
                       padding:
                           EdgeInsets.symmetric(horizontal: SizeConfig.size5),
-                      onPressed: () async {
-                        await showCommonDialog(
-                            context: context,
-                            text: AppStrings.logoutConfirmationMessage,
-                            confirmCallback: () async {
-                              await SharedPreferenceUtils.clearPreference();
-                              Navigator.of(context).pushNamedAndRemoveUntil(
-                                  RouteHelper.getMobileNumberLoginRoute(),
-                                  (Route<dynamic> route) => false);
-                            },
-                            cancelCallback: () {
-                              Navigator.of(context).pop(); // Close the dialog
-                            },
-                            confirmText: AppStrings.yes,
-                            cancelText: AppStrings.no);
-                      },
+                      onPressed: () => LogoutHelper.showLogoutDialog(context),
                       icon: LocalAssets(
                         imagePath: AppIconAssets.logout_new,
                         // height: SizeConfig.size15,

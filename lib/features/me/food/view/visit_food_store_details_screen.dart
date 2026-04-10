@@ -4,7 +4,6 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -12,25 +11,24 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/common/store/controller/new_store_controller.dart';
 import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
-import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
+import 'package:BlueEra/features/business/widgets/business_contact_map_card.dart';
 import 'package:BlueEra/features/business/widgets/business_qrcode_widget.dart';
+import 'package:BlueEra/features/me/food/view/all_offer_dish_screen.dart';
 import 'package:BlueEra/features/me/food/controller/food_selfpickup_controller.dart';
 import 'package:BlueEra/features/me/food/controller/home_food_controller.dart';
 import 'package:BlueEra/features/me/food/model/food_home_res_model.dart';
-import 'package:BlueEra/features/me/food/view/widget/food_self_pickup_cart_bar.dart';
+import 'package:BlueEra/features/me/food/view/widget/food_self_pickup_cart.dart';
+import 'package:BlueEra/features/me/food/view/widget/food_offer_dish_tile.dart';
 import 'package:BlueEra/features/me/food/view/widget/food_self_pickup_variants_sheet.dart';
 import 'package:BlueEra/features/me/food/model/category_food_product_res_model.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
 import 'package:BlueEra/features/me/grocery/widget/food_type_indicator.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
-import 'package:BlueEra/widgets/RatingBadge.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
-import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
-import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/features/common/store/widget/store_live_photo_widget.dart';
 import 'package:BlueEra/widgets/visit_business_common_header.dart';
 import 'package:BlueEra/widgets/visit_business_stats_card.dart';
@@ -67,10 +65,6 @@ class _VisitFoodStoreDetailsScreenState
     super.initState();
     viewBusinessDetailsController.viewBusinessProfileById(widget.visitBusinessId);
     controller.fetchHomeData(businessId: widget.visitBusinessId);
-    // Offer Dish (Discount) on this screen is fed by the same paginated
-    // `food-service/api/discountProducts` endpoint used on food_home_screen,
-    // so the data model (`CategoryFoodProductData`) is consistent across
-    // surfaces and the self-pickup variants sheet can be reused directly.
     controller.fetchDiscountFoodProducts(businessId: widget.visitBusinessId);
     storeController.trackStoreDetailView(widget.visitBusinessId);
   }
@@ -104,7 +98,7 @@ class _VisitFoodStoreDetailsScreenState
         fit: StackFit.expand,
         children: [
           _buildScrollBody(),
-          FoodSelfPickupCartBar(controller: foodCartController),
+          FoodSelfPickupCart(controller: foodCartController),
         ],
       ),
     );
@@ -168,11 +162,16 @@ class _VisitFoodStoreDetailsScreenState
                                 fontSize: 16,
                                 fontWeight: FontWeight.w700,
                               ),
-                              CustomText(
-                                AppStrings.viewAll.tr,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.primaryColor,
+                              GestureDetector(
+                                onTap: () => Get.to(() => AllOfferDishScreen(
+                                  businessId: widget.visitBusinessId,
+                                )),
+                                child: CustomText(
+                                  AppStrings.viewAll.tr,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.primaryColor,
+                                ),
                               ),
                             ],
                           ),
@@ -261,11 +260,12 @@ class _VisitFoodStoreDetailsScreenState
                     ),
                   ),
 
-                const SizedBox(height: 10),
-                _buildContactAndMapCard(details),
+                BusinessContactMapCard(
+                  businessProfileDetails: details,
+                  showEditButton: false,
+                ),
 
                 /// QR Code
-                const SizedBox(height: 10),
                 BusinessQrCodeWidget(data: details),
 
                 const SizedBox(height: 100),
@@ -291,9 +291,6 @@ class _VisitFoodStoreDetailsScreenState
               final item = controller.discountFoodItems[index];
               final bool hasVariants =
                   item.variants != null && item.variants!.isNotEmpty;
-              final int variantCount = item.variants?.length ?? 0;
-              final bool isMultiVariant = variantCount > 1;
-
               final sellingPrice =
                   hasVariants ? item.variants![0].baseSellingPrice : null;
               final mrp = hasVariants ? item.variants![0].mrp : null;
@@ -387,87 +384,7 @@ class _VisitFoodStoreDetailsScreenState
                         ),
                       ],
                     ),
-                    Padding(
-                      padding: const EdgeInsets.all(6.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          CustomText(
-                            item.name ?? "",
-                            fontWeight: FontWeight.w600,
-                            maxLines: 1,
-                            fontSize: 13,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 6),
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 6),
-                            child: Row(
-                              children: [
-                                RatingBadge(rating: '4.5'),
-                                const SizedBox(width: 4),
-                                CustomText(
-                                  '1.2 K Reviews',
-                                  fontWeight: FontWeight.w600,
-                                  maxLines: 1,
-                                  color: AppColors.secondaryTextColor,
-                                  fontSize: 12,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ],
-                            ),
-                          ),
-                          _buildDottedLine(),
-                          const SizedBox(height: 6),
-                          Row(
-                            children: [
-                              CustomText(
-                                "₹${sellingPrice ?? 0}",
-                                fontWeight: FontWeight.w700,
-                                fontSize: 14,
-                              ),
-                              if (mrp != null &&
-                                  sellingPrice != null &&
-                                  mrp > sellingPrice) ...[
-                                const SizedBox(width: 6),
-                                CustomText(
-                                  "₹$mrp",
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w400,
-                                  color: AppColors.secondaryTextColor,
-                                  decoration:
-                                      TextDecoration.lineThrough,
-                                  decorationColor:
-                                      AppColors.secondaryTextColor,
-                                ),
-                              ],
-                            ],
-                          ),
-                          // if (isMultiVariant)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 8.0),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 6, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color: AppColors.primaryColor
-                                      .withValues(alpha: 0.1),
-                                  borderRadius:
-                                      BorderRadius.circular(4),
-                                ),
-                                child: CustomText(
-                                  isMultiVariant ?
-                                  "+${variantCount - 1} more variant"
-                                      : '${variantCount} variant',
-                                  fontSize: 10,
-                                  color: AppColors.primaryColor,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
+                    FoodOfferDishInfoSection(item: item),
                   ],
                 ),
                 ),
@@ -733,167 +650,8 @@ class _VisitFoodStoreDetailsScreenState
   }
 
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  //  CONTACT & MAP
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  Widget _buildContactAndMapCard(
-      BusinessProfileDetails? details) {
-    final logoUrl = details?.logo;
-
-    return CustomFormCard(
-      padding: EdgeInsets.all(SizeConfig.size10),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          CustomText(AppStrings.contactUs.tr,
-              fontSize: SizeConfig.large,
-              color: AppColors.mainTextColor,
-              fontWeight: FontWeight.w600),
-          const SizedBox(height: 10),
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: AppColors.white,
-              border: Border.all(color: AppColors.greyE5),
-              borderRadius: BorderRadius.circular(10),
-              boxShadow: [AppShadows.textFieldShadow],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      key: ValueKey(logoUrl),
-                      width: 60,
-                      height: 60,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: AppColors.white,
-                        boxShadow: const [
-                          BoxShadow(
-                              color: Colors.black12, blurRadius: 10)
-                        ],
-                        image: DecorationImage(
-                          image: (logoUrl != null && logoUrl.isNotEmpty)
-                              ? NetworkImage(logoUrl) as ImageProvider
-                              : AssetImage(
-                                  AppIconAssets.place_holder_image),
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          CustomText(details?.businessName,
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold),
-                          if (details?.businessDescription
-                                  ?.isNotEmpty ??
-                              false)
-                            Padding(
-                              padding:
-                                  const EdgeInsets.only(top: 5),
-                              child: CustomText(
-                                details?.businessDescription,
-                                color: AppColors.secondaryTextColor,
-                                fontSize: SizeConfig.medium,
-                                fontWeight: FontWeight.w400,
-                                maxLines: 3,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const Divider(color: AppColors.greyE5, height: 30),
-                if (details?.websiteUrl?.isNotEmpty ?? false)
-                  _contactItem(
-                      AppIconAssets.website_click,
-                      details?.websiteUrl ?? "",
-                      AppColors.primaryColor),
-                if (details?.subCategoryDetails?.name?.isNotEmpty ??
-                    false)
-                  _contactItem(
-                      AppIconAssets.principal,
-                      details?.subCategoryDetails?.name ?? "",
-                      AppColors.secondaryTextColor),
-                if (details?.ownerDetails?.isNotEmpty == true &&
-                    (details?.ownerDetails?[0].email?.isNotEmpty ??
-                        false))
-                  _contactItem(
-                      AppIconAssets.email,
-                      details?.ownerDetails?[0].email ?? "",
-                      AppColors.secondaryTextColor),
-                if (details?.userContactNo?.isNotEmpty ?? false)
-                  _contactItem(
-                      AppIconAssets.phone_outline,
-                      details?.userContactNo ?? "",
-                      AppColors.secondaryTextColor),
-                if (details?.address?.isNotEmpty ?? false)
-                  _contactItem(
-                      AppIconAssets.location_new,
-                      details?.address ?? "",
-                      AppColors.secondaryTextColor),
-              ],
-            ),
-          ),
-          const SizedBox(height: 10),
-          BusinessLocationMapWidget(
-            latitude: details?.businessLocation?.lat ?? 0.0,
-            longitude: details?.businessLocation?.lon ?? 0.0,
-            businessName: details?.businessName ?? "",
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _contactItem(String icon, String label, Color iconColor) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12.0),
-      child: Row(
-        children: [
-          LocalAssets(imagePath: icon, imgColor: iconColor),
-          const SizedBox(width: 12),
-          Expanded(
-            child: CustomText(label,
-                fontSize: 15, color: AppColors.mainTextColor),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   //  HELPERS
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  Widget _buildDottedLine() {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final dashWidth = 4.0;
-        final dashSpace = 3.0;
-        final dashCount =
-            (constraints.maxWidth / (dashWidth + dashSpace)).floor();
-        return Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: List.generate(dashCount, (_) {
-            return SizedBox(
-              width: dashWidth,
-              height: 1,
-              child: DecoratedBox(
-                decoration: BoxDecoration(color: AppColors.greyE5),
-              ),
-            );
-          }),
-        );
-      },
-    );
-  }
 
   Widget _buildImagePlaceholder() {
     return Container(
