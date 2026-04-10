@@ -464,7 +464,7 @@ Future<void> showOrderPlacedDialog(BuildContext context) async {
                         chatViewController.emitEvent(ChatEmitEvents.ChatList,
                             {ApiKeys.type: "order"}, );
                         bottomBarController.onChangeIndex(3);
-                        chatViewController.onSelectChatTab(2);
+                        chatViewController.onSelectChatTab(0);
 
                         Navigator.popUntil(
                             context,

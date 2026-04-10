@@ -62,7 +62,8 @@ class MessageCard extends StatefulWidget {
       this.profileImage,
       this.name,
       required this.isInitialMessage,
-      this.contactNo, this.isFromAiMessage});
+      this.contactNo, this.isFromAiMessage,
+      this.conversationName, this.conversationProfileImage});
 
   final Messages message;
   final String? conversationId;
@@ -73,6 +74,8 @@ class MessageCard extends StatefulWidget {
   final bool? isFromOrderTab;
   final bool? isFromAiMessage;
   final String? contactNo;
+  final String? conversationName;
+  final String? conversationProfileImage;
 
   @override
   State<MessageCard> createState() => _MessageCardState();
@@ -346,6 +349,8 @@ class _MessageCardState extends State<MessageCard>
                     userId: widget.userId,
                     name: widget.name,
                     profileImage: widget.profileImage,
+                    conversationName: widget.conversationName,
+                    conversationProfileImage: widget.conversationProfileImage,
                   );
                 }
               },

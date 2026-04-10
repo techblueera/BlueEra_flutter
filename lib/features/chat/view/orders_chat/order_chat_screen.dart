@@ -211,6 +211,8 @@ class _OrderChatScreenState extends State<OrderChatScreen> {
                                             contactNo: widget.contactNo,
                                             profileImage:
                                             widget.profileImage,
+                                            conversationName: widget.name,
+                                            conversationProfileImage: widget.profileImage,
                                           );
                                         }).toList(),
                                       ),

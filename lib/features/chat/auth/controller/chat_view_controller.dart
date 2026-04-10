@@ -1947,11 +1947,7 @@ class ChatViewController extends GetxController {
             myMessage: true,
             messageType: params[ApiKeys.message_type]);
         getListOfMessageData?.add(sendLoadingFile.value);
-        Future.delayed(Duration(seconds: 3),(){
-          getListOfMessageData?.add(sendLoadingFile.value);
-          getListOfMessageResponse.value =
-              ApiResponse.complete(getListOfMessageData);
-        });
+
 
         getListOfMessageResponse.value =
             ApiResponse.complete(getListOfMessageData);
@@ -1977,11 +1973,7 @@ class ChatViewController extends GetxController {
           if (!alreadyExists) {
             getListOfMessageData?.add(message);
 
-            Future.delayed(Duration(seconds: 3),(){
-              getListOfMessageData?.add(message);
-              getListOfMessageResponse.value =
-                  ApiResponse.complete(getListOfMessageData);
-            });
+
           }
           // Single rebuild: removes loading placeholder + adds real message at once
           getListOfMessageResponse.value =
@@ -2862,11 +2854,7 @@ class ChatViewController extends GetxController {
             final alreadyExists = message.id != null &&
                 (getListOfMessageData?.any((m) => m.id == message.id) ?? false);
             if (!alreadyExists) {
-              Future.delayed(Duration(seconds: 3),(){
-                getListOfMessageData?.add(message);
-                getListOfMessageResponse.value =
-                    ApiResponse.complete(getListOfMessageData);
-              });
+
               getListOfMessageData?.add(message);
             }
             getListOfMessageResponse.value =

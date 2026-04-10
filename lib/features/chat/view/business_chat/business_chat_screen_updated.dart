@@ -265,6 +265,8 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated> {
                                         name: widget.name,
                                         contactNo: widget.contactNo,
                                         profileImage: widget.profileImage,
+                                        conversationName: widget.name,
+                                        conversationProfileImage: widget.profileImage,
                                       );
                                     },
                                   ),

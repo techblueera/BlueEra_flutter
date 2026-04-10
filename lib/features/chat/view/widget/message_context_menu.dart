@@ -25,6 +25,8 @@ void showMessageContextMenu({
   String? userId,
   String? name,
   String? profileImage,
+  String? conversationName,
+  String? conversationProfileImage,
 }) {
   final renderBox =
       messageKey.currentContext?.findRenderObject() as RenderBox?;
@@ -49,6 +51,8 @@ void showMessageContextMenu({
         userId: userId,
         name: name,
         profileImage: profileImage,
+        conversationName: conversationName,
+        conversationProfileImage: conversationProfileImage,
       ),
       transitionsBuilder: (_, animation, __, child) {
         return FadeTransition(opacity: animation, child: child);
@@ -69,6 +73,8 @@ class _MessageContextMenuOverlay extends StatelessWidget {
   final String? userId;
   final String? name;
   final String? profileImage;
+  final String? conversationName;
+  final String? conversationProfileImage;
 
   const _MessageContextMenuOverlay({
     required this.messagePosition,
@@ -80,6 +86,8 @@ class _MessageContextMenuOverlay extends StatelessWidget {
     this.userId,
     this.name,
     this.profileImage,
+    this.conversationName,
+    this.conversationProfileImage,
   });
 
   @override
@@ -148,6 +156,8 @@ class _MessageContextMenuOverlay extends StatelessWidget {
                     userId: userId,
                     name: name,
                     profileImage: profileImage,
+                    conversationName: conversationName,
+                    conversationProfileImage: conversationProfileImage,
                   ),
                   const SizedBox(height: 8),
                   _EmojiReactionRow(
@@ -221,6 +231,8 @@ class _ContextMenuCard extends StatelessWidget {
   final String? userId;
   final String? name;
   final String? profileImage;
+  final String? conversationName;
+  final String? conversationProfileImage;
 
   const _ContextMenuCard({
     required this.message,
@@ -228,6 +240,8 @@ class _ContextMenuCard extends StatelessWidget {
     this.userId,
     this.name,
     this.profileImage,
+    this.conversationName,
+    this.conversationProfileImage,
   });
 
   /// Whether this message has downloadable media (image, video, audio, document).
@@ -319,9 +333,9 @@ class _ContextMenuCard extends StatelessWidget {
                   isScrollControlled: true,
                   backgroundColor: Colors.transparent,
                   builder: (ctx) => ReminderBottomSheet(
-                    name: name,
+                    name: conversationName ?? name,
                     conversationId: conversationId,
-                    profileImagePath: profileImage,
+                    profileImagePath: conversationProfileImage ?? profileImage,
                   ),
                 );
               },

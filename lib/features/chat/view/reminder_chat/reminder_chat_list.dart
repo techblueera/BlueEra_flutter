@@ -40,25 +40,19 @@ class _ReminderChatListState extends State<ReminderChatList> {
           Status.COMPLETE) {
         List<ReminderChatListModel>? members = chatThemeController.reminderChatList;
 
-        return Expanded(
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.only(topLeft: Radius.circular(20),
-                  topRight:  Radius.circular(20)),
-            ),
-            padding: EdgeInsets.symmetric(vertical: 8),
-            margin: EdgeInsets.only(bottom: SizeConfig.size70),
-            child: Column(
-              mainAxisSize: MainAxisSize.max,
-              children: [
-                (members.isEmpty )
-                    ? Padding(
-                  padding: const EdgeInsets.only(top: 30.0),
-                  child: noChatsFound(true),
-                )
-                    : ListView.builder(
+        if (members.isEmpty) {
+          return Padding(
+            padding: const EdgeInsets.only(top: 30.0),
+            child: noChatsFound(true),
+          );
+        }
+
+        return ListView.builder(
                   itemCount: members.length,
-                  shrinkWrap: true,
+                  padding: EdgeInsets.only(
+                    top: 8,
+                    bottom: SizeConfig.size70,
+                  ),
                   itemBuilder: (context, index) {
                     final chat =members[index];
                     String senderProfileImage=chat.profileImagePath;
@@ -268,11 +262,7 @@ class _ReminderChatListState extends State<ReminderChatList> {
                     ),
                     );
                   },
-                ),
-              ],
-            ),
-          ),
-        );
+                );
       } else {
         return SizedBox();
       }

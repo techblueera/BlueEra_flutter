@@ -18,6 +18,7 @@ import '../repo/chat_view_repo.dart';
 import '../socket/live_location_track_socket.dart';
 import 'dart:convert';
 import 'package:hive/hive.dart';
+import '../../view/reminder_chat/reminder_todo_screen.dart';
 
 class ChatThemeController extends GetxController {
   Rx<Color> myMessageBgColor = AppColors.chat_bubble_my_bg.obs;
@@ -403,6 +404,7 @@ class ChatThemeController extends GetxController {
     commonSnackBar(message: AppStrings.reminderMessageAdded.tr);
     resetSelection();
     Get.back();
+    Get.to(() => const ReminderTodoScreen());
   }
   Future<void> getReminderChatListData()async{
     reminderChatList.value= await getReminderChatList();
