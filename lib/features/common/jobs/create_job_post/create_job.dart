@@ -11,6 +11,7 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/routes/route_constant.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
@@ -709,16 +710,63 @@ class _CreateJobPostScreenState extends State<CreateJobPostScreen> {
                             return;
                           }
 
+                          // 1. Validate Company Name
+                          if (createJobPostController.companyNameController.text.trim().isEmpty) {
+                            commonSnackBar(message: 'Company name is required');
+                            return;
+                          }
+
+                          // 2. Validate Location
+                          if (createJobPostController.addressEditController.text.trim().isEmpty || 
+                              createJobPostController.startLocationLat?.value == 0.0) {
+                            commonSnackBar(message: 'Job location is required');
+                            return;
+                          }
+
+                          // 3. Validate Job Title
+                          if (createJobPostController.jobTitleController.text.trim().isEmpty) {
+                            commonSnackBar(message: 'Job title is required');
+                            return;
+                          }
+
+                          // 4. Validate Job Type
+                          if (createJobPostController.jobType.value.isEmpty) {
+                            commonSnackBar(message: 'Please select a job type');
+                            return;
+                          }
+
+                          // 5. Validate Work Mode
+                          if (createJobPostController.workMode.value.isEmpty) {
+                            commonSnackBar(message: 'Please select a work mode');
+                            return;
+                          }
+
+                          // 6. Validate Pay Type (Compensation)
+                          if (createJobPostController.payType.value.isEmpty) {
+                            commonSnackBar(message: 'Please select a pay type');
+                            return;
+                          }
+
+                          // 7. Validate Job Description
+                          if (createJobPostController.jobDescriptionController.text.trim().isEmpty) {
+                            commonSnackBar(message: 'Job description is required');
+                            return;
+                          }
+
                           // Validate salary range
                           int minSalary = int.tryParse(createJobPostController
-                                  .minSalaryController.text) ??
+                                  .minSalaryController.text.isNotEmpty ? createJobPostController.minSalaryController.text : "0") ??
                               0;
                           int maxSalary = int.tryParse(createJobPostController
-                                  .maxSalaryController.text) ??
+                                  .maxSalaryController.text.isNotEmpty ? createJobPostController.maxSalaryController.text : "0") ??
                               0;
-                          if (minSalary > 0 &&
-                              maxSalary > 0 &&
-                              minSalary >= maxSalary) {
+                          
+                          if (minSalary == 0 || maxSalary == 0) {
+                             commonSnackBar(message: 'Please enter a valid salary range');
+                             return;
+                          }
+
+                          if (minSalary >= maxSalary) {
                             commonSnackBar(
                                 message: "Required ");
                             return;
@@ -763,6 +811,7 @@ class _CreateJobPostScreenState extends State<CreateJobPostScreen> {
                                   0.0,
                               ApiKeys.locationAddress: createJobPostController
                                   .addressEditController.text,
+                              ApiKeys.postedBy: userId,
                             };
 
                             createJobPostController.updateJobPostDetailsApi(

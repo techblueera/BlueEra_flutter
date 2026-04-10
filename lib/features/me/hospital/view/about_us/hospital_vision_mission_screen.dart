@@ -51,10 +51,10 @@ class _HospitalVisionMissionScreenState
                 cardMargin: 0,
                 padding: 0,
                 child: Padding(
-                  padding:  EdgeInsets.symmetric(horizontal: 12.0,vertical: 5),
+                  padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 5),
                   child: AiDescriptionField(
                     label: AppStrings.visionMissionTitle,
-                    hintText:AppStrings.visionMissionDescription,
+                    hintText: AppStrings.visionMissionDescription,
                     controller: controller.visionController,
                     rxValue: controller.descriptionTest,
                     // Your RX variable from the controller
@@ -67,7 +67,9 @@ class _HospitalVisionMissionScreenState
               PositiveCustomBtn(
                 onTap:
                     controller.isSaving.value ? null : controller.saveOrUpdate,
-                title: controller.data.value == null ? AppStrings.save : AppStrings.update,
+                title: controller.data.value == null
+                    ? AppStrings.save
+                    : AppStrings.update,
                 width: double.infinity,
                 height: SizeConfig.size45,
                 bgColor: AppColors.primaryColor,

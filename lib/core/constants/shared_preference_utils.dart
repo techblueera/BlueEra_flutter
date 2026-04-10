@@ -566,11 +566,13 @@ setHospitalID(String labIDValue) {
       SharedPreferenceUtils.hospitalIDKey, labIDValue.toString());
 }
 
-getHospitalID() async {
+Future<String> getHospitalID() async {
   try {
     hospitalIDGlobal = await SharedPreferenceUtils.getSecureValue(
-        SharedPreferenceUtils.hospitalIDKey);
+            SharedPreferenceUtils.hospitalIDKey) ??
+        "";
   } on Exception {
-    // TODO
+    hospitalIDGlobal = "";
   }
+  return hospitalIDGlobal;
 }

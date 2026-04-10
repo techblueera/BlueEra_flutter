@@ -144,7 +144,7 @@ class CommonTextField extends StatelessWidget {
               ),
         title == null || (title?.isEmpty ?? false)
             ? const SizedBox.shrink()
-              : SizedBox(height: SizeConfig.paddingXSL),
+            : SizedBox(height: SizeConfig.paddingXSL),
         Container(
           width: SizeConfig.screenWidth,
           decoration: BoxDecoration(
@@ -200,32 +200,32 @@ class CommonTextField extends StatelessWidget {
                     return ValidationMethod.validateEmail(value);
                   } else if (validationType == ValidationTypeEnum.pNumber) {
                     return ValidationMethod.validatePhone(value);
-                  }else if (validationType == ValidationTypeEnum.lNumber) {
+                  } else if (validationType == ValidationTypeEnum.lNumber) {
                     return ValidationMethod.validateLandline(value);
-                  }
-                  else if (validationType == ValidationTypeEnum.Url) {
+                  } else if (validationType == ValidationTypeEnum.Url) {
                     return ValidationMethod.urlValidation(value);
-                  }else if (validationType == ValidationTypeEnum.username) {
+                  } else if (validationType == ValidationTypeEnum.username) {
                     return ValidationMethod.userNameValidation(value);
                   }
                   return null;
                 },
             focusNode: focusNode,
             decoration: InputDecoration(
-              prefixText: prefixText??"",
+              prefixText: prefixText ?? "",
               contentPadding: contentPadding ??
                   EdgeInsets.symmetric(
                       horizontal: SizeConfig.paddingM,
                       vertical: SizeConfig.paddingXSL),
               hintText: hintText?.tr,
-              prefixIcon: pIcon != null ? Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                child: pIcon,
-              ) : null,
-              prefixIconConstraints: pIcon != null ? BoxConstraints(
-                  maxWidth: 40,
-                  maxHeight: 20
-              ) : null,
+              prefixIcon: pIcon != null
+                  ? Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: pIcon,
+                    )
+                  : null,
+              prefixIconConstraints: pIcon != null
+                  ? BoxConstraints(maxWidth: 40, maxHeight: 20)
+                  : null,
               // counterText: '',
               suffixIcon: showClearIcon
                   ? InkWell(
@@ -237,10 +237,9 @@ class CommonTextField extends StatelessWidget {
                       ),
                     )
                   : sIcon,
-              suffixIconConstraints: sIcon != null ? BoxConstraints(
-                  maxWidth: 40,
-                  maxHeight: 20
-              ) : null,
+              suffixIconConstraints: sIcon != null
+                  ? BoxConstraints(maxWidth: 40, maxHeight: 20)
+                  : null,
               hintStyle: hintStyle ?? theme.inputDecorationTheme.hintStyle,
               errorMaxLines: 2,
             ),

@@ -26,8 +26,8 @@ class EmergencyContactsController extends GetxController {
 
   bool _isValidPhone(String value) {
     final v = value.trim();
-    final e164 = RegExp(r'^\+91\d{10}$');
-    final local10 = RegExp(r'^\d{10}$');
+    final e164 = RegExp(r'^\+91[6-9]\d{9}$');
+    final local10 = RegExp(r'^[6-9]\d{9}$');
     return e164.hasMatch(v) || local10.hasMatch(v);
   }
 

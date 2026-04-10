@@ -5,6 +5,8 @@ import 'package:BlueEra/core/constants/common_http_links_textfiled_widget.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
+import 'package:BlueEra/core/constants/regular_expression.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
@@ -69,6 +71,12 @@ void showUpdateWebsiteBottomSheet(BuildContext context) {
                   bgColor: AppColors.primaryColor,
                   title: AppStrings.save,
                   onTap: () async {
+                    String? error = ValidationMethod.urlValidation(
+                        websiteController.text.trim());
+                    if (error != null) {
+                      commonSnackBar(message: error);
+                      return;
+                    }
                     final params = <String, dynamic>{
                       ApiKeys.businessId: businessId,
                       ApiKeys.website_url: websiteController.text.trim(),

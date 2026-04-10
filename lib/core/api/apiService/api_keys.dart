@@ -603,6 +603,7 @@ class ApiKeys {
   static const orderFor = 'orderFor';
   static const modeOfPayment = 'modeOfPayment';
   static const postedFrom = 'postedFrom';
+  static const postedBy = 'postedBy';
   static const argVariants = 'argVariants';
   static const isActive = 'isActive';
   static const groceryOrderDetails = 'groceryOrderDetails';
