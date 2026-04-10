@@ -50,7 +50,8 @@ class _CreateBusinessAccountNewStepTwoState
   final cityController = TextEditingController();
   final picCodeController = TextEditingController();
   ContactType? selectedType = ContactType.Mobile;
-  final viewBusinessDetailsController  = getOrPut(() => ViewBusinessDetailsController());
+  final viewBusinessDetailsController =
+      getOrPut(() => ViewBusinessDetailsController());
 
   bool isFormValid = false;
   final locationController = Get.put(LocationController());
@@ -83,13 +84,15 @@ class _CreateBusinessAccountNewStepTwoState
       _updateLocationData(locationData);
     }
   }
-  
-  void _updateLocationData(var locationData){
+
+  void _updateLocationData(var locationData) {
     fullBusinessAddressTextController.text = locationData!.fullAddress;
     cityController.text = locationData!.city;
     picCodeController.text = locationData!.pinCode;
-    viewBusinessDetailsController.addressLat?.value = double.parse(locationData!.lat);
-    viewBusinessDetailsController.addressLong?.value = double.parse(locationData!.long);
+    viewBusinessDetailsController.addressLat?.value =
+        double.parse(locationData!.lat);
+    viewBusinessDetailsController.addressLong?.value =
+        double.parse(locationData!.long);
     _updateMarkerOnMap();
   }
 
@@ -99,15 +102,18 @@ class _CreateBusinessAccountNewStepTwoState
           fullBusinessAddressTextController.text.trim().isNotEmpty &&
           picCodeController.text.trim().isNotEmpty;
 
+      bool isWebsiteValid = websiteController.text.trim().isEmpty ||
+          ValidationMethod.isValidURL(websiteController.text.trim());
+
       if (selectedType == ContactType.Mobile) {
         isFormValid = commonValid &&
+            isWebsiteValid &&
             ValidationMethod.validatePhone(mobileController.text) == null;
       } else if (selectedType == ContactType.Landline) {
-
         isFormValid = commonValid &&
-            landlineNumberController.text.trim().isNotEmpty &&
-            landlineNumberController.text.length >= 6 &&
-            landlineNumberController.text.length <= 8;
+            isWebsiteValid &&
+            ValidationMethod.validateLandline(landlineNumberController.text) ==
+                null;
       } else {
         isFormValid = false;
       }
@@ -145,7 +151,6 @@ class _CreateBusinessAccountNewStepTwoState
       await mapController?.animateCamera(
         CameraUpdate.newLatLngZoom(position, 14),
       );
-
     } catch (e) {
       print("Error updating marker: $e");
     }
@@ -164,9 +169,10 @@ class _CreateBusinessAccountNewStepTwoState
     super.dispose();
   }
 
-  void _onBackPressed(){
+  void _onBackPressed() {
     final bottomBarController = Get.find<BottomBarController>();
-    Get.until((route) => route.settings.name == RouteHelper.getBottomNavigationBarScreenRoute());
+    Get.until((route) =>
+        route.settings.name == RouteHelper.getBottomNavigationBarScreenRoute());
     bottomBarController.currentIndex.value = 2;
   }
 
@@ -176,66 +182,63 @@ class _CreateBusinessAccountNewStepTwoState
 
     return PopScope(
       canPop: false,
-      onPopInvokedWithResult: (didPop, result){
-        if(didPop) return;
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
 
         _onBackPressed();
-        },
+      },
       child: Scaffold(
           appBar: CommonBackAppBar(
-            isLeading: true,
-            title: AppStrings.businessDetailsTitle,
-            onBackTap: ()=>  _onBackPressed()
-          ),
+              isLeading: true,
+              title: AppStrings.businessDetailsTitle,
+              onBackTap: () => _onBackPressed()),
           body: SafeArea(
             child: SingleChildScrollView(
               padding: EdgeInsets.only(
                   left: SizeConfig.size8,
                   right: SizeConfig.size8,
                   top: SizeConfig.size15,
-                  bottom: SizeConfig.size40
-              ),
+                  bottom: SizeConfig.size40),
               child: CustomFormCard(
                 padding: EdgeInsets.all(
-                    SizeConfig.size10,
+                  SizeConfig.size10,
                 ),
                 child: AbsorbPointer(
-                  absorbing: viewBusinessDetailsController.isUpdateBusinessDetailsLoading.value,
+                  absorbing: viewBusinessDetailsController
+                      .isUpdateBusinessDetailsLoading.value,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-
                       Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          CustomText(
-                            AppStrings.yourBusinessLiveLocation,
-                            fontSize: SizeConfig.large,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.secondaryTextColor,
-                          ),
-                          SizedBox(width: SizeConfig.size8),
-                          CommonLocationFetcher(
-                            locationController: locationController,
-                            onLocationFetched: (locationData) {
-                              _updateLocationData(locationData);
-                            },
-                            childBuilder: (fetchAction) {
-                              return PositiveCustomBtn(
-                                width: SizeConfig.size80,
-                                height: SizeConfig.size30,
-                                onTap: fetchAction,
-                                isLeadingShow: true,
-                                leadingIconPath: AppIconAssets.refreshIcon,
-                                title: AppStrings.refresh,
-                                radius: 8.0,
-                                bgColor: AppColors.primaryColor,
-                              );
-                            },
-                          )
-                        ]
-                      ),
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            CustomText(
+                              AppStrings.yourBusinessLiveLocation,
+                              fontSize: SizeConfig.large,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.secondaryTextColor,
+                            ),
+                            SizedBox(width: SizeConfig.size8),
+                            CommonLocationFetcher(
+                              locationController: locationController,
+                              onLocationFetched: (locationData) {
+                                _updateLocationData(locationData);
+                              },
+                              childBuilder: (fetchAction) {
+                                return PositiveCustomBtn(
+                                  width: SizeConfig.size80,
+                                  height: SizeConfig.size30,
+                                  onTap: fetchAction,
+                                  isLeadingShow: true,
+                                  leadingIconPath: AppIconAssets.refreshIcon,
+                                  title: AppStrings.refresh,
+                                  radius: 8.0,
+                                  bgColor: AppColors.primaryColor,
+                                );
+                              },
+                            )
+                          ]),
                       SizedBox(height: SizeConfig.size10),
                       ClipRRect(
                           borderRadius: BorderRadius.circular(10),
@@ -248,13 +251,14 @@ class _CreateBusinessAccountNewStepTwoState
                                 GoogleMap(
                                   onMapCreated: _onMapCreated,
                                   initialCameraPosition: CameraPosition(
-                                    target: (locationData!=null)
+                                    target: (locationData != null)
                                         ? LatLng(
                                             double.parse(locationData!.lat),
                                             double.parse(locationData!.long),
                                           )
-                                        : LatLng(20.5937, 78.9629), // Center of India
-                                    zoom: (locationData!=null) ? 14 : 4,
+                                        : LatLng(20.5937,
+                                            78.9629), // Center of India
+                                    zoom: (locationData != null) ? 14 : 4,
                                   ),
                                   markers: _markers,
                                   myLocationEnabled: false,
@@ -269,9 +273,13 @@ class _CreateBusinessAccountNewStepTwoState
                                   bottom: SizeConfig.size10,
                                   child: InkWell(
                                     onTap: () async {
-                                      if(locationData==null) return;
+                                      if (locationData == null) return;
 
-                                      openGoogleMaps(latitude: double.parse(locationData!.lat), longitude: double.parse(locationData!.long));
+                                      openGoogleMaps(
+                                          latitude:
+                                              double.parse(locationData!.lat),
+                                          longitude:
+                                              double.parse(locationData!.long));
                                     },
                                     child: Container(
                                       padding: EdgeInsets.all(SizeConfig.size8),
@@ -279,7 +287,8 @@ class _CreateBusinessAccountNewStepTwoState
                                         color: AppColors.white,
                                         shape: BoxShape.circle,
                                         border: Border.all(
-                                            color: AppColors.skyBlueDF, width: 1),
+                                            color: AppColors.skyBlueDF,
+                                            width: 1),
                                       ),
                                       child: Transform.rotate(
                                         angle: -0.6,
@@ -305,12 +314,13 @@ class _CreateBusinessAccountNewStepTwoState
                           CommonTextField(
                             readOnly: true,
                             maxLine: 3,
-                            textEditController: fullBusinessAddressTextController,
+                            textEditController:
+                                fullBusinessAddressTextController,
                             inputLength: AppConstants.inputCharterLimit50,
                             keyBoardType: TextInputType.text,
                             title: AppStrings.fullBusinessAddress,
                             regularExpression:
-                            RegularExpressionUtils.alphabetSpacePattern,
+                                RegularExpressionUtils.alphabetSpacePattern,
                             hintText: AppStrings.addressHint,
                             isValidate: false,
                           ),
@@ -353,7 +363,7 @@ class _CreateBusinessAccountNewStepTwoState
                         inputLength: AppConstants.inputCharterLimit50,
                         keyBoardType: TextInputType.text,
                         regularExpression:
-                        RegularExpressionUtils.alphabetSpacePattern,
+                            RegularExpressionUtils.alphabetSpacePattern,
                         title: AppStrings.city,
                         hintText: AppStrings.city,
                         isValidate: true,
@@ -375,7 +385,8 @@ class _CreateBusinessAccountNewStepTwoState
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return AppStrings.pleaseEnterPinCode.tr;
-                          } else if (!RegExp(RegularExpressionUtils.pinCodeRegExp)
+                          } else if (!RegExp(
+                                  RegularExpressionUtils.pinCodeRegExp)
                               .hasMatch(value)) {
                             return AppStrings.enterValidIndianPincode.tr;
                           }
@@ -421,7 +432,9 @@ class _CreateBusinessAccountNewStepTwoState
                       ),
                       HttpsTextField(
                         controller: websiteController,
+                        isUrlValidate: true,
                         hintText: AppStrings.websiteHint,
+                        onChange: (value) => _validateForm(),
                       ),
 
                       SizedBox(
@@ -435,7 +448,7 @@ class _CreateBusinessAccountNewStepTwoState
                               onTap: () {
                                 _onBackPressed();
                               },
-                              title:  AppStrings.previous,
+                              title: AppStrings.previous,
                               bgColor: Colors.transparent,
                               textColor: AppColors.primaryColor,
                               borderColor: AppColors.primaryColor,
@@ -445,77 +458,108 @@ class _CreateBusinessAccountNewStepTwoState
                             width: SizeConfig.size10,
                           ),
                           Expanded(
-                            child: Obx(()=> CustomBtn(
-                              radius: 10,
-                              onTap: isFormValid
-                                  ? () async {
-                                if (selectedType == ContactType.Mobile) {
-                                  String? phoneError = ValidationMethod.validatePhone(mobileController.text);
-                                  if (phoneError != null) {
-                                    commonSnackBar(message: phoneError);
-                                    return;
-                                  }
-                                }
+                            child: Obx(() => CustomBtn(
+                                  radius: 10,
+                                  onTap: isFormValid
+                                      ? () async {
+                                          if (selectedType ==
+                                              ContactType.Mobile) {
+                                            String? phoneError =
+                                                ValidationMethod.validatePhone(
+                                                    mobileController.text);
+                                            if (phoneError != null) {
+                                              commonSnackBar(
+                                                  message: phoneError);
+                                              return;
+                                            }
+                                          }
 
-                                if (selectedType == ContactType.Landline) {
-                                  if (landlineNumberController.text.length < 6 ||
-                                      landlineNumberController.text.length > 8) {
-                                    commonSnackBar(message:AppStrings.pleaseEnterValidLandline.tr);
-                                    return;
-                                  }
-                                }
+                                          if (selectedType ==
+                                              ContactType.Landline) {
+                                            String? landlineError =
+                                                ValidationMethod
+                                                    .validateLandline(
+                                                        landlineNumberController
+                                                            .text);
+                                            if (landlineError != null) {
+                                              commonSnackBar(
+                                                  message: AppStrings
+                                                      .pleaseEnterValidLandline
+                                                      .tr);
+                                              return;
+                                            }
+                                          }
 
-
-                                /// Submit action
-                                Map<String, dynamic> reqParam = {
-                                  ApiKeys.businessId: businessId,
-                                  ApiKeys.office_mob_no_Pre: 91,
-                                  "business_number": {
-                                    "office_mob_no": mobileController.text.isNotEmpty
-                                        ? {
-                                      "pre": "91",
-                                      "number": mobileController.text,
-                                    }
-                                        : null,
-                                    "office_landline_no": landlineNumberController.text.isNotEmpty
-                                        ? {
-                                      "pre": landlineCodeController.text,
-                                      "number": landlineNumberController.text,
-                                    }
-                                        : null,
-                                  },
-                                  ApiKeys.city_state_pincode: cityController.text,
-                                  ApiKeys.address: fullBusinessAddressTextController.text,
-                                  ApiKeys.business_location: jsonEncode({
-                                    ApiKeys.lat: viewBusinessDetailsController
-                                        .addressLat?.value
-                                        .toString(),
-                                    ApiKeys.lon: viewBusinessDetailsController
-                                        .addressLong?.value
-                                        .toString(),
-                                  }),
-                                  ApiKeys.pincode: picCodeController.text,
-                                  ApiKeys.website_url: websiteController.text,
-                                };
-                                await viewBusinessDetailsController
-                                    .updateBusinessDetails(reqParam, showProgress: false);
-                                Get.toNamed(
-                                    RouteHelper.getCreateBusinessAccountNewStepThreeRoute(),
-                                    arguments: {ApiKeys.city: cityController.text}
-                                );
-                              }
-                                  : null,
-                              title: viewBusinessDetailsController.isUpdateBusinessDetailsLoading.value
-                                  ? null // hide text
-                                  : AppStrings.submit,
-                              isLoading: viewBusinessDetailsController.isUpdateBusinessDetailsLoading.value,
-                              isValidate: isFormValid,
-                             )
-                            ),
+                                          /// Submit action
+                                          Map<String, dynamic> reqParam = {
+                                            ApiKeys.businessId: businessId,
+                                            ApiKeys.office_mob_no_Pre: 91,
+                                            "business_number": {
+                                              "office_mob_no": mobileController
+                                                      .text.isNotEmpty
+                                                  ? {
+                                                      "pre": "91",
+                                                      "number":
+                                                          mobileController.text,
+                                                    }
+                                                  : null,
+                                              "office_landline_no":
+                                                  landlineNumberController
+                                                          .text.isNotEmpty
+                                                      ? {
+                                                          "pre":
+                                                              landlineCodeController
+                                                                  .text,
+                                                          "number":
+                                                              landlineNumberController
+                                                                  .text,
+                                                        }
+                                                      : null,
+                                            },
+                                            ApiKeys.city_state_pincode:
+                                                cityController.text,
+                                            ApiKeys.address:
+                                                fullBusinessAddressTextController
+                                                    .text,
+                                            ApiKeys.business_location:
+                                                jsonEncode({
+                                              ApiKeys.lat:
+                                                  viewBusinessDetailsController
+                                                      .addressLat?.value
+                                                      .toString(),
+                                              ApiKeys.lon:
+                                                  viewBusinessDetailsController
+                                                      .addressLong?.value
+                                                      .toString(),
+                                            }),
+                                            ApiKeys.pincode:
+                                                picCodeController.text,
+                                            ApiKeys.website_url:
+                                                websiteController.text,
+                                          };
+                                          await viewBusinessDetailsController
+                                              .updateBusinessDetails(reqParam,
+                                                  showProgress: false);
+                                          Get.toNamed(
+                                              RouteHelper
+                                                  .getCreateBusinessAccountNewStepThreeRoute(),
+                                              arguments: {
+                                                ApiKeys.city:
+                                                    cityController.text
+                                              });
+                                        }
+                                      : null,
+                                  title: viewBusinessDetailsController
+                                          .isUpdateBusinessDetailsLoading.value
+                                      ? null // hide text
+                                      : AppStrings.submit,
+                                  isLoading: viewBusinessDetailsController
+                                      .isUpdateBusinessDetailsLoading.value,
+                                  isValidate: isFormValid,
+                                )),
                           ),
                         ],
                       ),
-
                     ],
                   ),
                 ),
@@ -524,5 +568,4 @@ class _CreateBusinessAccountNewStepTwoState
           )),
     );
   }
-
 }

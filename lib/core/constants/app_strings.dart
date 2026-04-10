@@ -3655,8 +3655,7 @@ class AppStrings {
   static const visionMissionSubtitle = "vision_mission_subtitle";
   static const visionMissionDescription = "vision_mission_description";
 
-  static const hospitalHistoryTitle =
-      "hospAppStrings.hospitalHistoryTitleital_history_title";
+  static const hospitalHistoryTitle = "hospital_history_title";
   static const hospitalHistorySubtitle = "hospital_history_subtitle";
 
   static const deleteMemberConfirm = "delete_member_confirm";
@@ -4910,4 +4909,6 @@ class AppStrings {
   static const String guestUserTitle = "guestUserTitle";
   static const String guestCreateAccountMessage = "guestCreateAccountMessage";
   static const String createProfile = "createProfile";
+  static const String selectLabel = "selectLabel";
+  static const String addPhotos = "addPhotos";
 }

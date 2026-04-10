@@ -106,6 +106,12 @@ class _HistoryScreenState extends State<HospitalHistoryScreen> {
               height: 150,
               width: double.infinity,
               fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) => Container(
+                height: 150,
+                width: double.infinity,
+                color: Colors.grey[300],
+                child: const Icon(Icons.broken_image, color: Colors.grey),
+              ),
             ),
           ),
           Positioned(

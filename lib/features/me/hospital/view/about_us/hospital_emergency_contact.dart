@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_emergency_contact_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
@@ -46,8 +47,17 @@ class _HospitalEmergencyContactScreenState extends State<HospitalEmergencyContac
                 hintText: "9888767657",
                 title:AppStrings.emergencyNumber,
                 maxLength: 11,
-                keyBoardType: TextInputType.phone,
-                onChange: (_) {},
+                isValidate: true,
+                keyBoardType: TextInputType.number,
+                regularExpression: RegularExpressionUtils.digitsPattern,
+                validator: (value) {
+                  if (value == null || value.isEmpty) return 'Required';
+                  if (value.startsWith('0')) return 'Leading zeros not allowed';
+                  if (value.length < 10) return 'Minimum 10 digits required';
+                  if (RegExp(r'^0+$').hasMatch(value)) return 'All zeros not allowed';
+                  return null;
+                },
+                onChange: (_) => controller.update(), // Refresh to update button state if needed
               ),
               SizedBox(height: 20),
               CommonTextField(
@@ -55,8 +65,17 @@ class _HospitalEmergencyContactScreenState extends State<HospitalEmergencyContac
                 hintText: "9343767657",
                 title: AppStrings.appointmentNumber,
                 maxLength: 11,
-                keyBoardType: TextInputType.phone,
-                onChange: (_) {},
+                isValidate: true,
+                keyBoardType: TextInputType.number,
+                regularExpression: RegularExpressionUtils.digitsPattern,
+                validator: (value) {
+                  if (value == null || value.isEmpty) return 'Required';
+                  if (value.startsWith('0')) return 'Leading zeros not allowed';
+                  if (value.length < 10) return 'Minimum 10 digits required';
+                  if (RegExp(r'^0+$').hasMatch(value)) return 'All zeros not allowed';
+                  return null;
+                },
+                onChange: (_) => controller.update(),
               ),
               SizedBox(height: 40),
               CustomBtn(

@@ -10,6 +10,7 @@ import 'package:BlueEra/features/common/jobs/view/job_details_screen.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart' hide MultipartFile;
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 
 import '../../../../core/api/apiService/response_model.dart';
 import '../../auth/model/get_job_details_byId_model.dart';
@@ -115,6 +116,7 @@ class CreateJobPostController extends GetxController {
   Future<void> postJobApi(
       {String? imagePath, required String? createJobVia}) async {
     try {
+      await getUserLoginData();
       final params = {
         ApiKeys.jobTitle: jobTitleController.text,
         ApiKeys.companyName: companyNameController.text,
@@ -133,6 +135,7 @@ class CreateJobPostController extends GetxController {
         ApiKeys.locationLongitude: startLocationLng?.value ?? 0.0,
         ApiKeys.locationAddress: addressEditController.text,
         ApiKeys.postedFrom: createJobVia,
+        ApiKeys.postedBy: userId,
       };
       if (imagePath != null && imagePath.isNotEmpty) {
         params[ApiKeys.jobPostImage] = await MultipartFile.fromFile(imagePath,

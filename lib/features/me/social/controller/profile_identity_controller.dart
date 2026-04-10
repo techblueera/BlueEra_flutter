@@ -13,9 +13,9 @@ class ProfileIdentityController extends GetxController {
   final journeyController = TextEditingController();
   final locationController = TextEditingController();
   var isAddingBackground = false.obs;
-  final  familyBackgroundController = TextEditingController();
+  final familyBackgroundController = TextEditingController();
   final RxString rxValue = "".obs;
-   int maxChars = 500;
+  int maxChars = 500;
   // Rx Variables for AI Fields and Location
   var bioRx = "".obs;
   var journeyRx = "".obs;

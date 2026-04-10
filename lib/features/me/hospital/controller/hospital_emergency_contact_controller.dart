@@ -29,7 +29,8 @@ class HospitalEmergencyContactController extends GetxController {
   }
 
   void _validate() {
-    final phone = RegExp(r'^[0-9]\d{9,10}$');
+    // Reject numbers starting with 0, and allow 10 to 11 digits
+    final phone = RegExp(r'^[1-9]\d{9,10}$');
     isEmergencyValid.value = phone.hasMatch(emergencyController.text.trim());
     isAppointmentValid.value = phone.hasMatch(appointmentController.text.trim());
   }
@@ -76,6 +77,7 @@ class HospitalEmergencyContactController extends GetxController {
         final ec = EmergencyContactRes.fromJson(res.response?.data);
         data.value = ec.data;
         commonSnackBar(message: data.value == null ? AppStrings.hospitalCtrlSavedSuccessfully.tr : AppStrings.hospitalCtrlUpdatedSuccessfully.tr);
+        Get.back();
       } else {
         commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong);
       }

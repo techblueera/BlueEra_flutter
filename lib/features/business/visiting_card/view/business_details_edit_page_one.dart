@@ -543,6 +543,7 @@ class _BusinessDetailsEditPageOneState
                       ),
                       HttpsTextField(
                         controller: websiteController,
+                        isUrlValidate: true,
                         hintText: AppStrings.httpsExampleCom,
                       ),
                       SizedBox(
@@ -748,13 +749,21 @@ class _BusinessDetailsEditPageOneState
                                 //   return;
                                 // }
 
+                                if (websiteController.text.trim().isNotEmpty) {
+                                  String? webError = ValidationMethod.urlValidation(websiteController.text.trim());
+                                  if (webError != null) {
+                                    commonSnackBar(message: webError);
+                                    return;
+                                  }
+                                }
+
                                 /// Build payload for saving available fields
                                 updatedParams.addAll({
                                   ApiKeys.business_name: companyOrgNameTextController.text,
                                   //ApiKeys.mobile_no: mobileController.text,
                                   // ApiKeys.date_of_incorporation:
                                   // "${selectedYear}-${selectedMonth}-${selectedDay}", // assuming you have these
-                                  ApiKeys.website: websiteController.text,
+                                  ApiKeys.website: websiteController.text.trim(),
                                   ApiKeys.opening_time:
                                   viewBusinessDetailsController.shopOpenTime.value,
                                   ApiKeys.closing_time:

@@ -31,7 +31,8 @@ class HospitalVisionMissionController extends GetxController {
       error.value = '';
       final ResponseModel res = await _repo.getByHospital();
       if (res.isSuccess) {
-        final VisionMissionRes vm = VisionMissionRes.fromJson(res.response?.data);
+        final VisionMissionRes vm =
+            VisionMissionRes.fromJson(res.response?.data);
         data.value = vm.data;
         visionController.text = vm.data?.visionAndMission ?? '';
       } else {
@@ -53,7 +54,9 @@ class HospitalVisionMissionController extends GetxController {
       return false;
     }
     if (text.length > maxLen) {
-      commonSnackBar(message: AppStrings.hospitalCtrlMaxLengthChars.trParams({'count': '$maxLen'}));
+      commonSnackBar(
+          message: AppStrings.hospitalCtrlMaxLengthChars
+              .trParams({'count': '$maxLen'}));
       return false;
     }
     return true;
@@ -71,18 +74,25 @@ class HospitalVisionMissionController extends GetxController {
       if (data.value == null || (data.value?.id?.isEmpty ?? true)) {
         final ResponseModel res = await _repo.create(body: body);
         if (res.isSuccess) {
-          final VisionMissionRes vm = VisionMissionRes.fromJson(res.response?.data);
+          final VisionMissionRes vm =
+              VisionMissionRes.fromJson(res.response?.data);
           data.value = vm.data;
           commonSnackBar(message: AppStrings.hospitalCtrlSavedSuccessfully.tr);
+          Get.back();
         } else {
           commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong);
         }
       } else {
-        final ResponseModel res = await _repo.update(id: data.value!.id!, body: {"visionAndMission": body["visionAndMission"]});
+        final ResponseModel res = await _repo.update(
+            id: data.value!.id!,
+            body: {"visionAndMission": body["visionAndMission"]});
         if (res.isSuccess) {
-          final VisionMissionRes vm = VisionMissionRes.fromJson(res.response?.data);
+          final VisionMissionRes vm =
+              VisionMissionRes.fromJson(res.response?.data);
           data.value = vm.data;
-          commonSnackBar(message: AppStrings.hospitalCtrlUpdatedSuccessfully.tr);
+          commonSnackBar(
+              message: AppStrings.hospitalCtrlUpdatedSuccessfully.tr);
+          Get.back();
         } else {
           commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong);
         }

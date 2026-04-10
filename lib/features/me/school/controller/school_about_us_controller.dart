@@ -15,6 +15,7 @@ import 'package:BlueEra/features/me/school/repo/school_repo.dart';
 import 'package:BlueEra/features/me/school/repo/upload_file_to_s3.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/core/constants/regular_expression.dart';
 
 class SchoolAboutUsController extends GetxController {
   Rx<ApiResponse> getAboutUsSchoolResponse = ApiResponse.initial('Initial').obs;
@@ -517,12 +518,23 @@ class SchoolAboutUsController extends GetxController {
     required String message,
     required String profileImg,
   }) {
-    // Condition: All text fields not empty AND at least 1 image
-    isFormValid.value = managementName.isNotEmpty &&
-        profession.isNotEmpty &&
-        qualification.isNotEmpty &&
-        profileImg.isNotEmpty &&
-        message.isNotEmpty;
+    final nameErr = ValidationMethod.validateName(managementName);
+    final posErr = ValidationMethod.validatePosition(profession);
+    final descErr = ValidationMethod.validateDescription(message);
+
+    bool qualificationsOk = qualification.isNotEmpty;
+    for (var controller in qualification) {
+      if (controller.text.trim().isEmpty) {
+        qualificationsOk = false;
+        break;
+      }
+    }
+
+    isFormValid.value = nameErr == null &&
+        posErr == null &&
+        descErr == null &&
+        qualificationsOk &&
+        profileImg.isNotEmpty;
   }
 
   ///UPDATE VISION AND MISSION....

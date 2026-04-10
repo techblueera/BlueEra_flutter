@@ -9,6 +9,7 @@ import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -52,6 +53,7 @@ class _ManagementFormScreenState extends State<ManagementFormScreen> {
                     CommonTextField(
                       title: AppStrings.fullName,
                       textEditController: controller.nameController,
+                      isValidate: true,
                       validator: (v)=> ValidationMethod.validateName(v),
                       onChange: (_) => controller.validate(),
                     ),
@@ -59,13 +61,16 @@ class _ManagementFormScreenState extends State<ManagementFormScreen> {
                     CommonTextField(
                       title: AppStrings.position,
                       textEditController: controller.positionController,
+                      isValidate: true,
+                      validator: (v)=> ValidationMethod.validatePosition(v),
                       onChange: (_) => controller.validate(),
                     ),
                     SizedBox(height: SizeConfig.size10),
                     CommonTextField(
                       title:AppStrings.education,
                       textEditController: controller.educationController,
-                      // validator: (v)=> ValidationMethod.isEmptyValid(v),
+                      isValidate: true,
+                      validator: (v)=> ValidationMethod.validateEducation(v),
                       onChange: (_) => controller.validate(),
                     ),
                     SizedBox(height: SizeConfig.size10),
@@ -73,20 +78,30 @@ class _ManagementFormScreenState extends State<ManagementFormScreen> {
                       title: AppStrings.description,
                       maxLine: 5,
                       textEditController: controller.descriptionController,
-                      // validator: (v)=> ValidationMethod.isEmptyValid(v),
+                      isValidate: true,
+                      validator: (v)=> ValidationMethod.validateDescription(v),
                       onChange: (_) => controller.validate(),
                     ),
                     SizedBox(height: SizeConfig.size15),
-                    PositiveCustomBtn(
-                      title: controller.isSaving.value ? null : (controller.editingMember == null ? AppStrings.save : AppStrings.update),
+                    CustomBtn(
+                      title: controller.editingMember == null ? AppStrings.save : AppStrings.update,
                       width: double.infinity,
                       height: SizeConfig.size45,
-                      // isLoading: controller.isSaving.value,
-                      bgColor: AppColors.primaryColor,
-                      borderColor: AppColors.primaryColor,
-                      onTap: controller.isFormValid.value && !controller.isSaving.value
-                          ? () => controller.save()
-                          : null,
+                      isLoading: controller.isSaving.value,
+                      isValidate: controller.isFormValid.value,
+                      onTap: () {
+                        if (controller.isFormValid.value) {
+                          controller.save();
+                        } else {
+                          // This triggers inline validation in fields.
+                          // If those fields are not visible, show a snackbar.
+                          if (!((controller.selectedImage.value != null) || controller.initialImageUrl.isNotEmpty)) {
+                            commonSnackBar(message: 'Please upload a photo');
+                          } else {
+                             commonSnackBar(message: AppStrings.hospitalCtrlAllFieldsRequiredValid.tr);
+                          }
+                        }
+                      },
                     ),
                   ],
                 ),

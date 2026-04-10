@@ -36,8 +36,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
     once(schoolAboutUsController.aboutUsData!, (AboutUsData? data) {
       if (data != null) {
         // Set Initial Values for Comparison
-        schoolAboutUsController.initialHistoryText = data.history?.message ?? "";
-        schoolAboutUsController.initialHistoryImageUrl = data.history?.photo ?? "";
+        schoolAboutUsController.initialHistoryText =
+            data.history?.message ?? "";
+        schoolAboutUsController.initialHistoryImageUrl =
+            data.history?.photo ?? "";
         // Populate UI
         descriptionEditController.text = data.history?.message ?? "";
         schoolAboutUsController.historyText.value = data.history?.message ?? "";
@@ -73,17 +75,18 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        CustomText(AppStrings.ourHistory,
-                            fontWeight: FontWeight.bold),
+                        Expanded(
+                          child: CustomText(AppStrings.ourHistory,
+                              fontWeight: FontWeight.bold),
+                        ),
                         // The Reusable AI Widget
                         AIGeneratorButton(
                           type: "Our History",
-                          data: {
-                            "for":"school/collage"
-                          },
+                          data: {"for": "school/collage"},
                           onSelected: (generatedText) {
                             descriptionEditController.text = generatedText;
-                            schoolAboutUsController.historyText.value = generatedText;
+                            schoolAboutUsController.historyText.value =
+                                generatedText;
                             schoolAboutUsController.validateHistoryForm();
                           },
                         ),
@@ -93,6 +96,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       textEditController: descriptionEditController,
                       title: "",
                       maxLine: 5,
+                      maxLength: 3000,
+                      keyBoardType: TextInputType.multiline,
+                      textInputAction: TextInputAction.newline,
                       onChange: (value) {
                         schoolAboutUsController.historyText.value = value;
                         schoolAboutUsController.validateHistoryForm();
@@ -159,6 +165,12 @@ class _HistoryScreenState extends State<HistoryScreen> {
               height: 150,
               width: double.infinity,
               fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) => Container(
+                height: 150,
+                width: double.infinity,
+                color: Colors.grey[300],
+                child: const Icon(Icons.broken_image, color: Colors.grey),
+              ),
             ),
           ),
           Positioned(
