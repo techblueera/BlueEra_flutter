@@ -67,18 +67,18 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   // getNotificationAppLaunchDetails() in firebaseNotificationSetup().
 
   final operation = (message.data['operation'] ?? '').toString().toLowerCase();
-  print("messageKILLLLL ==== ${operation}");
-  if (message.data['payload'] != null) {
-    final payloadMap = jsonDecode(message.data['payload']);
-    logs("payloadMap=== 0  ${ message.data}");
-    logs("payloadMap=== 1  ${ payloadMap}");
-    logs("payloadMap=== 2  ${ payloadMap['post_id']}");
-    //
-    // Get.to(
-    //       () => PostDeatilPage(),
-    //   arguments: {"postId": payloadMap['post_id']},
-    // );
-  }
+  // print("messageKILLLLL ==== ${operation}");
+  // if (message.data['payload'] != null) {
+  //   final payloadMap = jsonDecode(message.data['payload']);
+  //   logs("payloadMap=== 0  ${ message.data}");
+  //   logs("payloadMap=== 1  ${ payloadMap}");
+  //   logs("payloadMap=== 2  ${ payloadMap['post_id']}");
+  //   //
+  //   // Get.to(
+  //   //       () => PostDeatilPage(),
+  //   //   arguments: {"postId": payloadMap['post_id']},
+  //   // );
+  // }
   // Handle incoming call in background - show native call UI
   if (operation == 'incoming_call') {
     final data = message.data;
@@ -177,7 +177,7 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   );
 
   // Small delay to ensure Firebase's auto-shown notification is posted first
-  await Future.delayed(const Duration(milliseconds: 500));
+  await Future.delayed(const Duration(milliseconds: 200));
 
   // Cancel ALL notifications (including Firebase's auto-shown ones).
   await plugin.cancelAll();
@@ -356,6 +356,9 @@ Future<void> _initDeferred(LocalizationService localizationService) async {
     Hive.openBox('languageBox').then((_) {}),
     Hive.openBox('localizationBox').then((_) {}),
   ]);
+
+  /// Check early if app was launched from a notification tap (sets flag for splash screen)
+  await AppNotificationHandler.checkNotificationLaunch();
 
   /// Notification setup (depends on Firebase, which is already initialized)
   AppNotificationHandler().firebaseNotificationSetup();

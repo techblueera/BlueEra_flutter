@@ -1,4 +1,5 @@
 // ignore_for_file: avoid_print, unnecessary_null_comparison, unnecessary_new, unrelated_type_equality_checks, unused_local_variable
+import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
@@ -109,7 +110,7 @@ Future<void> _handleBackgroundNotificationResponse(
     if (senderId.isNotEmpty) {
       final chatViewController = getOrPut(() => ChatViewController());
       chatViewController.connectSocket();
-      Future.delayed(const Duration(milliseconds: 500), () {
+      Future.delayed(const Duration(milliseconds: 200), () {
         chatViewController.checkChatConnectionAndOpenChat(userId: senderId);
       });
     }
@@ -202,6 +203,28 @@ class AppNotificationHandler {
   static FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       new FlutterLocalNotificationsPlugin();
 
+  /// True when the app was launched by tapping a notification (from terminated state).
+  /// SplashScreen checks this to hold its UI instead of navigating to home.
+  static bool launchedFromNotification = false;
+
+  /// Completes when notification-based navigation has finished.
+  /// SplashScreen awaits this before deciding its own navigation.
+  static Completer<void>? notificationNavigationCompleter;
+
+  /// Call early (before runApp or in _initDeferred before splash navigates)
+  /// to detect if the app was launched via a notification tap.
+  static Future<void> checkNotificationLaunch() async {
+    final details =
+        await flutterLocalNotificationsPlugin.getNotificationAppLaunchDetails();
+    if (details?.didNotificationLaunchApp ?? false) {
+      final payLoad = details!.notificationResponse?.payload;
+      if (payLoad != null && payLoad.isNotEmpty) {
+        launchedFromNotification = true;
+        notificationNavigationCompleter = Completer<void>();
+      }
+    }
+  }
+
   /// FIREBASE NOTIFICATION SETUP
   Future<void> firebaseNotificationSetup() async {
     final NotificationAppLaunchDetails? notificationAppLaunchDetails =
@@ -213,11 +236,17 @@ class AppNotificationHandler {
       if (payLoad != null && payLoad.isNotEmpty) {
         try {
           final data = jsonDecode(payLoad) as Map<String, dynamic>;
-          // Delay to ensure GetMaterialApp navigator is ready after cold start
-          await Future.delayed(const Duration(seconds: 1));
-          _onTapNotificationFromStatusBar(data);
+          // Wait for navigator to be ready (splash screen signals this)
+          await Future.delayed(const Duration(milliseconds: 300));
+          _onTapNotificationFromStatusBar(data, fromColdStart: true);
         } catch (e) {
           print("Error parsing launch notification payload: $e");
+        } finally {
+          // Signal that notification navigation is done (or failed)
+          if (notificationNavigationCompleter != null &&
+              !notificationNavigationCompleter!.isCompleted) {
+            notificationNavigationCompleter!.complete();
+          }
         }
       }
     }
@@ -1176,12 +1205,24 @@ class AppNotificationHandler {
   }
 
   static Future<void> _onTapNotificationFromStatusBar(
-    Map<String, dynamic> data,
-  ) async {
+    Map<String, dynamic> data, {
+    bool fromColdStart = false,
+  }) async {
     // Parse sender_user if it's a JSON string
 
     if (data['sender_user'] is String) {
       data['sender_user'] = jsonDecode(data['sender_user']);
+    }
+
+    // When launched from terminated state, push home screen first so the user
+    // has a proper back stack after viewing the notification target screen.
+    if (fromColdStart) {
+      Get.offAllNamed(
+        RouteHelper.getBottomNavigationBarScreenRoute(),
+        arguments: {'initialIndex': 0},
+      );
+      // Small delay for home screen to settle before pushing target
+      await Future.delayed(const Duration(milliseconds: 200));
     }
 
     final operation = (data['operation'] ?? '').toString().toLowerCase();
@@ -1319,7 +1360,7 @@ class AppNotificationHandler {
     if (userId.isEmpty) return;
     final chatViewController = getOrPut(() => ChatViewController());
     chatViewController.connectSocket();
-    Future.delayed(const Duration(milliseconds: 500), () {
+    Future.delayed(const Duration(milliseconds: 200), () {
       chatViewController.checkChatConnectionAndOpenChat(userId: userId);
     });
   }

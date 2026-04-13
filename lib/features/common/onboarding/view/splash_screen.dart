@@ -15,6 +15,7 @@ import 'package:BlueEra/features/me/product/view/product/share_product_screen.da
 import 'package:BlueEra/features/chat/view/forward_screen/chat_forward_screen.dart';
 import 'package:BlueEra/features/chat/view/personal_chat/personal_chat_screen.dart';
 import 'package:BlueEra/features/chat/view/business_chat/business_chat_screen_updated.dart';
+import 'package:BlueEra/core/services/app_notification.dart';
 import 'package:BlueEra/main.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -97,6 +98,20 @@ class _SplashScreenState extends State<SplashScreen> {
       // If a call was accepted from CallKit (killed state), skip normal navigation —
       // CallController will navigate directly to ActiveCallScreen
       if (CallController.launchedForCall.value) {
+        return;
+      }
+
+      // If app was launched by tapping a notification, stay on splash screen
+      // and wait for notification handler to navigate to the correct screen.
+      if (AppNotificationHandler.launchedFromNotification &&
+          isLoginStatus == "true") {
+        // Wait for notification navigation to complete (with a safety timeout)
+        if (AppNotificationHandler.notificationNavigationCompleter != null) {
+          await AppNotificationHandler.notificationNavigationCompleter!.future
+              .timeout(const Duration(seconds: 5), onTimeout: () {});
+        }
+        // Reset the flag so it doesn't block future navigations
+        AppNotificationHandler.launchedFromNotification = false;
         return;
       }
 
