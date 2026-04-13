@@ -37,20 +37,18 @@ class PostDeatilPage extends StatelessWidget {
                 title: AppStrings.post,
                 isLeading: true,
               ),
-              body: Column(
-                children: [
-                  controller.post != null
-                      ? FeedCard(
-                          index: 0,
-                          post: controller.post,
-                          postFilteredType: PostType.otherPosts,
-                          likeFeed: controller.onLikeDislikePressed,
-                        )
-                      : Center(
-                          child: CircularProgressIndicator(),
-                        ),
-                ],
-              ),
+              body: controller.post != null
+                  ? SingleChildScrollView(
+                      child: FeedCard(
+                        index: 0,
+                        post: controller.post,
+                        postFilteredType: PostType.otherPosts,
+                        likeFeed: controller.onLikeDislikePressed,
+                      ),
+                    )
+                  : Center(
+                      child: CircularProgressIndicator(),
+                    ),
             );
           }),
     );

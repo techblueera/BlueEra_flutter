@@ -1,5 +1,4 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
-import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -18,7 +17,6 @@ import 'package:BlueEra/features/common/comment/model/comment_model_response.dar
 import 'package:BlueEra/features/common/comment/view/post_ai_comment_screen.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
-import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/features/common/feed/view/home_feed_screen_new.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_card.dart';
 import 'package:BlueEra/features/common/feed/widget/social_message_post_grid_widget.dart';
@@ -97,6 +95,7 @@ class _TwitterPostDetailScreenState extends State<TwitterPostDetailScreen> {
                 children: [
                   _buildAuthorRow(user),
                   _buildPostContent(),
+                  if (_post.is_reposted ?? false) _buildRepostContent(),
                   _buildTimestampAndViews(),
                   Divider(height: 1, color: Colors.grey.shade200),
                   _buildStatsRow(),
@@ -237,6 +236,180 @@ class _TwitterPostDetailScreenState extends State<TwitterPostDetailScreen> {
               ),
           ],
         ],
+      ),
+    );
+  }
+
+  // ─────────────────────────────────────────
+  // REPOST CONTENT (embedded original post)
+  // ─────────────────────────────────────────
+  Widget _buildRepostContent() {
+    final childPost = _post.children_post;
+    if (childPost == null) return SizedBox.shrink();
+    final childUser = childPost.user;
+
+    final bool hasMedia = childPost.media?.isNotEmpty ?? false;
+    final bool isVideo =
+        (childPost.media_types?.firstOrNull?.startsWith("video/") ?? false) ||
+            isVideoUrl(childPost.media?.firstOrNull);
+    final bool isImage =
+        (childPost.media_types?.firstOrNull?.startsWith("image/") ?? false) ||
+            isImageUrl(childPost.media?.firstOrNull);
+
+    return Padding(
+      padding: EdgeInsets.symmetric(
+          horizontal: SizeConfig.size16, vertical: SizeConfig.size4),
+      child: InkWell(
+        onTap: () {
+          Get.to(() => TwitterPostDetailScreen(
+                post: childPost,
+                postType: widget.postType,
+                sortBy: widget.sortBy,
+              ));
+        },
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+                color: AppColors.secondaryTextColor.withValues(alpha: 0.2)),
+            color: AppColors.white,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Original post author header
+              Padding(
+                padding: EdgeInsets.only(
+                    top: SizeConfig.size10,
+                    left: SizeConfig.size10,
+                    right: SizeConfig.size10),
+                child: Row(
+                  children: [
+                    CachedAvatarWidget(
+                      imageUrl: childUser?.profileImage,
+                      size: 30,
+                      borderRadius: 25,
+                    ),
+                    SizedBox(width: SizeConfig.size10),
+                    Flexible(
+                      child: CustomText(
+                        childUser?.name ?? '',
+                        fontSize: SizeConfig.large,
+                        fontWeight: FontWeight.w600,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        color: AppColors.secondaryTextColor,
+                      ),
+                    ),
+                    if (childUser?.username != null &&
+                        (childUser!.username!.isNotEmpty))
+                      Expanded(
+                        child: CustomText(
+                          ' @${childUser.username}',
+                          fontSize: SizeConfig.medium,
+                          fontWeight: FontWeight.w600,
+                          overflow: TextOverflow.ellipsis,
+                          color: AppColors.shadowColor,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              SizedBox(height: SizeConfig.size10),
+              // Media + text content
+              if (hasMedia && (isVideo || isImage))
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Thumbnail
+                    Padding(
+                      padding: EdgeInsets.only(left: 8.0),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Container(
+                          color: Colors.black,
+                          child: CachedNetworkImage(
+                            imageUrl: isVideo
+                                ? (childPost.thumbnail ?? '')
+                                : (childPost.media?.first ?? ''),
+                            width: 110,
+                            height: 110,
+                            fit: BoxFit.cover,
+                            placeholder: (context, url) => Container(
+                              width: 110,
+                              height: 110,
+                              color: Colors.grey[300],
+                            ),
+                            errorWidget: (context, url, error) =>
+                                Icon(Icons.person, size: 21),
+                          ),
+                        ),
+                      ),
+                    ),
+                    // Title + subtitle
+                    Expanded(
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(
+                            horizontal: SizeConfig.size10),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (childPost.title?.isNotEmpty ?? false)
+                              CustomText(
+                                childPost.title ?? '',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.mainTextColor,
+                              ),
+                            SizedBox(height: 4),
+                            CustomText(
+                              childPost.subTitle ?? '',
+                              maxLines: 4,
+                              overflow: TextOverflow.ellipsis,
+                              color: AppColors.secondaryTextColor,
+                              fontSize: SizeConfig.size13,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                )
+              else ...[
+                // No media — just show text content
+                if (childPost.title?.isNotEmpty ?? false)
+                  Padding(
+                    padding:
+                        EdgeInsets.symmetric(horizontal: SizeConfig.size10),
+                    child: CustomText(
+                      childPost.title ?? '',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.mainTextColor,
+                    ),
+                  ),
+                if (childPost.subTitle?.isNotEmpty ?? false)
+                  Padding(
+                    padding: EdgeInsets.only(
+                        left: SizeConfig.size10,
+                        right: SizeConfig.size10,
+                        top: 4),
+                    child: CustomText(
+                      childPost.subTitle ?? '',
+                      maxLines: 4,
+                      overflow: TextOverflow.ellipsis,
+                      color: AppColors.secondaryTextColor,
+                      fontSize: SizeConfig.size13,
+                    ),
+                  ),
+              ],
+              SizedBox(height: SizeConfig.size10),
+            ],
+          ),
+        ),
       ),
     );
   }

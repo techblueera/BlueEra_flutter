@@ -32,7 +32,7 @@ class MessagePostDetailsScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             FeedCard(
-              post: (post?.is_reposted ?? false) ? post?.children_post : post,
+              post: post,
               index: 0,
               postFilteredType: PostType.otherPosts,
               horizontalPadding: 0,

@@ -1226,6 +1226,7 @@ class AppNotificationHandler {
     }
 
     final operation = (data['operation'] ?? '').toString().toLowerCase();
+    logs("data==== ${data}");
     logs("operation==== ${operation}");
     // logs("operation==== ${data['payload']['post_id']}");
     // logs("operation==== ${data['payload']['post_id'].runtimeType}");
@@ -1348,10 +1349,16 @@ class AppNotificationHandler {
   static void _handlePostNavigation(Map<String, dynamic> data) {
     if (data['payload'] != null) {
       final payloadMap = jsonDecode(data['payload']);
+      final String operation = data['operation'] ?? '';
+      final String? repostId = payloadMap['repost_id'];
 
       Get.to(
             () => PostDeatilPage(),
-        arguments: {"postId": payloadMap['post_id']},
+        arguments: {
+          "postId": (operation == 'reposted_post' && repostId != null)
+              ? repostId
+              : payloadMap['post_id'],
+        },
       );
     }
   }
