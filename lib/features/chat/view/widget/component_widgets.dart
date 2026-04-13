@@ -321,7 +321,7 @@ Widget  ChatListTile({
           InkWell(
             onTap: () {
               if(chat?.symbolData?.isNotEmpty??false){
-                Get.to(SymbolViewImages(data: chat?.symbolData??[],userId: chat?.sender?.id, name: senderName, profileImage: senderProfileImage,));
+                Get.to(SymbolViewImages(userId: chat?.sender?.id, name: senderName, profileImage: senderProfileImage,));
                 //
               }else{
                 showDialog(

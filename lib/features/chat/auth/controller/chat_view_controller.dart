@@ -1101,13 +1101,13 @@ class ChatViewController extends GetxController {
   }
 
   void onSelectChatTab(int index) {
+    selectedChatTabIndex.value = index;
     if (chatMainTabController == null) {
-      // Optionally initialize here if possible
-      // chatMainTabController = TabController(length: ..., vsync: this);
-      return; // or handle gracefully
+      // Tab controller not yet created — selectedChatTabIndex is stored so
+      // that initState in NewChatMainScreen picks it up as initialIndex.
+      return;
     }
     chatMainTabController!.animateTo(index);
-    selectedChatTabIndex.value = index;
   }
 
   void isChatFromBusinessProfile(bool value) {

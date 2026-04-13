@@ -45,6 +45,13 @@ class AppLifecycleHandler extends WidgetsBindingObserver {
     if (!chatViewController.socketConnected.value) {
       chatViewController.connectSocket();
     }
+
+    // Re-register call socket listeners — disposeSocket() may have cleared
+    // _registeredListeners while CallActivity was active, so call:incoming
+    // and other call events would be lost on the new socket connection.
+    if (Get.isRegistered<CallController>()) {
+      Get.find<CallController>().ensureCallSocketListeners();
+    }
   }
 
   /// Show floating overlay when app goes to background during an active call,

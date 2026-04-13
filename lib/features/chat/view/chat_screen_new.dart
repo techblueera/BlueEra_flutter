@@ -75,10 +75,11 @@ class _NewChatMainScreenState extends State<NewChatMainScreen>
     if (widget.isForwardUI != null && (widget.isForwardUI ?? false)) {
       chatViewController.selectedUserIds.clear();
     }
+    final pendingIndex = chatViewController.selectedChatTabIndex.value;
     chatViewController.chatMainTabController = TabController(
       length:3,
       vsync: this,
-      initialIndex: chatViewController.selectedChatTabIndex.value,
+      initialIndex: pendingIndex,
     );
 
     chatViewController.chatMainTabController?.addListener(() {
@@ -102,6 +103,24 @@ class _NewChatMainScreenState extends State<NewChatMainScreen>
         }
       }
     });
+
+    // If a pending tab index was set before the screen was built (e.g. from
+    // order placement), ensure the correct chat list is emitted after the
+    // first frame so the UI matches.
+    if (pendingIndex != 0) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (chatViewController.chatMainTabController != null &&
+            chatViewController.chatMainTabController!.index == pendingIndex) {
+          if (pendingIndex == 1) {
+            chatViewController.emitEvent(ChatEmitEvents.ChatList,
+                {ApiKeys.type: AppConstants.business_Chat_Type});
+          } else if (pendingIndex == 2) {
+            chatViewController.emitEvent(ChatEmitEvents.ChatList,
+                {ApiKeys.type: AppConstants.order_Chat_Type});
+          }
+        }
+      });
+    }
     _loadContactsFromStorage();
   }
 

@@ -14,7 +14,6 @@ import '../../auth/model/symbol_details_model.dart';
 import '../widget/custom_video_player.dart';
 
 class SymbolViewImages extends StatefulWidget {
-  final List<SymbolDataModel>? data;
   final String? userId;
   final List<SymbolDetailsModel>? mySymbols;
   final String? profileImage;
@@ -22,7 +21,6 @@ class SymbolViewImages extends StatefulWidget {
 
   const SymbolViewImages({
     super.key,
-    this.data,
     this.mySymbols,
     this.userId,
     this.profileImage,
