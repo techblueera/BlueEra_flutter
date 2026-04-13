@@ -67,18 +67,6 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   // getNotificationAppLaunchDetails() in firebaseNotificationSetup().
 
   final operation = (message.data['operation'] ?? '').toString().toLowerCase();
-  // print("messageKILLLLL ==== ${operation}");
-  // if (message.data['payload'] != null) {
-  //   final payloadMap = jsonDecode(message.data['payload']);
-  //   logs("payloadMap=== 0  ${ message.data}");
-  //   logs("payloadMap=== 1  ${ payloadMap}");
-  //   logs("payloadMap=== 2  ${ payloadMap['post_id']}");
-  //   //
-  //   // Get.to(
-  //   //       () => PostDeatilPage(),
-  //   //   arguments: {"postId": payloadMap['post_id']},
-  //   // );
-  // }
   // Handle incoming call in background - show native call UI
   if (operation == 'incoming_call') {
     final data = message.data;

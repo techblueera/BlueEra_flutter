@@ -590,6 +590,12 @@ abstract class BaseService {
   final String symbolFeedApi = 'symbols-service/symbols/feed';
   String getAllSymbolOneUser(String orderId) => "symbols-service/symbols/user/$orderId";
   String deleteSymbolApi(String symbolId) => "symbols-service/symbols/$symbolId";
+  String symbolViewApi(String symbolId) => "symbols-service/symbols/$symbolId/view";
+  String symbolLikeApi(String symbolId) => "symbols-service/symbols/$symbolId/like";
+  String symbolAddCommentApi(String symbolId) => "symbols-service/symbols/$symbolId/comment";
+  String symbolGetCommentsApi(String symbolId) => "symbols-service/symbols/$symbolId/comments";
+  String symbolEditCommentApi(String commentId) => "symbols-service/symbols/comment/$commentId";
+  String symbolDeleteCommentApi(String commentId) => "symbols-service/symbols/comment/$commentId";
   final String groceryCategoryWithInventory = 'grocery-service/api/categories/with-inventory';
   final String publicGroceryCategoryWithInventory = 'grocery-service/api/categories/public/with-inventory';
   final String groceryBusinessProducts = 'grocery-service/api/inventory/business-products';

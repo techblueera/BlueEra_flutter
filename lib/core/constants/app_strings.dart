@@ -5584,4 +5584,17 @@ class AppStrings {
   static const String otherFieldQualification = "otherFieldQualification";
   static const String otherFieldMessage = "otherFieldMessage";
   static const String addPhotos = "addPhotos";
+
+  /// Symbol Story
+  static const String symbolComments = "symbol_comments";
+  static const String noCommentsYet = "no_comments_yet";
+  static const String beTheFirstToComment = "be_the_first_to_comment";
+  static const String addAComment = "add_a_comment";
+  static const String justNow = "just_now";
+  static const String minutesAgo = "minutes_ago";
+  static const String hoursAgo = "hours_ago";
+  static const String daysAgo = "days_ago";
+  static const String editComment = "edit_comment";
+  static const String deleteComment = "delete_comment";
+  static const String userFallback = "user_fallback";
 }

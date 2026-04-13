@@ -36,6 +36,189 @@ class SymbolFeedData {
   }
 }
 
+/// Grouped API response: symbols grouped by user
+class SymbolGroupedResponse {
+  bool? status;
+  String? message;
+  SymbolGroupedData? data;
+
+  SymbolGroupedResponse({this.status, this.message, this.data});
+
+  factory SymbolGroupedResponse.fromJson(Map<String, dynamic> json) {
+    return SymbolGroupedResponse(
+      status: json['status'],
+      message: json['message'],
+      data: json['data'] != null
+          ? SymbolGroupedData.fromJson(json['data'])
+          : null,
+    );
+  }
+}
+
+class SymbolGroupedData {
+  List<SymbolUserGroup>? groups;
+  SymbolPagination? pagination;
+
+  SymbolGroupedData({this.groups, this.pagination});
+
+  factory SymbolGroupedData.fromJson(Map<String, dynamic> json) {
+    final rawSymbols = json['symbols'];
+    List<SymbolUserGroup> parsedGroups = [];
+
+    if (rawSymbols is List) {
+      for (final item in rawSymbols) {
+        if (item is Map<String, dynamic>) {
+          // Grouped format: each item has user + symbols array
+          if (item.containsKey('symbols') && item['symbols'] is List) {
+            parsedGroups
+                .add(SymbolUserGroup.fromJson(Map<String, dynamic>.from(item)));
+          } else {
+            // Flat format: individual symbol items — group manually
+            final symbol = SymbolFeedItem.fromJson(item);
+            final existingIdx = parsedGroups
+                .indexWhere((g) => g.user?.id == symbol.userId);
+            if (existingIdx != -1) {
+              parsedGroups[existingIdx].symbols.add(symbol);
+            } else {
+              parsedGroups.add(SymbolUserGroup(
+                user: symbol.user,
+                symbols: [symbol],
+              ));
+            }
+          }
+        }
+      }
+    }
+
+    return SymbolGroupedData(
+      groups: parsedGroups,
+      pagination: json['pagination'] != null
+          ? SymbolPagination.fromJson(json['pagination'])
+          : null,
+    );
+  }
+}
+
+class SymbolUserGroup {
+  SymbolFeedUser? user;
+  List<SymbolFeedItem> symbols;
+
+  /// Whether all symbols in this group have been seen
+  bool get allSeen => symbols.every((s) => s.hasSeen == true);
+
+  /// Whether any symbol in this group is unseen
+  bool get hasUnseen => symbols.any((s) => s.hasSeen != true);
+
+  SymbolUserGroup({this.user, List<SymbolFeedItem>? symbols})
+      : symbols = symbols ?? [];
+
+  factory SymbolUserGroup.fromJson(Map<String, dynamic> json) {
+    // The grouped API may return user info as 'user', 'user_id' (populated),
+    // or '_id' (as a user object). Handle all variants.
+    SymbolFeedUser? user;
+    final dynamic rawUser = json['user'] ?? json['user_id'];
+    if (rawUser is Map) {
+      user = SymbolFeedUser.fromJson(Map<String, dynamic>.from(rawUser));
+    }
+
+    // Also check if top-level group has _id/name/profile_image directly
+    // (some grouped APIs flatten the user fields at group level)
+    if (user == null && json['_id'] is Map) {
+      user = SymbolFeedUser.fromJson(
+          Map<String, dynamic>.from(json['_id'] as Map));
+    }
+    if (user == null &&
+        json['name'] != null &&
+        json['profile_image'] != null) {
+      user = SymbolFeedUser(
+        id: json['_id'] is String ? json['_id'] : null,
+        name: json['name'],
+        profileImage: json['profile_image'],
+        username: json['username'],
+      );
+    }
+
+    final List<SymbolFeedItem> symbols = [];
+    if (json['symbols'] is List) {
+      for (final s in json['symbols'] as List) {
+        if (s is Map<String, dynamic>) {
+          final item = SymbolFeedItem.fromJson(s);
+          // Inherit user from group if not set on individual symbol
+          item.user ??= user;
+          symbols.add(item);
+        }
+      }
+    }
+
+    // If user is still null, try to extract from first symbol
+    if (user == null && symbols.isNotEmpty) {
+      user = symbols.first.user;
+    }
+
+    return SymbolUserGroup(user: user, symbols: symbols);
+  }
+}
+
+/// Comment model for symbol comments
+class SymbolComment {
+  String? id;
+  String? symbolId;
+  String? userId;
+  String? comment;
+  DateTime? createdAt;
+  DateTime? updatedAt;
+  SymbolFeedUser? user;
+
+  SymbolComment({
+    this.id,
+    this.symbolId,
+    this.userId,
+    this.comment,
+    this.createdAt,
+    this.updatedAt,
+    this.user,
+  });
+
+  factory SymbolComment.fromJson(Map<String, dynamic> json) {
+    SymbolFeedUser? user;
+    String? extractedUserId;
+
+    // Check all possible keys for user data
+    final userKeys = ['user_id', 'userId', 'user', 'commented_by', 'commentedBy'];
+    for (final key in userKeys) {
+      final value = json[key];
+      if (value is Map && user == null) {
+        user = SymbolFeedUser.fromJson(Map<String, dynamic>.from(value));
+        extractedUserId = value['_id'] as String? ?? value['id'] as String?;
+      } else if (value is String && extractedUserId == null) {
+        extractedUserId = value;
+      }
+    }
+
+    return SymbolComment(
+      id: json['_id'] ?? json['id'],
+      symbolId: json['symbol_id'] is String
+          ? json['symbol_id']
+          : (json['symbol_id'] is Map
+              ? json['symbol_id']['_id'] as String?
+              : null),
+      userId: extractedUserId,
+      comment: json['comment'] ?? json['text'] ?? json['content'],
+      createdAt: json['created_at'] != null
+          ? DateTime.tryParse(json['created_at'])
+          : (json['createdAt'] != null
+              ? DateTime.tryParse(json['createdAt'])
+              : null),
+      updatedAt: json['updated_at'] != null
+          ? DateTime.tryParse(json['updated_at'])
+          : (json['updatedAt'] != null
+              ? DateTime.tryParse(json['updatedAt'])
+              : null),
+      user: user,
+    );
+  }
+}
+
 class SymbolFeedItem {
   String? id;
   String? userId;
@@ -53,6 +236,7 @@ class SymbolFeedItem {
   DateTime? createdAt;
   DateTime? updatedAt;
   bool? hasSeen;
+  bool? hasLiked;
   SymbolFeedUser? user;
 
   SymbolFeedItem({
@@ -72,6 +256,7 @@ class SymbolFeedItem {
     this.createdAt,
     this.updatedAt,
     this.hasSeen,
+    this.hasLiked,
     this.user,
   });
 
@@ -121,6 +306,7 @@ class SymbolFeedItem {
           ? DateTime.tryParse(json['updated_at'])
           : null,
       hasSeen: json['has_seen'],
+      hasLiked: json['has_liked'],
       user: extractedUser,
     );
   }
@@ -138,7 +324,7 @@ class SymbolFeedUser {
     return SymbolFeedUser(
       id: json['_id'] ?? json['id'],
       name: json['name'],
-      profileImage: json['profile_image'],
+      profileImage: json['profile_image'] ?? json['profileImage'] ?? json['profile_pic'],
       username: json['username'],
     );
   }
