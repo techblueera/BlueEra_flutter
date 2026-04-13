@@ -313,7 +313,8 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     // gets killed when the widget tree rebuilds after returning from CallActivity
     // and can never reconnect (listeners are cleared permanently).
     final hasActiveCall = Get.isRegistered<CallController>() &&
-        Get.find<CallController>().callStatus.value != CallStatus.idle;
+        (Get.find<CallController>().callStatus.value != CallStatus.idle ||
+         CallController.isCallActivityActive);
     if (!hasActiveCall) {
       chatViewController.disposeSocket();
     }

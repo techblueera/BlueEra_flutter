@@ -175,6 +175,14 @@ class CallController extends GetxController {
 
   // ==================== SOCKET EVENT LISTENERS ====================
 
+  /// Re-register call socket listeners on the current socket.
+  /// Called from AppLifecycleHandler after a socket reconnect to ensure
+  /// incoming call events are not lost (disposeSocket clears all listeners).
+  void ensureCallSocketListeners() {
+    if (_disposed) return;
+    _setupCallSocketListeners();
+  }
+
   void _setupCallSocketListeners() {
     // Incoming call
     _socket.listenEvent('call:incoming', (data) {
@@ -540,8 +548,12 @@ class CallController extends GetxController {
         isGroupCall: isGroupCall.value,
         iceServers: jsonEncode(iceServersJson),
       );
-      // Reset main engine state — CallActivity handles everything now
-      _cleanup();
+      // Light reset — only clear main-engine UI state. Keep isCallActivityActive
+      // true so we don't process duplicate socket events while CallActivity runs.
+      // Do NOT call _cleanup() here — it clears isCallActivityActive and stops
+      // the socket keep-alive, which can cause the socket to disconnect while
+      // the call is still active in CallActivity.
+      _resetState();
       _navigateBackFromCallScreen();
       return true;
     }

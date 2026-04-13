@@ -213,10 +213,8 @@ class GrocerySelfPickupConsumerController extends GetxController {
       controller.onChangeIndex(3);
 
       ChatViewController  chatViewController = getOrPut(() => ChatViewController());
-      chatViewController.onSelectChatTab(2);
-
       chatViewController.emitEvent(ChatEmitEvents.ChatList, {ApiKeys.type: AppConstants.order_Chat_Type},);
-
+      chatViewController.onSelectChatTab(2);
       Get.until((route) => route.settings.name ==  RouteConstant.BottomNavigationBarScreen);
       placeBulkGroceryOrderResponse.value = ApiResponse.complete(response);
       AppLoader.hide();
