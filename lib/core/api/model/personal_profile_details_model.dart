@@ -14,6 +14,7 @@ class PersonalProfileDetailsModel {
     this.isProfileCreated,
     this.isRiderServiceUser,
     this.isEarnServiceUser,
+    this.earnProfileType,
   });
 
   PersonalProfileDetailsModel.fromJson(dynamic json) {
@@ -23,6 +24,7 @@ class PersonalProfileDetailsModel {
     isProfileCreated = json['isProfileCreated'];
     isRiderServiceUser = json['isRiderServiceUser'];
     isEarnServiceUser = json['isEarnServiceUser'];
+    earnProfileType = json['earnProfileType'];
   }
 
   bool? status;
@@ -31,6 +33,7 @@ class PersonalProfileDetailsModel {
   bool? isProfileCreated;
   bool? isRiderServiceUser;
   bool? isEarnServiceUser;
+  String? earnProfileType;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
@@ -42,6 +45,7 @@ class PersonalProfileDetailsModel {
     map['isProfileCreated'] = isProfileCreated;
     map['isRiderServiceUser'] = isRiderServiceUser;
     map['isEarnServiceUser'] = isEarnServiceUser;
+    map['earnProfileType'] = earnProfileType;
     return map;
   }
 }
@@ -79,7 +83,7 @@ class User {
     this.referral_code,
     this.profileType,
     this.schoolOrCollegeName,
-    this.pincode
+    this.pincode,
   });
 
   User.fromJson(dynamic json) {

@@ -10,34 +10,27 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/me/me_tab_registry.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/account_setting_screen/account_settings_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/self_employed/controller/self_work_service_controller.dart';
 import 'package:BlueEra/features/subscription/view/subscription_status_view.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/controller/earn_service_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/self_employee_orders.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/choose_earn_service_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/food_menu_management_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/tiffin_menu_management_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/choose_earn_service_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/self_profession_details_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/rental/view/rental_service_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/empty_state_widget.dart';
-import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/tab_bar_delegate.dart';
 import 'package:BlueEra/widgets/user_profile_widget.dart';
-import 'package:BlueEra/features/me/product/widget/own_product_card.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_dashboard_view.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/earn_service_profile_selector.dart';
 
 class SelfEmployeeDashboardView extends StatefulWidget {
   final bool fromBottomNavBar;
-  final int initialTabIndex;
-  final int initialProductSubTab;
 
   const SelfEmployeeDashboardView({
     super.key,
     required this.fromBottomNavBar,
-    this.initialTabIndex = 0,
-    this.initialProductSubTab = 0,
   });
 
   @override
@@ -47,9 +40,9 @@ class SelfEmployeeDashboardView extends StatefulWidget {
 
 class _SelfEmployeeDashboardViewState extends State<SelfEmployeeDashboardView>
     with SingleTickerProviderStateMixin {
-  final controller = getOrPut(() => EarnServiceController());
-  final viewPersonalDetailsController =
-      Get.find<ViewPersonalDetailsController>();
+  final viewPersonalDetailsController = Get.find<ViewPersonalDetailsController>();
+  final controller = getOrPut(() => SelfWorkServiceController());
+  final earnServiceController = getOrPut(() => EarnServiceController());
 
   late TabController _tabController;
   final ScrollController _nestedScrollController = ScrollController();
@@ -60,16 +53,11 @@ class _SelfEmployeeDashboardViewState extends State<SelfEmployeeDashboardView>
   void initState() {
     super.initState();
     _tabController = TabController(
-      length: 4,
+      length: 3,
       vsync: this,
-      initialIndex: widget.initialTabIndex,
     );
     MeTabRegistry.register(_tabController);
-    if (widget.initialProductSubTab != 0) {
-      controller.selectedProductsServicesTabIndex.value =
-          widget.initialProductSubTab;
-    }
-    controller.fetchOwnProducts();
+    // controller.fetchOwnProducts();
     _nestedScrollController.addListener(_onScroll);
     WidgetsBinding.instance
         .addPostFrameCallback((_) => _syncShopStatus());
@@ -102,27 +90,36 @@ class _SelfEmployeeDashboardViewState extends State<SelfEmployeeDashboardView>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      // floatingActionButton: _buildFAB(),
-      body: SafeArea(
-        child: NestedScrollView(
-          controller: _nestedScrollController,
-          headerSliverBuilder: (_, __) => [
-            _buildSliverHeader(),
-            _buildSliverTabBar(),
-          ],
-          body: TabBarView(
-            controller: _tabController,
-            children: [
-              SelfEmployeeOrders(),
-              _buildMyProductsTab(),
-              RentalServiceScreen(),
-              const SubscriptionStatusView(),
+    return Obx(() {
+      final isEarnSelected = controller.selectedProfileIndex.value == 1 &&
+          viewPersonalDetailsController.earnProfileType.value != null;
+
+      if (isEarnSelected) {
+        return EarnServiceDashboardView(
+          fromBottomNavBar: widget.fromBottomNavBar,
+        );
+      }
+
+      return Scaffold(
+        body: SafeArea(
+          child: NestedScrollView(
+            controller: _nestedScrollController,
+            headerSliverBuilder: (_, __) => [
+              _buildSliverHeader(),
+              _buildSliverTabBar(),
             ],
+            body: TabBarView(
+              controller: _tabController,
+              children: [
+                SelfEmployeeOrders(),
+                ProfessionDetailsScreen(),
+                const SubscriptionStatusView(),
+              ],
+            ),
           ),
         ),
-      ),
-    );
+      );
+    });
   }
 
   // ─── Sliver Header ─────────────────────────────────────────────
@@ -151,29 +148,11 @@ class _SelfEmployeeDashboardViewState extends State<SelfEmployeeDashboardView>
                   imgColor: Colors.black,
                 ),
               ),
-            Expanded(
-              child: Row(
-                children: [
-                  CommonProfileAvatar(),
-                  SizedBox(width: SizeConfig.size15),
-                  InkWell(
-                    onTap: () => Get.to(() => ProfessionDetailsScreen()),
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(
-                          vertical: SizeConfig.paddingXSL),
-                      child: CustomText(
-                        userDesignationGlobal,
-                        fontSize: SizeConfig.large,
-                        color: AppColors.primaryColor,
-                        fontWeight: FontWeight.w600,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+            Padding(
+              padding: EdgeInsets.only(left: SizeConfig.size15),
+              child: _buildProfileSelector(),
             ),
+            Spacer(),
             _buildGoLiveChip(),
             IconButton(
               onPressed: () async => await Get.toNamed(
@@ -182,24 +161,26 @@ class _SelfEmployeeDashboardViewState extends State<SelfEmployeeDashboardView>
               ),
               icon: LocalAssets(imagePath: AppIconAssets.clockIcon),
             ),
-            Padding(
-              padding: EdgeInsets.only(
-                  right: SizeConfig.paddingL
-              ),
-              child: InkWell(
-                onTap: ()=> Get.to(() => const chooseEarnServiceScreen()),
-                child: Container(
-                  height: SizeConfig.size40,
-                  width: SizeConfig.size40,
-                  decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(SizeConfig.size8),
-                      color: AppColors.primaryColor
-                  ),
-                  alignment: Alignment.center,
-                  padding: EdgeInsets.all(6.0),
-                  child: LocalAssets(imagePath: AppIconAssets.add),
+            // Show add button only if no earn profile exists
+            if (viewPersonalDetailsController.earnProfileType.value == null)
+              Padding(
+                padding: EdgeInsets.only(
+                    right: SizeConfig.paddingL
                 ),
-              ),
+                child: InkWell(
+                  onTap: ()=> Get.to(() => const chooseEarnServiceScreen()),
+                  child: Container(
+                    height: SizeConfig.size40,
+                    width: SizeConfig.size40,
+                    decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(SizeConfig.size8),
+                        color: AppColors.primaryColor
+                    ),
+                    alignment: Alignment.center,
+                    padding: EdgeInsets.all(6.0),
+                    child: LocalAssets(imagePath: AppIconAssets.add),
+                  ),
+                ),
             ),
           ],
         ),
@@ -247,14 +228,38 @@ class _SelfEmployeeDashboardViewState extends State<SelfEmployeeDashboardView>
           labelStyle: const TextStyle(fontWeight: FontWeight.w600),
           tabs: [
             Tab(text: AppStrings.myOrder.tr),
-            Tab(text: AppStrings.myProducts.tr),
-            Tab(text: AppStrings.rentalServices.tr),
+            Tab(text: AppStrings.home.tr),
             Tab(text: AppStrings.statistics.tr),
           ],
         ),
       ),
     );
   }
+
+  Widget _buildProfileSelector() {
+    return Obx(() {
+      final userImage = viewPersonalDetailsController
+          .personalProfileDetails.value.user?.profileImage ?? '';
+      final earnType = viewPersonalDetailsController.earnProfileType.value;
+      final hasEarnProfile = earnType != null && earnType.isNotEmpty;
+
+      debugPrint('=== hasEarnProfile: $hasEarnProfile');
+
+      if (!hasEarnProfile) {
+        return CommonProfileAvatar();
+      }
+
+      return EarnServiceProfileSelector(
+        profileImages: [userImage, userImage],
+        profileNames: ['Skill Work', earnServiceController.earnProfileLabel(earnType)],
+        selectedIndex: controller.selectedProfileIndex.value,
+        onProfileSelected: (index) => controller.switchProfile(index),
+        onAddTap: () => Get.to(() => const chooseEarnServiceScreen()),
+      );
+    });
+  }
+
+
 
   // ─── FAB ───────────────────────────────────────────────────────
 
@@ -333,104 +338,104 @@ class _SelfEmployeeDashboardViewState extends State<SelfEmployeeDashboardView>
 
   // ─── My Products Tab ───────────────────────────────────────────
 
-  Widget _buildMyProductsTab() {
-    return Obx(() => Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: EdgeInsets.only(
-                left: SizeConfig.size8,
-                right: SizeConfig.size8,
-                top: SizeConfig.size15,
-              ),
-              child: HorizontalTabSelector(
-                tabs: controller.productsServicesTab,
-                selectedIndex:
-                    controller.selectedProductsServicesTabIndex.value,
-                horizontalMargin: 0.0,
-                labelBuilder: (label) => label,
-                unSelectedBackgroundColor: AppColors.white,
-                onTabSelected: (index, _) => _onProductSubTabChanged(index),
-              ),
-            ),
-            Expanded(child: _buildProductSubTabContent()),
-          ],
-        ));
-  }
-
-  void _onProductSubTabChanged(int index) async {
-    controller.selectedProductsServicesTabIndex.value = index;
-    if (index == 2) await controller.fetchOwnProducts();
-  }
-
-  Widget _buildProductSubTabContent() {
-    return Obx(() {
-      switch (controller.selectedProductsServicesTabIndex.value) {
-        case 0:
-          return TiffinMenuManagementScreen();
-        case 1:
-          return const FoodMenuManagementScreen();
-        case 2:
-          return _buildOwnProductsGrid();
-        default:
-          return const SizedBox.shrink();
-      }
-    });
-  }
-
-  Widget _buildOwnProductsGrid() {
-    if (controller.isOwnProductDataFirstLoading.value) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    final productList = controller.ownProductDataList;
-    if (productList.isEmpty) {
-      return EmptyStateWidget(message: AppStrings.noProductFound);
-    }
-
-    return Column(
-      children: [
-        Expanded(
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              const crossAxisCount = 2;
-              const spacing = 10.0;
-              final itemWidth =
-                  (constraints.maxWidth - spacing) / crossAxisCount;
-              final childAspectRatio = itemWidth / SizeConfig.size240;
-
-              return GridView.builder(
-                itemCount: productList.length,
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: crossAxisCount,
-                  crossAxisSpacing: spacing,
-                  mainAxisSpacing: spacing,
-                  childAspectRatio: childAspectRatio,
-                ),
-                padding: EdgeInsets.only(
-                  bottom: kBottomNavigationBarHeight + 40,
-                  left: SizeConfig.size8,
-                  right: SizeConfig.size8,
-                  top: SizeConfig.size8,
-                ),
-                itemBuilder: (context, index) {
-                  return OwnProductCard(
-                    deleteProductApi: () {},
-                    width: itemWidth,
-                    product: productList[index],
-                    isGridShow: true,
-                  );
-                },
-              );
-            },
-          ),
-        ),
-        if (controller.isOwnProductDataLoadingMore.value)
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 20),
-            child: Center(child: CircularProgressIndicator()),
-          ),
-      ],
-    );
-  }
+  // Widget _buildMyProductsTab() {
+  //   return Obx(() => Column(
+  //         crossAxisAlignment: CrossAxisAlignment.start,
+  //         children: [
+  //           Padding(
+  //             padding: EdgeInsets.only(
+  //               left: SizeConfig.size8,
+  //               right: SizeConfig.size8,
+  //               top: SizeConfig.size15,
+  //             ),
+  //             child: HorizontalTabSelector(
+  //               tabs: controller.productsServicesTab,
+  //               selectedIndex:
+  //                   controller.selectedProductsServicesTabIndex.value,
+  //               horizontalMargin: 0.0,
+  //               labelBuilder: (label) => label,
+  //               unSelectedBackgroundColor: AppColors.white,
+  //               onTabSelected: (index, _) => _onProductSubTabChanged(index),
+  //             ),
+  //           ),
+  //           Expanded(child: _buildProductSubTabContent()),
+  //         ],
+  //       ));
+  // }
+  //
+  // void _onProductSubTabChanged(int index) async {
+  //   controller.selectedProductsServicesTabIndex.value = index;
+  //   if (index == 2) await controller.fetchOwnProducts();
+  // }
+  //
+  // Widget _buildProductSubTabContent() {
+  //   return Obx(() {
+  //     switch (controller.selectedProductsServicesTabIndex.value) {
+  //       case 0:
+  //         return TiffinMenuManagementScreen();
+  //       case 1:
+  //         return const FoodMenuManagementScreen();
+  //       case 2:
+  //         return _buildOwnProductsGrid();
+  //       default:
+  //         return const SizedBox.shrink();
+  //     }
+  //   });
+  // }
+  //
+  // Widget _buildOwnProductsGrid() {
+  //   if (controller.isOwnProductDataFirstLoading.value) {
+  //     return const Center(child: CircularProgressIndicator());
+  //   }
+  //
+  //   final productList = controller.ownProductDataList;
+  //   if (productList.isEmpty) {
+  //     return EmptyStateWidget(message: AppStrings.noProductFound);
+  //   }
+  //
+  //   return Column(
+  //     children: [
+  //       Expanded(
+  //         child: LayoutBuilder(
+  //           builder: (context, constraints) {
+  //             const crossAxisCount = 2;
+  //             const spacing = 10.0;
+  //             final itemWidth =
+  //                 (constraints.maxWidth - spacing) / crossAxisCount;
+  //             final childAspectRatio = itemWidth / SizeConfig.size240;
+  //
+  //             return GridView.builder(
+  //               itemCount: productList.length,
+  //               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+  //                 crossAxisCount: crossAxisCount,
+  //                 crossAxisSpacing: spacing,
+  //                 mainAxisSpacing: spacing,
+  //                 childAspectRatio: childAspectRatio,
+  //               ),
+  //               padding: EdgeInsets.only(
+  //                 bottom: kBottomNavigationBarHeight + 40,
+  //                 left: SizeConfig.size8,
+  //                 right: SizeConfig.size8,
+  //                 top: SizeConfig.size8,
+  //               ),
+  //               itemBuilder: (context, index) {
+  //                 return OwnProductCard(
+  //                   deleteProductApi: () {},
+  //                   width: itemWidth,
+  //                   product: productList[index],
+  //                   isGridShow: true,
+  //                 );
+  //               },
+  //             );
+  //           },
+  //         ),
+  //       ),
+  //       if (controller.isOwnProductDataLoadingMore.value)
+  //         const Padding(
+  //           padding: EdgeInsets.symmetric(vertical: 20),
+  //           child: Center(child: CircularProgressIndicator()),
+  //         ),
+  //     ],
+  //   );
+  // }
 }

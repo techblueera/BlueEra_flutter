@@ -453,8 +453,8 @@ class DeliveryPartnerController extends GetxController {
               ApiResponse.complete(response);
 
           // if(screenName == 'from_tab_view'){
-          await setRiderServiceOptData(true);
-          await getRiderServiceOptData();
+          // await setRiderServiceOptData(true);
+          // await getRiderServiceOptData();
 
           await ridersOnboardingStatusRepoApi();
 

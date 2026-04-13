@@ -187,6 +187,15 @@ class AppImageAssets {
   static String all = "${imgPath}all.png";
   static String hotel_service = "${imgPath}hotel_service.png";
 
+  // // Earn Service (New)
+  static String homeMadeFoodEarnService = "${imgPath}home_made_food_earn_service.png";
+  static String homeMadeProductEarnService = "${imgPath}home_made_product_earn_service.png";
+  static String homeServiceEarnService = "${imgPath}home_service_earn_service.png";
+  static String riderEarnService = "${imgPath}rider_earn_service.png";
+  static String channelEarnService = "${imgPath}channel_earn_service.png";
+  static String homeTuitionEarnService = "${imgPath}home_tuition_earn_service.png";
+  static String homeStayEarnService = "${imgPath}home_stay_earn_service.png";
+
   // Booking
   static String courierParcel = "${imgPath}courier_parcel.png";
   static String transportVehicle = "${imgPath}transport_vehicle.png";

@@ -6,10 +6,10 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/features/me/product/model/get_product_model.dart';
 import 'package:BlueEra/features/me/product/repo/inventory_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/consulting_service_guide_bottom_sheet.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/widget/food_service_guide_bottom_sheet.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/home_made_food_profile_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/home_made_product_profile_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/home_service_profile_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/gig_work_service_bottom_sheet.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/widget/home_service_guide_bottom_sheet.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/widget/product_service_guide_bottom_sheet.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/rental_service_guide_bottom_sheet.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/self_work_service_guide_bottom_sheet.dart';
 import 'package:BlueEra/widgets/collapsible_grid_model.dart';
@@ -27,6 +27,21 @@ class EarnServiceController extends GetxController{
     AppStrings.homeMadeProducts,
   ];
   RxBool showGoLiveEnabled = false.obs;
+
+  String earnProfileLabel(String type) {
+    switch (type) {
+      case 'homeMadeFood':
+        return 'Home Made Food';
+      case 'homeMadeProduct':
+        return 'Home Made Product';
+      case 'homeService':
+        return 'Home Services';
+      case 'Channel':
+        return 'Channel';
+      default:
+        return type;
+    }
+  }
 
   /// Product data
   RxList<GetProductData> ownProductDataList = <GetProductData>[].obs;
@@ -60,30 +75,15 @@ class EarnServiceController extends GetxController{
         break;
 
       case HOME_MADE_PRODUCTS:
-        showModalBottomSheet(
-          context: context,
-          backgroundColor: Colors.transparent,
-          isScrollControlled: true,
-          builder: (_) => ProductServiceGuideBottomSheet(),
-        );
+        Get.to(() => const HomeProfileScreen());
         break;
 
       case HOME_MADE_FOOD:
-        showModalBottomSheet(
-          context: context,
-          backgroundColor: Colors.transparent,
-          isScrollControlled: true,
-          builder: (_) => FoodServiceGuideBottomSheet(),
-        );
+        Get.to(() => const HomeMadeFoodProfileScreen());
         break;
 
       case HOME_SERVICES:
-          showModalBottomSheet(
-            context: context,
-            backgroundColor: Colors.transparent,
-            isScrollControlled: true,
-            builder: (_) => HomeServiceGuideBottomSheet(),
-          );
+        Get.to(()=> const HomeServiceProfileScreen());
         break;
 
       case RENTAL_SERVICES:
@@ -142,8 +142,6 @@ class EarnServiceController extends GetxController{
         break;
     }
   }
-
-
 
   Future<void> fetchOwnProducts({bool isLoadMore = false}) async {
     if (isLoadMore) {

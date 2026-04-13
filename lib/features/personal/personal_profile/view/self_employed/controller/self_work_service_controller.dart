@@ -138,6 +138,12 @@ class SelfWorkServiceController extends GetxController{
   RxBool isProfessionDataLoading = false.obs;
   String? serviceId;
 
+  /// Multi-profile support
+  RxInt selectedProfileIndex = 0.obs;
+
+  void switchProfile(int index) {
+    selectedProfileIndex.value = index;
+  }
 
   RxBool isPredefinedCategoryServiceTypeLoading = false.obs;
   Future<void> fetchPredefinedCategoryServiceType({

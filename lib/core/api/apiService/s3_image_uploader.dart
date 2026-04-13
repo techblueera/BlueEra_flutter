@@ -40,49 +40,42 @@ class S3ImageUploader {
     return true;
   }
 
-  // ✅ Upload all images sequentially
+  // ✅ Upload all images in parallel
   Future<bool> uploadAll(List<UploadS3ImageModel> images) async {
     if (images.isEmpty) return true;
 
     final totalImages = images.length;
     isUploading.value = true;
-    overallProgress.value = 0.0;
+    overallProgress.value = 0.2;
+
+    final progressMap = <int, double>{};
+
+    void updateOverall() {
+      final total = progressMap.values.fold(0.0, (a, b) => a + b);
+      overallProgress.value = (0.2 + (total / totalImages) * 0.8).clamp(0.0, 1.0);
+    }
 
     try {
-      for (var i = 0; i < totalImages; i++) {
-        final image       = images[i];
-        final file        = File(image.path);
-        final fileType    = image.mimeType;
-        final preSignedUrl = image.preSignedUrl ?? '';
-
-        currentFileName.value = file.path.split('/').last;
-
-        final success = await _uploadSingle(
-          file:          file,
-          fileType:      fileType,
-          preSignedUrl:  preSignedUrl,
+      final futures = List.generate(totalImages, (i) {
+        final image = images[i];
+        final file = File(image.path);
+        return _uploadSingle(
+          file: file,
+          fileType: image.mimeType,
+          preSignedUrl: image.preSignedUrl ?? '',
           onProgress: (progress) {
-            final imageFraction   = 0.8 / totalImages;
-            final overall = 0.2 + (i * imageFraction) + (progress * imageFraction);
-            overallProgress.value = overall.clamp(0.0, 1.0);
-
-            log('Uploading ${file.path}: '
-                '${(progress * 100).toStringAsFixed(0)}%, '
-                'Overall: ${(overallProgress.value * 100).toStringAsFixed(0)}%');
+            progressMap[i] = progress;
+            updateOverall();
           },
         );
+      });
 
-        // ✅ stop if any image fails
-        if (!success) {
-          isUploading.value = false;
-          return false;
-        }
-      }
+      final results = await Future.wait(futures);
 
       overallProgress.value = 1.0;
       isUploading.value = false;
-      return true;
 
+      return results.every((ok) => ok);
     } catch (e) {
       isUploading.value = false;
       log('S3ImageUploader: uploadAll failed. $e');

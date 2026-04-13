@@ -32,7 +32,7 @@ abstract class BaseService {
       '/user-service/business/verifyBusinessStatus';
   final String videoUpload = 'video-service/videos/upload';
   final String getUser = 'user-service/user/get?contact_no=$userMobileGlobal';
-   String getotherUsers (String contactNo )  =>
+  String getotherUsers (String contactNo )  =>
        'user-service/user/get?contact_no=$contactNo';
   final String updateUserProfile = 'user-service/user/updateUser';
   final String videosSearch = 'video-service/videos/search';
@@ -517,7 +517,7 @@ abstract class BaseService {
   String businessViews(String businessId) => "user-service//business/$businessId/view";
   String earnServices = "earn-service/services";
   String earnServicesById(String serviceId) => 'earn-service/services/$serviceId';
-  String earnServicesImages(String serviceId) => 'earn-service//services/$serviceId/images';
+  String earnServicesImages(String serviceId) => 'earn-service/services/$serviceId/images';
   String channelFollowingMe = "channel-service/follower/following/me";
   String channel_service_follower = "channel-service/follower/";
   String getNearByRiderApi = "rider-service/riders/nearby";
@@ -893,6 +893,9 @@ abstract class BaseService {
   final String tiffinsCenters = "earn-service/tiffins/centers";
   final String homeFood = "earn-service/homeFood";
   final String homeFoodByUserId = "earn-service/homeFood/user/$userId";
+
+  /// Earn Profiles
+  final String earnProfiles = "earn-service/earn-profiles";
 
   /// Franchise Inquiry
   final String franchiseInquiry = "user-service/inquiries";

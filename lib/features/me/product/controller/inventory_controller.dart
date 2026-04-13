@@ -808,7 +808,7 @@ class InventoryController extends GetxController {
           navigateToInventory();
         }else{
           // await setEarnServiceOptData(true);
-          await setRiderServiceOptData(true);
+          // await setRiderServiceOptData(true);
           if (userProfessionGlobal == BIKE_RIDER) {
             Get.until(
                   (route) =>

@@ -192,6 +192,7 @@ class ViewPersonalDetailsController extends GetxController {
   RxBool isRiderServiceUser = false.obs;
   RxString isEarnServiceOpt = ''.obs;
   RxString userProfileType = userProfileTypeGlobal.obs;
+  Rxn<String> earnProfileType = Rxn<String>();
 
   Future<void> viewPersonalProfile() async {
     final personalController = Get.put(PersonalCreateProfileController());
@@ -296,11 +297,12 @@ class ViewPersonalDetailsController extends GetxController {
         // print("Hash 1: ${userProfileType.hashCode}");
 
         /// Check Earn services
-        isRiderServiceUser.value =
-            personalProfileDetails.value.isRiderServiceUser ?? false;
-        isEarnServiceOpt.value =
-            personalProfileDetails.value.isEarnServiceUser.toString();
-        await setRiderServiceOptData(isRiderServiceUser.value);
+        isRiderServiceUser.value = personalProfileDetails.value.isRiderServiceUser ?? false;
+        isEarnServiceOpt.value = personalProfileDetails.value.isEarnServiceUser.toString();
+        earnProfileType.value = personalProfileDetails.value.earnProfileType;
+        log('=== earnProfileType: "${earnProfileType.value}", raw: "${personalProfileDetails.value.earnProfileType}" ===');
+
+        // await setRiderServiceOptData(isRiderServiceUser.value);
         // await setEarnServiceOptData(isEarnServiceUser.value);
         // await getRiderServiceOptData();
         // await getEarnServiceOptData();
