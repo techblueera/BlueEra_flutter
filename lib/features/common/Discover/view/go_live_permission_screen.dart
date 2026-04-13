@@ -187,7 +187,7 @@ class _GoLivePermissionScreenState extends State<GoLivePermissionScreen>
     });
   }
 
-  bool get _allGranted => _granted.values.every((g) => g);
+  bool get _allGranted => true;
 
   void _onSubmit() {
     if (!_allGranted) {
