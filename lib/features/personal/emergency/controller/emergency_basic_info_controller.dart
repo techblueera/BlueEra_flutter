@@ -39,7 +39,8 @@ class EmergencyBasicInfoController extends GetxController {
     logs(
         "userNameGlobal=== ${isIndividual() ? userNameGlobal : businessNameGlobal}");
     logs("userMobileGlobal=== ${userMobileGlobal}");
-    fullNameController.text = isIndividual() ? userNameGlobal : businessNameGlobal;
+    fullNameController.text =
+        isIndividual() ? userNameGlobal : businessNameGlobal;
     mobileController.text = userMobileGlobal;
     fullNameController.addListener(_validate);
     mobileController.addListener(_validate);
@@ -78,7 +79,6 @@ class EmergencyBasicInfoController extends GetxController {
     return re.hasMatch(v);
   }
 
-
   String get mergedBloodGroup =>
       '${selectedBloodGroupType.value ?? ''}${selectedBloodGroupSign.value ?? ''}';
 
@@ -108,16 +108,13 @@ class EmergencyBasicInfoController extends GetxController {
     if (fullNameController.text.isEmpty) {
       commonSnackBar(message: AppStrings.emergencyFillFullName);
       return;
-    }
-    else if (mobileController.text.isEmpty) {
+    } else if (mobileController.text.isEmpty) {
       commonSnackBar(message: AppStrings.emergencyFillMobile);
       return;
-    }
-    else if (alternateController.text.isEmpty) {
+    } else if (alternateController.text.isEmpty) {
       commonSnackBar(message: AppStrings.emergencyFillAlternate);
       return;
-    }
-    else if (vehicleController.text.isEmpty) {
+    } else if (vehicleController.text.isEmpty) {
       commonSnackBar(message: AppStrings.emergencyFillVehicle);
       return;
     }

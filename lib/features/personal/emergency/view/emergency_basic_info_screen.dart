@@ -12,7 +12,8 @@ import '../../emergency/controller/emergency_basic_info_controller.dart';
 class EmergencyBasicInfoScreen extends StatefulWidget {
   const EmergencyBasicInfoScreen({super.key});
   @override
-  State<EmergencyBasicInfoScreen> createState() => _EmergencyBasicInfoScreenState();
+  State<EmergencyBasicInfoScreen> createState() =>
+      _EmergencyBasicInfoScreenState();
 }
 
 class _EmergencyBasicInfoScreenState extends State<EmergencyBasicInfoScreen> {
@@ -45,7 +46,6 @@ class _EmergencyBasicInfoScreenState extends State<EmergencyBasicInfoScreen> {
                   hintText: AppStrings.emergencyMobileHint,
                   keyBoardType: TextInputType.phone,
                   maxLength: 10,
-
                   textEditController: controller.mobileController,
                 ),
                 SizedBox(height: 16),
@@ -70,12 +70,13 @@ class _EmergencyBasicInfoScreenState extends State<EmergencyBasicInfoScreen> {
                   textEditController: controller.vehicleController,
                 ),
                 SizedBox(height: 16),
-
                 Obx(() => CustomBtn(
-                      isValidate: controller.isValid.value && !controller.isSaving.value,
-                      onTap: controller.isValid.value && !controller.isSaving.value
-                          ? controller.submit
-                          : null,
+                      isValidate: controller.isValid.value &&
+                          !controller.isSaving.value,
+                      onTap:
+                          controller.isValid.value && !controller.isSaving.value
+                              ? controller.submit
+                              : null,
                       title: AppStrings.next,
                     )),
               ],

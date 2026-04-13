@@ -226,7 +226,6 @@ class AddChatSymbolController extends GetxController {
 
   void removeMedia(int index) {
     imagesList.removeAt(index);
-    if (imagesList.isEmpty) selectedPostType.value = null;
   }
 
   Future<void> _generateThumbnail(File videoFile) async {
@@ -301,72 +300,83 @@ class AddChatSymbolController extends GetxController {
   }
 
   Future<bool> createSymbol() async {
-    isPosting.value = true;
-    GenerateUploadUlrModel? MediaUploadRes;
-    if (imagesList.isNotEmpty) {
-      List<String?> fileNames = [];
-      List<String?> fileTypes = [];
-      Map<String, String?> fileInfo = getFileInfo(imagesList.first);
-      fileNames.add(fileInfo['fileName']);
-      fileTypes.add(fileInfo['mimeType']);
-
-      final uploadParams = {
-        ApiKeys.fileName: fileNames,
-        ApiKeys.fileType: fileTypes,
-      };
-      MediaUploadRes =
-          await generateUploadUrl(params: uploadParams, listFile: imagesList);
+    if (itTextOrLinkPost() && linkTextSymbolController.text.trim().isEmpty) {
+      commonSnackBar(message: "Please enter some text");
+      return false;
     }
 
-    taggedUsers.value = onTagSelectedList.map((e) => e.id).toList();
-    exceptContactList.value =
-        onExceptContactSelectedList.map((e) => e.id).toList();
-    Map<String, dynamic> params = {
-      ApiKeys.type: selectedPostType.value == PostType.image
-          ? "photo"
-          : selectedPostType.value == PostType.video
-              ? "video"
-              : selectedPostType.value == PostType.text
-                  ? "text"
-                  : "embeddedUrl",
-      ApiKeys.content: itTextOrLinkPost()
-          ? linkTextSymbolController.text
-          : MediaUploadRes?.files?.first.publicUrl,
-      if (selectedPostType.value == PostType.text ||
-          selectedPostType.value == PostType.link)
-        ApiKeys.backgroundColor:
-            "#${selectedBgColor.value.value.toRadixString(16).padLeft(8, '0').substring(2).toUpperCase()}",
-      if (selectedPostType.value == PostType.text)
-        ApiKeys.fontFamily: selectedFontFamily.value,
-      if (selectedPostType.value == PostType.text)
-        ApiKeys.fontSize: selectedFontSize.value,
-      if (selectedPostType.value == PostType.text)
-        ApiKeys.fontWeight: "${selectedFontWeight.value}",
-      ApiKeys.caption: "${captionController.text}",
-      ApiKeys.duration_days: selectedDays.value,
-      ApiKeys.visibility: visibility.value == PostVisibility.public
-          ? "public"
-          : visibility.value == PostVisibility.private
-              ? "private"
-              : "custom ",
-      if (visibility.value == PostVisibility.custom)
-        ApiKeys.hidden_from: exceptContactList,
-      if (taggedUsers.isNotEmpty) ApiKeys.tagged_users: taggedUsers
-    };
-    ResponseModel responseModel = await symbolRepo.createSymbol(params);
+    isPosting.value = true;
+    try {
+      GenerateUploadUlrModel? MediaUploadRes;
+      if (imagesList.isNotEmpty) {
+        List<String?> fileNames = [];
+        List<String?> fileTypes = [];
+        Map<String, String?> fileInfo = getFileInfo(imagesList.first);
+        fileNames.add(fileInfo['fileName']);
+        fileTypes.add(fileInfo['mimeType']);
 
-    if (responseModel.isSuccess) {
-      Get.find<SymbolFeedController>().fetchSymbolFeed();
-      commonSnackBar(message: AppStrings.symbolAddedSuccessfully.tr);
-     await getSymbolsForPartUser(userId);
-      isPosting.value = false;
-      clearData();
-      Get.back();
-      return true;
-    } else {
-      commonSnackBar(
-          message: responseModel.message ?? AppStrings.somethingWentWrong);
+        final uploadParams = {
+          ApiKeys.fileName: fileNames,
+          ApiKeys.fileType: fileTypes,
+        };
+        MediaUploadRes =
+            await generateUploadUrl(params: uploadParams, listFile: imagesList);
+      }
+
+      taggedUsers.value = onTagSelectedList.map((e) => e.id).toList();
+      exceptContactList.value =
+          onExceptContactSelectedList.map((e) => e.id).toList();
+      Map<String, dynamic> params = {
+        ApiKeys.type: selectedPostType.value == PostType.image
+            ? "photo"
+            : selectedPostType.value == PostType.video
+                ? "video"
+                : selectedPostType.value == PostType.text
+                    ? "text"
+                    : "embeddedUrl",
+        ApiKeys.content: itTextOrLinkPost()
+            ? linkTextSymbolController.text
+            : MediaUploadRes?.files?.first.publicUrl,
+        if (selectedPostType.value == PostType.text ||
+            selectedPostType.value == PostType.link)
+          ApiKeys.backgroundColor:
+              "#${selectedBgColor.value.value.toRadixString(16).padLeft(8, '0').substring(2).toUpperCase()}",
+        if (selectedPostType.value == PostType.text)
+          ApiKeys.fontFamily: selectedFontFamily.value,
+        if (selectedPostType.value == PostType.text)
+          ApiKeys.fontSize: selectedFontSize.value,
+        if (selectedPostType.value == PostType.text)
+          ApiKeys.fontWeight: "${selectedFontWeight.value}",
+        ApiKeys.caption: "${captionController.text}",
+        ApiKeys.duration_days: selectedDays.value,
+        ApiKeys.visibility: visibility.value == PostVisibility.public
+            ? "public"
+            : visibility.value == PostVisibility.private
+                ? "private"
+                : "custom ",
+        if (visibility.value == PostVisibility.custom)
+          ApiKeys.hidden_from: exceptContactList,
+        if (taggedUsers.isNotEmpty) ApiKeys.tagged_users: taggedUsers
+      };
+      ResponseModel responseModel = await symbolRepo.createSymbol(params);
+
+      if (responseModel.isSuccess) {
+        Get.find<SymbolFeedController>().fetchSymbolFeed();
+        commonSnackBar(message: "Symbol Added Successfully");
+        await getSymbolsForPartUser(userId);
+        clearData();
+        Get.back();
+        return true;
+      } else {
+        commonSnackBar(
+            message: responseModel.message ?? AppStrings.somethingWentWrong);
+        return false;
+      }
+    } catch (e) {
+      commonSnackBar(message: AppStrings.somethingWentWrong);
       return false;
+    } finally {
+      isPosting.value = false;
     }
   }
 

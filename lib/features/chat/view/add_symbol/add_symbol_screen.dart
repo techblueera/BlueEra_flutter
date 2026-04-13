@@ -111,37 +111,6 @@ class _AddChatSymbolScreenState extends State<AddChatSymbolScreen>
             fontSize: 20,
             fontWeight: FontWeight.w700,
           ),
-          actions: [
-            Obx(() {
-              if (controller.selectedPostType.value == null) {
-                return const SizedBox.shrink();
-              }
-              return Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: IconButton(
-                  icon: Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(10),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.06),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: const Icon(Icons.refresh_rounded,
-                        size: 18, color: Color(0xFF2D3142)),
-                  ),
-                  onPressed: () {
-                    controller.clearData();
-                  },
-                ),
-              );
-            }),
-          ],
         ),
         bottomNavigationBar: Obx(() {
           final canPost = controller.itTextOrLinkPost()

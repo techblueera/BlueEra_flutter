@@ -55,8 +55,10 @@ class _EmergencyContactScreenState extends State<EmergencyContactScreen> {
                   if (value == null || value.isEmpty) return 'Required';
                   if (value.startsWith('0')) return 'Leading zeros not allowed';
                   if (value.length < 10) return 'Minimum 10 digits required';
-                  if (RegExp(r'^0+$').hasMatch(value)) return 'All zeros not allowed';
-                  if (!RegExp(r'^[6-9]').hasMatch(value)) return 'Enter a valid mobile number';
+                  if (RegExp(r'^0+$').hasMatch(value))
+                    return 'All zeros not allowed';
+                  if (!RegExp(r'^[6-9]').hasMatch(value))
+                    return 'Enter a valid mobile number';
                   return null;
                 },
                 onChange: (_) => controller.update(),
@@ -69,10 +71,12 @@ class _EmergencyContactScreenState extends State<EmergencyContactScreen> {
               ),
               SizedBox(height: 24),
               Obx(() => CustomBtn(
-                    isValidate: controller.isValid.value && !controller.isSaving.value,
-                    onTap: controller.isValid.value && !controller.isSaving.value
-                        ? controller.submit
-                        : null,
+                    isValidate:
+                        controller.isValid.value && !controller.isSaving.value,
+                    onTap:
+                        controller.isValid.value && !controller.isSaving.value
+                            ? controller.submit
+                            : null,
                     title: AppStrings.next,
                   )),
             ],
