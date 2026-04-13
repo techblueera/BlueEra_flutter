@@ -21,15 +21,14 @@ class AppointmentBookingScreen extends StatefulWidget {
   final String channelId;
   final String videoId;
 
-  const AppointmentBookingScreen({super.key, required this.channelId,  required this.videoId});
+  const AppointmentBookingScreen(
+      {super.key, required this.channelId, required this.videoId});
   @override
   State<AppointmentBookingScreen> createState() =>
       _AppointmentBookingScreenState();
 }
 
 String? _selectedFromTime;
-
-
 
 class _AppointmentBookingScreenState extends State<AppointmentBookingScreen> {
   BookingType selectedType = BookingType.offline;
@@ -44,10 +43,11 @@ class _AppointmentBookingScreenState extends State<AppointmentBookingScreen> {
     super.initState();
 
     // _timeOfDay = generate24HoursAmPm();
-    
+
     // Fetch calendar data when screen loads
     bookingController.getAvailabilityData(channelId: widget.channelId);
   }
+
   @override
   Widget build(BuildContext context) {
     print("Channelids:${widget.channelId}");
@@ -151,112 +151,117 @@ class _AppointmentBookingScreenState extends State<AppointmentBookingScreen> {
               SizedBox(
                 height: SizeConfig.size10,
               ),
-              Obx(() => bookingController.isLoadingCalendar.value
-                ? Center(child: CircularProgressIndicator())
-                : !bookingController.isAvailabilitySet
-                  ? Container(
-                      padding: EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.orange.shade50,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.orange.shade200),
-                      ),
-                      child: Column(
-                        children: [
-                          Icon(Icons.warning, color: Colors.orange, size: 24),
-                          SizedBox(height: 8),
-                          CustomText(
-                            'No availability set',
-                            fontSize: SizeConfig.medium,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.orange.shade800,
-                          ),
-                          SizedBox(height: 4),
-                          CustomText(
-                            'The service provider needs to set their availability first',
-                            fontSize: SizeConfig.small,
-                            color: Colors.orange.shade700,
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
-                      ),
-                    )
-                  : bookingController.availableDates.isEmpty
-                    ? CustomText(
-                        'No available dates found',
-                        fontSize: SizeConfig.medium,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.red,
-                      )
-                    : (() {
-                       
-                        final years = bookingController.availableDates
-                            .map((d) => d.year)
-                            .toSet()
-                            .toList()
-                          ..sort();
-
-                        final months = _selectedYear != null
-                            ? (bookingController.availableDates
-                                    .where((d) => d.year == _selectedYear)
-                                    .map((d) => d.month)
+              Obx(
+                () => bookingController.isLoadingCalendar.value
+                    ? Center(child: CircularProgressIndicator())
+                    : !bookingController.isAvailabilitySet
+                        ? Container(
+                            padding: EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.orange.shade50,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.orange.shade200),
+                            ),
+                            child: Column(
+                              children: [
+                                Icon(Icons.warning,
+                                    color: Colors.orange, size: 24),
+                                SizedBox(height: 8),
+                                CustomText(
+                                  'No availability set',
+                                  fontSize: SizeConfig.medium,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.orange.shade800,
+                                ),
+                                SizedBox(height: 4),
+                                CustomText(
+                                  'The service provider needs to set their availability first',
+                                  fontSize: SizeConfig.small,
+                                  color: Colors.orange.shade700,
+                                  textAlign: TextAlign.center,
+                                ),
+                              ],
+                            ),
+                          )
+                        : bookingController.availableDates.isEmpty
+                            ? CustomText(
+                                'No available dates found',
+                                fontSize: SizeConfig.medium,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.red,
+                              )
+                            : (() {
+                                final years = bookingController.availableDates
+                                    .map((d) => d.year)
                                     .toSet()
                                     .toList()
-                                  ..sort())
-                            : <int>[];
+                                  ..sort();
 
-                        final days = (_selectedYear != null && _selectedMonth != null)
-                            ? (bookingController.availableDates
-                                    .where((d) => d.year == _selectedYear && d.month == _selectedMonth)
-                                    .map((d) => d.day)
-                                    .toSet()
-                                    .toList()
-                                  ..sort())
-                            : <int>[];
+                                final months = _selectedYear != null
+                                    ? (bookingController.availableDates
+                                        .where((d) => d.year == _selectedYear)
+                                        .map((d) => d.month)
+                                        .toSet()
+                                        .toList()
+                                      ..sort())
+                                    : <int>[];
 
-                        return NewDatePicker(
-                          selectedDay: _selectedDay,
-                          selectedMonth: _selectedMonth,
-                          selectedYear: _selectedYear,
-                          allowedYears: years,
-                          allowedMonths: months,
-                          allowedDays: days,
-                          onDayChanged: (value) {
-                            setState(() {
-                              _selectedDay = value;
-                              // Reset time selection when date changes
-                              _selectedFromTime = null;
-                            });
-                          },
-                          onMonthChanged: (value) {
-                            setState(() {
-                              _selectedMonth = value;
-                              // Reset day and time when month changes
-                              _selectedDay = null;
-                              _selectedFromTime = null;
-                            });
-                          },
-                          onYearChanged: (value) {
-                            setState(() {
-                              _selectedYear = value;
-                              // Reset month, day and time when year changes
-                              _selectedMonth = null;
-                              _selectedDay = null;
-                              _selectedFromTime = null;
-                            });
-                          },
-                        );
-                      })(),
+                                final days = (_selectedYear != null &&
+                                        _selectedMonth != null)
+                                    ? (bookingController.availableDates
+                                        .where((d) =>
+                                            d.year == _selectedYear &&
+                                            d.month == _selectedMonth)
+                                        .map((d) => d.day)
+                                        .toSet()
+                                        .toList()
+                                      ..sort())
+                                    : <int>[];
+
+                                return NewDatePicker(
+                                  selectedDay: _selectedDay,
+                                  selectedMonth: _selectedMonth,
+                                  selectedYear: _selectedYear,
+                                  allowedYears: years,
+                                  allowedMonths: months,
+                                  allowedDays: days,
+                                  onDayChanged: (value) {
+                                    setState(() {
+                                      _selectedDay = value;
+                                      // Reset time selection when date changes
+                                      _selectedFromTime = null;
+                                    });
+                                  },
+                                  onMonthChanged: (value) {
+                                    setState(() {
+                                      _selectedMonth = value;
+                                      // Reset day and time when month changes
+                                      _selectedDay = null;
+                                      _selectedFromTime = null;
+                                    });
+                                  },
+                                  onYearChanged: (value) {
+                                    setState(() {
+                                      _selectedYear = value;
+                                      // Reset month, day and time when year changes
+                                      _selectedMonth = null;
+                                      _selectedDay = null;
+                                      _selectedFromTime = null;
+                                    });
+                                  },
+                                );
+                              })(),
               ),
               SizedBox(height: SizeConfig.size12),
-              Obx(() => bookingController.isLoadingCalendar.value
-                ? Center(child: CircularProgressIndicator())
-                : CustomText(
-                    'Charges/ Fees: ${bookingController.charges.value.isNotEmpty ? "${bookingController.charges.value} INR" : "Not set"}',
-                    fontSize: SizeConfig.medium,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.black87,
-                  ),
+              Obx(
+                () => bookingController.isLoadingCalendar.value
+                    ? Center(child: CircularProgressIndicator())
+                    : CustomText(
+                        'Charges/ Fees: ${bookingController.charges.value.isNotEmpty ? "${bookingController.charges.value} INR" : "Not set"}',
+                        fontSize: SizeConfig.medium,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.black87,
+                      ),
               ),
               SizedBox(height: SizeConfig.size16),
               // Select Time
@@ -271,106 +276,124 @@ class _AppointmentBookingScreenState extends State<AppointmentBookingScreen> {
               Obx(() {
                 // Get available time slots for selected date
                 List<String> availableSlots = [];
-                if (_selectedDay != null && _selectedMonth != null && _selectedYear != null) {
-                  final selectedDate = DateTime(_selectedYear!, _selectedMonth!, _selectedDay!);
-                  availableSlots = bookingController.getAvailableTimeSlotsForDate(selectedDate);
+                if (_selectedDay != null &&
+                    _selectedMonth != null &&
+                    _selectedYear != null) {
+                  final selectedDate =
+                      DateTime(_selectedYear!, _selectedMonth!, _selectedDay!);
+                  availableSlots = bookingController
+                      .getAvailableTimeSlotsForDate(selectedDate);
                 }
-                
+
                 return bookingController.isLoadingCalendar.value
-                  ? Center(child: CircularProgressIndicator())
-                  : !bookingController.isAvailabilitySet
-                    ? SizedBox.shrink() // Hide time selection if no availability set
-                    : availableSlots.isEmpty
-                      ? CustomText(
-                          'No available time slots for selected date',
-                          fontSize: SizeConfig.medium,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.red,
-                        )
-                      : Row(
-                        children: [
-                          Expanded(
-                            child: CommonDropdown<String>(
-                              items: availableSlots,
-                              selectedValue: _selectedFromTime ?? null,
-                              hintText: "Select Time Slot",
-                              displayValue: (value) => value,
-                              onChanged: (value) {
-                                _selectedFromTime = value;
-                                setState(() {});
-                              },
-                              validator: (value) {
-                                if (value == null) {
-                                  return 'Please select a time slot';
-                                }
-                                return null;
-                              },
-                            ),
-                          ),
-                        ],
-                      );
+                    ? Center(child: CircularProgressIndicator())
+                    : !bookingController.isAvailabilitySet
+                        ? SizedBox
+                            .shrink() // Hide time selection if no availability set
+                        : availableSlots.isEmpty
+                            ? CustomText(
+                                'No available time slots for selected date',
+                                fontSize: SizeConfig.medium,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.red,
+                              )
+                            : Row(
+                                children: [
+                                  Expanded(
+                                    child: CommonDropdown<String>(
+                                      items: availableSlots,
+                                      selectedValue: _selectedFromTime ?? null,
+                                      hintText: "Select Time Slot",
+                                      displayValue: (value) => value,
+                                      onChanged: (value) {
+                                        _selectedFromTime = value;
+                                        setState(() {});
+                                      },
+                                      validator: (value) {
+                                        if (value == null) {
+                                          return 'Please select a time slot';
+                                        }
+                                        return null;
+                                      },
+                                    ),
+                                  ),
+                                ],
+                              );
               }),
 
               SizedBox(height: SizeConfig.size24),
 
               // Submit Button
               Obx(() => CustomBtn(
-                radius: SizeConfig.size6,
-                bgColor: bookingController.isAvailabilitySet ? Colors.blue : Colors.grey,
-                onTap: bookingController.isAvailabilitySet ? () {
-                  final name = nameController.text.trim();
-                  final mobile = mobileController.text.trim();
-                  final email = emailController.text.trim();
+                    radius: SizeConfig.size6,
+                    bgColor: bookingController.isAvailabilitySet
+                        ? Colors.blue
+                        : Colors.grey,
+                    onTap: bookingController.isAvailabilitySet
+                        ? () {
+                            final name = nameController.text.trim();
+                            final mobile = mobileController.text.trim();
+                            final email = emailController.text.trim();
 
-                  if (name.isEmpty || mobile.isEmpty || email.isEmpty || _selectedDay == null || _selectedMonth == null || _selectedYear == null || _selectedFromTime == null) {
-                    commonSnackBar(message:'Error Please fill all required fields');
-                    return;
-                  }
+                            if (name.isEmpty ||
+                                mobile.isEmpty ||
+                                email.isEmpty ||
+                                _selectedDay == null ||
+                                _selectedMonth == null ||
+                                _selectedYear == null ||
+                                _selectedFromTime == null) {
+                              commonSnackBar(
+                                  message:
+                                      'Error Please fill all required fields');
+                              return;
+                            }
 
-                  // Parse the selected time slot (format: "startTime - endTime")
-                  final timeSlotParts = _selectedFromTime!.split(' - ');
-                  if (timeSlotParts.length != 2) {
-                    commonSnackBar(message:'Error Invalid time slot format');
-                    return;
-                  }
+                            // Parse the selected time slot (format: "startTime - endTime")
+                            final timeSlotParts =
+                                _selectedFromTime!.split(' - ');
+                            if (timeSlotParts.length != 2) {
+                              commonSnackBar(
+                                  message: 'Error Invalid time slot format');
+                              return;
+                            }
 
-                  final startTime = timeSlotParts[0];
-                  final bookingDateTime = DateTime(
-                    _selectedYear!,
-                    _selectedMonth!,
-                    _selectedDay!,
-                    _parseTimeToHour(startTime),
-                    _parseTimeToMinute(startTime),
-                  );
+                            final startTime = timeSlotParts[0];
+                            final bookingDateTime = DateTime(
+                              _selectedYear!,
+                              _selectedMonth!,
+                              _selectedDay!,
+                              _parseTimeToHour(startTime),
+                              _parseTimeToMinute(startTime),
+                            );
 
-                  final customer = CustomerDetails(
-                    name: name,
-                    mobileNumber: mobile,
-                    email: email,
-                  );
-                  Map<String,dynamic> params = {
-
-                    ApiKeys.serviceProvider_channelId:"${widget.channelId}",
-                    // "${68a5290138686a9a3fc59e3a}",
-                    ApiKeys.videoId: "${widget.videoId}",
-                    ApiKeys.bookingTime: "$bookingDateTime",
-                    ApiKeys.customerDetails:customer.toJson(),
-                  };
-                  print("giugg ${widget.videoId}");
-                  print("sgf ${widget.channelId}");
-                  bookingController.addBooingAppointment(params: params);
-
-                } : null,
-                title: "Book Appointment",
-                textColor: AppColors.white,
-              )),
+                            final customer = CustomerDetails(
+                              name: name,
+                              mobileNumber: mobile,
+                              email: email,
+                            );
+                            Map<String, dynamic> params = {
+                              ApiKeys.serviceProvider_channelId:
+                                  "${widget.channelId}",
+                              // "${68a5290138686a9a3fc59e3a}",
+                              ApiKeys.videoId: "${widget.videoId}",
+                              ApiKeys.bookingTime: "$bookingDateTime",
+                              ApiKeys.customerDetails: customer.toJson(),
+                            };
+                            print("giugg ${widget.videoId}");
+                            print("sgf ${widget.channelId}");
+                            bookingController.addBooingAppointment(
+                                params: params);
+                          }
+                        : null,
+                    title: "Book Appointment",
+                    textColor: AppColors.white,
+                  )),
             ],
           ),
         ),
       ),
     );
   }
-
 
   // Parse time from 24-hour format (e.g., "14:30" or "09:00")
   int _parseTimeToHour(String time) {

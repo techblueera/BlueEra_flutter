@@ -1,16 +1,22 @@
 import 'dart:convert';
 
 import 'package:BlueEra/features/me/hospital/model/hospital_emergency_contact_model.dart';
-HospitalFullDetailsResModel hospitalFullDetailsResModelFromJson(String str) => HospitalFullDetailsResModel.fromJson(json.decode(str));
-String hospitalFullDetailsResModelToJson(HospitalFullDetailsResModel data) => json.encode(data.toJson());
+
+HospitalFullDetailsResModel hospitalFullDetailsResModelFromJson(String str) =>
+    HospitalFullDetailsResModel.fromJson(json.decode(str));
+String hospitalFullDetailsResModelToJson(HospitalFullDetailsResModel data) =>
+    json.encode(data.toJson());
+
 class HospitalFullDetailsResModel {
   HospitalFullDetailsResModel({
-      this.success, 
-      this.data,});
+    this.success,
+    this.data,
+  });
 
   HospitalFullDetailsResModel.fromJson(dynamic json) {
     success = json['success'];
-    data = json['data'] != null ? HospitalFullData.fromJson(json['data']) : null;
+    data =
+        json['data'] != null ? HospitalFullData.fromJson(json['data']) : null;
   }
   bool? success;
   HospitalFullData? data;
@@ -23,35 +29,38 @@ class HospitalFullDetailsResModel {
     }
     return map;
   }
-
 }
 
-HospitalFullData dataFromJson(String str) => HospitalFullData.fromJson(json.decode(str));
+HospitalFullData dataFromJson(String str) =>
+    HospitalFullData.fromJson(json.decode(str));
 String dataToJson(HospitalFullData data) => json.encode(data.toJson());
+
 class HospitalFullData {
   HospitalFullData({
-      this.location, 
-      this.id, 
-      this.name, 
-      this.description, 
-      this.userId, 
-      this.createdAt, 
-      this.updatedAt, 
-      this.v, 
-      this.coverUrl, 
-      this.logoUrl, 
-      this.visionMission, 
-      this.history, 
-      this.management, 
-      this.departments, 
-      this.emergencyCare, 
-      this.emergencyContactData,
-      this.otherFacilities,
-      this.gallery,
-      this.contacts,});
+    this.location,
+    this.id,
+    this.name,
+    this.description,
+    this.userId,
+    this.createdAt,
+    this.updatedAt,
+    this.v,
+    this.coverUrl,
+    this.logoUrl,
+    this.visionMission,
+    this.history,
+    this.management,
+    this.departments,
+    this.emergencyCare,
+    this.emergencyContactData,
+    this.otherFacilities,
+    this.gallery,
+    this.contacts,
+  });
 
   HospitalFullData.fromJson(dynamic json) {
-    location = json['location'] != null ? Location.fromJson(json['location']) : null;
+    location =
+        json['location'] != null ? Location.fromJson(json['location']) : null;
     id = json['_id'];
     name = json['name'];
     description = json['description'];
@@ -61,8 +70,11 @@ class HospitalFullData {
     v = json['__v'];
     coverUrl = json['coverUrl'];
     logoUrl = json['logoUrl'];
-    visionMission = json['visionMission'] != null ? VisionMission.fromJson(json['visionMission']) : null;
-    history = json['history'] != null ? History.fromJson(json['history']) : null;
+    visionMission = json['visionMission'] != null
+        ? VisionMission.fromJson(json['visionMission'])
+        : null;
+    history =
+        json['history'] != null ? History.fromJson(json['history']) : null;
     if (json['management'] != null) {
       management = [];
       json['management'].forEach((v) {
@@ -75,8 +87,12 @@ class HospitalFullData {
         departments?.add(IpdOpdDepartments.fromJson(v));
       });
     }
-    emergencyCare = json['emergencyCare'] != null ? EmergencyCare.fromJson(json['emergencyCare']) : null;
-    otherFacilities = json['otherFacilities'] != null ? OtherFacilities.fromJson(json['otherFacilities']) : null;
+    emergencyCare = json['emergencyCare'] != null
+        ? EmergencyCare.fromJson(json['emergencyCare'])
+        : null;
+    otherFacilities = json['otherFacilities'] != null
+        ? OtherFacilities.fromJson(json['otherFacilities'])
+        : null;
     if (json['gallery'] != null) {
       gallery = [];
       json['gallery'].forEach((v) {
@@ -167,10 +183,12 @@ class HospitalFullData {
     }
     return map;
   }
-
 }
-HospitalGallery galleryFromJson(String str) => HospitalGallery.fromJson(json.decode(str));
+
+HospitalGallery galleryFromJson(String str) =>
+    HospitalGallery.fromJson(json.decode(str));
 String galleryToJson(HospitalGallery data) => json.encode(data.toJson());
+
 class HospitalGallery {
   HospitalGallery({
     this.id,
@@ -180,7 +198,8 @@ class HospitalGallery {
     this.userId,
     this.createdAt,
     this.updatedAt,
-    this.v,});
+    this.v,
+  });
 
   HospitalGallery.fromJson(dynamic json) {
     id = json['_id'];
@@ -213,21 +232,23 @@ class HospitalGallery {
     map['__v'] = v;
     return map;
   }
-
 }
 
-HospitalContacts contactsFromJson(String str) => HospitalContacts.fromJson(json.decode(str));
+HospitalContacts contactsFromJson(String str) =>
+    HospitalContacts.fromJson(json.decode(str));
 String contactsToJson(HospitalContacts data) => json.encode(data.toJson());
+
 class HospitalContacts {
   HospitalContacts({
-      this.branch, 
-      this.id, 
-      this.departments, 
-      this.hospitalId, 
-      this.userId, 
-      this.createdAt, 
-      this.updatedAt, 
-      this.v,});
+    this.branch,
+    this.id,
+    this.departments,
+    this.hospitalId,
+    this.userId,
+    this.createdAt,
+    this.updatedAt,
+    this.v,
+  });
 
   HospitalContacts.fromJson(dynamic json) {
     branch = json['branch'] != null ? Branch.fromJson(json['branch']) : null;
@@ -269,17 +290,19 @@ class HospitalContacts {
     map['__v'] = v;
     return map;
   }
-
 }
 
-Departments departmentsFromJson(String str) => Departments.fromJson(json.decode(str));
+Departments departmentsFromJson(String str) =>
+    Departments.fromJson(json.decode(str));
 String departmentsToJson(Departments data) => json.encode(data.toJson());
+
 class Departments {
   Departments({
-      this.department, 
-      this.email, 
-      this.phone, 
-      this.id,});
+    this.department,
+    this.email,
+    this.phone,
+    this.id,
+  });
 
   Departments.fromJson(dynamic json) {
     department = json['department'];
@@ -300,18 +323,20 @@ class Departments {
     map['_id'] = id;
     return map;
   }
-
 }
 
 Branch branchFromJson(String str) => Branch.fromJson(json.decode(str));
 String branchToJson(Branch data) => json.encode(data.toJson());
+
 class Branch {
   Branch({
-      this.location, 
-      this.website,});
+    this.location,
+    this.website,
+  });
 
   Branch.fromJson(dynamic json) {
-    location = json['location'] != null ? Location.fromJson(json['location']) : null;
+    location =
+        json['location'] != null ? Location.fromJson(json['location']) : null;
     website = json['website'];
   }
   Location? location;
@@ -325,21 +350,26 @@ class Branch {
     map['website'] = website;
     return map;
   }
-
 }
 
 Location locationFromJson(String str) => Location.fromJson(json.decode(str));
 String locationToJson(Location data) => json.encode(data.toJson());
+
 class Location {
   Location({
-      this.name, 
-      this.type, 
-      this.coordinates,});
+    this.name,
+    this.type,
+    this.coordinates,
+  });
 
   Location.fromJson(dynamic json) {
     name = json['name'];
     type = json['type'];
-    coordinates = json['coordinates'] != null ? json['coordinates'].cast<double>() : [];
+    coordinates = json['coordinates'] != null
+        ? (json['coordinates'] as List)
+            .map((x) => (x as num).toDouble())
+            .toList()
+        : [];
   }
   String? name;
   String? type;
@@ -352,25 +382,28 @@ class Location {
     map['coordinates'] = coordinates;
     return map;
   }
-
 }
 
-OtherFacilities otherFacilitiesFromJson(String str) => OtherFacilities.fromJson(json.decode(str));
-String otherFacilitiesToJson(OtherFacilities data) => json.encode(data.toJson());
+OtherFacilities otherFacilitiesFromJson(String str) =>
+    OtherFacilities.fromJson(json.decode(str));
+String otherFacilitiesToJson(OtherFacilities data) =>
+    json.encode(data.toJson());
+
 class OtherFacilities {
   OtherFacilities({
-      this.id, 
-      this.ambulance, 
-      this.pmSwasthyaBimaYojana, 
-      this.bloodBank, 
-      this.diagnosticDepartments, 
-      this.medicalStore, 
-      this.cashlessInsurance, 
-      this.hospitalId, 
-      this.userId, 
-      this.createdAt, 
-      this.updatedAt, 
-      this.v,});
+    this.id,
+    this.ambulance,
+    this.pmSwasthyaBimaYojana,
+    this.bloodBank,
+    this.diagnosticDepartments,
+    this.medicalStore,
+    this.cashlessInsurance,
+    this.hospitalId,
+    this.userId,
+    this.createdAt,
+    this.updatedAt,
+    this.v,
+  });
 
   OtherFacilities.fromJson(dynamic json) {
     id = json['_id'];
@@ -379,7 +412,9 @@ class OtherFacilities {
     bloodBank = json['bloodBank'];
     diagnosticDepartments = json['diagnosticDepartments'];
     medicalStore = json['medicalStore'];
-    cashlessInsurance = json['cashlessInsurance'] != null ? json['cashlessInsurance'].cast<String>() : [];
+    cashlessInsurance = json['cashlessInsurance'] != null
+        ? json['cashlessInsurance'].cast<String>()
+        : [];
     hospitalId = json['hospitalId'];
     userId = json['userId'];
     createdAt = json['createdAt'];
@@ -415,25 +450,27 @@ class OtherFacilities {
     map['__v'] = v;
     return map;
   }
-
 }
 
-EmergencyCare emergencyCareFromJson(String str) => EmergencyCare.fromJson(json.decode(str));
+EmergencyCare emergencyCareFromJson(String str) =>
+    EmergencyCare.fromJson(json.decode(str));
 String emergencyCareToJson(EmergencyCare data) => json.encode(data.toJson());
+
 class EmergencyCare {
   EmergencyCare({
-      this.id, 
-      this.emergencyCasualty, 
-      this.traumaCare, 
-      this.icu, 
-      this.ccu, 
-      this.nicu, 
-      this.picu, 
-      this.hospitalId, 
-      this.userId, 
-      this.createdAt, 
-      this.updatedAt, 
-      this.v,});
+    this.id,
+    this.emergencyCasualty,
+    this.traumaCare,
+    this.icu,
+    this.ccu,
+    this.nicu,
+    this.picu,
+    this.hospitalId,
+    this.userId,
+    this.createdAt,
+    this.updatedAt,
+    this.v,
+  });
 
   EmergencyCare.fromJson(dynamic json) {
     id = json['_id'];
@@ -478,25 +515,28 @@ class EmergencyCare {
     map['__v'] = v;
     return map;
   }
-
 }
 
-IpdOpdDepartments departmentsIpdFromJson(String str) => IpdOpdDepartments.fromJson(json.decode(str));
-String departmentsIpdToJson(IpdOpdDepartments data) => json.encode(data.toJson());
+IpdOpdDepartments departmentsIpdFromJson(String str) =>
+    IpdOpdDepartments.fromJson(json.decode(str));
+String departmentsIpdToJson(IpdOpdDepartments data) =>
+    json.encode(data.toJson());
+
 class IpdOpdDepartments {
   IpdOpdDepartments({
-      this.id,
-      this.name,
-      this.key,
-      this.type,
-      this.description,
-      this.hospitalId,
-      this.userId,
-      this.createdAt,
-      this.updatedAt,
-      this.v,
-      this.opd,
-      this.ipd,});
+    this.id,
+    this.name,
+    this.key,
+    this.type,
+    this.description,
+    this.hospitalId,
+    this.userId,
+    this.createdAt,
+    this.updatedAt,
+    this.v,
+    this.opd,
+    this.ipd,
+  });
 
   IpdOpdDepartments.fromJson(dynamic json) {
     id = json['_id'];
@@ -561,24 +601,25 @@ class IpdOpdDepartments {
     }
     return map;
   }
-
 }
 
 Opd opdFromJson(String str) => Opd.fromJson(json.decode(str));
 String opdToJson(Opd data) => json.encode(data.toJson());
+
 class Opd {
   Opd({
-      this.id, 
-      this.name, 
-      this.description, 
-      this.departmentId, 
-      this.timing, 
-      this.hospitalId, 
-      this.imageUrl,
-      this.userId,
-      this.v, 
-      this.createdAt, 
-      this.updatedAt,});
+    this.id,
+    this.name,
+    this.description,
+    this.departmentId,
+    this.timing,
+    this.hospitalId,
+    this.imageUrl,
+    this.userId,
+    this.v,
+    this.createdAt,
+    this.updatedAt,
+  });
 
   Opd.fromJson(dynamic json) {
     id = json['_id'];
@@ -620,27 +661,27 @@ class Opd {
     map['updatedAt'] = updatedAt;
     return map;
   }
-
 }
-
 
 Ipd ipdFromJson(String str) => Ipd.fromJson(json.decode(str));
 String ipdToJson(Opd data) => json.encode(data.toJson());
+
 class Ipd {
   Ipd({
-      this.id,
-      this.name,
-      this.description,
-      this.departmentId,
-      this.timing,
-      this.hospitalId,
-      this.imageUrl,
-      this.userId,
-      this.v,
-      this.createdAt,
-      this.fees,
-      this.bedCount,
-      this.updatedAt,});
+    this.id,
+    this.name,
+    this.description,
+    this.departmentId,
+    this.timing,
+    this.hospitalId,
+    this.imageUrl,
+    this.userId,
+    this.v,
+    this.createdAt,
+    this.fees,
+    this.bedCount,
+    this.updatedAt,
+  });
 
   Ipd.fromJson(dynamic json) {
     id = json['_id'];
@@ -688,22 +729,24 @@ class Ipd {
     map['updatedAt'] = updatedAt;
     return map;
   }
-
 }
 
-HospitalManagement managementFromJson(String str) => HospitalManagement.fromJson(json.decode(str));
+HospitalManagement managementFromJson(String str) =>
+    HospitalManagement.fromJson(json.decode(str));
 String managementToJson(HospitalManagement data) => json.encode(data.toJson());
+
 class HospitalManagement {
   HospitalManagement({
-      this.id, 
-      this.name, 
-      this.imageUrl, 
-      this.position, 
-      this.hospitalId, 
-      this.userId, 
-      this.v, 
-      this.createdAt, 
-      this.updatedAt,});
+    this.id,
+    this.name,
+    this.imageUrl,
+    this.position,
+    this.hospitalId,
+    this.userId,
+    this.v,
+    this.createdAt,
+    this.updatedAt,
+  });
 
   HospitalManagement.fromJson(dynamic json) {
     id = json['_id'];
@@ -739,20 +782,21 @@ class HospitalManagement {
     map['updatedAt'] = updatedAt;
     return map;
   }
-
 }
 
 History historyFromJson(String str) => History.fromJson(json.decode(str));
 String historyToJson(History data) => json.encode(data.toJson());
+
 class History {
   History({
-      this.id, 
-      this.history, 
-      this.hospitalId, 
-      this.userId, 
-      this.createdAt, 
-      this.updatedAt, 
-      this.v,});
+    this.id,
+    this.history,
+    this.hospitalId,
+    this.userId,
+    this.createdAt,
+    this.updatedAt,
+    this.v,
+  });
 
   History.fromJson(dynamic json) {
     id = json['_id'];
@@ -782,20 +826,22 @@ class History {
     map['__v'] = v;
     return map;
   }
-
 }
 
-VisionMission visionMissionFromJson(String str) => VisionMission.fromJson(json.decode(str));
+VisionMission visionMissionFromJson(String str) =>
+    VisionMission.fromJson(json.decode(str));
 String visionMissionToJson(VisionMission data) => json.encode(data.toJson());
+
 class VisionMission {
   VisionMission({
-      this.id, 
-      this.visionAndMission, 
-      this.hospitalId, 
-      this.userId, 
-      this.createdAt, 
-      this.updatedAt, 
-      this.v,});
+    this.id,
+    this.visionAndMission,
+    this.hospitalId,
+    this.userId,
+    this.createdAt,
+    this.updatedAt,
+    this.v,
+  });
 
   VisionMission.fromJson(dynamic json) {
     id = json['_id'];
@@ -825,6 +871,4 @@ class VisionMission {
     map['__v'] = v;
     return map;
   }
-
 }
-

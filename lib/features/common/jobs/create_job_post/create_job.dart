@@ -711,21 +711,36 @@ class _CreateJobPostScreenState extends State<CreateJobPostScreen> {
                           }
 
                           // 1. Validate Company Name
-                          if (createJobPostController.companyNameController.text.trim().isEmpty) {
+                          if (createJobPostController.companyNameController.text
+                              .trim()
+                              .isEmpty) {
                             commonSnackBar(message: 'Company name is required');
                             return;
                           }
 
                           // 2. Validate Location
-                          if (createJobPostController.addressEditController.text.trim().isEmpty || 
-                              createJobPostController.startLocationLat?.value == 0.0) {
+                          if (createJobPostController.addressEditController.text
+                                  .trim()
+                                  .isEmpty ||
+                              createJobPostController.startLocationLat?.value ==
+                                  0.0) {
                             commonSnackBar(message: 'Job location is required');
                             return;
                           }
 
                           // 3. Validate Job Title
-                          if (createJobPostController.jobTitleController.text.trim().isEmpty) {
+                          if (createJobPostController.jobTitleController.text
+                              .trim()
+                              .isEmpty) {
                             commonSnackBar(message: 'Job title is required');
+                            return;
+                          }
+
+                          // 3b. Validate Department
+                          if (createJobPostController.departmentController.text
+                              .trim()
+                              .isEmpty) {
+                            commonSnackBar(message: 'Department is required');
                             return;
                           }
 
@@ -737,7 +752,8 @@ class _CreateJobPostScreenState extends State<CreateJobPostScreen> {
 
                           // 5. Validate Work Mode
                           if (createJobPostController.workMode.value.isEmpty) {
-                            commonSnackBar(message: 'Please select a work mode');
+                            commonSnackBar(
+                                message: 'Please select a work mode');
                             return;
                           }
 
@@ -747,28 +763,77 @@ class _CreateJobPostScreenState extends State<CreateJobPostScreen> {
                             return;
                           }
 
-                          // 7. Validate Job Description
-                          if (createJobPostController.jobDescriptionController.text.trim().isEmpty) {
-                            commonSnackBar(message: 'Job description is required');
+                          // 7. Validate Job Highlights (Optional but must be quality if provided)
+                          if (createJobPostController
+                              .jobHighlightsController.text
+                              .trim()
+                              .isNotEmpty) {
+                            final text = createJobPostController
+                                .jobHighlightsController.text
+                                .trim();
+                            if (text.length < 10) {
+                              commonSnackBar(
+                                  message:
+                                      'Job highlights must be at least 10 characters long');
+                              return;
+                            }
+                            if (!RegExp(r'[a-zA-Z0-9]').hasMatch(text)) {
+                              commonSnackBar(
+                                  message:
+                                      'Job highlights must contain at least some letters or numbers');
+                              return;
+                            }
+                          }
+
+                          // 8. Validate Job Description
+                          if (createJobPostController
+                              .jobDescriptionController.text
+                              .trim()
+                              .isEmpty) {
+                            commonSnackBar(
+                                message: 'Job description is required');
+                            return;
+                          }
+                          final description = createJobPostController
+                              .jobDescriptionController.text
+                              .trim();
+                          if (description.length < 20) {
+                            commonSnackBar(
+                                message:
+                                    'Job description must be at least 20 characters long');
+                            return;
+                          }
+                          if (!RegExp(r'[a-zA-Z0-9]').hasMatch(description)) {
+                            commonSnackBar(
+                                message:
+                                    'Job description must contain actual letters or numbers');
                             return;
                           }
 
                           // Validate salary range
                           int minSalary = int.tryParse(createJobPostController
-                                  .minSalaryController.text.isNotEmpty ? createJobPostController.minSalaryController.text : "0") ??
+                                      .minSalaryController.text.isNotEmpty
+                                  ? createJobPostController
+                                      .minSalaryController.text
+                                  : "0") ??
                               0;
                           int maxSalary = int.tryParse(createJobPostController
-                                  .maxSalaryController.text.isNotEmpty ? createJobPostController.maxSalaryController.text : "0") ??
+                                      .maxSalaryController.text.isNotEmpty
+                                  ? createJobPostController
+                                      .maxSalaryController.text
+                                  : "0") ??
                               0;
-                          
+
                           if (minSalary == 0 || maxSalary == 0) {
-                             commonSnackBar(message: 'Please enter a valid salary range');
-                             return;
+                            commonSnackBar(
+                                message: 'Please enter a valid salary range');
+                            return;
                           }
 
                           if (minSalary >= maxSalary) {
                             commonSnackBar(
-                                message: "Required ");
+                                message:
+                                    "Max salary must be greater than Min salary");
                             return;
                           }
 

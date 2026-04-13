@@ -18,7 +18,8 @@ class HospitalEmergencyContactScreen extends StatefulWidget {
       _HospitalEmergencyContactScreenState();
 }
 
-class _HospitalEmergencyContactScreenState extends State<HospitalEmergencyContactScreen> {
+class _HospitalEmergencyContactScreenState
+    extends State<HospitalEmergencyContactScreen> {
   late final HospitalEmergencyContactController controller;
 
   @override
@@ -31,7 +32,7 @@ class _HospitalEmergencyContactScreenState extends State<HospitalEmergencyContac
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title:AppStrings.emergencyContact,
+        title: AppStrings.emergencyContact,
       ),
       body: Obx(() {
         if (controller.isLoading.value) {
@@ -45,19 +46,21 @@ class _HospitalEmergencyContactScreenState extends State<HospitalEmergencyContac
               CommonTextField(
                 textEditController: controller.emergencyController,
                 hintText: "9888767657",
-                title:AppStrings.emergencyNumber,
-                maxLength: 11,
+                title: AppStrings.emergencyNumber,
+                maxLength: 10,
                 isValidate: true,
                 keyBoardType: TextInputType.number,
                 regularExpression: RegularExpressionUtils.digitsPattern,
                 validator: (value) {
                   if (value == null || value.isEmpty) return 'Required';
                   if (value.startsWith('0')) return 'Leading zeros not allowed';
-                  if (value.length < 10) return 'Minimum 10 digits required';
-                  if (RegExp(r'^0+$').hasMatch(value)) return 'All zeros not allowed';
+                  if (value.length < 10) return '10 digits required';
+                  if (RegExp(r'^0+$').hasMatch(value))
+                    return 'All zeros not allowed';
                   return null;
                 },
-                onChange: (_) => controller.update(), // Refresh to update button state if needed
+                onChange: (_) => controller
+                    .update(), // Refresh to update button state if needed
               ),
               SizedBox(height: 20),
               CommonTextField(
@@ -72,14 +75,16 @@ class _HospitalEmergencyContactScreenState extends State<HospitalEmergencyContac
                   if (value == null || value.isEmpty) return 'Required';
                   if (value.startsWith('0')) return 'Leading zeros not allowed';
                   if (value.length < 10) return 'Minimum 10 digits required';
-                  if (RegExp(r'^0+$').hasMatch(value)) return 'All zeros not allowed';
+                  if (RegExp(r'^0+$').hasMatch(value))
+                    return 'All zeros not allowed';
                   return null;
                 },
                 onChange: (_) => controller.update(),
               ),
               SizedBox(height: 40),
               CustomBtn(
-                isValidate: controller.isFormValid && !controller.isSaving.value,
+                isValidate:
+                    controller.isFormValid && !controller.isSaving.value,
                 onTap: controller.isFormValid && !controller.isSaving.value
                     ? controller.submit
                     : null,
