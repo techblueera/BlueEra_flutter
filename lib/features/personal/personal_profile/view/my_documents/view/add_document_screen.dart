@@ -180,7 +180,10 @@ class _AddDocumentScreenState extends State<AddDocumentScreen>  {
             child: SingleChildScrollView(
           padding: EdgeInsets.symmetric(
               horizontal: SizeConfig.size8, vertical: SizeConfig.size15),
-          child: Obx(() => Column(
+          child: Obx(() {
+            // Access the observable so GetX tracks it for rebuilds
+            final _ = controller.documentStatuses.length;
+            return Column(
                 children: [
                   if (widget.documentVia == AppConstants.personalDocumentScreen ||
                       widget.documentVia == AppConstants.businessDocumentScreen)
@@ -574,7 +577,8 @@ class _AddDocumentScreenState extends State<AddDocumentScreen>  {
                     ]
 
                 ],
-              )),
+              );
+            }),
         )));
   }
 

@@ -286,8 +286,12 @@ class _HotelHomeDetailScreenState extends State<HotelHomeDetailScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // _buildMyDocumentWidget(),
+                    CommonCardWidget(
 
+                        padding: 10,
+                        cardMargin: 0,
+                        child: _buildMyDocumentWidget()),
+SizedBox(height: 15,),
                     // 2. Room Section
                     CommonCardWidget(
                       padding: 10,
