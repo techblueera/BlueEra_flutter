@@ -6,11 +6,11 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/Discover/model/hotel_search_model.dart';
 import 'package:BlueEra/features/common/Discover/view/hotel_discover_home_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/book_via_blueera_partner_banner.dart';
-import 'package:BlueEra/features/common/Discover/widget/common_generic_left_side_category_list.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/widget/home_stay_details_widget.dart';
 import 'package:BlueEra/features/common/Discover/widget/hotel_stay_details_widget.dart';
@@ -18,17 +18,17 @@ import 'package:BlueEra/features/common/Discover/widget/vehicle_details_widget.d
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/model/rental_service_response.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
-import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/common_draggable_bottom_sheet.dart';
 import 'package:BlueEra/widgets/common_rating_row.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
-import 'package:BlueEra/features/common/Discover/widget/discover_cart_icon.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 
 class AllStayServiceScreen extends StatefulWidget {
   final List<OnboardingCategoryModel> stayCategories;
@@ -46,6 +46,34 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
   ScrollController scrollController = ScrollController();
   late List<OnboardingCategoryModel> _stayCategories;
   late String _category;
+  bool _isLocationLoading = false;
+
+  Future<void> _changeLocation() async {
+    setState(() => _isLocationLoading = true);
+    final prevLat = LocationService.lat;
+    final prevLng = LocationService.lng;
+
+    final result =
+        await LocationService.fetchLocation(openSettingsOnDeny: true);
+
+    if (!mounted) return;
+    setState(() => _isLocationLoading = false);
+
+    if (result == null) return;
+
+    final changed =
+        prevLat != LocationService.lat || prevLng != LocationService.lng;
+    if (!changed) return;
+
+    // Refetch list data for the currently selected category with new coords.
+    if (controller.selectedStayCategory.value?.accountType ==
+        AppConstants.individual) {
+      final serviceType = _category.toRentalServiceType();
+      controller.fetchRentalServices(rentalServiceType: serviceType);
+    } else {
+      controller.fetchHotelServices(category: _category);
+    }
+  }
 
   @override
   initState() {
@@ -86,172 +114,471 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
     }
   }
 
+  int _bannerIndex = 0;
+
+  final List<String> _bannerImages = const [
+    "https://img.freepik.com/free-photo/beautiful-luxury-outdoor-swimming-pool-hotel-resort_74190-7433.jpg?w=1380",
+    "https://img.freepik.com/free-photo/luxury-classic-modern-bedroom-suite-hotel_105762-1787.jpg?w=1380",
+    "https://img.freepik.com/free-photo/beautiful-shot-modern-house-with-pool-sunset_181624-4587.jpg?w=1380",
+  ];
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: CommonBackAppBar(
+    final statusBarHeight = MediaQuery.of(context).padding.top;
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light.copyWith(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+        statusBarBrightness: Brightness.dark,
       ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            BookViaBlueEraPartnerBanner(
-              onTap: () {
-                // your navigation here
-              },
-            ),
-            Expanded(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  leftCategoryList(),
-                  SizedBox(
-                    width: SizeConfig.size6,
-                  ),
-                  Expanded(child: rightContent()),
-                ],
+      child: Scaffold(
+        backgroundColor: AppColors.appBackgroundColor,
+        body: CustomScrollView(
+          controller: scrollController,
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
+            SliverToBoxAdapter(child: _headerBanner(statusBarHeight)),
+            SliverPersistentHeader(
+              pinned: true,
+              delegate: _StickyCategoryHeaderDelegate(
+                topPadding: statusBarHeight,
+                child: _topCategorySlider(),
+                onBack: () => Navigator.pop(context),
               ),
-            )
+            ),
+            SliverToBoxAdapter(
+              child: BookViaBlueEraPartnerBanner(
+                onTap: () {
+                  // your navigation here
+                },
+              ),
+            ),
+            _buildListSliver(),
           ],
         ),
       ),
     );
   }
 
-  Widget leftCategoryList() {
-    return CommonGenericLeftSideCategoryList<OnboardingCategoryModel>(
-      items: _stayCategories,
-      getIcon: (item) => item.icon ?? '',
-      getLabel: (item) => item.name,
-      isSelected: (item) =>
-          controller.selectedStayCategory.value?.slugId == item.slugId,
-      onTap: (item, index) {
-        controller.selectedStayCategory.value = item;
-        controller.selectedTabIndex.value = index;
+  Widget _headerBanner(double statusBarHeight) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final bannerHeight = (screenWidth * 9 / 16) + statusBarHeight;
 
-        _category = controller.selectedStayCategory.value!.slugId;
-
-        if (controller.selectedStayCategory.value?.accountType ==
-            AppConstants.individual) {
-          var serviceType = _category.toRentalServiceType();
-          controller.fetchRentalServices(
-            rentalServiceType: serviceType,
-          );
-        } else {
-          // handle business rental api call
-          controller.fetchHotelServices(category: _category);
-        }
-      },
+    return SizedBox(
+      height: bannerHeight,
+      width: double.infinity,
+      child: Stack(
+        children: [
+          ClipRRect(
+            borderRadius:
+                const BorderRadius.vertical(bottom: Radius.circular(24)),
+            child: CarouselSlider.builder(
+              itemCount: _bannerImages.length,
+              options: CarouselOptions(
+                height: bannerHeight,
+                viewportFraction: 1.0,
+                autoPlay: _bannerImages.length > 1,
+                autoPlayInterval: const Duration(seconds: 5),
+                autoPlayAnimationDuration: const Duration(milliseconds: 800),
+                autoPlayCurve: Curves.easeInOutCubic,
+                enableInfiniteScroll: _bannerImages.length > 1,
+                onPageChanged: (index, _) =>
+                    setState(() => _bannerIndex = index),
+              ),
+              itemBuilder: (context, index, _) {
+                return CachedNetworkImage(
+                  imageUrl: _bannerImages[index],
+                  width: double.infinity,
+                  height: bannerHeight,
+                  fit: BoxFit.cover,
+                  placeholder: (_, __) =>
+                      Container(color: AppColors.greyE5),
+                  errorWidget: (_, __, ___) =>
+                      Container(color: AppColors.greyE5),
+                );
+              },
+            ),
+          ),
+          Positioned.fill(
+            child: IgnorePointer(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      AppColors.black.withValues(alpha: 0.35),
+                      Colors.transparent,
+                      AppColors.black.withValues(alpha: 0.35),
+                    ],
+                    stops: const [0.0, 0.5, 1.0],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            top: statusBarHeight + SizeConfig.size4,
+            left: SizeConfig.size12,
+            right: SizeConfig.size12,
+            child: Row(
+              children: [
+                _circleIconButton(
+                  icon: Icons.arrow_back_ios_new,
+                  onTap: () => Navigator.pop(context),
+                ),
+                SizedBox(width: SizeConfig.size8),
+                Expanded(child: _locationPill()),
+              ],
+            ),
+          ),
+          if (_bannerImages.length > 1)
+            Positioned(
+              bottom: SizeConfig.size40,
+              left: 0,
+              right: 0,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(_bannerImages.length, (i) {
+                  final active = i == _bannerIndex;
+                  return AnimatedContainer(
+                    duration: const Duration(milliseconds: 250),
+                    margin:
+                        EdgeInsets.symmetric(horizontal: SizeConfig.size3),
+                    width: active ? SizeConfig.size16 : SizeConfig.size6,
+                    height: SizeConfig.size6,
+                    decoration: BoxDecoration(
+                      color: active
+                          ? AppColors.white
+                          : AppColors.white.withValues(alpha: 0.55),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  );
+                }),
+              ),
+            ),
+          Positioned(
+            left: SizeConfig.size12,
+            right: SizeConfig.size12,
+            bottom: SizeConfig.size8,
+            child: _searchBar(),
+          ),
+        ],
+      ),
     );
   }
 
-  Widget rightContent() {
-    return Obx(() => Padding(
-          padding: EdgeInsets.only(right: SizeConfig.size8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _circleIconButton({
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      shape: const CircleBorder(),
+      child: InkWell(
+        customBorder: const CircleBorder(),
+        onTap: onTap,
+        child: Container(
+          padding: EdgeInsets.all(SizeConfig.size8),
+          decoration: BoxDecoration(
+            color: AppColors.black.withValues(alpha: 0.35),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, color: AppColors.white, size: SizeConfig.size20),
+        ),
+      ),
+    );
+  }
+
+  Widget _locationPill() {
+    return Obx(() {
+      final loc = LocationService.userCurrentAddress.value;
+      final title =
+          [loc.subLocality, loc.city].where((e) => e.isNotEmpty).join(', ');
+      return InkWell(
+        borderRadius: BorderRadius.circular(24),
+        // onTap: _isLocationLoading ? null : _changeLocation,
+        child: Container(
+          padding: EdgeInsets.symmetric(
+              horizontal: SizeConfig.size10, vertical: SizeConfig.size8),
+          decoration: BoxDecoration(
+            color: AppColors.black.withValues(alpha: 0.35),
+            borderRadius: BorderRadius.circular(24),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              // HorizontalTabSelector<CategoryFilter>(
-              //   tabs: controller.filters,
-              //   selectedIndex:
-              //       controller.filters.indexOf(controller.selectedFilter.value),
-              //   horizontalMargin: 0.0,
-              //   onTabSelected: (index, _) {
-              //     final selectedEnum = controller.filters[index];
-              //
-              //     if (controller.filters == selectedEnum) return;
-              //
-              //     controller.selectedFilter.value = selectedEnum;
-              //     // controller.callApi();
-              //   },
-              //   labelBuilder: (r) => r.label,
-              //   unSelectedBackgroundColor: AppColors.white,
-              // ),
-              // SizedBox(
-              //   height: SizeConfig.size5,
-              // ),
-              Expanded(
-                child: (controller.selectedStayCategory.value?.accountType ==
-                        AppConstants.individual)
-                    ? Obx(() {
-                        if (controller.isRentalServiceLoading.value &&
-                            controller.rentalServices.isEmpty) {
-                          return const Center(
-                              child: CircularProgressIndicator());
-                        }
-
-                        if (controller.rentalServices.isEmpty) {
-                          return Center(
-                              child: EmptyStateWidget(
-                                  message: AppStrings.noStayServiceFound.tr));
-                        }
-
-                        return ListView.builder(
-                            controller: scrollController,
-                            itemCount: controller.rentalServices.length +
-                                (controller.isRentalServiceLoadingMore.value
-                                    ? 1
-                                    : 0),
-                            shrinkWrap: true,
-                            padding:
-                                EdgeInsets.only(bottom: SizeConfig.paddingL),
-                            itemBuilder: (context, index) {
-                              if (index == controller.rentalServices.length) {
-                                return const Center(
-                                  child: Padding(
-                                    padding: EdgeInsets.all(16.0),
-                                    child: CircularProgressIndicator(
-                                        strokeWidth: 2),
-                                  ),
-                                );
-                              }
-
-                              var service = controller.rentalServices[index];
-
-                              return rentalServiceCard(service);
-                            });
-                      })
-                    : Obx(() {
-                        if (controller.isRentalServiceLoading.value &&
-                            controller.hotelServices.isEmpty) {
-                          return const Center(
-                              child: CircularProgressIndicator());
-                        }
-
-                        if (controller.hotelServices.isEmpty) {
-                          return Center(
-                              child: EmptyStateWidget(
-                                  message: AppStrings.noHotelServiceFound.tr));
-                        }
-
-                        return ListView.builder(
-                            controller: scrollController,
-                            itemCount: controller.hotelServices.length +
-                                (controller.isRentalServiceLoadingMore.value
-                                    ? 1
-                                    : 0),
-                            shrinkWrap: true,
-                            padding:
-                                EdgeInsets.only(bottom: SizeConfig.paddingL),
-                            itemBuilder: (context, index) {
-                              if (index == controller.hotelServices.length) {
-                                return const Center(
-                                  child: Padding(
-                                    padding: EdgeInsets.all(16.0),
-                                    child: CircularProgressIndicator(
-                                        strokeWidth: 2),
-                                  ),
-                                );
-                              }
-
-                              var service = controller.hotelServices[index];
-
-                              return hotelServiceCard(service);
-                            });
-                      }),
-              )
+              Icon(Icons.location_on_outlined,
+                  color: AppColors.white, size: SizeConfig.size20),
+              SizedBox(width: SizeConfig.size6),
+              Flexible(
+                child: CustomText(
+                  title.isEmpty ? 'Select location' : title,
+                  fontSize: SizeConfig.medium,
+                  color: AppColors.white,
+                  fontWeight: FontWeight.w700,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              // SizedBox(width: SizeConfig.size4),
+              // _isLocationLoading
+              //     ? SizedBox(
+              //         width: SizeConfig.size14,
+              //         height: SizeConfig.size14,
+              //         child: const CircularProgressIndicator(
+              //           strokeWidth: 2,
+              //           valueColor:
+              //               AlwaysStoppedAnimation<Color>(AppColors.white),
+              //         ),
+              //       )
+              //     : Icon(Icons.keyboard_arrow_down,
+              //         color: AppColors.white, size: SizeConfig.size18),
             ],
           ),
-        ));
+        ),
+      );
+    });
+  }
+
+  Widget _searchBar() {
+    return Container(
+      height: SizeConfig.size48,
+      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size14),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.black.withValues(alpha: 0.08),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.search,
+              color: AppColors.secondaryTextColor, size: SizeConfig.size22),
+          SizedBox(width: SizeConfig.size10),
+          Expanded(
+            child: CustomText(
+              AppStrings.searchAnything,
+              fontSize: SizeConfig.medium,
+              color: AppColors.secondaryTextColor,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          LocalAssets(
+            imagePath: AppIconAssets.mic,
+            width: SizeConfig.size20,
+            height: SizeConfig.size20,
+            imgColor: AppColors.secondaryTextColor,
+          ),
+          SizedBox(width: SizeConfig.size10),
+          LocalAssets(imagePath: AppIconAssets.camera_black),
+        ],
+      ),
+    );
+  }
+
+  Widget _topCategorySlider() {
+    return Padding(
+      padding: EdgeInsets.symmetric(
+        horizontal: SizeConfig.size12,
+        vertical: SizeConfig.size10,
+      ),
+      child: Obx(() {
+        final selectedSlug = controller.selectedStayCategory.value?.slugId;
+        return SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          physics: const BouncingScrollPhysics(),
+          child: Row(
+            children: List.generate(_stayCategories.length, (index) {
+              final item = _stayCategories[index];
+              final isActive = selectedSlug == item.slugId;
+              return Padding(
+                padding: EdgeInsets.only(right: SizeConfig.size10),
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () {
+                    controller.selectedStayCategory.value = item;
+                    controller.selectedTabIndex.value = index;
+                    _category = item.slugId;
+
+                    if (item.accountType == AppConstants.individual) {
+                      final serviceType = _category.toRentalServiceType();
+                      controller.fetchRentalServices(
+                          rentalServiceType: serviceType);
+                    } else {
+                      controller.fetchHotelServices(category: _category);
+                    }
+                  },
+                  child: SizedBox(
+                    width: SizeConfig.size70,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          padding: EdgeInsets.all(SizeConfig.size8),
+                          decoration: BoxDecoration(
+                            color: isActive ? null : AppColors.white,
+                            gradient: isActive
+                                ? const LinearGradient(
+                                    begin: Alignment.topCenter,
+                                    end: Alignment.bottomCenter,
+                                    colors: [
+                                      AppColors.white,
+                                      Color(0xFFA4D4FF),
+                                    ],
+                                  )
+                                : null,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: isActive
+                                  ? AppColors.primaryColor
+                                  : AppColors.greyE5,
+                            ),
+                          ),
+                          child: LocalAssets(
+                            imagePath: item.icon ?? '',
+                            width: SizeConfig.size30,
+                            height: SizeConfig.size30,
+                            boxFix: BoxFit.cover,
+                          ),
+                        ),
+                        SizedBox(height: SizeConfig.size6),
+                        CustomText(
+                          item.name,
+                          fontSize: SizeConfig.small,
+                          fontWeight:
+                              isActive ? FontWeight.w600 : FontWeight.w500,
+                          color: isActive
+                              ? AppColors.primaryColor
+                              : AppColors.secondaryTextColor,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            }),
+          ),
+        );
+      }),
+    );
+  }
+
+  Widget _buildListSliver() {
+    return Obx(() {
+      final isIndividual =
+          controller.selectedStayCategory.value?.accountType ==
+              AppConstants.individual;
+
+      if (isIndividual) {
+        if (controller.isRentalServiceLoading.value &&
+            controller.rentalServices.isEmpty) {
+          return const SliverFillRemaining(
+            hasScrollBody: false,
+            child: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        if (controller.rentalServices.isEmpty) {
+          return SliverFillRemaining(
+            hasScrollBody: false,
+            child: _NoHotelsFound(
+              title: 'No stays available',
+              subtitle:
+                  'We couldn\'t find any stays or rooms in this area. Try another category or change your location.',
+              onRetry: () {
+                final serviceType = _category.toRentalServiceType();
+                controller.fetchRentalServices(
+                    rentalServiceType: serviceType);
+              },
+            ),
+          );
+        }
+
+        final list = controller.rentalServices;
+        final showMoreLoader = controller.isRentalServiceLoadingMore.value;
+
+        return SliverPadding(
+          padding: EdgeInsets.only(
+            left: SizeConfig.size8,
+            right: SizeConfig.size8,
+            top: SizeConfig.size8,
+            bottom: SizeConfig.paddingL,
+          ),
+          sliver: SliverList.builder(
+            itemCount: list.length + (showMoreLoader ? 1 : 0),
+            itemBuilder: (context, index) {
+              if (index == list.length) {
+                return const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                );
+              }
+              return rentalServiceCard(list[index]);
+            },
+          ),
+        );
+      }
+
+      // Business (hotel) branch
+      if (controller.isRentalServiceLoading.value &&
+          controller.hotelServices.isEmpty) {
+        return const SliverFillRemaining(
+          hasScrollBody: false,
+          child: Center(child: CircularProgressIndicator()),
+        );
+      }
+
+      if (controller.hotelServices.isEmpty) {
+        return SliverFillRemaining(
+          hasScrollBody: false,
+          child: _NoHotelsFound(
+            title: 'No hotels & rooms available',
+            subtitle:
+                'No hotels or rooms found nearby. Try a different category or change your location to explore more stays.',
+            onRetry: () =>
+                controller.fetchHotelServices(category: _category),
+          ),
+        );
+      }
+
+      final list = controller.hotelServices;
+      final showMoreLoader = controller.isRentalServiceLoadingMore.value;
+
+      return SliverPadding(
+        padding: EdgeInsets.only(
+          left: SizeConfig.size8,
+          right: SizeConfig.size8,
+          top: SizeConfig.size8,
+          bottom: SizeConfig.paddingL,
+        ),
+        sliver: SliverList.builder(
+          itemCount: list.length + (showMoreLoader ? 1 : 0),
+          itemBuilder: (context, index) {
+            if (index == list.length) {
+              return const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              );
+            }
+            return hotelServiceCard(list[index]);
+          },
+        ),
+      );
+    });
   }
 
   Widget rentalServiceCard(RentalServiceData service) {
@@ -450,13 +777,19 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
       },
       child: PropertyCard(
         imageUrls: allImages,
+        logoUrl: service.profile?.logoUrl ?? '',
         hotelName: service.profile?.name ?? "N/A",
-        hotelDescr: '',
+        subCategory: service.rooms?.firstOrNull?.bedType ?? 'Hotel',
+        address: [
+          service.profile?.address?.street,
+          service.profile?.address?.city,
+          service.profile?.address?.state,
+        ].where((e) => e != null && e.isNotEmpty).join(', '),
         distance: distance.toString(),
-        totalRoom:
-            service.rooms?.firstOrNull?.totalRooms.toString() ?? 0.toString(),
-        bedType: service.rooms?.firstOrNull?.bedType ?? "",
         rent: service.rooms?.firstOrNull?.pricePerDay.toString() ?? "",
+        rating: (service.profile?.rating ?? 0).toDouble(),
+        reviews: service.profile?.reviews ?? 0,
+        businessId: service.profile?.businessId ?? '',
       ),
     );
 /*
@@ -699,17 +1032,29 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
 
 class PropertyCard extends StatefulWidget {
   final List<String> imageUrls;
-  final String hotelName, hotelDescr, distance, totalRoom, bedType, rent;
+  final String logoUrl;
+  final String hotelName;
+  final String subCategory;
+  final String address;
+  final String distance;
+  final String rent;
+  final double rating;
+  final int reviews;
+  final String businessId;
 
-  const PropertyCard(
-      {super.key,
-      required this.imageUrls,
-      required this.hotelName,
-      required this.hotelDescr,
-      required this.distance,
-      required this.totalRoom,
-      required this.bedType,
-      required this.rent});
+  const PropertyCard({
+    super.key,
+    required this.imageUrls,
+    required this.logoUrl,
+    required this.hotelName,
+    required this.subCategory,
+    required this.address,
+    required this.distance,
+    required this.rent,
+    required this.rating,
+    required this.reviews,
+    required this.businessId,
+  });
 
   @override
   State<PropertyCard> createState() => _PropertyCardState();
@@ -718,83 +1063,117 @@ class PropertyCard extends StatefulWidget {
 class _PropertyCardState extends State<PropertyCard> {
   int _currentIndex = 0;
 
+  // Dummy reviews for the read-only review sheet.
+  final List<Map<String, dynamic>> _dummyReviews = const [
+    {
+      'name': 'Priya Sharma',
+      'rating': 5.0,
+      'date': '2 days ago',
+      'comment':
+          'Fantastic stay! The rooms were spotless and the staff was incredibly warm. Breakfast spread was delicious.',
+    },
+    {
+      'name': 'Rahul Verma',
+      'rating': 4.0,
+      'date': '1 week ago',
+      'comment':
+          'Great value for money. Clean rooms, good location, though check-in took a little longer than expected.',
+    },
+    {
+      'name': 'Anita Desai',
+      'rating': 4.5,
+      'date': '3 weeks ago',
+      'comment':
+          'Loved the view from our room. The pool area is well-maintained and the ambience is peaceful.',
+    },
+    {
+      'name': 'Vikram Rao',
+      'rating': 3.5,
+      'date': '1 month ago',
+      'comment':
+          'Decent stay. Rooms could be a little more spacious but the service made up for it.',
+    },
+  ];
+
+  Future<void> _openInquiryChat() async {
+    if (widget.businessId.isEmpty) {
+      Get.snackbar(AppStrings.na, 'Business not available for chat',
+          snackPosition: SnackPosition.BOTTOM);
+      return;
+    }
+    final chatViewController = Get.find<ChatViewController>();
+    await chatViewController.checkChatConnectionAndOpenChat(
+      userId: widget.businessId,
+    );
+  }
+
+  void _openReviewsSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _ReviewsBottomSheet(
+        hotelName: widget.hotelName,
+        rating: widget.rating,
+        reviews: _dummyReviews,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    bool hasMultipleImages = widget.imageUrls.length > 1;
+    final hasMultipleImages = widget.imageUrls.length > 1;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final imageHeight = (screenWidth - SizeConfig.size32) * 11 / 16;
 
     return CommonCardWidget(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CustomText(
-            widget.hotelName,
-            fontWeight: FontWeight.bold,
-            fontSize: 16,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          SizedBox(
-            height: 10,
-          ),
-          // 1. The Image Stack
+          // Image carousel
           Stack(
             alignment: Alignment.bottomCenter,
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(16),
-                child: CarouselSlider(
-                  options: CarouselOptions(
-                    height: 300,
-                    viewportFraction: 1.0,
-                    enableInfiniteScroll: hasMultipleImages,
-                    onPageChanged: (index, reason) {
-                      setState(() => _currentIndex = index);
-                    },
-                  ),
-                  items: widget.imageUrls.map((url) {
-                    return Image.network(
-                      url,
-                      fit: BoxFit.cover,
-                      width: double.infinity,
-                    );
-                  }).toList(),
-                ),
+                child: widget.imageUrls.isEmpty
+                    ? _brokenImage(imageHeight)
+                    : CarouselSlider(
+                        options: CarouselOptions(
+                          height: imageHeight,
+                          viewportFraction: 1.0,
+                          enableInfiniteScroll: hasMultipleImages,
+                          onPageChanged: (index, _) =>
+                              setState(() => _currentIndex = index),
+                        ),
+                        items: widget.imageUrls.map((url) {
+                          return Image.network(
+                            url,
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                            errorBuilder: (_, __, ___) =>
+                                _brokenImage(imageHeight),
+                          );
+                        }).toList(),
+                      ),
               ),
-
-              // // 2. The Floating "Guest Favourite" Badge
-              // Positioned(
-              //   top: 12,
-              //   left: 12,
-              //   child: Container(
-              //     padding:
-              //         const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              //     decoration: BoxDecoration(
-              //       color: Colors.white,
-              //       borderRadius: BorderRadius.circular(20),
-              //     ),
-              //     child: const Text(
-              //       'Guest favourite',
-              //       style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-              //     ),
-              //   ),
-              // ),
-
-              // 3. The Indicators (Only visible if > 1 image)
               if (hasMultipleImages)
                 Positioned(
-                  bottom: 12,
+                  bottom: 10,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: widget.imageUrls.asMap().entries.map((entry) {
-                      return Container(
-                        width: 6.0,
-                        height: 6.0,
-                        margin: const EdgeInsets.symmetric(horizontal: 3.0),
+                    children:
+                        widget.imageUrls.asMap().entries.map((entry) {
+                      final active = _currentIndex == entry.key;
+                      return AnimatedContainer(
+                        duration: const Duration(milliseconds: 250),
+                        width: active ? 16 : 6,
+                        height: 6,
+                        margin: const EdgeInsets.symmetric(horizontal: 3),
                         decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.white.withValues(
-                            alpha: _currentIndex == entry.key ? 1.0 : 0.5,
-                          ),
+                          color: AppColors.white.withValues(
+                              alpha: active ? 1.0 : 0.55),
+                          borderRadius: BorderRadius.circular(10),
                         ),
                       );
                     }).toList(),
@@ -803,45 +1182,590 @@ class _PropertyCardState extends State<PropertyCard> {
             ],
           ),
 
-          // 4. The Text Content
-          Padding(
-            padding: EdgeInsets.symmetric(vertical: 8.0),
-            child: Column(
+          SizedBox(height: SizeConfig.size10),
+
+          // Logo + name + subcategory
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              _logoAvatar(),
+              SizedBox(width: SizeConfig.size8),
+              Flexible(
+                flex: 3,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CustomText(
+                      widget.hotelName,
+                      fontWeight: FontWeight.w700,
+                      fontSize: SizeConfig.medium,
+                      color: AppColors.mainTextColor,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  if (widget.subCategory.isNotEmpty) ...[
+
+                    CustomText(
+                      widget.subCategory,
+                      fontSize: SizeConfig.small,
+                      color: AppColors.secondaryTextColor,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                  ],
+                ),
+              ),
+
+            ],
+          ),
+
+          SizedBox(height: SizeConfig.size6),
+
+          // Rating + reviews
+          Row(
+            children: [
+              Icon(Icons.star_rounded,
+                  size: SizeConfig.size18, color: Colors.amber),
+              SizedBox(width: SizeConfig.size2),
+              CustomText(
+                widget.rating.toStringAsFixed(1),
+                fontWeight: FontWeight.w600,
+                fontSize: SizeConfig.small,
+                color: AppColors.mainTextColor,
+              ),
+              SizedBox(width: SizeConfig.size4),
+              CustomText(
+                '(${widget.reviews} reviews)',
+                fontSize: SizeConfig.small,
+                color: AppColors.secondaryTextColor,
+              ),
+            ],
+          ),
+
+          SizedBox(height: SizeConfig.size6),
+
+          // Address
+          if (widget.address.isNotEmpty)
+            Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CustomText(
-                  "${AppStrings.roomTypeLabel.tr} ${widget.bedType}",
+                Icon(Icons.location_on_outlined,
+                    size: SizeConfig.size16,
+                    color: AppColors.secondaryTextColor),
+                SizedBox(width: SizeConfig.size2),
+                Expanded(
+                  child: CustomText(
+                    widget.address,
+                    fontSize: SizeConfig.small,
+                    color: AppColors.secondaryTextColor,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+
+          SizedBox(height: SizeConfig.size6),
+
+          // Distance + price
+          Row(
+            children: [
+              Icon(Icons.near_me_outlined,
+                  size: SizeConfig.size16,
+                  color: AppColors.secondaryTextColor),
+              SizedBox(width: SizeConfig.size2),
+              Flexible(
+                child: CustomText(
+                  "${widget.distance} ${AppStrings.kmAwayLabel.tr}",
+                  fontSize: SizeConfig.small,
                   color: AppColors.secondaryTextColor,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Flexible(
-                      child: CustomText("${widget.totalRoom} ${AppStrings.roomLabel.tr}",
-                          color: AppColors.secondaryTextColor),
-                    ),
-                    SizedBox(width: 4),
-                    Flexible(
-                      child: CustomText("${AppStrings.inrPerDay.tr} ${widget.rent}/day",
-                          fontWeight: FontWeight.bold,
-                          decoration: TextDecoration.underline),
-                    ),
-                  ],
+              ),
+              const Spacer(),
+              if (widget.rent.isNotEmpty)
+                CustomText(
+                  "₹${widget.rent}",
+                  fontWeight: FontWeight.w700,
+                  fontSize: SizeConfig.medium,
+                  color: AppColors.mainTextColor,
                 ),
-                SizedBox(height: 5),
-                Row(
-                  children: [
-                    Icon(Icons.location_on_outlined, size: 16),
-                    CustomText("${widget.distance} ${AppStrings.kmAwayLabel.tr}"),
-                  ],
+              if (widget.rent.isNotEmpty)
+                CustomText(
+                  " /day",
+                  fontSize: SizeConfig.small,
+                  color: AppColors.secondaryTextColor,
                 ),
-              ],
-            ),
+            ],
+          ),
+
+          SizedBox(height: SizeConfig.size10),
+
+          // Review + Inquiry action row
+          Row(
+            children: [
+              Expanded(
+                child: _actionButton(
+                  icon: Icons.star_border_rounded,
+                  label: 'Review',
+                  onTap: _openReviewsSheet,
+                  filled: false,
+                ),
+              ),
+              SizedBox(width: SizeConfig.size10),
+              Expanded(
+                child: _actionButton(
+                  icon: Icons.chat_bubble_outline,
+                  label: 'Inquiry',
+                  onTap: _openInquiryChat,
+                  filled: true,
+                ),
+              ),
+            ],
           ),
         ],
       ),
     );
   }
+
+  Widget _logoAvatar() {
+    if (widget.logoUrl.isEmpty) return _brokenHotelLogo();
+    return ClipOval(
+      child: CachedNetworkImage(
+        imageUrl: widget.logoUrl,
+        width: SizeConfig.size40,
+        height: SizeConfig.size40,
+        fit: BoxFit.cover,
+        placeholder: (_, __) => Container(
+          width: SizeConfig.size40,
+          height: SizeConfig.size40,
+          color: AppColors.greyE5,
+        ),
+        errorWidget: (_, __, ___) => _brokenHotelLogo(),
+      ),
+    );
+  }
+
+  Widget _brokenHotelLogo() => Container(
+        width: SizeConfig.size40,
+        height: SizeConfig.size40,
+        decoration: BoxDecoration(
+          color: AppColors.greyE5,
+          shape: BoxShape.circle,
+          border: Border.all(color: AppColors.greyE5),
+        ),
+        child: Icon(
+          Icons.broken_image_outlined,
+          size: SizeConfig.size22,
+          color: AppColors.secondaryTextColor,
+        ),
+      );
+
+  Widget _brokenImage(double height) => Container(
+        width: double.infinity,
+        height: height,
+        color: AppColors.greyE5,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.broken_image_outlined,
+                size: SizeConfig.size40,
+                color: AppColors.secondaryTextColor),
+            SizedBox(height: SizeConfig.size6),
+            CustomText(
+              'Image unavailable',
+              fontSize: SizeConfig.small,
+              color: AppColors.secondaryTextColor,
+            ),
+          ],
+        ),
+      );
+
+
+  Widget _actionButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+    required bool filled,
+  }) {
+    final bg = filled ? AppColors.primaryColor : AppColors.white;
+    final fg = filled ? AppColors.white : AppColors.primaryColor;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        padding: EdgeInsets.symmetric(vertical: SizeConfig.size10),
+        decoration: BoxDecoration(
+          color: bg,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: AppColors.primaryColor, width: 1),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: SizeConfig.size18, color: fg),
+            SizedBox(width: SizeConfig.size6),
+            CustomText(
+              label,
+              fontWeight: FontWeight.w600,
+              fontSize: SizeConfig.small,
+              color: fg,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ReviewsBottomSheet extends StatelessWidget {
+  final String hotelName;
+  final double rating;
+  final List<Map<String, dynamic>> reviews;
+
+  const _ReviewsBottomSheet({
+    required this.hotelName,
+    required this.rating,
+    required this.reviews,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return CommonDraggableBottomSheet(
+      initialChildSize: 0.7,
+      minChildSize: 0.4,
+      maxChildSize: 0.95,
+      backgroundColor: AppColors.white,
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      padding: EdgeInsets.only(
+        left: SizeConfig.size16,
+        right: SizeConfig.size16,
+        top: SizeConfig.size10,
+      ),
+      builder: (scrollController) {
+        final avg = reviews.isEmpty
+            ? rating
+            : reviews
+                    .map((r) => (r['rating'] as num).toDouble())
+                    .reduce((a, b) => a + b) /
+                reviews.length;
+
+        return ListView(
+          controller: scrollController,
+          children: [
+            Center(
+              child: Container(
+                width: 50,
+                height: 5,
+                margin: const EdgeInsets.only(bottom: 10),
+                decoration: BoxDecoration(
+                  color: AppColors.secondaryTextColor,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+            ),
+            Row(
+              children: [
+                Expanded(
+                  child: CustomText(
+                    hotelName,
+                    fontSize: SizeConfig.large,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.mainTextColor,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.close),
+                ),
+              ],
+            ),
+            SizedBox(height: SizeConfig.size6),
+            Row(
+              children: [
+                Icon(Icons.star_rounded,
+                    color: Colors.amber, size: SizeConfig.size22),
+                SizedBox(width: SizeConfig.size4),
+                CustomText(
+                  avg.toStringAsFixed(1),
+                  fontWeight: FontWeight.w700,
+                  fontSize: SizeConfig.medium,
+                  color: AppColors.mainTextColor,
+                ),
+                SizedBox(width: SizeConfig.size6),
+                CustomText(
+                  '· ${reviews.length} reviews',
+                  fontSize: SizeConfig.small,
+                  color: AppColors.secondaryTextColor,
+                ),
+              ],
+            ),
+            SizedBox(height: SizeConfig.size12),
+            Divider(color: AppColors.greyE5, height: 1),
+            SizedBox(height: SizeConfig.size10),
+            ...reviews.map(_reviewTile),
+            SizedBox(height: SizeConfig.paddingL),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _reviewTile(Map<String, dynamic> r) {
+    final name = r['name'] as String;
+    final rate = (r['rating'] as num).toDouble();
+    final date = r['date'] as String;
+    final comment = r['comment'] as String;
+    return Padding(
+      padding: EdgeInsets.only(bottom: SizeConfig.size14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              CircleAvatar(
+                radius: SizeConfig.size16,
+                backgroundColor:
+                    AppColors.primaryColor.withValues(alpha: 0.15),
+                child: CustomText(
+                  name.isNotEmpty ? name[0].toUpperCase() : '?',
+                  fontWeight: FontWeight.w700,
+                  fontSize: SizeConfig.small,
+                  color: AppColors.primaryColor,
+                ),
+              ),
+              SizedBox(width: SizeConfig.size8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CustomText(
+                      name,
+                      fontWeight: FontWeight.w600,
+                      fontSize: SizeConfig.medium,
+                      color: AppColors.mainTextColor,
+                    ),
+                    CustomText(
+                      date,
+                      fontSize: SizeConfig.small,
+                      color: AppColors.secondaryTextColor,
+                    ),
+                  ],
+                ),
+              ),
+              Row(
+                children: List.generate(5, (i) {
+                  final filled = i < rate.floor();
+                  final half = !filled && (i < rate);
+                  return Icon(
+                    half
+                        ? Icons.star_half_rounded
+                        : (filled
+                            ? Icons.star_rounded
+                            : Icons.star_border_rounded),
+                    size: SizeConfig.size16,
+                    color: Colors.amber,
+                  );
+                }),
+              ),
+            ],
+          ),
+          SizedBox(height: SizeConfig.size6),
+          CustomText(
+            comment,
+            fontSize: SizeConfig.small,
+            color: AppColors.mainTextColor,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _NoHotelsFound extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final VoidCallback? onRetry;
+
+  const _NoHotelsFound({
+    required this.title,
+    required this.subtitle,
+    this.onRetry,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isCompact = constraints.maxHeight < 380;
+        final illustrationSize = isCompact
+            ? SizeConfig.size80
+            : (constraints.maxWidth * 0.35).clamp(
+                SizeConfig.size80,
+                SizeConfig.size150,
+              );
+
+        return Center(
+          child: SingleChildScrollView(
+            padding: EdgeInsets.symmetric(
+              horizontal: SizeConfig.size24,
+              vertical: SizeConfig.size16,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Container(
+                  width: illustrationSize,
+                  height: illustrationSize,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        AppColors.primaryColor.withValues(alpha: 0.12),
+                        AppColors.primaryColor.withValues(alpha: 0.04),
+                      ],
+                    ),
+                  ),
+                  alignment: Alignment.center,
+                  child: Icon(
+                    Icons.hotel_outlined,
+                    size: illustrationSize * 0.5,
+                    color: AppColors.primaryColor,
+                  ),
+                ),
+                SizedBox(height: SizeConfig.size16),
+                CustomText(
+                  title,
+                  fontSize: SizeConfig.large,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.mainTextColor,
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                SizedBox(height: SizeConfig.size8),
+                CustomText(
+                  subtitle,
+                  fontSize: SizeConfig.small,
+                  color: AppColors.secondaryTextColor,
+                  textAlign: TextAlign.center,
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                if (onRetry != null) ...[
+                  SizedBox(height: SizeConfig.size16),
+                  InkWell(
+                    onTap: onRetry,
+                    borderRadius: BorderRadius.circular(24),
+                    child: Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: SizeConfig.size20,
+                        vertical: SizeConfig.size10,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryColor,
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.refresh,
+                              color: AppColors.white,
+                              size: SizeConfig.size18),
+                          SizedBox(width: SizeConfig.size6),
+                          CustomText(
+                            'Retry',
+                            fontSize: SizeConfig.small,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.white,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// Keeps the category slider pinned at the top while scrolling.
+/// When content starts overlapping (banner has scrolled away), the header
+/// adds a back button so the user can still navigate back.
+class _StickyCategoryHeaderDelegate extends SliverPersistentHeaderDelegate {
+  final double topPadding;
+  final Widget child;
+  final VoidCallback onBack;
+
+  static const double _baseHeight = 110;
+
+  _StickyCategoryHeaderDelegate({
+    required this.topPadding,
+    required this.child,
+    required this.onBack,
+  });
+
+  @override
+  double get maxExtent => _baseHeight + topPadding;
+
+  @override
+  double get minExtent => _baseHeight + topPadding;
+
+  @override
+  Widget build(
+      BuildContext context, double shrinkOffset, bool overlapsContent) {
+    final isSticky = overlapsContent;
+    final totalHeight = _baseHeight + topPadding;
+
+    return Material(
+      color: AppColors.white,
+      elevation: isSticky ? 2 : 0,
+      child: Container(
+        height: totalHeight,
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          border: Border(
+            bottom: BorderSide(color: AppColors.greyE5, width: 0.5),
+          ),
+        ),
+        child: Padding(
+          padding: EdgeInsets.only(top: topPadding),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              if (isSticky)
+                Padding(
+                  padding: EdgeInsets.only(left: SizeConfig.size8),
+                  child: IconButton(
+                    onPressed: onBack,
+                    splashRadius: SizeConfig.size22,
+                    icon: Icon(Icons.arrow_back,
+                        color: AppColors.mainTextColor,
+                        size: SizeConfig.size22),
+                  ),
+                ),
+              Expanded(child: child),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  bool shouldRebuild(covariant _StickyCategoryHeaderDelegate oldDelegate) =>
+      topPadding != oldDelegate.topPadding ||
+      child != oldDelegate.child ||
+      onBack != oldDelegate.onBack;
 }

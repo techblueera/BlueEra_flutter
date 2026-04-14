@@ -43,7 +43,6 @@ class DiscoverSchoolHomeScreen extends StatelessWidget {
       backgroundColor: AppColors.appBackgroundColor,
       appBar: CommonBackAppBar(
         title: AppStrings.school,
-
       ),
       bottomNavigationBar: _buildBottomBar(),
       body: SingleChildScrollView(

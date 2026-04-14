@@ -20,27 +20,22 @@ class LabProfilesListScreen extends StatefulWidget {
 
 class _LabProfilesListScreenState extends State<LabProfilesListScreen> {
   late final LabProfilesListController controller;
-  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
     controller = getOrPut(() => LabProfilesListController());
-    _scrollController.addListener(_onScroll);
   }
 
-  void _onScroll() {
-    if (!_scrollController.hasClients) return;
-    if (_scrollController.position.pixels >=
-        _scrollController.position.maxScrollExtent - 200) {
+  /// Pagination driven by scroll metrics rather than a private controller.
+  /// This lets the ListView inherit the NestedScrollView's PrimaryScrollController
+  /// so scrolling here also collapses the outer banner and pins the category header.
+  bool _onScroll(ScrollNotification n) {
+    if (n.metrics.axis != Axis.vertical) return false;
+    if (n.metrics.pixels >= n.metrics.maxScrollExtent - 200) {
       controller.fetchMore();
     }
-  }
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
+    return false;
   }
 
   @override
@@ -74,22 +69,26 @@ class _LabProfilesListScreenState extends State<LabProfilesListScreen> {
         return RefreshIndicator(
           color: AppColors.primaryColor,
           onRefresh: controller.fetchInitial,
-          child: ListView.builder(
-            controller: _scrollController,
-            itemCount: controller.profiles.length +
-                (controller.isLoadingMore.value ? 1 : 0),
-            itemBuilder: (context, index) {
-              if (index >= controller.profiles.length) {
-                return Padding(
-                  padding: EdgeInsets.symmetric(vertical: SizeConfig.size12),
-                  child: const Center(
-                      child: CircularProgressIndicator(
-                          color: AppColors.primaryColor)),
-                );
-              }
-              final item = controller.profiles[index];
-              return _LabCard(item: item);
-            },
+          child: NotificationListener<ScrollNotification>(
+            onNotification: _onScroll,
+            child: ListView.builder(
+              // No controller — inherit the NestedScrollView's primary
+              // controller so drag gestures collapse the outer header.
+              itemCount: controller.profiles.length +
+                  (controller.isLoadingMore.value ? 1 : 0),
+              itemBuilder: (context, index) {
+                if (index >= controller.profiles.length) {
+                  return Padding(
+                    padding: EdgeInsets.symmetric(vertical: SizeConfig.size12),
+                    child: const Center(
+                        child: CircularProgressIndicator(
+                            color: AppColors.primaryColor)),
+                  );
+                }
+                final item = controller.profiles[index];
+                return _LabCard(item: item);
+              },
+            ),
           ),
         );
       }),
@@ -145,7 +144,9 @@ class _LabCard extends StatelessWidget {
                       children: [
                         Expanded(
                           child: CustomText(
-                            item.name.isNotEmpty ? item.name : AppStrings.unknown.tr,
+                            item.name.isNotEmpty
+                                ? item.name
+                                : AppStrings.unknown.tr,
                             fontSize: SizeConfig.medium,
                             fontWeight: FontWeight.w700,
                             color: AppColors.mainTextColor,
@@ -156,7 +157,6 @@ class _LabCard extends StatelessWidget {
                       ],
                     ),
                     SizedBox(height: SizeConfig.size6),
-
                     if (item.description.isNotEmpty)
                       ExpandableText(
                         text: item.description,
@@ -170,7 +170,8 @@ class _LabCard extends StatelessWidget {
                           fontFamily: AppConstants.OpenSans,
                         ),
                       ),
-                    if (item.fullDetails?.healthCamps?.firstOrNull?.startTime != null) ...[
+                    if (item.fullDetails?.healthCamps?.firstOrNull?.startTime !=
+                        null) ...[
                       SizedBox(height: SizeConfig.size6),
                       CustomText(
                         "${AppStrings.openTime.tr}: ${item.fullDetails?.healthCamps?.firstOrNull?.startTime}",
