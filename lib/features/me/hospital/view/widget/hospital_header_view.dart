@@ -152,187 +152,189 @@ class _HospitalHeaderViewState extends State<HospitalHeaderView> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    return CommonCardWidget(
-      padding: 0,
-      child: Column(
-        children: [
-          // --- HEADER SECTION (Banner & Logo) ---
-          SizedBox(
-            height: size.height * 0.20,
-            child: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                // Banner Image
-                GestureDetector(
-                  onTap: () => null,
-                  child: Container(
-                    width: double.infinity,
-                    height: size.height * 0.15,
-                    decoration: BoxDecoration(
-                      color: Colors.blueGrey[100],
-                      borderRadius: const BorderRadius.only(
-                          topLeft: Radius.circular(10),
-                          topRight: Radius.circular(10)),
-                    ),
-                    child: ClipRRect(
-                      borderRadius: const BorderRadius.only(
-                          topLeft: Radius.circular(10),
-                          topRight: Radius.circular(10)),
-                      child: _bannerImage != null
-                          ? Image.file(_bannerImage!, fit: BoxFit.cover,
-                              width: double.infinity)
-                          : (controller.hospitalDataResModel?.value.data
-                                      ?.coverUrl?.isNotEmpty ??
-                                  false)
-                              ? Image.network(
-                                  controller.hospitalDataResModel!.value.data!
-                                      .coverUrl!,
-                                  fit: BoxFit.cover,
-                                  width: double.infinity,
-                                  errorBuilder: (_, __, ___) => Center(
+    return Obx(() {
+      return CommonCardWidget(
+        padding: 0,
+        child: Column(
+          children: [
+            // --- HEADER SECTION (Banner & Logo) ---
+            SizedBox(
+              height: size.height * 0.18,
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  // Banner Image
+                  GestureDetector(
+                    onTap: () => null,
+                    child: Container(
+                      width: double.infinity,
+                      height: size.height * 0.15,
+                      decoration: BoxDecoration(
+                        color: Colors.blueGrey[100],
+                        borderRadius: const BorderRadius.only(
+                            topLeft: Radius.circular(10),
+                            topRight: Radius.circular(10)),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: const BorderRadius.only(
+                            topLeft: Radius.circular(10),
+                            topRight: Radius.circular(10)),
+                        child: _bannerImage != null
+                            ? Image.file(_bannerImage!,
+                                fit: BoxFit.cover, width: double.infinity)
+                            : (controller.hospitalDataResModel?.value.data
+                                        ?.coverUrl?.isNotEmpty ??
+                                    false)
+                                ? Image.network(
+                                    controller.hospitalDataResModel!.value.data!
+                                        .coverUrl!,
+                                    fit: BoxFit.cover,
+                                    width: double.infinity,
+                                    errorBuilder: (_, __, ___) => Center(
+                                      child: Icon(Icons.local_hospital,
+                                          size: 48,
+                                          color: Colors.blueGrey[300]),
+                                    ),
+                                  )
+                                : Center(
                                     child: Icon(Icons.local_hospital,
                                         size: 48,
                                         color: Colors.blueGrey[300]),
                                   ),
-                                )
-                              : Center(
-                                  child: Icon(Icons.local_hospital,
-                                      size: 48,
-                                      color: Colors.blueGrey[300]),
-                                ),
-                    ),
-                  ),
-                ),
-                if (!widget.isReadOnly)
-                  Positioned(
-                    right: 20,
-                    top: 10,
-                    child: IgnorePointer(
-                      ignoring: widget.isReadOnly,
-                      child: InkWell(
-                        onTap: () => _pickImage(true),
-                        child: Container(
-                            width: 30,
-                            height: 30,
-                            child: LocalAssets(
-                              imagePath: AppIconAssets.edit_banner_icon,
-                            )),
                       ),
                     ),
                   ),
-
-                // Logo Image
-                Positioned(
-                  bottom: 0,
-                  left: 20,
-                  child: IgnorePointer(
-                    ignoring: widget.isReadOnly,
-
-                    child: GestureDetector(
-                      onTap: () => _pickImage(false),
-                      child: Container(
-                        width: 100,
-                        height: 100,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 4),
-                          boxShadow: const [
-                            BoxShadow(color: Colors.black12, blurRadius: 10)
-                          ],
-                        ),
-                        child: ClipOval(
-                          child: _logoImage != null
-                              ? Image.file(_logoImage!, fit: BoxFit.cover,
-                                  width: 100, height: 100)
-                              : (controller.hospitalDataResModel?.value.data
-                                          ?.logoUrl?.isNotEmpty ??
-                                      false)
-                                  ? Image.network(
-                                      controller.hospitalDataResModel!.value
-                                          .data!.logoUrl!,
-                                      fit: BoxFit.cover,
-                                      width: 100,
-                                      height: 100,
-                                      errorBuilder: (_, __, ___) =>
-                                          _logoPlaceholder(),
-                                    )
-                                  : _logoPlaceholder(),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                if (!widget.isReadOnly)
-                  Positioned(
-                      bottom: 10,
-                      left: 90,
+                  if (!widget.isReadOnly)
+                    Positioned(
+                      right: 20,
+                      top: 10,
                       child: IgnorePointer(
                         ignoring: widget.isReadOnly,
-
                         child: InkWell(
-                          onTap: () => _pickImage(false),
+                          onTap: () => _pickImage(true),
                           child: Container(
-                              width: 25,
-                              height: 25,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                // color: AppColors.red00,
-                                color: AppColors.secondaryTextColor
-                                    .withValues(alpha: 0.3),
-                              ),
-                              child: const Icon(
-                                Icons.camera_alt,
-                                color: Colors.white,
-                                size: 15,
+                              width: 30,
+                              height: 30,
+                              child: LocalAssets(
+                                imagePath: AppIconAssets.edit_banner_icon,
                               )),
                         ),
-                      ))
-              ],
-            ),
-          ),
-
-          // --- NAME & STATS SECTION ---
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: SizeConfig.paddingS),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(height: SizeConfig.paddingXS),
-
-                // Hospital Name + Edit
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Expanded(
-                      child: CustomText(
-                        controller.hospitalDataResModel?.value.data?.name ?? "",
-                        fontSize: SizeConfig.large18,
-                        maxLines: 2,
-                        color: AppColors.mainTextColor,
-                        overflow: TextOverflow.ellipsis,
-                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                    if (!widget.isReadOnly)
-                      IconButton(
-                        onPressed: () => Get.to(const HospitalAboutUsScreen()),
-                        icon: const Icon(Icons.edit_outlined, size: 20),
+
+                  // Logo Image
+                  Positioned(
+                    bottom: 0,
+                    left: 20,
+                    child: IgnorePointer(
+                      ignoring: widget.isReadOnly,
+                      child: GestureDetector(
+                        onTap: () => _pickImage(false),
+                        child: Container(
+                          width: 80,
+                          height: 80,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white, width: 4),
+                            boxShadow: const [
+                              BoxShadow(color: Colors.black12, blurRadius: 10)
+                            ],
+                          ),
+                          child: ClipOval(
+                            child: _logoImage != null
+                                ? Image.file(_logoImage!,
+                                    fit: BoxFit.cover, width: 80, height: 80)
+                                : (controller.hospitalDataResModel?.value.data
+                                            ?.logoUrl?.isNotEmpty ??
+                                        false)
+                                    ? Image.network(
+                                        controller.hospitalDataResModel!.value
+                                            .data!.logoUrl!,
+                                        fit: BoxFit.cover,
+                                        width: 80,
+                                        height: 80,
+                                        errorBuilder: (_, __, ___) =>
+                                            _logoPlaceholder(),
+                                      )
+                                    : _logoPlaceholder(),
+                          ),
+                        ),
                       ),
-                  ],
-                ),
-
-                SizedBox(height: SizeConfig.paddingXSmall),
-
-                // Rating | Reviews | Distance row
-                _buildStatsRow(),
-
-                SizedBox(height: SizeConfig.paddingXS),
-              ],
+                    ),
+                  ),
+                  if (!widget.isReadOnly)
+                    Positioned(
+                        bottom: 0,
+                        left: 75,
+                        child: IgnorePointer(
+                          ignoring: widget.isReadOnly,
+                          child: InkWell(
+                            onTap: () => _pickImage(false),
+                            child: Container(
+                                width: 25,
+                                height: 25,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  // color: AppColors.red00,
+                                  color: AppColors.secondaryTextColor
+                                      .withValues(alpha: 0.3),
+                                ),
+                                child: const Icon(
+                                  Icons.camera_alt,
+                                  color: Colors.white,
+                                  size: 15,
+                                )),
+                          ),
+                        ))
+                ],
+              ),
             ),
-          ),
-        ],
-      ),
-    );
+
+            // --- NAME & STATS SECTION ---
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: SizeConfig.paddingS),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(height: SizeConfig.paddingXS),
+
+                  // Hospital Name + Edit
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: CustomText(
+                          controller.hospitalDataResModel?.value.data?.name ??
+                              "",
+                          fontSize: SizeConfig.large18,
+                          maxLines: 2,
+                          color: AppColors.mainTextColor,
+                          overflow: TextOverflow.ellipsis,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      if (!widget.isReadOnly)
+                        IconButton(
+                          onPressed: () =>
+                              Get.to(const HospitalAboutUsScreen()),
+                          icon: const Icon(Icons.edit_outlined, size: 20),
+                        ),
+                    ],
+                  ),
+
+                  SizedBox(height: SizeConfig.paddingXSmall),
+
+                  // Rating | Reviews | Distance row
+                  _buildStatsRow(),
+
+                  SizedBox(height: SizeConfig.paddingXS),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    });
   }
 }

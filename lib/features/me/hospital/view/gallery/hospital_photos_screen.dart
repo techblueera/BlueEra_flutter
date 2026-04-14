@@ -23,6 +23,7 @@ class HospitalPhotosScreen extends StatelessWidget {
           padding: const EdgeInsets.only(left: 20,right: 20,bottom: 30,top: 10),
           child: PositiveCustomBtn(
               onTap: () {
+                controller.clearUploadState();
                 Get.to(UploadHospitalPhotosScreen());
               },
               title:AppStrings.uploadHospitalPhoto),
@@ -83,7 +84,7 @@ class HospitalPhotosScreen extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: CustomText(
-                                "+${images.length} ${AppStrings.images.tr}",
+                                "${images.length} ${AppStrings.images.tr}",
                                 textAlign: TextAlign.center,
                                     color: Colors.white, fontSize: 10),
                             ),

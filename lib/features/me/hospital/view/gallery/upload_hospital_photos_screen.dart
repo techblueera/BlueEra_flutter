@@ -109,12 +109,13 @@ class UploadHospitalPhotosScreen extends StatelessWidget {
 
             SizedBox(height: 40),
             Obx(() {
+              bool isProcessing = controller.isLoading.value;
               return CustomBtn(
-                title: AppStrings.submit,
+                title: isProcessing ? AppStrings.uploadingLabel.tr : AppStrings.submit.tr,
                 isValidate: controller.selectedCategory.isNotEmpty &&
-                    controller.selectedImages.isNotEmpty,
+                    controller.selectedImages.isNotEmpty && !isProcessing,
                 onTap: controller.selectedCategory.isNotEmpty &&
-                        controller.selectedImages.isNotEmpty
+                        controller.selectedImages.isNotEmpty && !isProcessing
                     ? () {
                         if (controller.selectedCategory.isEmpty) {
                           commonSnackBar(
@@ -124,7 +125,6 @@ class UploadHospitalPhotosScreen extends StatelessWidget {
                               message:AppStrings.errorSelectingImage);
                         } else {
                           controller.buildRequestBody();
-                          // Call your API upload logic here
                         }
                       }
                     : null,

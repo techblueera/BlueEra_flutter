@@ -14,7 +14,8 @@ class HospitalManagementScreen extends StatefulWidget {
   const HospitalManagementScreen({super.key});
 
   @override
-  State<HospitalManagementScreen> createState() => _HospitalManagementScreenState();
+  State<HospitalManagementScreen> createState() =>
+      _HospitalManagementScreenState();
 }
 
 class _HospitalManagementScreenState extends State<HospitalManagementScreen> {
@@ -60,10 +61,11 @@ class _HospitalManagementScreenState extends State<HospitalManagementScreen> {
       ),
       body: Obx(() {
         if (controller.isLoading.value) {
-          return const Center(child: CircularProgressIndicator(color: AppColors.primaryColor));
+          return const Center(
+              child: CircularProgressIndicator(color: AppColors.primaryColor));
         }
         if (controller.members.isEmpty) {
-          return Center(child: CustomText(AppStrings.noDataFound));
+          return Center(child: CustomText(AppStrings.nodata));
         }
         return Padding(
           padding: EdgeInsets.only(
@@ -98,19 +100,23 @@ class _HospitalManagementScreenState extends State<HospitalManagementScreen> {
                 if (member.imageUrl.isNotEmpty)
                   ClipRRect(
                     borderRadius: BorderRadius.circular(8),
-                    child: Image.network(member.imageUrl, height: 50, width: 50, fit: BoxFit.cover),
+                    child: Image.network(member.imageUrl,
+                        height: 50, width: 50, fit: BoxFit.cover),
                   ),
                 SizedBox(width: 10),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      CustomText(member.name, fontSize: SizeConfig.size18, fontWeight: FontWeight.w700),
+                      CustomText(member.name,
+                          fontSize: SizeConfig.size18,
+                          fontWeight: FontWeight.w700),
                       SizedBox(height: 4),
                       CustomText(member.position, color: AppColors.black28),
                       if (member.education.isNotEmpty) ...[
                         SizedBox(height: 2),
-                        CustomText(member.education, color: AppColors.secondaryTextColor),
+                        CustomText(member.education,
+                            color: AppColors.secondaryTextColor),
                       ],
                     ],
                   ),
@@ -122,7 +128,8 @@ class _HospitalManagementScreenState extends State<HospitalManagementScreen> {
                   offset: const Offset(-6, 36),
                   color: AppColors.white,
                   elevation: 8,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10)),
                   itemBuilder: (context) => [
                     PopupMenuItem(
                       value: "EDIT",
@@ -166,7 +173,8 @@ class _HospitalManagementScreenState extends State<HospitalManagementScreen> {
             ),
             if (member.description.isNotEmpty) ...[
               SizedBox(height: 8),
-              CustomText(member.description, color: AppColors.secondaryTextColor),
+              CustomText(member.description,
+                  color: AppColors.secondaryTextColor),
             ],
           ],
         ),

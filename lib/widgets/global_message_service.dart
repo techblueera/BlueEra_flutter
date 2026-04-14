@@ -26,8 +26,6 @@ class GlobalMessage extends GetView<GlobalMessageService> {
 
   @override
   Widget build(BuildContext context) {
-
-
     return Obx(() {
       double bottomNavBarHeight = SizeConfig.size30;
 
@@ -46,7 +44,7 @@ class GlobalMessage extends GetView<GlobalMessageService> {
           top: false,
           child: Padding(
             padding: EdgeInsets.symmetric(horizontal: SizeConfig.size30),
-                child: AnimatedMessageBox(controller: controller),
+            child: AnimatedMessageBox(controller: controller),
           ),
         ),
       );

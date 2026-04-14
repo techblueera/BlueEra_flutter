@@ -78,7 +78,8 @@ class ViewBusinessDetailsController extends GetxController {
   Rx<ApiResponse> businessFoodResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> businessRatingsResponse = ApiResponse.initial('Initial').obs;
 
-  final Rx<ViewBusinessProfileModel?> businessProfileDetails = Rx<ViewBusinessProfileModel?>(null);
+  final Rx<ViewBusinessProfileModel?> businessProfileDetails =
+      Rx<ViewBusinessProfileModel?>(null);
 
   Rx<GetBusinessVerifyViewModel>? viewBusinessVerifyStatus =
       GetBusinessVerifyViewModel().obs;
@@ -125,8 +126,8 @@ class ViewBusinessDetailsController extends GetxController {
 
   // Method to set start location data
   void setStartLocation(double? lat, double? lng, String address) {
-    if (lat != null && lat!=0.0) addressLat?.value = lat;
-    if (lng != null && lng!=0.0) addressLong?.value = lng;
+    if (lat != null && lat != 0.0) addressLat?.value = lat;
+    if (lng != null && lng != 0.0) addressLong?.value = lng;
     businessAddress.value = address;
   }
 
@@ -183,7 +184,8 @@ class ViewBusinessDetailsController extends GetxController {
       tempDescription.value = businessDescription.value;
       controllerVisit.isFollow.value =
           businessProfileDetails.value?.data?.is_following ?? false;
-      isBusinessVerified.value=businessProfileDetails.value?.data?.businessIsVerified ?? false;
+      isBusinessVerified.value =
+          businessProfileDetails.value?.data?.businessIsVerified ?? false;
       // if (selectedBusinessType?.value.name.toLowerCase() == "both") {
       //   selectedCategoryOfBusiness.value = null;
       //   selectedSubCategoryOfBusinessNew.value = null;
@@ -206,7 +208,8 @@ class ViewBusinessDetailsController extends GetxController {
             businessProfileDetails.value?.data?.categoryDetails?.name ?? '',
         subCategoryOfBusiness:
             businessProfileDetails.value?.data?.subCategoryDetails?.name ?? '',
-        typeOfBusiness: businessProfileDetails.value?.data?.typeOfBusiness ?? '',
+        typeOfBusiness:
+            businessProfileDetails.value?.data?.typeOfBusiness ?? '',
         // typeOfBusiness: businessProfileDetails.value?.data?.typeOfBusiness ?? '',
       );
 
@@ -257,7 +260,7 @@ class ViewBusinessDetailsController extends GetxController {
       //     await BusinessProfileRepo().updateBusinessProfileDetails(params);
       if (responseModel.isSuccess) {
         GuestUserResModel guestUserResModel =
-        GuestUserResModel.fromJson(responseModel.response?.data);
+            GuestUserResModel.fromJson(responseModel.response?.data);
         await SharedPreferenceUtils.setSecureValue(
             SharedPreferenceUtils.authToken, guestUserResModel.token);
         await getUserAuthToken();
@@ -303,10 +306,8 @@ class ViewBusinessDetailsController extends GetxController {
   RxString categorySpecializationText = "".obs;
   RxString errorMessage = "".obs;
 
-
   /// Step 1 – Nature of Business
-  Rx<BusinessCategory?> selectedTypeOfBusiness =
-  Rx<BusinessCategory?>(null);
+  Rx<BusinessCategory?> selectedTypeOfBusiness = Rx<BusinessCategory?>(null);
 
   /// Step 2 – Parent Categories
   RxList<CategoryData> categoryList = <CategoryData>[].obs;
@@ -325,8 +326,8 @@ class ViewBusinessDetailsController extends GetxController {
     selectedSubCategory.value = null;
 
     try {
-      final response =
-      await AuthRepo().getBusinessCategoriesByTypeRepo(selectedTypeOfBusiness.value?.type??"");
+      final response = await AuthRepo().getBusinessCategoriesByTypeRepo(
+          selectedTypeOfBusiness.value?.type ?? "");
 
       if (response.isSuccess) {
         categoryList.value =
@@ -390,6 +391,7 @@ class ViewBusinessDetailsController extends GetxController {
       }
     } catch (e) {}
   }
+
 // fsdfnksdjnf
   Future<void> postVerifyOwnerBusinessDocs(Map<String, dynamic> params) async {
     try {
@@ -486,15 +488,15 @@ class ViewBusinessDetailsController extends GetxController {
         Map<String, dynamic> detas = {
           ApiKeys.user_id: visitedBusinessProfileDetails?.data?.userId
         };
-        Map<String,dynamic>? checkCompleted =
+        Map<String, dynamic>? checkCompleted =
             await chatViewController.checkChatConnection(detas);
         imagePath?.value = visitedBusinessProfileDetails?.data?.logo ?? "";
         businessDescription.value =
             visitedBusinessProfileDetails?.data?.businessDescription ?? "";
 
-        conversationId.value = checkCompleted?[ApiKeys.conversation_id]??'';
-        otherUserId?.value = checkCompleted?[ApiKeys.other_user_id]??'';
-        if (checkCompleted!=null) {
+        conversationId.value = checkCompleted?[ApiKeys.conversation_id] ?? '';
+        otherUserId?.value = checkCompleted?[ApiKeys.other_user_id] ?? '';
+        if (checkCompleted != null) {
           viewBusinessResponseNew = ApiResponse.complete(responseModel);
         }
         visitingcontroller.isFollow.value =
@@ -512,7 +514,7 @@ class ViewBusinessDetailsController extends GetxController {
     } catch (e, s) {
       logs("Stack trace ${s}");
       viewBusinessResponseNew = ApiResponse.error('error');
-    }finally{
+    } finally {
       isProfileLoading.value = false;
     }
   }

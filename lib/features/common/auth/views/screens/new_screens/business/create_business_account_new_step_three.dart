@@ -25,10 +25,7 @@ import 'package:get/get.dart';
 
 class CreateBusinessAccountNewStepThree extends StatefulWidget {
   final String? city;
-  const CreateBusinessAccountNewStepThree({
-    super.key,
-    this.city
-  });
+  const CreateBusinessAccountNewStepThree({super.key, this.city});
 
   @override
   State<CreateBusinessAccountNewStepThree> createState() =>
@@ -42,7 +39,7 @@ class _CreateBusinessAccountNewStepThreeState
   final emailTextController = TextEditingController();
   final descriptionController = Get.put(BusinessDescriptionController());
   final viewBusinessDetailsController =
-  Get.find<ViewBusinessDetailsController>();
+      Get.find<ViewBusinessDetailsController>();
   bool isFormValid = false;
 
   @override
@@ -52,50 +49,35 @@ class _CreateBusinessAccountNewStepThreeState
     nameTextController.addListener(_validateForm);
     yourRoleController.addListener(_validateForm);
     emailTextController.addListener(_validateForm);
-    viewBusinessDetailsController.listingDescriptionController.value.addListener(_validateForm);
-    WidgetsBinding.instance.addPostFrameCallback((_) =>
-      aiGeneratedBusinessDesc());
-
+    viewBusinessDetailsController.listingDescriptionController.value
+        .addListener(_validateForm);
+    WidgetsBinding.instance
+        .addPostFrameCallback((_) => aiGeneratedBusinessDesc());
   }
 
   Future<void> aiGeneratedBusinessDesc() async {
-   await descriptionController.generateDescriptions(
-        onSaved: _validateForm,
-        bodyRequest: {
-          ApiKeys.business_name:
-          viewBusinessDetailsController
-              .businessProfileDetails.value
-              ?.data
-              ?.businessName,
-          ApiKeys.category:
-          viewBusinessDetailsController
-              .businessProfileDetails.value
-              ?.data
-              ?.categoryDetails
-              ?.name,
-          ApiKeys.sub_category:
-          viewBusinessDetailsController
-              .businessProfileDetails.value
-              ?.data
-              ?.subCategoryDetails
-              ?.name,
-          ApiKeys.city: widget.city
-        });
+    await descriptionController
+        .generateDescriptions(onSaved: _validateForm, bodyRequest: {
+      ApiKeys.business_name: viewBusinessDetailsController
+          .businessProfileDetails.value?.data?.businessName,
+      ApiKeys.category: viewBusinessDetailsController
+          .businessProfileDetails.value?.data?.categoryDetails?.name,
+      ApiKeys.sub_category: viewBusinessDetailsController
+          .businessProfileDetails.value?.data?.subCategoryDetails?.name,
+      ApiKeys.city: widget.city
+    });
   }
-
 
   void _validateForm() {
     setState(() {
       isFormValid = nameTextController.text.trim().isNotEmpty &&
           yourRoleController.text.trim().isNotEmpty &&
           emailTextController.text.trim().isNotEmpty &&
-          viewBusinessDetailsController.listingDescriptionController.value
-              .text
+          viewBusinessDetailsController.listingDescriptionController.value.text
               .trim()
               .isNotEmpty;
     });
   }
-
 
   @override
   void dispose() {
@@ -105,9 +87,7 @@ class _CreateBusinessAccountNewStepThreeState
     nameTextController.removeListener(_validateForm);
     yourRoleController.removeListener(_validateForm);
     emailTextController.removeListener(_validateForm);
-    viewBusinessDetailsController
-        .listingDescriptionController
-        .value
+    viewBusinessDetailsController.listingDescriptionController.value
         .removeListener(_validateForm);
     super.dispose();
   }
@@ -118,11 +98,10 @@ class _CreateBusinessAccountNewStepThreeState
 
     return Scaffold(
         appBar: CommonBackAppBar(
-            isLeading: true,
-            title: AppStrings.businessDetailsTitle
-        ),
+            isLeading: true, title: AppStrings.businessDetailsTitle),
         body: AbsorbPointer(
-          absorbing: viewBusinessDetailsController.isUpdateBusinessDetailsLoading.value,
+          absorbing: viewBusinessDetailsController
+              .isUpdateBusinessDetailsLoading.value,
           child: SingleChildScrollView(
             child: Container(
               margin: EdgeInsets.symmetric(
@@ -137,7 +116,6 @@ class _CreateBusinessAccountNewStepThreeState
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-          
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -147,25 +125,26 @@ class _CreateBusinessAccountNewStepThreeState
                           fontWeight: FontWeight.w400,
                           color: AppColors.black,
                         ),
-                        Obx(()=> !descriptionController.isLoading.value
+                        Obx(() => !descriptionController.isLoading.value
                             ? InkWell(
-                            onTap: () async {
-                              await aiGeneratedBusinessDesc();
-                              if (!mounted) return;
-                              _validateForm();
-                            },
-                            child: LocalAssets(
-                              height: 25,
-                              width: 25,
-                              imgColor: AppColors.primaryColor,
-                              imagePath: AppIconAssets.ai_generative,
-                            )) : SizedBox(
+                                onTap: () async {
+                                  await aiGeneratedBusinessDesc();
+                                  if (!mounted) return;
+                                  _validateForm();
+                                },
+                                child: LocalAssets(
+                                  height: 25,
+                                  width: 25,
+                                  imgColor: AppColors.primaryColor,
+                                  imagePath: AppIconAssets.ai_generative,
+                                ))
+                            : SizedBox(
                                 height: 25,
                                 width: 25,
-                              child: CircularProgressIndicator(
-                                    strokeWidth: 2.0,
-                                  ),
-                            )),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2.0,
+                                ),
+                              )),
                       ],
                     ),
                     SizedBox(height: SizeConfig.paddingXSL),
@@ -173,16 +152,17 @@ class _CreateBusinessAccountNewStepThreeState
                       validator: null,
                       borderWidth: 0,
                       borderColor: Colors.transparent,
-                      hintText:
-                      AppStrings.businessDescriptionExample,
+                      hintText: AppStrings.businessDescriptionExample,
                       textEditController: viewBusinessDetailsController
                           .listingDescriptionController.value,
                       maxLine: 5,
                       isValidate: false,
                       maxLength: AppConstants.inputCharterLimit400,
                       onChange: (val) {
-                        viewBusinessDetailsController.businessDescription.value = val;
-                        viewBusinessDetailsController.listingDescriptionController.value.text = val;
+                        viewBusinessDetailsController
+                            .businessDescription.value = val;
+                        viewBusinessDetailsController
+                            .listingDescriptionController.value.text = val;
                         _validateForm();
                       },
                       inputFormatters: [
@@ -222,7 +202,7 @@ class _CreateBusinessAccountNewStepThreeState
                       inputLength: AppConstants.inputCharterLimit50,
                       keyBoardType: TextInputType.text,
                       regularExpression:
-                      RegularExpressionUtils.alphabetSpacePattern,
+                          RegularExpressionUtils.alphabetSpacePattern,
                       title: AppStrings.yourNameHint,
                       hintText: AppConstants.name,
                       isValidate: false,
@@ -236,7 +216,7 @@ class _CreateBusinessAccountNewStepThreeState
                       inputLength: AppConstants.inputCharterLimit50,
                       keyBoardType: TextInputType.text,
                       regularExpression:
-                      RegularExpressionUtils.alphabetSpacePattern,
+                          RegularExpressionUtils.alphabetSpacePattern,
                       title: AppStrings.yourRole,
                       hintText: AppStrings.yourRoleHint,
                       isValidate: false,
@@ -264,7 +244,8 @@ class _CreateBusinessAccountNewStepThreeState
                           child: CustomBtn(
                             radius: 10,
                             onTap: () {
-                              Get.toNamed(RouteHelper.getAddBusinessLivePhotoRoute());
+                              Get.toNamed(
+                                  RouteHelper.getAddBusinessLivePhotoRoute());
                             },
                             title: AppStrings.skip,
                             bgColor: Colors.transparent,
@@ -276,54 +257,72 @@ class _CreateBusinessAccountNewStepThreeState
                           width: SizeConfig.size10,
                         ),
                         Expanded(
-                          child: Obx(()=> CustomBtn(
-                            radius: 10,
-                            onTap: isFormValid
-                                ? () async {
-                              if (nameTextController.text.trim().length < 4) {
-                                commonSnackBar(message: "Name must be at least 4 characters.");
-                                return;
-                              }
-                              if (yourRoleController.text.trim().length < 4) {
-                                commonSnackBar(message: "Role must be at least 4 characters.");
-                                return;
-                              }
-                              String? emailError = ValidationMethod.validateEmail(emailTextController.text.trim());
-                              if (emailError != null) {
-                                commonSnackBar(message: emailError);
-                                return;
-                              }
-          
-                              /// Submit action
-                              Map<String, dynamic> reqParam = {
-                                ApiKeys.businessId: businessId,
-                                ApiKeys.business_description:
-                                viewBusinessDetailsController
-                                    .businessDescription.value,
-                                ApiKeys.owner_details: jsonEncode([
-                                  {
-                                    ApiKeys.name: nameTextController.text,
-                                    ApiKeys.role_in_business:
-                                    yourRoleController.text,
-                                    ApiKeys.email: emailTextController.text
-                                  }
-                                ]),
-                              };
-                              await viewBusinessDetailsController
-                                  .updateBusinessDetails(reqParam, showProgress: false);
-                              Get.toNamed(RouteHelper.getAddBusinessLivePhotoRoute());
-                            }
-                                : null,
-                            title: viewBusinessDetailsController.isUpdateBusinessDetailsLoading.value
-                                ? null
-                                : AppStrings.submit,
-                            isLoading: viewBusinessDetailsController.isUpdateBusinessDetailsLoading.value,
-                            isValidate: isFormValid,
-                          )),
+                          child: Obx(() => CustomBtn(
+                                radius: 10,
+                                onTap: isFormValid
+                                    ? () async {
+                                        if (nameTextController.text
+                                                .trim()
+                                                .length <
+                                            4) {
+                                          commonSnackBar(
+                                              message:
+                                                  "Name must be at least 4 characters.");
+                                          return;
+                                        }
+                                        if (yourRoleController.text
+                                                .trim()
+                                                .length <
+                                            4) {
+                                          commonSnackBar(
+                                              message:
+                                                  "Role must be at least 4 characters.");
+                                          return;
+                                        }
+                                        String? emailError =
+                                            ValidationMethod.validateEmail(
+                                                emailTextController.text
+                                                    .trim());
+                                        if (emailError != null) {
+                                          commonSnackBar(message: emailError);
+                                          return;
+                                        }
+
+                                        /// Submit action
+                                        Map<String, dynamic> reqParam = {
+                                          ApiKeys.businessId: businessId,
+                                          ApiKeys.business_description:
+                                              viewBusinessDetailsController
+                                                  .businessDescription.value,
+                                          ApiKeys.owner_details: jsonEncode([
+                                            {
+                                              ApiKeys.name:
+                                                  nameTextController.text,
+                                              ApiKeys.role_in_business:
+                                                  yourRoleController.text,
+                                              ApiKeys.email:
+                                                  emailTextController.text
+                                            }
+                                          ]),
+                                        };
+                                        await viewBusinessDetailsController
+                                            .updateBusinessDetails(reqParam,
+                                                showProgress: false);
+                                        Get.toNamed(RouteHelper
+                                            .getAddBusinessLivePhotoRoute());
+                                      }
+                                    : null,
+                                title: viewBusinessDetailsController
+                                        .isUpdateBusinessDetailsLoading.value
+                                    ? null
+                                    : AppStrings.submit,
+                                isLoading: viewBusinessDetailsController
+                                    .isUpdateBusinessDetailsLoading.value,
+                                isValidate: isFormValid,
+                              )),
                         ),
                       ],
                     ),
-          
                   ],
                 ),
               ),
@@ -331,5 +330,4 @@ class _CreateBusinessAccountNewStepThreeState
           ),
         ));
   }
-
 }

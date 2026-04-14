@@ -46,7 +46,7 @@ class _HospitalIpdScreenState extends State<HospitalIpdScreen> {
             .where((e) => e.type.toUpperCase() == "IPD")
             .toList();
         if (ipd.isEmpty) {
-          return Center(child: CustomText(AppStrings.noDataFound));
+          return Center(child: CustomText(AppStrings.nodata));
         }
         return SingleChildScrollView(
           padding: EdgeInsets.only(bottom: 50, top: SizeConfig.paddingM),

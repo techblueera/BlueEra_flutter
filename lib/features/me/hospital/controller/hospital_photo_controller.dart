@@ -8,9 +8,12 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/me/hospital/model/hospital_gallery_res_model.dart';
 import 'package:BlueEra/features/me/hospital/repo/hospital_gallery_repo.dart';
 import 'package:BlueEra/features/me/school/repo/upload_file_to_s3.dart';
+import 'package:BlueEra/features/me/hospital/controller/hospital_service_ai_controller.dart';
 import 'package:get/get.dart';
 
 class HospitalPhotoController extends GetxController {
+  final hospitalServiceController = Get.find<HospitalServiceAiController>();
+
   // Use RxList to store your JSON data
   var propertyPhotosList = <HospitalGalleryData>[].obs;
   var isLoading = true.obs;
@@ -94,12 +97,18 @@ class HospitalPhotoController extends GetxController {
   void removeImage(int index) {
     selectedImages.removeAt(index);
   }
+  
+  void clearUploadState() {
+    selectedImages.clear();
+    selectedCategory.value = "";
+  }
 
-  // Logic to build the JSON request body
-  List<String> urlList = [];
+
 
   Future buildRequestBody() async {
     try {
+      isLoading.value = true;
+      List<String> urlList = [];
       for (var filePath in selectedImages) {
         UploadResult? result = await S3UploadService.uploadFile(File(filePath));
         if (result.isSuccess) {
@@ -118,9 +127,11 @@ class HospitalPhotoController extends GetxController {
           .addHospitalPropertyPhotosRepo(reqBody: requestBody);
 
       if (response.isSuccess) {
+        clearUploadState();
         Get.back();
         commonSnackBar(message: AppStrings.hospitalCtrlUploadSuccessfully.tr);
         fetchPhotos();
+        hospitalServiceController.getHospitalFullDetailsController();
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);
       }
@@ -148,6 +159,7 @@ class HospitalPhotoController extends GetxController {
             message:
                 response.response?.data['message'] ?? AppStrings.successful);
         fetchPhotos();
+        hospitalServiceController.getHospitalFullDetailsController();
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);
       }

@@ -79,7 +79,7 @@ class _OpdDoctorListScreenState extends State<OpdDoctorListScreen> {
                     CircularProgressIndicator(color: AppColors.primaryColor));
           }
           if (controller.doctors.isEmpty) {
-            return Center(child: CustomText(AppStrings.noDataFound));
+            return Center(child: CustomText(AppStrings.nodata));
           }
           return Padding(
             padding: const EdgeInsets.only(bottom: 30.0),
@@ -163,7 +163,7 @@ class _OpdDoctorListScreenState extends State<OpdDoctorListScreen> {
                                       const Duration(milliseconds: 100), () {
                                     commonConformationDialog(
                                       context: context,
-                                      text:AppStrings.areYouSureDelete.tr,
+                                      text: AppStrings.areYouSureDelete.tr,
                                       confirmCallback: () async {
                                         Navigator.of(context).pop();
                                         await controller.deleteOpd(d);

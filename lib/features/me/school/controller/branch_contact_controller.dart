@@ -88,7 +88,7 @@ class BranchContactController extends GetxController {
         commonSnackBar(
             message: response.response?.data['message'] ??
                 "Branch details added successfully");
-      await  getBranchDetailsController();
+        await getBranchDetailsController();
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);
       }
@@ -100,7 +100,8 @@ class BranchContactController extends GetxController {
     }
   }
 
-  RxList<SchoolContactUsData>? schoolContactUsData = <SchoolContactUsData>[].obs;
+  RxList<SchoolContactUsData>? schoolContactUsData =
+      <SchoolContactUsData>[].obs;
 
   ///====================API CALLING START==============================
   ///GET BRANCH CONTACT DETAILS...
@@ -113,10 +114,9 @@ class BranchContactController extends GetxController {
       ResponseModel response = await SchoolRepo().getSchoolContactRepo();
 
       SchoolContactUsResModel schoolContactUsModel =
-      SchoolContactUsResModel.fromJson(response.response?.data);
+          SchoolContactUsResModel.fromJson(response.response?.data);
 
-      schoolContactUsData?.value =
-          schoolContactUsModel.data ?? [];
+      schoolContactUsData?.value = schoolContactUsModel.data ?? [];
 
       if (response.isSuccess) {
         getSchoolContactUsResponse.value =
@@ -146,26 +146,26 @@ class BranchContactController extends GetxController {
         departmentPhoneNo.isNotEmpty &&
         departmentEmailAddress.isNotEmpty;
   }
+
   ///ADD NEW DEPARTMENT CONTACT INFO...
-  Future<void> addBranchDepartmentController({required Map<String,dynamic> reqBody,required String branchID}) async {
+  Future<void> addBranchDepartmentController(
+      {required Map<String, dynamic> reqBody, required String branchID}) async {
     // 1. Check if data is already loaded OR if it's currently loading
 
     // Logic for AI generation goes here
     try {
-      ResponseModel response = await SchoolRepo().addBranchDepartmentRepo(
-          reqParm: reqBody,
-         branchId: branchID);
+      ResponseModel response = await SchoolRepo()
+          .addBranchDepartmentRepo(reqParm: reqBody, branchId: branchID);
 
       if (response.isSuccess) {
         Get.back();
         commonSnackBar(
             message:
-            response.response?.data["message"] ?? AppStrings.successful);
+                response.response?.data["message"] ?? AppStrings.successful);
 
-      await  getBranchDetailsController();
+        await getBranchDetailsController();
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);
-
       }
     } on Exception catch (e) {
       logs("ERROR ${e}");
@@ -176,14 +176,16 @@ class BranchContactController extends GetxController {
   }
 
   ///UPDATE CONTACT INFO...
-  Future<void> updateBranchContactDetailsController({required Map<String,dynamic> reqBody,required String contactID,required String branchID}) async {
+  Future<void> updateBranchContactDetailsController(
+      {required Map<String, dynamic> reqBody,
+      required String contactID,
+      required String branchID}) async {
     // 1. Check if data is already loaded OR if it's currently loading
 
     // Logic for AI generation goes here
     try {
       ResponseModel response = await SchoolRepo().updateSchoolContactRepo(
-          reqParm: reqBody,
-          contactID: contactID, branchId: branchID);
+          reqParm: reqBody, contactID: contactID, branchId: branchID);
 
       if (response.isSuccess) {
         Get.back();
@@ -192,8 +194,7 @@ class BranchContactController extends GetxController {
                 response.response?.data["message"] ?? AppStrings.successful);
         updateSchoolContactInfoResponse.value =
             ApiResponse.complete(response.response?.data);
-        await  getBranchDetailsController();
-
+        await getBranchDetailsController();
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);
         updateSchoolContactInfoResponse.value =
@@ -207,20 +208,19 @@ class BranchContactController extends GetxController {
     }
   }
 
-
   ///DELETE BRnach Contact....
   Future<void> deleteSchoolBranchDepartmentController(
-      {required String departmentId,required String contactId}) async {
+      {required String departmentId, required String contactId}) async {
     try {
-      ResponseModel response = await SchoolRepo()
-          .deleteSchoolBranchDeptRepo(contactID:contactId ,deptID: departmentId);
+      ResponseModel response = await SchoolRepo().deleteSchoolBranchDeptRepo(
+          contactID: contactId, deptID: departmentId);
 
       if (response.isSuccess) {
         Get.back();
         commonSnackBar(
             message:
-            response.response?.data['message'] ?? AppStrings.successful);
-        await  getBranchDetailsController();
+                response.response?.data['message'] ?? AppStrings.successful);
+        await getBranchDetailsController();
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);
       }
@@ -230,18 +230,17 @@ class BranchContactController extends GetxController {
   }
 
   ///DELETE BRanch....
-  Future<void> deleteSchoolBranchController(
-      {required String contactId}) async {
+  Future<void> deleteSchoolBranchController({required String contactId}) async {
     try {
-      ResponseModel response = await SchoolRepo()
-          .deleteSchoolBranchRepo(contactID:contactId );
+      ResponseModel response =
+          await SchoolRepo().deleteSchoolBranchRepo(contactID: contactId);
 
       if (response.isSuccess) {
         Get.back();
         commonSnackBar(
             message:
-            response.response?.data['message'] ?? AppStrings.successful);
-        await  getBranchDetailsController();
+                response.response?.data['message'] ?? AppStrings.successful);
+        await getBranchDetailsController();
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);
       }
@@ -251,24 +250,25 @@ class BranchContactController extends GetxController {
   }
 
   ///UPDATE CONTACT INFO...
-  Future<void> updateBranchContactController({required Map<String,dynamic> reqBody,required String branchId}) async {
+  Future<void> updateBranchContactController(
+      {required Map<String, dynamic> reqBody, required String branchId}) async {
     // 1. Check if data is already loaded OR if it's currently loading
 
     // Logic for AI generation goes here
     try {
       ResponseModel response = await SchoolRepo().updateSchoolBranchRepo(
-          reqParm: reqBody,
-        branchID: branchId, );
+        reqParm: reqBody,
+        branchID: branchId,
+      );
 
       if (response.isSuccess) {
         Get.back();
         commonSnackBar(
             message:
-            response.response?.data["message"] ?? AppStrings.successful);
+                response.response?.data["message"] ?? AppStrings.successful);
         updateSchoolContactInfoResponse.value =
             ApiResponse.complete(response.response?.data);
-        await  getBranchDetailsController();
-
+        await getBranchDetailsController();
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);
         updateSchoolContactInfoResponse.value =
@@ -281,7 +281,6 @@ class BranchContactController extends GetxController {
           ApiResponse.error(AppStrings.somethingWentWrong);
     }
   }
-
 
   ///Only Branch Validation
   void branchValidateForm({

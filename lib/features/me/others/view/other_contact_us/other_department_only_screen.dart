@@ -8,7 +8,6 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-
 class OtherDepartmentOnlyScreen extends StatefulWidget {
   final OtherProfileDepartments? contactInfo;
   final bool? isContactInfoEdit;
@@ -18,7 +17,8 @@ class OtherDepartmentOnlyScreen extends StatefulWidget {
       {super.key, this.isContactInfoEdit, this.contactInfo, this.branchId});
 
   @override
-  _OtherDepartmentOnlyScreenState createState() => _OtherDepartmentOnlyScreenState();
+  _OtherDepartmentOnlyScreenState createState() =>
+      _OtherDepartmentOnlyScreenState();
 }
 
 class _OtherDepartmentOnlyScreenState extends State<OtherDepartmentOnlyScreen> {
@@ -97,17 +97,13 @@ class _OtherDepartmentOnlyScreenState extends State<OtherDepartmentOnlyScreen> {
                             },
                                 branchID: widget.contactInfo?.id ?? "",
                                 contactID: widget.branchId ?? "");
-                      }
-                      else{
+                      } else {
                         await schoolAboutUsController
-                            .addBranchDepartmentController(
-                            reqBody: {
-                              "department": titleController.text,
-                              "email": emailController.text,
-                              "phone": phoneController.text,
-                            },
-                            branchID:
-                            widget.branchId ?? "");
+                            .addBranchDepartmentController(reqBody: {
+                          "department": titleController.text,
+                          "email": emailController.text,
+                          "phone": phoneController.text,
+                        }, branchID: widget.branchId ?? "");
                         // addBranchDepartmentController
                       }
                     },

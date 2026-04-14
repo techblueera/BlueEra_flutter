@@ -15,8 +15,7 @@ import 'package:get/get.dart';
 class RestaurantController extends GetxController {
   bool foodDataNeedsRefresh = false;
 
-  Rx<ApiResponse> foodHomeDataResponse =
-      ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> foodHomeDataResponse = ApiResponse.initial('Initial').obs;
 
   // Observables
   var isLoading = true.obs;
@@ -29,7 +28,8 @@ class RestaurantController extends GetxController {
   /// Dedicated list for the "Offer Dish (Discount)" horizontal section.
   /// Fed by the `food-service/api/discountProducts` endpoint and paginated
   /// independently of the home API.
-  RxList<CategoryFoodProductData> discountFoodItems = <CategoryFoodProductData>[].obs;
+  RxList<CategoryFoodProductData> discountFoodItems =
+      <CategoryFoodProductData>[].obs;
   RxBool isDiscountProductsLoading = false.obs;
   RxBool isDiscountProductsLoadingMore = false.obs;
   int _discountProductsPage = 1;
@@ -43,17 +43,17 @@ class RestaurantController extends GetxController {
       foodHomeDataResponse.value = ApiResponse.initial('Initial');
 
       // call repo
-      ResponseModel responseModel = await FoodRepo()
-          .getHomeFoodByIdRepo(businessProfile: businessId);
+      ResponseModel responseModel =
+          await FoodRepo().getHomeFoodByIdRepo(businessProfile: businessId);
 
       if (responseModel.isSuccess) {
         restaurantData.value =
             FoodHomeResModel.fromJson(responseModel.response?.data).data;
         foodMenuNestedCategory.value = restaurantData.value?.foodMenu ?? [];
-        restaurantSpecials.value = restaurantData.value?.restaurantSpecials ?? [];
+        restaurantSpecials.value =
+            restaurantData.value?.restaurantSpecials ?? [];
 
         foodHomeDataResponse.value = ApiResponse.complete(responseModel);
-
       } else {
         foodHomeDataResponse.value = ApiResponse.error('error');
 
@@ -98,17 +98,19 @@ class RestaurantController extends GetxController {
 
       final ResponseModel response = await FoodRepo()
           .getDiscountFoodProductsRepo(
-          businessId: businessId,
-          queryParams: queryParams
-      );
+              businessId: businessId, queryParams: queryParams);
 
       if (response.isSuccess) {
-        var foodProductResponseModel = FoodProductResponseModel.fromJson(response.response?.data);
+        var foodProductResponseModel =
+            FoodProductResponseModel.fromJson(response.response?.data);
 
-        List<CategoryFoodProductData> newItems = (foodProductResponseModel.data ?? [])
-            .where((item) => item.productDetails != null) // Filter out nulls for safety
-            .map((item) => item.productDetails!)         // Extract the internal productDetails
-            .toList();
+        List<CategoryFoodProductData> newItems =
+            (foodProductResponseModel.data ?? [])
+                .where((item) =>
+                    item.productDetails != null) // Filter out nulls for safety
+                .map((item) =>
+                    item.productDetails!) // Extract the internal productDetails
+                .toList();
 
         if (newItems.isNotEmpty) {
           if (isLoadMore) {
@@ -175,8 +177,7 @@ class RestaurantController extends GetxController {
     required String phone,
   }) async {
     if (selectedLat == null || selectedLng == null) {
-      commonSnackBar(
-          message: AppStrings.foodSelectValidLocation.tr);
+      commonSnackBar(message: AppStrings.foodSelectValidLocation.tr);
       return;
     }
 

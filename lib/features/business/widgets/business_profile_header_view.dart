@@ -174,9 +174,9 @@ class BusinessProfileHeaderView extends StatelessWidget {
               ),
               const SizedBox(width: 5),
               CommonRatingRow(
-                rating: double.tryParse(
-                        details?.avg_rating.toString() ?? '0.0') ??
-                    0.0,
+                rating:
+                    double.tryParse(details?.avg_rating.toString() ?? '0.0') ??
+                        0.0,
                 reviews: details?.total_ratings?.toInt() ?? 0,
               ),
             ],
@@ -188,15 +188,14 @@ class BusinessProfileHeaderView extends StatelessWidget {
           const SizedBox(height: 10),
 
           // ── Website ──
-          if (!hasWebsite)
-            ...[
-              _buildInlineAdd(
-                icon: Icons.link_rounded,
-                label: 'Add Website',
-                onTap: () => _openEditSheet(context),
-              ),
-              const SizedBox(height: 10),
-            ],
+          if (!hasWebsite) ...[
+            _buildInlineAdd(
+              icon: Icons.link_rounded,
+              label: 'Add Website',
+              onTap: () => _openEditSheet(context),
+            ),
+            const SizedBox(height: 10),
+          ],
 
           // else
           // InkWell(
@@ -225,7 +224,6 @@ class BusinessProfileHeaderView extends StatelessWidget {
 
           // ── Availability + Restaurant type ──
 
-
           _buildQuickInfoRow(context, hasAvailability),
         ],
       ),
@@ -253,9 +251,9 @@ class BusinessProfileHeaderView extends StatelessWidget {
               const SizedBox(width: 5),
               CustomText(
                 '${calculateDistance(
-                  details?.businessLocation?.lat?.toDouble() ?? 0.0,
-                  details?.businessLocation?.lon?.toDouble() ?? 0.0,
-                )?.toStringAsFixed(2) ?? '--'} KM',
+                      details?.businessLocation?.lat?.toDouble() ?? 0.0,
+                      details?.businessLocation?.lon?.toDouble() ?? 0.0,
+                    )?.toStringAsFixed(2) ?? '--'} KM',
                 fontSize: 11,
                 fontWeight: FontWeight.w700,
                 color: AppColors.primaryColor,
@@ -265,8 +263,8 @@ class BusinessProfileHeaderView extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 4),
                   child: CustomText('|',
                       fontSize: 11,
-                      color: AppColors.secondaryTextColor
-                          .withValues(alpha: 0.4)),
+                      color:
+                          AppColors.secondaryTextColor.withValues(alpha: 0.4)),
                 ),
                 Expanded(
                   child: CustomText(
@@ -366,8 +364,6 @@ class BusinessProfileHeaderView extends StatelessWidget {
 
   bool get _hasAddress =>
       details?.address != null && details!.address!.trim().isNotEmpty;
-
-
 
   bool get _hasDietaryType =>
       details?.dietaryType != null && details!.dietaryType!.trim().isNotEmpty;
@@ -487,9 +483,8 @@ class BusinessProfileHeaderView extends StatelessWidget {
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(10),
                             border: Border.all(
-                              color: isSelected
-                                  ? optionColor
-                                  : AppColors.greyE5,
+                              color:
+                                  isSelected ? optionColor : AppColors.greyE5,
                               width: isSelected ? 1.5 : 1,
                             ),
                             color: isSelected
@@ -501,8 +496,7 @@ class BusinessProfileHeaderView extends StatelessWidget {
                               if (option == 'Both')
                                 _buildBothFoodIndicator()
                               else
-                                FoodTypeIndicator(
-                                    isVegetarian: isVeg, size: 6),
+                                FoodTypeIndicator(isVegetarian: isVeg, size: 6),
                               const SizedBox(width: 10),
                               Expanded(
                                 child: CustomText(
@@ -515,9 +509,8 @@ class BusinessProfileHeaderView extends StatelessWidget {
                                 isSelected
                                     ? Icons.radio_button_checked
                                     : Icons.radio_button_off,
-                                color: isSelected
-                                    ? optionColor
-                                    : AppColors.greyE5,
+                                color:
+                                    isSelected ? optionColor : AppColors.greyE5,
                                 size: 22,
                               ),
                             ],
@@ -748,22 +741,18 @@ class BusinessProfileHeaderView extends StatelessWidget {
                       if (addressController.text.trim().isEmpty ||
                           cityController.text.trim().isEmpty ||
                           pincodeController.text.trim().isEmpty) {
-                        commonSnackBar(
-                            message: AppStrings.noAddressFound.tr);
+                        commonSnackBar(message: AppStrings.noAddressFound.tr);
                         return;
                       }
 
                       final params = <String, dynamic>{
                         ApiKeys.businessId: businessId,
                         ApiKeys.address: addressController.text.trim(),
-                        ApiKeys.city_state_pincode:
-                            cityController.text.trim(),
+                        ApiKeys.city_state_pincode: cityController.text.trim(),
                         ApiKeys.pincode: pincodeController.text.trim(),
                         ApiKeys.business_location: jsonEncode({
-                          ApiKeys.lat: controller.addressLat?.value
-                              .toString(),
-                          ApiKeys.lon: controller.addressLong?.value
-                              .toString(),
+                          ApiKeys.lat: controller.addressLat?.value.toString(),
+                          ApiKeys.lon: controller.addressLong?.value.toString(),
                         }),
                       };
                       await controller.updateBusinessDetails(params);
@@ -877,4 +866,3 @@ class BusinessProfileHeaderView extends StatelessWidget {
     );
   }
 }
-

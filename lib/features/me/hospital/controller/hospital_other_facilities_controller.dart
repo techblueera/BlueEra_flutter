@@ -5,10 +5,13 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/me/hospital/model/other_facilities_model.dart';
 import 'package:BlueEra/features/me/hospital/repo/hospital_other_facilities_repo.dart';
+import 'package:BlueEra/features/me/hospital/controller/hospital_service_ai_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class HospitalOtherFacilitiesController extends GetxController {
+  final hospitalServiceController = Get.find<HospitalServiceAiController>();
+
   final HospitalOtherFacilitiesRepo repo = HospitalOtherFacilitiesRepo();
   final RxBool isLoading = false.obs;
   final RxBool isSaving = false.obs;
@@ -103,7 +106,9 @@ class HospitalOtherFacilitiesController extends GetxController {
       // }
       if (res.isSuccess) {
         await load();
+        Get.back();
         commonSnackBar(message: AppStrings.hospitalCtrlSaved.tr);
+        hospitalServiceController.getHospitalFullDetailsController();
       } else {
         commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong);
       }

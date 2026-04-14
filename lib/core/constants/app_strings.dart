@@ -5597,4 +5597,7 @@ class AppStrings {
   static const String editComment = "edit_comment";
   static const String deleteComment = "delete_comment";
   static const String userFallback = "user_fallback";
+
+  //business profile
+  static const String nodata = "NA";
 }
