@@ -273,25 +273,40 @@ Future<void> main() async {
   /// Check if app was launched by accepting an incoming call from killed state
   try {
     final activeCalls = await FlutterCallkitIncoming.activeCalls();
+    debugPrint('[COLD_START_CALL] activeCalls result: $activeCalls');
     if (activeCalls is List && activeCalls.isNotEmpty) {
-      final extra =
-          Map<String, dynamic>.from(activeCalls[0]['extra'] as Map? ?? {});
+      final first = activeCalls[0];
+      final extra = Map<String, dynamic>.from(first['extra'] as Map? ?? {});
       final operation = (extra['operation'] ?? '').toString();
-      final accepted = activeCalls[0]['accepted'] == true;
+      final accepted = first['accepted'] == true;
+      debugPrint('[COLD_START_CALL] first call → operation=$operation, accepted=$accepted, callId=${extra['callId']}, roomId=${extra['roomId']}');
       if (operation == 'incoming_call' && accepted) {
         final callController = getOrPut(() => CallController());
         callController.initStateFromCallKitExtra(extra);
         CallController.setKilledStateAcceptHandled();
         CallController.markColdStartCall();
         bool isVideoCalling = extra['callType'] == 'video_call';
+        debugPrint('[COLD_START_CALL] invoking acceptCall(callId=${extra['callId']}, roomId=${extra['roomId']}, isVideo=$isVideoCalling)');
+        // Fire-and-forget is intentional — runApp must not block. Log the outcome
+        // so we can see whether the API accept and CallActivity launch succeed.
         callController.acceptCall(
           callIdParams: extra['callId'],
           roomIdParams: extra['roomId'],
           isVideoCall: isVideoCalling,
-        );
+        ).then((ok) {
+          debugPrint('[COLD_START_CALL] acceptCall returned: $ok');
+        }).catchError((e, st) {
+          debugPrint('[COLD_START_CALL] acceptCall threw: $e\n$st');
+        });
+      } else {
+        debugPrint('[COLD_START_CALL] skipping acceptCall — operation=$operation, accepted=$accepted');
       }
+    } else {
+      debugPrint('[COLD_START_CALL] no active calls at launch — user likely tapped notification body, not Accept action');
     }
-  } catch (_) {}
+  } catch (e, st) {
+    debugPrint('[COLD_START_CALL] activeCalls check threw: $e\n$st');
+  }
 
   /// App orientation
   SystemChrome.setPreferredOrientations([
