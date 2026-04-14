@@ -450,7 +450,10 @@ class CallController extends GetxController {
     fareCallOrderMongoId.value = '';
     fareCallRideDetails.value = null;
 
-    // Show incoming call screen via GetX navigation (avoid duplicate if push already opened it)
+    // Foreground: socket `call:incoming` navigates straight to the in-app
+    // incoming-call screen. Do NOT show CallKit/local notifications here —
+    // those are reserved for background/killed state (handled by the FCM
+    // push via firebaseMessagingBackgroundHandler).
     if (Get.currentRoute != '/IncomingCallScreen') {
       Get.toNamed('/IncomingCallScreen');
     }
@@ -515,18 +518,33 @@ class CallController extends GetxController {
     final iceServersJson = data?['ice_servers'] ?? {};
     debugPrint('[CALL_DEBUG] acceptCall → API SUCCESS, iceServers=${iceServersJson != null ? "present" : "null"}');
 
+    // Tell CallKit the call is connected as soon as the server accepts.
+    // Why: flutter_callkit_incoming has an internal `duration` countdown and will
+    // auto-convert a still-"ringing" call into a missed call when it elapses —
+    // even if the user already tapped Accept. Marking it connected stops that
+    // countdown so an active call cannot flip to "missed" mid-conversation.
+    // Skip for fare-calls (no CallKit session was ever shown).
+    if (!isFareCall.value) {
+      try {
+        await FlutterCallkitIncoming.setCallConnected(savedCallId);
+      } catch (e) {
+        debugPrint('[CALL_DEBUG] acceptCall → setCallConnected error: $e');
+      }
+    }
+
     // Dismiss CallKit incoming call UI after API accept succeeds.
     // On Android: dismiss immediately (CallActivity handles audio).
     // On iOS: dismiss AFTER WebRTC setup so CallKit keeps the audio session
     // active during the handshake — dismissing too early kills the audio path.
-    // SKIP for fare-calls arriving via socket — no CallKit notification was shown,
-    // so endCall on a non-existent call can crash the Android TelecomManager.
     debugPrint('[FARE_CALL_DEBUG] acceptCall → isFareCall=${isFareCall.value}, platform=${Platform.isAndroid ? "Android" : "iOS"}, isCallActivityEngine=$isCallActivityEngine');
     if (Platform.isAndroid && !isFareCall.value) {
+      _isDismissingCallKitUI = true;
       try {
         await FlutterCallkitIncoming.endCall(savedCallId);
       } catch (e) {
         debugPrint('[FARE_CALL_DEBUG] acceptCall → CallKit endCall error: $e');
+      } finally {
+        _isDismissingCallKitUI = false;
       }
     }
 
@@ -850,21 +868,34 @@ class CallController extends GetxController {
     final savedCallId = callId.value;
     final savedRoomId = roomId.value;
 
-    // Notify server first so remote side gets proper signaling teardown
+    // Notify server first so remote side gets proper signaling teardown.
+    // IMPORTANT: during this await, the server will emit `call:ended` back to
+    // us, which `_handleCallEnded` will pick up and run `_cleanup` already.
+    // If we also run `_cleanup` below, we double-dispose local media/renderers
+    // and stop SocketKeepAliveService twice — which breaks every *subsequent*
+    // call (peer connection closes immediately with onConnectionChangeCLOSED).
+    // So: re-check status after the await and skip the second cleanup if the
+    // socket handler already brought us back to idle.
     if (savedCallId.isNotEmpty && savedRoomId.isNotEmpty) {
       await _callRepo.endCall({
         'call_id': savedCallId,
         'room_id': savedRoomId,
       });
-      _socket.emitEvent('call:leave-room', {
-        'room_id': savedRoomId,
-        'call_id': savedCallId,
-      });
+      if (callStatus.value != CallStatus.idle) {
+        _socket.emitEvent('call:leave-room', {
+          'room_id': savedRoomId,
+          'call_id': savedCallId,
+        });
+      }
     }
 
-    // Then cleanup local resources
-    _cleanup();
-    _navigateBackFromCallScreen();
+    // Only cleanup if the socket `call:ended` handler hasn't already done it.
+    if (callStatus.value != CallStatus.idle) {
+      _cleanup();
+      _navigateBackFromCallScreen();
+    } else {
+      debugPrint('[CALL_DEBUG] endCall → skipping second _cleanup (already cleaned by call:ended handler)');
+    }
   }
 
   // ==================== SOCKET EVENT HANDLERS ====================
@@ -1543,6 +1574,7 @@ class CallController extends GetxController {
           debugPrint('[CALL_DEBUG] ✅ CALL CONNECTED! peer=$peerId');
           _connectionTimer?.cancel();
           _peerDisconnectTimer?.cancel();
+          _ringTimer?.cancel();
           callStatus.value = CallStatus.connected;
           _startCallTimer();
           break;
@@ -1699,8 +1731,15 @@ class CallController extends GetxController {
   void _startRingTimer() {
     _ringTimer?.cancel();
     _ringTimer = Timer(const Duration(seconds: 30), () {
+      // Only treat this as a no-answer cancel if the call is *still ringing*
+      // on the caller side. Any other status (accepting/connecting/connected)
+      // means the call is progressing and must NOT be cancelled — otherwise
+      // an active call would be flipped into a missed/cancelled state.
       if (callStatus.value == CallStatus.outgoing && isCaller.value) {
+        debugPrint('[CALL_DEBUG] _startRingTimer → 30s no-answer, cancelling outgoing call');
         cancelCall();
+      } else {
+        debugPrint('[CALL_DEBUG] _startRingTimer → expired but call is ${callStatus.value} (isCaller=${isCaller.value}) — no-op');
       }
     });
   }
@@ -1968,9 +2007,34 @@ class CallController extends GetxController {
     }
   }
 
+  bool _cleaningUp = false;
   void _cleanup() {
     debugPrint('[FARE_CALL_DEBUG] _cleanup → CALLED, callStatus=${callStatus.value}, isFareCall=${isFareCall.value}, callId=${callId.value}, roomId=${roomId.value}, peerConnections=${peerConnections.keys.toList()}');
     debugPrint('[FARE_CALL_DEBUG] _cleanup → stackTrace: ${StackTrace.current.toString().split('\n').take(5).join(' | ')}');
+    // Idempotency guard: if we're already mid-cleanup, or the previous cleanup
+    // already reset us to idle with no peers/stream, bail out. Double-cleanup
+    // double-disposes the local renderer and stops SocketKeepAliveService
+    // twice, which breaks the *next* call's peer connection.
+    if (_cleaningUp) {
+      debugPrint('[CALL_DEBUG] _cleanup → skipped (re-entrant)');
+      return;
+    }
+    if (callStatus.value == CallStatus.idle &&
+        peerConnections.isEmpty &&
+        localStream == null &&
+        localRenderer == null) {
+      debugPrint('[CALL_DEBUG] _cleanup → skipped (already fully cleaned)');
+      return;
+    }
+    _cleaningUp = true;
+    try {
+      _cleanupInternal();
+    } finally {
+      _cleaningUp = false;
+    }
+  }
+
+  void _cleanupInternal() {
     // --- 1. Cancel all timers immediately ---
     _callTimer?.cancel();
     _callTimer = null;
@@ -1990,16 +2054,25 @@ class CallController extends GetxController {
       _notificationPlugin.cancelAll();
     } catch (_) {}
 
-    // --- 3. End the specific CallKit call (avoid endAllCalls which triggers actionCallEnded) ---
-    // Skip for fare-calls — no CallKit notification was shown for socket-based fare calls,
-    // so calling endCall on a non-existent CallKit call crashes Android TelecomManager.
+    // --- 3. Purge ALL CallKit state so no stale call entry lingers ---
+    // We used to only end the specific call by id — but that left orphaned
+    // ringing/missed entries in the plugin's cache on races (e.g. a superseded
+    // call, or a missed-call notification posted by the plugin's internal
+    // duration timer). Nuking everything guarantees "no cache after disconnect".
+    // `_isDismissingCallKitUI` prevents the resulting actionCallEnded events
+    // from re-entering endCall(); the idempotency guard in _cleanup prevents
+    // double-run even if one slips through.
     if (!isFareCall.value) {
+      _isDismissingCallKitUI = true;
       try {
         final cid = callId.value;
         if (cid.isNotEmpty) {
           FlutterCallkitIncoming.endCall(cid);
         }
+        FlutterCallkitIncoming.endAllCalls();
       } catch (_) {}
+      // Reset flag after a micro-task so any synchronous events settle first.
+      Future.microtask(() => _isDismissingCallKitUI = false);
     }
 
     // --- 4. Stop local media tracks ---
@@ -2047,8 +2120,11 @@ class CallController extends GetxController {
       CallActivityService.closeCallActivity();
     }
 
-    // --- 10. Reset static flags ---
+    // --- 10. Reset static flags so the next call starts with a clean slate ---
     isCallActivityActive = false;
+    _killedStateAcceptHandled = false;
+    _coldStartCall = false;
+    launchedForCall.value = false;
 
     // --- 11. Reset all observable state ---
     _resetState();
@@ -2223,6 +2299,14 @@ class CallController extends GetxController {
       switch (event.event) {
         case Event.actionCallAccept:
           debugPrint('[CALL_DEBUG] CALLKIT → actionCallAccept, killedStateHandled=$_killedStateAcceptHandled');
+          // Immediately tell CallKit the call is connected so its internal
+          // duration-timer cannot later auto-mark it as a missed call while
+          // the user is actively on the call.
+          try {
+            FlutterCallkitIncoming.setCallConnected(event.body['id']?.toString() ?? '');
+          } catch (e) {
+            debugPrint('[CALL_DEBUG] setCallConnected error: $e');
+          }
           // Skip if already handled from main.dart killed-state check
           if (_killedStateAcceptHandled) {
             _killedStateAcceptHandled = false;
@@ -2336,7 +2420,7 @@ void showFlutterCallNotification({
   String? callerImage,
   String? callType,
   Map<String, dynamic>? extra,
-  int duration = 30000,
+  int duration = 45000,
 }) async {
   // Don't show CallKit if a call is already in progress — keeps CallKit free
   if (Get.isRegistered<CallController>()) {
