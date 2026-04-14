@@ -46,7 +46,7 @@ class _HospitalOpdScreenState extends State<HospitalOpdScreen> {
             .toList();
 
         if (opd.isEmpty) {
-          return Center(child: CustomText(AppStrings.noDataFound));
+          return Center(child: CustomText(AppStrings.nodata));
         }
         return SingleChildScrollView(
           padding: EdgeInsets.only(
@@ -100,7 +100,6 @@ class _HospitalOpdScreenState extends State<HospitalOpdScreen> {
           ],
         ),
       ),
-
     );
   }
 }

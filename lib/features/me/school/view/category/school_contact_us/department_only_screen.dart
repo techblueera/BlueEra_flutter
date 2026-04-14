@@ -8,7 +8,6 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-
 class DepartmentOnlyScreen extends StatefulWidget {
   final OtherProfileDepartments? contactInfo;
   final bool? isContactInfoEdit;
@@ -64,7 +63,7 @@ class _DepartmentOnlyScreenState extends State<DepartmentOnlyScreen> {
               CommonTextField(
                 textEditController: titleController,
                 hintText: "E.g.Admission Cell",
-                title:AppStrings.department,
+                title: AppStrings.department,
                 onChange: (_) => _runValidation(),
               ),
               SizedBox(height: 12),
@@ -97,17 +96,13 @@ class _DepartmentOnlyScreenState extends State<DepartmentOnlyScreen> {
                             },
                                 branchID: widget.contactInfo?.id ?? "",
                                 contactID: widget.branchId ?? "");
-                      }
-                      else{
+                      } else {
                         await schoolAboutUsController
-                            .addBranchDepartmentController(
-                            reqBody: {
-                              "department": titleController.text,
-                              "email": emailController.text,
-                              "phone": phoneController.text,
-                            },
-                            branchID:
-                            widget.branchId ?? "");
+                            .addBranchDepartmentController(reqBody: {
+                          "department": titleController.text,
+                          "email": emailController.text,
+                          "phone": phoneController.text,
+                        }, branchID: widget.branchId ?? "");
                         // addBranchDepartmentController
                       }
                     },

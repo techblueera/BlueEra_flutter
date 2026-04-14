@@ -1,7 +1,9 @@
 import 'dart:io';
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/me/food/repo/food_repo.dart';
 import 'package:BlueEra/features/me/others/model/other_service_gallery_res_model.dart';
@@ -117,6 +119,7 @@ class FoodServicePhotoPhotoController extends GetxController {
       var requestBody = {
         "title": selectedCategory.value,
         "imageUrls": urlList,
+        ApiKeys.businessId: businessId,
       };
 
       ResponseModel response =

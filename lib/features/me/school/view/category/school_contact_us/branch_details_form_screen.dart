@@ -43,7 +43,7 @@ class _BranchDetailsFormScreenState extends State<BranchDetailsFormScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(title:AppStrings.contactUs),
+      appBar: CommonBackAppBar(title: AppStrings.contactUs),
       body: CommonCardWidget(
         padding: 0,
         child: SingleChildScrollView(
@@ -54,7 +54,7 @@ class _BranchDetailsFormScreenState extends State<BranchDetailsFormScreen> {
               CommonTextField(
                 textEditController: branchNameController,
                 hintText: "E.g. DPS Dehradun",
-                title:AppStrings.branchName,
+                title: AppStrings.branchName,
                 onChange: (_) => _triggerValidation(),
               ),
               SizedBox(height: 12),
@@ -82,7 +82,7 @@ class _BranchDetailsFormScreenState extends State<BranchDetailsFormScreen> {
               CommonTextField(
                 textEditController: titleController,
                 hintText: "E.g. Admission Cell",
-                title:AppStrings.department,
+                title: AppStrings.department,
                 onChange: (_) => _triggerValidation(),
               ),
               SizedBox(height: 12),

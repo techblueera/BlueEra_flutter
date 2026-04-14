@@ -92,7 +92,7 @@ class FoodServicePhotosPhotoScreen extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: CustomText(
-                                "+${images.length} ${AppStrings.foodImagesLabel.tr}",
+                                "${images.length} ${AppStrings.foodImagesLabel.tr}",
                                 textAlign: TextAlign.center,
 
                                     color: Colors.white, fontSize: 10),

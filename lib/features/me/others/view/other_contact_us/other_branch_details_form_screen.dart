@@ -21,7 +21,8 @@ class OtherBranchDetailsFormScreen extends StatefulWidget {
       _OtherBranchDetailsFormScreenState();
 }
 
-class _OtherBranchDetailsFormScreenState extends State<OtherBranchDetailsFormScreen> {
+class _OtherBranchDetailsFormScreenState
+    extends State<OtherBranchDetailsFormScreen> {
   // Initialize the specific controller
   final controller = Get.find<OtherBranchContactController>();
 
@@ -79,21 +80,21 @@ class _OtherBranchDetailsFormScreenState extends State<OtherBranchDetailsFormScr
                         .getCompletePlaceDetails(placeId: placeId);
                     final detailsData = detailsResponse.response?.data;
                     final placeDetails =
-                    PlaceDetailsResponse.fromJson(detailsData);
+                        PlaceDetailsResponse.fromJson(detailsData);
                     logs("detailsData=== ${detailsData}");
-                    logs("placeDetails.result?.geometry?.location?.lat??0.0=== ${placeDetails.result?.geometry?.location?.lat??0.0}");
-                    logs("placeDetails.result?.geometry?.location?.lng??0.0=== ${placeDetails.result?.geometry?.location?.lng??0.0}");
-                    controller.selectedLat = placeDetails.result?.geometry?.location?.lat??0.0;
-                    controller.selectedLng = placeDetails.result?.geometry?.location?.lng??0.0;
-
-
+                    logs(
+                        "placeDetails.result?.geometry?.location?.lat??0.0=== ${placeDetails.result?.geometry?.location?.lat ?? 0.0}");
+                    logs(
+                        "placeDetails.result?.geometry?.location?.lng??0.0=== ${placeDetails.result?.geometry?.location?.lng ?? 0.0}");
+                    controller.selectedLat =
+                        placeDetails.result?.geometry?.location?.lat ?? 0.0;
+                    controller.selectedLng =
+                        placeDetails.result?.geometry?.location?.lng ?? 0.0;
                   } catch (e) {
                     print("Error fetching place details: $e");
                   }
 
-
-
-                _triggerValidation();
+                  _triggerValidation();
                 },
               ),
 
@@ -126,20 +127,20 @@ class _OtherBranchDetailsFormScreenState extends State<OtherBranchDetailsFormScr
 
               // Reactive Submit Button
               Obx(() => CustomBtn(
-                    isLoading: controller.isLoading.value,
-                    onTap: /*controller.isFormValid.value
-                        ?*/ () => controller.submitBranchDetails(
-                              branchName: branchNameController.text,
-                              website: websiteController.text,
-                              address: addressController.text,
-                              department: titleController.text,
-                              email: emailController.text,
-                              phone: phoneController.text,
-                            ),
-                        // : null, // Button disabled if form invalid
-                    title: AppStrings.submit.tr,
-                    isValidate: true
-                  )),
+                  isLoading: controller.isLoading.value,
+                  onTap: /*controller.isFormValid.value
+                        ?*/
+                      () => controller.submitBranchDetails(
+                            branchName: branchNameController.text,
+                            website: websiteController.text,
+                            address: addressController.text,
+                            department: titleController.text,
+                            email: emailController.text,
+                            phone: phoneController.text,
+                          ),
+                  // : null, // Button disabled if form invalid
+                  title: AppStrings.submit.tr,
+                  isValidate: true)),
             ],
           ),
         ),

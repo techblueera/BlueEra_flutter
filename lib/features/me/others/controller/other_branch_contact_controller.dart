@@ -53,8 +53,7 @@ class OtherBranchContactController extends GetxController {
     required String phone,
   }) async {
     if (selectedLat == null || selectedLng == null) {
-      commonSnackBar(
-          message: AppStrings.hotelSelectValidLocation.tr);
+      commonSnackBar(message: AppStrings.hotelSelectValidLocation.tr);
       return;
     }
 
@@ -63,7 +62,8 @@ class OtherBranchContactController extends GetxController {
 
       // Prepare Request Body
       Map<String, dynamic> body = {
-        "businessProfileId": otherServiceIDGlobal, // Replace with dynamic ID if needed
+        "businessProfileId":
+            otherServiceIDGlobal, // Replace with dynamic ID if needed
         "branch": {
           "name": branchName,
           "website": website,
@@ -112,9 +112,10 @@ class OtherBranchContactController extends GetxController {
   RxList<SchoolContactUsData>? schoolContactUsData =
       <SchoolContactUsData>[].obs;
 
-  String get website => (schoolContactUsData != null && schoolContactUsData!.isNotEmpty)
-      ? (schoolContactUsData!.first.branch?.website ?? "")
-      : "";
+  String get website =>
+      (schoolContactUsData != null && schoolContactUsData!.isNotEmpty)
+          ? (schoolContactUsData!.first.branch?.website ?? "")
+          : "";
 
   ///====================API CALLING START==============================
   ///GET BRANCH CONTACT DETAILS...
@@ -123,22 +124,22 @@ class OtherBranchContactController extends GetxController {
     // 1. Check if data is already loaded OR if it's currently loading
     // Logic for AI generation goes here
     // try {
-      schoolContactUsData?.clear();
-      ResponseModel response = await OtherRepo().getOtherServiceContactRepo();
+    schoolContactUsData?.clear();
+    ResponseModel response = await OtherRepo().getOtherServiceContactRepo();
 
-      SchoolContactUsResModel schoolContactUsModel =
-          SchoolContactUsResModel.fromJson(response.response?.data);
+    SchoolContactUsResModel schoolContactUsModel =
+        SchoolContactUsResModel.fromJson(response.response?.data);
 
-      schoolContactUsData?.value = schoolContactUsModel.data ?? [];
+    schoolContactUsData?.value = schoolContactUsModel.data ?? [];
 
-      if (response.isSuccess) {
-        getSchoolContactUsResponse.value =
-            ApiResponse.complete(schoolContactUsModel);
-      } else {
-        // commonSnackBar(message: AppStrings.somethingWentWrong);
-        getSchoolContactUsResponse.value =
-            ApiResponse.error(AppStrings.somethingWentWrong);
-      }
+    if (response.isSuccess) {
+      getSchoolContactUsResponse.value =
+          ApiResponse.complete(schoolContactUsModel);
+    } else {
+      // commonSnackBar(message: AppStrings.somethingWentWrong);
+      getSchoolContactUsResponse.value =
+          ApiResponse.error(AppStrings.somethingWentWrong);
+    }
     // } on Exception catch (e) {
     //   logs("ERROR ${e}");
     //   // TODO

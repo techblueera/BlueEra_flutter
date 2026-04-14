@@ -36,16 +36,21 @@ class _FoodContactUsScreenState extends State<FoodContactUsScreen> {
     super.initState();
 
     // Initialize controllers with profile data if editing, otherwise empty
-    branchNameController = TextEditingController(text: widget.profile?.name ?? "");
-    websiteController = TextEditingController(text: widget.profile?.pageLink ?? "");
-    addressController = TextEditingController(text: widget.profile?.location?.name ?? "");
-    titleController = TextEditingController(text: widget.profile?.department ?? "");
+    branchNameController =
+        TextEditingController(text: widget.profile?.name ?? "");
+    websiteController =
+        TextEditingController(text: widget.profile?.pageLink ?? "");
+    addressController =
+        TextEditingController(text: widget.profile?.location?.name ?? "");
+    titleController =
+        TextEditingController(text: widget.profile?.department ?? "");
     emailController = TextEditingController(text: widget.profile?.email ?? "");
     phoneController = TextEditingController(text: widget.profile?.phone ?? "");
 
     // If editing, store existing lat/lng in controller
     if (widget.profile?.location != null) {
-      controller.selectedLat = widget.profile?.location?.coordinates![1]; // Assuming [lng, lat]
+      controller.selectedLat =
+          widget.profile?.location?.coordinates![1]; // Assuming [lng, lat]
       controller.selectedLng = widget.profile?.location?.coordinates![0];
     }
 
@@ -82,7 +87,10 @@ class _FoodContactUsScreenState extends State<FoodContactUsScreen> {
     final bool isEdit = widget.profile != null;
 
     return Scaffold(
-      appBar: CommonBackAppBar(title: isEdit ? AppStrings.foodUpdateContact.tr : AppStrings.foodContactUsLabel.tr),
+      appBar: CommonBackAppBar(
+          title: isEdit
+              ? AppStrings.foodUpdateContact.tr
+              : AppStrings.foodContactUsLabel.tr),
       body: CommonCardWidget(
         padding: 0,
         child: SingleChildScrollView(
@@ -118,15 +126,18 @@ class _FoodContactUsScreenState extends State<FoodContactUsScreen> {
                   addressController.text = address;
                   // Fetch and auto-fill details
                   try {
-                    final detailsResponse = await PlaceRepo().getCompletePlaceDetails(placeId: placeId);
+                    final detailsResponse = await PlaceRepo()
+                        .getCompletePlaceDetails(placeId: placeId);
                     final detailsData = detailsResponse.response?.data;
-                    final placeDetails = PlaceDetailsResponse.fromJson(detailsData);
-                    controller.selectedLat=placeDetails.result?.geometry?.location?.lat??0.0;
-                    controller.selectedLng=placeDetails.result?.geometry?.location?.lng??0.0;
+                    final placeDetails =
+                        PlaceDetailsResponse.fromJson(detailsData);
+                    controller.selectedLat =
+                        placeDetails.result?.geometry?.location?.lat ?? 0.0;
+                    controller.selectedLng =
+                        placeDetails.result?.geometry?.location?.lng ?? 0.0;
                   } catch (e) {
                     print("Error fetching place details: $e");
                   }
-
 
                   _triggerValidation();
                 },
@@ -148,23 +159,22 @@ class _FoodContactUsScreenState extends State<FoodContactUsScreen> {
                 onChange: (_) => _triggerValidation(),
               ),
               const SizedBox(height: 32),
-
               Obx(() => CustomBtn(
-                isLoading: controller.isLoading.value,
-                onTap: controller.isFormValid.value
-                    ? () => controller.submitBranchDetails(
-                  // id: widget.profile?.id, // Pass ID for editing
-                  branchName: branchNameController.text,
-                  website: websiteController.text,
-                  address: addressController.text,
-                  department: titleController.text,
-                  email: emailController.text,
-                  phone: phoneController.text,
-                )
-                    : null,
-                title: isEdit ? AppStrings.update.tr : AppStrings.submit.tr,
-                isValidate: controller.isFormValid.value,
-              )),
+                    isLoading: controller.isLoading.value,
+                    onTap: controller.isFormValid.value
+                        ? () => controller.submitBranchDetails(
+                              // id: widget.profile?.id, // Pass ID for editing
+                              branchName: branchNameController.text,
+                              website: websiteController.text,
+                              address: addressController.text,
+                              department: titleController.text,
+                              email: emailController.text,
+                              phone: phoneController.text,
+                            )
+                        : null,
+                    title: isEdit ? AppStrings.update.tr : AppStrings.submit.tr,
+                    isValidate: controller.isFormValid.value,
+                  )),
             ],
           ),
         ),
@@ -172,5 +182,3 @@ class _FoodContactUsScreenState extends State<FoodContactUsScreen> {
     );
   }
 }
-
-

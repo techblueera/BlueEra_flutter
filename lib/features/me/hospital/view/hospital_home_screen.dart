@@ -39,95 +39,74 @@ class _HospitalHomeScreenState extends State<HospitalHomeScreen> {
   }
 
   bodyWidget() {
-    return Column(
-      children: [
-        ///HEADER VIEW...
-        HospitalHeaderView(
-          isReadOnly: false,
-        ),
-        // EmergencyActionCard(),
-
-        HospitalBookingScreen(isReadOnly: false),
-        EmergencyCriticalCareView(isReadOnly: false),
-
-        ManagementCardListWidget(isReadOnly: false),
-        Obx(() => Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: HospitalHomeGalleryWidget(
-            photos: controller.hospitalDataResModel?.value.data?.gallery,
+    return Obx(() {
+      final data = controller.hospitalDataResModel?.value.data;
+      return Column(
+        children: [
+          ///HEADER VIEW...
+          const HospitalHeaderView(
             isReadOnly: false,
           ),
-        )),
-        SizedBox(height: 10),
-        // HospitalFaqWidget(),
-        InkWell(
-          onTap: () {
-            Get.to(HospitalJobListingScreen(
+          // EmergencyActionCard(),
+
+          HospitalBookingScreen(isReadOnly: false),
+          const EmergencyCriticalCareView(isReadOnly: false),
+
+          ManagementCardListWidget(isReadOnly: false),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: HospitalHomeGalleryWidget(
+              photos: data?.gallery,
               isReadOnly: false,
-            ));
-          },
-          child: cardViewWidget(title: AppStrings.jobVacancy.tr),
-        ),
-        SizedBox(
-          height: 10,
-        ),
-        HospitalContactUsView(
-          contacts: controller.hospitalDataResModel?.value.data?.contacts ?? [],
-          isReadOnly: false,
-          description: controller.hospitalDataResModel?.value.data?.description,
-        ),
-        SizedBox(
-          height: 10,
-        ),
+            ),
+          ),
+          const SizedBox(height: 10),
+          // HospitalFaqWidget(),
+          InkWell(
+            onTap: () {
+              Get.to(const HospitalJobListingScreen(
+                isReadOnly: false,
+              ));
+            },
+            child: cardViewWidget(title: AppStrings.jobVacancy.tr),
+          ),
+          const SizedBox(height: 10),
+          HospitalContactUsView(
+            contacts: data?.contacts ?? [],
+            isReadOnly: false,
+            description: data?.description,
+          ),
+          const SizedBox(height: 10),
 
-        if ((controller.hospitalDataResModel?.value.data?.contacts?.firstOrNull
-                    ?.branch?.location?.coordinates?.isNotEmpty ??
-                false) &&
-            controller.hospitalDataResModel?.value.data?.contacts?.firstOrNull
-                    ?.branch?.location?.coordinates?[0] !=
-                null &&
-            controller.hospitalDataResModel?.value.data?.contacts?.firstOrNull
-                    ?.branch?.location?.coordinates?[1] !=
-                null &&
-            controller.hospitalDataResModel?.value.data?.contacts?.firstOrNull
-                    ?.branch?.location?.coordinates?[0] !=
-                0.0 &&
-            controller.hospitalDataResModel?.value.data?.contacts?.firstOrNull
-                    ?.branch?.location?.coordinates?[1] !=
-                0.0)
-          BusinessLocationWidget(
-              locationText: controller.hospitalDataResModel?.value.data
-                  ?.contacts?.firstOrNull?.branch?.location?.name,
-              latitude: double.parse(controller
-                      .hospitalDataResModel
-                      ?.value
-                      .data
-                      ?.contacts
-                      ?.firstOrNull
-                      ?.branch
-                      ?.location
-                      ?.coordinates?[1]
-                      .toString() ??
-                  "0.0"),
-              longitude: double.parse(controller
-                      .hospitalDataResModel
-                      ?.value
-                      .data
-                      ?.contacts
-                      ?.firstOrNull
-                      ?.branch
-                      ?.location
-                      ?.coordinates?[0]
-                      .toString() ??
-                  "0.0"),
-              businessName: controller.hospitalDataResModel?.value.data?.name ?? "",
-              padding: 0,
-              isTitleShow: true),
+          if ((data?.contacts?.firstOrNull?.branch?.location?.coordinates?.isNotEmpty ?? false) &&
+              data?.contacts?.firstOrNull?.branch?.location?.coordinates?[0] !=
+                  null &&
+              data?.contacts?.firstOrNull?.branch?.location?.coordinates?[1] !=
+                  null &&
+              data?.contacts?.firstOrNull?.branch?.location?.coordinates?[0] !=
+                  0.0 &&
+              data?.contacts?.firstOrNull?.branch?.location?.coordinates?[1] !=
+                  0.0)
+            BusinessLocationWidget(
+                locationText:
+                    data?.contacts?.firstOrNull?.branch?.location?.name,
+                latitude: double.parse(data?.contacts?.firstOrNull?.branch
+                        ?.location?.coordinates?[1]
+                        .toString() ??
+                    "0.0"),
+                longitude: double.parse(data?.contacts?.firstOrNull?.branch
+                        ?.location?.coordinates?[0]
+                        .toString() ??
+                    "0.0"),
+                businessName: data?.name ?? "",
+                padding: 0,
+                isTitleShow: true),
 
-        SizedBox(
-          height: kBottomNavigationBarHeight + 10,
-        )
-      ],
-    );
+          const SizedBox(
+            height: kBottomNavigationBarHeight + 10,
+          )
+        ],
+      );
+    });
   }
 }

@@ -5,9 +5,12 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/features/me/hospital/model/emergency_care_model.dart';
 import 'package:BlueEra/features/me/hospital/repo/hospital_emergency_repo.dart';
+import 'package:BlueEra/features/me/hospital/controller/hospital_service_ai_controller.dart';
 import 'package:get/get.dart';
 
 class HospitalEmergencyController extends GetxController {
+  final hospitalServiceController = Get.find<HospitalServiceAiController>();
+
   final HospitalEmergencyRepo repo = HospitalEmergencyRepo();
   final RxBool isLoading = false.obs;
   final RxBool isSaving = false.obs;
@@ -92,7 +95,9 @@ class HospitalEmergencyController extends GetxController {
       }
       if (res.isSuccess) {
         await load();
+        Get.back();
         commonSnackBar(message: AppStrings.hospitalCtrlSaved.tr);
+        hospitalServiceController.getHospitalFullDetailsController();
       } else {
         commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong);
       }

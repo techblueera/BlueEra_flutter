@@ -4,10 +4,13 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/me/hospital/model/hospital_vision_mission_model.dart';
 import 'package:BlueEra/features/me/hospital/repo/hospital_vision_mission_repo.dart';
+import 'package:BlueEra/features/me/hospital/controller/hospital_service_ai_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class HospitalVisionMissionController extends GetxController {
+  final hospitalServiceController = Get.find<HospitalServiceAiController>();
+
   final HospitalVisionMissionRepo _repo = HospitalVisionMissionRepo();
   final isLoading = false.obs;
   final isSaving = false.obs;
@@ -79,6 +82,8 @@ class HospitalVisionMissionController extends GetxController {
           data.value = vm.data;
           commonSnackBar(message: AppStrings.hospitalCtrlSavedSuccessfully.tr);
           Get.back();
+          hospitalServiceController.getHospitalFullDetailsController();
+
         } else {
           commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong);
         }
@@ -93,6 +98,8 @@ class HospitalVisionMissionController extends GetxController {
           commonSnackBar(
               message: AppStrings.hospitalCtrlUpdatedSuccessfully.tr);
           Get.back();
+          hospitalServiceController.getHospitalFullDetailsController();
+
         } else {
           commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong);
         }

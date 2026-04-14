@@ -109,133 +109,136 @@ class _EmergencyCriticalCareViewState extends State<EmergencyCriticalCareView> {
 
   @override
   Widget build(BuildContext context) {
-    final services = _buildServices();
+    return Obx(() {
+      final services = _buildServices();
 
-    if (services.isEmpty && widget.isReadOnly) return const SizedBox.shrink();
+      if (services.isEmpty && widget.isReadOnly) return const SizedBox.shrink();
 
-    final bool hasMore = services.length > _maxVisibleItems;
-    final displayItems =
-        _isExpanded ? services : services.take(_maxVisibleItems).toList();
+      final bool hasMore = services.length > _maxVisibleItems;
+      final displayItems =
+          _isExpanded ? services : services.take(_maxVisibleItems).toList();
 
-    return CommonCardWidget(
-      bgColor: const Color(0xff0085FE).withOpacity(0.08),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              ServiceHomeTitleWidget(
-                title: AppStrings.otherFacilities,
-              ),
-              if (!widget.isReadOnly)
-                IconButton(
-                  onPressed: () => Get.to(const HospitalEmergencyCareScreen()),
-                  icon: Icon(
-                    services.isEmpty
-                        ? Icons.add_circle_outline
-                        : Icons.edit_outlined,
-                    size: 20,
-                  ),
+      return CommonCardWidget(
+        bgColor: const Color(0xff0085FE).withOpacity(0.08),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                ServiceHomeTitleWidget(
+                  title: AppStrings.otherFacilities,
                 ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          services.isEmpty
-              ? GridView.builder(
-                  shrinkWrap: true,
-                  padding: EdgeInsets.zero,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: 4,
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 10,
-                    mainAxisSpacing: 10,
-                    childAspectRatio: 1,
-                  ),
-                  itemBuilder: (context, index) {
-                    return GestureDetector(
-                      onTap: () => Get.to(const HospitalEmergencyCareScreen()),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.grey[200],
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                              color: Colors.grey.shade300, width: 1.5),
-                        ),
-                        child: index == 0
-                            ? Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(Icons.add_circle_outline,
-                                      color: Colors.grey[400], size: 32),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    AppStrings.hospitalViewAddFacilities.tr,
-                                    style: TextStyle(
-                                        color: Colors.grey[500], fontSize: 12),
-                                  ),
-                                ],
-                              )
-                            : const SizedBox.shrink(),
-                      ),
-                    );
-                  },
-                )
-              : GridView.builder(
-                  shrinkWrap: true,
-                  padding: EdgeInsets.zero,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: displayItems.length,
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 10,
-                    mainAxisSpacing: 10,
-                    childAspectRatio: 1,
-                  ),
-                  itemBuilder: (context, index) {
-                    return VerticalEmergencyServiceCard(
-                      title: displayItems[index]['title']!,
-                      description: displayItems[index]['desc']!,
-                      icon: displayItems[index]['icon']!,
-                    );
-                  },
-                ),
-          if (hasMore && services.isNotEmpty)
-            Padding(
-              padding: EdgeInsets.only(top: SizeConfig.paddingS),
-              child: InkWell(
-                borderRadius: BorderRadius.circular(8),
-                onTap: () {
-                  setState(() {
-                    _isExpanded = !_isExpanded;
-                  });
-                },
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    CustomText(
-                      _isExpanded
-                          ? AppStrings.hospitalViewViewLess.tr
-                          : AppStrings.hospitalViewViewMoreCount.trParams({'count': '${services.length - _maxVisibleItems}'}),
-                      color: AppColors.primaryColor,
-                      fontWeight: FontWeight.w600,
-                      fontSize: SizeConfig.medium,
+                if (!widget.isReadOnly)
+                  IconButton(
+                    onPressed: () => Get.to(const HospitalEmergencyCareScreen()),
+                    icon: Icon(
+                      services.isEmpty
+                          ? Icons.add_circle_outline
+                          : Icons.edit_outlined,
+                      size: 20,
                     ),
-                    SizedBox(width: SizeConfig.paddingXSmall),
-                    Icon(
-                      _isExpanded
-                          ? Icons.keyboard_arrow_up_rounded
-                          : Icons.keyboard_arrow_down_rounded,
-                      color: AppColors.primaryColor,
-                      size: SizeConfig.size20,
-                    ),
-                  ],
-                ),
-              ),
+                  ),
+              ],
             ),
-        ],
-      ),
-    );
+            const SizedBox(height: 16),
+            services.isEmpty
+                ? GridView.builder(
+                    shrinkWrap: true,
+                    padding: EdgeInsets.zero,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: 4,
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 10,
+                      mainAxisSpacing: 10,
+                      childAspectRatio: 1,
+                    ),
+                    itemBuilder: (context, index) {
+                      return GestureDetector(
+                        onTap: () => Get.to(const HospitalEmergencyCareScreen()),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.grey[200],
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                                color: Colors.grey.shade300, width: 1.5),
+                          ),
+                          child: index == 0
+                              ? Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.add_circle_outline,
+                                        color: Colors.grey[400], size: 32),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      AppStrings.hospitalViewAddFacilities.tr,
+                                      style: TextStyle(
+                                          color: Colors.grey[500], fontSize: 12),
+                                    ),
+                                  ],
+                                )
+                              : const SizedBox.shrink(),
+                        ),
+                      );
+                    },
+                  )
+                : GridView.builder(
+                    shrinkWrap: true,
+                    padding: EdgeInsets.zero,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: displayItems.length,
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 10,
+                      mainAxisSpacing: 10,
+                      childAspectRatio: 1,
+                    ),
+                    itemBuilder: (context, index) {
+                      return VerticalEmergencyServiceCard(
+                        title: displayItems[index]['title']!,
+                        description: displayItems[index]['desc']!,
+                        icon: displayItems[index]['icon']!,
+                      );
+                    },
+                  ),
+            if (hasMore && services.isNotEmpty)
+              Padding(
+                padding: EdgeInsets.only(top: SizeConfig.paddingS),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(8),
+                  onTap: () {
+                    setState(() {
+                      _isExpanded = !_isExpanded;
+                    });
+                  },
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      CustomText(
+                        _isExpanded
+                            ? AppStrings.hospitalViewViewLess.tr
+                            : AppStrings.hospitalViewViewMoreCount.trParams(
+                                {'count': '${services.length - _maxVisibleItems}'}),
+                        color: AppColors.primaryColor,
+                        fontWeight: FontWeight.w600,
+                        fontSize: SizeConfig.medium,
+                      ),
+                      SizedBox(width: SizeConfig.paddingXSmall),
+                      Icon(
+                        _isExpanded
+                            ? Icons.keyboard_arrow_up_rounded
+                            : Icons.keyboard_arrow_down_rounded,
+                        color: AppColors.primaryColor,
+                        size: SizeConfig.size20,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+          ],
+        ),
+      );
+    });
   }
 }

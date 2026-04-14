@@ -42,7 +42,8 @@ class RestaurantHomeScreen extends StatefulWidget {
 
 class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
   final controller = getOrPut(() => RestaurantController());
-  final viewBusinessDetailsController = Get.find<ViewBusinessDetailsController>();
+  final viewBusinessDetailsController =
+      Get.find<ViewBusinessDetailsController>();
   BusinessProfileDetails? businessProfileDetails;
 
   /// Number of discount dishes shown on the home preview. The full list
@@ -66,7 +67,8 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
           return const Center(child: CircularProgressIndicator());
         }
 
-        businessProfileDetails = viewBusinessDetailsController.businessProfileDetails.value?.data;
+        businessProfileDetails =
+            viewBusinessDetailsController.businessProfileDetails.value?.data;
         final data = controller.restaurantData.value;
         if (data == null)
           return Center(child: CustomText(AppStrings.noDataFound.tr));
@@ -83,13 +85,11 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-
                 ///FOOD HOTEL....
                 BusinessProfileHeaderView(
-                  details:  businessProfileDetails,
-                  controller: viewBusinessDetailsController,
-                  isRestaurantProfile: true
-                ),
+                    details: businessProfileDetails,
+                    controller: viewBusinessDetailsController,
+                    isRestaurantProfile: true),
 
                 // ── 4. Business Stats ──
                 BusinessStats(details: businessProfileDetails),
@@ -166,16 +166,17 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
 
                 /// Gallery
                 CommonGalleryCard(
-                  gallery: data.gallery
-                      ?.expand((g) => g.imageUrls ?? [])
-                      .cast<String>()
-                      .toList(),
-                  onEditTap: () => Get.to(() => FoodServicePhotosPhotoScreen()),
-                  onAddTap: () => Get.to(() => FoodServicePhotosPhotoScreen()),
-                  emptyTitle: AppStrings.foodNoPhotosPosted.tr,
-                  addButtonLabel: AppStrings.foodAddPhotoLabel.tr,
-                  isRestaurantGallery: true
-                ),
+                    gallery: data.gallery
+                        ?.expand((g) => g.imageUrls ?? [])
+                        .cast<String>()
+                        .toList(),
+                    onEditTap: () =>
+                        Get.to(() => FoodServicePhotosPhotoScreen()),
+                    onAddTap: () =>
+                        Get.to(() => FoodServicePhotosPhotoScreen()),
+                    emptyTitle: AppStrings.foodNoPhotosPosted.tr,
+                    addButtonLabel: AppStrings.foodAddPhotoLabel.tr,
+                    isRestaurantGallery: true),
 
                 // ── 11. Contact & Map ──
                 BusinessContactMapCard(
@@ -184,16 +185,15 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
 
                 // ── 11. QR Code ──
                 BusinessQrCodeWidget(
-                  data:  businessProfileDetails,
+                  data: businessProfileDetails,
                   onDownload: () {
                     // downloadQrCode();
                   },
-                  onShare:    () {
+                  onShare: () {
                     // shareQrCode();
                   },
                 ),
                 const SizedBox(height: 100),
-
               ],
             ),
           ),
@@ -217,109 +217,104 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
           itemBuilder: (context, index) {
             final item = items[index];
             final bool hasVariants =
-                  item.variants != null && item.variants!.isNotEmpty;
-              final int variantCount = item.variants?.length ?? 0;
-              final bool isMultiVariant = variantCount > 1;
+                item.variants != null && item.variants!.isNotEmpty;
+            final int variantCount = item.variants?.length ?? 0;
+            final bool isMultiVariant = variantCount > 1;
 
-              final sellingPrice = hasVariants ? item.variants![0].baseSellingPrice : null;
-              final mrp = hasVariants ? item.variants![0].mrp : null;
+            final sellingPrice =
+                hasVariants ? item.variants![0].baseSellingPrice : null;
+            final mrp = hasVariants ? item.variants![0].mrp : null;
 
-              final int discountPercent =
-                  (mrp != null && sellingPrice != null && mrp > sellingPrice)
-                      ? (((mrp - sellingPrice) / mrp) * 100).round()
-                      : 0;
+            final int discountPercent =
+                (mrp != null && sellingPrice != null && mrp > sellingPrice)
+                    ? (((mrp - sellingPrice) / mrp) * 100).round()
+                    : 0;
 
-              return GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: () =>
-                    showFoodProductVariantSheet(context, product: item),
-                child: Container(
+            return GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => showFoodProductVariantSheet(context, product: item),
+              child: Container(
                 width: 170,
                 margin: const EdgeInsets.only(right: 12),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
-                      color: AppColors.greyE5,
+                    color: AppColors.greyE5,
                   ),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // ── Image card with discount badge ──
-                    Stack(
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(10),
-                          child: CachedNetworkImage(
-                            imageUrl:
-                                item.images?.firstOrNull ?? "",
-                            height: 140,
-                            width: 170,
-                            fit: BoxFit.cover,
-                            placeholder: (_, __) =>
-                                Container(color: Colors.grey.shade200),
-                            errorWidget: (_, __, ___) =>
-                                _buildImagePlaceholder(),
-                          ),
+                    Stack(children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: CachedNetworkImage(
+                          imageUrl: item.images?.firstOrNull ?? "",
+                          height: 140,
+                          width: 170,
+                          fit: BoxFit.cover,
+                          placeholder: (_, __) =>
+                              Container(color: Colors.grey.shade200),
+                          errorWidget: (_, __, ___) => _buildImagePlaceholder(),
                         ),
+                      ),
 
-                        // Discount badge
-                        if (discountPercent > 0)
-                          Positioned(
-                            top: 0,
-                            left: 0,
-                            child: ClipRRect(
-                              borderRadius: const BorderRadius.only(
-                                topLeft: Radius.circular(10),
-                                bottomRight: Radius.circular(10),
-                              ),
-                              child: BackdropFilter(
-                                filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 10, vertical: 8),
-                                  decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      begin: Alignment.centerLeft,
-                                      end: Alignment.centerRight,
-                                      colors: [
-                                        Color(0xFFFD7845),
-                                        Color(0xFFFA5568),
-                                      ],
-                                    ),
-                                    border: Border.all(
-                                      color: AppColors.white.withValues(alpha: 0.2),
-                                      width: 0.5
-                                    ),
-                                    borderRadius: const BorderRadius.only(
-                                      topLeft: Radius.circular(10),
-                                      bottomRight: Radius.circular(10),
-                                    ),
+                      // Discount badge
+                      if (discountPercent > 0)
+                        Positioned(
+                          top: 0,
+                          left: 0,
+                          child: ClipRRect(
+                            borderRadius: const BorderRadius.only(
+                              topLeft: Radius.circular(10),
+                              bottomRight: Radius.circular(10),
+                            ),
+                            child: BackdropFilter(
+                              filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 10, vertical: 8),
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    begin: Alignment.centerLeft,
+                                    end: Alignment.centerRight,
+                                    colors: [
+                                      Color(0xFFFD7845),
+                                      Color(0xFFFA5568),
+                                    ],
                                   ),
-                                  child: CustomText(
-                                    '$discountPercent% OFF',
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w700,
-                                    color: Colors.white,
+                                  border: Border.all(
+                                      color: AppColors.white
+                                          .withValues(alpha: 0.2),
+                                      width: 0.5),
+                                  borderRadius: const BorderRadius.only(
+                                    topLeft: Radius.circular(10),
+                                    bottomRight: Radius.circular(10),
                                   ),
+                                ),
+                                child: CustomText(
+                                  '$discountPercent% OFF',
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
                                 ),
                               ),
                             ),
                           ),
-
-                        // Veg/Non-veg indicator
-                        Positioned(
-                          top: 8,
-                          right: 8,
-                          child: FoodTypeIndicator(
-                            isVegetarian: item.dietaryType
-                                ?.toLowerCase() == AppConstants.veg,
-                            size: 8,
-                          ),
                         ),
 
-                     ]
-                    ),
+                      // Veg/Non-veg indicator
+                      Positioned(
+                        top: 8,
+                        right: 8,
+                        child: FoodTypeIndicator(
+                          isVegetarian: item.dietaryType?.toLowerCase() ==
+                              AppConstants.veg,
+                          size: 8,
+                        ),
+                      ),
+                    ]),
 
                     Padding(
                       padding: EdgeInsets.all(6.0),
@@ -383,39 +378,37 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
 
                           // --- 4. Multiple Variants Indicator ---
                           // if (isMultiVariant)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 8.0),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 6, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color: AppColors.primaryColor.withValues(
-                                      alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: CustomText(
-                                  isMultiVariant ?
-                                  "+${variantCount - 1} more variant"
-                                  : '${variantCount} variant',
-                                  fontSize: 10,
-                                  color: AppColors.primaryColor,
-                                  fontWeight: FontWeight.w500,
-                                ),
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8.0),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: AppColors.primaryColor
+                                    .withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: CustomText(
+                                isMultiVariant
+                                    ? "${variantCount - 1} more variant"
+                                    : '${variantCount} variant',
+                                fontSize: 10,
+                                color: AppColors.primaryColor,
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
+                          ),
                         ],
                       ),
                     )
-
-
                   ],
                 ),
-                ),
-              );
-            },
-          ),
-        );
-      });
+              ),
+            );
+          },
+        ),
+      );
+    });
   }
 
   Widget _buildDottedLine() {
@@ -424,7 +417,7 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
         final dashWidth = 4.0;
         final dashSpace = 3.0;
         final dashCount =
-        (constraints.maxWidth / (dashWidth + dashSpace)).floor();
+            (constraints.maxWidth / (dashWidth + dashSpace)).floor();
         return Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: List.generate(dashCount, (_) {
@@ -498,8 +491,16 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
   Widget _buildSpecialDishEmptyState() {
     // Dummy data to show behind the blur
     final dummyItems = [
-      {'name': 'Traditional Turkish\nBreakfast', 'desc': 'Gorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum....'},
-      {'name': 'Traditional Turkish\nBreakfast', 'desc': 'Gorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum....'},
+      {
+        'name': 'Traditional Turkish\nBreakfast',
+        'desc':
+            'Gorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum....'
+      },
+      {
+        'name': 'Traditional Turkish\nBreakfast',
+        'desc':
+            'Gorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum....'
+      },
     ];
 
     return Padding(
@@ -536,7 +537,8 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
                                 child: Container(
                                   decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(10.0),
-                                    color: AppColors.black.withValues(alpha: 0.5),
+                                    color:
+                                        AppColors.black.withValues(alpha: 0.5),
                                   ),
                                 ),
                               ),
@@ -659,8 +661,7 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
               child: CachedNetworkImage(
                 imageUrl: item.image ?? '',
                 fit: BoxFit.cover,
-                placeholder: (_, __) =>
-                    Container(color: Colors.grey.shade300),
+                placeholder: (_, __) => Container(color: Colors.grey.shade300),
                 errorWidget: (_, __, ___) => Container(
                   color: Colors.grey.shade300,
                   child: const Icon(Icons.restaurant,
@@ -749,66 +750,58 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CustomText(
-                  AppStrings.foodOurMenuLabel.tr,
+              CustomText(AppStrings.foodOurMenuLabel.tr,
                   fontSize: SizeConfig.large,
                   color: AppColors.mainTextColor,
                   fontWeight: FontWeight.w600),
-
               SizedBox(
                 height: SizeConfig.paddingXSL,
               ),
+              menus.isNotEmpty
+                  ? MasonryGridView.count(
+                      crossAxisCount: 3,
+                      crossAxisSpacing: 6,
+                      mainAxisSpacing: 6,
+                      padding: EdgeInsets.zero,
+                      primary: false,
+                      shrinkWrap: true,
+                      itemCount: menus.length,
+                      itemBuilder: (context, index) {
+                        var categoryItem = menus[index];
+                        return CommonServiceCard(
+                          service: categoryItem,
+                          getName: (_categoryItem) => _categoryItem.name ?? '',
+                          getIcon: (_categoryItem) => _categoryItem.image ?? '',
+                          iconHeight: SizeConfig.size60,
+                          boxShadow: [],
+                          onTap: (_categoryItem) async {
+                            await Get.to(() => MyFoodProductScreen(
+                                  foodMenu: _categoryItem,
+                                ));
+                            if (controller.foodDataNeedsRefresh) {
+                              controller.foodDataNeedsRefresh = false;
+                              controller.fetchHomeData(businessId: businessId);
+                            }
+                            return;
 
-              menus.isNotEmpty ?
-              MasonryGridView.count(
-                crossAxisCount: 3,
-                crossAxisSpacing: 6,
-                mainAxisSpacing: 6,
-                padding: EdgeInsets.zero,
-                primary: false,
-                shrinkWrap: true,
-                itemCount: menus.length,
-                itemBuilder: (context, index) {
-                  var categoryItem = menus[index];
-                  return CommonServiceCard(
-                    service: categoryItem,
-                    getName: (_categoryItem) => _categoryItem.name ?? '',
-                    getIcon: (_categoryItem) => _categoryItem.image ?? '',
-                    iconHeight: SizeConfig.size60,
-                    boxShadow: [],
-                    onTap: (_categoryItem) async {
-                      await Get.to(
-                              () =>
-                              MyFoodProductScreen(
-                                foodMenu: _categoryItem,
-                              ));
-                      if (controller.foodDataNeedsRefresh) {
-                        controller.foodDataNeedsRefresh = false;
-                        controller.fetchHomeData(businessId: businessId);
-                      }
-                      return;
-
-                      // return Get.toNamed(RouteHelper.getGroceryNestedCategoryWithInventoryScreenRoute(),
-                      //   arguments: {
-                      //     ApiKeys.userId: userId,
-                      //     ApiKeys.argGroceryCategoryWithInventory: foodCategoryList,
-                      //     ApiKeys.argArrGroceryCatKey: _categoryItem.key,
-                      //     ApiKeys.argArrGroceryCatName: _categoryItem.name,
-                      //   },
-                      // );
-
-                    },
-                  );
-                },
-              )
+                            // return Get.toNamed(RouteHelper.getGroceryNestedCategoryWithInventoryScreenRoute(),
+                            //   arguments: {
+                            //     ApiKeys.userId: userId,
+                            //     ApiKeys.argGroceryCategoryWithInventory: foodCategoryList,
+                            //     ApiKeys.argArrGroceryCatKey: _categoryItem.key,
+                            //     ApiKeys.argArrGroceryCatName: _categoryItem.name,
+                            //   },
+                            // );
+                          },
+                        );
+                      },
+                    )
                   : EmptyStateWidget(
-                message: AppStrings.foodNoProductCreate.tr,
-              ),
-
+                      message: AppStrings.foodNoProductCreate.tr,
+                    ),
               SizedBox(
                 height: SizeConfig.paddingXSL,
               ),
-
             ],
           ),
         ),

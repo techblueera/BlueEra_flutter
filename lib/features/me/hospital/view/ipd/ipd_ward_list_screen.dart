@@ -16,7 +16,8 @@ import 'package:get/get.dart';
 class IpdWardListScreen extends StatefulWidget {
   final String departmentId;
   final String? hospitalId;
-  const IpdWardListScreen({super.key, required this.departmentId, this.hospitalId});
+  const IpdWardListScreen(
+      {super.key, required this.departmentId, this.hospitalId});
   @override
   State<IpdWardListScreen> createState() => _IpdWardListScreenState();
 }
@@ -44,8 +45,9 @@ class _IpdWardListScreenState extends State<IpdWardListScreen> {
           child: GestureDetector(
             onTap: () {
               controller.startCreate();
-              Get.to(() => IpdWardFormScreen(departmentId: widget.departmentId, hospitalId: widget.hospitalId));
-
+              Get.to(() => IpdWardFormScreen(
+                  departmentId: widget.departmentId,
+                  hospitalId: widget.hospitalId));
             },
             child: Container(
               height: 36,
@@ -56,21 +58,21 @@ class _IpdWardListScreenState extends State<IpdWardListScreen> {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: CustomText(
-              AppStrings.addNew,
+                AppStrings.addNew,
                 color: AppColors.white,
                 fontWeight: FontWeight.w600,
               ),
             ),
           ),
         ),
-
       ),
       body: Obx(() {
         if (controller.isLoading.value) {
-          return const Center(child: CircularProgressIndicator(color: AppColors.primaryColor));
+          return const Center(
+              child: CircularProgressIndicator(color: AppColors.primaryColor));
         }
         if (controller.wards.isEmpty) {
-          return Center(child: CustomText(AppStrings.noDataFound));
+          return Center(child: CustomText(AppStrings.nodata));
         }
         return ListView.separated(
           padding: EdgeInsets.all(SizeConfig.paddingM),
@@ -100,16 +102,21 @@ class _IpdWardListScreenState extends State<IpdWardListScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            CustomText(w.name, fontSize: 16, fontWeight: FontWeight.w700,maxLines: 2,overflow: TextOverflow.ellipsis,),
+                            CustomText(
+                              w.name,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                             SizedBox(height: 6),
-                            CustomText("${AppStrings.beds.tr}: ${w.bedCount}", color: AppColors.secondaryTextColor),
+                            CustomText("${AppStrings.beds.tr}: ${w.bedCount}",
+                                color: AppColors.secondaryTextColor),
                             SizedBox(height: 6),
-
-                            CustomText("${AppStrings.fees.tr}: ₹${w.fees}", color: AppColors.secondaryTextColor),
+                            CustomText("${AppStrings.fees.tr}: ₹${w.fees}",
+                                color: AppColors.secondaryTextColor),
                             SizedBox(height: 6),
-
-
-                         ],
+                          ],
                         ),
                       ),
                       PopupMenuButton<String>(
@@ -119,14 +126,18 @@ class _IpdWardListScreenState extends State<IpdWardListScreen> {
                         offset: const Offset(-6, 36),
                         color: AppColors.white,
                         elevation: 8,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10)),
                         itemBuilder: (context) => [
                           PopupMenuItem(
                             value: "EDIT",
                             onTap: () {
                               controller.startEdit(w);
-                              Future.delayed(const Duration(milliseconds: 100), () {
-                                Get.to(() => IpdWardFormScreen(departmentId: widget.departmentId, hospitalId: widget.hospitalId));
+                              Future.delayed(const Duration(milliseconds: 100),
+                                  () {
+                                Get.to(() => IpdWardFormScreen(
+                                    departmentId: widget.departmentId,
+                                    hospitalId: widget.hospitalId));
                               });
                             },
                             child: CustomText(AppStrings.edit),
@@ -141,15 +152,17 @@ class _IpdWardListScreenState extends State<IpdWardListScreen> {
                             value: "DELETE",
                             height: 15,
                             onTap: () {
-                              Future.delayed(const Duration(milliseconds: 100), () {
+                              Future.delayed(const Duration(milliseconds: 100),
+                                  () {
                                 commonConformationDialog(
                                   context: context,
-                                  text:AppStrings.areYouSureDelete,
+                                  text: AppStrings.areYouSureDelete,
                                   confirmCallback: () async {
                                     Navigator.of(context).pop();
                                     await controller.deleteWard(w);
                                   },
-                                  cancelCallback: () => Navigator.of(context).pop(),
+                                  cancelCallback: () =>
+                                      Navigator.of(context).pop(),
                                 );
                               });
                             },
@@ -160,7 +173,6 @@ class _IpdWardListScreenState extends State<IpdWardListScreen> {
                     ],
                   ),
                   SizedBox(height: SizeConfig.size10),
-
                   if (w.description.isNotEmpty)
                     ExpandableText(
                       text: w.description,
