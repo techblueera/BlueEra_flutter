@@ -2,6 +2,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/Discover/view/discover_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/home_made_food_new_screen.dart';
@@ -38,7 +39,10 @@ class GroceryCardWidget extends StatelessWidget {
                 getIcon: (item) => item.icon,
                 onTap: (item) {
                   if (item.slugId == AppConstants.grocery) {
-                    _chooseDeliveryOption(item.slugId);
+                    // _chooseDeliveryOption(item.slugId);
+                    Get.toNamed(
+                      RouteHelper.getGroceryStoresScreenRoute(),
+                    );
                   } else if (item.slugId == AppConstants.food) {
                     _chooseFoodOption();
                   } else {

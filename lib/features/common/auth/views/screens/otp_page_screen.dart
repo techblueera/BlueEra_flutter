@@ -36,6 +36,7 @@ class OtpPageScreen extends StatefulWidget {
 class _OtpPageScreenState extends State<OtpPageScreen> with CodeAutoFill {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _otpController = TextEditingController();
+  final FocusNode _otpFocusNode = FocusNode();
 
   PinputAutovalidateMode _autoValidate = PinputAutovalidateMode.disabled;
 
@@ -54,6 +55,9 @@ class _OtpPageScreenState extends State<OtpPageScreen> with CodeAutoFill {
     _printAppSignature();
     _startTimer();
     listenForCode();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _otpFocusNode.requestFocus();
+    });
   }
 
   void _startTimer() {
@@ -81,6 +85,7 @@ class _OtpPageScreenState extends State<OtpPageScreen> with CodeAutoFill {
     cancel();
     _cancelTimer();
     _otpController.dispose();
+    _otpFocusNode.dispose();
     super.dispose();
   }
 
@@ -203,6 +208,9 @@ class _OtpPageScreenState extends State<OtpPageScreen> with CodeAutoFill {
 
                       Pinput(
                         controller: _otpController,
+                        focusNode: _otpFocusNode,
+                        autofocus: true,
+                        showCursor: true,
                         length: 6,
                         keyboardType: TextInputType.number,
                         inputFormatters: [

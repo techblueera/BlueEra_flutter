@@ -1,4 +1,7 @@
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/core/api/model/get_all_store_res_model.dart';
@@ -81,6 +84,7 @@ class GroceryStoreCard extends StatelessWidget {
                           ],
                         ),
                       ),
+                      _buildChatIcon(),
                     ],
                   ),
 
@@ -251,6 +255,34 @@ class GroceryStoreCard extends StatelessWidget {
     );
   }
 
+  Widget _buildChatIcon() {
+    return GestureDetector(
+      onTap: () {
+        if (isGuestUser()) {
+          createProfileScreen();
+          return;
+        }
+        final chatViewController = getOrPut(() => ChatViewController());
+        chatViewController.checkChatConnectionAndOpenChat(
+          userId: store.userId ?? '',
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.all(8.0),
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: AppColors.primaryColor.withValues(alpha: 0.1),
+          border: Border.all(color: AppColors.primaryColor, width: 0.5),
+        ),
+        child: Icon(
+          Icons.chat_bubble_outline_rounded,
+          size: 18,
+          color: AppColors.primaryColor,
+        ),
+      ),
+    );
+  }
+
   Widget _buildIconContainer(String iconPath) {
     return Container(
       padding: const EdgeInsets.all(6.0),
@@ -282,6 +314,8 @@ class GroceryStoreCard extends StatelessWidget {
       destinationLat: store.businessLocation?.lat?.toDouble() ?? 0.0,
       destinationLng: store.businessLocation?.lon?.toDouble() ?? 0.0,
       livePhotos: store.livePhotos,
+        storeBusinessID:store.id??"" ,storeUserID: store.userId??""
+
     );
   }
 }

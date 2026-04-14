@@ -392,6 +392,7 @@ class ProductStoreCard extends StatelessWidget {
       destinationLat: getAllStoreResData?.businessLocation?.lat?.toDouble() ?? 0.0,
       destinationLng: getAllStoreResData?.businessLocation?.lon?.toDouble() ?? 0.0,
       livePhotos: getAllStoreResData?.livePhotos,
+      storeBusinessID:getAllStoreResData?.id??"" ,storeUserID: getAllStoreResData?.userId??""
     );
   }
 

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/home/controller/symbol_feed_controller.dart';
 import 'package:BlueEra/features/common/home/model/symbol_feed_model.dart';
@@ -486,8 +487,13 @@ class _SymbolFullscreenViewerState extends State<SymbolFullscreenViewer>
                   child: Obx(() {
                     // Access userGroups to register reactive dependency
                     _feedController.userGroups.length;
+                    final isOwn = (symbol.userId != null &&
+                            symbol.userId == userId) ||
+                        (_currentGroup.user?.id != null &&
+                            _currentGroup.user?.id == userId);
                     return _BottomActionBar(
                       symbol: symbol,
+                      isOwn: isOwn,
                       onLike: () => _feedController.toggleLike(symbol),
                       onComment: () => _showCommentSheet(symbol),
                       onPause: _pauseTimer,
@@ -507,6 +513,9 @@ class _SymbolFullscreenViewerState extends State<SymbolFullscreenViewer>
     _pauseTimer();
     _feedController.fetchComments(symbol.id!);
 
+    final bool isOwn = (symbol.userId != null && symbol.userId == userId) ||
+        (_currentGroup.user?.id != null && _currentGroup.user?.id == userId);
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -514,6 +523,7 @@ class _SymbolFullscreenViewerState extends State<SymbolFullscreenViewer>
       builder: (ctx) => _CommentSheet(
         symbol: symbol,
         controller: _feedController,
+        readOnly: isOwn,
       ),
     ).whenComplete(() {
       _resumeTimer();
@@ -623,6 +633,7 @@ class _SymbolFullscreenViewerState extends State<SymbolFullscreenViewer>
 /// Bottom action bar with like, comment, and seen count
 class _BottomActionBar extends StatelessWidget {
   final SymbolFeedItem symbol;
+  final bool isOwn;
   final VoidCallback onLike;
   final VoidCallback onComment;
   final VoidCallback onPause;
@@ -630,6 +641,7 @@ class _BottomActionBar extends StatelessWidget {
 
   const _BottomActionBar({
     required this.symbol,
+    required this.isOwn,
     required this.onLike,
     required this.onComment,
     required this.onPause,
@@ -656,73 +668,149 @@ class _BottomActionBar extends StatelessWidget {
     final int commentsCount = s.commentsCount ?? 0;
     final int seenCount = s.seenCount ?? 0;
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        children: [
-          /// Like button
-          GestureDetector(
-            onTap: onLike,
-            child: Row(
+    if (isOwn) {
+      /// Self-owned symbol: show only seen & comment counts (read-only).
+      /// Tapping the comments count opens the comment sheet in read mode.
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        child: Row(
+          children: [
+            Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
-                  isLiked ? Icons.favorite : Icons.favorite_border,
-                  color: isLiked ? Colors.red : Colors.white,
-                  size: 26,
+                const Icon(Icons.visibility_outlined,
+                    color: Colors.white, size: 22),
+                const SizedBox(width: 6),
+                Text(
+                  _formatCount(seenCount),
+                  style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500),
                 ),
-                if (likesCount > 0) ...[
-                  const SizedBox(width: 4),
-                  Text(
-                    _formatCount(likesCount),
-                    style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500),
-                  ),
-                ],
               ],
             ),
-          ),
-          const SizedBox(width: 20),
-
-          /// Comment button
-          GestureDetector(
-            onTap: onComment,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.chat_bubble_outline,
-                    color: Colors.white, size: 24),
-                if (commentsCount > 0) ...[
-                  const SizedBox(width: 4),
+            const SizedBox(width: 22),
+            GestureDetector(
+              onTap: onComment,
+              behavior: HitTestBehavior.opaque,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.chat_bubble_outline,
+                      color: Colors.white, size: 22),
+                  const SizedBox(width: 6),
                   Text(
                     _formatCount(commentsCount),
                     style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 13,
+                        fontSize: 14,
                         fontWeight: FontWeight.w500),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          /// Seen & comment count row (like Instagram: "Seen by X" / "N comments")
+          Padding(
+            padding: const EdgeInsets.only(left: 4, bottom: 8),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.visibility_outlined,
+                    color: Colors.white70, size: 18),
+                const SizedBox(width: 4),
+                Text(
+                  _formatCount(seenCount),
+                  style: const TextStyle(
+                      color: Colors.white70,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w400),
+                ),
+                if (commentsCount > 0) ...[
+                  const SizedBox(width: 14),
+                  const Icon(Icons.chat_bubble_outline,
+                      color: Colors.white70, size: 16),
+                  const SizedBox(width: 4),
+                  Text(
+                    _formatCount(commentsCount),
+                    style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w400),
                   ),
                 ],
               ],
             ),
           ),
 
-          const Spacer(),
-
-          /// Seen count
+          /// Instagram-style inline comment textfield + like icon
           Row(
-            mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.visibility_outlined,
-                  color: Colors.white70, size: 20),
-              const SizedBox(width: 4),
-              Text(
-                _formatCount(seenCount),
-                style: const TextStyle(
-                    color: Colors.white70,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w400),
+              /// Tappable comment "textfield" — opens bottom sheet
+              Expanded(
+                child: GestureDetector(
+                  onTap: onComment,
+                  behavior: HitTestBehavior.opaque,
+                  child: Container(
+                    height: 44,
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16),
+                    decoration: BoxDecoration(
+                      color: Colors.transparent,
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.7),
+                          width: 1),
+                    ),
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      AppStrings.addAComment.tr,
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.85),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+
+              /// Like button
+              GestureDetector(
+                onTap: onLike,
+                behavior: HitTestBehavior.opaque,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      isLiked ? Icons.favorite : Icons.favorite_border,
+                      color: isLiked ? Colors.red : Colors.white,
+                      size: 28,
+                    ),
+                    if (likesCount > 0) ...[
+                      const SizedBox(width: 4),
+                      Text(
+                        _formatCount(likesCount),
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500),
+                      ),
+                    ],
+                  ],
+                ),
               ),
             ],
           ),
@@ -742,8 +830,13 @@ class _BottomActionBar extends StatelessWidget {
 class _CommentSheet extends StatefulWidget {
   final SymbolFeedItem symbol;
   final SymbolFeedController controller;
+  final bool readOnly;
 
-  const _CommentSheet({required this.symbol, required this.controller});
+  const _CommentSheet({
+    required this.symbol,
+    required this.controller,
+    this.readOnly = false,
+  });
 
   @override
   State<_CommentSheet> createState() => _CommentSheetState();
@@ -878,7 +971,8 @@ class _CommentSheetState extends State<_CommentSheet> {
               }),
             ),
 
-            /// Input field
+            /// Input field (hidden when viewing own symbol — read-only mode)
+            if (!widget.readOnly)
             Container(
               padding: const EdgeInsets.only(
                   left: 12, right: 12, top: 10, bottom: 12),
@@ -950,12 +1044,14 @@ class _CommentSheetState extends State<_CommentSheet> {
       if (success) {
         _textController.clear();
         setState(() => _editingCommentId = null);
+        if (mounted) Navigator.of(context).pop();
       }
     } else {
       final success =
           await widget.controller.addComment(widget.symbol.id!, text);
       if (success) {
         _textController.clear();
+        if (mounted) Navigator.of(context).pop();
       }
     }
   }

@@ -33,7 +33,8 @@ class ChannelProfileHeader extends StatelessWidget {
       required this.subtitle,
       this.onTapAvatar,
       this.userName,
-      this.avatarSize = 42.0,
+      this.avatarSize = 50.0,
+      // this.avatarSize = 42.0,
       this.titleColor,
       this.subTitleColor,
       this.userNameColor,
@@ -65,9 +66,10 @@ class ChannelProfileHeader extends StatelessWidget {
                   },
               child: CachedAvatarWidget(
                   imageUrl: imageUrl,
-                  size: avatarSize,
+                  size: 50,
+                  // size: avatarSize,
                   borderColor: borderColor,
-                  borderRadius: 25),
+                  borderRadius: 100),
             ),
           SizedBox(width: SizeConfig.size8),
           Expanded(
@@ -91,19 +93,7 @@ class ChannelProfileHeader extends StatelessWidget {
                           color: titleColor ?? AppColors.secondaryTextColor,
                         ),
                       ),
-                      if (userName != null && (userName?.isNotEmpty ?? false))
-                        Expanded(
-                          child: Padding(
-                            padding: EdgeInsets.only(top: 3),
-                            child: CustomText(
-                              " @$userName",
-                              fontSize: SizeConfig.medium,
-                              fontWeight: FontWeight.w600,
-                              overflow: TextOverflow.ellipsis,
-                              color: userNameColor??AppColors.shadowColor,
-                            ),
-                          ),
-                        ),
+
                       if (isVerifiedTickShow ?? false)
                         Padding(
                           padding: EdgeInsets.only(
@@ -114,11 +104,23 @@ class ChannelProfileHeader extends StatelessWidget {
                     ],
                   ),
                 ),
+
+                if (userName != null && (userName?.isNotEmpty ?? false))
+                  Padding(
+                    padding: EdgeInsets.only(top: 0),
+                    child: CustomText(
+                      " @$userName",
+                      fontSize: SizeConfig.small,
+                      fontWeight: FontWeight.w600,
+                      overflow: TextOverflow.ellipsis,
+                      color: userNameColor??AppColors.shadowColor,
+                    ),
+                  ),
                 SizedBox(height: SizeConfig.size2),
                 Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
                       decoration: BoxDecoration(
                         // The light blue background color from the image
                         color: AppColors.primaryColor.withValues(alpha: 0.1),
@@ -126,7 +128,7 @@ class ChannelProfileHeader extends StatelessWidget {
                       ),
                       child: CustomText(
                         subtitle, // e.g., "Politician - PM Of India"
-                        fontSize: SizeConfig.small, // Adjust based on your SizeConfig.small
+                        fontSize: SizeConfig.extraSmall, // Adjust based on your SizeConfig.small
                         fontWeight: FontWeight.w500, // Medium weight looks closer to the UI
                         color: AppColors.primaryColor, // The blue text color
                       ),

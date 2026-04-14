@@ -47,8 +47,11 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final GlobalKey _headerKey = GlobalKey();
+  final GlobalKey _appBarKey = GlobalKey();
+  final GlobalKey _tabsKey = GlobalKey();
   double _headerHeight = 0;
+  double _appBarHeight = 0;
+  double _tabsHeight = 0;
   final List<String> iconTab = [
     AppIconAssets.message_post,
     AppIconAssets.community_tab,
@@ -176,10 +179,16 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _calculateHeaderHeight() {
-    final renderBox =
-        _headerKey.currentContext?.findRenderObject() as RenderBox?;
-    if (renderBox != null && mounted) {
-      setState(() => _headerHeight = renderBox.size.height);
+    final appBarBox =
+        _appBarKey.currentContext?.findRenderObject() as RenderBox?;
+    final tabsBox =
+        _tabsKey.currentContext?.findRenderObject() as RenderBox?;
+    if (mounted && (appBarBox != null || tabsBox != null)) {
+      setState(() {
+        if (appBarBox != null) _appBarHeight = appBarBox.size.height;
+        if (tabsBox != null) _tabsHeight = tabsBox.size.height;
+        _headerHeight = _appBarHeight + _tabsHeight;
+      });
     }
   }
 
@@ -216,6 +225,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
+        // backgroundColor: AppColors.white,
         backgroundColor: AppColors.lightBlueE9,
         extendBodyBehindAppBar: true,
         body: Obx(() => Stack(
@@ -224,8 +234,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   duration: const Duration(milliseconds: 300),
                   curve: Curves.easeInOut,
                   padding: EdgeInsets.only(
-                      top: (_headerHeight *
-                          (1 - homeScreenController.headerOffset.value))),
+                      top: (_appBarHeight *
+                              (1 - homeScreenController.headerOffset.value)) +
+                          _tabsHeight),
                   child: PageView(
                     controller: _pageController,
                     scrollDirection: Axis.horizontal,
@@ -260,23 +271,38 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
 
-                /// Sticky header — slides up/down like LinkedIn
+                /// AppBar — slides up/off when scrolling
                 AnimatedPositioned(
                   duration: const Duration(milliseconds: 300),
                   curve: Curves.easeInOut,
-                  top: -homeScreenController.headerOffset.value * _headerHeight,
+                  top: -homeScreenController.headerOffset.value * _appBarHeight,
                   left: 0,
                   right: 0,
                   child: KeyedSubtree(
-                    key: _headerKey,
+                    key: _appBarKey,
                     child: Container(
-                      color: Colors.white, // Background color for the tab area
+                      color: Colors.white,
+                      child: _buildCustomAppBar(),
+                    ),
+                  ),
+                ),
+
+                /// Sticky tabs (Lekha / Community) — pin to top after scroll
+                AnimatedPositioned(
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                  top: _appBarHeight *
+                      (1 - homeScreenController.headerOffset.value),
+                  left: 0,
+                  right: 0,
+                  child: KeyedSubtree(
+                    key: _tabsKey,
+                    child: Container(
+                      color: Colors.white,
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _buildCustomAppBar(),
-
                           // --- PRIMARY TABS (Lekha, Community, etc.) ---
                           Padding(
                             padding:

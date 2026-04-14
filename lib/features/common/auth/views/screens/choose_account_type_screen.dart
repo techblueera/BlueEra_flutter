@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/auth/views/screens/new_screens/create_account_type_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -11,6 +12,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
 /// Landing screen where the user picks one of three account flavors
 /// (Business Listing, Professional Account, Personal Account) before
 /// entering the detailed [CreateAccountTypeScreen]. The two individual
@@ -117,6 +119,12 @@ class _ChooseAccountTypeScreenState extends State<ChooseAccountTypeScreen> {
       appBar: CommonBackAppBar(
         appBarColor: AppColors.white,
         title: AppStrings.chooseYourAccountType.tr,
+        onBackTap: () {
+          Get.offNamedUntil(
+            RouteHelper.getBottomNavigationBarScreenRoute(),
+            (route) => false,
+          );
+        },
       ),
       body: SafeArea(
         child: Column(
@@ -157,6 +165,27 @@ class _ChooseAccountTypeScreenState extends State<ChooseAccountTypeScreen> {
                 title: AppStrings.continueText.tr,
                 bgColor: AppColors.primaryColor,
                 textColor: AppColors.white,
+                radius: 10,
+              ),
+            ),
+            Padding(
+              padding: EdgeInsets.fromLTRB(
+                SizeConfig.size8,
+                0,
+                SizeConfig.size8,
+                SizeConfig.size16,
+              ),
+              child: CustomBtn(
+                onTap: () {
+                  Get.offNamedUntil(
+                    RouteHelper.getBottomNavigationBarScreenRoute(),
+                    (route) => false,
+                  );
+                },
+                title: AppStrings.skip.tr,
+                bgColor: AppColors.transparent,
+                textColor: AppColors.primaryColor,
+                borderColor: AppColors.primaryColor,
                 radius: 10,
               ),
             ),
@@ -220,36 +249,36 @@ class _AccountCard extends StatelessWidget {
       child: Container(
         padding: EdgeInsets.all(SizeConfig.size12),
         decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: selected ? AppColors.primaryColor : borderColor,
-            width: selected ? 1.8 : 1,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
-              blurRadius: 16,
-              offset: const Offset(0, 3),
+            color: AppColors.white,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: selected ? AppColors.primaryColor : borderColor,
+              width: selected ? 1.8 : 1,
             ),
-          ]
-          // boxShadow: selected
-          //     ? [
-          //         BoxShadow(
-          //           color:
-          //               AppColors.primaryColor.withValues(alpha: 0.12),
-          //           blurRadius: 16,
-          //           offset: const Offset(0, 3),
-          //         ),
-          //       ]
-          //     : [
-          //         BoxShadow(
-          //           color: Colors.black.withValues(alpha: 0.04),
-          //           blurRadius: 6,
-          //           offset: const Offset(0, 2),
-          //         ),
-          //       ],
-        ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.1),
+                blurRadius: 16,
+                offset: const Offset(0, 3),
+              ),
+            ]
+            // boxShadow: selected
+            //     ? [
+            //         BoxShadow(
+            //           color:
+            //               AppColors.primaryColor.withValues(alpha: 0.12),
+            //           blurRadius: 16,
+            //           offset: const Offset(0, 3),
+            //         ),
+            //       ]
+            //     : [
+            //         BoxShadow(
+            //           color: Colors.black.withValues(alpha: 0.04),
+            //           blurRadius: 6,
+            //           offset: const Offset(0, 2),
+            //         ),
+            //       ],
+            ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -298,16 +327,15 @@ class _AccountCard extends StatelessWidget {
               width: double.maxFinite,
               padding: const EdgeInsets.all(10.0),
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12.0),
-                border: Border.all(color: borderColor),
-                boxShadow: [
-                  BoxShadow(
-                    color: Color(0x1A878FB0),
-                    blurRadius: 10,
-                    offset: const Offset(0, 2),
-                  )
-                ]
-              ),
+                  borderRadius: BorderRadius.circular(12.0),
+                  border: Border.all(color: borderColor),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Color(0x1A878FB0),
+                      blurRadius: 10,
+                      offset: const Offset(0, 2),
+                    )
+                  ]),
               child: Wrap(
                 spacing: SizeConfig.size6,
                 runSpacing: SizeConfig.size6,

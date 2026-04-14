@@ -15,79 +15,87 @@ class ChannelCardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      color: AppColors.transparent,
-      elevation: 0,
-      child: Padding(
-        padding: const EdgeInsets.only(bottom: 0,left: 10,right: 10,top: 15),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            InkWell(
-              onTap: () {
-                navigatePushTo(
-                  context,
-                  ImageViewScreen(
-                    appBarTitle: AppStrings.imageViewer,
-                    // imageUrls: [post?.author.profileImage ?? ''],
-                    imageUrls: [channelModel.logoUrl ?? ""],
-                    initialIndex: 0,
-                  ),
-                );
-              },
-              child: CachedAvatarWidget(
-                  imageUrl: channelModel.logoUrl, size: 54, borderRadius: 25),
-            ),
-            const SizedBox(width: 12),
+    return Column(
+      children: [
+        Card(
+          color: AppColors.transparent,
+          elevation: 0,
+          child: Padding(
+            padding: const EdgeInsets.only(bottom: 2,left: 10,right: 10,top: 2),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                InkWell(
+                  onTap: () {
+                    navigatePushTo(
+                      context,
+                      ImageViewScreen(
+                        appBarTitle: AppStrings.imageViewer,
+                        // imageUrls: [post?.author.profileImage ?? ''],
+                        imageUrls: [channelModel.logoUrl ?? ""],
+                        initialIndex: 0,
+                      ),
+                    );
+                  },
+                  child: CachedAvatarWidget(
+                      imageUrl: channelModel.logoUrl, size: 54, borderRadius: 25),
+                ),
+                const SizedBox(width: 12),
 
-            // Text content
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CustomText(
-                    '${channelModel.name}',
-                    fontWeight: FontWeight.w700,
-                    fontSize: SizeConfig.large,
-                    maxLines: 1,
-                    color: AppColors.black,
-                    overflow: TextOverflow.ellipsis,
+                // Text content
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CustomText(
+                        '${channelModel.name}',
+                        fontWeight: FontWeight.w700,
+                        fontSize: SizeConfig.large,
+                        maxLines: 1,
+                        color: AppColors.black,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      CustomText(
+                        channelModel.latestPost?.subTitle,
+                        color: AppColors.secondaryTextColor,
+                        fontWeight: FontWeight.w700,
+                        fontFamily: AppConstants.OpenSans,
+                        fontSize: SizeConfig.medium,
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 2,
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 4),
-                  CustomText(
-                    channelModel.latestPost?.subTitle,
-                    color: AppColors.secondaryTextColor,
-                    fontWeight: FontWeight.w700,
-                    fontFamily: AppConstants.OpenSans,
-                    fontSize: SizeConfig.medium,
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 2,
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 8),
+                ),
+                const SizedBox(width: 8),
 
-            // Trailing section (time, badge, link)
-            Padding(
-              padding: EdgeInsets.only(right: 5),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  CustomText(
-                    formatClaimedAt(channelModel.ownership?.claimedAt ?? ""),
-                    fontSize: SizeConfig.small11,
-                    color: Colors.grey.shade600,
+                // Trailing section (time, badge, link)
+                Padding(
+                  padding: EdgeInsets.only(right: 5),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      CustomText(
+                        formatClaimedAt(channelModel.ownership?.claimedAt ?? ""),
+                        fontSize: SizeConfig.small11,
+                        color: Colors.grey.shade600,
+                      ),
+                      const SizedBox(height: 6),
+                    ],
                   ),
-                  const SizedBox(height: 6),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
+
+          ),
         ),
-
-      ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12.0),
+          child: Divider(height: 0.5, thickness: 0.5, color: AppColors.greyE5),
+        ),
+      ],
     );
   }
 }

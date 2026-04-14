@@ -3,6 +3,7 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/common/Discover/view/healthcare/discover_hospital_home_screen.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_service_ai_controller.dart';
 import 'package:BlueEra/features/me/hospital/model/hospital_full_details_res_model.dart';
@@ -14,7 +15,7 @@ import 'package:get/get.dart';
 
 class HospitalListScreen extends StatefulWidget {
   const HospitalListScreen({super.key, required this.serviceType});
-final String serviceType;
+  final String serviceType;
   @override
   State<HospitalListScreen> createState() => _HospitalListScreenState();
 }
@@ -67,7 +68,7 @@ class _HospitalListScreenState extends State<HospitalListScreen> {
         if (controller.profiles.isEmpty) {
           return Center(
             child: CustomText(
-              "No laboratories found",
+              "No hospitals found",
               fontSize: SizeConfig.medium,
               color: AppColors.grey9B,
             ),
@@ -75,12 +76,12 @@ class _HospitalListScreenState extends State<HospitalListScreen> {
         }
         return RefreshIndicator(
           color: AppColors.primaryColor,
-          onRefresh: ()async{
-         await   controller.fetchInitial(widget.serviceType);
+          onRefresh: () async {
+            await controller.fetchInitial(widget.serviceType);
           },
           child: ListView.builder(
             controller: _scrollController,
-            // padding: EdgeInsets.all(SizeConfig.paddingM),
+            padding: EdgeInsets.symmetric(vertical: SizeConfig.size8),
             itemCount: controller.profiles.length +
                 (controller.isLoadingMore.value ? 1 : 0),
             itemBuilder: (context, index) {
@@ -105,73 +106,67 @@ class _HospitalListScreenState extends State<HospitalListScreen> {
 class _HospitalCard extends StatelessWidget {
   final HospitalFullData item;
 
-  _HospitalCard({required this.item});
+  const _HospitalCard({required this.item});
 
-  List<Map<String, String>> services = [];
+  bool _isEmpty(String? s) => s == null || s.trim().isEmpty;
+
+  String _valueOr(String? s, {String fallback = "Not available"}) =>
+      _isEmpty(s) ? fallback : s!.trim();
+
+  List<String> _buildFacilities() {
+    final list = <String>[];
+    final ec = item.emergencyCare;
+    final of = item.otherFacilities;
+    if (ec?.emergencyCasualty ?? false) list.add("Emergency");
+    if (ec?.traumaCare ?? false) list.add("Trauma Care");
+    if (ec?.icu ?? false) list.add("ICU");
+    if (ec?.ccu ?? false) list.add("CCU");
+    if (ec?.nicu ?? false) list.add("NICU");
+    if (ec?.picu ?? false) list.add("PICU");
+    if (of?.ambulance ?? false) list.add("Ambulance");
+    if (of?.bloodBank ?? false) list.add("Blood Bank");
+    if (of?.diagnosticDepartments ?? false) list.add("Diagnostics");
+    if (of?.medicalStore ?? false) list.add("Medical Store");
+    if (of?.pmSwasthyaBimaYojana ?? false) list.add("PM Yojana");
+    return list;
+  }
+
+  void _openChat() {
+    final ownerId = item.userId;
+    if (_isEmpty(ownerId)) return;
+    final chatCtrl = getOrPut(() => ChatViewController());
+    chatCtrl.checkChatConnectionAndOpenChat(
+      userId: ownerId!,
+      name: item.name,
+      profile: item.logoUrl,
+    );
+  }
+
+  String? _primaryPhone() {
+    final contacts = item.contacts;
+    if (contacts == null || contacts.isEmpty) return null;
+    for (final c in contacts) {
+      final depts = c.departments;
+      if (depts == null) continue;
+      for (final d in depts) {
+        if (!_isEmpty(d.phone)) return d.phone;
+      }
+    }
+    return null;
+  }
 
   @override
   Widget build(BuildContext context) {
-    services = [
-      if (item.emergencyCare?.emergencyCasualty ?? false)
-        {
-          "title": "Emergency / Casualty",
-          "icon": "assets/svg/em_emergency.svg",
-          "desc": ""
-        },
-      if (item.emergencyCare?.traumaCare ?? false)
-        {
-          "title": "Trauma Care",
-          "icon": "assets/svg/em_trauma_care.svg",
-          "desc": ""
-        },
-      if (item.emergencyCare?.icu ?? false)
-        {
-          "title": "ICU",
-          "icon": "assets/svg/em_icu.svg",
-          "desc": ""
-        },
-      if (item.emergencyCare?.ccu ?? false)
-        {
-          "title": "CCU",
-          "icon": "assets/svg/em_ccu.svg",
-          "desc": ""
-        },
-      if (item.emergencyCare?.nicu ?? false)
-        {
-          "title": "NICU",
-          "icon": "assets/svg/em_nicu.svg",
-          "desc": ""
-        },
-      if (item.emergencyCare?.picu ?? false)
-        {
-          "title": "PICU",
-          "icon": "assets/svg/em_picu.svg",
-          "desc": ""
-        },
-      if (item.otherFacilities?.ambulance ?? false)
-        {"title": "Ambulance", "icon": AppIconAssets.Ambulance, "desc": ""},
-      if (item.otherFacilities?.diagnosticDepartments ?? false)
-        {
-          "title": "Diagnostic Departments",
-          "icon": AppIconAssets.diag_dept_view,
-          "desc": ""
-        },
-      if (item.otherFacilities?.medicalStore ?? false)
-        {
-          "title": "Medical Store",
-          "icon": AppIconAssets.medical_view,
-          "desc": ""
-        },
-      if (item.otherFacilities?.pmSwasthyaBimaYojana ?? false)
-        {
-          "title": "PM Swasthya Bima Yojana",
-          "icon": AppIconAssets.PMYojana,
-          "desc": ""
-        },
-    ];
+    final facilities = _buildFacilities();
+    final departmentsCount = item.departments?.length ?? 0;
+    final phone = _primaryPhone();
+    final hasLogo = !_isEmpty(item.logoUrl);
+
     return Padding(
-      padding: const EdgeInsets.only(right: 10.0, bottom: 15, left: 8),
+      padding: EdgeInsets.symmetric(
+          horizontal: SizeConfig.size10, vertical: SizeConfig.size6),
       child: InkWell(
+        borderRadius: BorderRadius.circular(SizeConfig.size12),
         onTap: () {
           try {
             final controller = Get.find<HospitalServiceAiController>();
@@ -180,29 +175,31 @@ class _HospitalCard extends StatelessWidget {
             Get.to(DiscoverHospitalHomeScreen());
           } on Exception catch (e) {
             logs("ERROR $e");
-            // TODO
           }
         },
         child: CommonCardWidget(
           cardMargin: 0,
+          padding: SizeConfig.size12,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Header: logo + name + address
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   ClipRRect(
-                    borderRadius: BorderRadius.circular(SizeConfig.size12),
+                    borderRadius: BorderRadius.circular(SizeConfig.size10),
                     child: Container(
-                      width: SizeConfig.size60,
-                      height: SizeConfig.size60,
+                      width: SizeConfig.size70,
+                      height: SizeConfig.size70,
                       color: AppColors.liteWhite,
-                      child: item.logoUrl?.isNotEmpty ?? false
+                      child: hasLogo
                           ? Image.network(
-                              item.logoUrl ?? "",
+                              item.logoUrl!,
                               fit: BoxFit.cover,
                               errorBuilder: (c, e, s) => LocalAssets(
-                                  imagePath: AppIconAssets.place_holder_image),
+                                  imagePath:
+                                      AppIconAssets.place_holder_image),
                             )
                           : LocalAssets(
                               imagePath: AppIconAssets.place_holder_image),
@@ -213,84 +210,200 @@ class _HospitalCard extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        CustomText(
+                          _valueOr(item.name, fallback: "Unknown Hospital"),
+                          fontSize: SizeConfig.medium,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.mainTextColor,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        SizedBox(height: SizeConfig.size4),
                         Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            Icon(Icons.location_on_outlined,
+                                size: SizeConfig.size14,
+                                color: AppColors.grey9B),
+                            SizedBox(width: SizeConfig.size4),
                             Expanded(
                               child: CustomText(
-                                (item.name?.isNotEmpty ?? false)
-                                    ? item.name
-                                    : "Unknown",
-                                fontSize: SizeConfig.medium,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.mainTextColor,
-                                maxLines: 1,
+                                _valueOr(item.location?.name,
+                                    fallback: "Address not available"),
+                                fontSize: SizeConfig.small,
+                                color: AppColors.secondaryTextColor,
+                                maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
                           ],
                         ),
-                        SizedBox(height: SizeConfig.size6),
-                        CustomText(
-                          "Address : ${item.location?.name}",
-                          fontSize: SizeConfig.small,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                        if (!_isEmpty(phone)) ...[
+                          SizedBox(height: SizeConfig.size4),
+                          Row(
+                            children: [
+                              Icon(Icons.call_outlined,
+                                  size: SizeConfig.size14,
+                                  color: AppColors.primaryColor),
+                              SizedBox(width: SizeConfig.size4),
+                              Expanded(
+                                child: CustomText(
+                                  phone!,
+                                  fontSize: SizeConfig.small,
+                                  color: AppColors.primaryColor,
+                                  fontWeight: FontWeight.w600,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ],
                     ),
                   ),
+                  SizedBox(width: SizeConfig.size8),
+                  _chatIconButton(),
                 ],
               ),
-              SizedBox(height: SizeConfig.size6),
-              // SizedBox(height: SizeConfig.size6),
+
+              // Description
+              if (!_isEmpty(item.description)) ...[
+                SizedBox(height: SizeConfig.size10),
+                CustomText(
+                  item.description!.trim(),
+                  fontSize: SizeConfig.small,
+                  color: AppColors.secondaryTextColor,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+
+              // Quick stats row
+              SizedBox(height: SizeConfig.size10),
+              Row(
+                children: [
+                  _statChip(
+                    icon: Icons.local_hospital_outlined,
+                    label: departmentsCount > 0
+                        ? "$departmentsCount Departments"
+                        : "No departments",
+                  ),
+                  SizedBox(width: SizeConfig.size8),
+                  _statChip(
+                    icon: Icons.medical_services_outlined,
+                    label: facilities.isNotEmpty
+                        ? "${facilities.length} Facilities"
+                        : "No facilities",
+                  ),
+                ],
+              ),
+
+              // Facilities
+              SizedBox(height: SizeConfig.size10),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  CustomText("Our Facility : ",fontSize: 12,fontWeight: FontWeight.w600,),
-
+                  CustomText(
+                    "Facilities : ",
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.mainTextColor,
+                  ),
                   Expanded(
-                    child: Wrap(
-                      crossAxisAlignment: WrapCrossAlignment.start,
-                      children: List.generate(services.take(3).length, (index) {
-                        // 1. Store the title
-                        final String title = services[index]['title'] ?? "";
-
-                        // 2. Check if this is the last item in the generated list
-                        final bool isLast = index == services.take(3).length - 1;
-
-                        // 3. Conditionally append the separator
-                        return CustomText(
-                          isLast ? title : "$title | ",
-                          fontSize: 12,
-                        );
-                      }),
-                    ),
-                  )
-                  // Expanded(
-                  //   child: Wrap(
-                  //     crossAxisAlignment: WrapCrossAlignment.start,
-                  //     children: List.generate(services.take(3).length, (index) {
-                  //       return CustomText("${services[index]['title'] ?? " "} | ",fontSize: 12,);
-                  //     }),
-                  //   ),
-                  // ),
+                    child: facilities.isEmpty
+                        ? CustomText(
+                            "Not available",
+                            fontSize: 12,
+                            color: AppColors.grey9B,
+                          )
+                        : Wrap(
+                            spacing: SizeConfig.size6,
+                            runSpacing: SizeConfig.size6,
+                            children: facilities
+                                .take(4)
+                                .map((t) => _facilityPill(t))
+                                .toList()
+                              ..addAll(facilities.length > 4
+                                  ? [_facilityPill("+${facilities.length - 4}")]
+                                  : []),
+                          ),
+                  ),
                 ],
-              )
-              // ExpandableText(
-              //   text: item.description ?? "",
-              //   trimLines: 1,
-              //   isReadMoreNewLine: false,
-              //   expandMode: ExpandMode.dialog,
-              //   style: TextStyle(
-              //     color: AppColors.secondaryTextColor,
-              //     fontSize: SizeConfig.small,
-              //     fontWeight: FontWeight.w400,
-              //     fontFamily: AppConstants.OpenSans,
-              //   ),
-              // ),
+              ),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _chatIconButton() {
+    final enabled = !_isEmpty(item.userId);
+    return InkWell(
+      onTap: enabled ? _openChat : null,
+      borderRadius: BorderRadius.circular(SizeConfig.size20),
+      child: Container(
+        padding: EdgeInsets.all(SizeConfig.size8),
+        decoration: BoxDecoration(
+          color: enabled
+              ? AppColors.primaryColor.withOpacity(0.1)
+              : AppColors.liteWhite,
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: enabled
+                ? AppColors.primaryColor.withOpacity(0.3)
+                : AppColors.grey9B.withOpacity(0.2),
+          ),
+        ),
+        child: Icon(
+          Icons.chat_bubble_outline,
+          size: SizeConfig.size18,
+          color: enabled ? AppColors.primaryColor : AppColors.grey9B,
+        ),
+      ),
+    );
+  }
+
+  Widget _statChip({required IconData icon, required String label}) {
+    return Container(
+      padding: EdgeInsets.symmetric(
+          horizontal: SizeConfig.size8, vertical: SizeConfig.size4),
+      decoration: BoxDecoration(
+        color: AppColors.liteWhite,
+        borderRadius: BorderRadius.circular(SizeConfig.size6),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: SizeConfig.size14, color: AppColors.primaryColor),
+          SizedBox(width: SizeConfig.size4),
+          CustomText(
+            label,
+            fontSize: 11,
+            color: AppColors.mainTextColor,
+            fontWeight: FontWeight.w500,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _facilityPill(String text) {
+    return Container(
+      padding: EdgeInsets.symmetric(
+          horizontal: SizeConfig.size8, vertical: SizeConfig.size4),
+      decoration: BoxDecoration(
+        color: AppColors.primaryColor.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(SizeConfig.size20),
+        border:
+            Border.all(color: AppColors.primaryColor.withOpacity(0.25)),
+      ),
+      child: CustomText(
+        text,
+        fontSize: 11,
+        color: AppColors.primaryColor,
+        fontWeight: FontWeight.w500,
       ),
     );
   }

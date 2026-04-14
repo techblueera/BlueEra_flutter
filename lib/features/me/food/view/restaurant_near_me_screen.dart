@@ -751,6 +751,8 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
                             destinationLat: store.businessLocation?.lat?.toDouble() ?? 0.0,
                             destinationLng: store.businessLocation?.lon?.toDouble() ?? 0.0,
                             livePhotos: store.livePhotos,
+                              storeBusinessID:store.id??"" ,storeUserID: store.userId??""
+
                           ),
                           borderRadius: BorderRadius.circular(22),
                           child: Container(

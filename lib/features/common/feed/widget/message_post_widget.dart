@@ -135,8 +135,12 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
               ));
         },
         child: Container(
+          // color: AppColors.white,
           color: AppColors.lightBlueE9,
-          margin: EdgeInsetsDirectional.only(top: 8),
+
+          padding: EdgeInsetsDirectional.all(5),
+          // margin: EdgeInsetsDirectional.all(5),
+          // margin: EdgeInsetsDirectional.only(top: 8),
           child: FeedCardWidget(
               horizontalPadding: widget.horizontalPadding,
               bottomPadding: widget.bottomPadding,
@@ -273,14 +277,6 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                               ),
                             ),
                           ),
-                        /* Padding(
-                            padding: EdgeInsets.only(
-                                left: SizeConfig.size15,
-                                right: SizeConfig.size15,
-                                bottom: SizeConfig.size10,
-                                top: SizeConfig.size5),
-                            child: ClickableLinkText(url: _post.referenceLink!),
-                          ),*/
                         if (_post.taggedUsers?.isNotEmpty ?? false) ...[
                           Padding(
                             padding: EdgeInsets.only(

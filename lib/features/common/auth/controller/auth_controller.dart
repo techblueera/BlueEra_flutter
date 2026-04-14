@@ -25,6 +25,7 @@ import 'package:BlueEra/features/common/auth/model/personal_profession_model.dar
 import 'package:BlueEra/features/common/auth/model/single_business_category_response.dart';
 import 'package:BlueEra/features/common/auth/model/username_res_model.dart';
 import 'package:BlueEra/features/common/auth/repo/auth_repo.dart';
+import 'package:BlueEra/features/common/auth/views/screens/choose_account_type_screen.dart';
 import 'package:BlueEra/features/common/feed/models/block_user_response.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_service_ai_controller.dart';
 import 'package:BlueEra/features/me/hotel/controller/hotel_service_controller.dart';
@@ -228,10 +229,12 @@ class AuthController extends GetxController {
               SharedPreferenceUtils.accountType, AppConstants.guest);
           await getGuestUserLoginData();
           await Future.delayed(Duration(milliseconds: 350));
-          Get.offNamedUntil(
-            RouteHelper.getBottomNavigationBarScreenRoute(),
-            (route) => false,
-          );
+          Get.offAll(() => const ChooseAccountTypeScreen());
+
+          // Get.offNamedUntil(
+          //   RouteHelper.getBottomNavigationBarScreenRoute(),
+          //   (route) => false,
+          // );
         }
 
         ///GUEST ACCOUNT.....
@@ -746,10 +749,12 @@ class AuthController extends GetxController {
               SharedPreferenceUtils.accountType, AppConstants.guest);
           await getGuestUserLoginData();
           await Future.delayed(Duration(milliseconds: 350));
-          Get.offNamedUntil(
-            RouteHelper.getBottomNavigationBarScreenRoute(),
-            (route) => false,
-          );
+          Get.offAll(() => const ChooseAccountTypeScreen());
+
+          // Get.offNamedUntil(
+          //   RouteHelper.getBottomNavigationBarScreenRoute(),
+          //   (route) => false,
+          // );
 
           clearAllData();
           addUserResponse = ApiResponse.complete(response);

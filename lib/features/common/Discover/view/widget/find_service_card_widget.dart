@@ -6,6 +6,7 @@ import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/Discover/view/discover_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/services_near_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/rounded_view_all_btn.dart';
+import 'package:BlueEra/features/common/store/view/new_store/products_store_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:flutter/material.dart';
 
@@ -29,14 +30,14 @@ class FindServiceCardWidget extends StatelessWidget {
               SizedBox(
                 width: SizeConfig.size8,
               ),
-              ViewAllButton(
-                onTap: () {
-                  Get.to(() => ServicesNearMeScreen(
-                    businessServicesCategories:
-                    businessOnboardingServicesCategories,
-                  ));
-                },
-              ),
+              // ViewAllButton(
+              //   onTap: () {
+              //     Get.to(() => ServicesNearMeScreen(
+              //       businessServicesCategories:
+              //       businessOnboardingServicesCategories,
+              //     ));
+              //   },
+              // ),
 
             ],
           ),
@@ -51,7 +52,7 @@ class FindServiceCardWidget extends StatelessWidget {
               return Wrap(
                 spacing: spacing,
                 runSpacing: spacing,
-                children: businessOnboardingServicesCategories.take(6).map((categoryItem) {
+                children: businessOnboardingServicesCategories.take(9).map((categoryItem) {
                   return SizedBox(
                     width: itemWidth,
                     child: CommonServiceCard(
@@ -60,10 +61,15 @@ class FindServiceCardWidget extends StatelessWidget {
                       getIcon: (item) => item.icon ?? '',
                       iconHeight: SizeConfig.size80,
                       onTap: (item) {
-                        Get.to(() => ServicesNearMeScreen(
-                          businessServicesCategories:
-                              businessOnboardingServicesCategories,
+                        Get.to(() => ProductsStoreScreen(
+                          // typeOfBusiness: AppConstants.service,
+                          productCategory: item.slugId,
+                          productCategoryName: item.name,
                         ));
+                        // Get.to(() => ServicesNearMeScreen(
+                        //   businessServicesCategories:
+                        //       businessOnboardingServicesCategories,
+                        // ));
                       },
                     ),
                   );

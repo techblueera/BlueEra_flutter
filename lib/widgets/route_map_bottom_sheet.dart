@@ -1,5 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/features/common/store/widget/store_live_photo_widget.dart';
@@ -9,8 +11,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
+import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../core/api/apiService/api_keys.dart' show ApiKeys;
 
 /// A reusable bottom sheet that shows a Google Map with a driving route
 /// between the user's current location and a destination.
@@ -28,6 +32,8 @@ import 'package:url_launcher/url_launcher.dart';
 class RouteMapBottomSheet extends StatefulWidget {
   final String destinationName;
   final String destinationAddress;
+  final String storeBusinessID;
+  final String storeUserID;
   final double destinationLat;
   final double destinationLng;
   final double userLat;
@@ -42,6 +48,8 @@ class RouteMapBottomSheet extends StatefulWidget {
     required this.destinationLng,
     required this.userLat,
     required this.userLng,
+    required this.storeUserID,
+    required this.storeBusinessID,
     this.livePhotos,
   });
 
@@ -52,6 +60,8 @@ class RouteMapBottomSheet extends StatefulWidget {
     String destinationAddress = '',
     required double destinationLat,
     required double destinationLng,
+    required String storeBusinessID,
+    required String storeUserID,
     double? userLat,
     double? userLng,
     List<String>? livePhotos,
@@ -72,7 +82,7 @@ class RouteMapBottomSheet extends StatefulWidget {
         destinationLng: destinationLng,
         userLat: uLat,
         userLng: uLng,
-        livePhotos: livePhotos,
+        livePhotos: livePhotos, storeUserID: storeUserID, storeBusinessID: storeBusinessID,
       ),
     );
   }
@@ -162,23 +172,6 @@ class _RouteMapBottomSheetState extends State<RouteMapBottomSheet> {
     }
   }
 
-  void _fitBounds() {
-    if (_mapController == null) return;
-
-    final bounds = LatLngBounds(
-      southwest: LatLng(
-        _userLatLng.latitude < _destinationLatLng.latitude ? _userLatLng.latitude : _destinationLatLng.latitude,
-        _userLatLng.longitude < _destinationLatLng.longitude ? _userLatLng.longitude : _destinationLatLng.longitude,
-      ),
-      northeast: LatLng(
-        _userLatLng.latitude > _destinationLatLng.latitude ? _userLatLng.latitude : _destinationLatLng.latitude,
-        _userLatLng.longitude > _destinationLatLng.longitude ? _userLatLng.longitude : _destinationLatLng.longitude,
-      ),
-    );
-
-    _mapController?.animateCamera(CameraUpdate.newLatLngBounds(bounds, 60));
-  }
-
   Future<void> _openInGoogleMaps() async {
     final url = Uri.parse(
       'https://www.google.com/maps/dir/?api=1'
@@ -191,7 +184,7 @@ class _RouteMapBottomSheetState extends State<RouteMapBottomSheet> {
     }
   }
 
-  List<String> get _validPhotos =>
+List<String> get _validPhotos =>
       widget.livePhotos?.where((p) => p.trim().isNotEmpty).toList() ?? [];
 
   @override
@@ -202,7 +195,8 @@ class _RouteMapBottomSheetState extends State<RouteMapBottomSheet> {
     final hasPhotos = _validPhotos.isNotEmpty;
 
     return Container(
-      height: MediaQuery.of(context).size.height * (hasPhotos ? 0.8 : 0.6),
+      height: MediaQuery.of(context).size.height * (hasPhotos ? 0.7 : 0.4),
+      // height: MediaQuery.of(context).size.height * (hasPhotos ? 0.8 : 0.6),
       decoration: const BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -229,11 +223,19 @@ class _RouteMapBottomSheetState extends State<RouteMapBottomSheet> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      CustomText(
-                        widget.destinationName,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.mainTextColor,
+                      InkWell(
+                        onTap: (){
+                          Get.toNamed(RouteHelper.getVisitGroceryStoreScreenRoute(), arguments: {
+                            ApiKeys.userId:widget.storeUserID,
+                            ApiKeys.businessId: widget.storeBusinessID,
+                          });
+                        },
+                        child: CustomText(
+                          widget.destinationName,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.mainTextColor,
+                        ),
                       ),
                       const SizedBox(height: 4),
                       CustomText(
@@ -245,9 +247,18 @@ class _RouteMapBottomSheetState extends State<RouteMapBottomSheet> {
                     ],
                   ),
                 ),
-                // Navigate button
+                // Visit Store button
                 GestureDetector(
-                  onTap: _openInGoogleMaps,
+                  onTap: () {
+                    Navigator.of(context).maybePop();
+                    Get.toNamed(
+                      RouteHelper.getVisitGroceryStoreScreenRoute(),
+                      arguments: {
+                        ApiKeys.userId: widget.storeUserID,
+                        ApiKeys.businessId: widget.storeBusinessID,
+                      },
+                    );
+                  },
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                     decoration: BoxDecoration(
@@ -257,10 +268,10 @@ class _RouteMapBottomSheetState extends State<RouteMapBottomSheet> {
                     child: const Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.navigation_rounded, size: 16, color: Colors.white),
+                        Icon(Icons.storefront_rounded, size: 16, color: Colors.white),
                         SizedBox(width: 6),
                         CustomText(
-                          'Navigate',
+                          AppStrings.view,
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
                           color: AppColors.white,
@@ -291,55 +302,42 @@ class _RouteMapBottomSheetState extends State<RouteMapBottomSheet> {
             ),
           ),
 
-          // Address
-          if (widget.destinationAddress.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                children: [
-                  Icon(Icons.location_on_outlined, size: 14, color: Colors.grey.shade500),
-                  const SizedBox(width: 4),
-                  Expanded(
-                    child: CustomText(
-                      widget.destinationAddress,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w400,
-                      color: AppColors.secondaryTextColor,
-                      maxLines: 2,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+
 
           const SizedBox(height: 10),
 
-          // Map
+          // Map (card view)
           Expanded(
-            child: ClipRRect(
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-              child: Stack(
-                children: [
-                  GoogleMap(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              child: Card(
+                elevation: 3,
+                color: AppColors.white,
+                clipBehavior: Clip.antiAlias,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  side: BorderSide(color: AppColors.greyE5, width: 0.5),
+                ),
+                child: Stack(
+                  children: [
+                    GoogleMap(
                     initialCameraPosition: CameraPosition(
                       target: _destinationLatLng,
-                      zoom: 13,
+                      zoom: 15,
                     ),
                     markers: _markers,
                     polylines: _polylines,
                     myLocationEnabled: false,
-                    zoomControlsEnabled: true,
-                    zoomGesturesEnabled: true,
-                    scrollGesturesEnabled: true,
-                    rotateGesturesEnabled: true,
-                    tiltGesturesEnabled: true,
+                    zoomControlsEnabled: false,
+                    zoomGesturesEnabled: false,
+                    scrollGesturesEnabled: false,
+                    rotateGesturesEnabled: false,
+                    tiltGesturesEnabled: false,
                     mapToolbarEnabled: false,
-                    gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>{
-                      Factory<OneSequenceGestureRecognizer>(() => EagerGestureRecognizer()),
-                    },
+                    liteModeEnabled: true,
+                    onTap: (_) => _openInGoogleMaps(),
                     onMapCreated: (controller) {
                       _mapController = controller;
-                      Future.delayed(const Duration(milliseconds: 500), _fitBounds);
                     },
                   ),
                   if (_isLoadingRoute)
@@ -383,10 +381,32 @@ class _RouteMapBottomSheetState extends State<RouteMapBottomSheet> {
                         ),
                       ),
                     ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
+          // Address
+          if (widget.destinationAddress.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  Icon(Icons.location_on_outlined, size: 14, color: Colors.grey.shade500),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: CustomText(
+                      widget.destinationAddress,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w400,
+                      color: AppColors.secondaryTextColor,
+                      maxLines: 2,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          const SizedBox(height: 10),
 
           // Live Photos
           if (hasPhotos) ...[

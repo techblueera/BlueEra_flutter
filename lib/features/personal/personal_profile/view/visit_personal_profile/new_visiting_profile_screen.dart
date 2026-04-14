@@ -151,7 +151,8 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
               children: [
                 // Posts
                 Container(
-                  color: AppColors.lightBlueE9,
+                  color: AppColors.white,
+                  // color: AppColors.lightBlueE9,
                   child: FeedScreen(
                     key: ValueKey('feedScreen_user_posts_${widget.authorId}'),
                     postFilterType: PostType.otherPosts,

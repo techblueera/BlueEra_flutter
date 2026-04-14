@@ -59,10 +59,8 @@ class _ShoppingCardWidgetState extends State<ShoppingCardWidget> {
                           color: AppColors.primaryColor,
                         ),
                       ),
-                    SizedBox(width: SizeConfig.size8),
-                    ViewAllButton(
-                      onTap: () => _showShoppingOptionDialog(context),
-                    ),
+                    SizedBox(width: SizeConfig.size20),
+
                   ],
                 ),
               ],

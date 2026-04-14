@@ -269,6 +269,8 @@ class _VisitBusinessCommonHeaderState extends State<VisitBusinessCommonHeader> {
                           details?.businessLocation?.lat?.toDouble() ?? 0.0,
                       destinationLng:
                           details?.businessLocation?.lon?.toDouble() ?? 0.0,
+                        storeBusinessID:details?.id??"" ,storeUserID: details?.userId??""
+
                     ),
                     child: Container(
                       padding: const EdgeInsets.all(10),

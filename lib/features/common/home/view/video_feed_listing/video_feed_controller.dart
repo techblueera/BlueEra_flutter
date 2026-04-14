@@ -37,10 +37,7 @@ class VideoFeedController extends GetxController {
     _precachedUrls.clear();
   }
 
-  /// Load initial data
-  void setVideos(List<VideoPost> list) {
-    videos.assignAll(list);
-  }
+
 
   /// Toggle like
   void toggleLike(int index) {

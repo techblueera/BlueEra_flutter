@@ -14,6 +14,7 @@ class BookViaBlueEraPartnerBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return SizedBox(height: 10,);
     return Padding(
       padding: EdgeInsets.symmetric(
           horizontal: SizeConfig.size12, vertical: SizeConfig.size8),

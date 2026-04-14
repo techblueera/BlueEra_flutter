@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:BlueEra/core/api/apiService/api_response.dart';
+import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
@@ -191,8 +192,55 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
         }
         final blocks = _buildBlocks(posts);
         final bool showStories = widget.postFilterType == PostType.all;
-        // 🔹 Build listView once
         final listView = ListView.builder(
+          controller: _scrollController,
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          // 1. Set padding to zero if you want it flush, or keep only what is necessary
+          padding: EdgeInsets.zero,
+          itemCount: blocks.length + (showStories ? 1 : 0),
+          shrinkWrap: widget.isInParentScroll,
+          physics: widget.isInParentScroll
+              ? const NeverScrollableScrollPhysics()
+              : const AlwaysScrollableScrollPhysics(),
+          itemBuilder: (context, indexFeed) {
+            if (showStories && indexFeed == 0) {
+              return const SymbolStoryRow();
+            }
+
+            int index = showStories ? indexFeed - 1 : indexFeed;
+            final block = blocks[index];
+            final item = block.items.first;
+
+            final type = item.type?.toLowerCase();
+            if (type == "message_post" || type == "poll_post") {
+              trackPostView(item.id);
+
+              // 2. Removed the wrapping Padding widget entirely to eliminate extra space.
+              // Use FeedCard's internal padding properties instead.
+              return FeedCard(
+                post: item,
+                index: index,
+                postFilteredType: PostType.all,
+                bottomPadding: 0,
+                horizontalPadding: 0, // Set to 0 to remove side gaps
+                isRepost: false,
+              );
+            }
+            return const SizedBox.shrink();
+          },
+          // separatorBuilder: (BuildContext context, int index) {
+          //   // 3. Cleaned up the separator - removing the redundant return and container padding
+          //   return Divider(
+          //     color: AppColors.whiteE5,
+          //     thickness: 1.5,
+          //     height: 1, // Ensures the divider itself doesn't add vertical height
+          //     indent: 0,
+          //     endIndent: 0,
+          //   );
+          // },
+        );
+        /*    // 🔹 Build listView once
+        final listView = ListView.separated(
           controller: _scrollController,
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           padding:
@@ -240,7 +288,18 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
             }
             return const SizedBox.shrink(); // skip if no card
           },
-        );
+          separatorBuilder: (BuildContext context, int index) {
+            return Container(height: 1,color: Colors.red,padding: EdgeInsets.zero,);
+            return Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 12.0, vertical: 0),
+              child: Divider(
+                color: AppColors.whiteE5,
+                thickness: 1.5,
+              ),
+            );
+          },
+        );*/
 
         // 🔹 Only wrap with RefreshIndicator if headerOffset == 0
         final content = RefreshIndicator(
@@ -327,7 +386,7 @@ ShortFeedItem getVideoData(Post video) {
           userId: video.user?.id,
           type: video.type,
           title: video.title,
-          description: video.message,
+          description: video.subTitle,
           videoUrl: video.media?.firstOrNull,
           coverUrl: video.thumbnail,
           // videoUrl: video.videoUrl,

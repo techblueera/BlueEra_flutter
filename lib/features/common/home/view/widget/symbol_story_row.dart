@@ -25,10 +25,10 @@ class SymbolStoryRow extends StatelessWidget {
       if (controller.userGroups.isEmpty) return const SizedBox.shrink();
 
       return Container(
-        margin: const EdgeInsets.only(top: 10, right: 10, left: 10),
+        // margin: const EdgeInsets.only(top: 0, right: 10, left: 10),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(0),
         ),
         padding: const EdgeInsets.only(top: 8, bottom: 6),
         height: 106,

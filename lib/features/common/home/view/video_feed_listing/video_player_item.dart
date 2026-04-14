@@ -164,6 +164,7 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
 
   @override
   Widget build(BuildContext context) {
+    logs("widget.video.subTitle=== ${widget.video.subTitle}");
     // 7. Calculate Aspect Ratio Safely
     // Default to 16/9 if not initialized or if ratio is 0 (prevents crash)
     double aspectRatio = 16 / 9;

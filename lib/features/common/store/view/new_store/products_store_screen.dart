@@ -50,7 +50,8 @@ class _ProductsStoreScreenState extends State<ProductsStoreScreen> {
       getOrPut<ProductSelfPickupController>(
           () => ProductSelfPickupController());
 
-  List<CategoryData> get _categories => _authController.businessOnboardingProductsCategories;
+  List<CategoryData> get _categories => _authController.businessOnboardingServicesCategories;
+  // List<CategoryData> get _categories => _authController.businessOnboardingProductsCategories;
 
 
   @override

@@ -58,6 +58,7 @@ class HiveServices{
   ];
 
   bool isPostSaved(String id) {
+    if (!Hive.isBoxOpen(_savedPosts)) return false;
     final box = Hive.box(_savedPosts);
     final String key = '${userId}_$id';
     return box.containsKey(key);
@@ -120,6 +121,7 @@ class HiveServices{
   }
 
   bool isVideoSaved(String id) {
+    if (!Hive.isBoxOpen(_savedVideos)) return false;
     final box = Hive.box(_savedVideos);
     final String key = '${userId}_$id';
     return box.containsKey(key);
