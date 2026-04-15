@@ -155,7 +155,7 @@ class ApiBaseHelper {
                   printLog: response.data.toString(),
                   logIcon: Logger.warning);
             } else {
-              logs(
+              log(
                   'SUCCESS CODE ${response.statusCode} :  ${jsonEncode(response.data)}');
             }
 

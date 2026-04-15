@@ -35,15 +35,15 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
-class ProfessionDetailsScreen extends StatefulWidget {
+class SelfProfessionDetailsScreen extends StatefulWidget {
 
-  const ProfessionDetailsScreen({Key? key}) : super(key: key);
+  const SelfProfessionDetailsScreen({Key? key}) : super(key: key);
 
   @override
-  State<ProfessionDetailsScreen> createState() => _ProfessionDetailsScreenState();
+  State<SelfProfessionDetailsScreen> createState() => _SelfProfessionDetailsScreenState();
 }
 
-class _ProfessionDetailsScreenState extends State<ProfessionDetailsScreen> {
+class _SelfProfessionDetailsScreenState extends State<SelfProfessionDetailsScreen> {
   final controller = getOrPut(() => SelfWorkServiceController());
   final bookingController = getOrPut(() => BookingController());
 
@@ -62,8 +62,6 @@ class _ProfessionDetailsScreenState extends State<ProfessionDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.whiteF3,
-      appBar: CommonBackAppBar(),
       body: Obx(() {
         // 1. Loading State
         if (this.controller.isProfessionDataLoading.value) {
@@ -183,7 +181,7 @@ class _ProfessionDetailsScreenState extends State<ProfessionDetailsScreen> {
                   ),
                 ),
 
-                SizedBox(height: SizeConfig.paddingM),
+                SizedBox(height: SizeConfig.paddingXSL),
 
                  // --- Price ---
                 CustomFormCard(
@@ -230,12 +228,12 @@ class _ProfessionDetailsScreenState extends State<ProfessionDetailsScreen> {
               }),
             ),
 
-                SizedBox(height: SizeConfig.paddingM),
+                SizedBox(height: SizeConfig.paddingXSL),
 
                 // --- Service Type ---
                 CustomFormCard(
                   padding: _innerPadding(),
-                  margin: EdgeInsets.only(bottom: SizeConfig.paddingM),
+                  margin: EdgeInsets.only(bottom: SizeConfig.paddingXSL),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -300,7 +298,7 @@ class _ProfessionDetailsScreenState extends State<ProfessionDetailsScreen> {
                 // --- Service Description ---
                 CustomFormCard(
                   padding: _innerPadding(),
-                  margin: EdgeInsets.only(bottom: SizeConfig.paddingM),
+                  margin: EdgeInsets.only(bottom: SizeConfig.paddingXSL),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -335,7 +333,7 @@ class _ProfessionDetailsScreenState extends State<ProfessionDetailsScreen> {
                 // --- Timing ---
                   CustomFormCard(
                     padding: _innerPadding(),
-                    margin: EdgeInsets.only(bottom: SizeConfig.paddingM),
+                    margin: EdgeInsets.only(bottom: SizeConfig.paddingXSL),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -366,7 +364,7 @@ class _ProfessionDetailsScreenState extends State<ProfessionDetailsScreen> {
                 // --- Work Experience ---
                 CustomFormCard(
                   padding: _innerPadding(),
-                  margin: EdgeInsets.only(bottom: SizeConfig.paddingM),
+                  margin: EdgeInsets.only(bottom: SizeConfig.paddingXSL),
                   child: Builder(
                     builder: (BuildContext context) {
                       int years = 0;
@@ -422,7 +420,7 @@ class _ProfessionDetailsScreenState extends State<ProfessionDetailsScreen> {
                 (service.serviceOffered != null && service.serviceOffered!.isNotEmpty)
                 ? CustomFormCard(
                   padding: _innerPadding(),
-                  margin: EdgeInsets.only(bottom: SizeConfig.paddingM),
+                  margin: EdgeInsets.only(bottom: SizeConfig.paddingXSL),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -484,7 +482,7 @@ class _ProfessionDetailsScreenState extends State<ProfessionDetailsScreen> {
                 (service.expertise != null && service.expertise!.isNotEmpty)
                     ? CustomFormCard(
                       padding: _innerPadding(),
-                      margin: EdgeInsets.only(bottom: SizeConfig.paddingM),
+                      margin: EdgeInsets.only(bottom: SizeConfig.paddingXSL),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -545,7 +543,7 @@ class _ProfessionDetailsScreenState extends State<ProfessionDetailsScreen> {
                 (service.typesOfWork != null && service.typesOfWork!.isNotEmpty)
                     ? CustomFormCard(
                       padding: _innerPadding(),
-                      margin: EdgeInsets.only(bottom: SizeConfig.paddingM),
+                      margin: EdgeInsets.only(bottom: SizeConfig.paddingXSL),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -606,7 +604,7 @@ class _ProfessionDetailsScreenState extends State<ProfessionDetailsScreen> {
                 (service.workCategories != null && service.workCategories!.isNotEmpty)
                     ? CustomFormCard(
                       padding: _innerPadding(),
-                      margin: EdgeInsets.only(bottom: SizeConfig.paddingM),
+                      margin: EdgeInsets.only(bottom: SizeConfig.paddingXSL),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -667,7 +665,7 @@ class _ProfessionDetailsScreenState extends State<ProfessionDetailsScreen> {
                 (service.whyChooseMe != null && service.whyChooseMe!.isNotEmpty)
                     ? CustomFormCard(
                       padding: _innerPadding(),
-                      margin: EdgeInsets.only(bottom: SizeConfig.paddingM),
+                      margin: EdgeInsets.only(bottom: SizeConfig.paddingXSL),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -787,6 +785,8 @@ class _ProfessionDetailsScreenState extends State<ProfessionDetailsScreen> {
                     ],
                   ),
                 ),
+
+                SizedBox(height: SizeConfig.size100)
 
               ],
             ),

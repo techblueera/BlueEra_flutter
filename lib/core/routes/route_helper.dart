@@ -1186,8 +1186,8 @@ class RouteHelper {
         final args = settings.arguments as Map<String, dynamic>;
         final ProviderType providerType =
             args[ApiKeys.providerType] as ProviderType;
-        final EarnServiceTypes? serviceSubType =
-            args[ApiKeys.serviceSubType] as EarnServiceTypes?;
+        final String? serviceSubType =
+            args[ApiKeys.serviceSubType] as String?;
         final bool? isFromEarnWithBlueEraService =
             args[ApiKeys.isFromEarnWithBlueEraService] as bool?;
         final String? designation = args[ApiKeys.designation] as String?;
@@ -1206,13 +1206,14 @@ class RouteHelper {
       case RouteConstant.addProductViaAiStep1:
         final args = settings.arguments as Map<String, dynamic>;
         final String id = args[ApiKeys.id] as String;
-        final ProviderType providerType =
-            args[ApiKeys.providerType] as ProviderType;
-
+        final ProviderType providerType = args[ApiKeys.providerType] as ProviderType;
         return MaterialPageRoute(
             builder: (_) =>
-                AddProductViaAiStep1(id: id, providerType: providerType),
-            settings: RouteSettings(name: getAddProductViaAiStep1Route()));
+                AddProductViaAiStep1(
+                    id: id,
+                    providerType: providerType),
+            settings: RouteSettings(name: getAddProductViaAiStep1Route())
+        );
       case RouteConstant.addProductViaAiStep2:
         final args = settings.arguments as Map<String, dynamic>;
         final ProductController controller =
@@ -1306,8 +1307,8 @@ class RouteHelper {
         final args = settings.arguments as Map<String, dynamic>;
         final ProviderType providerType =
             args[ApiKeys.providerType] as ProviderType;
-        final EarnServiceTypes? serviceSubType =
-            args[ApiKeys.serviceSubType] as EarnServiceTypes?;
+        final String? serviceSubType =
+            args[ApiKeys.serviceSubType] as String?;
         final String? category = args[ApiKeys.category] as String?;
 
         return MaterialPageRoute(
@@ -1685,8 +1686,8 @@ class RouteHelper {
       case RouteConstant.addSelfServiceScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final bool argFromBottomNavBar = args[ApiKeys.argFromBottomNavBar] as bool;
-        final EarnServiceTypes serviceSubType =
-            args[ApiKeys.serviceSubType] as EarnServiceTypes;
+        final String serviceSubType =
+            args[ApiKeys.serviceSubType] as String;
         final String designation = args[ApiKeys.designation] as String;
         return MaterialPageRoute(
             builder: (_) => AddSelfServiceScreen(

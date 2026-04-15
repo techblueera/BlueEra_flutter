@@ -11,7 +11,6 @@ import 'package:BlueEra/features/common/service/model/service_ai_generate_model.
 import 'package:BlueEra/features/common/service/repo/service_ai_repo.dart';
 import 'package:BlueEra/features/common/service/view/add_services_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/repo/earn_service_repo.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/self_employee_screen.dart';
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart' as dio;
@@ -55,7 +54,7 @@ class ServiceController extends GetxController {
         String? channelId,
         required ProviderType providerType,
         required Map<String, dynamic> serviceDetailsReq,
-        EarnServiceTypes? serviceSubType,
+        String? serviceSubType,
         required String category
       }) async {
     try {

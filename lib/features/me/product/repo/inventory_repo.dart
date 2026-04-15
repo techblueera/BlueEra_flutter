@@ -29,6 +29,19 @@ class InventoryRepo extends BaseService {
     return response;
   }
 
+  /// Update product inventory variant — PATCH only price/mrp etc.
+  Future<ResponseModel> updateInventoryVariantRepo({
+    required String inventoryId,
+    required String variantId,
+    required Map<String, dynamic> params,
+  }) async {
+    return ApiBaseHelper().patchHTTP(
+      updateProductInventoryVariant(inventoryId, variantId),
+      params: params,
+      showProgress: true,
+    );
+  }
+
   ///Fetch InventoryBasedSearchProduct...
   Future<ResponseModel> fetchInventoryBasedSearchProductRepo({required Map<String, dynamic> queryParams}) async {
     final response = await ApiBaseHelper().getHTTP(

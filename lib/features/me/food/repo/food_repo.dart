@@ -122,6 +122,7 @@ class FoodRepo extends BaseService {
     final response = await ApiBaseHelper().postHTTP(
       homeFoodGallery,
       params: reqBody,
+      showProgress: false,
       onError: (error) {},
       onSuccess: (data) {},
     );
@@ -142,6 +143,7 @@ class FoodRepo extends BaseService {
     final response = await ApiBaseHelper().deleteHTTP(
       "$homeFoodGallery/$imgID",
       params: reqBody,
+      showProgress: false,
       onError: (error) {},
       onSuccess: (data) {},
     );

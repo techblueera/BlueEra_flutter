@@ -14,7 +14,6 @@ import 'package:BlueEra/core/services/multipart_image_service.dart';
 import 'package:BlueEra/features/common/food/model/food_ai_res_model.dart';
 import 'package:BlueEra/features/common/food/repo/food_ai_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/repo/earn_service_repo.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/self_employee_screen.dart';
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart' as dio;
@@ -187,7 +186,7 @@ class FoodUploadController extends GetxController {
   Future<void> generateFood(
       {
         required ProviderType providerType,
-        EarnServiceTypes? serviceSubType}) async {
+        String? serviceSubType}) async {
     try {
       isGenerateFoodLoading.value = true;
       dio.MultipartFile? imageByPart = await multiPartImage(imagePath: selectedImage.value?.path ?? "");
@@ -247,7 +246,7 @@ class FoodUploadController extends GetxController {
   Future<Map<String, dynamic>> buildRequestBody(
       Map<String, dynamic> foodData,
       ProviderType providerType,
-     {EarnServiceTypes? serviceSubType}
+     {String? serviceSubType}
       ) async {
     // Title & desc (use controller if filled, otherwise fall back to AI/model values)
 
@@ -298,13 +297,13 @@ class FoodUploadController extends GetxController {
       body[ApiKeys.imageContentTypes] =
           images.map((img) => img.mimeType).toList();
     }
-    if (serviceSubType != null) body[ApiKeys.subType] = serviceSubType.label;
+    if (serviceSubType != null) body[ApiKeys.subType] = serviceSubType;
     return body;
   }
 
   RxBool isAddFoodLoading = false.obs;
 
-  Future<void> addFoodServices(Map<String,dynamic> foodData, ProviderType providerType, {EarnServiceTypes? serviceSubType}) async {
+  Future<void> addFoodServices(Map<String,dynamic> foodData, ProviderType providerType, {String? serviceSubType}) async {
    if(formKey.currentState!.validate()){
      try {
        isAddFoodLoading.value = true;

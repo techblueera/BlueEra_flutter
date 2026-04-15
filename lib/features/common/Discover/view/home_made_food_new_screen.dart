@@ -126,10 +126,7 @@ class _HomeMadeFoodNewScreenState extends State<HomeMadeFoodNewScreen> {
       child: InkWell(
         onTap: () {
           if (isGuestUser()) return;
-          Get.to(() => const SelfEmployeeScreen(
-                initialTabIndex: 1,
-                initialProductSubTab: 1,
-              ));
+          Get.to(() => const SelfEmployeeScreen());
         },
         borderRadius: BorderRadius.circular(8),
         child: Container(

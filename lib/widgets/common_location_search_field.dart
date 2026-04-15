@@ -203,16 +203,33 @@ class _CommonLocationSearchFieldState extends State<CommonLocationSearchField> {
                 color: AppColors.mainTextColor,
                 fontWeight: FontWeight.w700,
               ),
-              onTap: () {
-                logs("item==== ${item.lat}");
-                String placeId = item.placeId ?? '';
-                String currentAddress = item.description ?? '';
-                double latitude = item.lat ?? 0.0;
-                double longitude = item.lng ?? 0.0;
+              onTap: () async {
+                final placeId = item.placeId ?? '';
+                final currentAddress = item.description ?? '';
                 predictions.clear();
+                _removeOverlay();
+
+                double latitude = 0.0;
+                double longitude = 0.0;
+                if (placeId.isNotEmpty) {
+                  try {
+                    isLoading.value = true;
+                    final res = await PlaceRepo()
+                        .getCompletePlaceDetails(placeId: placeId);
+                    final loc = res.response?.data?['result']?['geometry']
+                        ?['location'];
+                    latitude = (loc?['lat'] as num?)?.toDouble() ?? 0.0;
+                    longitude = (loc?['lng'] as num?)?.toDouble() ?? 0.0;
+                    logs('PlaceDetails → lat=$latitude lng=$longitude');
+                  } catch (e) {
+                    logs('PlaceDetails failed: $e');
+                  } finally {
+                    isLoading.value = false;
+                  }
+                }
+
                 widget.onSelected
                     ?.call(placeId, latitude, longitude, currentAddress);
-                _removeOverlay();
               },
             );
           },
@@ -245,16 +262,20 @@ class _CommonLocationSearchFieldState extends State<CommonLocationSearchField> {
         textEditController: widget.controller,
         onChange: onSearchChanged,
         sIcon: Obx(() => currentAddress.isNotEmpty
-            ? IconButton(
-                icon: const Icon(Icons.clear),
-                onPressed: () {
+            ? InkWell(
+                onTap: () {
                   widget.controller.clear();
                   currentAddress.value = '';
                   predictions.clear();
                   _removeOverlay();
                 },
+                borderRadius: BorderRadius.circular(20),
+                child: const Padding(
+                  padding: EdgeInsets.all(8),
+                  child: Icon(Icons.clear, size: 18),
+                ),
               )
-            : SizedBox.shrink()),
+            : const SizedBox.shrink()),
       ),
     );
   }

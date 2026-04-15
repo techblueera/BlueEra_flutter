@@ -12,7 +12,6 @@ import 'package:BlueEra/features/business/auth/controller/view_business_details_
 import 'package:BlueEra/features/common/service/controller/add_service_controller.dart';
 import 'package:BlueEra/features/common/service/controller/service_controller.dart';
 import 'package:BlueEra/features/common/service/model/service_ai_generate_model.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/self_employee_screen.dart';
 import 'package:BlueEra/features/me/product/widget/add_more_details_dialog.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -32,7 +31,7 @@ class AddServicesScreenNew extends StatefulWidget {
   final String? channelId;
   final ProviderType providerType;
   final ServiceAiGenerateModel? service;
-  final EarnServiceTypes? serviceSubType;
+  final String? serviceSubType;
   final String category;
 
   const AddServicesScreenNew({

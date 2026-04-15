@@ -8,7 +8,6 @@ import 'package:BlueEra/core/constants/string_utils.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/model/personal_profession_model.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/self_employee_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/widget/change_profession_warning_dialog.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/horizonatal_video_player.dart';
@@ -197,7 +196,7 @@ class _SelfWorkServiceGuideBottomSheetState extends State<SelfWorkServiceGuideBo
                     RouteHelper.getAddSelfServiceRoute(),
                     arguments: {
                       ApiKeys.designation: selectedService?.tagId ?? OTHER,
-                      ApiKeys.serviceSubType: EarnServiceTypes.selfWork,
+                      ApiKeys.serviceSubType: 'selfWork',
                     },
                   ),
                 );

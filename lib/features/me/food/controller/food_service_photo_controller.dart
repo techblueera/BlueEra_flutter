@@ -8,6 +8,7 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/me/food/repo/food_repo.dart';
 import 'package:BlueEra/features/me/others/model/other_service_gallery_res_model.dart';
 import 'package:BlueEra/features/me/school/repo/upload_file_to_s3.dart';
+import 'package:BlueEra/widgets/app_loader.dart';
 import 'package:get/get.dart';
 
 class FoodServicePhotoPhotoController extends GetxController {
@@ -107,6 +108,7 @@ class FoodServicePhotoPhotoController extends GetxController {
   // Logic to build the JSON request body
 
   Future buildRequestBody() async {
+    AppLoader.show(message: 'Uploading photos...');
     try {
       List<String> urlList = [];
       for (var filePath in selectedImages) {
@@ -135,7 +137,7 @@ class FoodServicePhotoPhotoController extends GetxController {
     } on Exception {
       commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {
-      // 5. Always hide loader at the end
+      AppLoader.hide();
       isLoading.value = false;
     }
   }
@@ -145,6 +147,7 @@ class FoodServicePhotoPhotoController extends GetxController {
     required String imgId,
     required String imgUrl,
   }) async {
+    AppLoader.show(message: 'Removing photo...');
     try {
       ResponseModel response = await _repo.deleteFoodServicePhotosRepo(
           imgID: imgId, reqBody: {"imageUrl": imgUrl});
@@ -160,6 +163,8 @@ class FoodServicePhotoPhotoController extends GetxController {
       }
     } on Exception catch (e) {
       logs("ERROR ${e}");
+    } finally {
+      AppLoader.hide();
     }
   }
 }

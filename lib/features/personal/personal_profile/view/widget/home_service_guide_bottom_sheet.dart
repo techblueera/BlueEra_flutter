@@ -7,7 +7,6 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/constants/string_utils.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/self_employee_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/widget/change_profession_warning_dialog.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/horizonatal_video_player.dart';
@@ -138,7 +137,7 @@ class _HomeServiceGuideBottomSheetState extends State<HomeServiceGuideBottomShee
                     RouteHelper.getAddSelfServiceRoute(),
                     arguments: {
                       ApiKeys.designation: selectedService?.slugId ?? OTHER,
-                      ApiKeys.serviceSubType: EarnServiceTypes.homeService,
+                      ApiKeys.serviceSubType: 'homeService',
                     },
                   ),
                 );
