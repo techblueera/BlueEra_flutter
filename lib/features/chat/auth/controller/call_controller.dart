@@ -163,6 +163,13 @@ class CallController extends GetxController {
     _socket = ChatSocketService();
     _setupCallSocketListeners();
     _setupCallKitListeners();
+    // Ensure socket is connected so incoming `call:incoming` events are
+    // delivered even when the user hasn't opened chat yet. Without this,
+    // the server falls back to FCM and CallKit's ring timer can elapse,
+    // flipping the call to "missed" before the user sees it.
+    if (!_socket.isConnected) {
+      _socket.connectToSocket();
+    }
   }
 
   @override
@@ -335,6 +342,18 @@ class CallController extends GetxController {
       params['other_user_id'] = otherUserId;
     }
 
+    // Ensure socket is connected BEFORE hitting the API. The server uses the
+    // caller's socket presence to bridge the room — if the socket is still
+    // connecting when we emit `call:join-room`, the emit races the server's
+    // ringing timeout and we get an immediate `call:ended` back (observed:
+    // callee in foreground only gets a "missed call" toast).
+    if (!_socket.isConnected) {
+      debugPrint('[CALL_DEBUG] initiateCall → socket disconnected, reconnecting before API call...');
+      _socket.connectToSocket();
+      await _waitForSocketConnection();
+      debugPrint('[CALL_DEBUG] initiateCall → socket wait done, isConnected=${_socket.isConnected}');
+    }
+
     debugPrint('[CALL_DEBUG] initiateCall → API call starting, type=$type');
     ResponseModel response = await _callRepo.initiateCall(params);
 
@@ -368,9 +387,17 @@ class CallController extends GetxController {
     _iceConfig = IceServerConfig.fromJson(data['ice_servers'] ?? {});
     debugPrint('[CALL_DEBUG] initiateCall → ICE servers parsed, socket.isConnected=${_socket.isConnected}');
 
+    // Re-check socket (may have dropped during the API round-trip) — the
+    // server must see `call:join-room` before its ringing window expires,
+    // otherwise it emits `call:ended` back to the caller.
+    if (!_socket.isConnected) {
+      _socket.connectToSocket();
+      await _waitForSocketConnection();
+    }
+
     // Join socket room
     _socket.emitEvent('call:join-room', {'room_id': roomId.value});
-    debugPrint('[CALL_DEBUG] initiateCall → emitted call:join-room');
+    debugPrint('[CALL_DEBUG] initiateCall → emitted call:join-room, isConnected=${_socket.isConnected}');
 
     // Setup local media & peer connection (don't create offer yet)
     _mediaReadyCompleter = Completer<void>();
