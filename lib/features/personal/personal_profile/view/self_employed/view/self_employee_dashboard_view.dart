@@ -112,7 +112,7 @@ class _SelfEmployeeDashboardViewState extends State<SelfEmployeeDashboardView>
               controller: _tabController,
               children: [
                 SelfEmployeeOrders(),
-                ProfessionDetailsScreen(),
+                SelfProfessionDetailsScreen(),
                 const SubscriptionStatusView(),
               ],
             ),
@@ -336,106 +336,4 @@ class _SelfEmployeeDashboardViewState extends State<SelfEmployeeDashboardView>
         ));
   }
 
-  // ─── My Products Tab ───────────────────────────────────────────
-
-  // Widget _buildMyProductsTab() {
-  //   return Obx(() => Column(
-  //         crossAxisAlignment: CrossAxisAlignment.start,
-  //         children: [
-  //           Padding(
-  //             padding: EdgeInsets.only(
-  //               left: SizeConfig.size8,
-  //               right: SizeConfig.size8,
-  //               top: SizeConfig.size15,
-  //             ),
-  //             child: HorizontalTabSelector(
-  //               tabs: controller.productsServicesTab,
-  //               selectedIndex:
-  //                   controller.selectedProductsServicesTabIndex.value,
-  //               horizontalMargin: 0.0,
-  //               labelBuilder: (label) => label,
-  //               unSelectedBackgroundColor: AppColors.white,
-  //               onTabSelected: (index, _) => _onProductSubTabChanged(index),
-  //             ),
-  //           ),
-  //           Expanded(child: _buildProductSubTabContent()),
-  //         ],
-  //       ));
-  // }
-  //
-  // void _onProductSubTabChanged(int index) async {
-  //   controller.selectedProductsServicesTabIndex.value = index;
-  //   if (index == 2) await controller.fetchOwnProducts();
-  // }
-  //
-  // Widget _buildProductSubTabContent() {
-  //   return Obx(() {
-  //     switch (controller.selectedProductsServicesTabIndex.value) {
-  //       case 0:
-  //         return TiffinMenuManagementScreen();
-  //       case 1:
-  //         return const FoodMenuManagementScreen();
-  //       case 2:
-  //         return _buildOwnProductsGrid();
-  //       default:
-  //         return const SizedBox.shrink();
-  //     }
-  //   });
-  // }
-  //
-  // Widget _buildOwnProductsGrid() {
-  //   if (controller.isOwnProductDataFirstLoading.value) {
-  //     return const Center(child: CircularProgressIndicator());
-  //   }
-  //
-  //   final productList = controller.ownProductDataList;
-  //   if (productList.isEmpty) {
-  //     return EmptyStateWidget(message: AppStrings.noProductFound);
-  //   }
-  //
-  //   return Column(
-  //     children: [
-  //       Expanded(
-  //         child: LayoutBuilder(
-  //           builder: (context, constraints) {
-  //             const crossAxisCount = 2;
-  //             const spacing = 10.0;
-  //             final itemWidth =
-  //                 (constraints.maxWidth - spacing) / crossAxisCount;
-  //             final childAspectRatio = itemWidth / SizeConfig.size240;
-  //
-  //             return GridView.builder(
-  //               itemCount: productList.length,
-  //               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-  //                 crossAxisCount: crossAxisCount,
-  //                 crossAxisSpacing: spacing,
-  //                 mainAxisSpacing: spacing,
-  //                 childAspectRatio: childAspectRatio,
-  //               ),
-  //               padding: EdgeInsets.only(
-  //                 bottom: kBottomNavigationBarHeight + 40,
-  //                 left: SizeConfig.size8,
-  //                 right: SizeConfig.size8,
-  //                 top: SizeConfig.size8,
-  //               ),
-  //               itemBuilder: (context, index) {
-  //                 return OwnProductCard(
-  //                   deleteProductApi: () {},
-  //                   width: itemWidth,
-  //                   product: productList[index],
-  //                   isGridShow: true,
-  //                 );
-  //               },
-  //             );
-  //           },
-  //         ),
-  //       ),
-  //       if (controller.isOwnProductDataLoadingMore.value)
-  //         const Padding(
-  //           padding: EdgeInsets.symmetric(vertical: 20),
-  //           child: Center(child: CircularProgressIndicator()),
-  //         ),
-  //     ],
-  //   );
-  // }
 }

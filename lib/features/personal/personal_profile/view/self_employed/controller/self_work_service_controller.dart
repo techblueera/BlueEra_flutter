@@ -19,7 +19,6 @@ import 'package:BlueEra/features/personal/personal_profile/controller/perosonal_
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/model/earn_service_model_response.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/model/predefined_category_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/repo/earn_service_repo.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/self_employee_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/widget/self_profession_desc_selection_dialog.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
@@ -218,7 +217,7 @@ class SelfWorkServiceController extends GetxController{
   RxBool isCreateServiceLoading = false.obs;
   /// Create Self Service
   Future<void> createEarnServiceApi({
-    required EarnServiceTypes serviceSubType
+    required String serviceSubType
   }) async {
 
     // 1. Validate Form Fields (TextInputs)
@@ -273,7 +272,7 @@ class SelfWorkServiceController extends GetxController{
       Map<String, dynamic> params = {
         ApiKeys.type: AppConstants.service,
         ApiKeys.providerType: ProviderType.user.title,
-        ApiKeys.subType: serviceSubType.label,
+        ApiKeys.subType: serviceSubType,
         ApiKeys.category: designation ?? ELECTRICIAN,
         ApiKeys.serviceType: selectedServiceTypes,
         // ApiKeys.serviceType: selectedServiceTypes,

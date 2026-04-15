@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:ui';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -5,15 +6,17 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
-import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/me/grocery/widget/discount_badge.dart';
+import 'package:BlueEra/features/common/delivery_partner/widget/common_image_upload_section.dart';
 import 'package:BlueEra/features/me/grocery/widget/food_type_indicator.dart';
 import 'package:BlueEra/features/me/grocery/widget/food_type_or_cooking_method.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/earn_service_contact_map_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/earn_service_gallery_card.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/controller/earn_profile_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/earn_service_profile_header.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/earn_service_qr_code_widget.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/earn_service_stats.dart';
@@ -22,8 +25,13 @@ import 'package:BlueEra/features/personal/personal_profile/view/self_employed/co
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/controller/tiffin_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/model/food_item_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/model/tiffin_meal_model.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/self_employed/widget/food_item_bottom_sheet.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/self_employed/widget/tiffin_bottom_sheet.dart';
+import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
+import 'package:BlueEra/widgets/custom_switch_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:BlueEra/widgets/primary_outline_button.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -38,6 +46,7 @@ class HomeMadeFoodHomePage extends StatefulWidget {
 class _HomeMadeFoodHomePageState extends State<HomeMadeFoodHomePage> {
   late final TiffinController tiffinController;
   late final HomeMadeFoodController foodController;
+  late final EarnProfileController earnProfileController;
 
   final RxInt _selectedFoodTab = 0.obs;
 
@@ -48,13 +57,21 @@ class _HomeMadeFoodHomePageState extends State<HomeMadeFoodHomePage> {
     (type: FoodCategoryType.pickles, title: 'Pickles'),
   ];
 
+  static const _tiffinSlots = [
+    (type: MealType.breakfast, title: 'Break-Fast', timing: '6AM - 10AM'),
+    (type: MealType.morningTiffin, title: 'Morning Tiffin / Lunch', timing: '7AM - 2PM'),
+    (type: MealType.eveningDinner, title: 'Evening Tiffin / Dinner', timing: '5PM - 10PM'),
+  ];
+
   @override
   void initState() {
     super.initState();
     tiffinController = getOrPut(() => TiffinController());
     foodController = getOrPut(() => HomeMadeFoodController());
+    earnProfileController = getOrPut(() => EarnProfileController());
     tiffinController.fetchAllMeals();
     foodController.fetchAllItems();
+    earnProfileController.fetchEarnProfile();
   }
 
   @override
@@ -64,37 +81,22 @@ class _HomeMadeFoodHomePageState extends State<HomeMadeFoodHomePage> {
       child: Column(
         children: [
           EarnServiceProfileHeader(
-            serviceName: 'Rahul Tiffin Centre',
-            serviceCategory: 'Tiffin Service',
+            controller: earnProfileController,
             isFoodProfile: true,
-            foodType: 'Veg',
-            rating: 4.5,
-            totalRatings: 120,
-            address: 'Lucknow, Uttar Pradesh',
           ),
-          EarnServiceStats(
-            totalViews: 1200,
-            totalInquiries: 25,
-            totalFollowers: 340,
-            totalFollowing: 56,
-          ),
+          EarnServiceStats(controller: earnProfileController),
           _buildTiffinSection(),
           _buildHomeMadeFoodSection(),
-          EarnServiceGalleryCard(
-            gallery: null,
-            onEditTap: () {},
-            onAddTap: () {},
-          ),
+          Obx(() => EarnServiceGalleryCard(
+                gallery: earnProfileController.earnProfile.value?.galleryImages,
+                onAddImage: _pickAndUploadGalleryImage,
+                onRemoveImage: earnProfileController.removeGalleryImage,
+              )),
           EarnServiceTestimonialCard(testimonials: []),
           EarnServiceContactMapCard(
-            serviceName: 'Rahul Tiffin Centre',
-            address: 'Lucknow, Uttar Pradesh',
-            description: 'Home made food service providing fresh and hygienic meals.',
+            controller: earnProfileController,
           ),
-          EarnServiceQrCodeWidget(
-            serviceName: 'Rahul Tiffin Centre',
-            serviceCategory: 'Tiffin Service',
-          ),
+          EarnServiceQrCodeWidget(controller: earnProfileController),
           SizedBox(height: SizeConfig.size100),
         ],
       ),
@@ -109,12 +111,6 @@ class _HomeMadeFoodHomePageState extends State<HomeMadeFoodHomePage> {
           padding: EdgeInsets.symmetric(vertical: 20),
           child: Center(child: CircularProgressIndicator()),
         );
-      }
-
-      final meals = <TiffinMealModel>[];
-      for (final type in MealType.values) {
-        final meal = tiffinController.mealData[type]?.value;
-        if (meal != null && meal.hasData) meals.add(meal);
       }
 
       return CustomFormCard(
@@ -136,15 +132,13 @@ class _HomeMadeFoodHomePageState extends State<HomeMadeFoodHomePage> {
             ),
             SizedBox(height: SizeConfig.size10),
             SizedBox(
-              height: 260,
-              child: meals.isEmpty
-                  ? _buildTiffinDummyList()
-                  : ListView.separated(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: meals.length,
-                      separatorBuilder: (_, __) => SizedBox(width: 10),
-                      itemBuilder: (_, i) => _buildTiffinCard(meals[i]),
-                    ),
+              height: 290,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: _tiffinSlots.length,
+                separatorBuilder: (_, __) => SizedBox(width: 10),
+                itemBuilder: (_, i) => _buildTiffinSlotCard(_tiffinSlots[i]),
+              ),
             ),
           ],
         ),
@@ -152,28 +146,31 @@ class _HomeMadeFoodHomePageState extends State<HomeMadeFoodHomePage> {
     });
   }
 
-  Widget _buildTiffinDummyList() {
-    return ListView.separated(
-      scrollDirection: Axis.horizontal,
-      itemCount: 2,
-      separatorBuilder: (_, __) => SizedBox(width: 10),
-      itemBuilder: (_, __) => _buildTiffinDummyCard(),
-    );
+  Widget _buildTiffinSlotCard(
+      ({MealType type, String title, String timing}) slot) {
+    return Obx(() {
+      final meal = tiffinController.mealData[slot.type]?.value;
+      final hasData = meal?.hasData ?? false;
+      return hasData
+          ? _buildTiffinRealCard(slot, meal!)
+          : _buildTiffinDummyCard(slot);
+    });
   }
 
-  Widget _buildTiffinCard(TiffinMealModel meal) {
+  Widget _buildTiffinRealCard(
+      ({MealType type, String title, String timing}) slot,
+      TiffinMealModel meal) {
     final imageUrl = meal.images.isNotEmpty ? meal.images.first : null;
     final mrp = double.tryParse(meal.mrpPrice) ?? 0;
     final selling = double.tryParse(meal.sellingPrice) ?? 0;
-    final discount = (mrp > 0 && selling > 0 && selling < mrp)
-        ? '${((mrp - selling) / mrp * 100).toStringAsFixed(0)}% Off'
-        : '';
-    final timing = (meal.selectedStartTime.isNotEmpty && meal.selectedEndTime.isNotEmpty)
-        ? '${meal.selectedStartTime} - ${meal.selectedEndTime}'
-        : '';
+    final computed = (mrp > 0 && selling > 0 && selling < mrp)
+        ? calculateDiscount(meal.sellingPrice, meal.mrpPrice)
+        : null;
+    final isVeg = meal.selectedFoodType.toLowerCase() == 'veg' ||
+        meal.selectedFoodType.toLowerCase() == 'vegan';
 
     return Container(
-      width: SizeConfig.screenWidth * 0.44,
+      width: SizeConfig.screenWidth * 0.52,
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(10),
@@ -182,7 +179,6 @@ class _HomeMadeFoodHomePageState extends State<HomeMadeFoodHomePage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Image with discount badge
           SizedBox(
             height: 130,
             child: Stack(
@@ -203,16 +199,27 @@ class _HomeMadeFoodHomePageState extends State<HomeMadeFoodHomePage> {
                           boxFix: BoxFit.cover,
                         ),
                 ),
-                if (discount.isNotEmpty)
+                if (computed != null)
                   Positioned(
-                    top: 8,
-                    left: 8,
-                    child: DiscountBadge(discountText: discount),
+                    top: 0,
+                    left: 0,
+                    child: _gradientDiscountBadge('$computed% OFF'),
                   ),
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: Container(
+                    padding: const EdgeInsets.all(3),
+                    decoration: BoxDecoration(
+                      color: AppColors.white,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: FoodTypeIndicator(isVegetarian: isVeg),
+                  ),
+                ),
               ],
             ),
           ),
-          // Info
           Expanded(
             child: Padding(
               padding: EdgeInsets.all(8),
@@ -222,55 +229,120 @@ class _HomeMadeFoodHomePageState extends State<HomeMadeFoodHomePage> {
                   Row(
                     children: [
                       Expanded(
-                        child: CustomText(
-                          _mealTypeLabel(meal.mealType),
-                          fontSize: SizeConfig.small,
-                          color: AppColors.secondaryTextColor,
-                          fontWeight: FontWeight.w500,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            CustomText(
+                              (meal.selectedStartTime.isNotEmpty &&
+                                      meal.selectedEndTime.isNotEmpty)
+                                  ? '${meal.selectedStartTime} - ${meal.selectedEndTime}'
+                                  : slot.timing,
+                              fontSize: SizeConfig.small,
+                              color: AppColors.secondaryTextColor,
+                            ),
+                            SizedBox(height: 2),
+                            CustomText(
+                              slot.title,
+                              fontSize: SizeConfig.medium,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.primaryColor,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
                         ),
                       ),
-                      if (meal.isLive)
-                        Container(
-                          padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: AppColors.green00.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: CustomText('Live',
-                              fontSize: 10,
-                              color: AppColors.green00,
-                              fontWeight: FontWeight.w600),
+                      SizedBox(width: 6),
+                      Container(
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: AppColors.white,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: AppColors.greyE5),
                         ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            CustomText('Live',
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.secondaryTextColor),
+                            SizedBox(width: 4),
+                            CustomSwitch(
+                              value: meal.isLive,
+                              onChanged: (val) =>
+                                  tiffinController.toggleGoLive(slot.type, val),
+                              containerHeight: SizeConfig.size18,
+                              containerWidth: SizeConfig.size32,
+                              circleSize: SizeConfig.size14,
+                            ),
+                          ],
+                        ),
+                      ),
                     ],
                   ),
-                  SizedBox(height: 4),
+                  SizedBox(height: 6),
                   CustomText(
-                    meal.tiffinName.isNotEmpty ? meal.tiffinName : '2 Idli + Sambar + Chutney',
+                    meal.tiffinName.isNotEmpty
+                        ? meal.tiffinName
+                        : '2 Idli + Sambar + Chutney',
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
                     color: AppColors.mainTextColor,
-                    maxLines: 2,
+                    maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  Spacer(),
-                  Row(
+                  SizedBox(height: 6),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 4,
+                    crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
-                      CustomText(
-                        '${AppConstants.rupeeSymbol}${meal.sellingPrice}',
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.mainTextColor,
-                      ),
-                      if (mrp > selling) ...[
-                        SizedBox(width: 4),
-                        CustomText(
-                          '${AppConstants.rupeeSymbol}${meal.mrpPrice}',
-                          fontSize: 11,
-                          color: AppColors.secondaryTextColor,
-                          decoration: TextDecoration.lineThrough,
-                          decorationColor: AppColors.secondaryTextColor,
+                      if (meal.selectedCookingMethod.isNotEmpty)
+                        FoodTypeOrCookingMethod(
+                          label: meal.selectedCookingMethod,
+                          icon: AppIconAssets.boiled,
                         ),
-                      ],
+                      if (meal.selectedFoodType.isNotEmpty)
+                        FoodTypeOrCookingMethod(label: meal.selectedFoodType),
+                    ],
+                  ),
+                  SizedBox(height: 8),
+                  _dashedDivider(),
+                  SizedBox(height: 8),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            CustomText(
+                              '${AppConstants.rupeeSymbol}${meal.sellingPrice}',
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.mainTextColor,
+                            ),
+                            if (mrp > selling)
+                              CustomText(
+                                '${AppConstants.rupeeSymbol}${meal.mrpPrice}',
+                                fontSize: 11,
+                                color: AppColors.secondaryTextColor,
+                                decoration: TextDecoration.lineThrough,
+                                decorationColor: AppColors.secondaryTextColor,
+                              ),
+                          ],
+                        ),
+                      ),
+                      PrimaryOutlineButton(
+                        onPressed: () {
+                          tiffinController.openEditSheet(meal);
+                          TiffinBottomSheet.show(context, true);
+                        },
+                        icon: AppIconAssets.pen_line,
+                        label: 'Edit',
+                      ),
                     ],
                   ),
                 ],
@@ -282,9 +354,89 @@ class _HomeMadeFoodHomePageState extends State<HomeMadeFoodHomePage> {
     );
   }
 
-  Widget _buildTiffinDummyCard() {
+  Widget _dashedDivider() {
+    return LayoutBuilder(
+      builder: (_, c) => CustomPaint(
+        size: Size(c.maxWidth, 1),
+        painter: _DashedLinePainter(color: AppColors.greyE5),
+      ),
+    );
+  }
+
+  Widget _gradientDiscountBadge(String text) {
+    return ClipRRect(
+      borderRadius: const BorderRadius.only(
+        topLeft: Radius.circular(10),
+        bottomRight: Radius.circular(10),
+      ),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
+        child: Container(
+          padding:
+              const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+              colors: [Color(0xFFFD7845), Color(0xFFFA5568)],
+            ),
+            border: Border.all(
+              color: AppColors.white.withValues(alpha: 0.2),
+              width: 0.5,
+            ),
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(10),
+              bottomRight: Radius.circular(10),
+            ),
+          ),
+          child: CustomText(
+            text,
+            fontSize: 10,
+            fontWeight: FontWeight.w700,
+            color: Colors.white,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTiffinDummyCard(
+      ({MealType type, String title, String timing}) slot) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(10),
+      child: SizedBox(
+        width: SizeConfig.screenWidth * 0.52,
+        child: Stack(
+          children: [
+            _buildTiffinDummyContent(slot),
+            Positioned.fill(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
+                child: Container(
+                    color: AppColors.black.withValues(alpha: 0.1)),
+              ),
+            ),
+            Positioned.fill(
+              child: Center(
+                child: PrimaryOutlineButton(
+                  onPressed: () {
+                    tiffinController.openCreateSheet(slot.type);
+                    TiffinBottomSheet.show(context, false);
+                  },
+                  icon: AppIconAssets.add,
+                  label: 'Add',
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTiffinDummyContent(
+      ({MealType type, String title, String timing}) slot) {
     return Container(
-      width: SizeConfig.screenWidth * 0.44,
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(10),
@@ -295,34 +447,35 @@ class _HomeMadeFoodHomePageState extends State<HomeMadeFoodHomePage> {
         children: [
           SizedBox(
             height: 130,
-            child: ClipRRect(
-              borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  LocalAssets(
+            child: Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
+                  child: LocalAssets(
                     imagePath: AppImageAssets.homeMadeFoodBanner,
+                    width: double.infinity,
+                    height: 130,
                     boxFix: BoxFit.cover,
                   ),
-                  ClipRRect(
-                    borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
-                    child: BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
-                      child: Container(color: AppColors.black.withValues(alpha: 0.1)),
+                ),
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  child: _gradientDiscountBadge('50% OFF'),
+                ),
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: Container(
+                    padding: const EdgeInsets.all(3),
+                    decoration: BoxDecoration(
+                      color: AppColors.white,
+                      borderRadius: BorderRadius.circular(4),
                     ),
+                    child: FoodTypeIndicator(isVegetarian: true),
                   ),
-                  Positioned(
-                    top: 8,
-                    left: 8,
-                    child: DiscountBadge(
-                      discountText: '50% Off',
-                      borderColor: AppColors.secondaryTextColor.withValues(alpha: 0.2),
-                      backgroundColor: AppColors.secondaryTextColor.withValues(alpha: 0.1),
-                      textColor: AppColors.secondaryTextColor,
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
           Expanded(
@@ -331,29 +484,69 @@ class _HomeMadeFoodHomePageState extends State<HomeMadeFoodHomePage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  CustomText('Morning Tiffin / Lunch',
-                      fontSize: SizeConfig.small,
-                      color: AppColors.secondaryTextColor),
-                  SizedBox(height: 4),
-                  CustomText('2 Idli + Sambar + Chutney + Lorem Ipsum',
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.secondaryTextColor,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis),
-                  Spacer(),
                   Row(
                     children: [
-                      CustomText('${AppConstants.rupeeSymbol}1,499',
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.secondaryTextColor),
-                      SizedBox(width: 4),
-                      CustomText('${AppConstants.rupeeSymbol}98,000',
-                          fontSize: 11,
-                          color: AppColors.secondaryTextColor,
-                          decoration: TextDecoration.lineThrough,
-                          decorationColor: AppColors.secondaryTextColor),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            CustomText('Served ${slot.timing}',
+                                fontSize: SizeConfig.small,
+                                color: AppColors.secondaryTextColor),
+                            SizedBox(height: 2),
+                            CustomText(slot.title,
+                                fontSize: SizeConfig.medium,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.primaryColor,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 6),
+                  CustomText('2 Idli + Sambar + Chutney',
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.mainTextColor,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis),
+                  SizedBox(height: 6),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 4,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      FoodTypeOrCookingMethod(
+                        label: 'Boiled',
+                        icon: AppIconAssets.boiled,
+                      ),
+                      FoodTypeOrCookingMethod(label: 'Tiffin/Lunch'),
+                    ],
+                  ),
+                  SizedBox(height: 8),
+                  _dashedDivider(),
+                  SizedBox(height: 8),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            CustomText('${AppConstants.rupeeSymbol}1,499',
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.mainTextColor),
+                            CustomText('${AppConstants.rupeeSymbol}98,000',
+                                fontSize: 11,
+                                color: AppColors.secondaryTextColor,
+                                decoration: TextDecoration.lineThrough,
+                                decorationColor: AppColors.secondaryTextColor),
+                          ],
+                        ),
+                      ),
                     ],
                   ),
                 ],
@@ -363,17 +556,6 @@ class _HomeMadeFoodHomePageState extends State<HomeMadeFoodHomePage> {
         ],
       ),
     );
-  }
-
-  String _mealTypeLabel(MealType type) {
-    switch (type) {
-      case MealType.breakfast:
-        return 'Break-Fast';
-      case MealType.morningTiffin:
-        return 'Morning Tiffin / Lunch';
-      case MealType.eveningDinner:
-        return 'Evening Tiffin / Dinner';
-    }
   }
 
   // ─── Home Made Food Section ────────────────────────────────────
@@ -390,6 +572,7 @@ class _HomeMadeFoodHomePageState extends State<HomeMadeFoodHomePage> {
         padding: EdgeInsets.all(SizeConfig.size10),
         margin: EdgeInsets.only(top: 10),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
@@ -404,10 +587,8 @@ class _HomeMadeFoodHomePageState extends State<HomeMadeFoodHomePage> {
               ],
             ),
             SizedBox(height: SizeConfig.size10),
-            // Category tabs
             _buildFoodCategoryTabs(),
             SizedBox(height: SizeConfig.size10),
-            // Items for selected category
             _buildFoodItems(),
           ],
         ),
@@ -416,41 +597,17 @@ class _HomeMadeFoodHomePageState extends State<HomeMadeFoodHomePage> {
   }
 
   Widget _buildFoodCategoryTabs() {
-    return Obx(() => SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: List.generate(_foodCategories.length, (i) {
-              final isSelected = _selectedFoodTab.value == i;
-              return Padding(
-                padding: EdgeInsets.only(right: 8),
-                child: GestureDetector(
-                  onTap: () => _selectedFoodTab.value = i,
-                  child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? AppColors.primaryColor
-                          : AppColors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: isSelected
-                            ? AppColors.primaryColor
-                            : AppColors.greyE5,
-                      ),
-                    ),
-                    child: CustomText(
-                      _foodCategories[i].title,
-                      fontSize: SizeConfig.medium,
-                      fontWeight: FontWeight.w600,
-                      color: isSelected
-                          ? AppColors.white
-                          : AppColors.mainTextColor,
-                    ),
-                  ),
-                ),
-              );
-            }),
-          ),
+    return Obx(() => HorizontalTabSelector<({FoodCategoryType type, String title})>(
+          tabs: _foodCategories,
+          selectedIndex: _selectedFoodTab.value,
+          labelBuilder: (cat) => cat.title,
+          horizontalPadding: 16,
+          verticalPadding: 6,
+          horizontalMargin: 0,
+          verticalMargin: 0,
+          unSelectedBackgroundColor: AppColors.white,
+          unSelectedBorderColor: AppColors.greyE5,
+          onTabSelected: (index, _) => _selectedFoodTab.value = index,
         ));
   }
 
@@ -464,13 +621,13 @@ class _HomeMadeFoodHomePageState extends State<HomeMadeFoodHomePage> {
           Expanded(
             child: items.isNotEmpty
                 ? _buildFoodItemCard(items[0])
-                : _buildFoodDummyCard(),
+                : _buildFoodDummyCard(category.type),
           ),
           SizedBox(width: 8),
           Expanded(
             child: items.length >= 2
                 ? _buildFoodItemCard(items[1])
-                : _buildFoodDummyCard(),
+                : _buildFoodDummyCard(category.type),
           ),
         ],
       );
@@ -492,15 +649,49 @@ class _HomeMadeFoodHomePageState extends State<HomeMadeFoodHomePage> {
             width: double.infinity,
             child: ClipRRect(
               borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
-              child: item.imageUrl != null
-                  ? CachedNetworkImage(
-                      imageUrl: item.imageUrl!,
-                      fit: BoxFit.cover,
-                    )
-                  : LocalAssets(
-                      imagePath: AppImageAssets.homeMadeFoodBanner,
-                      boxFix: BoxFit.cover,
+              child: Stack(
+                children: [
+                  Positioned.fill(
+                    child: item.imageUrl != null
+                        ? CachedNetworkImage(
+                            imageUrl: item.imageUrl!,
+                            fit: BoxFit.cover,
+                          )
+                        : LocalAssets(
+                            imagePath: AppImageAssets.homeMadeFoodBanner,
+                            boxFix: BoxFit.cover,
+                          ),
+                  ),
+                  Positioned(
+                    right: 10,
+                    top: 10,
+                    child: InkWell(
+                      onTap: () {
+                        foodController.openEditSheet(item);
+                        FoodItemBottomSheet.show(context, true);
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: AppColors.white,
+                          borderRadius: BorderRadius.circular(5),
+                          border: Border.all(
+                            color: AppColors.primaryColor,
+                            width: 1.0,
+                          ),
+                        ),
+                        child: LocalAssets(
+                          imagePath: AppIconAssets.pen_line,
+                          imgColor: AppColors.primaryColor,
+                          height: 16,
+                          width: 16,
+                          boxFix: BoxFit.cover,
+                        ),
+                      ),
                     ),
+                  ),
+                ],
+              ),
             ),
           ),
           Padding(
@@ -561,7 +752,7 @@ class _HomeMadeFoodHomePageState extends State<HomeMadeFoodHomePage> {
     );
   }
 
-  Widget _buildFoodDummyCard() {
+  Widget _buildFoodDummyCard(FoodCategoryType type) {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.white,
@@ -588,6 +779,34 @@ class _HomeMadeFoodHomePageState extends State<HomeMadeFoodHomePage> {
                     child: BackdropFilter(
                       filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
                       child: Container(color: AppColors.black.withValues(alpha: 0.1)),
+                    ),
+                  ),
+                  Positioned(
+                    right: 10,
+                    top: 10,
+                    child: InkWell(
+                      onTap: () {
+                        foodController.openCreateSheet(type);
+                        FoodItemBottomSheet.show(context, false);
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: AppColors.white,
+                          borderRadius: BorderRadius.circular(5),
+                          border: Border.all(
+                            color: AppColors.primaryColor,
+                            width: 1.0,
+                          ),
+                        ),
+                        child: LocalAssets(
+                          imagePath: AppIconAssets.add,
+                          imgColor: AppColors.primaryColor,
+                          height: 16,
+                          width: 16,
+                          boxFix: BoxFit.cover,
+                        ),
+                      ),
                     ),
                   ),
                 ],
@@ -643,4 +862,43 @@ class _HomeMadeFoodHomePageState extends State<HomeMadeFoodHomePage> {
       ),
     );
   }
+
+  Future<void> _pickAndUploadGalleryImage() async {
+    final path = await CommonImageUploadTile.pickImage(
+      context: context,
+      title: 'Upload Photo',
+    );
+    if (path == null || path.isEmpty) return;
+    await earnProfileController.addGalleryImage(File(path));
+  }
+}
+
+class _DashedLinePainter extends CustomPainter {
+  final Color color;
+
+  _DashedLinePainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 1
+      ..style = PaintingStyle.stroke;
+
+    const dashWidth = 5.0;
+    const dashSpace = 3.0;
+    double startX = 0;
+    while (startX < size.width) {
+      canvas.drawLine(
+        Offset(startX, 0),
+        Offset(startX + dashWidth, 0),
+        paint,
+      );
+      startX += dashWidth + dashSpace;
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _DashedLinePainter oldDelegate) =>
+      oldDelegate.color != color;
 }

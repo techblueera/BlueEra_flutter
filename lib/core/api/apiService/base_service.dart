@@ -477,6 +477,8 @@ abstract class BaseService {
   final String generateAiContent = "ai-service/api/ai-product/generate-content";
   final String createProductViaAi = "product-service/api/product/createProductAI";
   final String addProductToInventory = "inventory-service/products/addProductToInventory";
+  String updateProductInventoryVariant(String inventoryId, String variantId) =>
+      "inventory-service/products/inventory/$inventoryId/variants/$variantId";
   final String getOwnDraftedAndPublicProducts = 'inventory-service/products/getOwnDraftedAndPublicProducts';
   final String getInventoryBasedSearchProduct = 'product-service/api/product/getInventoryBasedSearchProduct';
   final String getListOfSearchProduct = 'product-service/product/getListOfSearchProduct';

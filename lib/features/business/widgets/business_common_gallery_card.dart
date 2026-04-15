@@ -14,7 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 
-class CommonGalleryCard extends StatelessWidget {
+class BusinessCommonGalleryCard extends StatelessWidget {
   final List<String>? gallery;
   final VoidCallback onEditTap;
   final VoidCallback onAddTap;
@@ -22,7 +22,7 @@ class CommonGalleryCard extends StatelessWidget {
   final String addButtonLabel;
   final bool isRestaurantGallery;
 
-  const CommonGalleryCard({
+  const BusinessCommonGalleryCard({
     super.key,
     this.gallery,
     required this.onEditTap,

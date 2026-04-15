@@ -35,15 +35,15 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
-class ProfessionDetailsScreen extends StatefulWidget {
+class SelfProfessionDetailsScreen extends StatefulWidget {
 
-  const ProfessionDetailsScreen({Key? key}) : super(key: key);
+  const SelfProfessionDetailsScreen({Key? key}) : super(key: key);
 
   @override
-  State<ProfessionDetailsScreen> createState() => _ProfessionDetailsScreenState();
+  State<SelfProfessionDetailsScreen> createState() => _SelfProfessionDetailsScreenState();
 }
 
-class _ProfessionDetailsScreenState extends State<ProfessionDetailsScreen> {
+class _SelfProfessionDetailsScreenState extends State<SelfProfessionDetailsScreen> {
   final controller = getOrPut(() => SelfWorkServiceController());
   final bookingController = getOrPut(() => BookingController());
 

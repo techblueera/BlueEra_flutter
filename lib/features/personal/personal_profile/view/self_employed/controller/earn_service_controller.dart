@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
@@ -143,7 +144,45 @@ class EarnServiceController extends GetxController{
     }
   }
 
-  Future<void> fetchOwnProducts({bool isLoadMore = false}) async {
+  /// PATCH /inventory-service/products/inventory/{inventoryId}/variants/{variantId}
+  /// Body: `{ updateFields: { sellingPrice, mrp, varientIsActive }, owner: { id, type } }`.
+  Future<bool> updateProductVariantPrice({
+    required String inventoryId,
+    required String variantId,
+    required num sellingPrice,
+    required num mrp,
+    required bool varientIsActive,
+  }) async {
+    try {
+      final res = await InventoryRepo().updateInventoryVariantRepo(
+        inventoryId: inventoryId,
+        variantId: variantId,
+        params: {
+          'updateFields': {
+            'sellingPrice': sellingPrice,
+            'mrp': mrp,
+            'varientIsActive': varientIsActive,
+          },
+          ApiKeys.owner: {
+            ApiKeys.id: userId,
+            ApiKeys.type: ProviderType.user.title,
+          },
+        },
+      );
+      if (!res.isSuccess) return false;
+      await fetchOwnProducts();
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  static const int ownProductPageSize = 20;
+
+  Future<void> fetchOwnProducts({
+    bool isLoadMore = false,
+    int limit = ownProductPageSize,
+  }) async {
     if (isLoadMore) {
       if (isOwnProductDataLoadingMore.value || !ownProductDataHasMore) return;
       isOwnProductDataLoadingMore.value = true;
@@ -155,21 +194,26 @@ class EarnServiceController extends GetxController{
     }
 
     try {
-
-      Map<String, dynamic> queryParams = {
+      final Map<String, dynamic> queryParams = {
         'DRAFT': false,
         'ownerId': userId,
         'ownerType': ProviderType.user.title,
+        'page': ownProductDataPage,
+        'limit': limit,
       };
 
-      final response = await InventoryRepo().fetchOwnDraftedAndPublicProductsRepo(queryParams: queryParams);
+      final response = await InventoryRepo()
+          .fetchOwnDraftedAndPublicProductsRepo(queryParams: queryParams);
       if (response.isSuccess) {
         ownProductsResponse.value = ApiResponse.complete(response);
         final getProductModel =
-        GetProductModel.fromJson(response.response?.data);
+            GetProductModel.fromJson(response.response?.data);
 
-        final List<GetProductData> newData =
-            getProductModel.data;
+        final List<GetProductData> newData = getProductModel.data;
+
+        if (newData.isEmpty || newData.length < limit) {
+          ownProductDataHasMore = false;
+        }
 
         if (newData.isNotEmpty) {
           if (isLoadMore) {

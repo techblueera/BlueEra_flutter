@@ -11,7 +11,6 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/controller/self_work_service_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/self_employee_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/service_selection_screen.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -28,7 +27,7 @@ import 'package:get/get.dart';
 class AddSelfServiceScreen extends StatefulWidget {
   final bool fromBottomNavBar;
   final String designation;
-  final EarnServiceTypes serviceSubType;
+  final String serviceSubType;
 
   const AddSelfServiceScreen({
     super.key,

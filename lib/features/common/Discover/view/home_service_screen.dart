@@ -10,7 +10,6 @@ import 'package:BlueEra/features/common/Discover/view/widget/book_via_blueera_pa
 import 'package:BlueEra/features/common/Discover/view/widget/service_provider_detail_screen.dart';
 import 'package:BlueEra/features/common/Discover/widget/common_generic_left_side_category_list.dart';
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/self_employee_screen.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_rating_row.dart';
@@ -32,7 +31,7 @@ class _HomeServiceScreenState extends State<HomeServiceScreen> {
   final List<OnboardingCategoryModel> _homeServicesCategories =
       homeServicesCategories;
   ScrollController scrollController = ScrollController();
-  String serviceSubType = EarnServiceTypes.homeService.label;
+  String serviceSubType = 'homeService';
   String earnServiceType = AppConstants.service;
 
   @override

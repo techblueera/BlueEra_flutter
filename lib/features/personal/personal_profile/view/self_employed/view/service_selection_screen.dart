@@ -5,7 +5,6 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/controller/self_work_service_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/self_employee_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/widget/add_service_bottom_sheet.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -21,7 +20,7 @@ class ServiceSelectionScreen extends StatefulWidget {
   final String selectedCategoryKey;
   final List<String> preSelectedOptions;
   final bool isDataUpdate;
-  final EarnServiceTypes? serviceSubTypes;
+  final String? serviceSubTypes;
 
   const ServiceSelectionScreen({
     super.key,

@@ -104,6 +104,7 @@ class _HomeProfileScreenState extends State<HomeProfileScreen> {
 
     if (success) {
       Navigator.of(context).pop();
+      Navigator.of(context).pop();
     }
   }
 
@@ -135,24 +136,30 @@ class _HomeProfileScreenState extends State<HomeProfileScreen> {
                 ),
                 SizedBox(height: SizeConfig.size16),
 
+                CommonTextField(
+                  textEditController: _houseNumberController,
+                  title: 'House Number',
+                  hintText: 'e.g. MG12',
+                ),
+                SizedBox(height: SizeConfig.size16),
+
                 CommonLocationSearchField(
                   controller: _addressController,
                   title: 'Address',
                   hintText: 'e.g. Lucknow, Utter Pradesh',
                   isShowLeading: false,
                   onSelected: (placeId, lat, lng, address) {
+                    debugPrint(
+                        '[HomeProduct] location selected → placeId=$placeId, '
+                        'lat=$lat, lng=$lng, address=$address');
                     _addressController.text = address;
                     _selectedPlaceId = placeId;
                     _selectedLat = lat;
                     _selectedLng = lng;
+                    debugPrint(
+                        '[HomeProduct] state updated → _selectedPlaceId=$_selectedPlaceId, '
+                        '_selectedLat=$_selectedLat, _selectedLng=$_selectedLng');
                   },
-                ),
-                SizedBox(height: SizeConfig.size16),
-
-                CommonTextField(
-                  textEditController: _houseNumberController,
-                  title: 'House Number',
-                  hintText: 'e.g. MG12',
                 ),
                 SizedBox(height: SizeConfig.size16),
 

@@ -20,6 +20,7 @@ class OwnProductCard extends StatelessWidget {
   final VoidCallback deleteProductApi;
   final double? width;
   final bool isGridShow;
+  final bool showAttributes;
 
   const OwnProductCard({
     super.key,
@@ -27,6 +28,7 @@ class OwnProductCard extends StatelessWidget {
     required this.deleteProductApi,
     this.width,
     this.isGridShow = false,
+    this.showAttributes = true,
   });
 
   @override
@@ -183,8 +185,8 @@ class OwnProductCard extends StatelessWidget {
                   // ),
 
                   // Attributes (only single)
-
-                  AttributeRows(attributeMap: uniqueAttributes),
+                  if (showAttributes)
+                    AttributeRows(attributeMap: uniqueAttributes),
 
                   // const SizedBox(height: 6),
                   //

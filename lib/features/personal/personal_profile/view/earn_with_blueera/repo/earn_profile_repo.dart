@@ -18,4 +18,26 @@ class EarnProfileRepo extends BaseService {
     );
     return response;
   }
+
+  /// Fetch earn profile by userId.
+  Future<ResponseModel> fetchEarnProfileByUserId({
+    required String userId,
+  }) async {
+    return ApiBaseHelper().getHTTP(
+      '$earnProfiles/user/$userId',
+      showProgress: false,
+    );
+  }
+
+  /// Patch earn profile by id.
+  Future<ResponseModel> updateEarnProfile({
+    required String id,
+    required Map<String, dynamic> params,
+  }) async {
+    return ApiBaseHelper().patchHTTP(
+      '$earnProfiles/$id',
+      params: params,
+      showProgress: true,
+    );
+  }
 }

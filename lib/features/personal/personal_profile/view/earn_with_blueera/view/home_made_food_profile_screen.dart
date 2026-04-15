@@ -112,6 +112,7 @@ class _HomeMadeFoodProfileScreenState extends State<HomeMadeFoodProfileScreen> {
 
     if (success) {
       Navigator.of(context).pop();
+      Navigator.of(context).pop();
     }
   }
 

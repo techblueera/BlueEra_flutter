@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/self_employee_screen.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -24,7 +23,7 @@ import '../../service/view/add_services_screen.dart';
 
 class SubmitFoodProductPage extends StatefulWidget {
   final ProviderType providerType;
-  final EarnServiceTypes? serviceSubType;
+  final String? serviceSubType;
   final FoodAiResModel foodDatas;
   final Map<String, dynamic> foodData;
   final String imagePath;

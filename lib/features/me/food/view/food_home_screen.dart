@@ -165,7 +165,7 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
                 const BusinessDescriptionCard(),
 
                 /// Gallery
-                CommonGalleryCard(
+                BusinessCommonGalleryCard(
                   gallery: data.gallery
                       ?.expand((g) => g.imageUrls ?? [])
                       .cast<String>()

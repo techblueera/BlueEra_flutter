@@ -12,7 +12,6 @@ import 'package:BlueEra/features/common/Discover/model/service_model_response.da
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
 import 'package:BlueEra/features/common/auth/model/personal_profession_model.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/self_employee_screen.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
@@ -49,7 +48,7 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
   final controller = getOrPut(() => DiscoverController());
   late List<ProfessionTypeData> _selfEmployedCategories;
   final ScrollController scrollController = ScrollController();
-  final String serviceSubType = EarnServiceTypes.selfWork.label;
+  final String serviceSubType = 'selfWork';
   final String earnServiceType = AppConstants.service;
 
   @override

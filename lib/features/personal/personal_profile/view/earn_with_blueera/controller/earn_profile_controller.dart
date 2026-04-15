@@ -1,11 +1,15 @@
 import 'dart:io';
 
+import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/api/apiService/s3_image_uploader.dart';
 import 'package:BlueEra/core/api/model/upload_s3_image_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/model/earn_profile_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/repo/earn_profile_repo.dart';
+import 'package:BlueEra/widgets/app_loader.dart';
 import 'package:BlueEra/widgets/uploading_progressing_dialog.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
@@ -13,8 +17,12 @@ import 'package:mime/mime.dart';
 
 class EarnProfileController extends GetxController {
   RxBool isCreatingProfile = false.obs;
+  RxBool isProfileLoading = false.obs;
+  RxBool isProfileUpdating = false.obs;
+  final Rx<EarnProfileModel?> earnProfile = Rx<EarnProfileModel?>(null);
 
   final _uploader = S3ImageUploader();
+  final EarnProfileRepo _repo = EarnProfileRepo();
 
   /// Create earn profile via API, then upload logo + gallery to S3 in parallel.
   Future<bool> createEarnProfile({
@@ -153,5 +161,171 @@ class EarnProfileController extends GetxController {
       final controller = Get.find<ViewPersonalDetailsController>();
       await controller.viewPersonalProfile();
     } catch (_) {}
+  }
+
+  /// GET /earn-profiles/user/{userId}
+  Future<void> fetchEarnProfile({bool showLoading = true}) async {
+    if (userId.isEmpty) return;
+    try {
+      if (showLoading) isProfileLoading.value = true;
+      final response = await _repo.fetchEarnProfileByUserId(userId: userId);
+      if (!response.isSuccess) return;
+      final parsed = EarnProfileResponse.fromJson(response.response!.data);
+      if (parsed.success) earnProfile.value = parsed.data;
+    } catch (e) {
+      debugPrint('fetchEarnProfile error: $e');
+    } finally {
+      if (showLoading) isProfileLoading.value = false;
+    }
+  }
+
+  /// PATCH /earn-profiles/{id} with arbitrary JSON keys.
+  Future<bool> patchEarnProfile(Map<String, dynamic> params) async {
+    final id = earnProfile.value?.id;
+    if (id == null || id.isEmpty) {
+      commonSnackBar(message: 'Profile not loaded yet');
+      return false;
+    }
+    try {
+      isProfileUpdating.value = true;
+      final response = await _repo.updateEarnProfile(id: id, params: params);
+      if (!response.isSuccess) {
+        commonSnackBar(
+            message: response.message ?? AppStrings.somethingWentWrong);
+        return false;
+      }
+      await fetchEarnProfile(showLoading: false);
+      return true;
+    } catch (e) {
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+      return false;
+    } finally {
+      isProfileUpdating.value = false;
+    }
+  }
+
+  /// Add one image to the gallery — PATCH with `galleryImages: [mime]`,
+  /// upload returned URL, then refetch. Shows a single [AppLoader] overlay
+  /// for the whole flow.
+  Future<bool> addGalleryImage(File file) async {
+    final id = earnProfile.value?.id;
+    if (id == null || id.isEmpty) {
+      commonSnackBar(message: 'Profile not loaded yet');
+      return false;
+    }
+    final mime = lookupMimeType(file.path) ?? 'image/jpeg';
+    final image = UploadS3ImageModel(path: file.path, mimeType: mime);
+    AppLoader.show(message: 'Uploading photo...');
+    try {
+      isProfileUpdating.value = true;
+      final response = await _repo.updateEarnProfile(
+        id: id,
+        params: {
+          'galleryImages': [mime]
+          //  'galleryImage': mime
+        },
+      );
+      if (!response.isSuccess) {
+        commonSnackBar(
+            message: response.message ?? AppStrings.somethingWentWrong);
+        return false;
+      }
+      final uploadUrls = response.response?.data?['uploadUrls'];
+      final list = uploadUrls is Map ? uploadUrls['galleryImages'] : null;
+      if (list is List && list.isNotEmpty) {
+        final preSigned = list.first.toString();
+        _uploader.reset();
+        final assigned = _uploader.assignPreSignedUrls(
+          images: [image],
+          preSignedUrls: [preSigned],
+        );
+        if (!assigned) return false;
+        final ok = await _uploader.uploadAll([image]);
+        if (!ok) {
+          commonSnackBar(message: 'Image upload failed');
+          return false;
+        }
+      }
+      await fetchEarnProfile(showLoading: false);
+      return true;
+    } catch (e) {
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+      return false;
+    } finally {
+      AppLoader.hide();
+      isProfileUpdating.value = false;
+      _uploader.reset();
+    }
+  }
+
+  /// Remove a gallery image by index — PATCHes the profile with the URL.
+  /// Shows a labeled loader for the duration of the call.
+  Future<bool> removeGalleryImage(int index) async {
+    final profile = earnProfile.value;
+    if (profile == null || index < 0 || index >= profile.galleryImages.length) {
+      return false;
+    }
+    final url = profile.galleryImages[index];
+    AppLoader.show(message: 'Removing photo...');
+    try {
+      return await patchEarnProfile({'removeGalleryImage': url});
+    } finally {
+      AppLoader.hide();
+    }
+  }
+
+  /// PATCH with a single image key (serviceLogo / coverImage) — server returns
+  /// a pre-signed URL under [uploadKey] that we PUT the file to.
+  Future<bool> patchEarnProfileImage({
+    required String uploadKey,
+    required File file,
+  }) async {
+    final id = earnProfile.value?.id;
+    if (id == null || id.isEmpty) {
+      commonSnackBar(message: 'Profile not loaded yet');
+      return false;
+    }
+    final mime = lookupMimeType(file.path) ?? 'image/jpeg';
+    final image = UploadS3ImageModel(path: file.path, mimeType: mime);
+
+    try {
+      isProfileUpdating.value = true;
+      final ResponseModel response = await _repo.updateEarnProfile(
+        id: id,
+        params: {uploadKey: mime},
+      );
+      if (!response.isSuccess) {
+        commonSnackBar(
+            message: response.message ?? AppStrings.somethingWentWrong);
+        return false;
+      }
+      final uploadUrls = response.response?.data?['uploadUrls'];
+      final preSignedUrl = uploadUrls is Map ? uploadUrls[uploadKey] : null;
+      if (preSignedUrl is String && preSignedUrl.isNotEmpty) {
+        _uploader.reset();
+        final assigned = _uploader.assignPreSignedUrls(
+          images: [image],
+          preSignedUrls: [preSignedUrl],
+        );
+        if (!assigned) return false;
+        UploadProgressDialog.show(
+            initialProgress: 0.2, title: 'Uploading image...');
+        final ok = await _uploader.uploadAll([image]);
+        UploadProgressDialog.close();
+        if (!ok) {
+          commonSnackBar(message: 'Image upload failed');
+          return false;
+        }
+      }
+      await fetchEarnProfile(showLoading: false);
+      return true;
+    } catch (e) {
+      UploadProgressDialog.close();
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+      return false;
+    } finally {
+      isProfileUpdating.value = false;
+      _uploader.reset();
+    }
   }
 }

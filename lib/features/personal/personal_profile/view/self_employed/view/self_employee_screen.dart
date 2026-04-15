@@ -9,26 +9,6 @@ import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-enum EarnServiceTypes {
-  selfWork('selfWork'),
-  homeService('homeService'),
-  homeMadeFood('homeMadeFood');
-
-  final String label;
-  const EarnServiceTypes(this.label);
-
-  static EarnServiceTypes? fromLabel(String value) {
-    return EarnServiceTypes.values.firstWhere(
-          (e) => e.label.toLowerCase() == value.toLowerCase(),
-      orElse: () => EarnServiceTypes.selfWork, // default if not matched
-    );
-  }
-
-  static List<String> get labels =>
-      EarnServiceTypes.values.map((e) => e.label).toList();
-}
-
-
 class SelfEmployeeScreen extends StatefulWidget {
   final bool fromBottomNavBar;
   const SelfEmployeeScreen({

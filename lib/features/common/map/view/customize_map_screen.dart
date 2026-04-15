@@ -18,7 +18,6 @@ import 'package:BlueEra/features/common/map/widget/rental_service_bottom_sheet.d
 import 'package:BlueEra/features/common/map/widget/search_place_list.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/account_setting_screen/account_settings_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/self_employee_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
@@ -629,7 +628,7 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
           });
         },
         category: "service",
-        subType: EarnServiceTypes.selfWork.label,
+        subType: 'selfWork',
       );
     } else if (mapServiceCategoryType == MapServiceCategory.homeService) {
       return HomeServicesBottomSheet(
@@ -643,7 +642,7 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
           });
         },
         category: "service",
-        subType: EarnServiceTypes.homeService.label,
+        subType: 'homeService',
       );
     } else if (mapServiceCategoryType == MapServiceCategory.foods) {
       return FoodServicesBottomSheet(
@@ -657,7 +656,7 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
           });
         },
         category: "food",
-        subType: EarnServiceTypes.homeMadeFood.label,
+        subType: 'homeMadeFood',
       );
     }
     else if (mapServiceCategoryType == MapServiceCategory.rental) {
@@ -672,7 +671,7 @@ class _CustomizeMapScreenState extends State<CustomizeMapScreen>
           });
         },
         category: "rental",
-        subType: EarnServiceTypes.homeMadeFood.label,
+        subType: 'homeMadeFood',
       );
     }
 
