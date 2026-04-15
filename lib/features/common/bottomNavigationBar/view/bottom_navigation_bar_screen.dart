@@ -395,6 +395,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
                         currentIndex: bottomBarController.currentIndex.value,
                         showShadow: !showSubscriptionSheet,
                         onTap: (index) async {
+                        
                           // Refresh the user's subscription state every
                           // time the Me tab is tapped. The peek bottom
                           // sheet is hidden for active/authenticated users
@@ -426,10 +427,11 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
                               if(chatViewController.chatMainTabController!=null){
                                 if(chatViewController.chatMainTabController?.index!=0){
                                   chatViewController.onSelectChatTab(0);
-                                  chatViewController.emitEvent(ChatEmitEvents.ChatList,
-                                      {ApiKeys.type: AppConstants.personal_Chat_Type});
+
                                 }
                               }
+                              chatViewController.emitEvent(ChatEmitEvents.ChatList,
+                                  {ApiKeys.type: AppConstants.personal_Chat_Type});
                               bottomBarController.onChangeIndex(index);
                             }
                           } else {
