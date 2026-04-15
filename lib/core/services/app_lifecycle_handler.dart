@@ -72,7 +72,15 @@ class AppLifecycleHandler extends WidgetsBindingObserver {
         CallController.isCallActivityActive = false;
         break;
       case AppLifecycleState.detached:
-        // App being killed — end call gracefully
+        // App being killed — end call gracefully.
+        // BUT: on Android, when we launch CallActivity (a second Flutter engine
+        // that owns the live call), the main engine's MainActivity can transition
+        // to `detached`. Ending the call here would kill the call that the
+        // CallActivity engine is actively running. Skip if CallActivity is active.
+        if (CallController.isCallActivityActive) {
+          log("detached but CallActivity is active — skipping endCall");
+          break;
+        }
         final isActive = callController.callStatus.value == CallStatus.connected ||
             callController.callStatus.value == CallStatus.connecting;
         if (isActive) {

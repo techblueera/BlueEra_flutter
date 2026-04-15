@@ -886,7 +886,7 @@ class CallController extends GetxController {
 
   /// End an active call
   Future<void> endCall() async {
-    debugPrint('[CALL_DEBUG] endCall → called, currentStatus=${callStatus.value}');
+    debugPrint('[CALL_DEBUG] endCall → called, currentStatus=${callStatus.value}, caller stack: ${StackTrace.current.toString().split('\n').take(6).join(' | ')}');
     // Guard: skip if already idle (prevents re-entrant calls from CallKit events)
     isIncomingCall.value=false;
     if (callStatus.value == CallStatus.idle) return;
@@ -1013,9 +1013,21 @@ class CallController extends GetxController {
   }
 
   void _handleCallEnded(dynamic data) {
-    debugPrint('[CALL_DEBUG] _handleCallEnded → isFareCall=${isFareCall.value}, callStatus=${callStatus.value}');
+    debugPrint('[CALL_DEBUG] _handleCallEnded → isFareCall=${isFareCall.value}, callStatus=${callStatus.value}, data=$data');
     if (isCallActivityActive && !isCallActivityEngine) return;
     if (callStatus.value == CallStatus.idle) return;
+
+    // Ignore self-originated `call:ended` echoes: if the server is just
+    // telling us about an event WE triggered (e.g. after our own endCall
+    // hit the API), don't re-run cleanup. Some backends also broadcast
+    // `call:ended` when only ONE peer leaves a multi-party room — we
+    // should only tear down if the call actually ended for us, which we
+    // detect via a `call_id` match AND the call actually being live.
+    final endedCallId = data is Map ? (data['call_id'] ?? '').toString() : '';
+    if (endedCallId.isNotEmpty && callId.value.isNotEmpty && endedCallId != callId.value) {
+      debugPrint('[CALL_DEBUG] _handleCallEnded → IGNORED stale event, endedCallId=$endedCallId vs active=${callId.value}');
+      return;
+    }
 
     // Fare-call: don't pop fare-call screens — the queue/map handles its own lifecycle
     if (isFareCall.value) {
