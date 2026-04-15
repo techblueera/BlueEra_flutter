@@ -1169,6 +1169,7 @@ class ChatEmitEvents {
   static const isTyping = "isTyping";
   static const markConversationRead = "markConversationRead";
   static const unreadCountCleared = "unreadCountCleared";
+  static const userLastSeenList = "userLastSeenList";
 
   // ── E2E Encryption Events (Phase 1–4) ─────────────────────────────────────
   // Events this client EMITS → server

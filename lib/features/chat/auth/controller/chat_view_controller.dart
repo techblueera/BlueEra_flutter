@@ -267,6 +267,12 @@ class ChatViewController extends GetxController {
   RxString userOpenUserId = ''.obs;
   RxString readMessageStatus = ''.obs;
 
+  /// Cached set of online user IDs — survives chat list re-renders.
+  RxSet<String> onlineUserIds = <String>{}.obs;
+
+  /// Last-seen timestamps keyed by conversation ID.
+  RxMap<String, String> lastSeenMap = <String, String>{}.obs;
+
   // Typing indicator state
   RxString typingText = ''.obs;
   Timer? _typingDebounceTimer;
@@ -766,6 +772,7 @@ class ChatViewController extends GetxController {
     if (socketConnected.value == false) {
       socketConnected.value = true;
       chatSocket.listenEvent(ChatEmitEvents.ChatList, (data) async {
+        log("ksdjjknksdjcnsdc ${data}");
         //1200000039
         final parsedData = GetChatListModel.fromJson(data);
         loadChatListWithType(chatListModel: parsedData);
@@ -777,9 +784,6 @@ class ChatViewController extends GetxController {
       chatSocket.listenEvent(ChatEmitEvents.messageViewed, (data) {
         getMediaMsgCommentsModel?.value =
             GetMediaMsgCommentsModel.fromJson(data);
-      });
-      chatSocket.listenEvent(ChatEmitEvents.isOnlineFromChatList, (data) {
-
       });
       chatSocket.listenEvent(ChatEmitEvents.messageReceived, (data) async {
           final parsedData = GetListOfMessageData.fromJson(data);
@@ -883,12 +887,27 @@ class ChatViewController extends GetxController {
             ApiResponse.complete(getListOfMessageData);
         saveSingleMessageToLocal(
             message.conversationId ?? '', message);
+
+        // Auto-mark as read: user is viewing this conversation, so incoming
+        // messages should be marked read immediately (guide §5.2)
+        if (message.myMessage != true) {
+          chatSocket.emitEvent(ChatEmitEvents.markConversationRead,
+              {ApiKeys.conversation_id: checkedConversationId});
+        }
         scrollDown();
       });
       chatSocket.listenEvent(ChatEmitEvents.isOnLine, (data) {
-        if (userOpenUserId.value == data['user_id']) {
-          userOnlineStatus.value =
-              data['is_online'] == true ? "Online" : "Offline";
+        final uid = data['user_id'] as String?;
+        final isOnline = data['is_online'] == true;
+        if (uid != null) {
+          if (isOnline) {
+            onlineUserIds.add(uid);
+          } else {
+            onlineUserIds.remove(uid);
+          }
+        }
+        if (uid == userOpenUserId.value) {
+          userOnlineStatus.value = isOnline ? "Online" : "Offline";
         }
       });
       chatSocket.listenEvent(ChatEmitEvents.isOnlineFromChatList, (data) {
@@ -899,9 +918,30 @@ class ChatViewController extends GetxController {
           final uid = update['user_id'] as String?;
           final isOnline = update['is_online'] == true;
 
+          if (uid != null) {
+            if (isOnline) {
+              onlineUserIds.add(uid);
+            } else {
+              onlineUserIds.remove(uid);
+            }
+          }
+
           // Update the active chat screen
           if (uid == userOpenUserId.value) {
             userOnlineStatus.value = isOnline ? "Online" : "Offline";
+          }
+        }
+      });
+
+      // Last-seen timestamps
+      chatSocket.listenEvent(ChatEmitEvents.userLastSeenList, (data) {
+        if (data is List) {
+          for (final item in data) {
+            final conversationId = item['conversation_id'] as String?;
+            final lastSeen = item['last_seen'] as String?;
+            if (conversationId != null && lastSeen != null) {
+              lastSeenMap[conversationId] = lastSeen;
+            }
           }
         }
       });
@@ -931,7 +971,14 @@ class ChatViewController extends GetxController {
 
       chatSocket.listenEvent(ChatEmitEvents.messageStatusUpdate, (data) {
         if (data['conversation_id'] == userOpenConversationId.value) {
-          readMessageStatus.value = data['status'];
+          final newStatus = data['status'] as String? ?? '';
+          // Status only goes forward: sent(0) → delivered(1) → read(2)
+          const statusOrder = {'sent': 0, 'delivered': 1, 'read': 2};
+          final currentRank = statusOrder[readMessageStatus.value] ?? -1;
+          final newRank = statusOrder[newStatus] ?? -1;
+          if (newRank > currentRank) {
+            readMessageStatus.value = newStatus;
+          }
         }
       });
 
@@ -1300,24 +1347,33 @@ class ChatViewController extends GetxController {
       {required String conversationId, required String userId}) {
     userOpenConversationId.value = conversationId;
     userOpenUserId.value = userId;
+    // Set current user's online status from cache
+    userOnlineStatus.value =
+        onlineUserIds.contains(userId) ? "Online" : "Offline";
     emitEvent(ChatEmitEvents.screenRoom,
         {ApiKeys.conversation_id: "${conversationId}"});
     // Mark conversation as read on the server
     chatSocket.emitEvent(ChatEmitEvents.markConversationRead,
         {ApiKeys.conversation_id: conversationId});
     addConversationOnce(conversationId);
+    // Reset message status for new conversation (avoid stale ticks)
+    readMessageStatus.value = '';
     // Reset typing indicator for new conversation
     typingText.value = '';
     _typingHideTimers.forEach((_, timer) => timer.cancel());
     _typingHideTimers.clear();
   }
 
-  /// Emit typing indicator (debounced — max once every 2 seconds)
+  /// Check if a user is currently online (for chat list dots).
+  bool isUserOnline(String? userId) =>
+      userId != null && onlineUserIds.contains(userId);
+
+  /// Emit typing indicator (debounced — max once per second per guide)
   void emitTyping(String conversationId) {
     if (_typingDebounceTimer?.isActive ?? false) return;
     chatSocket.emitEvent(ChatEmitEvents.isTyping,
         {ApiKeys.conversation_id: conversationId});
-    _typingDebounceTimer = Timer(const Duration(seconds: 2), () {});
+    _typingDebounceTimer = Timer(const Duration(seconds: 1), () {});
   }
 
   /// Update unread count in chat list models
@@ -1325,6 +1381,7 @@ class ChatViewController extends GetxController {
     for (final model in [
       getPersonalChatListModel,
       getBusinessChatListModel,
+      getGroupChatListModel,
       getOrderChatListModel,
     ]) {
       final chatList = model?.value.chatList;
