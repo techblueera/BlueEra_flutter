@@ -42,6 +42,8 @@ import 'core/services/home_cache_service.dart';
 import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'features/chat/auth/controller/call_controller.dart';
+// `showIncomingCallLocalNotification` lives in app_notification.dart and is
+// already imported via the `app_notification.dart` import above.
 import 'features/chat/view/call_screen/audio_calling_handler.dart';
 import 'features/chat/view/call_screen/call_activity_main.dart' as call_entry;
 import 'features/chat/view/call_screen/widget/call_floating_overlay.dart';
@@ -56,9 +58,17 @@ SharedMedia? pendingSharedMedia;
 
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  ///INIT FIREBASE NOTIFICATION...
+  // The background handler runs in a separate isolate. Platform channels
+  // (FlutterCallkitIncoming, FlutterLocalNotificationsPlugin) require Flutter
+  // bindings to be initialized in this isolate — without this, the call UI
+  // and notifications silently never appear in background/terminated modes.
+  WidgetsFlutterBinding.ensureInitialized();
 
-  await firebaseInitializeApp();
+  try {
+    await firebaseInitializeApp();
+  } catch (e, st) {
+    log('[CALL_DEBUG] bg handler firebaseInitializeApp error: $e\n$st');
+  }
 
   // NOTE: Do NOT call getInitialMsg(), onMsgOpen(), or _onTapNotificationFromStatusBar() here.
   // This handler runs in a separate isolate with no UI engine — GetX navigation
@@ -67,113 +77,163 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   // getNotificationAppLaunchDetails() in firebaseNotificationSetup().
 
   final operation = (message.data['operation'] ?? '').toString().toLowerCase();
+  log('[CALL_DEBUG] bg handler received → operation=$operation, data=${message.data}');
+
   // Handle incoming call in background - show native call UI
   if (operation == 'incoming_call') {
-    final data = message.data;
-    final callerName = data['senderName'] ?? 'Unknown';
-    final callerImage = data['senderProfileImage'] ?? '';
-    Map<String, dynamic> payload = jsonDecode(data['payload']);
-    Map<String, dynamic> callerData = jsonDecode(data['callerData']);
-    log("payload 71)  ${data}");
-    final callType = payload['call_type'];
+    try {
+      final data = message.data;
+      final callerName = (data['senderName'] ?? 'Unknown').toString();
+      final callerImage = (data['senderProfileImage'] ?? '').toString();
 
-    // Detect fare-call metadata from payload
-    final metadata = payload['metadata'];
-    final isFareCall = metadata != null && metadata['orderType'] == 'fare-call';
+      // Defensive parsing: backend may send payload/callerData as a JSON
+      // string OR as an already-decoded Map (depending on FCM path). Either
+      // was crashing the bg handler before — and a crash here means no UI
+      // and no notification in background/terminated modes.
+      final payloadRaw = data['payload'];
+      Map<String, dynamic> payload = {};
+      if (payloadRaw is String && payloadRaw.isNotEmpty) {
+        payload = Map<String, dynamic>.from(jsonDecode(payloadRaw));
+      } else if (payloadRaw is Map) {
+        payload = Map<String, dynamic>.from(payloadRaw);
+      }
 
-    showFlutterCallNotification(
-      desiginations: isFareCall
-          ? 'Ride Request'
-          : () {
-              final accountType = callerData['account_type']?.toString() ?? '';
+      final callerRaw = data['callerData'];
+      Map<String, dynamic> callerData = {};
+      if (callerRaw is String && callerRaw.isNotEmpty) {
+        callerData = Map<String, dynamic>.from(jsonDecode(callerRaw));
+      } else if (callerRaw is Map) {
+        callerData = Map<String, dynamic>.from(callerRaw);
+      }
 
-              if (accountType == 'BUSINESS') {
-                var biz = callerData['businessData'];
+      final callType = (payload['call_type'] ?? 'audio_call').toString();
+      final callId = (payload['call_id'] ?? '').toString();
+      final roomId = (payload['room_id'] ?? '').toString();
+      if (callId.isEmpty || roomId.isEmpty) {
+        log('[CALL_DEBUG] bg handler → missing call_id/room_id, skipping');
+        return;
+      }
 
-                if (biz is String) {
-                  biz = jsonDecode(biz);
-                }
+      final metadata = payload['metadata'];
+      final isFareCall =
+          metadata is Map && metadata['orderType'] == 'fare-call';
 
-                if (biz is Map<String, dynamic>) {
-                  // First try category_of_business
-                  final cat = biz['category_of_business'];
-                  if (cat != null && cat.toString().isNotEmpty) {
-                    return cat.toString();
-                  }
-
-                  // Then try sub_category_of_business.name
-                  final subCat = biz['sub_category_of_business'];
-                  if (subCat is Map<String, dynamic>) {
-                    final name = subCat['name'];
-                    if (name != null && name.toString().isNotEmpty) {
-                      return name.toString(); // ✅ ONLY NAME
-                    }
-                  }
-                }
-
-                return 'Incoming Call';
+      String designation = 'Incoming Call';
+      final accountType = (callerData['account_type'] ?? '').toString();
+      if (accountType == 'BUSINESS') {
+        var biz = callerData['businessData'];
+        if (biz is String && biz.isNotEmpty) {
+          try {
+            biz = jsonDecode(biz);
+          } catch (_) {}
+        }
+        if (biz is Map) {
+          final cat = biz['category_of_business'];
+          if (cat != null && cat.toString().isNotEmpty) {
+            designation = cat.toString();
+          } else {
+            final subCat = biz['sub_category_of_business'];
+            if (subCat is Map) {
+              final name = subCat['name'];
+              if (name != null && name.toString().isNotEmpty) {
+                designation = name.toString();
               }
+            }
+          }
+        }
+      } else {
+        final d = (callerData['designation'] ?? '').toString();
+        if (d.isNotEmpty) designation = d.toLowerCase();
+      }
+      if (isFareCall) designation = 'Ride Request';
 
-              final designation = callerData['designation']?.toString() ?? '';
-              return designation.isEmpty
-                  ? 'Incoming Call'
-                  : designation.toLowerCase();
-            }(),
-      callSessionId: payload["call_id"],
-      callerName: isFareCall
-          ? (callerName.isNotEmpty ? callerName : 'Ride Request')
-          : callerName,
-      callerImage: callerData['profile_image'].isNotEmpty
-          ? callerData['profile_image']
-          : null,
-      callType: callType,
-      extra: {
-        'senderId': data['senderId'] ?? '',
-        'conversationId': data['conversationId'] ?? '',
+      final profileImage = (callerData['profile_image'] ?? '').toString();
+      final extras = <String, dynamic>{
+        'senderId': (data['senderId'] ?? '').toString(),
+        'conversationId': (data['conversationId'] ?? '').toString(),
         'callType': callType,
         'callerName': callerName,
         'callerImage': callerImage,
-        'callId': payload["call_id"],
-        'roomId': payload["room_id"],
+        'callId': callId,
+        'roomId': roomId,
         'operation': 'incoming_call',
         if (isFareCall) 'isFareCall': 'true',
-        if (isFareCall) 'fareCallOrderId': metadata['orderId'] ?? '',
+        if (isFareCall)
+          'fareCallOrderId': (metadata['orderId'] ?? '').toString(),
         if (isFareCall)
           'fareCallRideDetails': jsonEncode(metadata['rideDetails'] ?? {}),
-      },
-    );
-    // final controller=Get.put(CallController());
+      };
 
+      // Android: use the stateless local-notification full-screen-intent
+      // path. flutter_callkit_incoming has known wedged-state bugs after
+      // mixed foreground/background call sequences (manifests as 10–20s
+      // auto-dismiss). flutter_local_notifications has no native call list
+      // to corrupt — every call posts a fresh notification and it works
+      // identically across cold-start, background, and alive states.
+      //
+      // iOS: keep CallKit — Apple requires it for VoIP background calls.
+      if (Platform.isAndroid && !isFareCall) {
+        await showIncomingCallLocalNotification(
+          callId: callId,
+          roomId: roomId,
+          callerName: callerName,
+          callerImage: profileImage.isNotEmpty ? profileImage : callerImage,
+          callType: callType,
+          extra: extras,
+        );
+        log('[CALL_DEBUG] bg handler → local notification shown for callId=$callId');
+      } else {
+        showFlutterCallNotification(
+          desiginations: designation,
+          callSessionId: callId,
+          callerName: isFareCall
+              ? (callerName.isNotEmpty ? callerName : 'Ride Request')
+              : callerName,
+          callerImage: profileImage.isNotEmpty
+              ? profileImage
+              : (callerImage.isNotEmpty ? callerImage : null),
+          callType: callType,
+          extra: extras,
+        );
+        log('[CALL_DEBUG] bg handler → CallKit shown for callId=$callId');
+      }
+    } catch (e, st) {
+      log('[CALL_DEBUG] bg handler incoming_call error: $e\n$st');
+    }
     return; // Don't play sound or show notification for calls
   }
 
-  if (message.notification != null) {
-    await AppNotificationHandler().playCustomSound(message);
+  try {
+    if (message.notification != null) {
+      await AppNotificationHandler().playCustomSound(message);
+    }
+
+    // For ALL other notifications in background: use the generic data-only renderer.
+    // Backend sends data-only FCM messages, so we render them ourselves with
+    // action buttons, BigPictureStyle, grouping, etc.
+    final plugin = FlutterLocalNotificationsPlugin();
+    await plugin.initialize(
+      const InitializationSettings(
+        android: AndroidInitializationSettings('@drawable/ic_stat'),
+        iOS: DarwinInitializationSettings(),
+      ),
+      onDidReceiveBackgroundNotificationResponse:
+          onBackgroundNotificationResponse,
+    );
+
+    // Small delay to ensure Firebase's auto-shown notification is posted first
+    await Future.delayed(const Duration(milliseconds: 200));
+
+    // Cancel ALL notifications (including Firebase's auto-shown ones).
+    await plugin.cancelAll();
+
+    // Use the generic showFromData renderer which reads all backend fields:
+    // channelId, channelName, channelImportance, style, imageUrl, groupKey, actions, etc.
+    AppNotificationHandler.flutterLocalNotificationsPlugin = plugin;
+    await AppNotificationHandler().showFromData(message.data);
+  } catch (e, st) {
+    log('[CALL_DEBUG] bg handler generic notification error: $e\n$st');
   }
-
-  // For ALL other notifications in background: use the generic data-only renderer.
-  // Backend sends data-only FCM messages, so we render them ourselves with
-  // action buttons, BigPictureStyle, grouping, etc.
-  final plugin = FlutterLocalNotificationsPlugin();
-  await plugin.initialize(
-    const InitializationSettings(
-      android: AndroidInitializationSettings('@drawable/ic_stat'),
-      iOS: DarwinInitializationSettings(),
-    ),
-    onDidReceiveBackgroundNotificationResponse:
-        onBackgroundNotificationResponse,
-  );
-
-  // Small delay to ensure Firebase's auto-shown notification is posted first
-  await Future.delayed(const Duration(milliseconds: 200));
-
-  // Cancel ALL notifications (including Firebase's auto-shown ones).
-  await plugin.cancelAll();
-
-  // Use the generic showFromData renderer which reads all backend fields:
-  // channelId, channelName, channelImportance, style, imageUrl, groupKey, actions, etc.
-  AppNotificationHandler.flutterLocalNotificationsPlugin = plugin;
-  await AppNotificationHandler().showFromData(message.data);
 }
 
 // _onTapNotificationFromStatusBar, _openChatWithUser, _handlePostNavigation
@@ -238,6 +298,14 @@ Future<void> main() async {
     Hive.initFlutter(),
   ]);
 
+  /// Register the FCM background handler IMMEDIATELY after Firebase init.
+  /// If this is delayed to _initDeferred (after runApp), a kill before that
+  /// phase runs leaves the native FCM service with no Dart callback handle,
+  /// so background/terminated-state pushes (incoming calls) are dropped
+  /// without reaching Dart at all. Registering here guarantees the handle
+  /// is persisted by the plugin on first launch.
+  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+
   if (kDebugMode) debugPrintKeys();
 
   if (Platform.isIOS) {
@@ -268,6 +336,91 @@ Future<void> main() async {
   /// CallController -- must be before runApp for cold-start call handling
   if (!Get.isRegistered<CallController>()) {
     Get.put(CallController(), permanent: true);
+  }
+
+  /// Check if app was launched by tapping "Accept" on the Android local
+  /// incoming-call notification. There are two ways the Accept tap can
+  /// surface to Dart on cold-start:
+  ///
+  /// 1. **Launch details (primary, terminate state)** —
+  ///    `getNotificationAppLaunchDetails()` returns the
+  ///    `NotificationResponse` that launched the app, including the action
+  ///    button's `actionId` and the notification payload. For an Accept
+  ///    action with `showsUserInterface: true`, this is the path Android
+  ///    actually uses on terminated state (the bg-isolate handler does NOT
+  ///    fire for showsUserInterface: true).
+  ///
+  /// 2. **Stashed flag (fallback)** — for cases where the bg isolate did
+  ///    fire (some Android OEMs / Flutter versions), we keep the secure-
+  ///    storage flag as a backup signal.
+  ///
+  /// Always clear the stashed extras + flag so a stale value can't replay
+  /// and so firebaseNotificationSetup()'s tap router can't accidentally
+  /// open chat for an incoming-call payload.
+  try {
+    String? acceptedCallId = await readAndClearPendingIncomingCallAccept();
+    Map<String, dynamic>? pending =
+        await readAndClearPendingIncomingCallExtras();
+
+    // Path 1: read the launch details. If the user tapped the Accept action
+    // button on the cold-start notification, use its payload directly — the
+    // payload already carries callId / roomId / callType / etc.
+    Map<String, dynamic>? launchPayload;
+    String launchActionId = '';
+    try {
+      final details = await FlutterLocalNotificationsPlugin()
+          .getNotificationAppLaunchDetails();
+      launchActionId = details?.notificationResponse?.actionId ?? '';
+      final raw = details?.notificationResponse?.payload;
+      if (raw != null && raw.isNotEmpty) {
+        launchPayload = Map<String, dynamic>.from(jsonDecode(raw));
+      }
+      debugPrint('[COLD_START_CALL] launch details → actionId=$launchActionId, hasPayload=${launchPayload != null}');
+    } catch (e) {
+      debugPrint('[COLD_START_CALL] getNotificationAppLaunchDetails error: $e');
+    }
+
+    final launchPayloadIsAccept =
+        launchActionId.startsWith('incoming_call_accept_') ||
+            (launchPayload != null &&
+                (launchPayload['operation'] ?? '').toString() ==
+                    'incoming_call');
+
+    Map<String, dynamic>? acceptExtras;
+    if (launchPayloadIsAccept && launchPayload != null) {
+      acceptExtras = launchPayload;
+    } else if (acceptedCallId != null &&
+        acceptedCallId.isNotEmpty &&
+        pending != null &&
+        (pending['callId'] ?? '').toString() == acceptedCallId) {
+      acceptExtras = pending;
+    }
+
+    if (acceptExtras != null &&
+        (acceptExtras['callId'] ?? '').toString().isNotEmpty) {
+      final callId = (acceptExtras['callId'] ?? '').toString();
+      final roomId = (acceptExtras['roomId'] ?? '').toString();
+      final isVideo = (acceptExtras['callType'] ?? '') == 'video_call';
+      final callController = getOrPut(() => CallController());
+      callController.initStateFromCallKitExtra(acceptExtras);
+      CallController.setKilledStateAcceptHandled();
+      CallController.markColdStartCall();
+      debugPrint('[COLD_START_CALL] local-notification accept → acceptCall(callId=$callId, roomId=$roomId, isVideo=$isVideo)');
+      callController
+          .acceptCall(
+            callIdParams: callId,
+            roomIdParams: roomId,
+            isVideoCall: isVideo,
+          )
+          .then((ok) =>
+              debugPrint('[COLD_START_CALL] local-notif acceptCall returned: $ok'))
+          .catchError((e, st) =>
+              debugPrint('[COLD_START_CALL] local-notif acceptCall threw: $e\n$st'));
+    } else {
+      debugPrint('[COLD_START_CALL] local-notif: no Accept signal (acceptedCallId=$acceptedCallId, hasPending=${pending != null}, launchActionId=$launchActionId)');
+    }
+  } catch (e, st) {
+    debugPrint('[COLD_START_CALL] local-notif pending check threw: $e\n$st');
   }
 
   /// Check if app was launched by accepting an incoming call from killed state

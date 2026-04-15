@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
+import 'package:BlueEra/widgets/global_message_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -98,6 +99,23 @@ class CallController extends GetxController {
 
   IceServerConfig? _iceConfig;
   String? _remoteUserId;
+
+  /// True when the app's main activity is in the foreground (resumed).
+  /// Updated by AppLifecycleHandler. We use this in `_handleIncomingCall`
+  /// (socket main isolate) to decide whether navigation alone is enough
+  /// (foreground) or whether we also need to fire CallKit's full-screen
+  /// IncomingCallActivity so the UI is actually visible (background).
+  static bool isAppInForeground = true;
+
+  /// Public setter so FCM-push fallback paths (foreground Android) can
+  /// populate the remote user id before the user accepts. Without this,
+  /// acceptCall's WebRTC branch bails out with "no remoteUserId" and the
+  /// 30s connection timeout ends the call.
+  void setRemoteUserIdFromPush(String? userId) {
+    if (userId != null && userId.isNotEmpty) {
+      _remoteUserId = userId;
+    }
+  }
 
   // ICE candidate buffer for candidates arriving before remote description
   final _pendingCandidates = <String, List<RTCIceCandidate>>{};
@@ -477,10 +495,40 @@ class CallController extends GetxController {
     fareCallOrderMongoId.value = '';
     fareCallRideDetails.value = null;
 
-    // Foreground: socket `call:incoming` navigates straight to the in-app
-    // incoming-call screen. Do NOT show CallKit/local notifications here —
-    // those are reserved for background/killed state (handled by the FCM
-    // push via firebaseMessagingBackgroundHandler).
+    // Foreground: navigating to the in-app IncomingCallScreen is enough —
+    // the activity is visible so the screen renders immediately.
+    //
+    // Background (app alive but activity paused): navigation alone is
+    // invisible, and the FCM bg-isolate's `showCallkitIncoming` is unreliable
+    // on many OEMs (Xiaomi/Vivo/Realme/OnePlus) — they suppress full-screen
+    // intents triggered from a non-foreground isolate. Calling CallKit from
+    // the MAIN isolate here is reliable because the plugin's MethodChannel
+    // is already initialized and the call comes from the activity's own
+    // process context, so the OEM lets the IncomingCallActivity launch via
+    // USE_FULL_SCREEN_INTENT and the user actually sees the call UI.
+    if (!isAppInForeground && Platform.isAndroid) {
+      debugPrint('[CALL_DEBUG] _handleIncomingCall → app in background, posting local full-screen-intent notification');
+      final ct = callType.value == CallType.video ? 'video_call' : 'audio_call';
+      showIncomingCallLocalNotification(
+        callId: callId.value,
+        roomId: roomId.value,
+        callerName: callerName.value.isNotEmpty ? callerName.value : 'Unknown',
+        callerImage: callerImage.value,
+        callType: ct,
+        extra: {
+          'callId': callId.value,
+          'roomId': roomId.value,
+          'conversationId': conversationId.value,
+          'callType': ct,
+          'callerName': callerName.value,
+          'callerImage': callerImage.value,
+          'senderId': _remoteUserId ?? '',
+          'operation': 'incoming_call',
+        },
+      );
+      return;
+    }
+
     if (Get.currentRoute != '/IncomingCallScreen') {
       Get.toNamed('/IncomingCallScreen');
     }
@@ -550,8 +598,11 @@ class CallController extends GetxController {
     // auto-convert a still-"ringing" call into a missed call when it elapses —
     // even if the user already tapped Accept. Marking it connected stops that
     // countdown so an active call cannot flip to "missed" mid-conversation.
-    // Skip for fare-calls (no CallKit session was ever shown).
-    if (!isFareCall.value) {
+    // Skip for fare-calls (no CallKit session was ever shown). Also skip when
+    // CallKit was never shown for this call (foreground in-app accept) —
+    // calling setCallConnected with an unknown id throws "content null" and
+    // wedges plugin state for the NEXT incoming call.
+    if (!isFareCall.value && callKitWasShownFor(savedCallId)) {
       try {
         await FlutterCallkitIncoming.setCallConnected(savedCallId);
       } catch (e) {
@@ -564,15 +615,25 @@ class CallController extends GetxController {
     // On iOS: dismiss AFTER WebRTC setup so CallKit keeps the audio session
     // active during the handshake — dismissing too early kills the audio path.
     debugPrint('[FARE_CALL_DEBUG] acceptCall → isFareCall=${isFareCall.value}, platform=${Platform.isAndroid ? "Android" : "iOS"}, isCallActivityEngine=$isCallActivityEngine');
-    if (Platform.isAndroid && !isFareCall.value) {
+    if (Platform.isAndroid &&
+        !isFareCall.value &&
+        callKitWasShownFor(savedCallId)) {
       _isDismissingCallKitUI = true;
       try {
         await FlutterCallkitIncoming.endCall(savedCallId);
+        clearCallKitShownFor(savedCallId);
       } catch (e) {
         debugPrint('[FARE_CALL_DEBUG] acceptCall → CallKit endCall error: $e');
       } finally {
         _isDismissingCallKitUI = false;
       }
+    }
+
+    // Cancel the Android local-notification incoming-call card (the new
+    // flutter_local_notifications path used in background/terminated). Safe
+    // to call even if no notification was posted — cancel-by-id is a no-op.
+    if (Platform.isAndroid && !isFareCall.value) {
+      cancelIncomingCallLocalNotification(savedCallId);
     }
 
     // --- Android main engine: launch CallActivity to handle WebRTC ---
@@ -681,22 +742,19 @@ class CallController extends GetxController {
         _pendingOffer = null;
         debugPrint('[CALL_DEBUG] acceptCall → call:answer emitted to $savedRemoteUserId');
       } else if (savedRemoteUserId != null) {
-        // No pending offer yet.
-        // For fare-calls: the customer (caller) will create the offer via
-        // _handleCallAccepted. Just set up the peer and wait — the offer
-        // will arrive via _handleRemoteOffer. Creating our own offer here
-        // causes offer glare (both sides send offers), which crashes Android
-        // native WebRTC when trying to rollback.
-        // For regular calls: the caller may have missed — create our own offer.
+        // No pending offer yet — send our own. Glare is resolved by the
+        // caller's `_handleRemoteOffer` re-sending its own offer back to us,
+        // which we then yield to (close+recreate PC and answer).
+        // Fare-calls keep the original "wait silently" behavior (the customer
+        // app initiates from its side via _handleCallAccepted).
         if (isFareCall.value) {
           debugPrint('[FARE_CALL] acceptCall → no pending offer, waiting for caller offer (fare-call)');
           await _createPeerConnection(savedRemoteUserId);
         } else {
-          debugPrint('[CALL_DEBUG] acceptCall → NO pending offer, creating our own offer...');
+          debugPrint('[CALL_DEBUG] acceptCall → NO pending offer, sending our own offer (glare-safe)');
           final pc = await _createPeerConnection(savedRemoteUserId);
           final offer = await pc.createOffer();
           await pc.setLocalDescription(offer);
-
           _socket.emitEvent('call:offer', {
             'room_id': savedRoomId,
             'target_user_id': savedRemoteUserId,
@@ -719,10 +777,13 @@ class CallController extends GetxController {
     // We set _isDismissingCallKitUI so the resulting actionCallEnded event
     // does NOT trigger endCall() and kill the live call.
     // Skip for fare-calls — no CallKit notification was shown for socket-based calls.
-    if (Platform.isIOS && !isFareCall.value) {
+    if (Platform.isIOS &&
+        !isFareCall.value &&
+        callKitWasShownFor(savedCallId)) {
       try {
         _isDismissingCallKitUI = true;
         await FlutterCallkitIncoming.endCall(savedCallId);
+        clearCallKitShownFor(savedCallId);
       } catch (_) {}
       // Small delay to ensure the actionCallEnded event is processed
       // before we lower the flag.
@@ -749,7 +810,11 @@ class CallController extends GetxController {
       if (callStatus.value == CallStatus.connecting ||
           callStatus.value == CallStatus.accepting) {
         if (kDebugMode) print('Call connection timeout — ending call');
-        commonSnackBar(message: AppStrings.callConnectionTimedOut.tr);
+        // GlobalMessageService isn't registered in the CallActivity engine,
+        // so guard the snackbar to avoid "GlobalMessageService not found".
+        if (Get.isRegistered<GlobalMessageService>()) {
+          commonSnackBar(message: AppStrings.callConnectionTimedOut.tr);
+        }
         endCall();
       }
     });
@@ -799,10 +864,13 @@ class CallController extends GetxController {
         _mediaReadyCompleter!.complete();
       }
 
-      // Create peer connection and send offer to the caller.
-      // The CallActivity engine boots after the caller already sent its offer
-      // (which was missed because this socket wasn't connected yet).
-      // So the receiver initiates the WebRTC handshake from its side.
+      // Create peer connection and send our offer to the caller. Glare is
+      // expected (the caller is also creating an offer). With the caller-side
+      // re-send fix in `_handleRemoteOffer`, the caller will re-send its
+      // offer to us when it sees ours, so we receive it, yield (close+recreate
+      // PC), accept the caller's offer, and answer. Without sending our own
+      // offer here, the caller may never know we joined the room, depending
+      // on whether the server delivers `call:participant-joined` reliably.
       if (remoteUserId.isNotEmpty) {
         final pc = await _createPeerConnection(remoteUserId);
         final offer = await pc.createOffer();
@@ -813,6 +881,7 @@ class CallController extends GetxController {
           'target_user_id': remoteUserId,
           'sdp': {'sdp': offer.sdp, 'type': offer.type},
         });
+        debugPrint('[CALL_DEBUG] setupAcceptedCall → emitted call:offer to $remoteUserId');
       }
     } catch (e, stack) {
       debugPrint('setupAcceptedCall WebRTC error: $e');
@@ -942,8 +1011,12 @@ class CallController extends GetxController {
 
     // For fare-calls: customer stays on FareCallQueueScreen — audio connects in background.
     // For regular calls: navigate to CallRoomScreen.
-    debugPrint('[FARE_CALL_DEBUG] _handleCallAccepted → isFareCall=${isFareCall.value}');
-    if (!isFareCall.value) {
+    // Skip navigation when running inside the CallActivity engine — that
+    // engine's GetMaterialApp has only `home:` set (no onGenerateRoute), so
+    // Get.offNamed('/CallRoomScreen') throws "onUnknownRoute was not set".
+    // The CallActivity already renders CallRoomScreen as its home widget.
+    debugPrint('[FARE_CALL_DEBUG] _handleCallAccepted → isFareCall=${isFareCall.value}, isCallActivityEngine=$isCallActivityEngine');
+    if (!isFareCall.value && !isCallActivityEngine) {
       Get.offNamed('/CallRoomScreen');
     }
 
@@ -996,9 +1069,25 @@ class CallController extends GetxController {
   }
 
   void _handleCallCancelled(dynamic data) {
-    debugPrint('[CALL_DEBUG] _handleCallCancelled → isFareCall=${isFareCall.value}, callStatus=${callStatus.value}');
+    debugPrint('[CALL_DEBUG] _handleCallCancelled → isFareCall=${isFareCall.value}, callStatus=${callStatus.value}, data=$data');
     if (isCallActivityActive && !isCallActivityEngine) return;
-    if (callStatus.value == CallStatus.idle) return;
+
+    // Even if main isolate's CallController state is idle, CallKit may have
+    // been shown by the FCM background isolate (different isolate, different
+    // GetX state) — in that case the lingering CallKit notification blocks
+    // the NEXT incoming call's UI from appearing on the same device. Always
+    // dismiss the cancelled call's id at the plugin level before bailing.
+    if (callStatus.value == CallStatus.idle) {
+      try {
+        final cancelledId = (data is Map ? (data['call_id'] ?? '').toString() : '');
+        if (cancelledId.isNotEmpty && callKitWasShownFor(cancelledId)) {
+          FlutterCallkitIncoming.endCall(cancelledId);
+          clearCallKitShownFor(cancelledId);
+          debugPrint('[CALL_DEBUG] _handleCallCancelled → dismissed lingering CallKit id=$cancelledId (state was idle)');
+        }
+      } catch (_) {}
+      return;
+    }
 
     // Fare-call: don't dismiss CallKit (none shown) and don't pop fare-call screens
     if (isFareCall.value) {
@@ -1007,7 +1096,12 @@ class CallController extends GetxController {
       return;
     }
 
-    FlutterCallkitIncoming.endCall(callId.value);
+    if (callKitWasShownFor(callId.value)) {
+      try {
+        FlutterCallkitIncoming.endCall(callId.value);
+        clearCallKitShownFor(callId.value);
+      } catch (_) {}
+    }
     _leaveRoomAndCleanup();
     _navigateBackFromCallScreen();
   }
@@ -1043,7 +1137,12 @@ class CallController extends GetxController {
   void _handleAnsweredElsewhere(dynamic data) {
     // Only dismiss if still ringing - do NOT reset if accepting or active
     if (callStatus.value != CallStatus.ringing) return;
-    FlutterCallkitIncoming.endCall(callId.value);
+    if (callKitWasShownFor(callId.value)) {
+      try {
+        FlutterCallkitIncoming.endCall(callId.value);
+        clearCallKitShownFor(callId.value);
+      } catch (_) {}
+    }
     _leaveRoomAndCleanup();
     _navigateBackFromCallScreen();
   }
@@ -1134,9 +1233,26 @@ class CallController extends GetxController {
     if (pc.signalingState ==
         RTCSignalingState.RTCSignalingStateHaveLocalOffer) {
       if (isCaller.value) {
-        // We're the caller — our offer takes priority. Ignore the remote offer.
-        // The remote side will receive our offer and create an answer.
-        debugPrint('[FARE_CALL_DEBUG] _handleRemoteOffer → OFFER GLARE: we are caller, ignoring remote offer');
+        // We're the caller — our offer takes priority. Ignore the remote
+        // offer, but RE-SEND our own. The remote side likely sent its offer
+        // because it never received ours (its socket joined the room after
+        // we emitted). Without re-sending, both sides deadlock waiting for
+        // an answer that never comes — call stays in `connecting` until
+        // the 30s timeout fires.
+        debugPrint('[FARE_CALL_DEBUG] _handleRemoteOffer → OFFER GLARE: we are caller, ignoring remote offer and re-sending ours');
+        try {
+          final localDesc = await pc.getLocalDescription();
+          if (localDesc != null) {
+            _socket.emitEvent('call:offer', {
+              'room_id': roomId.value,
+              'target_user_id': fromUserId,
+              'sdp': {'sdp': localDesc.sdp, 'type': localDesc.type},
+            });
+            debugPrint('[FARE_CALL_DEBUG] _handleRemoteOffer → re-sent our offer to $fromUserId');
+          }
+        } catch (e) {
+          debugPrint('[FARE_CALL_DEBUG] _handleRemoteOffer → re-send error: $e');
+        }
         return;
       }
       // We're the callee — drop our offer by closing and recreating the peer connection.
@@ -2105,10 +2221,20 @@ class CallController extends GetxController {
       _isDismissingCallKitUI = true;
       try {
         final cid = callId.value;
-        if (cid.isNotEmpty) {
+        // Only call per-id endCall if the plugin actually has this id —
+        // otherwise it throws "content null" AND wedges the plugin so the
+        // NEXT incoming call's UI auto-dismisses after 10–20s.
+        if (cid.isNotEmpty && callKitWasShownFor(cid)) {
           FlutterCallkitIncoming.endCall(cid);
+          clearCallKitShownFor(cid);
         }
+        // endAllCalls clears the native list; it can throw "content null"
+        // when the list is already empty — benign, swallow it.
         FlutterCallkitIncoming.endAllCalls();
+        // Also cancel any pending Android local incoming-call notification.
+        if (Platform.isAndroid && cid.isNotEmpty) {
+          cancelIncomingCallLocalNotification(cid);
+        }
       } catch (_) {}
       // Reset flag after a micro-task so any synchronous events settle first.
       Future.microtask(() => _isDismissingCallKitUI = false);
@@ -2450,6 +2576,22 @@ class CallController extends GetxController {
   }
 }
 
+/// IDs of calls that have been registered with the CallKit plugin via
+/// `showCallkitIncoming`. Foreground calls (handled by the in-app
+/// IncomingCallScreen) never enter this set, so subsequent code can skip
+/// `setCallConnected` / `endCall` for those — calling those methods with an
+/// id the plugin doesn't know about throws `argument "content" is null` AND
+/// corrupts the plugin's internal state, which is what wedges the next
+/// background-mode incoming call into auto-dismissing after 10–20s.
+final Set<String> _callsShownInCallKit = <String>{};
+
+bool callKitWasShownFor(String callId) =>
+    callId.isNotEmpty && _callsShownInCallKit.contains(callId);
+
+void clearCallKitShownFor(String callId) {
+  _callsShownInCallKit.remove(callId);
+}
+
 /// Show native incoming call notification (for Firebase push).
 /// Skips if a call is already active so CallKit stays free for the current call.
 void showFlutterCallNotification({
@@ -2461,17 +2603,49 @@ void showFlutterCallNotification({
   Map<String, dynamic>? extra,
   int duration = 45000,
 }) async {
-  // Don't show CallKit if a call is already in progress — keeps CallKit free
+  // Don't show CallKit if a call is already in progress — keeps CallKit free.
+  // Only skip when this push is for a DIFFERENT call than the live one;
+  // re-delivery of the SAME call_id (common when server retries) must not
+  // be dropped, or the CallKit UI never appears on subsequent incoming calls
+  // after a previous call cleaned up with a stale status.
   if (Get.isRegistered<CallController>()) {
-    final status = Get.find<CallController>().callStatus.value;
-    if (status == CallStatus.accepting ||
-        status == CallStatus.connecting ||
-        status == CallStatus.connected ||
-        status == CallStatus.outgoing) {
-      debugPrint('showFlutterCallNotification: skipped — call already active ($status)');
+    final ctrl = Get.find<CallController>();
+    final status = ctrl.callStatus.value;
+    final activeCallId = ctrl.callId.value;
+    final sameCall = activeCallId.isNotEmpty && activeCallId == callSessionId;
+    if (!sameCall &&
+        (status == CallStatus.accepting ||
+            status == CallStatus.connecting ||
+            status == CallStatus.connected ||
+            status == CallStatus.outgoing)) {
+      debugPrint('showFlutterCallNotification: skipped — call already active ($status, activeId=$activeCallId, incomingId=$callSessionId)');
       return;
     }
   }
+
+  // CRITICAL: clear the plugin's native call list before showing a new call.
+  // After a previous call ends — especially a FOREGROUND call where no CallKit
+  // entry was ever created but the cleanup paths still call setCallConnected/
+  // endCall — the plugin's internal state on Android gets wedged. The next
+  // `showCallkitIncoming` then returns OK but the IncomingCallActivity either
+  // never launches OR launches and auto-dismisses after 10–20s because the
+  // plugin's foreground service for the prior (phantom) call is still
+  // counting down.
+  //
+  // `activeCalls()` itself throws `argument "content" is null` once the list
+  // is in this state, and so does `endAllCalls()` — but `endAllCalls()`
+  // STILL clears the native list before throwing, so we use it and swallow
+  // the known-benign error. Then a tiny settle delay lets the plugin commit
+  // before we issue the new show.
+  try {
+    await FlutterCallkitIncoming.endAllCalls();
+  } catch (e) {
+    // Known plugin bug: throws when its internal call list is empty/null.
+    // The native list is still cleared either way — safe to ignore.
+    debugPrint('[CALL_DEBUG] showFlutterCallNotification → endAllCalls (benign): $e');
+  }
+  await Future.delayed(const Duration(milliseconds: 80));
+
   final isVideo = callType == 'video_call';
   final params = CallKitParams(
     id: callSessionId,
@@ -2491,17 +2665,29 @@ void showFlutterCallNotification({
     ),
     extra: extra ?? {},
     android: AndroidParams(
-      isCustomSmallExNotification: true,
+      isCustomSmallExNotification: false,
       isShowLogo: false, // hide logo
       isShowCallID: true,
       isShowFullLockedScreen: true,
       isImportant: true,
-      isCustomNotification: true,
+      // CRITICAL: keep this FALSE. With `true` the plugin renders only a
+      // custom heads-up notification (no full-screen intent activity), and
+      // OEM launchers (Xiaomi/Vivo/Realme/OnePlus/Samsung) silently suppress
+      // those when the app is in background or killed — `showCallkitIncoming`
+      // returns OK but no UI ever appears. With `false` the plugin uses its
+      // default IncomingCallActivity launched via USE_FULL_SCREEN_INTENT,
+      // which is required to render reliably in background/terminated state.
+      isCustomNotification: false,
       ringtonePath: 'system_ringtone_default',
       backgroundColor: '#0955fa',
       actionColor: '#4CAF50',
       textColor: '#ffffff',
-      incomingCallNotificationChannelName: desiginations,
+      // CRITICAL: must be a STABLE channel name. We previously passed the
+      // per-call `desiginations` string, which created a new channel on
+      // every incoming call — and runtime-created channels default to
+      // IMPORTANCE_DEFAULT (no full-screen intent privilege), so background
+      // calls stopped raising the lock-screen UI after the first call.
+      incomingCallNotificationChannelName: 'Incoming Calls',
       missedCallNotificationChannelName: 'Missed Calls',
     ),
     ios: IOSParams(
@@ -2521,5 +2707,12 @@ void showFlutterCallNotification({
     ),
   );
 
-  await FlutterCallkitIncoming.showCallkitIncoming(params);
+  debugPrint('[CALL_DEBUG] showFlutterCallNotification → calling showCallkitIncoming, id=$callSessionId, type=$callType');
+  try {
+    await FlutterCallkitIncoming.showCallkitIncoming(params);
+    _callsShownInCallKit.add(callSessionId);
+    debugPrint('[CALL_DEBUG] showFlutterCallNotification → showCallkitIncoming returned OK');
+  } catch (e, st) {
+    debugPrint('[CALL_DEBUG] showFlutterCallNotification → showCallkitIncoming ERROR: $e\n$st');
+  }
 }

@@ -12,6 +12,12 @@ class AppLifecycleHandler extends WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) async {
 
+    // Track foreground/background for incoming-call routing decisions.
+    // _handleIncomingCall (socket, main isolate) reads this to decide
+    // whether to also fire CallKit's IncomingCallActivity in addition to
+    // navigating — navigation alone is invisible while the activity is
+    // paused (background), so we need the full-screen intent to show UI.
+    CallController.isAppInForeground = state == AppLifecycleState.resumed;
 
     // Handle floating call overlay on app lifecycle changes
     _handleCallOverlayLifecycle(state);
