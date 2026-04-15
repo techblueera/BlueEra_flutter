@@ -53,6 +53,81 @@ void onBackgroundNotificationResponse(NotificationResponse response) {
       .catchError((_) {});
 }
 
+/// Top-level handler for FOREGROUND notification taps. Required as a separate
+/// top-level (not a closure) because we register the same callback from multiple
+/// initialize() sites — the main isolate's `getInitialMsg`, and the FCM
+/// background isolate's `showIncomingCallLocalNotification`. flutter_local_notifications
+/// keeps only the LAST registered callback per process; without this top-level
+/// fallback, the bg-isolate's initialize() overwrote the closure registered by
+/// getInitialMsg(), so tapping "Accept" in foreground/background did nothing
+/// (notification was dismissed but acceptCall was never invoked).
+@pragma('vm:entry-point')
+void onForegroundNotificationResponse(NotificationResponse response) {
+  try {
+    if (response.payload == null) return;
+    final data = json.decode(response.payload!) as Map<String, dynamic>;
+    final actionId = response.actionId ?? '';
+
+    // Incoming call: Accept (Android local-notification path)
+    if (actionId.startsWith('incoming_call_accept_')) {
+      final callId = (data['callId'] ?? '').toString();
+      final roomId = (data['roomId'] ?? '').toString();
+      final isVideo = (data['callType'] ?? '') == 'video_call';
+      cancelIncomingCallLocalNotification(callId);
+      if (Get.isRegistered<CallController>()) {
+        final ctrl = Get.find<CallController>();
+        ctrl.initStateFromCallKitExtra(data);
+        ctrl.acceptCall(
+          callIdParams: callId,
+          roomIdParams: roomId,
+          isVideoCall: isVideo,
+        );
+      }
+      return;
+    }
+
+    // Incoming call: Decline
+    if (actionId.startsWith('incoming_call_decline_')) {
+      final callId = (data['callId'] ?? '').toString();
+      cancelIncomingCallLocalNotification(callId);
+      if (Get.isRegistered<CallController>()) {
+        Get.find<CallController>().declineCall();
+      }
+      return;
+    }
+
+    // Ongoing call hangup
+    if (actionId == 'hangup_call') {
+      if (Get.isRegistered<CallController>()) {
+        Get.find<CallController>().endCall();
+      }
+      return;
+    }
+
+    // Active call notification body tap → return to call screen
+    if (data['action'] == 'open_active_call') {
+      Get.toNamed('/CallRoomScreen');
+      return;
+    }
+
+    // Default: existing action-button + tap routing
+    if (actionId.isNotEmpty) {
+      AppNotificationHandler._handleActionButtonTap(
+        actionId,
+        data,
+        replyText:
+            (response.input != null && response.input!.isNotEmpty)
+                ? response.input
+                : null,
+      );
+    } else {
+      AppNotificationHandler._onTapNotificationFromStatusBar(data);
+    }
+  } catch (e, st) {
+    print('onForegroundNotificationResponse error: $e\n$st');
+  }
+}
+
 Future<void> _handleBackgroundNotificationResponse(
     NotificationResponse response) async {
   if (response.payload == null) return;
@@ -68,6 +143,59 @@ Future<void> _handleBackgroundNotificationResponse(
       iOS: DarwinInitializationSettings(),
     ),
   );
+
+  // --- Incoming call: Decline (no app open required) ---
+  // Cancel the notification, drop the stashed extras, and POST a decline so
+  // the caller sees the rejection. We can't navigate or hit GetX from the
+  // bg isolate, so use a direct REST call.
+  if (actionId.startsWith('incoming_call_decline_')) {
+    final callId = (data['callId'] ?? '').toString();
+    final roomId = (data['roomId'] ?? '').toString();
+    if (callId.isNotEmpty) {
+      await plugin.cancel(incomingCallNotificationId(callId));
+    }
+    try {
+      const storage = FlutterSecureStorage();
+      await storage.delete(key: _kPendingIncomingCallExtrasKey);
+      final token = await storage.read(key: SharedPreferenceUtils.authToken);
+      final storedBaseUrl =
+          await storage.read(key: SharedPreferenceUtils.baseURL);
+      if (token != null && token.isNotEmpty && callId.isNotEmpty) {
+        final apiUrl =
+            (storedBaseUrl ?? baseUrl ?? '') + 'chat-service/call/decline';
+        final dioClient = dio.Dio();
+        await dioClient.post(
+          apiUrl,
+          data: {'call_id': callId, 'room_id': roomId},
+          options: dio.Options(
+            headers: {
+              'Authorization': 'Bearer $token',
+              'Content-Type': 'application/json',
+            },
+          ),
+        );
+      }
+    } catch (e) {
+      print('Incoming call decline API error: $e');
+    }
+    return;
+  }
+
+  // --- Incoming call: Accept (app opens, CallController auto-accepts) ---
+  // The action's `showsUserInterface: true` brings MainActivity to the
+  // foreground (or cold-starts it). Mark a "user tapped Accept" flag in
+  // secure storage — main()'s cold-start check reads it to decide whether
+  // to auto-invoke acceptCall vs. routing the notification body tap (which
+  // would open chat). Action-button launches don't reliably surface the
+  // actionId via getNotificationAppLaunchDetails on Android, so we have to
+  // signal this explicitly from the bg isolate at tap time.
+  if (actionId.startsWith('incoming_call_accept_')) {
+    final callId = (data['callId'] ?? '').toString();
+    if (callId.isNotEmpty) {
+      await markPendingIncomingCallAccepted(callId);
+    }
+    return;
+  }
 
   // --- Inline reply (WhatsApp-style, no app open) ---
   if (actionId.startsWith('reply_message_') &&
@@ -161,6 +289,172 @@ Future<void> _handleBackgroundNotificationResponse(
   }
 }
 
+/// Deterministic local-notification id for an incoming call.
+/// Same callId → same notification id, so re-deliveries replace cleanly and
+/// cancel-by-id always finds the right notification.
+int incomingCallNotificationId(String callId) =>
+    callId.isEmpty ? 99001 : (callId.hashCode & 0x7FFFFFFF);
+
+/// SharedPreferences-backed stash of the last incoming call's extras so that
+/// when the user taps "Accept" while the app is killed/background, the
+/// Accept action launches MainActivity and CallController can read these on
+/// boot to auto-accept (mirrors the existing CallKit cold-start flow).
+const String _kPendingIncomingCallExtrasKey = '__pending_incoming_call_extras';
+
+/// Set at TAP time by the background notification action handler when the
+/// user actually pressed "Accept" (vs. tapping the notification body or
+/// pressing Decline). main() checks this on cold-start so we know whether
+/// to auto-accept — `getNotificationAppLaunchDetails().actionId` is unreliable
+/// on Android for action-button launches and often returns empty.
+const String _kPendingIncomingCallAcceptKey =
+    '__pending_incoming_call_accept_tapped';
+
+Future<void> stashPendingIncomingCallExtras(Map<String, dynamic> extras) async {
+  try {
+    const storage = FlutterSecureStorage();
+    await storage.write(
+        key: _kPendingIncomingCallExtrasKey, value: jsonEncode(extras));
+  } catch (_) {}
+}
+
+Future<void> markPendingIncomingCallAccepted(String callId) async {
+  try {
+    const storage = FlutterSecureStorage();
+    await storage.write(
+        key: _kPendingIncomingCallAcceptKey, value: callId);
+  } catch (_) {}
+}
+
+Future<Map<String, dynamic>?> readAndClearPendingIncomingCallExtras() async {
+  try {
+    const storage = FlutterSecureStorage();
+    final raw = await storage.read(key: _kPendingIncomingCallExtrasKey);
+    if (raw == null || raw.isEmpty) return null;
+    await storage.delete(key: _kPendingIncomingCallExtrasKey);
+    return Map<String, dynamic>.from(jsonDecode(raw));
+  } catch (_) {
+    return null;
+  }
+}
+
+/// Returns the callId the user tapped Accept on, or null/empty if no Accept
+/// tap is pending. Always clears the flag after reading.
+Future<String?> readAndClearPendingIncomingCallAccept() async {
+  try {
+    const storage = FlutterSecureStorage();
+    final raw = await storage.read(key: _kPendingIncomingCallAcceptKey);
+    if (raw == null || raw.isEmpty) return null;
+    await storage.delete(key: _kPendingIncomingCallAcceptKey);
+    return raw;
+  } catch (_) {
+    return null;
+  }
+}
+
+/// Show an Android full-screen-intent notification for an incoming call.
+/// This is the Android replacement for `showFlutterCallNotification` — it's
+/// stateless (each call posts a fresh notification, no native call list to
+/// corrupt), uses the high-importance `incoming_calls` channel, and includes
+/// Accept / Decline action buttons that route back to the app.
+///
+/// iOS is NOT routed here — Apple requires CallKit for VoIP background calls,
+/// so iOS keeps using `showFlutterCallNotification`.
+Future<void> showIncomingCallLocalNotification({
+  required String callId,
+  required String roomId,
+  required String callerName,
+  required String callerImage,
+  required String callType,
+  required Map<String, dynamic> extra,
+}) async {
+  if (!Platform.isAndroid) return;
+  if (callId.isEmpty || roomId.isEmpty) return;
+
+  // Stash the extras so a tap on "Accept" — which may launch the app from
+  // killed state — can recover the call context and trigger acceptCall.
+  await stashPendingIncomingCallExtras(extra);
+
+  // Always use a fresh plugin instance: this function may run in either the
+  // main isolate or the FCM background isolate. CRITICAL: register BOTH
+  // foreground AND background callbacks here — flutter_local_notifications
+  // keeps only the LAST initialize() callbacks per process, so omitting
+  // `onDidReceiveNotificationResponse` would silently disable the Accept
+  // tap when the user taps from the foreground notification shade.
+  final plugin = FlutterLocalNotificationsPlugin();
+  await plugin.initialize(
+    const InitializationSettings(
+      android: AndroidInitializationSettings('@drawable/ic_stat'),
+      iOS: DarwinInitializationSettings(),
+    ),
+    onDidReceiveNotificationResponse: onForegroundNotificationResponse,
+    onDidReceiveBackgroundNotificationResponse:
+        onBackgroundNotificationResponse,
+  );
+
+  final payload = jsonEncode({
+    ...extra,
+    'callId': callId,
+    'roomId': roomId,
+    'callType': callType,
+    'operation': 'incoming_call',
+  });
+
+  final isVideo = callType == 'video_call';
+  final details = AndroidNotificationDetails(
+    'incoming_calls',
+    'Incoming Calls',
+    channelDescription: 'Incoming voice and video call alerts',
+    importance: Importance.max,
+    priority: Priority.max,
+    category: AndroidNotificationCategory.call,
+    // CRITICAL: full-screen intent is what raises the lock-screen / over-app
+    // call UI when the activity is paused or the device is asleep. Combined
+    // with the channel's max importance, this is the documented Android path
+    // for incoming-call notifications and behaves consistently across OEMs.
+    fullScreenIntent: true,
+    visibility: NotificationVisibility.public,
+    ongoing: true,
+    autoCancel: false,
+    playSound: true,
+    enableVibration: true,
+    icon: '@drawable/ic_stat',
+    largeIcon: callerImage.isNotEmpty
+        ? null // remote-image fetch in bg isolate is unreliable; skip
+        : null,
+    actions: <AndroidNotificationAction>[
+      AndroidNotificationAction(
+        'incoming_call_accept_$callId',
+        'Accept',
+        showsUserInterface: true, // launches the app
+        cancelNotification: true,
+      ),
+      AndroidNotificationAction(
+        'incoming_call_decline_$callId',
+        'Decline',
+        showsUserInterface: false,
+        cancelNotification: true,
+      ),
+    ],
+  );
+
+  await plugin.show(
+    incomingCallNotificationId(callId),
+    callerName.isNotEmpty ? callerName : 'Incoming Call',
+    isVideo ? 'Incoming video call' : 'Incoming voice call',
+    NotificationDetails(android: details),
+    payload: payload,
+  );
+}
+
+/// Cancel the incoming-call notification once the call is accepted, declined,
+/// cancelled by the caller, or otherwise ended.
+Future<void> cancelIncomingCallLocalNotification(String callId) async {
+  try {
+    final plugin = FlutterLocalNotificationsPlugin();
+    await plugin.cancel(incomingCallNotificationId(callId));
+  } catch (_) {}
+}
+
 /// Send reply message via direct REST API call.
 /// Works in both foreground and background isolate contexts.
 Future<void> _sendReplyViaApi({
@@ -236,9 +530,21 @@ class AppNotificationHandler {
       if (payLoad != null && payLoad.isNotEmpty) {
         try {
           final data = jsonDecode(payLoad) as Map<String, dynamic>;
-          // Wait for navigator to be ready (splash screen signals this)
-          await Future.delayed(const Duration(milliseconds: 300));
-          _onTapNotificationFromStatusBar(data, fromColdStart: true);
+          // Skip incoming-call cold-start routing here — main()'s pre-runApp
+          // check (readAndClearPendingIncomingCallAccept) already decided
+          // whether to auto-accept. If the user tapped Accept we're already
+          // joining the call; if they tapped the body or it was an action
+          // launch, we must NOT route to chat (the old behavior of this
+          // switch case opened OrderChat for incoming_call payloads, which
+          // is what the user reported).
+          final op = (data['operation'] ?? '').toString().toLowerCase();
+          if (op == 'incoming_call') {
+            print("[COLD_START_CALL] launch payload is incoming_call — skipping chat-screen routing");
+          } else {
+            // Wait for navigator to be ready (splash screen signals this)
+            await Future.delayed(const Duration(milliseconds: 300));
+            _onTapNotificationFromStatusBar(data, fromColdStart: true);
+          }
         } catch (e) {
           print("Error parsing launch notification payload: $e");
         } finally {
@@ -250,6 +556,13 @@ class AppNotificationHandler {
         }
       }
     }
+
+    /// Register foreground + background tap callbacks EARLY (was previously
+    /// only called from BottomNavigationBar after login). Without this, an
+    /// incoming-call notification arriving before the user reaches the home
+    /// screen would have no foreground action handler — tapping "Accept"
+    /// would dismiss the notification but never invoke acceptCall.
+    getInitialMsg();
 
     /// Android Notification Channels per backend documentation
     const AndroidNotificationChannel defaultChannel =
@@ -316,7 +629,10 @@ class AppNotificationHandler {
     );
 
     ///local notification...
-    FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+    // NOTE: FCM background handler is now registered in main() right after
+    // Firebase init, so it's guaranteed to be set before runApp. Do NOT
+    // register it again here — duplicate registration can overwrite the
+    // stored Dart callback handle and cause a narrow race on app upgrade.
 
     flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
     final androidPlugin =
@@ -413,40 +729,16 @@ class AppNotificationHandler {
   }
 
   /// handle notification when app in fore ground.. local notification......
+  /// Now uses top-level `onForegroundNotificationResponse` so the same callback
+  /// can be re-registered safely from the FCM bg-isolate's
+  /// `showIncomingCallLocalNotification` without losing functionality.
   void getInitialMsg() {
     flutterLocalNotificationsPlugin.initialize(
       const InitializationSettings(
         android: AndroidInitializationSettings('@drawable/ic_stat'),
         iOS: DarwinInitializationSettings(),
       ),
-      // Foreground: when app is open and user taps notification or action
-      onDidReceiveNotificationResponse: (response) {
-        if (response.payload != null) {
-          final data = json.decode(response.payload!) as Map<String, dynamic>;
-          // Handle ongoing call notification tap → return to active call screen
-          if (data['action'] == 'open_active_call') {
-            if (response.actionId == 'hangup_call') {
-              if (Get.isRegistered<CallController>()) {
-                Get.find<CallController>().endCall();
-              }
-            } else {
-              Get.toNamed('/CallRoomScreen');
-            }
-            return;
-          }
-          if (response.actionId != null && response.actionId!.isNotEmpty) {
-            String? replyText;
-            if (response.input != null && response.input!.isNotEmpty) {
-              replyText = response.input;
-            }
-            _handleActionButtonTap(response.actionId!, data,
-                replyText: replyText);
-          } else {
-            _onTapNotificationFromStatusBar(data);
-          }
-        }
-      },
-      // Background: handles Reply & Mark as Read WITHOUT opening the app
+      onDidReceiveNotificationResponse: onForegroundNotificationResponse,
       onDidReceiveBackgroundNotificationResponse:
           onBackgroundNotificationResponse,
     );
@@ -524,6 +816,35 @@ class AppNotificationHandler {
 
     // Ongoing call: Hang Up action
     if (actionId == 'hangup_call') {
+      if (Get.isRegistered<CallController>()) {
+        Get.find<CallController>().endCall();
+      }
+      return;
+    }
+
+    // Incoming call (Android local-notification path): Accept
+    if (actionId.startsWith('incoming_call_accept_')) {
+      final callId = (data['callId'] ?? '').toString();
+      final roomId = (data['roomId'] ?? '').toString();
+      final isVideo = (data['callType'] ?? '') == 'video_call';
+      cancelIncomingCallLocalNotification(callId);
+      if (Get.isRegistered<CallController>()) {
+        // Hydrate state so acceptCall has remote user id, room id, etc.
+        final ctrl = Get.find<CallController>();
+        ctrl.initStateFromCallKitExtra(data);
+        ctrl.acceptCall(
+          callIdParams: callId,
+          roomIdParams: roomId,
+          isVideoCall: isVideo,
+        );
+      }
+      return;
+    }
+
+    // Incoming call (Android local-notification path): Decline
+    if (actionId.startsWith('incoming_call_decline_')) {
+      final callId = (data['callId'] ?? '').toString();
+      cancelIncomingCallLocalNotification(callId);
       if (Get.isRegistered<CallController>()) {
         Get.find<CallController>().endCall();
       }
@@ -1163,6 +1484,150 @@ class AppNotificationHandler {
     }
   }*/
 
+  /// Handle an `operation: incoming_call` FCM push while the app is in
+  /// foreground. Mirrors the background handler in main.dart: parses the
+  /// caller payload and shows CallKit. showFlutterCallNotification already
+  /// guards against duplicate UI when the socket path has a call in progress.
+  void _handleIncomingCallPush(RemoteMessage message) {
+    try {
+      final data = message.data;
+      final callerName = (data['senderName'] ?? 'Unknown').toString();
+      final callerImage = (data['senderProfileImage'] ?? '').toString();
+
+      final payloadRaw = data['payload'];
+      final Map<String, dynamic> payload = payloadRaw is String
+          ? (jsonDecode(payloadRaw) as Map<String, dynamic>)
+          : Map<String, dynamic>.from(payloadRaw ?? {});
+
+      final callerRaw = data['callerData'];
+      final Map<String, dynamic> callerData = callerRaw is String
+          ? (jsonDecode(callerRaw) as Map<String, dynamic>)
+          : Map<String, dynamic>.from(callerRaw ?? {});
+
+      final callType = (payload['call_type'] ?? 'audio_call').toString();
+      final callId = (payload['call_id'] ?? '').toString();
+      final roomId = (payload['room_id'] ?? '').toString();
+      if (callId.isEmpty || roomId.isEmpty) {
+        log('[CALL_DEBUG] _handleIncomingCallPush → missing call_id/room_id, skipping');
+        return;
+      }
+
+      final metadata = payload['metadata'];
+      final isFareCall =
+          metadata is Map && metadata['orderType'] == 'fare-call';
+
+      String designation = 'Incoming Call';
+      final accountType = (callerData['account_type'] ?? '').toString();
+      if (accountType == 'BUSINESS') {
+        var biz = callerData['businessData'];
+        if (biz is String) {
+          try {
+            biz = jsonDecode(biz);
+          } catch (_) {}
+        }
+        if (biz is Map) {
+          final cat = biz['category_of_business'];
+          if (cat != null && cat.toString().isNotEmpty) {
+            designation = cat.toString();
+          } else {
+            final subCat = biz['sub_category_of_business'];
+            if (subCat is Map) {
+              final name = subCat['name'];
+              if (name != null && name.toString().isNotEmpty) {
+                designation = name.toString();
+              }
+            }
+          }
+        }
+      } else {
+        final d = (callerData['designation'] ?? '').toString();
+        if (d.isNotEmpty) designation = d.toLowerCase();
+      }
+      if (isFareCall) designation = 'Ride Request';
+
+      // If the socket already picked up this call (CallController is not
+      // idle and knows this callId), skip — the in-app incoming screen is
+      // already showing.
+      if (Get.isRegistered<CallController>()) {
+        final ctrl = Get.find<CallController>();
+        final alreadyHandling =
+            ctrl.callStatus.value != CallStatus.idle &&
+            ctrl.callId.value == callId;
+        if (alreadyHandling) {
+          log('[CALL_DEBUG] _handleIncomingCallPush → already handled by socket, skipping');
+          return;
+        }
+
+        // Foreground on Android: Android suppresses full-screen CallKit
+        // intents while the app is visible, so showCallkitIncoming renders
+        // inconsistently (OEM-dependent heads-up only, or nothing). Instead
+        // push CallController state and navigate directly to the in-app
+        // incoming screen — this is the same path the socket listener uses.
+        if (Platform.isAndroid && ctrl.callStatus.value == CallStatus.idle) {
+          log('[CALL_DEBUG] _handleIncomingCallPush → foreground Android, navigating to IncomingCallScreen');
+          ctrl.callId.value = callId;
+          ctrl.roomId.value = roomId;
+          ctrl.conversationId.value =
+              (data['conversationId'] ?? payload['conversation_id'] ?? '').toString();
+          ctrl.callType.value =
+              callType == 'video_call' ? CallType.video : CallType.audio;
+          ctrl.isGroupCall.value = payload['is_group'] == true;
+          ctrl.isCaller.value = false;
+          ctrl.callerName.value = callerName;
+          ctrl.callerImage.value = callerImage;
+          ctrl.remoteUserName.value = callerName;
+          ctrl.remoteUserImage.value = callerImage;
+          // CRITICAL: set remote user id so acceptCall can build the peer
+          // connection. Without this, WebRTC setup bails and the 30s
+          // connection timeout auto-ends the call with ended_by=self.
+          final callerUserId = (data['senderId'] ??
+                  callerData['id'] ??
+                  payload['initiated_by'] ??
+                  '')
+              .toString();
+          ctrl.setRemoteUserIdFromPush(callerUserId);
+          ctrl.callStatus.value = CallStatus.ringing;
+          if (!isFareCall && Get.currentRoute != '/IncomingCallScreen') {
+            Get.toNamed('/IncomingCallScreen');
+          } else if (isFareCall &&
+              Get.currentRoute != '/IncomingRiderOrderScreen') {
+            Get.toNamed('/IncomingRiderOrderScreen');
+          }
+          return;
+        }
+      }
+
+      // iOS or foreground-but-idle-not-possible fallback: show CallKit
+      showFlutterCallNotification(
+        callSessionId: callId,
+        callerName: isFareCall
+            ? (callerName.isNotEmpty ? callerName : 'Ride Request')
+            : callerName,
+        desiginations: designation,
+        callerImage: (callerData['profile_image']?.toString().isNotEmpty ?? false)
+            ? callerData['profile_image']
+            : (callerImage.isNotEmpty ? callerImage : null),
+        callType: callType,
+        extra: {
+          'senderId': (data['senderId'] ?? '').toString(),
+          'conversationId': (data['conversationId'] ?? '').toString(),
+          'callType': callType,
+          'callerName': callerName,
+          'callerImage': callerImage,
+          'callId': callId,
+          'roomId': roomId,
+          'operation': 'incoming_call',
+          if (isFareCall) 'isFareCall': 'true',
+          if (isFareCall) 'fareCallOrderId': (metadata['orderId'] ?? '').toString(),
+          if (isFareCall)
+            'fareCallRideDetails': jsonEncode(metadata['rideDetails'] ?? {}),
+        },
+      );
+    } catch (e, st) {
+      log('[CALL_DEBUG] _handleIncomingCallPush → error: $e\n$st');
+    }
+  }
+
   ///call when click on notification
   void onMsgOpen() {
     FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
@@ -1170,11 +1635,15 @@ class AppNotificationHandler {
           (message.data['operation'] ?? '').toString().toLowerCase();
       log("jhsjhsbajhbdasjdhb  For ${message.data}");
 
-      // Incoming call in foreground: show native CallKit UI immediately
-      // if (operation == 'incoming_call') {
-      //   _handleIncomingCallPush(message);
-      //   return;
-      // }
+      // Incoming call in foreground: show native CallKit UI immediately.
+      // This is also a fallback when the socket `call:incoming` listener did
+      // not fire (e.g. socket was disposed after a previous call). Without
+      // this, subsequent calls get stuck on the caller side because the
+      // callee never joins the room.
+      if (operation == 'incoming_call') {
+        _handleIncomingCallPush(message);
+        return;
+      }
 
       // Play custom sound for foreground notifications
       playCustomSound(message);
