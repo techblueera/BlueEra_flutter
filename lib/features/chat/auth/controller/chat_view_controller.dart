@@ -770,8 +770,8 @@ class ChatViewController extends GetxController {
         final parsedData = GetChatListModel.fromJson(data);
         loadChatListWithType(chatListModel: parsedData);
         getPersonalFilteredChatListModel?.value = parsedData;
-        await localStorageHelper.saveChatList(
-            parsedData.chatList ?? [], parsedData.type ?? '');
+        // await localStorageHelper.saveChatList(
+        //     parsedData.chatList ?? [], parsedData.type ?? '');
       });
 
       chatSocket.listenEvent(ChatEmitEvents.messageViewed, (data) {
@@ -814,8 +814,8 @@ class ChatViewController extends GetxController {
               scrollDown();
               // saveMessagesByConversationId REPLACES the full list — this is
               // the authoritative server data, so it cleans up any local duplicates
-              localStorageHelper.saveMessagesByConversationId(
-                  userOpenConversationId.value, deduped);
+              // localStorageHelper.saveMessagesByConversationId(
+              //     userOpenConversationId.value, deduped);
             } else {
               getListOfMessageResponse.value =
                   ApiResponse.complete(parsedData.messages);
@@ -1079,8 +1079,8 @@ class ChatViewController extends GetxController {
       socketConnectedCalled.value = true;
     }
     try {
-      openedConversation.value = await localStorageHelper.getConversation();
-      await loadAllChatListFromLocal();
+      // openedConversation.value = await localStorageHelper.getConversation();
+      // await loadAllChatListFromLocal();
     } catch (e) {
       debugPrint('connectSocket local storage init error: $e');
     }
@@ -1209,55 +1209,55 @@ class ChatViewController extends GetxController {
 
   Future<void> saveSingleMessageToLocal(String conversationId, Messages msg,
       [Map<String, dynamic>? params]) async {
-    if (params != null) {
-      // Outgoing message with send params — mark as pending for offline retry
-      msg.sendPendingMsgParams = params;
-      localStorageHelper.saveSingleMessageToConversationId(
-          conversationId, msg,
-          sendStatus: "pending");
-    } else {
-      // Received message or already-sent message — save without pending status
-      localStorageHelper.saveSingleMessageToConversationId(
-          conversationId, msg);
-    }
+    // if (params != null) {
+    //   // Outgoing message with send params — mark as pending for offline retry
+    //   msg.sendPendingMsgParams = params;
+    //   localStorageHelper.saveSingleMessageToConversationId(
+    //       conversationId, msg,
+    //       sendStatus: "pending");
+    // } else {
+    //   // Received message or already-sent message — save without pending status
+    //   localStorageHelper.saveSingleMessageToConversationId(
+    //       conversationId, msg);
+    // }
   }
 
   Future<void> sendOfflineMessage(
     String conversationId,
   ) async {
-    List<Map<String, dynamic>> data =
-        await localStorageHelper.getUnsentMessages(conversationId);
-
-    if (data.isEmpty) return;
-
-    data = data.reversed.toList();
-    for (int i = 0; i < data.length; i++) {
-      if ((data[i]["message_type"] == 'document' ||
-              data[i]["message_type"] == 'text' ||
-              data[i]["message_type"] == 'contact' ||
-              data[i]["message_type"] == 'location') &&
-          data[i]['sendPendingMsgParams'] != null) {
-        if (data[i]['_id'] != null) {
-          sendOfflineMessageToServer(
-              data[i]['sendPendingMsgParams'], data[i]['_id']);
-        }
-      } else if ((data[i]["message_type"] == 'image' ||
-              data[i]["message_type"] == 'video') &&
-          data[i]['sendPendingMsgParams'] != null) {
-        List<File> listFiles = [];
-        List<dynamic> pendingFilePaths = data[i]['pendingFilePaths'];
-        listFiles = pendingFilePaths.map((e) => File(e)).toList();
-        await generateUploadUrlsApi(
-            params: data[i]['sendPendingMsgParams'],
-            listFile: listFiles,
-            userId: [data[i]['userId'] ?? ""],
-            conversationId: data[i][ApiKeys.conversation_id],
-            commands: data[i]["comments"],
-            messageType: data[i]["message_type"],
-            isPendingMessage: true,
-            messageId: data[i]['_id']);
-      }
-    }
+    // List<Map<String, dynamic>> data =
+    //     await localStorageHelper.getUnsentMessages(conversationId);
+    //
+    // if (data.isEmpty) return;
+    //
+    // data = data.reversed.toList();
+    // for (int i = 0; i < data.length; i++) {
+    //   if ((data[i]["message_type"] == 'document' ||
+    //           data[i]["message_type"] == 'text' ||
+    //           data[i]["message_type"] == 'contact' ||
+    //           data[i]["message_type"] == 'location') &&
+    //       data[i]['sendPendingMsgParams'] != null) {
+    //     if (data[i]['_id'] != null) {
+    //       sendOfflineMessageToServer(
+    //           data[i]['sendPendingMsgParams'], data[i]['_id']);
+    //     }
+    //   } else if ((data[i]["message_type"] == 'image' ||
+    //           data[i]["message_type"] == 'video') &&
+    //       data[i]['sendPendingMsgParams'] != null) {
+    //     List<File> listFiles = [];
+    //     List<dynamic> pendingFilePaths = data[i]['pendingFilePaths'];
+    //     listFiles = pendingFilePaths.map((e) => File(e)).toList();
+    //     await generateUploadUrlsApi(
+    //         params: data[i]['sendPendingMsgParams'],
+    //         listFile: listFiles,
+    //         userId: [data[i]['userId'] ?? ""],
+    //         conversationId: data[i][ApiKeys.conversation_id],
+    //         commands: data[i]["comments"],
+    //         messageType: data[i]["message_type"],
+    //         isPendingMessage: true,
+    //         messageId: data[i]['_id']);
+    //   }
+    // }
   }
 
   Future<bool?> sendOfflineMessageToServer(
@@ -1281,8 +1281,8 @@ class ChatViewController extends GetxController {
           getListOfMessageData?.add(message);
           getListOfMessageResponse.value =
               ApiResponse.complete(getListOfMessageData);
-          await localStorageHelper.markMessageAsSent(
-              params[ApiKeys.conversation_id], messageId);
+          // await localStorageHelper.markMessageAsSent(
+          //     params[ApiKeys.conversation_id], messageId);
         }
         scrollDown();
         clearMessageControllerCommon();
@@ -1339,7 +1339,7 @@ class ChatViewController extends GetxController {
   }
 
   void addConversationOnce(String conversationId) {
-    localStorageHelper.putConversation(conversationId);
+    // localStorageHelper.putConversation(conversationId);
     if (!openedConversation.contains(conversationId)) {
       openedConversation.add(conversationId);
     }
@@ -1388,23 +1388,23 @@ class ChatViewController extends GetxController {
 
 
   Future<List<Messages>> loadOfflineMessages(String conversationId) async {
-    final localMessages =
-        await localStorageHelper.getMessagesByConversationId(conversationId);
-    // Deduplicate by message ID from local storage (may contain duplicates
-    // from previous sessions where send + socket both saved the same message)
-    final seen = <String>{};
-    final deduped = <Messages>[];
-    for (final m in localMessages) {
-      final id = m.id ?? '';
-      if (id.isEmpty || seen.add(id)) {
-        deduped.add(m);
-      }
-    }
-    // Resolve local file paths for already-downloaded media
-    await _resolveLocalMediaPaths(deduped);
-    getListOfMessageResponse.value = ApiResponse.complete(deduped);
-    scrollDown();
-    return deduped;
+    // final localMessages =
+    //     await localStorageHelper.getMessagesByConversationId(conversationId);
+    // // Deduplicate by message ID from local storage (may contain duplicates
+    // // from previous sessions where send + socket both saved the same message)
+    // final seen = <String>{};
+    // final deduped = <Messages>[];
+    // for (final m in localMessages) {
+    //   final id = m.id ?? '';
+    //   if (id.isEmpty || seen.add(id)) {
+    //     deduped.add(m);
+    //   }
+    // }
+    // // Resolve local file paths for already-downloaded media
+    // await _resolveLocalMediaPaths(deduped);
+    // getListOfMessageResponse.value = ApiResponse.complete(deduped);
+    // scrollDown();
+    return [];
   }
 
   Future<bool?> sendProductMessages(Map<String, dynamic> params) async {
@@ -1584,21 +1584,21 @@ class ChatViewController extends GetxController {
     }
     if (event == ChatEmitEvents.ChatList) {
       final type = data[ApiKeys.type];
-      try {
-        List<ChatList> localChats =
-            await localStorageHelper.getChatListFromLocal(type);
-        if (localChats.isNotEmpty) {
-          loadChatListWithType(
-              chatListModel: GetChatListModel(
-            type: type,
-            success: true,
-            chatList: List<ChatList?>.from(localChats),
-            archived: [],
-          ));
-        }
-      } catch (e) {
-        debugPrint('emitEvent getChatListFromLocal error: $e');
-      }
+      // try {
+      //   List<ChatList> localChats =
+      //       await localStorageHelper.getChatListFromLocal(type);
+      //   if (localChats.isNotEmpty) {
+      //     loadChatListWithType(
+      //         chatListModel: GetChatListModel(
+      //       type: type,
+      //       success: true,
+      //       chatList: List<ChatList?>.from(localChats),
+      //       archived: [],
+      //     ));
+      //   }
+      // } catch (e) {
+      //   debugPrint('emitEvent getChatListFromLocal error: $e');
+      // }
 
       Map<String, dynamic> dataParams = {ApiKeys.type: data[ApiKeys.type]};
       chatSocket.emitEvent(event, dataParams);
@@ -1609,23 +1609,23 @@ class ChatViewController extends GetxController {
     }
   }
 
-  Future<void> loadAllChatListFromLocal() async {
-    try {
-      final allChats = await localStorageHelper.getAllChatListsFromLocal();
-
-      for (final entry in allChats.entries) {
-        loadChatListWithType(
-            chatListModel: GetChatListModel(
-          type: entry.key,
-          success: true,
-          chatList: List<ChatList?>.from(entry.value),
-          archived: [],
-        ));
-      }
-    } catch (e) {
-      debugPrint('loadAllChatListFromLocal error: $e');
-    }
-  }
+  // Future<void> loadAllChatListFromLocal() async {
+  //   try {
+  //     final allChats = await localStorageHelper.getAllChatListsFromLocal();
+  //
+  //     for (final entry in allChats.entries) {
+  //       loadChatListWithType(
+  //           chatListModel: GetChatListModel(
+  //         type: entry.key,
+  //         success: true,
+  //         chatList: List<ChatList?>.from(entry.value),
+  //         archived: [],
+  //       ));
+  //     }
+  //   } catch (e) {
+  //     debugPrint('loadAllChatListFromLocal error: $e');
+  //   }
+  // }
 
   void disposeSocket() {
     socketConnected.value = false;
@@ -1653,24 +1653,24 @@ class ChatViewController extends GetxController {
       return;
     }
 
-    // Try Hive cache first
-    final cached = await localStorageHelper.getContacts();
-    if (cached != null) {
-      contactsListModel?.value = ContactListModel.fromJson(cached);
-      viewContactsListResponse.value =
-          ApiResponse.complete(contactsListModel?.value);
-      return;
-    }
+    // // Try Hive cache first
+    // final cached = await localStorageHelper.getContacts();
+    // if (cached != null) {
+    //   contactsListModel?.value = ContactListModel.fromJson(cached);
+    //   viewContactsListResponse.value =
+    //       ApiResponse.complete(contactsListModel?.value);
+    //   return;
+    // }
 
-    // No cache — call API
+    // Call API directly (no local cache)
     ResponseModel responseModel =
         await ChatViewRepo().getConnectionsSync(params);
 
     if (responseModel.isSuccess) {
       final data = responseModel.response?.data;
 
-      // Save to Hive
-      await localStorageHelper.saveContacts(data);
+      // // Save to Hive
+      // await localStorageHelper.saveContacts(data);
       contactsListModel?.value = ContactListModel.fromJson(data);
       viewContactsListResponse.value = ApiResponse.complete(responseModel);
     } else {
@@ -1690,8 +1690,8 @@ class ChatViewController extends GetxController {
     if (responseModel.isSuccess) {
       final data = responseModel.response?.data;
 
-      // Update Hive cache
-      await localStorageHelper.saveContacts(data);
+      // // Update Hive cache
+      // await localStorageHelper.saveContacts(data);
       contactsListModel?.value = ContactListModel.fromJson(data);
       viewContactsListResponse.value = ApiResponse.complete(responseModel);
     } else {
@@ -2251,8 +2251,8 @@ class ChatViewController extends GetxController {
     // First search in-memory chat lists (already loaded)
     ChatList? cachedChat = _findChatInMemory(userId);
 
-    // If not in memory, search Hive cache
-    cachedChat ??= await localStorageHelper.findChatByUserId(userId);
+    // // If not in memory, search Hive cache
+    // cachedChat ??= await localStorageHelper.findChatByUserId(userId);
 
     if (cachedChat == null || (cachedChat.conversationId ?? '').isEmpty) {
       return false;
@@ -2848,8 +2848,8 @@ class ChatViewController extends GetxController {
             getListOfMessageData?.add(message);
             getListOfMessageResponse.value =
                 ApiResponse.complete(getListOfMessageData);
-            await localStorageHelper.markMessageAsSent(
-                params[ApiKeys.conversation_id], messageId ?? "");
+            // await localStorageHelper.markMessageAsSent(
+            //     params[ApiKeys.conversation_id], messageId ?? "");
           } else {
             final alreadyExists = message.id != null &&
                 (getListOfMessageData?.any((m) => m.id == message.id) ?? false);
