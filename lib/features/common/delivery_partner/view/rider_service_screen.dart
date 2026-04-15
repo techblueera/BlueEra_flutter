@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -446,7 +448,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
         // 2. trailing – "New Store" on My Store tab, Go-Live elsewhere
         if (_currentTabIndex == 1)
           _buildNewStoreButton()
-        else
+        else if (Platform.isAndroid)
           Builder(builder: (_) {
             final statusData = serviceProviderStatusGlobal.toUpperCase();
             viewPersonalDetailsController.shopStatusOpenClose.value =
