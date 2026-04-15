@@ -67,7 +67,7 @@ void onForegroundNotificationResponse(NotificationResponse response) {
     if (response.payload == null) return;
     final data = json.decode(response.payload!) as Map<String, dynamic>;
     final actionId = response.actionId ?? '';
-
+print("actionId==== ${actionId}");
     // Incoming call: Accept (Android local-notification path)
     if (actionId.startsWith('incoming_call_accept_')) {
       final callId = (data['callId'] ?? '').toString();
@@ -87,10 +87,12 @@ void onForegroundNotificationResponse(NotificationResponse response) {
     }
 
     // Incoming call: Decline
+    print("Get.isRegistered<CallController>()=== ${Get.isRegistered<CallController>()}");
     if (actionId.startsWith('incoming_call_decline_')) {
       final callId = (data['callId'] ?? '').toString();
       cancelIncomingCallLocalNotification(callId);
       if (Get.isRegistered<CallController>()) {
+        print("CALL END=====");
         Get.find<CallController>().declineCall();
       }
       return;
@@ -130,6 +132,9 @@ void onForegroundNotificationResponse(NotificationResponse response) {
 
 Future<void> _handleBackgroundNotificationResponse(
     NotificationResponse response) async {
+  print("NOTI 1 ");
+  print("NOTI 1 ${response}");
+  print("NOTI 2 ${response.payload==null}");
   if (response.payload == null) return;
   final data = json.decode(response.payload!) as Map<String, dynamic>;
   logs("NOTIFICATION DATA 1 ${data}");
@@ -158,11 +163,11 @@ Future<void> _handleBackgroundNotificationResponse(
       const storage = FlutterSecureStorage();
       await storage.delete(key: _kPendingIncomingCallExtrasKey);
       final token = await storage.read(key: SharedPreferenceUtils.authToken);
-      final storedBaseUrl =
-          await storage.read(key: SharedPreferenceUtils.baseURL);
       if (token != null && token.isNotEmpty && callId.isNotEmpty) {
-        final apiUrl =
-            (storedBaseUrl ?? baseUrl ?? '') + 'chat-service/call/decline';
+        // Use call service base URL (matches foreground CallRepo).
+        // Hardcoded because `callBaseUrl` global isn't initialized in the
+        // FCM/notification background isolate.
+        final apiUrl = (callBaseUrl ?? 'https://call.blueera.ai/') + 'call/decline';
         final dioClient = dio.Dio();
         await dioClient.post(
           apiUrl,
@@ -171,6 +176,7 @@ Future<void> _handleBackgroundNotificationResponse(
             headers: {
               'Authorization': 'Bearer $token',
               'Content-Type': 'application/json',
+              'X-Device-Type': 'mobile',
             },
           ),
         );
@@ -178,6 +184,10 @@ Future<void> _handleBackgroundNotificationResponse(
     } catch (e) {
       print('Incoming call decline API error: $e');
     }
+    // Also end the CallKit/native UI if it's still showing for this call.
+    try {
+      await FlutterCallkitIncoming.endAllCalls();
+    } catch (_) {}
     return;
   }
 
@@ -420,18 +430,28 @@ Future<void> showIncomingCallLocalNotification({
     icon: '@drawable/ic_stat',
     largeIcon: callerImage.isNotEmpty
         ? null // remote-image fetch in bg isolate is unreliable; skip
-        : null,
+        : null,colorized: true,
     actions: <AndroidNotificationAction>[
       AndroidNotificationAction(
         'incoming_call_accept_$callId',
+        // Unicode-wrapped label: Android notification actions don't support
+        // per-button background colors, so we color the TEXT instead — green
+        // for Accept, red for Decline, matching WhatsApp/Messenger style.
         'Accept',
         showsUserInterface: true, // launches the app
         cancelNotification: true,
+        titleColor: Color(0xFF4CAF50), // green
       ),
       AndroidNotificationAction(
         'incoming_call_decline_$callId',
         'Decline',
-        showsUserInterface: false,
+        titleColor: Color(0xFFF44336), // red
+        // Must be true: on Android with ongoing + fullScreenIntent
+        // notifications, actions with showsUserInterface:false often
+        // silently fail to dispatch on many OEMs. Routing through the
+        // foreground handler (which calls CallController.declineCall)
+        // is the reliable path; the bg handler still covers cold-start.
+        showsUserInterface: true,
         cancelNotification: true,
       ),
     ],
