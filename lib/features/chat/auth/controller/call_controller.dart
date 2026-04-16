@@ -748,8 +748,20 @@ class CallController extends GetxController {
         // Fare-calls keep the original "wait silently" behavior (the customer
         // app initiates from its side via _handleCallAccepted).
         if (isFareCall.value) {
-          debugPrint('[FARE_CALL] acceptCall → no pending offer, waiting for caller offer (fare-call)');
-          await _createPeerConnection(savedRemoteUserId);
+          // Fare-call: proactively send an offer instead of waiting silently.
+          // The caller's offer may arrive before the rider joins the room and
+          // get lost — sending our own offer ensures the WebRTC handshake
+          // completes. Glare is handled by _handleRemoteOffer (callee yields).
+          debugPrint('[FARE_CALL] acceptCall → no pending offer, sending our own offer (fare-call, glare-safe)');
+          final pc = await _createPeerConnection(savedRemoteUserId);
+          final offer = await pc.createOffer();
+          await pc.setLocalDescription(offer);
+          _socket.emitEvent('call:offer', {
+            'room_id': savedRoomId,
+            'target_user_id': savedRemoteUserId,
+            'sdp': {'sdp': offer.sdp, 'type': offer.type},
+          });
+          debugPrint('[FARE_CALL] acceptCall → call:offer emitted to $savedRemoteUserId (rider-initiated)');
         } else {
           debugPrint('[CALL_DEBUG] acceptCall → NO pending offer, sending our own offer (glare-safe)');
           final pc = await _createPeerConnection(savedRemoteUserId);
@@ -998,6 +1010,35 @@ class CallController extends GetxController {
 
   void _handleCallAccepted(dynamic data) async {
     debugPrint('[CALL_DEBUG] _handleCallAccepted → received, currentStatus=${callStatus.value}, data=$data');
+
+    // Fare-call fallback: if ride:queue:calling was missed (race condition or
+    // server skipped it for single-rider orders), the customer's callStatus is
+    // still idle when call:accepted arrives. Detect this via metadata and
+    // bootstrap the call state so the WebRTC handshake can proceed.
+    if (callStatus.value == CallStatus.idle) {
+      final metadata = data['metadata'];
+      if (metadata is Map && metadata['orderType'] == 'fare-call') {
+        debugPrint('[FARE_CALL] _handleCallAccepted → idle + fare-call metadata, bootstrapping call state');
+        final acceptedCallId = (data['call_id'] ?? '').toString();
+        final acceptedRoomId = (data['room_id'] ?? '').toString();
+        final acceptedBy = (data['accepted_by'] ?? '').toString();
+        if (acceptedCallId.isNotEmpty && acceptedRoomId.isNotEmpty && acceptedBy.isNotEmpty) {
+          await joinFareCallAsCustomer(
+            fareCallId: acceptedCallId,
+            fareRoomId: acceptedRoomId,
+            riderId: acceptedBy,
+            fareConversationId: '',
+            iceServers: [],
+          );
+          // joinFareCallAsCustomer sets callStatus=outgoing — fall through
+          // to the normal outgoing handling below.
+        } else {
+          debugPrint('[FARE_CALL] _handleCallAccepted → missing call data, cannot bootstrap');
+          return;
+        }
+      }
+    }
+
     if (callStatus.value != CallStatus.outgoing) {
       debugPrint('[CALL_DEBUG] _handleCallAccepted → SKIPPED (not outgoing)');
       return;

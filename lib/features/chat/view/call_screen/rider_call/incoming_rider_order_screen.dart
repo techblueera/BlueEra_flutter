@@ -255,7 +255,11 @@ class _IncomingRiderOrderScreenState extends State<IncomingRiderOrderScreen>
     // Capture orderMongoId before endCall() clears it via _resetState()
     final orderMongoId = _callController.fareCallOrderMongoId.value;
 
-    _callController.endCall();
+    // End the WebRTC call only if it's actually active (connected/connecting).
+    // Fire-and-forget so navigation isn't blocked by the API roundtrip.
+    if (_callController.callStatus.value != CallStatus.idle) {
+      _callController.endCall();
+    }
     _callTimer?.cancel();
     if (!mounted) return;
     Get.off(() => RiderPickupNavigationScreen(
@@ -1222,32 +1226,46 @@ class _IncomingRiderOrderScreenState extends State<IncomingRiderOrderScreen>
       padding: const EdgeInsets.symmetric(horizontal: 30),
       child: Column(
         children: [
-          // Accept Ride — green full-width button
-          SizedBox(
-            width: double.infinity,
-            height: 54,
-            child: ElevatedButton.icon(
-              onPressed: _acceptRideFromCallRoom,
-              icon: const Icon(Icons.check_rounded, size: 22),
-              label: const Text(
-                'Accept Ride & Navigate',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  fontFamily: 'OpenSans',
+          // Accept Ride — green full-width button (enabled only after call connects)
+          Obx(() {
+            final isConnected = _callController.callStatus.value == CallStatus.connected;
+            return SizedBox(
+              width: double.infinity,
+              height: 54,
+              child: ElevatedButton.icon(
+                onPressed: isConnected ? _acceptRideFromCallRoom : null,
+                icon: isConnected
+                    ? const Icon(Icons.check_rounded, size: 22)
+                    : const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white70,
+                        ),
+                      ),
+                label: Text(
+                  isConnected ? 'Accept Ride & Navigate' : 'Connecting...',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    fontFamily: 'OpenSans',
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: isConnected
+                      ? const Color(0xFF00C853)
+                      : const Color(0xFF00C853).withValues(alpha: 0.4),
+                  foregroundColor: Colors.white,
+                  elevation: isConnected ? 4 : 0,
+                  shadowColor: const Color(0xFF00C853).withValues(alpha: 0.4),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                 ),
               ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF00C853),
-                foregroundColor: Colors.white,
-                elevation: 4,
-                shadowColor: const Color(0xFF00C853).withValues(alpha: 0.4),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-              ),
-            ),
-          ),
+            );
+          }),
           const SizedBox(height: 16),
           // End Call — red circle button
           GestureDetector(

@@ -869,6 +869,9 @@ class DiscoverController extends GetxController {
       final data = response.response?.data;
       if (data != null && data is Map) {
         fareCallOrderId.value = data['orderId'] ?? data['_id'] ?? '';
+        // Save pickup OTP from order creation response so the customer
+        // can see it even if ride:queue:accepted socket event is missed.
+        fareCallPickupOtp.value = (data['pickupOTP'] ?? '').toString();
       }
       isFareCallInProgress.value = true;
       fareCallTotalRiders.value = selectedRiders.length;

@@ -20,6 +20,7 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_callkit_incoming/entities/android_params.dart';
 import 'package:flutter_callkit_incoming/entities/call_kit_params.dart';
 import 'package:flutter_callkit_incoming/entities/ios_params.dart';
@@ -361,6 +362,20 @@ Future<String?> readAndClearPendingIncomingCallAccept() async {
   }
 }
 
+/// Read and clear pending call action set by native CallActionReceiver.
+/// Returns a map with 'action' ('accept'/'decline'), 'callId', 'roomId',
+/// 'callType', or null if no pending action.
+Future<Map<String, dynamic>?> readAndClearPendingNativeCallAction() async {
+  try {
+    const channel = MethodChannel('com.bluehr.incoming_call_notification');
+    final result = await channel.invokeMethod('readPendingAction');
+    if (result == null) return null;
+    return Map<String, dynamic>.from(result);
+  } catch (_) {
+    return null;
+  }
+}
+
 /// Show an Android full-screen-intent notification for an incoming call.
 /// This is the Android replacement for `showFlutterCallNotification` — it's
 /// stateless (each call posts a fresh notification, no native call list to
@@ -384,12 +399,28 @@ Future<void> showIncomingCallLocalNotification({
   // killed state — can recover the call context and trigger acceptCall.
   await stashPendingIncomingCallExtras(extra);
 
-  // Always use a fresh plugin instance: this function may run in either the
-  // main isolate or the FCM background isolate. CRITICAL: register BOTH
-  // foreground AND background callbacks here — flutter_local_notifications
-  // keeps only the LAST initialize() callbacks per process, so omitting
-  // `onDidReceiveNotificationResponse` would silently disable the Accept
-  // tap when the user taps from the foreground notification shade.
+  final notifId = incomingCallNotificationId(callId);
+
+  // Try native notification with filled green/red buttons (custom RemoteViews).
+  // This works when the main FlutterEngine is running (socket-driven calls,
+  // foreground FCM). Falls back to flutter_local_notifications for the FCM
+  // background isolate where the MethodChannel isn't registered.
+  try {
+    const nativeChannel = MethodChannel('com.bluehr.incoming_call_notification');
+    await nativeChannel.invokeMethod('show', {
+      'callId': callId,
+      'roomId': roomId,
+      'callerName': callerName,
+      'callerImage': callerImage,
+      'callType': callType,
+      'notifId': notifId,
+    });
+    return; // Native notification shown successfully
+  } catch (e) {
+    print('Native call notification unavailable, using fallback: $e');
+  }
+
+  // Fallback: flutter_local_notifications (text-colored buttons)
   final plugin = FlutterLocalNotificationsPlugin();
   await plugin.initialize(
     const InitializationSettings(
@@ -417,10 +448,6 @@ Future<void> showIncomingCallLocalNotification({
     importance: Importance.max,
     priority: Priority.max,
     category: AndroidNotificationCategory.call,
-    // CRITICAL: full-screen intent is what raises the lock-screen / over-app
-    // call UI when the activity is paused or the device is asleep. Combined
-    // with the channel's max importance, this is the documented Android path
-    // for incoming-call notifications and behaves consistently across OEMs.
     fullScreenIntent: true,
     visibility: NotificationVisibility.public,
     ongoing: true,
@@ -428,37 +455,27 @@ Future<void> showIncomingCallLocalNotification({
     playSound: true,
     enableVibration: true,
     icon: '@drawable/ic_stat',
-    largeIcon: callerImage.isNotEmpty
-        ? null // remote-image fetch in bg isolate is unreliable; skip
-        : null,colorized: true,
+    colorized: true,
     actions: <AndroidNotificationAction>[
-      AndroidNotificationAction(
-        'incoming_call_accept_$callId',
-        // Unicode-wrapped label: Android notification actions don't support
-        // per-button background colors, so we color the TEXT instead — green
-        // for Accept, red for Decline, matching WhatsApp/Messenger style.
-        'Accept',
-        showsUserInterface: true, // launches the app
-        cancelNotification: true,
-        titleColor: Color(0xFF4CAF50), // green
-      ),
       AndroidNotificationAction(
         'incoming_call_decline_$callId',
         'Decline',
-        titleColor: Color(0xFFF44336), // red
-        // Must be true: on Android with ongoing + fullScreenIntent
-        // notifications, actions with showsUserInterface:false often
-        // silently fail to dispatch on many OEMs. Routing through the
-        // foreground handler (which calls CallController.declineCall)
-        // is the reliable path; the bg handler still covers cold-start.
+        titleColor: Color(0xFFF44336),
         showsUserInterface: true,
         cancelNotification: true,
+      ),
+      AndroidNotificationAction(
+        'incoming_call_accept_$callId',
+        isVideo?'Video':'Accept',
+        showsUserInterface: true,
+        cancelNotification: true,
+        titleColor: Color(0xFF4CAF50),
       ),
     ],
   );
 
   await plugin.show(
-    incomingCallNotificationId(callId),
+    notifId,
     callerName.isNotEmpty ? callerName : 'Incoming Call',
     isVideo ? 'Incoming video call' : 'Incoming voice call',
     NotificationDetails(android: details),
@@ -470,6 +487,14 @@ Future<void> showIncomingCallLocalNotification({
 /// cancelled by the caller, or otherwise ended.
 Future<void> cancelIncomingCallLocalNotification(String callId) async {
   try {
+    // Cancel from native notification (custom filled buttons)
+    const nativeChannel = MethodChannel('com.bluehr.incoming_call_notification');
+    await nativeChannel.invokeMethod('cancel', {
+      'notifId': incomingCallNotificationId(callId),
+    });
+  } catch (_) {}
+  try {
+    // Also cancel from flutter_local_notifications as fallback
     final plugin = FlutterLocalNotificationsPlugin();
     await plugin.cancel(incomingCallNotificationId(callId));
   } catch (_) {}

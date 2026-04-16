@@ -37,6 +37,7 @@ class MainActivity: FlutterActivity() {
     private val RINGTONE_CHANNEL = "com.bluehr.ringtone/default"
     private val SHORTCUT_CHANNEL = "com.bluehr.shortcut/channel"
     private val CALL_LAUNCHER_CHANNEL = "com.bluehr.call/launcher"
+    private val INCOMING_CALL_NOTIF_CHANNEL = "com.bluehr.incoming_call_notification"
     private val MEDIA_SCANNER_CHANNEL = "ai.bluecs.app/media_scanner"
 
     private var ringtone: Ringtone? = null
@@ -192,6 +193,43 @@ class MainActivity: FlutterActivity() {
                         }
                         startActivity(intent)
                         result.success(true)
+                    }
+                    else -> result.notImplemented()
+                }
+            }
+
+        // ------------------------------
+        // INCOMING CALL NOTIFICATION CHANNEL — shows custom notification with filled buttons
+        // ------------------------------
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, INCOMING_CALL_NOTIF_CHANNEL)
+            .setMethodCallHandler { call, result ->
+                when (call.method) {
+                    "show" -> {
+                        @Suppress("UNCHECKED_CAST")
+                        val args = call.arguments as Map<String, Any?>
+                        IncomingCallNotificationHelper.show(applicationContext, args)
+                        result.success(null)
+                    }
+                    "cancel" -> {
+                        val notifId = call.argument<Int>("notifId") ?: 0
+                        IncomingCallNotificationHelper.cancel(applicationContext, notifId)
+                        result.success(null)
+                    }
+                    "readPendingAction" -> {
+                        val prefs = applicationContext.getSharedPreferences("call_action_prefs", Context.MODE_PRIVATE)
+                        val action = prefs.getString("pending_call_action", null)
+                        if (action != null) {
+                            val data = mapOf(
+                                "action" to action,
+                                "callId" to (prefs.getString("pending_call_id", "") ?: ""),
+                                "roomId" to (prefs.getString("pending_room_id", "") ?: ""),
+                                "callType" to (prefs.getString("pending_call_type", "") ?: "")
+                            )
+                            prefs.edit().clear().apply()
+                            result.success(data)
+                        } else {
+                            result.success(null)
+                        }
                     }
                     else -> result.notImplemented()
                 }

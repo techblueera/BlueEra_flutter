@@ -137,11 +137,13 @@ class _BookTransportMainState extends State<BookTransportMain> {
                 isValidate:
                 discoverController.selectedRiders.isNotEmpty,
                 onTap: () async {
+                  // Setup queue listeners BEFORE the API call so we don't
+                  // miss ride:queue:calling if the server fires it
+                  // immediately after order creation.
+                  discoverController.setupFareCallQueueListeners();
                   final success =
                   await discoverController.makeTransportBookOrderApi();
                   if (success && discoverController.selectedRiders.isNotEmpty) {
-                    // Setup queue listeners and navigate to calling progress screen
-                    discoverController.setupFareCallQueueListeners();
                     Get.to(() =>
                         FareCallQueueScreen(
                           orderId: discoverController.fareCallOrderId.value,
@@ -665,10 +667,14 @@ class RiderCardWidget extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      CustomText(
-                        rider.name ?? '',
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
+                      Flexible(
+                        child: CustomText(
+                          rider.name ?? '',
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                       SizedBox(width: 6),
                       Container(
