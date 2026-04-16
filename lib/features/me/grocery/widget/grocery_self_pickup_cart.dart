@@ -14,39 +14,34 @@ class GrocerySelfPickupCart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Positioned(
-      bottom: 40,
-      left: 0,
-      right: 0,
-      child: Center(
-        child: Obx(() {
-          final selected = controller.selectedGroceriesVariants;
-          final displayImages = selected.take(3).map((v) {
-            // Try variant-level images first.
-            if (v.images?.isNotEmpty ?? false) {
-              final url = v.images!.first.url;
-              if (url != null && url.isNotEmpty) return url;
-            }
-            // Fallback to product-level image stored when adding to cart.
-            final fallback = controller.cartProductImages[v.sId];
-            if (fallback != null && fallback.isNotEmpty) return fallback;
-            return null;
-          }).toList();
+    return Center(
+      child: Obx(() {
+        final selected = controller.selectedGroceriesVariants;
+        final displayImages = selected.take(3).map((v) {
+          // Try variant-level images first.
+          if (v.images?.isNotEmpty ?? false) {
+            final url = v.images!.first.url;
+            if (url != null && url.isNotEmpty) return url;
+          }
+          // Fallback to product-level image stored when adding to cart.
+          final fallback = controller.cartProductImages[v.sId];
+          if (fallback != null && fallback.isNotEmpty) return fallback;
+          return null;
+        }).toList();
 
-          return FloatingCartWidget(
-            itemCount: selected.length,
-            displayImages: displayImages,
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => GrocerySelfPickUpCartScreen(),
-                ),
-              );
-            },
-          );
-        }),
-      ),
+        return FloatingCartWidget(
+          itemCount: selected.length,
+          displayImages: displayImages,
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => GrocerySelfPickUpCartScreen(),
+              ),
+            );
+          },
+        );
+      }),
     );
   }
 }

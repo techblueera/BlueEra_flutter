@@ -39,16 +39,17 @@ class SchoolDetailsData {
       this.logo, 
       this.bannerUrl,
       this.career,
-      this.contacts, 
+      this.contacts,
       this.ownerId,
-      this.isActive, 
-      this.createdAt, 
-      this.updatedAt, 
-      this.v, 
-      this.aboutId, 
+      this.isActive,
+      this.createdAt,
+      this.updatedAt,
+      this.v,
+      this.aboutId,
       this.courses,
     this.campusLife,
     this.location,
+    this.galleryPhotos,
  });
 
   SchoolDetailsData.fromJson(dynamic json) {
@@ -88,6 +89,13 @@ class SchoolDetailsData {
     location = json['location'] != null
         ? new Location.fromJson(json['location'])
         : null;
+    if (json['gallery'] != null) {
+      galleryPhotos = <String>[];
+      json['gallery'].forEach((v) {
+        final url = v['uploadPhoto']?.toString().trim() ?? '';
+        if (url.isNotEmpty) galleryPhotos!.add(url);
+      });
+    }
   }
   String? id;
   String? name;
@@ -107,6 +115,7 @@ class SchoolDetailsData {
   List<Courses>? courses;
   List<CampusLife>? campusLife;
   Location? location;
+  List<String>? galleryPhotos;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};

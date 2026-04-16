@@ -152,8 +152,13 @@ class _VisitGroceryProductsScreenState extends State<VisitGroceryProductsScreen>
             ],
           ),
 
-          GrocerySelfPickupCart(
-            controller: groceryCustomerController,
+          Positioned(
+            bottom: 40,
+            left: 0,
+            right: 0,
+            child: GrocerySelfPickupCart(
+              controller: groceryCustomerController,
+            ),
           ),
         ],
       )

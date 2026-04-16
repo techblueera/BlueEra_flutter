@@ -7,9 +7,14 @@ import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart'
 import 'package:BlueEra/features/common/Discover/view/healthcare/discover_hospital_home_screen.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_service_ai_controller.dart';
 import 'package:BlueEra/features/me/hospital/model/hospital_full_details_res_model.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/features/common/store/widget/store_live_photo_widget.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -112,6 +117,21 @@ class _HospitalCard extends StatelessWidget {
 
   String _valueOr(String? s, {String fallback = "Not available"}) =>
       _isEmpty(s) ? fallback : s!.trim();
+
+  List<String> _collectGalleryPhotos() {
+    final photos = <String>[];
+    if (item.gallery != null) {
+      for (final g in item.gallery!) {
+        if (g.uploadPhoto != null && g.uploadPhoto!.isNotEmpty) {
+          photos.add(g.uploadPhoto!);
+        }
+        if (g.images != null) {
+          photos.addAll(g.images!.where((u) => u.trim().isNotEmpty));
+        }
+      }
+    }
+    return photos;
+  }
 
   List<String> _buildFacilities() {
     final list = <String>[];
@@ -278,6 +298,107 @@ class _HospitalCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
               ],
+
+              // ─── Gallery / Cover / Logo Photo ───
+              Builder(builder: (_) {
+                final galleryPhotos = _collectGalleryPhotos();
+                final hasCover = !_isEmpty(item.coverUrl);
+
+                if (galleryPhotos.isNotEmpty) {
+                  return Padding(
+                    padding: EdgeInsets.only(top: SizeConfig.size10),
+                    child: StoreLivePhotoWidget(
+                      livePhotos: galleryPhotos,
+                      natureOfBusiness: item.name ?? 'Hospital',
+                      height: 200,
+                      onViewFullScreen: ({
+                        required int index,
+                        required List<String> storeImage,
+                        required String natureOfBusiness,
+                      }) {
+                        navigatePushTo(
+                          context,
+                          ImageViewScreen(
+                            subTitle: natureOfBusiness,
+                            appBarTitle: AppStrings.imageViewer,
+                            imageUrls: storeImage,
+                            initialIndex: index,
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                } else if (hasCover) {
+                  return Padding(
+                    padding: EdgeInsets.only(top: SizeConfig.size10),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: GestureDetector(
+                        onTap: () => navigatePushTo(
+                          context,
+                          ImageViewScreen(
+                            subTitle: item.name ?? 'Hospital',
+                            appBarTitle: AppStrings.imageViewer,
+                            imageUrls: [item.coverUrl!],
+                            initialIndex: 0,
+                          ),
+                        ),
+                        child: CachedNetworkImage(
+                          imageUrl: item.coverUrl!,
+                          height: 200,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                          memCacheWidth: 600,
+                          memCacheHeight: 600,
+                          placeholder: (_, __) => LocalAssets(
+                            imagePath: AppIconAssets.place_holder_image,
+                            boxFix: BoxFit.fill,
+                          ),
+                          errorWidget: (_, __, ___) => LocalAssets(
+                            imagePath: AppIconAssets.place_holder_image,
+                            boxFix: BoxFit.fill,
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                } else if (hasLogo) {
+                  return Padding(
+                    padding: EdgeInsets.only(top: SizeConfig.size10),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: GestureDetector(
+                        onTap: () => navigatePushTo(
+                          context,
+                          ImageViewScreen(
+                            subTitle: item.name ?? 'Hospital',
+                            appBarTitle: AppStrings.imageViewer,
+                            imageUrls: [item.logoUrl!],
+                            initialIndex: 0,
+                          ),
+                        ),
+                        child: CachedNetworkImage(
+                          imageUrl: item.logoUrl!,
+                          height: 200,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                          memCacheWidth: 600,
+                          memCacheHeight: 600,
+                          placeholder: (_, __) => LocalAssets(
+                            imagePath: AppIconAssets.place_holder_image,
+                            boxFix: BoxFit.fill,
+                          ),
+                          errorWidget: (_, __, ___) => LocalAssets(
+                            imagePath: AppIconAssets.place_holder_image,
+                            boxFix: BoxFit.fill,
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                }
+                return const SizedBox.shrink();
+              }),
 
               // Quick stats row
               SizedBox(height: SizeConfig.size10),

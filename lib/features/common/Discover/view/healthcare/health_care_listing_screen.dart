@@ -1,13 +1,13 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/Discover/model/profe_cons_res_model.dart';
 import 'package:BlueEra/features/common/Discover/view/healthcare/hospital_list_screen.dart';
+import 'package:BlueEra/features/common/Discover/widget/banner_carousel.dart';
+import 'package:BlueEra/features/common/Discover/widget/sticky_category_header_delegate.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
 import 'package:BlueEra/features/me/laboratory/view/lab_profiles_list_screen.dart';
@@ -18,9 +18,7 @@ import 'package:BlueEra/widgets/common_draggable_bottom_sheet.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
-import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -39,9 +37,13 @@ class HealthCareListingScreen extends StatefulWidget {
 class _HealthCareListingScreenState extends State<HealthCareListingScreen> {
   final controller = getOrPut(() => DiscoverController());
   late List<OnboardingCategoryModel> _professionalConsultantCategories;
-  ScrollController scrollController = ScrollController();
   int _locationVersion = 0;
-  bool _isLocationLoading = false;
+
+  final List<String> _bannerImages = const [
+    "https://img.freepik.com/free-photo/doctor-with-his-patient_1098-603.jpg?w=1380",
+    "https://img.freepik.com/free-photo/front-view-covid-recovery-center-young-patient-with-medical-mask_23-2148856202.jpg?w=1380",
+    "https://img.freepik.com/free-photo/team-young-specialist-doctors-standing-corridor-hospital_1303-21202.jpg?w=1380",
+  ];
 
   @override
   initState() {
@@ -49,21 +51,7 @@ class _HealthCareListingScreenState extends State<HealthCareListingScreen> {
     _professionalConsultantCategories = healthCareList;
     controller.selectedProfessionalConsultantData.value =
         widget.selectedProfessionConsultantData;
-
-    // Listener for Pagination
-    scrollController.addListener(() {
-      if (scrollController.position.pixels ==
-          scrollController.position.maxScrollExtent) {}
-    });
   }
-
-  int _bannerIndex = 0;
-
-  final List<String> _bannerImages = const [
-    "https://img.freepik.com/free-photo/doctor-with-his-patient_1098-603.jpg?w=1380",
-    "https://img.freepik.com/free-photo/front-view-covid-recovery-center-young-patient-with-medical-mask_23-2148856202.jpg?w=1380",
-    "https://img.freepik.com/free-photo/team-young-specialist-doctors-standing-corridor-hospital_1303-21202.jpg?w=1380",
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -77,15 +65,32 @@ class _HealthCareListingScreenState extends State<HealthCareListingScreen> {
       child: Scaffold(
         backgroundColor: AppColors.appBackgroundColor,
         body: NestedScrollView(
-          controller: scrollController,
           physics: const AlwaysScrollableScrollPhysics(),
           headerSliverBuilder: (context, innerBoxIsScrolled) => [
-            SliverToBoxAdapter(child: _headerBanner(statusBarHeight)),
+            SliverToBoxAdapter(
+              child: BannerCarousel(
+                images: _bannerImages,
+                onBack: () => Navigator.pop(context),
+                statusBarHeight: statusBarHeight,
+              ),
+            ),
             SliverPersistentHeader(
               pinned: true,
-              delegate: _StickyCategoryHeaderDelegate(
+              delegate: StickyCategoryHeaderDelegate(
                 topPadding: statusBarHeight,
-                child: _topCategorySlider(),
+                singleLineLabel: true,
+                categories: _professionalConsultantCategories.map((c) => StickyCategory(
+                  id: c.slugId,
+                  name: c.name,
+                  imageUrl: c.icon,
+                )).toList(),
+                selectedId: controller.selectedProfessionalConsultantData.value?.slugId,
+                onCategoryTap: (item) {
+                  final cat = _professionalConsultantCategories.firstWhere((c) => c.slugId == item.id);
+                  controller.selectedTabIndex.value = _professionalConsultantCategories.indexOf(cat);
+                  controller.selectedProfessionalConsultantData.value = cat;
+                  setState(() {});
+                },
                 onBack: () => Navigator.pop(context),
               ),
             ),
@@ -93,341 +98,6 @@ class _HealthCareListingScreenState extends State<HealthCareListingScreen> {
           body: rightContent(),
         ),
       ),
-    );
-  }
-
-  Widget _headerBanner(double statusBarHeight) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final bannerHeight = (screenWidth * 9 / 16) + statusBarHeight;
-
-    return SizedBox(
-      height: bannerHeight,
-      width: double.infinity,
-      child: Stack(
-        children: [
-          ClipRRect(
-            borderRadius: const BorderRadius.vertical(
-                bottom: Radius.circular(24)),
-            child: CarouselSlider.builder(
-              itemCount: _bannerImages.length,
-              options: CarouselOptions(
-                height: bannerHeight,
-                viewportFraction: 1.0,
-                autoPlay: _bannerImages.length > 1,
-                autoPlayInterval: const Duration(seconds: 5),
-                autoPlayAnimationDuration: const Duration(milliseconds: 800),
-                autoPlayCurve: Curves.easeInOutCubic,
-                enableInfiniteScroll: _bannerImages.length > 1,
-                onPageChanged: (index, _) =>
-                    setState(() => _bannerIndex = index),
-              ),
-              itemBuilder: (context, index, _) {
-                return CachedNetworkImage(
-                  imageUrl: _bannerImages[index],
-                  width: double.infinity,
-                  height: bannerHeight,
-                  fit: BoxFit.cover,
-                  placeholder: (_, __) =>
-                      Container(color: AppColors.greyE5),
-                  errorWidget: (_, __, ___) =>
-                      Container(color: AppColors.greyE5),
-                );
-              },
-            ),
-          ),
-
-          /// Gradient scrim for readability of top & bottom overlays.
-          Positioned.fill(
-            child: IgnorePointer(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      AppColors.black.withValues(alpha: 0.35),
-                      Colors.transparent,
-                      AppColors.black.withValues(alpha: 0.35),
-                    ],
-                    stops: const [0.0, 0.5, 1.0],
-                  ),
-                ),
-              ),
-            ),
-          ),
-
-          /// Top row: back + location selector
-          Positioned(
-            top: statusBarHeight + SizeConfig.size4,
-            left: SizeConfig.size12,
-            right: SizeConfig.size12,
-            child: Row(
-              children: [
-                _circleIconButton(
-                  icon: Icons.arrow_back_ios_new,
-                  onTap: () => Navigator.pop(context),
-                ),
-                SizedBox(width: SizeConfig.size8),
-                Expanded(child: _locationPill()),
-              ],
-            ),
-          ),
-
-          /// Dot indicator
-          if (_bannerImages.length > 1)
-            Positioned(
-              bottom: SizeConfig.size40,
-              left: 0,
-              right: 0,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(_bannerImages.length, (i) {
-                  final active = i == _bannerIndex;
-                  return AnimatedContainer(
-                    duration: const Duration(milliseconds: 250),
-                    margin: EdgeInsets.symmetric(
-                        horizontal: SizeConfig.size3),
-                    width: active ? SizeConfig.size16 : SizeConfig.size6,
-                    height: SizeConfig.size6,
-                    decoration: BoxDecoration(
-                      color: active
-                          ? AppColors.white
-                          : AppColors.white.withValues(alpha: 0.55),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  );
-                }),
-              ),
-            ),
-
-          /// Search bar overlapping bottom of banner
-          Positioned(
-            left: SizeConfig.size12,
-            right: SizeConfig.size12,
-            bottom: SizeConfig.size8,
-            child: _searchBar(),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _circleIconButton({
-    required IconData icon,
-    required VoidCallback onTap,
-  }) {
-    return Material(
-      color: Colors.transparent,
-      shape: const CircleBorder(),
-      child: InkWell(
-        customBorder: const CircleBorder(),
-        onTap: onTap,
-        child: Container(
-          padding: EdgeInsets.all(SizeConfig.size8),
-          decoration: BoxDecoration(
-            color: AppColors.black.withValues(alpha: 0.35),
-            shape: BoxShape.circle,
-          ),
-          child: Icon(icon, color: AppColors.white, size: SizeConfig.size20),
-        ),
-      ),
-    );
-  }
-
-  Widget _locationPill() {
-    return Obx(() {
-      final loc = LocationService.userCurrentAddress.value;
-      final title =
-          [loc.subLocality, loc.city].where((e) => e.isNotEmpty).join(', ');
-      return InkWell(
-        borderRadius: BorderRadius.circular(24),
-        onTap: _isLocationLoading ? null : _changeLocation,
-        child: Container(
-          padding: EdgeInsets.symmetric(
-              horizontal: SizeConfig.size10, vertical: SizeConfig.size8),
-          decoration: BoxDecoration(
-            color: AppColors.black.withValues(alpha: 0.35),
-            borderRadius: BorderRadius.circular(24),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.location_on_outlined,
-                  color: AppColors.white, size: SizeConfig.size20),
-              SizedBox(width: SizeConfig.size6),
-              Flexible(
-                child: CustomText(
-                  title.isEmpty ? 'Select location' : title,
-                  fontSize: SizeConfig.medium,
-                  color: AppColors.white,
-                  fontWeight: FontWeight.w700,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              SizedBox(width: SizeConfig.size4),
-              _isLocationLoading
-                  ? SizedBox(
-                      width: SizeConfig.size14,
-                      height: SizeConfig.size14,
-                      child: const CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor:
-                            AlwaysStoppedAnimation<Color>(AppColors.white),
-                      ),
-                    )
-                  : Icon(Icons.keyboard_arrow_down,
-                      color: AppColors.white, size: SizeConfig.size18),
-            ],
-          ),
-        ),
-      );
-    });
-  }
-
-  Future<void> _changeLocation() async {
-    setState(() => _isLocationLoading = true);
-    final prevLat = LocationService.lat;
-    final prevLng = LocationService.lng;
-
-    final result =
-        await LocationService.fetchLocation(openSettingsOnDeny: true);
-
-    if (!mounted) return;
-    setState(() => _isLocationLoading = false);
-
-    if (result == null) return;
-
-    final changed =
-        prevLat != LocationService.lat || prevLng != LocationService.lng;
-    if (changed) {
-      // Bump version so inner list screens rebuild and refetch with new coords.
-      setState(() => _locationVersion++);
-    }
-  }
-
-  Widget _searchBar() {
-    return Container(
-      height: SizeConfig.size48,
-      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size14),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(10),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.black.withValues(alpha: 0.08),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.search,
-              color: AppColors.secondaryTextColor, size: SizeConfig.size22),
-          SizedBox(width: SizeConfig.size10),
-          Expanded(
-            child: CustomText(
-              AppStrings.searchAnything,
-              fontSize: SizeConfig.medium,
-              color: AppColors.secondaryTextColor,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-          LocalAssets(
-            imagePath: AppIconAssets.mic,
-            width: SizeConfig.size20,
-            height: SizeConfig.size20,
-            imgColor: AppColors.secondaryTextColor,
-          ),
-          SizedBox(width: SizeConfig.size10),
-          LocalAssets(imagePath: AppIconAssets.camera_black),
-        ],
-      ),
-    );
-  }
-
-  Widget _topCategorySlider() {
-    return Padding(
-      padding: EdgeInsets.symmetric(
-        horizontal: SizeConfig.size12,
-        vertical: SizeConfig.size10,
-      ),
-      child: Obx(() {
-        final selectedSlug =
-            controller.selectedProfessionalConsultantData.value?.slugId;
-        return SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          physics: const BouncingScrollPhysics(),
-          child: Row(
-            children: List.generate(_professionalConsultantCategories.length,
-                (index) {
-              final item = _professionalConsultantCategories[index];
-              final isActive = selectedSlug == item.slugId;
-              return Padding(
-                padding: EdgeInsets.only(right: SizeConfig.size10),
-                child: GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: () {
-                    controller.selectedTabIndex.value = index;
-                    controller.selectedProfessionalConsultantData.value = item;
-                  },
-                  child: SizedBox(
-                    width: SizeConfig.size70,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          padding: EdgeInsets.all(SizeConfig.size8),
-                          decoration: BoxDecoration(
-                            color: isActive ? null : AppColors.white,
-                            gradient: isActive
-                                ? const LinearGradient(
-                                    begin: Alignment.topCenter,
-                                    end: Alignment.bottomCenter,
-                                    colors: [
-                                      AppColors.white,
-                                      Color(0xFFA4D4FF),
-                                    ],
-                                  )
-                                : null,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: isActive
-                                  ? AppColors.primaryColor
-                                  : AppColors.greyE5,
-                            ),
-                          ),
-                          child: LocalAssets(
-                            imagePath: item.icon ?? '',
-                            width: SizeConfig.size30,
-                            height: SizeConfig.size30,
-                            boxFix: BoxFit.cover,
-                          ),
-                        ),
-                        SizedBox(height: SizeConfig.size6),
-                        CustomText(
-                          item.name,
-                          fontSize: SizeConfig.small,
-                          fontWeight:
-                              isActive ? FontWeight.w600 : FontWeight.w500,
-                          color: isActive
-                              ? AppColors.primaryColor
-                              : AppColors.secondaryTextColor,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            }),
-          ),
-        );
-      }),
     );
   }
 
@@ -1096,71 +766,3 @@ class _HealthCareListingScreenState extends State<HealthCareListingScreen> {
 }
 
 /// Keeps the category slider pinned at the top while scrolling.
-/// When content starts overlapping (banner has scrolled away), the header
-/// adds a back button so the user can still navigate back.
-class _StickyCategoryHeaderDelegate extends SliverPersistentHeaderDelegate {
-  final double topPadding;
-  final Widget child;
-  final VoidCallback onBack;
-
-  static const double _baseHeight = 110;
-
-  _StickyCategoryHeaderDelegate({
-    required this.topPadding,
-    required this.child,
-    required this.onBack,
-  });
-
-  @override
-  double get maxExtent => _baseHeight + topPadding;
-
-  @override
-  double get minExtent => _baseHeight + topPadding;
-
-  @override
-  Widget build(
-      BuildContext context, double shrinkOffset, bool overlapsContent) {
-    final isSticky = overlapsContent;
-    final totalHeight = _baseHeight + topPadding;
-
-    return Material(
-      color: AppColors.white,
-      elevation: isSticky ? 2 : 0,
-      child: Container(
-        height: totalHeight,
-        decoration: BoxDecoration(
-          color: AppColors.white,
-          border: Border(
-            bottom: BorderSide(color: AppColors.greyE5, width: 0.5),
-          ),
-        ),
-        child: Padding(
-          padding: EdgeInsets.only(top: topPadding),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              if (isSticky)
-                Padding(
-                  padding: EdgeInsets.only(left: SizeConfig.size8),
-                  child: IconButton(
-                    onPressed: onBack,
-                    splashRadius: SizeConfig.size22,
-                    icon: Icon(Icons.arrow_back,
-                        color: AppColors.mainTextColor,
-                        size: SizeConfig.size22),
-                  ),
-                ),
-              Expanded(child: child),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  @override
-  bool shouldRebuild(covariant _StickyCategoryHeaderDelegate oldDelegate) =>
-      topPadding != oldDelegate.topPadding ||
-      child != oldDelegate.child ||
-      onBack != oldDelegate.onBack;
-}

@@ -49,7 +49,7 @@ class ChooseFoodOptionDialog extends StatelessWidget {
               title: AppStrings.quickFoodSearch.tr,
               subtitle: AppStrings.quickFoodSearchSubtitle.tr,
               onTap: () {
-                Get.back();
+                // Get.back();
                 Get.to(() => const QuickFoodSearchScreen());
               },
             ),
@@ -59,7 +59,7 @@ class ChooseFoodOptionDialog extends StatelessWidget {
               title: AppStrings.searchViaRestaurant.tr,
               subtitle: AppStrings.searchViaRestaurantSubtitle.tr,
               onTap: () {
-                Get.back();
+                // Get.back();
                 Get.to(() => const RestaurantNearMeScreen());
               },
             ),

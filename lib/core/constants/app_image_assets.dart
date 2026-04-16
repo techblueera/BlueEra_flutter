@@ -59,10 +59,6 @@ class AppImageAssets {
   static const String bdmBanner = "${imgPath}bdm_banner.png";
   static const String qrBanner = "${imgPath}qr_banner.png";
 
-  static String frontDeskImage = "${imgPath}front_desk_image.png";
-  static String officeImage = "${imgPath}office_image.png";
-  static String roadsideViewImage = "${imgPath}roadside_view_image.png";
-
   static String noMeContent = "${imgPath}no_me_content.png";
   static String sampleGirlImage = "${imgPath}sample_girl_image.png";
   static const String transporterIcon = "${imgPath}transporter_icon.png";
@@ -195,6 +191,7 @@ class AppImageAssets {
   static String channelEarnService = "${imgPath}channel_earn_service.png";
   static String homeTuitionEarnService = "${imgPath}home_tuition_earn_service.png";
   static String homeStayEarnService = "${imgPath}home_stay_earn_service.png";
+  static String homeServicesEarnService = "${imgPath}home_services_earn_service.png";
 
   // Booking
   static String courierParcel = "${imgPath}courier_parcel.png";
@@ -275,6 +272,12 @@ class AppImageAssets {
   static String job_onsite = "${imgPath}job_onsite.png";
   static String job_part_time = "${imgPath}job_part_time.png";
   static String job_remote = "${imgPath}job_remote.png";
+
+  // Live Business Photos
+  static String storefrontExterior = "${imgPath}storefront_exterior.png";
+  static String interiorInsideShop = "${imgPath}interior_inside_shop.png";
+  static String billingCounterReceptionArea = "${imgPath}billing_counter_reception_area.png";
+  static String productServiceDisplay = "${imgPath}product_service_display.png";
 
 }
 

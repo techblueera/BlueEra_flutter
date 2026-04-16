@@ -11,8 +11,8 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/me/food/view/food_self_pickup_cart_screen.dart';
 import 'package:BlueEra/features/me/food/view/visit_food_store_details_screen.dart';
-import 'package:BlueEra/features/common/Discover/widget/discover_cart_icon.dart';
-import 'package:BlueEra/features/common/Discover/widget/common_generic_left_side_category_list.dart';
+import 'package:BlueEra/features/common/Discover/widget/banner_carousel.dart';
+import 'package:BlueEra/features/common/Discover/widget/sticky_category_header_delegate.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
 import 'package:BlueEra/features/common/store/controller/new_store_controller.dart';
@@ -20,13 +20,13 @@ import 'package:BlueEra/features/me/food/controller/food_selfpickup_controller.d
 import 'package:BlueEra/features/me/food/view/widget/food_self_pickup_cart.dart';
 import 'package:BlueEra/widgets/RatingBadge.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
-import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/network_assets.dart';
 import 'package:BlueEra/widgets/route_map_bottom_sheet.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 class RestaurantNearMeScreen extends StatefulWidget {
@@ -39,12 +39,8 @@ class RestaurantNearMeScreen extends StatefulWidget {
 class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
   final storeController = getOrPut(() => NewStoreController());
   final AuthController _authController = Get.find<AuthController>();
-  final ScrollController _scrollController = ScrollController();
   final RxInt selectedCategoryIndex = 0.obs;
 
-  /// Session-scoped food cart. Registered here (entry point) and deleted
-  /// in `dispose`, so going back from this screen clears the selection —
-  /// matching the grocery stores flow.
   final FoodSelfPickupController foodCartController =
       getOrPut<FoodSelfPickupController>(() => FoodSelfPickupController());
 
@@ -67,17 +63,16 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
     return _foodCategoryIcons[item.tagId] ?? item.imageUrl ?? '';
   }
 
+  final List<String> _bannerImages = const [
+    "https://img.freepik.com/free-photo/top-view-table-full-food_23-2149209253.jpg?w=1380",
+    "https://img.freepik.com/free-photo/chicken-skewers-with-slices-sweet-peppers-dill_2829-18813.jpg?w=1380",
+    "https://img.freepik.com/free-photo/flat-lay-batch-cooking-composition_23-2148765597.jpg?w=1380",
+  ];
+
   @override
   void initState() {
     super.initState();
     _fetchStores(categoryId: _categories.isNotEmpty ? _categories.first.tagId : null);
-
-    _scrollController.addListener(() {
-      if (_scrollController.position.pixels >=
-          _scrollController.position.maxScrollExtent - 200) {
-        storeController.getAllStoreNearBy(isLoadMore: true);
-      }
-    });
   }
 
   void _fetchStores({String? categoryId}) {
@@ -88,7 +83,6 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
 
   @override
   void dispose() {
-    _scrollController.dispose();
     deleteIfRegistered<FoodSelfPickupController>();
     super.dispose();
   }
@@ -168,58 +162,81 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
     );
   }
 
+  bool _onScrollNotification(ScrollNotification notification) {
+    if (notification is ScrollUpdateNotification &&
+        notification.metrics.pixels >=
+            notification.metrics.maxScrollExtent - 200) {
+      storeController.getAllStoreNearBy(isLoadMore: true);
+    }
+    return false;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final statusBarHeight = MediaQuery.of(context).padding.top;
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
         if (didPop) return;
         _handleBackWithCartWarning();
       },
-      child: Scaffold(
-        backgroundColor: AppColors.appBackgroundColor,
-        appBar: CommonBackAppBar(
-          isCustomTitleWidget: () => Obx(() {
-            final idx = selectedCategoryIndex.value;
-            final name = (idx >= 0 && idx < _categories.length)
-                ? _categories[idx].name ?? AppStrings.foodRestaurantNearMe.tr
-                : AppStrings.foodRestaurantNearMe.tr;
-            return Text(
-              name,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: AppColors.mainTextColor,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            );
-          }),
-          onBackTap: _handleBackWithCartWarning,
-          buildCustomActionWidget: () => Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              IconButton(
-                onPressed: () {},
-                icon: const Icon(Icons.search, size: 24),
-              ),
-              const DiscoverCartIcon(),
-            ],
-          ),
+      child: AnnotatedRegion<SystemUiOverlayStyle>(
+        value: SystemUiOverlayStyle.light.copyWith(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.light,
+          statusBarBrightness: Brightness.dark,
         ),
-        body: SafeArea(
-          child: Stack(
-            fit: StackFit.expand,
+        child: Scaffold(
+          body: Stack(
             children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildCategorySidebar(),
-                  SizedBox(width: SizeConfig.size6),
-                  Expanded(child: _buildRestaurantList()),
+              NestedScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                headerSliverBuilder: (context, innerBoxIsScrolled) => [
+                  SliverToBoxAdapter(
+                    child: BannerCarousel(
+                      images: _bannerImages,
+                      onBack: _handleBackWithCartWarning,
+                      statusBarHeight: statusBarHeight,
+                    ),
+                  ),
+                  SliverPersistentHeader(
+                    pinned: true,
+                    delegate: StickyCategoryHeaderDelegate(
+                      topPadding: statusBarHeight,
+                      categories: _categories.map((c) => StickyCategory(
+                        id: c.tagId ?? '',
+                        name: c.name ?? '',
+                        imageUrl: _getCategoryIcon(c),
+                      )).toList(),
+                      selectedId: _categories.isNotEmpty &&
+                              selectedCategoryIndex.value < _categories.length
+                          ? _categories[selectedCategoryIndex.value].tagId
+                          : null,
+                      onCategoryTap: (item) {
+                        final idx = _categories.indexWhere((c) => c.tagId == item.id);
+                        if (idx >= 0) {
+                          selectedCategoryIndex.value = idx;
+                          _fetchStores(categoryId: item.id);
+                        }
+                        setState(() {});
+                      },
+                      onBack: _handleBackWithCartWarning,
+                    ),
+                  ),
                 ],
+                body: NotificationListener<ScrollNotification>(
+                  onNotification: _onScrollNotification,
+                  child: _buildRestaurantList(),
+                ),
               ),
-              FoodSelfPickupCart(controller: foodCartController),
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: SafeArea(
+                  child: FoodSelfPickupCart(controller: foodCartController),
+                ),
+              ),
             ],
           ),
         ),
@@ -227,25 +244,7 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
     );
   }
 
-  // ── Left Category Sidebar ─────────────────────────────────────────────────
-
-  Widget _buildCategorySidebar() {
-    return CommonGenericLeftSideCategoryList<CategoryData>(
-      items: _categories,
-      getLabel: (item) => item.name ?? '',
-      getIcon: (item) => _getCategoryIcon(item),
-      isSelected: (item) {
-        final idx = _categories.indexOf(item);
-        return selectedCategoryIndex.value == idx;
-      },
-      onTap: (item, index) {
-        selectedCategoryIndex.value = index;
-        _fetchStores(categoryId: item.tagId);
-      },
-    );
-  }
-
-  // ── Right Restaurant List ─────────────────────────────────────────────────
+  // ── Restaurant List ─────────────────────────────────────────────────
 
   Widget _buildRestaurantList() {
     return Obx(() {
@@ -261,11 +260,10 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
       }
 
       return ListView.builder(
-        controller: _scrollController,
         padding: EdgeInsets.only(
-          right: SizeConfig.size8,
-          bottom: SizeConfig.paddingL,
-          top: SizeConfig.size8,
+          left: SizeConfig.size12,
+          right: SizeConfig.size12,
+          bottom: SizeConfig.paddingL + 70,
         ),
         itemCount: storeController.allStore.length +
             (storeController.isAllStoreLoadingMore.value ? 1 : 0),
@@ -289,7 +287,8 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
   Widget _buildShimmerList() {
     return ListView.builder(
       padding: EdgeInsets.only(
-        right: SizeConfig.size8,
+        left: SizeConfig.size12,
+        right: SizeConfig.size12,
         bottom: SizeConfig.paddingL,
         top: SizeConfig.size8,
       ),
@@ -368,32 +367,6 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
     );
   }
 
-  List<Color> _getCategoryGradient(String categoryName) {
-    final name = categoryName.toLowerCase();
-    if (name.contains('restaurant') || name.contains('food')) {
-      return [const Color(0xFFE53935), const Color(0xFFFF7043)];
-    } else if (name.contains('cafe') || name.contains('coffee')) {
-      return [const Color(0xFF6D4C41), const Color(0xFFA1887F)];
-    } else if (name.contains('bakery') || name.contains('sweet')) {
-      return [const Color(0xFFD81B60), const Color(0xFFF06292)];
-    } else if (name.contains('grocery') || name.contains('veg')) {
-      return [const Color(0xFF2E7D32), const Color(0xFF66BB6A)];
-    } else if (name.contains('fast') || name.contains('burger')) {
-      return [const Color(0xFFFF6F00), const Color(0xFFFFCA28)];
-    } else if (name.contains('pizza') || name.contains('italian')) {
-      return [const Color(0xFFC62828), const Color(0xFFEF5350)];
-    } else if (name.contains('chinese') || name.contains('asian')) {
-      return [const Color(0xFF4E342E), const Color(0xFF8D6E63)];
-    } else if (name.contains('ice') || name.contains('dessert')) {
-      return [const Color(0xFF7B1FA2), const Color(0xFFCE93D8)];
-    } else if (name.contains('juice') || name.contains('drink')) {
-      return [const Color(0xFF00838F), const Color(0xFF4DD0E1)];
-    } else if (name.contains('biryani') || name.contains('north')) {
-      return [const Color(0xFFBF360C), const Color(0xFFFF8A65)];
-    }
-    return [const Color(0xFF37474F), const Color(0xFF78909C)];
-  }
-
   Widget _buildDottedLine() {
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -462,26 +435,30 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
                           imgUrl: livePhotos.first,
                           boxFit: BoxFit.cover,
                         )
-                      : Container(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                AppColors.fillColor,
-                                AppColors.greyE5,
-                              ],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
+                      : hasLogo
+                          ? NetWorkOcToAssets(
+                              imgUrl: store.logo!,
+                              boxFit: BoxFit.cover,
+                            )
+                          : Container(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    AppColors.fillColor,
+                                    AppColors.greyE5,
+                                  ],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                              ),
+                              child: Center(
+                                child: Icon(Icons.restaurant_menu,
+                                    size: 48,
+                                    color: AppColors.secondaryTextColor
+                                        .withValues(alpha: 0.5)),
+                              ),
                             ),
-                          ),
-                          child: Center(
-                            child: Icon(Icons.restaurant_menu,
-                                size: 48,
-                                color: AppColors.secondaryTextColor
-                                    .withValues(alpha: 0.5)),
-                          ),
-                        ),
                 ),
-                // Orders badge (top-right)
                 Positioned(
                   top: 10,
                   right: 10,
@@ -515,7 +492,6 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
                     ),
                   ),
                 ),
-                // Veg/Non-veg indicator (top-left)
                 Positioned(
                   top: 10,
                   left: 10,
@@ -536,7 +512,6 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
                     child: _buildVegNonVegIcon(isVeg, size: 14),
                   ),
                 ),
-                // Gradient overlay at bottom
                 Positioned(
                   bottom: 0,
                   left: 0,
@@ -555,7 +530,6 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
                     ),
                   ),
                 ),
-                // Live photo count (bottom-right, if multiple)
                 if (livePhotos.length > 1)
                   Positioned(
                     bottom: 8,
@@ -592,7 +566,6 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Row 1: Logo + Name + Rating
                   Row(
                     children: [
                       Container(
@@ -670,12 +643,8 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
                     ],
                   ),
                   const SizedBox(height: 10),
-
-                  // Dotted divider
                   _buildDottedLine(),
                   const SizedBox(height: 10),
-
-                  // Row 3: Distance + Address + View
                   Row(
                     children: [
                       Expanded(
@@ -752,7 +721,6 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
                             destinationLng: store.businessLocation?.lon?.toDouble() ?? 0.0,
                             livePhotos: store.livePhotos,
                               storeBusinessID:store.id??"" ,storeUserID: store.userId??""
-
                           ),
                           borderRadius: BorderRadius.circular(22),
                           child: Container(
@@ -764,8 +732,6 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
                       ),
                     ],
                   ),
-
-                  // ── Stats row: Category count + Product count ──
                   SizedBox(height: SizeConfig.size10),
                   Row(
                     children: [

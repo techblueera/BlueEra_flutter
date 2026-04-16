@@ -52,6 +52,7 @@ class _PriceEditSheetBody extends StatefulWidget {
 class _PriceEditSheetBodyState extends State<_PriceEditSheetBody> {
   late final List<TextEditingController> _priceCtrls;
   late final List<TextEditingController> _mrpCtrls;
+  bool _isLoading = false;
 
   SellerClassification get _classification =>
       widget.product.product.sellerClassification!;
@@ -81,6 +82,7 @@ class _PriceEditSheetBodyState extends State<_PriceEditSheetBody> {
   }
 
   Future<void> _onSave() async {
+    setState(() => _isLoading = true);
     bool allOk = true;
     for (var i = 0; i < _classification.variants.length; i++) {
       final v = _classification.variants[i];
@@ -97,6 +99,7 @@ class _PriceEditSheetBodyState extends State<_PriceEditSheetBody> {
       if (!ok) allOk = false;
     }
     if (!mounted) return;
+    setState(() => _isLoading = false);
     commonSnackBar(message: allOk ? 'Updated' : 'Some updates failed');
     if (allOk) Navigator.pop(context);
   }
@@ -189,6 +192,7 @@ class _PriceEditSheetBodyState extends State<_PriceEditSheetBody> {
                 radius: 10,
                 bgColor: AppColors.primaryColor,
                 title: AppStrings.save,
+                isLoading: _isLoading,
                 onTap: _onSave,
               ),
               SizedBox(height: MediaQuery.of(context).padding.bottom),

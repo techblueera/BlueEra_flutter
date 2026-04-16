@@ -11,26 +11,21 @@ class FoodSelfPickupCart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Positioned(
-      bottom: 40,
-      left: 0,
-      right: 0,
-      child: Center(
-        child: Obx(() {
-          final selected = controller.selectedFoodVariants;
-          final displayImages = selected.take(3).map((v) {
-            final img = controller.cartProductImages[v.id];
-            if (img != null && img.isNotEmpty) return img;
-            return null;
-          }).toList();
+    return Center(
+      child: Obx(() {
+        final selected = controller.selectedFoodVariants;
+        final displayImages = selected.take(3).map((v) {
+          final img = controller.cartProductImages[v.id];
+          if (img != null && img.isNotEmpty) return img;
+          return null;
+        }).toList();
 
-          return FloatingCartWidget(
-            itemCount: selected.length,
-            displayImages: displayImages,
-            onTap: () => Get.to(() => const FoodSelfPickUpCartScreen()),
-          );
-        }),
-      ),
+        return FloatingCartWidget(
+          itemCount: selected.length,
+          displayImages: displayImages,
+          onTap: () => Get.to(() => const FoodSelfPickUpCartScreen()),
+        );
+      }),
     );
   }
 }

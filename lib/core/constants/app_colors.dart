@@ -5,7 +5,6 @@ class AppColors {
   static const red = Colors.red;
   static const black = Color(0xff000000);
   static const lightBlueE9 = Color(0xffD7DDE9);
-
   static const black28 = Color(0xFF161F28);
   static const blackCC = Color(0xCC161F28);
   static const black23 = Color(0xFF232323);
@@ -146,7 +145,6 @@ class AppColors {
   static const purpleFD = Color(0xFFF0E7FD);
   static const purpleFF = Color(0xFFE0E7FF);
   static const whiteFC = Color(0xffF5F7FC);
-
   static const kBlue   = Color(0xFF2563EB);
   static const kBlueDark  = Color(0xFF1D4ED8);
   static const kBlueLight = Color(0xFFEFF6FF);
@@ -157,5 +155,4 @@ class AppColors {
   static const kBg        = Color(0xFFF1F5F9);
   static const kCard      = Colors.white;
   static const kRed       = Color(0xFFEF4444);
-
 }

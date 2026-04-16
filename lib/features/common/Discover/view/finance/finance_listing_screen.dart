@@ -1,11 +1,11 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/Discover/view/finance/finance_list_screen.dart';
-import 'package:BlueEra/features/common/Discover/widget/common_generic_left_side_category_list.dart';
+import 'package:BlueEra/features/common/Discover/widget/banner_carousel.dart';
+import 'package:BlueEra/features/common/Discover/widget/sticky_category_header_delegate.dart';
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
-import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 class FinanceListingScreen extends StatefulWidget {
@@ -21,6 +21,12 @@ class _FinanceListingScreenState extends State<FinanceListingScreen> {
   final Rx<OnboardingCategoryModel?> _selectedCategory =
       Rx<OnboardingCategoryModel?>(null);
 
+  final List<String> _bannerImages = const [
+    "https://img.freepik.com/free-photo/business-finance-employment-female-successful-entrepreneurs-concept_1258-93733.jpg?w=1380",
+    "https://img.freepik.com/free-photo/financial-concept-with-wooden-cubes-calculator-coins_176474-8187.jpg?w=1380",
+    "https://img.freepik.com/free-photo/arrangement-finance-elements-diagram_23-2148793749.jpg?w=1380",
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -30,41 +36,51 @@ class _FinanceListingScreenState extends State<FinanceListingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.appBackgroundColor,
-      appBar: CommonBackAppBar(
-        title: 'Financial Sectors',
+    final statusBarHeight = MediaQuery.of(context).padding.top;
+    final stickyCategories = financeCategories
+        .map((c) => StickyCategory(
+              id: c.slugId,
+              name: c.name,
+              imageUrl: c.icon,
+            ))
+        .toList();
+
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light.copyWith(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+        statusBarBrightness: Brightness.dark,
       ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            SizedBox(height: SizeConfig.paddingXSL),
-            Expanded(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _leftCategoryList(),
-                  SizedBox(width: SizeConfig.size6),
-                  Expanded(child: Obx(() => _rightContent())),
-                ],
+      child: Scaffold(
+        backgroundColor: AppColors.appBackgroundColor,
+        body: NestedScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          headerSliverBuilder: (context, innerBoxIsScrolled) => [
+            SliverToBoxAdapter(
+              child: BannerCarousel(
+                images: _bannerImages,
+                onBack: () => Navigator.pop(context),
+                statusBarHeight: statusBarHeight,
+              ),
+            ),
+            SliverPersistentHeader(
+              pinned: true,
+              delegate: StickyCategoryHeaderDelegate(
+                topPadding: statusBarHeight,
+                categories: stickyCategories,
+                selectedId: _selectedCategory.value?.slugId,
+                onCategoryTap: (item) {
+                  _selectedCategory.value = financeCategories
+                      .firstWhere((c) => c.slugId == item.id);
+                  setState(() {});
+                },
+                onBack: () => Navigator.pop(context),
               ),
             ),
           ],
+          body: Obx(() => _rightContent()),
         ),
       ),
-    );
-  }
-
-  Widget _leftCategoryList() {
-    return CommonGenericLeftSideCategoryList<OnboardingCategoryModel>(
-      items: financeCategories,
-      getLabel: (item) => item.name,
-      getIcon: (item) => item.icon ?? '',
-      isSelected: (item) =>
-          _selectedCategory.value?.slugId == item.slugId,
-      onTap: (item, index) {
-        _selectedCategory.value = item;
-      },
     );
   }
 
