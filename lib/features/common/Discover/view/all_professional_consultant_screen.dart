@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
@@ -11,24 +9,24 @@ import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/Discover/model/profe_cons_res_model.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/book_via_blueera_partner_banner.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/discover_professionals_view_screen.dart';
-import 'package:BlueEra/features/common/Discover/widget/common_generic_left_side_category_list.dart';
+import 'package:BlueEra/features/common/Discover/widget/banner_carousel.dart';
+import 'package:BlueEra/features/common/Discover/widget/sticky_category_header_delegate.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
 import 'package:BlueEra/features/common/auth/model/personal_profession_model.dart';
+import 'package:BlueEra/features/common/store/widget/store_live_photo_widget.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
-import 'package:BlueEra/widgets/common_back_app_bar.dart';
-import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/common_draggable_bottom_sheet.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
+import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:BlueEra/features/common/Discover/widget/discover_cart_icon.dart';
-import 'package:BlueEra/features/chat/view/personal_chat/personal_chat_screen.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 import '../../../chat/auth/controller/chat_view_controller.dart';
@@ -51,7 +49,12 @@ class _AllProfessionConsultantScreenState
     extends State<AllProfessionConsultantScreen> {
   final controller = getOrPut(() => DiscoverController());
   late List<ProfessionTypeData> _professionalConsultantCategories;
-  ScrollController scrollController = ScrollController();
+
+  final List<String> _bannerImages = const [
+    "https://img.freepik.com/free-photo/business-people-casual-meeting_53876-101882.jpg?w=1380",
+    "https://img.freepik.com/free-photo/group-diverse-people-having-business-meeting_53876-25060.jpg?w=1380",
+    "https://img.freepik.com/free-photo/side-view-woman-working-as-lawyer_23-2151202449.jpg?w=1380",
+  ];
 
   @override
   initState() {
@@ -66,113 +69,102 @@ class _AllProfessionConsultantScreenState
           )
         : null;
     controller.fetchProfessionalConsultantServices();
+  }
 
-    // Listener for Pagination
-    scrollController.addListener(() {
-      if (scrollController.position.pixels ==
-          scrollController.position.maxScrollExtent) {
-        controller.fetchProfessionalConsultantServices(isLoadMore: true);
-      }
-    });
+  bool _onScrollNotification(ScrollNotification notification) {
+    if (notification is ScrollUpdateNotification &&
+        notification.metrics.pixels >=
+            notification.metrics.maxScrollExtent - 200) {
+      controller.fetchProfessionalConsultantServices(isLoadMore: true);
+    }
+    return false;
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: CommonBackAppBar(
+    final statusBarHeight = MediaQuery.of(context).padding.top;
+    final stickyCategories = [
+      StickyCategory(id: 'ALL_OPTION', name: 'All', imageUrl: AppImageAssets.all),
+      ..._professionalConsultantCategories.map((c) => StickyCategory(
+        id: c.tagId ?? '',
+        name: c.name ?? '',
+        imageUrl: getIndividualProfessionIcon(c.tagId).isNotEmpty
+            ? getIndividualProfessionIcon(c.tagId)
+            : c.imageUrl ?? '',
+      )),
+    ];
+
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light.copyWith(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+        statusBarBrightness: Brightness.dark,
       ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            // ─── Book via BlueEra Partner Banner ───
-            BookViaBlueEraPartnerBanner(
-              onTap: () {
-                // your navigation here
-              },
-            ),
-            Expanded(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  leftCategoryList(),
-                  SizedBox(
-                    width: SizeConfig.size6,
-                  ),
-                  Expanded(child: rightContent()),
-                ],
+      child: Scaffold(
+        body: NestedScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          headerSliverBuilder: (context, innerBoxIsScrolled) => [
+            SliverToBoxAdapter(
+              child: BannerCarousel(
+                images: _bannerImages,
+                onBack: () => Navigator.pop(context),
+                statusBarHeight: statusBarHeight,
               ),
-            )
+            ),
+            SliverPersistentHeader(
+              pinned: true,
+              delegate: StickyCategoryHeaderDelegate(
+                topPadding: statusBarHeight,
+                categories: stickyCategories,
+                selectedId: controller.selectedProfessionalConsultantData.value?.slugId ?? 'ALL_OPTION',
+                onCategoryTap: (item) {
+                  if (item.id == 'ALL_OPTION') {
+                    controller.selectedProfessionalConsultantData.value = null;
+                  } else {
+                    controller.selectedProfessionalConsultantData.value = OnboardingCategoryModel(
+                      name: item.name,
+                      slugId: item.id,
+                      accountType: AppConstants.individual,
+                    );
+                  }
+                  controller.fetchProfessionalConsultantServices();
+                  setState(() {});
+                },
+                onBack: () => Navigator.pop(context),
+              ),
+            ),
           ],
+          body: NotificationListener<ScrollNotification>(
+            onNotification: _onScrollNotification,
+            child: rightContent(),
+          ),
         ),
       ),
     );
   }
 
-  Widget leftCategoryList() {
-    final allItem = ProfessionTypeData(
-      name: 'All',
-      tagId: 'ALL_OPTION',
-      imageUrl: AppImageAssets.all,
-    );
-
-    final fullList = [allItem, ..._professionalConsultantCategories];
-
-    return CommonGenericLeftSideCategoryList<ProfessionTypeData>(
-      items: fullList,
-      getLabel: (item) => item.name ?? '',
-      getIcon: (item) => getIndividualProfessionIcon(item.tagId).isNotEmpty
-          ? getIndividualProfessionIcon(item.tagId)
-          : item.imageUrl ?? '',
-      isSelected: (item) {
-        if (item.tagId == 'ALL_OPTION') {
-          return controller.selectedProfessionalConsultantData.value == null;
-        }
-        return controller.selectedProfessionalConsultantData.value?.slugId ==
-            item.tagId;
-      },
-      onTap: (item, index) {
-        controller.selectedTabIndex.value = index;
-
-        if (item.tagId == 'ALL_OPTION') {
-          controller.selectedProfessionalConsultantData.value = null;
-        } else {
-          controller.selectedProfessionalConsultantData.value = OnboardingCategoryModel(
-            name: item.name ?? '',
-            slugId: item.tagId ?? '',
-            accountType: AppConstants.individual,
-          );
-        }
-        // Single API Call (Clean & Shared)
-        controller.fetchProfessionalConsultantServices();
-      },
-    );
-  }
-
   Widget rightContent() {
     return Obx(() => Padding(
-          padding: EdgeInsets.only(right: SizeConfig.size8),
+          padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // BookViaBlueEraPartnerBanner(onTap: () {}),
               HorizontalTabSelector<CategoryFilter>(
                 tabs: controller.filters,
                 selectedIndex:
                     controller.filters.indexOf(controller.selectedFilter.value),
                 horizontalMargin: 0.0,
+                verticalMargin: 0.0,
                 onTabSelected: (index, _) {
                   final selectedEnum = controller.filters[index];
-
-                  if (controller.filters == selectedEnum) return;
-
+                  if (controller.selectedFilter.value == selectedEnum) return;
                   controller.selectedFilter.value = selectedEnum;
-                  // controller.callApi();
                 },
                 labelBuilder: (r) => r.localizedLabel,
                 unSelectedBackgroundColor: AppColors.white,
               ),
-              SizedBox(
-                height: SizeConfig.size5,
-              ),
+              SizedBox(height: SizeConfig.size5),
               Expanded(
                 child: Obx(() {
                   if (controller.isProfConServiceLoading.value &&
@@ -186,16 +178,11 @@ class _AllProfessionConsultantScreenState
                   }
 
                   return ListView.builder(
-                      controller: scrollController,
                       itemCount: controller.professionalConsDataList.length +
-                          (controller.isProfConServiceLoadingMore.value
-                              ? 1
-                              : 0),
-                      shrinkWrap: true,
+                          (controller.isProfConServiceLoadingMore.value ? 1 : 0),
                       padding: EdgeInsets.only(bottom: SizeConfig.paddingL),
                       itemBuilder: (context, index) {
-                        if (index ==
-                            controller.professionalConsDataList.length) {
+                        if (index == controller.professionalConsDataList.length) {
                           return const Center(
                             child: Padding(
                               padding: EdgeInsets.all(16.0),
@@ -203,11 +190,8 @@ class _AllProfessionConsultantScreenState
                             ),
                           );
                         }
-
-                        var service =
-                            controller.professionalConsDataList[index];
-
-                        return selfProfessionCard(service);
+                        return selfProfessionCard(
+                            controller.professionalConsDataList[index]);
                       });
                 }),
               )
@@ -284,16 +268,62 @@ class _AllProfessionConsultantScreenState
 
               SizedBox(height: SizeConfig.size6),
 
-              // if(service.bio?.isNotEmpty??false)
-              //   ...[
-              //     CustomText(
-              //         service.bio ?? 'No description available...',
-              //         fontSize: SizeConfig.small,
-              //         color: AppColors.secondaryTextColor,
-              //         fontWeight: FontWeight.w400
-              //     ),
-              //     SizedBox(height: SizeConfig.size6),
-              //   ],
+              // ─── Gallery Photos / Profile Picture ───
+              if (service.gallery?.signedUrls?.isNotEmpty == true) ...[
+                StoreLivePhotoWidget(
+                  livePhotos: service.gallery!.signedUrls!,
+                  natureOfBusiness: service.userDetails?.profession ?? 'Consultant',
+                  height: 200,
+                  onViewFullScreen: ({
+                    required int index,
+                    required List<String> storeImage,
+                    required String natureOfBusiness,
+                  }) {
+                    navigatePushTo(
+                      context,
+                      ImageViewScreen(
+                        subTitle: natureOfBusiness,
+                        appBarTitle: AppStrings.imageViewer,
+                        imageUrls: storeImage,
+                        initialIndex: index,
+                      ),
+                    );
+                  },
+                ),
+                SizedBox(height: SizeConfig.size6),
+              ] else if ((service.userDetails?.profileImage ?? '').isNotEmpty) ...[
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: GestureDetector(
+                    onTap: () => navigatePushTo(
+                      context,
+                      ImageViewScreen(
+                        subTitle: service.userDetails?.profession ?? 'Consultant',
+                        appBarTitle: AppStrings.imageViewer,
+                        imageUrls: [service.userDetails!.profileImage!],
+                        initialIndex: 0,
+                      ),
+                    ),
+                    child: CachedNetworkImage(
+                      imageUrl: service.userDetails!.profileImage!,
+                      height: 200,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      memCacheWidth: 600,
+                      memCacheHeight: 600,
+                      placeholder: (_, __) => LocalAssets(
+                        imagePath: AppIconAssets.place_holder_image,
+                        boxFix: BoxFit.fill,
+                      ),
+                      errorWidget: (_, __, ___) => LocalAssets(
+                        imagePath: AppIconAssets.place_holder_image,
+                        boxFix: BoxFit.fill,
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(height: SizeConfig.size6),
+              ],
 
               /*  (service.certificates != null &&
                       (service.certificates?.isNotEmpty ?? false))

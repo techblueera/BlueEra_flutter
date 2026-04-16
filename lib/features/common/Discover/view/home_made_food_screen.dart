@@ -5,34 +5,32 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/Discover/controller/home_made_food_consumer_controller.dart';
-import 'package:BlueEra/features/common/Discover/widget/common_generic_left_side_category_list.dart';
-import 'package:BlueEra/features/common/Discover/widget/discover_cart_icon.dart';
+import 'package:BlueEra/features/common/Discover/widget/banner_carousel.dart';
+import 'package:BlueEra/features/common/Discover/widget/sticky_category_header_delegate.dart';
 import 'package:BlueEra/features/me/grocery/widget/discount_badge.dart';
 import 'package:BlueEra/features/me/grocery/widget/food_type_or_cooking_method.dart';
 import 'package:BlueEra/features/me/grocery/widget/price_row.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/model/food_item_model.dart';
 import 'package:BlueEra/features/common/Discover/model/consumer_tiffin_response_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/self_employee_screen.dart';
-import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
-class HomeMadeFoodNewScreen extends StatefulWidget {
-  const HomeMadeFoodNewScreen({super.key});
+class HomeMadeFoodScreen extends StatefulWidget {
+  const HomeMadeFoodScreen({super.key});
 
   @override
-  State<HomeMadeFoodNewScreen> createState() => _HomeMadeFoodNewScreenState();
+  State<HomeMadeFoodScreen> createState() => _HomeMadeFoodScreenState();
 }
 
-class _HomeMadeFoodNewScreenState extends State<HomeMadeFoodNewScreen> {
+class _HomeMadeFoodScreenState extends State<HomeMadeFoodScreen> {
   final controller = getOrPut(() => HomeMadeFoodConsumerController());
-  final ScrollController _scrollController = ScrollController();
 
-  // Sidebar: 0=Tiffin, 1=Bakery, 2=Sweets, 3=Namkeen, 4=Pickles
   static final List<_FoodCategory> _categories = [
     _FoodCategory('Tiffin',   AppIconAssets.morningLunchIcon),
     _FoodCategory('Bakery',   AppIconAssets.bakeryIcon),
@@ -40,86 +38,119 @@ class _HomeMadeFoodNewScreenState extends State<HomeMadeFoodNewScreen> {
     _FoodCategory('Namkeen',  AppIconAssets.namkeenIcon),
     _FoodCategory('Pickles',  AppIconAssets.picklesIcon),
   ];
-  // Tiffin sub-tabs mapped to MealType keys
+
   final List<String> _tiffinFilterTabs = [
     'Break-Fast',
     'Morning Tiffin / Lunch',
     'Evening Tiffin / Dinner',
   ];
 
+  final List<String> _bannerImages = const [
+    "https://img.freepik.com/free-photo/top-view-indian-food-arrangement_23-2148723455.jpg?w=1380",
+    "https://img.freepik.com/free-photo/high-angle-pakistani-meal-composition_23-2148825105.jpg?w=1380",
+    "https://img.freepik.com/free-photo/delicious-indian-dosa-composition_23-2149086052.jpg?w=1380",
+  ];
+
   @override
   void initState() {
     super.initState();
-    _scrollController.addListener(_onScroll);
-    // Default: tiffin category, breakfast tab
     controller.fetchAllTiffins();
   }
 
   @override
   void dispose() {
-    _scrollController.removeListener(_onScroll);
-    _scrollController.dispose();
     deleteIfRegistered<HomeMadeFoodConsumerController>();
     super.dispose();
   }
 
-  void _onScroll() {
-    if (_scrollController.position.pixels >=
-        _scrollController.position.maxScrollExtent - 200) {
+  bool _onScrollNotification(ScrollNotification notification) {
+    if (notification is ScrollUpdateNotification &&
+        notification.metrics.pixels >=
+            notification.metrics.maxScrollExtent - 200) {
       if (controller.selectedCategoryIndex.value == 0) {
         controller.onTiffinScrollEnd();
       } else {
         controller.onHomeFoodScrollEnd();
       }
     }
+    return false;
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.appBackgroundColor,
-      appBar: CommonBackAppBar(
-        title: 'Home Made Food',
-        buildCustomActionWidget: () => Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconButton(
-              onPressed: () {},
-              icon: const Icon(Icons.search, size: 24),
-            ),
-            const DiscoverCartIcon(),
-          ],
-        ),
+    final statusBarHeight = MediaQuery.of(context).padding.top;
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light.copyWith(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+        statusBarBrightness: Brightness.dark,
       ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            if (isIndividualUser()) ...[
-              _buildPostButton(),
-              SizedBox(height: SizeConfig.size4),
-            ],
-            Expanded(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildCategorySidebar(),
-                  SizedBox(width: SizeConfig.size4),
-                  Expanded(child: _buildRightContent()),
-                ],
+      child: Scaffold(
+        backgroundColor: AppColors.appBackgroundColor,
+        body: NestedScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          headerSliverBuilder: (context, innerBoxIsScrolled) => [
+            SliverToBoxAdapter(
+              child: BannerCarousel(
+                images: _bannerImages,
+                onBack: () => Navigator.pop(context),
+                statusBarHeight: statusBarHeight,
+              ),
+            ),
+            SliverPersistentHeader(
+              pinned: true,
+              delegate: StickyCategoryHeaderDelegate(
+                topPadding: statusBarHeight,
+                singleLineLabel: true,
+                categories: _categories.map((c) => StickyCategory(
+                  id: c.name,
+                  name: c.name,
+                  imageUrl: c.icon,
+                )).toList(),
+                selectedId: _categories[controller.selectedCategoryIndex.value].name,
+                onCategoryTap: (item) {
+                  final idx = _categories.indexWhere((c) => c.name == item.id);
+                  if (idx >= 0) controller.onCategoryChanged(idx);
+                  setState(() {});
+                },
+                onBack: () => Navigator.pop(context),
               ),
             ),
           ],
+          body: NotificationListener<ScrollNotification>(
+            onNotification: _onScrollNotification,
+            child: _buildContent(),
+          ),
         ),
       ),
     );
+  }
+
+  // ── Right Content ──
+  Widget _buildContent() {
+    return Obx(() {
+      final catIndex = controller.selectedCategoryIndex.value;
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (isIndividualUser()) ...[
+            _buildPostButton(),
+            SizedBox(height: SizeConfig.size4),
+          ],
+          if (catIndex == 0) _buildFilterTabs(),
+          Expanded(child: _buildContentList(catIndex)),
+        ],
+      );
+    });
   }
 
   // ── Post Button ──
   Widget _buildPostButton() {
     return Padding(
       padding: EdgeInsets.only(
-        left: SizeConfig.size8,
-        right: SizeConfig.size8,
+        left: SizeConfig.size12,
+        right: SizeConfig.size12,
         bottom: SizeConfig.size8,
         top: SizeConfig.size15,
       ),
@@ -149,37 +180,6 @@ class _HomeMadeFoodNewScreenState extends State<HomeMadeFoodNewScreen> {
     );
   }
 
-  // ── Left Category Sidebar ──
-  Widget _buildCategorySidebar() {
-    return CommonGenericLeftSideCategoryList<_FoodCategory>(
-      items: _categories,
-      getLabel: (item) => item.name,
-      getIcon: (item) => item.icon,
-      isSelected: (item) =>
-          _categories.indexOf(item) ==
-          controller.selectedCategoryIndex.value,
-      onTap: (item, index) {
-        controller.onCategoryChanged(index);
-      },
-    );
-  }
-
-  // ── Right Content ──
-  Widget _buildRightContent() {
-    return Obx(() {
-      final catIndex = controller.selectedCategoryIndex.value;
-
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Tiffin sub-tabs (only for index 0)
-          if (catIndex == 0) _buildFilterTabs(),
-          Expanded(child: _buildContentList(catIndex)),
-        ],
-      );
-    });
-  }
-
   Widget _buildFilterTabs() {
     return Obx(() => HorizontalTabSelector<String>(
           tabs: _tiffinFilterTabs,
@@ -187,8 +187,8 @@ class _HomeMadeFoodNewScreenState extends State<HomeMadeFoodNewScreen> {
           labelBuilder: (tab) => tab,
           horizontalPadding: 16,
           verticalPadding: 7,
-          horizontalMargin: 0,
-          verticalMargin: 8,
+          horizontalMargin: 8,
+          verticalMargin: 0,
           unSelectedBackgroundColor: AppColors.white,
           unSelectedBorderColor: AppColors.greyE5,
           onTabSelected: (index, _) => controller.onTiffinFilterChanged(index),
@@ -198,7 +198,6 @@ class _HomeMadeFoodNewScreenState extends State<HomeMadeFoodNewScreen> {
   Widget _buildContentList(int catIndex) {
     return Obx(() {
       if (catIndex == 0) {
-        // ── Tiffin ──
         if (controller.isTiffinFirstLoading.value) {
           return const Center(child: CircularProgressIndicator());
         }
@@ -207,7 +206,6 @@ class _HomeMadeFoodNewScreenState extends State<HomeMadeFoodNewScreen> {
         }
         return _buildTiffinList();
       } else {
-        // ── Food (Bakery / Sweets / Namkeen / Pickles) ──
         if (controller.isHomeFoodFirstLoading.value) {
           return const Center(child: CircularProgressIndicator());
         }
@@ -233,8 +231,11 @@ class _HomeMadeFoodNewScreenState extends State<HomeMadeFoodNewScreen> {
       final showLoader = controller.isTiffinLoadingMore.value;
 
       return ListView.builder(
-        controller: _scrollController,
-        padding: EdgeInsets.only(right: SizeConfig.size8, bottom: 20),
+        padding: EdgeInsets.only(
+            left: SizeConfig.size8,
+            right: SizeConfig.size8,
+            top: SizeConfig.size8,
+            bottom: SizeConfig.size20),
         itemCount: items.length + (showLoader ? 1 : 0),
         itemBuilder: (context, index) {
           if (index == items.length) {
@@ -268,7 +269,6 @@ class _HomeMadeFoodNewScreenState extends State<HomeMadeFoodNewScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Center name header ──
           if (meal.centerName.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(
@@ -294,8 +294,6 @@ class _HomeMadeFoodNewScreenState extends State<HomeMadeFoodNewScreen> {
                 ],
               ),
             ),
-
-          // ── Main content row ──
           Padding(
             padding: EdgeInsets.only(
               left: 10,
@@ -308,7 +306,6 @@ class _HomeMadeFoodNewScreenState extends State<HomeMadeFoodNewScreen> {
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Image
                     Stack(
                       children: [
                         ClipRRect(
@@ -341,7 +338,6 @@ class _HomeMadeFoodNewScreenState extends State<HomeMadeFoodNewScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Tiffin name
                           CustomText(
                             meal.tiffinName,
                             fontSize: 14,
@@ -351,8 +347,6 @@ class _HomeMadeFoodNewScreenState extends State<HomeMadeFoodNewScreen> {
                             color: AppColors.mainTextColor,
                           ),
                           const SizedBox(height: 6),
-
-                          // Price
                           PriceRow(
                             sellingPrice: '\u20B9${meal.sellingPrice}',
                             mrp: '\u20B9${meal.mrpPrice}',
@@ -360,8 +354,6 @@ class _HomeMadeFoodNewScreenState extends State<HomeMadeFoodNewScreen> {
                                 '${calculateDiscount(meal.sellingPrice, meal.mrpPrice)}% Off',
                           ),
                           const SizedBox(height: 8),
-
-                          // Tags
                           Wrap(
                             spacing: 6,
                             runSpacing: 4,
@@ -376,7 +368,6 @@ class _HomeMadeFoodNewScreenState extends State<HomeMadeFoodNewScreen> {
                                   label: '${meal.startTime} - ${meal.endTime}',
                                   icon: AppIconAssets.storeWatch,
                                 ),
-
                             ],
                           ),
                         ],
@@ -417,8 +408,10 @@ class _HomeMadeFoodNewScreenState extends State<HomeMadeFoodNewScreen> {
       final showLoader = controller.isHomeFoodLoadingMore.value;
 
       return ListView.builder(
-        controller: _scrollController,
-        padding: EdgeInsets.only(right: SizeConfig.size8, bottom: 20),
+        padding: EdgeInsets.only(
+            left: SizeConfig.size8,
+            right: SizeConfig.size8,
+            bottom: 20),
         itemCount: items.length + (showLoader ? 1 : 0),
         itemBuilder: (context, index) {
           if (index == items.length) {
@@ -605,8 +598,6 @@ class _HomeMadeFoodNewScreenState extends State<HomeMadeFoodNewScreen> {
       ),
     );
   }
-
-
 }
 
 class _FoodCategory {

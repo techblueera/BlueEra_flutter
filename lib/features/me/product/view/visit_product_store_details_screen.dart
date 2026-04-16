@@ -240,7 +240,12 @@ class _VisitProductStoreDetailsScreenState
           ],
         ),
       ),
-          ProductSelfPickupCart(controller: cartController),
+          Positioned(
+            bottom: 40,
+            left: 0,
+            right: 0,
+            child: ProductSelfPickupCart(controller: cartController),
+          ),
         ],
       ),
     );

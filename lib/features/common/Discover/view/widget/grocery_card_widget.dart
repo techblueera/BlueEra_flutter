@@ -5,7 +5,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/Discover/view/discover_screen.dart';
-import 'package:BlueEra/features/common/Discover/view/home_made_food_new_screen.dart';
+import 'package:BlueEra/features/common/Discover/view/home_made_food_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/choose_deliivery_option_dialog.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/choose_food_option_dialog.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/grid_icon_image_widget.dart';
@@ -46,7 +46,7 @@ class GroceryCardWidget extends StatelessWidget {
                   } else if (item.slugId == AppConstants.food) {
                     _chooseFoodOption();
                   } else {
-                    Get.to(() => const HomeMadeFoodNewScreen());
+                    Get.to(() => const HomeMadeFoodScreen());
                   }
                 },
               ),

@@ -7,11 +7,13 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/book_via_blueera_partner_banner.dart';
-import 'package:BlueEra/features/common/Discover/widget/common_generic_left_side_category_list.dart';
+import 'package:BlueEra/features/common/Discover/widget/banner_carousel.dart';
+import 'package:BlueEra/features/common/Discover/widget/sticky_category_header_delegate.dart';
 import 'package:BlueEra/features/common/Discover/model/service_model_response.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
 import 'package:BlueEra/features/common/auth/model/personal_profession_model.dart';
+import 'package:BlueEra/features/common/store/widget/store_live_photo_widget.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
@@ -21,9 +23,12 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
+import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/social_gallery_grid.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 import '../../../chat/auth/controller/chat_view_controller.dart';
@@ -47,9 +52,14 @@ class AllSelfProfessionScreen extends StatefulWidget {
 class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
   final controller = getOrPut(() => DiscoverController());
   late List<ProfessionTypeData> _selfEmployedCategories;
-  final ScrollController scrollController = ScrollController();
   final String serviceSubType = 'selfWork';
   final String earnServiceType = AppConstants.service;
+
+  final List<String> _bannerImages = const [
+    "https://img.freepik.com/free-photo/portrait-young-businesswoman-holding-digital-tablet-hand-looking-camera_23-2148176972.jpg?w=1380",
+    "https://img.freepik.com/free-photo/man-doing-professional-home-cleaning-service_23-2150359024.jpg?w=1380",
+    "https://img.freepik.com/free-photo/female-hairdresser-using-hairbrush-hair-dryer_329181-2084.jpg?w=1380",
+  ];
 
   @override
   void initState() {
@@ -65,94 +75,95 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
         : null;
     controller.fetchEarnServices(
         earnServiceType: earnServiceType, subType: serviceSubType);
-    scrollController.addListener(() {
-      if (scrollController.position.pixels ==
-          scrollController.position.maxScrollExtent) {
-        controller.fetchEarnServices(
-            earnServiceType: earnServiceType,
-            subType: serviceSubType,
-            isLoadMore: true);
-      }
-    });
+  }
+
+  bool _onScrollNotification(ScrollNotification notification) {
+    if (notification is ScrollUpdateNotification &&
+        notification.metrics.pixels >=
+            notification.metrics.maxScrollExtent - 200) {
+      controller.fetchEarnServices(
+          earnServiceType: earnServiceType,
+          subType: serviceSubType,
+          isLoadMore: true);
+    }
+    return false;
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.appBackgroundColor,
-      appBar: CommonBackAppBar(
-      ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            // ─── Book via BlueEra Partner Banner ───
-            BookViaBlueEraPartnerBanner(
-              onTap: () {
-                // your navigation here
-              },
-            ),
+    final statusBarHeight = MediaQuery.of(context).padding.top;
+    final stickyCategories = [
+      StickyCategory(id: 'ALL_OPTION', name: 'All', imageUrl: AppImageAssets.all),
+      ..._selfEmployedCategories.map((c) => StickyCategory(
+        id: c.tagId ?? '',
+        name: c.name ?? '',
+        imageUrl: getIndividualProfessionIcon(c.tagId).isNotEmpty
+            ? getIndividualProfessionIcon(c.tagId)
+            : c.imageUrl ?? '',
+      )),
+    ];
 
-            // ─── Main Content ───
-            Expanded(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  leftCategoryList(),
-                  SizedBox(width: SizeConfig.size6),
-                  Expanded(child: rightContent()),
-                ],
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light.copyWith(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+        statusBarBrightness: Brightness.dark,
+      ),
+      child: Scaffold(
+        backgroundColor: AppColors.appBackgroundColor,
+        body: NestedScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          headerSliverBuilder: (context, innerBoxIsScrolled) => [
+            SliverToBoxAdapter(
+              child: BannerCarousel(
+                images: _bannerImages,
+                onBack: () => Navigator.pop(context),
+                statusBarHeight: statusBarHeight,
+              ),
+            ),
+            SliverPersistentHeader(
+              pinned: true,
+              delegate: StickyCategoryHeaderDelegate(
+                topPadding: statusBarHeight,
+                categories: stickyCategories,
+                selectedId: controller.selectedEarnServiceData.value?.slugId ?? 'ALL_OPTION',
+                onCategoryTap: (item) {
+                  controller.selectedEarnServiceData.value =
+                      item.id == 'ALL_OPTION' ? null : OnboardingCategoryModel(
+                        name: item.name,
+                        slugId: item.id,
+                        accountType: AppConstants.individual,
+                      );
+                  controller.fetchEarnServices(
+                      earnServiceType: earnServiceType, subType: serviceSubType);
+                  setState(() {});
+                },
+                onBack: () => Navigator.pop(context),
               ),
             ),
           ],
+          body: NotificationListener<ScrollNotification>(
+            onNotification: _onScrollNotification,
+            child: rightContent(),
+          ),
         ),
       ),
     );
   }
 
-  Widget leftCategoryList() {
-    final allItem = ProfessionTypeData(
-      name: 'All',
-      tagId: 'ALL_OPTION',
-      imageUrl: AppImageAssets.all,
-    );
-    final fullList = [allItem, ..._selfEmployedCategories];
-
-    return CommonGenericLeftSideCategoryList<ProfessionTypeData>(
-      items: fullList,
-      getLabel: (item) => item.name ?? '',
-      getIcon: (item) => getIndividualProfessionIcon(item.tagId).isNotEmpty
-          ? getIndividualProfessionIcon(item.tagId)
-          : item.imageUrl ?? '',
-      isSelected: (item) {
-        if (item.tagId == 'ALL_OPTION')
-          return controller.selectedEarnServiceData.value == null;
-        return controller.selectedEarnServiceData.value?.slugId == item.tagId;
-      },
-      onTap: (item, index) {
-        controller.selectedTabIndex.value = index;
-        controller.selectedEarnServiceData.value =
-            item.tagId == 'ALL_OPTION' ? null : OnboardingCategoryModel(
-              name: item.name ?? '',
-              slugId: item.tagId ?? '',
-              accountType: AppConstants.individual,
-            );
-        controller.fetchEarnServices(
-            earnServiceType: earnServiceType, subType: serviceSubType);
-      },
-    );
-  }
-
   Widget rightContent() {
     return Obx(() => Padding(
-          padding: EdgeInsets.only(right: SizeConfig.size8),
+          padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // BookViaBlueEraPartnerBanner(onTap: () {}),
               HorizontalTabSelector<CategoryFilter>(
                 tabs: controller.filters,
                 selectedIndex:
                     controller.filters.indexOf(controller.selectedFilter.value),
                 horizontalMargin: 0.0,
+                verticalMargin: 0.0,
                 onTabSelected: (index, _) {
                   final selectedEnum = controller.filters[index];
                   if (controller.selectedFilter.value == selectedEnum) return;
@@ -173,7 +184,6 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
                         child: EmptyStateWidget(message: AppStrings.noServicesFound.tr));
                   }
                   return ListView.builder(
-                    controller: scrollController,
                     itemCount: controller.earnServiceList.length +
                         (controller.isEarnServiceLoadingMore.value ? 1 : 0),
                     padding: EdgeInsets.only(bottom: SizeConfig.paddingL),
@@ -308,6 +318,69 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
                 ],
               ),
             ),
+
+            // ─── Service Media Photos / Profile Picture ───
+            if (service.serviceMedia?.photos?.isNotEmpty == true) ...[
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
+                child: StoreLivePhotoWidget(
+                  livePhotos: service.serviceMedia!.photos!,
+                  natureOfBusiness: service.profession ?? 'Service',
+                  height: 200,
+                  onViewFullScreen: ({
+                    required int index,
+                    required List<String> storeImage,
+                    required String natureOfBusiness,
+                  }) {
+                    navigatePushTo(
+                      context,
+                      ImageViewScreen(
+                        subTitle: natureOfBusiness,
+                        appBarTitle: AppStrings.imageViewer,
+                        imageUrls: storeImage,
+                        initialIndex: index,
+                      ),
+                    );
+                  },
+                ),
+              ),
+              SizedBox(height: SizeConfig.size6),
+            ] else if ((service.profileImage ?? '').isNotEmpty) ...[
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: GestureDetector(
+                    onTap: () => navigatePushTo(
+                      context,
+                      ImageViewScreen(
+                        subTitle: service.profession ?? 'Service',
+                        appBarTitle: AppStrings.imageViewer,
+                        imageUrls: [service.profileImage!],
+                        initialIndex: 0,
+                      ),
+                    ),
+                    child: CachedNetworkImage(
+                      imageUrl: service.profileImage!,
+                      height: 200,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      memCacheWidth: 600,
+                      memCacheHeight: 600,
+                      placeholder: (_, __) => LocalAssets(
+                        imagePath: AppIconAssets.place_holder_image,
+                        boxFix: BoxFit.fill,
+                      ),
+                      errorWidget: (_, __, ___) => LocalAssets(
+                        imagePath: AppIconAssets.place_holder_image,
+                        boxFix: BoxFit.fill,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(height: SizeConfig.size6),
+            ],
 
             // ─── Expertise bullets ───
             if (service.service?.expertise?.isNotEmpty == true)
@@ -457,7 +530,10 @@ class SelfProfessionScreenPreview extends StatelessWidget {
         children: [
           SingleChildScrollView(
             padding: EdgeInsets.only(
-                bottom: 80 + MediaQuery.of(context).padding.bottom),
+                bottom: 80 + MediaQuery.of(context).padding.bottom,
+                left: 8.0,
+                right: 8.0,
+            ),
             child: Column(
               children: [
                 // ─── Profile Info Card ───

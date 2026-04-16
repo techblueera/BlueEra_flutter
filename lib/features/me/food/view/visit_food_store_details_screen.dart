@@ -98,7 +98,12 @@ class _VisitFoodStoreDetailsScreenState
         fit: StackFit.expand,
         children: [
           _buildScrollBody(),
-          FoodSelfPickupCart(controller: foodCartController),
+          Positioned(
+            bottom: 40,
+            left: 0,
+            right: 0,
+            child: FoodSelfPickupCart(controller: foodCartController),
+          ),
         ],
       ),
     );

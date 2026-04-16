@@ -11,35 +11,30 @@ class ProductSelfPickupCart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Positioned(
-      bottom: 40,
-      left: 0,
-      right: 0,
-      child: Center(
-        child: Obx(() {
-          final selected = controller.selectedProductVariants;
-          final displayImages = selected.take(3).map((p) {
-            final media = p.product.details?.media;
-            if (media != null && media.isNotEmpty && media.first.isNotEmpty) {
-              return media.first;
+    return Center(
+      child: Obx(() {
+        final selected = controller.selectedProductVariants;
+        final displayImages = selected.take(3).map((p) {
+          final media = p.product.details?.media;
+          if (media != null && media.isNotEmpty && media.first.isNotEmpty) {
+            return media.first;
+          }
+          final variants = p.product.sellerClassification?.variants;
+          if (variants != null && variants.isNotEmpty) {
+            final variantMedia = variants.first.mediaRelatedToVariant;
+            if (variantMedia.isNotEmpty && variantMedia.first.isNotEmpty) {
+              return variantMedia.first;
             }
-            final variants = p.product.sellerClassification?.variants;
-            if (variants != null && variants.isNotEmpty) {
-              final variantMedia = variants.first.mediaRelatedToVariant;
-              if (variantMedia.isNotEmpty && variantMedia.first.isNotEmpty) {
-                return variantMedia.first;
-              }
-            }
-            return null;
-          }).toList();
+          }
+          return null;
+        }).toList();
 
-          return FloatingCartWidget(
-            itemCount: selected.length,
-            displayImages: displayImages,
-            onTap: () => Get.to(() => const ProductSelfPickUpCartScreen()),
-          );
-        }),
-      ),
+        return FloatingCartWidget(
+          itemCount: selected.length,
+          displayImages: displayImages,
+          onTap: () => Get.to(() => const ProductSelfPickUpCartScreen()),
+        );
+      }),
     );
   }
 }

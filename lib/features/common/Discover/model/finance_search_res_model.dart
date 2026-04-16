@@ -53,14 +53,15 @@ class FinanceBusinessItem {
   });
 
   FinanceBusinessItem.fromJson(Map<String, dynamic> json) {
-    id = json['_id'];
-    userId = json['userId'];
-    profileName = json['profileName'];
-    description = json['description'];
-    logoUrl = json['logoUrl']?.toString().trim();
-    coverUrl = json['coverUrl']?.toString().trim();
-    type = json['type'];
-    category = json['category'];
+    final profile = json['profile'] as Map<String, dynamic>?;
+    id = json['_id'] ?? profile?['_id'];
+    userId = json['userId'] ?? profile?['userId'];
+    profileName = json['profileName'] ?? profile?['profileName'];
+    description = json['description'] ?? profile?['description'];
+    logoUrl = (json['logoUrl'] ?? profile?['logoUrl'])?.toString().trim();
+    coverUrl = (json['coverUrl'] ?? profile?['coverUrl'])?.toString().trim();
+    type = json['type'] ?? profile?['type'];
+    category = json['category'] ?? profile?['category'];
     location = json['location'] != null
         ? FinanceLocation.fromJson(json['location'])
         : null;

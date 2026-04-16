@@ -210,8 +210,13 @@ class _VisitGroceryStoreScreenState extends State<VisitGroceryStoreScreen> {
           ),
 
           // --- 5. Cart UI (Always Reactive) ---
-          GrocerySelfPickupCart(
-            controller: groceryCustomerController,
+          Positioned(
+            bottom: 40,
+            left: 0,
+            right: 0,
+            child: GrocerySelfPickupCart(
+              controller: groceryCustomerController,
+            ),
           ),
         ],
       ),

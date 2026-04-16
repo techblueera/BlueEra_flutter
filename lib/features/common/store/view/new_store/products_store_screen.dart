@@ -1,23 +1,21 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/common/Discover/widget/common_generic_left_side_category_list.dart';
+import 'package:BlueEra/features/common/Discover/widget/banner_carousel.dart';
+import 'package:BlueEra/features/common/Discover/widget/sticky_category_header_delegate.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
 import 'package:BlueEra/features/common/store/controller/new_store_controller.dart';
 import 'package:BlueEra/features/common/store/view/product_store_card.dart';
-import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
-import 'package:BlueEra/features/chat/view/ai_chat/view/ai_common_search_screen.dart';
 import 'package:BlueEra/features/me/product/controller/product_selfpickup_controller.dart';
 import 'package:BlueEra/features/me/product/view/product_self_pickup_cart_screen.dart';
 import 'package:BlueEra/features/me/product/view/widget/product_self_pickup_cart.dart';
-import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
@@ -25,12 +23,11 @@ class ProductsStoreScreen extends StatefulWidget {
   final String? productCategoryName;
   final String? productCategory;
 
-  const ProductsStoreScreen(
-      {
-        super.key,
-        this.productCategoryName,
-        this.productCategory,
-      });
+  const ProductsStoreScreen({
+    super.key,
+    this.productCategoryName,
+    this.productCategory,
+  });
 
   @override
   State<ProductsStoreScreen> createState() => _ProductsStoreScreenState();
@@ -38,21 +35,20 @@ class ProductsStoreScreen extends StatefulWidget {
 
 class _ProductsStoreScreenState extends State<ProductsStoreScreen> {
   final controller = getOrPut(() => NewStoreController());
-  final ScrollController storesScrollController = ScrollController();
   final AuthController _authController = Get.find<AuthController>();
   final RxInt _selectedIndex = 0.obs;
 
-  /// Session-scoped product cart. Registered at this entry point and
-  /// deleted on exit so going back clears the cart — same lifecycle as
-  /// grocery's [GroceryStoresScreen] and food's
-  /// [RestaurantNearMeScreen].
   final ProductSelfPickupController productCartController =
       getOrPut<ProductSelfPickupController>(
           () => ProductSelfPickupController());
 
   List<CategoryData> get _categories => _authController.businessOnboardingServicesCategories;
-  // List<CategoryData> get _categories => _authController.businessOnboardingProductsCategories;
 
+  final List<String> _bannerImages = const [
+    "https://img.freepik.com/free-photo/shopping-cart-full-with-products_1232-920.jpg?w=1380",
+    "https://img.freepik.com/free-photo/black-friday-elements-assortment_23-2149074076.jpg?w=1380",
+    "https://img.freepik.com/free-photo/retail-store-with-colorful-products-shelves_23-2150726517.jpg?w=1380",
+  ];
 
   @override
   void initState() {
@@ -68,22 +64,10 @@ class _ProductsStoreScreenState extends State<ProductsStoreScreen> {
     }
 
     controller.getAllStoreNearBy();
-    storesScrollController.addListener(_onLoadMore);
-  }
-
-  void _onLoadMore() {
-    if (storesScrollController.position.pixels >=
-        storesScrollController.position.maxScrollExtent - 200) {
-      controller.getAllStoreNearBy(isLoadMore: true);
-    }
   }
 
   @override
   void dispose() {
-    storesScrollController.removeListener(_onLoadMore);
-    storesScrollController.dispose();
-    // Leaving the products entry point → clear + unregister the session
-    // cart so selections don't leak across browsing sessions.
     deleteIfRegistered<ProductSelfPickupController>();
     super.dispose();
   }
@@ -125,9 +109,9 @@ class _ProductsStoreScreenState extends State<ProductsStoreScreen> {
                   Expanded(
                     child: OutlinedButton(
                       onPressed: () {
-                        Get.back(); // close dialog
+                        Get.back();
                         productCartController.clearCart();
-                        Get.back(); // leave screen
+                        Get.back();
                       },
                       style: OutlinedButton.styleFrom(
                         side: BorderSide(color: Colors.grey.shade300),
@@ -170,10 +154,19 @@ class _ProductsStoreScreenState extends State<ProductsStoreScreen> {
     controller.getAllStoreNearBy();
   }
 
+  bool _onScrollNotification(ScrollNotification notification) {
+    if (notification is ScrollUpdateNotification &&
+        notification.metrics.pixels >=
+            notification.metrics.maxScrollExtent - 200) {
+      controller.getAllStoreNearBy(isLoadMore: true);
+    }
+    return false;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final statusBarHeight = MediaQuery.of(context).padding.top;
     final width = SizeConfig.screenWidth;
-
     double dynamicSize(double base) => base * (width / 390);
 
     return PopScope(
@@ -182,79 +175,64 @@ class _ProductsStoreScreenState extends State<ProductsStoreScreen> {
         if (didPop) return;
         _handleBackWithCartWarning();
       },
-      child: Scaffold(
-      appBar: CommonBackAppBar(
-        isCustomTitleWidget: () => Obx(() {
-          final idx = _selectedIndex.value;
-          final name = (idx >= 0 && idx < _categories.length)
-              ? _categories[idx].name ?? 'Stores'
-              : 'Stores';
-          return Text(
-            name,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: AppColors.mainTextColor,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          );
-        }),
-        onBackTap: _handleBackWithCartWarning,
-        buildCustomActionWidget: () {
-          final chat = ChatViewController.inventoryAiChatListSearchModule;
-          return IconButton(
-            onPressed: () {
-              Get.to(() => AiCommonSearchScreen(
-                chatType: AppConstants.askInventory_Chat_Type,
-                profileImage: chat?.sender?.profileImage,
-                name: chat?.sender?.name,
-                contactNo: chat?.sender?.contactNo,
-                conversationId: '',
-                userId: '',
-                businessId: '',
-                type: chat?.sender?.accountType,
-                isInitialMessage: false,
-              ));
-            },
-            icon: Icon(
-              Icons.auto_awesome,
-              color: AppColors.primaryColor,
-              size: SizeConfig.size24,
-            ),
-          );
-        },
-      ),
-      body: SafeArea(
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildCategoryList(),
-                SizedBox(width: SizeConfig.size6),
-                Expanded(child: _buildStoreContent(dynamicSize)),
-              ],
-            ),
-            ProductSelfPickupCart(controller: productCartController),
-          ],
+      child: AnnotatedRegion<SystemUiOverlayStyle>(
+        value: SystemUiOverlayStyle.light.copyWith(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.light,
+          statusBarBrightness: Brightness.dark,
+        ),
+        child: Scaffold(
+          body: Stack(
+            children: [
+              NestedScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                headerSliverBuilder: (context, innerBoxIsScrolled) => [
+                  SliverToBoxAdapter(
+                    child: BannerCarousel(
+                      images: _bannerImages,
+                      onBack: _handleBackWithCartWarning,
+                      statusBarHeight: statusBarHeight,
+                    ),
+                  ),
+                  SliverPersistentHeader(
+                    pinned: true,
+                    delegate: StickyCategoryHeaderDelegate(
+                      topPadding: statusBarHeight,
+                      categories: _categories.map((c) => StickyCategory(
+                        id: c.tagId ?? '',
+                        name: c.name ?? '',
+                        imageUrl: c.imageUrl,
+                      )).toList(),
+                      selectedId: _categories.isNotEmpty &&
+                              _selectedIndex.value < _categories.length
+                          ? _categories[_selectedIndex.value].tagId
+                          : null,
+                      onCategoryTap: (item) {
+                        final idx = _categories.indexWhere((c) => c.tagId == item.id);
+                        if (idx >= 0) _onCategoryTap(_categories[idx], idx);
+                        setState(() {});
+                      },
+                      onBack: _handleBackWithCartWarning,
+                    ),
+                  ),
+                ],
+                body: NotificationListener<ScrollNotification>(
+                  onNotification: _onScrollNotification,
+                  child: _buildStoreContent(dynamicSize),
+                ),
+              ),
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: SafeArea(
+                  child: ProductSelfPickupCart(controller: productCartController),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
-      ),
-    );
-  }
-
-  Widget _buildCategoryList() {
-    return CommonGenericLeftSideCategoryList<CategoryData>(
-      items: _categories,
-      getLabel: (item) => item.name ?? '',
-      getIcon: (item) => item.imageUrl ?? '',
-      isSelected: (item) {
-        final idx = _categories.indexOf(item);
-        return _selectedIndex.value == idx;
-      },
-      onTap: _onCategoryTap,
     );
   }
 
@@ -276,11 +254,10 @@ class _ProductsStoreScreenState extends State<ProductsStoreScreen> {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Store count chip
           Padding(
             padding: EdgeInsets.only(
-              top: SizeConfig.paddingS,
-              right: SizeConfig.paddingXS,
+              left: SizeConfig.size12,
+              right: SizeConfig.size12,
               bottom: SizeConfig.size6,
             ),
             child: Container(
@@ -306,14 +283,12 @@ class _ProductsStoreScreenState extends State<ProductsStoreScreen> {
               ),
             ),
           ),
-
-          // Store list
           Expanded(
             child: ListView.builder(
-              controller: storesScrollController,
               padding: EdgeInsets.only(
-                right: SizeConfig.paddingXS,
-                bottom: SizeConfig.paddingL,
+                left: SizeConfig.size12,
+                right: SizeConfig.size12,
+                bottom: SizeConfig.paddingL + 70,
               ),
               itemCount: controller.allStore.length +
                   (controller.isAllStoreLoadingMore.value ? 1 : 0),
@@ -352,5 +327,4 @@ class _ProductsStoreScreenState extends State<ProductsStoreScreen> {
       );
     });
   }
-
 }

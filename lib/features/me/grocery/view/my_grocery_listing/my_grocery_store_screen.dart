@@ -18,6 +18,7 @@ import 'package:BlueEra/features/business/widgets/business_profile_header_view.d
 import 'package:BlueEra/features/business/widgets/business_qrcode_widget.dart';
 import 'package:BlueEra/features/business/widgets/business_stats.dart';
 import 'package:BlueEra/widgets/common_business_live_photo.dart';
+import 'package:BlueEra/widgets/business_live_photo_bottom_sheet.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_category_with_inventory_model.dart';
 import 'package:BlueEra/features/me/grocery/widget/food_type_indicator.dart';
@@ -49,6 +50,15 @@ class _MyGroceryStoreScreenState extends State<MyGroceryStoreScreen> {
     businessProfileDetails = viewBusinessDetailsController.businessProfileDetails.value?.data;
     controller.fetchAllGroceryData(userId, otherStore: false);
     super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        showBusinessLivePhotoBottomSheetIfNeeded(
+          context: context,
+          controller: viewBusinessDetailsController,
+        );
+      }
+    });
   }
 
   @override
@@ -385,8 +395,6 @@ class _MyGroceryStoreScreenState extends State<MyGroceryStoreScreen> {
       ),
     );
   }
-
-
 
 }
 

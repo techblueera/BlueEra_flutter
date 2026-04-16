@@ -81,8 +81,7 @@ class _chooseEarnServiceScreenState extends State<chooseEarnServiceScreen> {
     _EarnOption(
       title: 'Home Services',
       subtitle: 'Offer Local Services From Home',
-      icon: AppImageAssets.homeMadeProductEarnService,
-      // icon: AppImageAssets.homeServiceEarnService,
+      icon: AppImageAssets.homeServicesEarnService,
       slugId: HOME_SERVICES,
       chipColor: const Color(0xFF0C447C),
       chips: const [

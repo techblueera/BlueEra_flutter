@@ -13,6 +13,7 @@ import 'package:BlueEra/features/business/widgets/business_common_subcategory_wi
 import 'package:BlueEra/features/common/store/controller/new_store_controller.dart';
 import 'package:BlueEra/features/common/store/widget/store_live_photo_widget.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -254,8 +255,8 @@ class ProductStoreCard extends StatelessWidget {
             ),
           ),
 
+          SizedBox(height: ds(5)),
           if(getAllStoreResData !=null && (getAllStoreResData?.livePhotos?.isNotEmpty ?? false)) ...[
-            SizedBox(height: ds(5)),
             /// Image grid
             StoreLivePhotoWidget(
               livePhotos: getAllStoreResData?.livePhotos ?? [],
@@ -273,6 +274,36 @@ class ProductStoreCard extends StatelessWidget {
                   natureOfBusiness: natureOfBusiness,
                 );
               },
+            ),
+          ] else if ((getAllStoreResData?.logo ?? '').isNotEmpty) ...[
+            /// Single logo photo fallback
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: GestureDetector(
+                onTap: () => viewImageOnFullScreen(
+                  index: 0,
+                  storeImage: [getAllStoreResData!.logo!],
+                  natureOfBusiness: getAllStoreResData?.categoryOfBusiness?.name ??
+                      getAllStoreResData?.natureOfBusiness ??
+                      'OTHER',
+                ),
+                child: CachedNetworkImage(
+                  imageUrl: getAllStoreResData!.logo!,
+                  height: 240,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                  memCacheWidth: 600,
+                  memCacheHeight: 600,
+                  placeholder: (_, __) => LocalAssets(
+                    imagePath: AppIconAssets.place_holder_image,
+                    boxFix: BoxFit.fill,
+                  ),
+                  errorWidget: (_, __, ___) => LocalAssets(
+                    imagePath: AppIconAssets.place_holder_image,
+                    boxFix: BoxFit.fill,
+                  ),
+                ),
+              ),
             ),
           ],
 
@@ -392,7 +423,7 @@ class ProductStoreCard extends StatelessWidget {
       destinationLat: getAllStoreResData?.businessLocation?.lat?.toDouble() ?? 0.0,
       destinationLng: getAllStoreResData?.businessLocation?.lon?.toDouble() ?? 0.0,
       livePhotos: getAllStoreResData?.livePhotos,
-      storeBusinessID:getAllStoreResData?.id??"" ,storeUserID: getAllStoreResData?.userId??""
+      storeBusinessID: getAllStoreResData?.id??"" ,storeUserID: getAllStoreResData?.userId??""
     );
   }
 

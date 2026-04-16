@@ -11,10 +11,13 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
+import 'package:BlueEra/features/common/store/widget/store_live_photo_widget.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/route_map_bottom_sheet.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 
 class GroceryStoreCard extends StatelessWidget {
@@ -138,6 +141,58 @@ class GroceryStoreCard extends StatelessWidget {
                   ),
 
                   SizedBox(height: SizeConfig.size6),
+
+                  // --- Live Photos / Logo ---
+                  if (store.livePhotos?.isNotEmpty ?? false) ...[
+                    StoreLivePhotoWidget(
+                      livePhotos: store.livePhotos ?? [],
+                      natureOfBusiness: store.categoryOfBusiness?.name ??
+                          store.natureOfBusiness ??
+                          'OTHER',
+                      onViewFullScreen: ({
+                        required int index,
+                        required List<String> storeImage,
+                        required String natureOfBusiness,
+                      }) {
+                        _viewImageOnFullScreen(
+                          index: index,
+                          storeImage: storeImage,
+                          natureOfBusiness: natureOfBusiness,
+                        );
+                      },
+                    ),
+                    SizedBox(height: SizeConfig.size6),
+                  ] else if ((store.logo ?? '').isNotEmpty) ...[
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: GestureDetector(
+                        onTap: () => _viewImageOnFullScreen(
+                          index: 0,
+                          storeImage: [store.logo!],
+                          natureOfBusiness: store.categoryOfBusiness?.name ??
+                              store.natureOfBusiness ??
+                              'OTHER',
+                        ),
+                        child: CachedNetworkImage(
+                          imageUrl: store.logo!,
+                          height: 240,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                          memCacheWidth: 600,
+                          memCacheHeight: 600,
+                          placeholder: (_, __) => LocalAssets(
+                            imagePath: AppIconAssets.place_holder_image,
+                            boxFix: BoxFit.fill,
+                          ),
+                          errorWidget: (_, __, ___) => LocalAssets(
+                            imagePath: AppIconAssets.place_holder_image,
+                            boxFix: BoxFit.fill,
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: SizeConfig.size6),
+                  ],
 
                   // --- Stats: Category & Product ---
                   Row(
@@ -302,6 +357,22 @@ class GroceryStoreCard extends StatelessWidget {
         imgColor: AppColors.secondaryTextColor,
         height: 24,
         width: 20,
+      ),
+    );
+  }
+
+  void _viewImageOnFullScreen({
+    required int index,
+    required List<String> storeImage,
+    required String natureOfBusiness,
+  }) {
+    navigatePushTo(
+      Get.context!,
+      ImageViewScreen(
+        subTitle: natureOfBusiness,
+        appBarTitle: AppStrings.imageViewer,
+        imageUrls: storeImage,
+        initialIndex: index,
       ),
     );
   }

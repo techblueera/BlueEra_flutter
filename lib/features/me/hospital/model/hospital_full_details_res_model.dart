@@ -193,6 +193,7 @@ class HospitalGallery {
   HospitalGallery({
     this.id,
     this.title,
+    this.uploadPhoto,
     this.images,
     this.hospitalId,
     this.userId,
@@ -204,6 +205,7 @@ class HospitalGallery {
   HospitalGallery.fromJson(dynamic json) {
     id = json['_id'];
     title = json['title'];
+    uploadPhoto = json['uploadPhoto']?.toString().trim();
     images = json['images'] != null ? json['images'].cast<String>() : [];
     hospitalId = json['hospitalId'];
     userId = json['userId'];
@@ -213,6 +215,7 @@ class HospitalGallery {
   }
   String? id;
   String? title;
+  String? uploadPhoto;
   List<String>? images;
   String? hospitalId;
   String? userId;

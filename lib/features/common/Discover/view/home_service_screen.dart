@@ -8,15 +8,16 @@ import 'package:BlueEra/features/common/Discover/controller/discover_controller.
 import 'package:BlueEra/features/common/Discover/model/service_model_response.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/book_via_blueera_partner_banner.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/service_provider_detail_screen.dart';
-import 'package:BlueEra/features/common/Discover/widget/common_generic_left_side_category_list.dart';
+import 'package:BlueEra/features/common/Discover/widget/banner_carousel.dart';
+import 'package:BlueEra/features/common/Discover/widget/sticky_category_header_delegate.dart';
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
-import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_rating_row.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 class HomeServiceScreen extends StatefulWidget {
@@ -30,9 +31,14 @@ class _HomeServiceScreenState extends State<HomeServiceScreen> {
   final controller = getOrPut(() => DiscoverController());
   final List<OnboardingCategoryModel> _homeServicesCategories =
       homeServicesCategories;
-  ScrollController scrollController = ScrollController();
   String serviceSubType = 'homeService';
   String earnServiceType = AppConstants.service;
+
+  final List<String> _bannerImages = const [
+    "https://img.freepik.com/free-photo/young-handyman-installing-kitchen-cabinet_155003-37938.jpg?w=1380",
+    "https://img.freepik.com/free-photo/medium-shot-woman-cleaning-home_23-2150454566.jpg?w=1380",
+    "https://img.freepik.com/free-photo/plumber-man-fixing-kitchen-sink_53876-27.jpg?w=1380",
+  ];
 
   @override
   initState() {
@@ -41,16 +47,6 @@ class _HomeServiceScreenState extends State<HomeServiceScreen> {
       clearSelectedCategory();
       controller.fetchEarnServices(
           earnServiceType: earnServiceType, subType: serviceSubType);
-
-      scrollController.addListener(() {
-        if (scrollController.position.pixels ==
-            scrollController.position.maxScrollExtent) {
-          controller.fetchEarnServices(
-              earnServiceType: earnServiceType,
-              subType: serviceSubType,
-              isLoadMore: true);
-        }
-      });
     });
   }
 
@@ -59,85 +55,99 @@ class _HomeServiceScreenState extends State<HomeServiceScreen> {
     controller.selectedTabIndex.value = 0;
   }
 
+  bool _onScrollNotification(ScrollNotification notification) {
+    if (notification is ScrollUpdateNotification &&
+        notification.metrics.pixels >=
+            notification.metrics.maxScrollExtent - 200) {
+      controller.fetchEarnServices(
+          earnServiceType: earnServiceType,
+          subType: serviceSubType,
+          isLoadMore: true);
+    }
+    return false;
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: CommonBackAppBar(),
-      body: SafeArea(
-        child: Column(
-          children: [
-            BookViaBlueEraPartnerBanner(
-              onTap: () {
-                // your navigation here
-              },
-            ),
+    final statusBarHeight = MediaQuery.of(context).padding.top;
+    final stickyCategories = [
+      StickyCategory(
+          id: 'ALL_OPTION', name: 'All', imageUrl: AppImageAssets.all),
+      ..._homeServicesCategories.map((c) => StickyCategory(
+            id: c.slugId,
+            name: c.name,
+            imageUrl: c.icon,
+          )),
+    ];
 
-            // Main content: left categories + right list
-            Expanded(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildLeftCategoryList(),
-                  SizedBox(width: SizeConfig.size6),
-                  Expanded(child: _buildRightContent()),
-                ],
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light.copyWith(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+        statusBarBrightness: Brightness.dark,
+      ),
+      child: Scaffold(
+        body: NestedScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          headerSliverBuilder: (context, innerBoxIsScrolled) => [
+            SliverToBoxAdapter(
+              child: BannerCarousel(
+                images: _bannerImages,
+                onBack: () => Navigator.pop(context),
+                statusBarHeight: statusBarHeight,
+              ),
+            ),
+            SliverPersistentHeader(
+              pinned: true,
+              delegate: StickyCategoryHeaderDelegate(
+                topPadding: statusBarHeight,
+                categories: stickyCategories,
+                selectedId:
+                    controller.selectedEarnServiceData.value?.slugId ??
+                        'ALL_OPTION',
+                onCategoryTap: (item) {
+                  if (item.id == 'ALL_OPTION') {
+                    controller.selectedEarnServiceData.value = null;
+                  } else {
+                    controller.selectedEarnServiceData.value =
+                        _homeServicesCategories
+                            .firstWhere((c) => c.slugId == item.id);
+                  }
+                  controller.fetchEarnServices(
+                    earnServiceType: earnServiceType,
+                    subType: serviceSubType,
+                  );
+                  setState(() {});
+                },
+                onBack: () => Navigator.pop(context),
               ),
             ),
           ],
+          body: NotificationListener<ScrollNotification>(
+            onNotification: _onScrollNotification,
+            child: _buildRightContent(),
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildLeftCategoryList() {
-    final allItem = OnboardingCategoryModel(
-      name: 'All',
-      slugId: 'ALL_OPTION',
-      icon: AppImageAssets.all,
-      accountType: AppConstants.individual,
-    );
-
-    final fullList = [allItem, ..._homeServicesCategories];
-
-    return CommonGenericLeftSideCategoryList<OnboardingCategoryModel>(
-      items: fullList,
-      getLabel: (item) => item.name,
-      getIcon: (item) => item.icon ?? '',
-      isSelected: (item) {
-        if (item.slugId == 'ALL_OPTION') {
-          return controller.selectedEarnServiceData.value == null;
-        }
-        return controller.selectedEarnServiceData.value?.slugId == item.slugId;
-      },
-      onTap: (item, index) {
-        controller.selectedTabIndex.value = index;
-        if (item.slugId == 'ALL_OPTION') {
-          controller.selectedEarnServiceData.value = null;
-        } else {
-          controller.selectedEarnServiceData.value = item;
-        }
-        controller.fetchEarnServices(
-          earnServiceType: earnServiceType,
-          subType: serviceSubType,
-        );
-      },
-    );
-  }
-
   Widget _buildRightContent() {
     return Obx(() => Padding(
-          padding: EdgeInsets.only(right: SizeConfig.size8),
+          padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // BookViaBlueEraPartnerBanner(onTap: () {}),
               HorizontalTabSelector<CategoryFilter>(
                 tabs: controller.filters,
                 selectedIndex:
                     controller.filters.indexOf(controller.selectedFilter.value),
                 horizontalMargin: 0.0,
+                verticalMargin: 0.0,
                 onTabSelected: (index, _) {
                   final selectedEnum = controller.filters[index];
-                  if (controller.filters == selectedEnum) return;
+                  if (controller.selectedFilter.value == selectedEnum) return;
                   controller.selectedFilter.value = selectedEnum;
                 },
                 labelBuilder: (r) => r.localizedLabel,
@@ -153,12 +163,12 @@ class _HomeServiceScreenState extends State<HomeServiceScreen> {
 
                   if (controller.earnServiceList.isEmpty) {
                     return Center(
-                      child: EmptyStateWidget(message: AppStrings.noServicesFound.tr),
+                      child: EmptyStateWidget(
+                          message: AppStrings.noServicesFound.tr),
                     );
                   }
 
                   return ListView.builder(
-                    controller: scrollController,
                     itemCount: controller.earnServiceList.length +
                         (controller.isEarnServiceLoadingMore.value ? 1 : 0),
                     padding: EdgeInsets.only(bottom: SizeConfig.paddingL),
@@ -216,7 +226,6 @@ class _HomeServiceScreenState extends State<HomeServiceScreen> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Avatar
             CachedAvatarWidget(
               imageUrl: service.profileImage ?? '',
               size: SizeConfig.size50,
@@ -224,12 +233,10 @@ class _HomeServiceScreenState extends State<HomeServiceScreen> {
               borderRadius: SizeConfig.size25,
             ),
             SizedBox(width: SizeConfig.size10),
-            // Details
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Name + open/closed badge
                   Row(
                     children: [
                       Expanded(
@@ -262,8 +269,6 @@ class _HomeServiceScreenState extends State<HomeServiceScreen> {
                       ),
                     ],
                   ),
-
-                  // Profession / category
                   if ((service.profession ?? '').isNotEmpty) ...[
                     SizedBox(height: SizeConfig.size2),
                     CustomText(
@@ -274,20 +279,14 @@ class _HomeServiceScreenState extends State<HomeServiceScreen> {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ],
-
                   SizedBox(height: SizeConfig.size4),
-
-                  // Rating + distance
                   CommonRatingRow(
                     rating:
                         double.tryParse(service.rating.toString()) ?? 0.0,
                     reviews: service.reviewCount ?? 0,
                     distance: '${service.distance ?? 0}',
                   ),
-
                   SizedBox(height: SizeConfig.size6),
-
-                  // Price + timing
                   Row(
                     children: [
                       CustomText(
@@ -321,7 +320,7 @@ class _HomeServiceScreenState extends State<HomeServiceScreen> {
     );
   }
 
-  // ─── Timing helpers ───
+  // --- Timing helpers ---
 
   Map<String, String> _getMinMaxTimings(List<Timings>? timingsList) {
     if (timingsList == null || timingsList.isEmpty) {
