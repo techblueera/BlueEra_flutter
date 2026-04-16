@@ -510,76 +510,91 @@ Widget  ChatListTile({
                   conversationId: conversationId,
                 ),
                 SizedBox(height: SizeConfig.size2),
-                SizedBox(
-                  width: SizeConfig.size260,
-                  child: (lastMessageType == "document" ||
-                      lastMessageType == "contact" ||
-                      lastMessageType == "audio" ||
-                      lastMessageType == "location" ||
-                      lastMessageType == "live_location" ||
-                      lastMessageType == "image" ||
-                      lastMessageType == "video")
-                      ? Row(
-                    children: [
-                      Icon(
-                        lastMessageType == "document"
-                            ? Icons.picture_as_pdf
-                            : lastMessageType == "contact"
-                            ? Icons.person
-                            : lastMessageType == "audio"
-                            ? Icons.audiotrack
-                            : lastMessageType == "video"
-                            ? Icons.video_chat
-                            : lastMessageType == "location"
-                            ? Icons.location_history
-                            : lastMessageType == "live_location"
-                            ? (chat?.isEnded == true
-                                ? Icons.location_off_rounded
-                                : Icons.share_location_rounded)
-                            : Icons.camera_alt,
-                        color: AppColors.grey9A,
-                        size: SizeConfig.size16,
-                      ),
-                      SizedBox(width: SizeConfig.size4),
-                      CustomText(
-                        lastMessageType == "document"
-                            ? AppStrings.documentLabel.tr
-                            : lastMessageType == "contact"
-                            ? AppStrings.contactLabel.tr
-                            : lastMessageType == "audio"
-                            ? AppStrings.audioLabel.tr
-                            : lastMessageType == "video"
-                            ? AppStrings.videoLabel.tr
-                            : lastMessageType == "location"
-                            ? AppStrings.locationLabel.tr
-                            : lastMessageType == "live_location"
-                            ? (chat?.isEnded == true
-                                ? AppStrings.liveLocationEnded.tr
-                                : AppStrings.liveLocationMsgType.tr)
-                            : AppStrings.imageLabel.tr,
+                Obx(() {
+                  final isTyping = chatViewController
+                      .typingByConversation.containsKey(conversationId);
+                  if (isTyping) {
+                    return SizedBox(
+                      width: SizeConfig.size260,
+                      child: CustomText(
+                        'typing...',
                         fontSize: SizeConfig.size14,
-                        color: AppColors.grey9A,
+                        color: Colors.green,
                         overflow: TextOverflow.ellipsis,
                       ),
-                    ],
-                  )
-                      : lastMessage == null
-                      ? CustomText(
-                    "${(senderDesignation == null)
-                        ? senderContactNo
-                        : senderDesignation}",
-                    fontSize: SizeConfig.size14,
-                    color: AppColors.grey9A,
-                    overflow: TextOverflow.ellipsis,
-                  )
-                      : CustomText(
-                    maxLines: 1,
-                    "$lastMessage",
-                    fontSize: SizeConfig.size14,
-                    color: AppColors.grey9A,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
+                    );
+                  }
+                  return SizedBox(
+                    width: SizeConfig.size260,
+                    child: (lastMessageType == "document" ||
+                        lastMessageType == "contact" ||
+                        lastMessageType == "audio" ||
+                        lastMessageType == "location" ||
+                        lastMessageType == "live_location" ||
+                        lastMessageType == "image" ||
+                        lastMessageType == "video")
+                        ? Row(
+                      children: [
+                        Icon(
+                          lastMessageType == "document"
+                              ? Icons.picture_as_pdf
+                              : lastMessageType == "contact"
+                              ? Icons.person
+                              : lastMessageType == "audio"
+                              ? Icons.audiotrack
+                              : lastMessageType == "video"
+                              ? Icons.video_chat
+                              : lastMessageType == "location"
+                              ? Icons.location_history
+                              : lastMessageType == "live_location"
+                              ? (chat?.isEnded == true
+                                  ? Icons.location_off_rounded
+                                  : Icons.share_location_rounded)
+                              : Icons.camera_alt,
+                          color: AppColors.grey9A,
+                          size: SizeConfig.size16,
+                        ),
+                        SizedBox(width: SizeConfig.size4),
+                        CustomText(
+                          lastMessageType == "document"
+                              ? AppStrings.documentLabel.tr
+                              : lastMessageType == "contact"
+                              ? AppStrings.contactLabel.tr
+                              : lastMessageType == "audio"
+                              ? AppStrings.audioLabel.tr
+                              : lastMessageType == "video"
+                              ? AppStrings.videoLabel.tr
+                              : lastMessageType == "location"
+                              ? AppStrings.locationLabel.tr
+                              : lastMessageType == "live_location"
+                              ? (chat?.isEnded == true
+                                  ? AppStrings.liveLocationEnded.tr
+                                  : AppStrings.liveLocationMsgType.tr)
+                              : AppStrings.imageLabel.tr,
+                          fontSize: SizeConfig.size14,
+                          color: AppColors.grey9A,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    )
+                        : lastMessage == null
+                        ? CustomText(
+                      "${(senderDesignation == null)
+                          ? senderContactNo
+                          : senderDesignation}",
+                      fontSize: SizeConfig.size14,
+                      color: AppColors.grey9A,
+                      overflow: TextOverflow.ellipsis,
+                    )
+                        : CustomText(
+                      maxLines: 1,
+                      "$lastMessage",
+                      fontSize: SizeConfig.size14,
+                      color: AppColors.grey9A,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  );
+                }),
               ],
             ),
           ),
@@ -1344,12 +1359,12 @@ AppBar getChatTitleAppBar(BuildContext context, {
                         );
                       }
                       return CustomText(
-                        '${(type == AppConstants.personal_Chat_Type||type==AppConstants.business_Chat_Type)?"BlueCs Limited":(name == "BlueEra Orders") ? "BlueCs Ltd" : (type !=
+                        '${(name == "BlueEra Orders") ? "BlueCs Ltd" : (type !=
                             AppStrings.Admin) ? (type == "business") ? chatViewController
                             .userOnlineStatus.value == "Online"
                             ? "Shop Open"
                             : "Shop Closed" : chatViewController
-                            .userOnlineStatus.value : "BlueCs Limited"}',
+                            .userOnlineStatus.value : "Offline"}',
                         color: AppColors.grayText,
                         fontSize: SizeConfig.size12,
                       );

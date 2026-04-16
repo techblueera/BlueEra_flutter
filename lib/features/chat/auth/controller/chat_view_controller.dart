@@ -262,7 +262,7 @@ class ChatViewController extends GetxController {
   final ScrollController scrollController = ScrollController();
   Rx<Messages?>? replyMessage = Messages().obs;
 
-  RxString userOnlineStatus = ''.obs;
+  RxString userOnlineStatus = 'Offline'.obs;
   RxString userOpenConversationId = ''.obs;
   RxString userOpenUserId = ''.obs;
   RxString readMessageStatus = ''.obs;
@@ -277,6 +277,11 @@ class ChatViewController extends GetxController {
   RxString typingText = ''.obs;
   Timer? _typingDebounceTimer;
   final Map<String, Timer> _typingHideTimers = {};
+
+  /// Per-conversation typing indicator for the chat list.
+  /// Key = conversation_id, Value = typer's name.
+  RxMap<String, String> typingByConversation = <String, String>{}.obs;
+  final Map<String, Timer> _chatListTypingTimers = {};
   RxInt selectedIndex =0.obs;
 
   Rx<Messages> sendLoadingFile = Messages().obs;
@@ -952,12 +957,24 @@ class ChatViewController extends GetxController {
         final typingUserId = data['user_id'] as String?;
         final typingUser = data['user'];
 
-        if (conversationId == null ||
-            conversationId != userOpenConversationId.value) return;
+        if (conversationId == null) return;
         if (typingUserId == null) return;
 
         final name = typingUser?['name'] ?? 'Someone';
-        typingText.value =  'typing...';
+
+        // Update chat list typing indicator for ALL conversations
+        typingByConversation[conversationId] = name;
+        _chatListTypingTimers[conversationId]?.cancel();
+        _chatListTypingTimers[conversationId] =
+            Timer(const Duration(seconds: 3), () {
+          typingByConversation.remove(conversationId);
+          _chatListTypingTimers.remove(conversationId);
+        });
+
+        // Update open chat screen typing indicator
+        if (conversationId != userOpenConversationId.value) return;
+
+        typingText.value = 'typing...';
 
         // Auto-hide after 3 seconds
         _typingHideTimers[typingUserId]?.cancel();
