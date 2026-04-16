@@ -1,5 +1,4 @@
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -7,38 +6,49 @@ import 'package:get/get.dart';
 import '../../../../../core/constants/getx_utils.dart';
 import '../../../auth/controller/call_controller.dart';
 
-/// WhatsApp-style in-app overlay shown above the app bar when a call is active.
-/// Displays call duration, mute toggle, and hang-up button.
-/// Tapping the bar returns to the active call screen.
+/// WhatsApp-style in-app overlay shown at the top of the screen when a call is
+/// active but the user is on a different screen. Shows caller name, duration,
+/// mute toggle, and hang-up button. Tapping the bar returns to the call screen.
 class OngoingCallOverlay extends StatelessWidget {
   const OngoingCallOverlay({super.key});
 
   @override
   Widget build(BuildContext context) {
-
     final controller = getOrPut(() => CallController());
-
 
     return Obx(() {
       final status = controller.callStatus.value;
-      final isActive = status == CallStatus.ringing||controller.isIncomingCall.value==true;
 
-      // Don't show overlay when on call screens themselves
+      // Show for ANY non-idle call state
+      final isActive = status == CallStatus.ringing ||
+          status == CallStatus.outgoing ||
+          status == CallStatus.accepting ||
+          status == CallStatus.connecting ||
+          status == CallStatus.connected ||
+          controller.isIncomingCall.value == true;
+
+      // Don't show overlay when user is already on a call screen
       final route = Get.currentRoute;
       final isOnCallScreen = route == '/ActiveCallScreen' ||
           route == '/OutgoingCallScreen' ||
           route == '/IncomingCallScreen' ||
-          route == '/CallRoomScreen';
+          route == '/CallRoomScreen' ||
+          route == '/IncomingRiderOrderScreen';
 
       if (!isActive || isOnCallScreen) {
         return const SizedBox.shrink();
       }
+
       final isConnected = status == CallStatus.connected;
+      final isRinging = status == CallStatus.ringing ||
+          controller.isIncomingCall.value == true;
       final name = controller.callerName.value.isNotEmpty
           ? controller.callerName.value
           : (controller.remoteUserName.value.isNotEmpty
               ? controller.remoteUserName.value
               : 'Call');
+
+      final isVideo = controller.callType.value == CallType.video;
 
       return Positioned(
         top: 0,
@@ -48,21 +58,25 @@ class OngoingCallOverlay extends StatelessWidget {
           bottom: false,
           child: GestureDetector(
             onTap: () {
-              if(controller.isIncomingCall.value==true){
+              if (controller.isIncomingCall.value == true) {
                 Get.toNamed('/IncomingCallScreen');
-              }else{
+              } else if (controller.isFareCall.value) {
+                Get.toNamed('/IncomingRiderOrderScreen');
+              } else {
                 if (Get.currentRoute != '/CallRoomScreen') {
                   Get.toNamed('/CallRoomScreen');
                 }
               }
-
             },
             child: Container(
               width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              decoration: const BoxDecoration(
-                color: Color(0xFF00A884),
-                boxShadow: [
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              decoration: BoxDecoration(
+                color: isRinging
+                    ? const Color(0xFF1A2E35)
+                    : const Color(0xFF00A884),
+                boxShadow: const [
                   BoxShadow(
                     color: Colors.black26,
                     blurRadius: 4,
@@ -73,8 +87,10 @@ class OngoingCallOverlay extends StatelessWidget {
               child: Row(
                 children: [
                   // Call icon
-                  const Icon(
-                    Icons.phone_in_talk_rounded,
+                  Icon(
+                    isVideo
+                        ? Icons.videocam_rounded
+                        : Icons.phone_in_talk_rounded,
                     color: Colors.white,
                     size: 18,
                   ),
@@ -101,7 +117,9 @@ class OngoingCallOverlay extends StatelessWidget {
                         CustomText(
                           isConnected
                               ? controller.formattedCallDuration
-                              : AppStrings.connectingLabel.tr,
+                              : isRinging
+                                  ? 'Incoming call...'
+                                  : AppStrings.connectingLabel.tr,
                           color: Colors.white70,
                           fontSize: 11,
                           fontFamily: 'OpenSans',
@@ -126,7 +144,13 @@ class OngoingCallOverlay extends StatelessWidget {
                     icon: Icons.call_end_rounded,
                     isActive: false,
                     isHangUp: true,
-                    onTap: () => controller.endCall(),
+                    onTap: () {
+                      if (isRinging) {
+                        controller.declineCall();
+                      } else {
+                        controller.endCall();
+                      }
+                    },
                   ),
                 ],
               ),

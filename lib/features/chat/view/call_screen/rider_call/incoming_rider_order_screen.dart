@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:BlueEra/core/constants/common_methods.dart';
-import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -26,7 +25,6 @@ class _IncomingRiderOrderScreenState extends State<IncomingRiderOrderScreen>
   late AnimationController _pulseController;
   late AnimationController _slideController;
   late AnimationController _timerController;
-  final AudioPlayer _ringtonePlayer = AudioPlayer();
   late Timer _countdownTimer;
   late Worker _callStatusWorker;
   int _remainingSeconds = 45;
@@ -93,7 +91,7 @@ class _IncomingRiderOrderScreenState extends State<IncomingRiderOrderScreen>
       duration: const Duration(seconds: 45),
     )..forward();
 
-    _playRingtone();
+    // Ringtone is played by CallController.startRingtone() in _handleIncomingCall
     HapticFeedback.heavyImpact();
 
     _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
@@ -140,18 +138,9 @@ class _IncomingRiderOrderScreenState extends State<IncomingRiderOrderScreen>
     return 0.0;
   }
 
-  Future<void> _playRingtone() async {
-    try {
-      await _ringtonePlayer.setReleaseMode(ReleaseMode.loop);
-      await _ringtonePlayer.play(AssetSource('sound/iphone_tone.mp3'));
-    } catch (_) {}
-  }
-
-  Future<void> _stopRingtone() async {
-    try {
-      await _ringtonePlayer.stop();
-      await _ringtonePlayer.release();
-    } catch (_) {}
+  void _stopRingtone() {
+    // Stop the controller's ringtone (centralized player)
+    _callController.stopRingtone();
   }
 
   void _startCallTimer() {
@@ -178,11 +167,8 @@ class _IncomingRiderOrderScreenState extends State<IncomingRiderOrderScreen>
     _pulseController.dispose();
     _slideController.dispose();
     _timerController.dispose();
-    try {
-      _ringtonePlayer.stop();
-      _ringtonePlayer.release();
-      _ringtonePlayer.dispose();
-    } catch (_) {}
+    // Stop controller ringtone on screen dispose as safety net
+    _callController.stopRingtone();
     super.dispose();
   }
 
@@ -196,7 +182,7 @@ class _IncomingRiderOrderScreenState extends State<IncomingRiderOrderScreen>
     // 1. Stop ringtone and release audio resources BEFORE WebRTC starts.
     //    On Android, the native AudioPlayer must fully release the audio
     //    session before WebRTC's getUserMedia can capture the microphone.
-    await _stopRingtone();
+    _stopRingtone();
     debugPrint('[FARE_CALL_DEBUG] _onAcceptRide → ringtone stopped, waiting 300ms for audio session release');
     // Small delay to let Android fully release the audio focus/session
     await Future.delayed(const Duration(milliseconds: 300));
@@ -239,7 +225,7 @@ class _IncomingRiderOrderScreenState extends State<IncomingRiderOrderScreen>
 
   /// Rider taps "Reject Ride"
   Future<void> _onRejectRide() async {
-    await _stopRingtone();
+    _stopRingtone();
     await _callController.rejectFareCallRide();
     if (mounted && Navigator.of(context).canPop()) {
       Navigator.of(context).pop();

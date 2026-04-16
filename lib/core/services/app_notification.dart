@@ -3,6 +3,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -40,7 +41,7 @@ import '../../features/chat/view/orders_chat/widget/order_call_alert_page.dart';
 import '../routes/route_helper.dart';
 import 'notifications/ride_notification_data_model.dart';
 
-String notificationSound = 'sound/iphone_tone.mp3';
+String notificationSound = 'sound/hangouts_call.mp3';
 String hello_delivery = 'sound/hello_delivery.mp3';
 String chatNotificationSound = 'sound/messenger.mp3';
 
@@ -442,7 +443,7 @@ Future<void> showIncomingCallLocalNotification({
 
   final isVideo = callType == 'video_call';
   final details = AndroidNotificationDetails(
-    'incoming_calls',
+    'incoming_calls_ringtone',
     'Incoming Calls',
     channelDescription: 'Incoming voice and video call alerts',
     importance: Importance.max,
@@ -453,9 +454,14 @@ Future<void> showIncomingCallLocalNotification({
     ongoing: true,
     autoCancel: false,
     playSound: true,
+    sound: const RawResourceAndroidNotificationSound('hangouts_call'),
     enableVibration: true,
+    vibrationPattern: Int64List.fromList([0, 1000, 500, 1000]),
     icon: '@drawable/ic_stat',
     colorized: true,
+    audioAttributesUsage: AudioAttributesUsage.notificationRingtone,
+    // FLAG_INSISTENT (4) makes the sound repeat until user acts
+    additionalFlags: Int32List.fromList([4]),
     actions: <AndroidNotificationAction>[
       AndroidNotificationAction(
         'incoming_call_decline_$callId',
@@ -1687,6 +1693,40 @@ class AppNotificationHandler {
       // callee never joins the room.
       if (operation == 'incoming_call') {
         _handleIncomingCallPush(message);
+        return;
+      }
+
+      // Caller hung up — stop ringing and cancel notification
+      if (operation == 'missed_call' || operation == 'call_cancelled') {
+        try {
+          final data = message.data;
+          final payloadRaw = data['payload'];
+          Map<String, dynamic> payload = {};
+          if (payloadRaw is String && payloadRaw.isNotEmpty) {
+            payload = Map<String, dynamic>.from(jsonDecode(payloadRaw));
+          } else if (payloadRaw is Map) {
+            payload = Map<String, dynamic>.from(payloadRaw);
+          }
+          final cId = (payload['call_id'] ?? data['callId'] ?? '').toString();
+          if (cId.isNotEmpty) {
+            cancelIncomingCallLocalNotification(cId);
+          }
+          // Stop in-app ringtone
+          if (Get.isRegistered<CallController>()) {
+            final ctrl = Get.find<CallController>();
+            ctrl.stopRingtone();
+            // If controller hasn't received socket cancel yet, clean up
+            if (ctrl.callStatus.value == CallStatus.ringing) {
+              ctrl.declineCall();
+            }
+          }
+          // Dismiss CallKit on iOS
+          if (Platform.isIOS && cId.isNotEmpty) {
+            try { FlutterCallkitIncoming.endCall(cId); } catch (_) {}
+          }
+        } catch (e) {
+          debugPrint('[CALL_DEBUG] foreground missed_call handler error: $e');
+        }
         return;
       }
 
