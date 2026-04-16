@@ -36,6 +36,7 @@ import 'package:http/http.dart' as http;
 import 'package:permission_handler/permission_handler.dart';
 
 import '../../features/chat/auth/controller/call_controller.dart';
+import '../../features/common/Discover/controller/discover_controller.dart';
 import '../../features/chat/view/ai_chat/view/ai_chat_screen.dart';
 import '../../features/chat/view/orders_chat/widget/order_call_alert_page.dart';
 import '../routes/route_helper.dart';
@@ -1728,6 +1729,39 @@ class AppNotificationHandler {
           debugPrint('[CALL_DEBUG] foreground missed_call handler error: $e');
         }
         return;
+      }
+
+      // Ride started push — update DiscoverController as fallback when the
+      // socket ride:started event is missed (socket reconnect, different room, etc.)
+      if (operation == 'ride_started') {
+        try {
+          if (Get.isRegistered<DiscoverController>()) {
+            final dc = Get.find<DiscoverController>();
+            if (!dc.isFareCallRideStarted.value) {
+              dc.isFareCallRideStarted.value = true;
+              dc.fareCallRideStartedData.value = message.data.cast<String, dynamic>();
+              debugPrint('[RIDE_DEBUG] foreground FCM ride_started → set isFareCallRideStarted=true');
+            }
+          }
+        } catch (e) {
+          debugPrint('[RIDE_DEBUG] foreground ride_started handler error: $e');
+        }
+      }
+
+      // Ride completed push — same fallback for ride:completed socket event
+      if (operation == 'ride_completed' || operation == 'ride_order_completed') {
+        try {
+          if (Get.isRegistered<DiscoverController>()) {
+            final dc = Get.find<DiscoverController>();
+            if (!dc.isFareCallRideCompleted.value) {
+              dc.isFareCallRideCompleted.value = true;
+              dc.fareCallRideCompletedData.value = message.data.cast<String, dynamic>();
+              debugPrint('[RIDE_DEBUG] foreground FCM ride_completed → set isFareCallRideCompleted=true');
+            }
+          }
+        } catch (e) {
+          debugPrint('[RIDE_DEBUG] foreground ride_completed handler error: $e');
+        }
       }
 
       // Play custom sound for foreground notifications
