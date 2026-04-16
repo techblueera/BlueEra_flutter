@@ -142,10 +142,10 @@ class LabTestController extends GetxController {
     }
   }
 
-  Future<bool> selectCatalog(String id) async {
+  Future<bool> selectCatalog(String id, {Map<String, dynamic>? customData}) async {
     isLoading.value = true;
     try {
-      ResponseModel res = await _repo.selectCatalogTests([id]);
+      ResponseModel res = await _repo.selectCatalogTests([id], overrides: customData);
       if (res.isSuccess) {
         commonSnackBar(message: AppStrings.labSelectedSuccess.tr);
         return true;
@@ -168,11 +168,12 @@ class LabTestController extends GetxController {
       ResponseModel res = await _repo.createPathologyTest(test.toJson());
       if (res.isSuccess) {
         commonSnackBar(message: AppStrings.labTestAddedSuccess.tr);
-        fetchTests(test.collection ?? "");
+        await fetchTests(test.collection ?? "");
         return true;
       } else {
         commonSnackBar(
-            message: res.response?.data['message'] ?? AppStrings.labFailedToAddTest.tr);
+            message: res.response?.data['message'] ??
+                AppStrings.labFailedToAddTest.tr);
         return false;
       }
     } catch (e) {
@@ -190,11 +191,12 @@ class LabTestController extends GetxController {
           await _repo.updatePathologyTest(test.id!, test.toJson());
       if (res.isSuccess) {
         commonSnackBar(message: AppStrings.labTestUpdatedSuccess.tr);
-        fetchTests(test.collection ?? "");
+        await fetchTests(test.collection ?? "");
         return true;
       } else {
         commonSnackBar(
-            message: res.response?.data['message'] ?? AppStrings.labFailedToUpdateTest.tr);
+            message: res.response?.data['message'] ??
+                AppStrings.labFailedToUpdateTest.tr);
         return false;
       }
     } catch (e) {
@@ -211,10 +213,11 @@ class LabTestController extends GetxController {
       ResponseModel res = await _repo.deletePathologyTest(id);
       if (res.isSuccess) {
         commonSnackBar(message: AppStrings.labTestDeletedSuccess.tr);
-        fetchTests(collection);
+        await fetchTests(collection);
       } else {
         commonSnackBar(
-            message: res.response?.data['message'] ?? AppStrings.labFailedToDeleteTest.tr);
+            message: res.response?.data['message'] ??
+                AppStrings.labFailedToDeleteTest.tr);
       }
     } catch (e) {
       commonSnackBar(message: "${AppStrings.hotelErrorPrefix.tr} $e");

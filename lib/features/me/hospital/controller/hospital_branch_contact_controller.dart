@@ -9,7 +9,7 @@ import 'package:BlueEra/features/me/hospital/repo/hospital_contact_us_repo.dart'
 import 'package:get/get.dart';
 
 class HospitalBranchContactController extends GetxController {
-  HospitalContactUsRepo hospitalContactUsRepo=HospitalContactUsRepo();
+  HospitalContactUsRepo hospitalContactUsRepo = HospitalContactUsRepo();
   Rx<ApiResponse> updateSchoolContactInfoResponse =
       ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> getSchoolContactUsResponse =
@@ -33,12 +33,17 @@ class HospitalBranchContactController extends GetxController {
     required String email,
     required String phone,
   }) {
-    // Basic validation logic
-    bool isValid = branchName.isNotEmpty &&
-        website.isURL &&
+    // Strict Name/Dept Validation: At least 3 chars, letters and spaces preferred
+    final nameRegex = RegExp(r"^[a-zA-Z\s\.]{3,50}$");
+
+    // Strict Gmail Validation: Must end with @gmail.com
+    final gmailRegex = RegExp(r'^[\w-\.]+@gmail\.com$');
+
+    bool isValid = nameRegex.hasMatch(branchName.trim()) &&
+        (website.isEmpty || website.isURL) &&
         address.isNotEmpty &&
-        department.isNotEmpty &&
-        email.isEmail &&
+        nameRegex.hasMatch(department.trim()) &&
+        gmailRegex.hasMatch(email.trim()) &&
         phone.length >= 10;
 
     isFormValid.value = isValid;
@@ -53,8 +58,7 @@ class HospitalBranchContactController extends GetxController {
     required String phone,
   }) async {
     if (selectedLat == null || selectedLng == null) {
-      commonSnackBar(
-          message: AppStrings.hospitalCtrlSelectValidLocation.tr);
+      commonSnackBar(message: AppStrings.hospitalCtrlSelectValidLocation.tr);
       return;
     }
 
@@ -83,13 +87,13 @@ class HospitalBranchContactController extends GetxController {
           }
         ]
       };
-      ResponseModel response =
-          await hospitalContactUsRepo.createSchoolBranchContactRepo(reqParm: body);
+      ResponseModel response = await hospitalContactUsRepo
+          .createSchoolBranchContactRepo(reqParm: body);
       if (response.isSuccess) {
         commonSnackBar(
             message: response.response?.data['message'] ??
                 AppStrings.hospitalCtrlBranchAddedSuccessfully.tr);
-      await  getBranchDetailsController();
+        await getBranchDetailsController();
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);
       }
@@ -101,7 +105,8 @@ class HospitalBranchContactController extends GetxController {
     }
   }
 
-  RxList<SchoolContactUsData>? schoolContactUsData = <SchoolContactUsData>[].obs;
+  RxList<SchoolContactUsData>? schoolContactUsData =
+      <SchoolContactUsData>[].obs;
 
   ///====================API CALLING START==============================
   ///GET BRANCH CONTACT DETAILS...
@@ -111,13 +116,13 @@ class HospitalBranchContactController extends GetxController {
     // Logic for AI generation goes here
     try {
       schoolContactUsData?.clear();
-      ResponseModel response = await hospitalContactUsRepo.getSchoolContactRepo();
+      ResponseModel response =
+          await hospitalContactUsRepo.getSchoolContactRepo();
 
       SchoolContactUsResModel schoolContactUsModel =
-      SchoolContactUsResModel.fromJson(response.response?.data);
+          SchoolContactUsResModel.fromJson(response.response?.data);
 
-      schoolContactUsData?.value =
-          schoolContactUsModel.data ?? [];
+      schoolContactUsData?.value = schoolContactUsModel.data ?? [];
 
       if (response.isSuccess) {
         getSchoolContactUsResponse.value =
@@ -142,31 +147,33 @@ class HospitalBranchContactController extends GetxController {
     required String departmentEmailAddress,
     required String departmentPhoneNo,
   }) {
-    // Condition: All text fields not empty AND at least 1 image
-    isFormValid.value = departmentRole.isNotEmpty &&
-        departmentPhoneNo.isNotEmpty &&
-        departmentEmailAddress.isNotEmpty;
+    final nameRegex = RegExp(r"^[a-zA-Z\s\.]{3,50}$");
+    final gmailRegex = RegExp(r'^[\w-\.]+@gmail\.com$');
+
+    isFormValid.value = nameRegex.hasMatch(departmentRole.trim()) &&
+        departmentPhoneNo.length >= 10 &&
+        gmailRegex.hasMatch(departmentEmailAddress.trim());
   }
+
   ///ADD NEW DEPARTMENT CONTACT INFO...
-  Future<void> addBranchDepartmentController({required Map<String,dynamic> reqBody,required String branchID}) async {
+  Future<void> addBranchDepartmentController(
+      {required Map<String, dynamic> reqBody, required String branchID}) async {
     // 1. Check if data is already loaded OR if it's currently loading
 
     // Logic for AI generation goes here
     try {
-      ResponseModel response = await hospitalContactUsRepo.addBranchDepartmentRepo(
-          reqParm: reqBody,
-         branchId: branchID);
+      ResponseModel response = await hospitalContactUsRepo
+          .addBranchDepartmentRepo(reqParm: reqBody, branchId: branchID);
 
       if (response.isSuccess) {
         Get.back();
         commonSnackBar(
             message:
-            response.response?.data["message"] ?? AppStrings.successful);
+                response.response?.data["message"] ?? AppStrings.successful);
 
-      await  getBranchDetailsController();
+        await getBranchDetailsController();
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);
-
       }
     } on Exception catch (e) {
       logs("ERROR ${e}");
@@ -177,14 +184,17 @@ class HospitalBranchContactController extends GetxController {
   }
 
   ///UPDATE CONTACT INFO...
-  Future<void> updateBranchContactDetailsController({required Map<String,dynamic> reqBody,required String contactID,required String branchID}) async {
+  Future<void> updateBranchContactDetailsController(
+      {required Map<String, dynamic> reqBody,
+      required String contactID,
+      required String branchID}) async {
     // 1. Check if data is already loaded OR if it's currently loading
 
     // Logic for AI generation goes here
     try {
-      ResponseModel response = await hospitalContactUsRepo.updateSchoolContactRepo(
-          reqParm: reqBody,
-          contactID: contactID, branchId: branchID);
+      ResponseModel response =
+          await hospitalContactUsRepo.updateSchoolContactRepo(
+              reqParm: reqBody, contactID: contactID, branchId: branchID);
 
       if (response.isSuccess) {
         Get.back();
@@ -193,8 +203,7 @@ class HospitalBranchContactController extends GetxController {
                 response.response?.data["message"] ?? AppStrings.successful);
         updateSchoolContactInfoResponse.value =
             ApiResponse.complete(response.response?.data);
-        await  getBranchDetailsController();
-
+        await getBranchDetailsController();
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);
         updateSchoolContactInfoResponse.value =
@@ -208,20 +217,20 @@ class HospitalBranchContactController extends GetxController {
     }
   }
 
-
   ///DELETE BRnach Contact....
   Future<void> deleteSchoolBranchDepartmentController(
-      {required String departmentId,required String contactId}) async {
+      {required String departmentId, required String contactId}) async {
     try {
-      ResponseModel response = await hospitalContactUsRepo
-          .deleteSchoolBranchDeptRepo(contactID:contactId ,deptID: departmentId);
+      ResponseModel response =
+          await hospitalContactUsRepo.deleteSchoolBranchDeptRepo(
+              contactID: contactId, deptID: departmentId);
 
       if (response.isSuccess) {
         Get.back();
         commonSnackBar(
             message:
-            response.response?.data['message'] ?? AppStrings.successful);
-        await  getBranchDetailsController();
+                response.response?.data['message'] ?? AppStrings.successful);
+        await getBranchDetailsController();
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);
       }
@@ -231,18 +240,17 @@ class HospitalBranchContactController extends GetxController {
   }
 
   ///DELETE BRanch....
-  Future<void> deleteSchoolBranchController(
-      {required String contactId}) async {
+  Future<void> deleteSchoolBranchController({required String contactId}) async {
     try {
       ResponseModel response = await hospitalContactUsRepo
-          .deleteSchoolBranchRepo(contactID:contactId );
+          .deleteSchoolBranchRepo(contactID: contactId);
 
       if (response.isSuccess) {
         Get.back();
         commonSnackBar(
             message:
-            response.response?.data['message'] ?? AppStrings.successful);
-        await  getBranchDetailsController();
+                response.response?.data['message'] ?? AppStrings.successful);
+        await getBranchDetailsController();
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);
       }
@@ -252,24 +260,26 @@ class HospitalBranchContactController extends GetxController {
   }
 
   ///UPDATE CONTACT INFO...
-  Future<void> updateBranchContactController({required Map<String,dynamic> reqBody,required String branchId}) async {
+  Future<void> updateBranchContactController(
+      {required Map<String, dynamic> reqBody, required String branchId}) async {
     // 1. Check if data is already loaded OR if it's currently loading
 
     // Logic for AI generation goes here
     try {
-      ResponseModel response = await hospitalContactUsRepo.updateSchoolBranchRepo(
-          reqParm: reqBody,
-        branchID: branchId, );
+      ResponseModel response =
+          await hospitalContactUsRepo.updateSchoolBranchRepo(
+        reqParm: reqBody,
+        branchID: branchId,
+      );
 
       if (response.isSuccess) {
         Get.back();
         commonSnackBar(
             message:
-            response.response?.data["message"] ?? AppStrings.successful);
+                response.response?.data["message"] ?? AppStrings.successful);
         updateSchoolContactInfoResponse.value =
             ApiResponse.complete(response.response?.data);
-        await  getBranchDetailsController();
-
+        await getBranchDetailsController();
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);
         updateSchoolContactInfoResponse.value =
@@ -282,7 +292,6 @@ class HospitalBranchContactController extends GetxController {
           ApiResponse.error(AppStrings.somethingWentWrong);
     }
   }
-
 
   ///Only Branch Validation
   void branchValidateForm({

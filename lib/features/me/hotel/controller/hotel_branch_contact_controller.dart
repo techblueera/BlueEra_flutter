@@ -52,8 +52,7 @@ class HotelBranchContactController extends GetxController {
     required String phone,
   }) async {
     if (selectedLat == null || selectedLng == null) {
-      commonSnackBar(
-          message: AppStrings.hotelSelectValidLocation.tr);
+      commonSnackBar(message: AppStrings.hotelSelectValidLocation.tr);
       return;
     }
 
@@ -91,8 +90,6 @@ class HotelBranchContactController extends GetxController {
     }
   }
 
-
-
   Future<void> updateBranchDetails({
     required String branchName,
     required String website,
@@ -120,8 +117,8 @@ class HotelBranchContactController extends GetxController {
         "website": website,
       };
 
-      ResponseModel response =
-          await HotelServiceRepo().updateHotelContactRepo(reqBody: body, id: contactID);
+      ResponseModel response = await HotelServiceRepo()
+          .updateHotelContactRepo(reqBody: body, id: contactID);
       if (response.isSuccess) {
         commonSnackBar(
             message: response.response?.data['message'] ??
@@ -187,8 +184,8 @@ class HotelBranchContactController extends GetxController {
     isFormValid.value =
         // departmentRole.isNotEmpty &&
         departmentPhoneNo.isNotEmpty &&
-        departmentAddress.isNotEmpty &&
-        departmentEmailAddress.isNotEmpty;
+            departmentAddress.isNotEmpty &&
+            departmentEmailAddress.isNotEmpty;
   }
 
   ///ADD NEW DEPARTMENT CONTACT INFO...
@@ -245,11 +242,12 @@ class HotelBranchContactController extends GetxController {
   }
 
   ///DELETE BRnach Contact....
-  Future<void> deleteHotelBranchDepartmentController(
-      {required String departmentId,}) async {
+  Future<void> deleteHotelBranchDepartmentController({
+    required String departmentId,
+  }) async {
     try {
-      ResponseModel response = await HotelServiceRepo().deleteHotelContactRepo(
-         departmentId);
+      ResponseModel response =
+          await HotelServiceRepo().deleteHotelContactRepo(departmentId);
 
       if (response.isSuccess) {
         Get.back();

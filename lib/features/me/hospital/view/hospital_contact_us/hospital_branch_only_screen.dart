@@ -13,10 +13,12 @@ import 'package:get/get.dart';
 class HospitalBranchOnlyScreen extends StatefulWidget {
   final SchoolContactUsData schoolContactUsData;
 
-  const HospitalBranchOnlyScreen({super.key, required this.schoolContactUsData});
+  const HospitalBranchOnlyScreen(
+      {super.key, required this.schoolContactUsData});
 
   @override
-  _HospitalBranchOnlyScreenState createState() => _HospitalBranchOnlyScreenState();
+  _HospitalBranchOnlyScreenState createState() =>
+      _HospitalBranchOnlyScreenState();
 }
 
 class _HospitalBranchOnlyScreenState extends State<HospitalBranchOnlyScreen> {
@@ -107,7 +109,7 @@ class _HospitalBranchOnlyScreenState extends State<HospitalBranchOnlyScreen> {
                               "name": branchNameController.text,
                               "website": websiteController.text,
                               "location": {
-                                "name":addressController.text,
+                                "name": addressController.text,
                                 "type": "Point",
                                 "coordinates": [
                                   schoolAboutUsController.selectedLat,

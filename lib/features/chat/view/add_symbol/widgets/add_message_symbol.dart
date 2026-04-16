@@ -96,47 +96,16 @@ class _CreateMessagePostScreenState extends State<CreateMessagePostScreen> {
                 width: double.infinity,
                 alignment: Alignment.center,
                 padding: const EdgeInsets.all(20),
-                child: TextField(
-                  controller: controller.linkTextSymbolController,
-                  inputFormatters: [
-                    LengthLimitingTextInputFormatter(140),
-                  ],
-                  showCursor: true,
-                  cursorColor: Colors.white.withOpacity(0.7),
-                  textAlign: TextAlign.center,
-                  textAlignVertical: TextAlignVertical.center,
-                  maxLines: null,
-                  expands: true,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: controller.selectedFontSize.value,
-                    fontWeight: controller
-                        .getFontWeight(controller.selectedFontWeight.value),
-                    fontFamily: controller.selectedFontFamily.value,
-                    height: 1.3,
-                  ),
-                  onChanged: (val) {
-                    setState(() {});
-                  },
-                  decoration: InputDecoration(
-                    filled: false,
-                    isCollapsed: true,
-                    hintText: AppStrings.typeYourMessageHere.tr,
-                    hintStyle: TextStyle(
-                      color: Colors.white.withOpacity(0.5),
-                      fontSize: controller.selectedFontSize.value,
-                      fontWeight: controller
-                          .getFontWeight(controller.selectedFontWeight.value),
-                      fontFamily: controller.selectedFontFamily.value,
-                    ),
-                    border: InputBorder.none,
-                    enabledBorder: InputBorder.none,
-                    focusedBorder: InputBorder.none,
-                    disabledBorder: InputBorder.none,
-                  ),
-                ),
+                child: controller.selectedPostType.value == PostType.link
+                    ? _buildLinkStickerPreview()
+                    : _buildTextMessageEditor(),
               ),
             )),
+
+        if (controller.selectedPostType.value == PostType.link) ...[
+          const SizedBox(height: 16),
+          _buildLinkInputRow(),
+        ],
 
         const SizedBox(height: 22),
 
@@ -335,6 +304,171 @@ class _CreateMessagePostScreenState extends State<CreateMessagePostScreen> {
           ),
         ],
       ],
+    );
+  }
+
+  Widget _buildTextMessageEditor() {
+    return TextField(
+      controller: controller.linkTextSymbolController,
+      inputFormatters: [
+        LengthLimitingTextInputFormatter(140),
+      ],
+      showCursor: true,
+      cursorColor: Colors.white.withOpacity(0.7),
+      textAlign: TextAlign.center,
+      textAlignVertical: TextAlignVertical.center,
+      maxLines: null,
+      expands: true,
+      style: TextStyle(
+        color: Colors.white,
+        fontSize: controller.selectedFontSize.value,
+        fontWeight:
+            controller.getFontWeight(controller.selectedFontWeight.value),
+        fontFamily: controller.selectedFontFamily.value,
+        height: 1.3,
+      ),
+      onChanged: (val) {
+        setState(() {});
+      },
+      decoration: InputDecoration(
+        filled: false,
+        isCollapsed: true,
+        hintText: AppStrings.typeYourMessageHere.tr,
+        hintStyle: TextStyle(
+          color: Colors.white.withOpacity(0.5),
+          fontSize: controller.selectedFontSize.value,
+          fontWeight:
+              controller.getFontWeight(controller.selectedFontWeight.value),
+          fontFamily: controller.selectedFontFamily.value,
+        ),
+        border: InputBorder.none,
+        enabledBorder: InputBorder.none,
+        focusedBorder: InputBorder.none,
+        disabledBorder: InputBorder.none,
+      ),
+    );
+  }
+
+  Widget _buildLinkStickerPreview() {
+    final link = controller.linkTextSymbolController.text.trim();
+    final hasLink = link.isNotEmpty;
+    
+    // Extract domain for display
+    String displayLink = "Link";
+    try {
+      if (hasLink) {
+        final uri = Uri.parse(link.startsWith('http') ? link : 'https://$link');
+        displayLink = uri.host.replaceAll('www.', '').toUpperCase();
+        if (displayLink.isEmpty) displayLink = "LINK";
+      }
+    } catch (_) {}
+
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(30),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.link_rounded, 
+                color: controller.selectedBgColor.value, 
+                size: 20
+              ),
+              const SizedBox(width: 8),
+              Flexible(
+                child: CustomText(
+                  displayLink,
+                  color: controller.selectedBgColor.value,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w800,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: 4),
+              Icon(Icons.arrow_outward_rounded, 
+                color: controller.selectedBgColor.value, 
+                size: 14
+              ),
+            ],
+          ),
+        ),
+        if (!hasLink) ...[
+          const SizedBox(height: 14),
+          CustomText(
+            "Enter URL below to see preview",
+            color: Colors.white.withOpacity(0.7),
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildLinkInputRow() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF3F4F8),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.link_rounded, color: Color(0xFF64748B), size: 18),
+          const SizedBox(width: 10),
+          Expanded(
+            child: TextField(
+              controller: controller.linkTextSymbolController,
+              style: const TextStyle(
+                color: Color(0xFF1E293B),
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+              decoration: const InputDecoration(
+                hintText: "https://example.com",
+                hintStyle: TextStyle(color: Color(0xFF94A3B8), fontSize: 13),
+                border: InputBorder.none,
+                isDense: true,
+              ),
+              onChanged: (v) => setState(() {}),
+            ),
+          ),
+          TextButton(
+            onPressed: () async {
+              final data = await Clipboard.getData('text/plain');
+              if (data?.text != null) {
+                controller.linkTextSymbolController.text = data!.text!;
+                setState(() {});
+              }
+            },
+            style: TextButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            child: const CustomText(
+              "PASTE",
+              color: Color(0xFF0086FF),
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
     );
   }
 

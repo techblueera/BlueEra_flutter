@@ -44,8 +44,11 @@ class LabTestRepo extends BaseService {
   }
 
   // Catalog: POST select tests by catalog IDs
-  Future<ResponseModel> selectCatalogTests(List<String> catalogTestIds) async {
+  Future<ResponseModel> selectCatalogTests(List<String> catalogTestIds, {Map<String, dynamic>? overrides}) async {
     return await ApiBaseHelper()
-        .postHTTP(testCatalogSelect, params: {"catalogTestIds": catalogTestIds});
+        .postHTTP(testCatalogSelect, params: {
+          "catalogTestIds": catalogTestIds,
+          if (overrides != null) ...overrides,
+        });
   }
 }

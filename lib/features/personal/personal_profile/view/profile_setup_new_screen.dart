@@ -479,52 +479,60 @@ class _PersonalProfileSetupNewScreenState
           final double rightSectionWidth = totalWidth * 0.7;
           final double itemWidth = (rightSectionWidth / 2) - SizeConfig.size8;
 
-          return Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Left section - text + circle
-              Expanded(
-                flex: 1,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    CustomText(
-                      AppStrings.yourProfileCompletionScore,
-                      fontWeight: FontWeight.w600,
-                      fontSize: SizeConfig.medium,
-                      color: AppColors.mainTextColor,
-                    ),
-                    SizedBox(
-                      height: SizeConfig.size8,
-                    ),
-                    SizedBox(
-                      width: SizeConfig.size80,
-                      height: SizeConfig.size80,
-                      child: CustomPaint(
-                        painter: CircleProgressPainter(viewProfileController
-                            .myProfileCompletionPercent.value),
-                        child: Center(
-                          child: CustomText(
-                            "${(viewProfileController.myProfileCompletionPercent.value * 100).toInt()}%",
-                            fontWeight: FontWeight.w700,
-                            fontSize: SizeConfig.medium,
-                            color: AppColors.mainTextColor,
+          return IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Left section - text + circle
+                Expanded(
+                  flex: 1,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CustomText(
+                        AppStrings.yourProfileCompletionScore,
+                        fontWeight: FontWeight.w600,
+                        fontSize: SizeConfig.medium,
+                        color: AppColors.mainTextColor,
+                      ),
+                      SizedBox(
+                        height: SizeConfig.size8,
+                      ),
+                      SizedBox(
+                        width: SizeConfig.size80,
+                        height: SizeConfig.size80,
+                        child: viewProfileController.myProfileCompletionPercent.value >= 1.0
+                        ? const Center(
+                            child: Icon(
+                              Icons.verified,
+                              color: AppColors.green7F,
+                              size: 40,
+                            ),
+                          )
+                        : CustomPaint(
+                          painter: CircleProgressPainter(viewProfileController
+                              .myProfileCompletionPercent.value),
+                          child: Center(
+                            child: CustomText(
+                              "${(viewProfileController.myProfileCompletionPercent.value * 100).toInt()}%",
+                              fontWeight: FontWeight.w700,
+                              fontSize: SizeConfig.medium,
+                              color: AppColors.mainTextColor,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
-                child: Container(
-                  width: 1,
-                  height: SizeConfig.size120, // ensure visible height
-                  color: AppColors.whiteE5,
+  
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
+                  child: Container(
+                    width: 1,
+                    color: AppColors.whiteE5,
+                  ),
                 ),
-              ),
 
               // Right section - 2-column checklist
               Expanded(
@@ -532,70 +540,91 @@ class _PersonalProfileSetupNewScreenState
                 child: Padding(
                   padding: const EdgeInsets.only(left: 5.0),
                   child: Column(
-                    mainAxisSize: MainAxisSize.max,
-                    mainAxisAlignment: MainAxisAlignment.end,
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.start,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Wrap(
-                        spacing: SizeConfig.size12,
-                        runSpacing: SizeConfig.size8,
-                        children: viewProfileController.fields.map((item) {
-                          return GestureDetector(
-                            onTap: () {
-                              viewProfileController.onFieldTap(item);
-                            },
-                            child: SizedBox(
-                              width: itemWidth,
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    item.isCompleted
-                                        ? Icons.check_circle
-                                        : Icons.error,
-                                    color: item.isCompleted
-                                        ? const Color(0xFF4CAF50)
-                                        : Colors.red,
-                                    size: 18,
-                                  ),
-                                  SizedBox(width: SizeConfig.size6),
-                                  Expanded(
-                                    child: CustomText(
-                                      item.title,
-                                      fontSize: SizeConfig.small,
-                                      color: AppColors.mainTextColor,
-                                      fontWeight: FontWeight.w500,
+                      if (viewProfileController.myProfileCompletionPercent.value < 1.0) ...[
+                        Wrap(
+                          spacing: SizeConfig.size12,
+                          runSpacing: SizeConfig.size8,
+                          children: viewProfileController.fields.map((item) {
+                            return GestureDetector(
+                              onTap: () {
+                                viewProfileController.onFieldTap(item);
+                              },
+                              child: SizedBox(
+                                width: itemWidth,
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      item.isCompleted
+                                          ? Icons.check_circle
+                                          : Icons.error,
+                                      color: item.isCompleted
+                                          ? const Color(0xFF4CAF50)
+                                          : Colors.red,
+                                      size: 18,
                                     ),
-                                  ),
-                                ],
+                                    SizedBox(width: SizeConfig.size6),
+                                    Expanded(
+                                      child: CustomText(
+                                        item.title,
+                                        fontSize: SizeConfig.small,
+                                        color: AppColors.mainTextColor,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                      SizedBox(height: SizeConfig.size15),
-                      Builder(
-                        builder: (_) {
-                          final pendingCount = viewProfileController.fields
-                              .where((item) => item.isCompleted == false)
-                              .length;
+                            );
+                          }).toList(),
+                        ),
+                        SizedBox(height: SizeConfig.size15),
+                        Builder(
+                          builder: (_) {
+                            final pendingCount = viewProfileController.fields
+                                .where((item) => item.isCompleted == false)
+                                .length;
 
-                          return pendingCount > 0 ? CustomText(
-                            "$pendingCount action${pendingCount != 1 ? 's' : ''} pending",
-                            fontWeight: FontWeight.w600,
-                            fontSize: SizeConfig.small,
-                            color: pendingCount == 0
-                                ? AppColors.green7F
-                                : AppColors.yellow00,
-                          ) : SizedBox();
-                        },
-                      ),
+                            return pendingCount > 0 ? CustomText(
+                              "$pendingCount action${pendingCount != 1 ? 's' : ''} pending",
+                              fontWeight: FontWeight.w600,
+                              fontSize: SizeConfig.small,
+                              color: pendingCount == 0
+                                  ? AppColors.green7F
+                                  : AppColors.yellow00,
+                            ) : SizedBox();
+                          },
+                        ),
+                      ] else ...[
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            CustomText(
+                              "Hurray! Your Profile is 100% Completed",
+                              fontSize: SizeConfig.medium,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.green7F,
+                            ),
+                            SizedBox(height: SizeConfig.size8),
+                            CustomText(
+                              "Your profile is now verified and visible to others in the community.",
+                              fontSize: SizeConfig.small,
+                              color: AppColors.secondaryTextColor,
+                            ),
+                          ],
+                        ),
+                      ],
                     ],
                   ),
                 ),
               ),
             ],
-          );
+          ),
+        );
         },
       ),
     );
@@ -653,6 +682,14 @@ class _PersonalProfileSetupNewScreenState
     }
 
     void initData() {
+      // Ensure professions are loaded
+      if (authController.professionTypeDataList.isEmpty) {
+        authController.getAllIndividualProfession().then((_) {
+          setState(() {
+            updateCategoryOfProfession(_selectedProfileType.type);
+          });
+        });
+      }
       updateCategoryOfProfession(_selectedProfileType.type);
 
       String? currentSlug = user?.profession;
@@ -1047,7 +1084,7 @@ class _PersonalProfileSetupNewScreenState
                         ),
                         selectedValue: _selectedDesignationObj,
                         title: 'Expertise',
-                        hintText: 'Eg. Loan Consultant...',
+                        hintText: 'Select expertise',
                         displayValue: (s) => s.name ?? "",
                         onChanged: (value) {
                           setState(() {
@@ -1084,7 +1121,7 @@ class _PersonalProfileSetupNewScreenState
                               ),
                               selectedValue: _selectedDesignationObj,
                               title: 'Select Your Art / Skill',
-                              hintText: 'Eg. Actor...',
+                              hintText: 'Select expertise',
                               displayValue: (s) => s.name ?? "",
                               onChanged: (value) {
                                 setState(() {
@@ -1119,8 +1156,7 @@ class _PersonalProfileSetupNewScreenState
                             items: authController.arrIndividualFields,
                             selectedValue: _selectedContentCreatorSpecialization,
                             title: 'Select your Field',
-                            hintText:
-                            'Eg. Media Creators, Writing Creators',
+                            hintText: 'Select expertise',
                             displayValue: (value) => value.name ?? '',
                             onChanged: (value) {
                               _selectedContentCreatorSpecialization = value;
@@ -1156,7 +1192,7 @@ class _PersonalProfileSetupNewScreenState
                             selectedValue:
                             _selectedDesignationObj,
                             title: 'Select Your Specification',
-                            hintText: 'Eg. Video Creator, BLOGGER',
+                            hintText: 'Select expertise',
                             displayValue: (s) => s.name ?? "",
                             onChanged: (value) {
                               setState(() {
@@ -1987,7 +2023,7 @@ class _PersonalProfileSetupNewScreenState
                   SizedBox(width: SizeConfig.size10),*/
                   Expanded(
                     child: Obx(() => GestureDetector(
-                          onTap: viewProfileController.myProfileCompletionPercent.value >= 1.0 ? null : () {
+                          onTap: () {
                             viewProfileController.isMyProfileShow.value =
                                 !viewProfileController.isMyProfileShow.value;
                           },
@@ -2013,29 +2049,31 @@ class _PersonalProfileSetupNewScreenState
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600,
                                 ),
-                                const SizedBox(width: 8),
-                                SizedBox(
-                                  width: 25,
-                                  height: 25,
-                                  child: CustomPaint(
-                                    painter: CircleProgressPainter(
-                                      viewProfileController
-                                          .myProfileCompletionPercent.value,
-                                      isMyProfile: viewProfileController
-                                          .isMyProfileShow.value,
-                                    ),
-                                    child: Center(
-                                      child: CustomText(
-                                        "${(viewProfileController.myProfileCompletionPercent.value * 100).toInt()}%",
-                                        fontSize: 8,
-                                        fontWeight: FontWeight.w600,
-                                        color: viewProfileController.isMyProfileShow.isTrue
-                                            ? Colors.white
-                                            : AppColors.black,
+                                if (viewProfileController.myProfileCompletionPercent.value < 1.0) ...[
+                                  const SizedBox(width: 8),
+                                  SizedBox(
+                                    width: 25,
+                                    height: 25,
+                                    child: CustomPaint(
+                                      painter: CircleProgressPainter(
+                                        viewProfileController
+                                            .myProfileCompletionPercent.value,
+                                        isMyProfile: viewProfileController
+                                            .isMyProfileShow.value,
+                                      ),
+                                      child: Center(
+                                        child: CustomText(
+                                          "${(viewProfileController.myProfileCompletionPercent.value * 100).toInt()}%",
+                                          fontSize: 8,
+                                          fontWeight: FontWeight.w600,
+                                          color: viewProfileController.isMyProfileShow.isTrue
+                                              ? Colors.white
+                                              : AppColors.black,
+                                        ),
                                       ),
                                     ),
                                   ),
-                                ),
+                                ],
                               ],
                             ),
                           ),

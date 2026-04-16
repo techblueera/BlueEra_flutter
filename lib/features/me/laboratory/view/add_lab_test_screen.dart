@@ -13,6 +13,7 @@ import 'package:BlueEra/widgets/common_drop_down-dialoge.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 class AddLabTestScreen extends StatefulWidget {
@@ -160,7 +161,6 @@ class _AddLabTestScreenState extends State<AddLabTestScreen> {
                 _buildParameterSelection(),
                 if (!isRadiology) ...[
                   SizedBox(height: SizeConfig.size16),
-
                   CustomText(
                     AppStrings.specimen.tr,
                     color: AppColors.mainTextColor,
@@ -179,7 +179,6 @@ class _AddLabTestScreenState extends State<AddLabTestScreen> {
                     },
                   ),
                   SizedBox(height: SizeConfig.size16),
-
                   CustomText(
                     AppStrings.specimenCollectionMethod.tr,
                     color: AppColors.mainTextColor,
@@ -204,9 +203,24 @@ class _AddLabTestScreenState extends State<AddLabTestScreen> {
                   title: AppStrings.estimatedReportHours.tr,
                   hintText: AppStrings.labHintHours.tr,
                   keyBoardType: TextInputType.number,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  maxLength: 3,
+                  isValidate: true,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return AppStrings.required.tr;
+                    }
+                    int? hours = int.tryParse(value);
+                    if (hours == null || hours <= 0) {
+                      return "Please enter valid report hours";
+                    }
+                    if (hours > 999) {
+                      return "Hours cannot exceed 999";
+                    }
+                    return null;
+                  },
                 ),
                 SizedBox(height: SizeConfig.size16),
-
                 CustomText(
                   AppStrings.gender.tr,
                   color: AppColors.mainTextColor,
@@ -230,12 +244,14 @@ class _AddLabTestScreenState extends State<AddLabTestScreen> {
                   title: AppStrings.beforeTestGuidance.tr,
                   hintText: AppStrings.enterGuidance.tr,
                   maxLine: 3,
+                  isValidate: false,
                 ),
                 SizedBox(height: SizeConfig.size16),
                 CommonTextField(
                   textEditController: methodController,
                   title: AppStrings.testMethodOptional.tr,
                   hintText: AppStrings.egText.tr,
+                  isValidate: false,
                 ),
                 SizedBox(height: SizeConfig.size16),
                 _buildSwitchRow(
@@ -260,6 +276,21 @@ class _AddLabTestScreenState extends State<AddLabTestScreen> {
                   hintText: AppStrings.labHint1000.tr,
                   keyBoardType: TextInputType.number,
                   isValidate: true,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  maxLength: 7,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return AppStrings.required.tr;
+                    }
+                    int? fees = int.tryParse(value);
+                    if (fees == null || fees <= 0) {
+                      return "Please enter valid fees";
+                    }
+                    if (fees > 1000000) {
+                      return "Fees cannot exceed 1,000,000";
+                    }
+                    return null;
+                  },
                 ),
                 SizedBox(height: SizeConfig.size16),
                 CommonTextField(
@@ -268,6 +299,25 @@ class _AddLabTestScreenState extends State<AddLabTestScreen> {
                   hintText: AppStrings.labHint800.tr,
                   keyBoardType: TextInputType.number,
                   isValidate: true,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  maxLength: 7,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return AppStrings.required.tr;
+                    }
+                    int? mrp = int.tryParse(feesController.text);
+                    int? price = int.tryParse(value);
+                    if (price == null || price <= 0) {
+                      return "Please enter valid price";
+                    }
+                    if (price > 1000000) {
+                      return "Price cannot exceed 1,000,000";
+                    }
+                    if (mrp != null && price > mrp) {
+                      return "Customer price cannot exceed MRP";
+                    }
+                    return null;
+                  },
                 ),
                 SizedBox(height: SizeConfig.size16),
                 CustomText(
@@ -361,8 +411,10 @@ class _AddLabTestScreenState extends State<AddLabTestScreen> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            CustomText(title,
-               color: AppColors.mainTextColor,),
+            CustomText(
+              title,
+              color: AppColors.mainTextColor,
+            ),
             Transform.scale(
               scale: 0.75,
               child: Switch(
@@ -381,6 +433,24 @@ class _AddLabTestScreenState extends State<AddLabTestScreen> {
     if (_formKey.currentState!.validate()) {
       if (selectedCategory == null) {
         commonSnackBar(message: AppStrings.pleaseSelectCategory.tr);
+        return;
+      }
+      if (selectedGender == null) {
+        commonSnackBar(message: AppStrings.pleaseSelectGender.tr);
+        return;
+      }
+      if (!isRadiology) {
+        if (selectedSpecimen == null) {
+          commonSnackBar(message: "Please select specimen");
+          return;
+        }
+        if (selectedCollectionMethod == null) {
+          commonSnackBar(message: "Please select collection method");
+          return;
+        }
+      }
+      if (selectedPackageType == null) {
+        commonSnackBar(message: "Please select package type");
         return;
       }
 

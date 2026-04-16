@@ -33,12 +33,17 @@ class OtherBranchContactController extends GetxController {
     required String email,
     required String phone,
   }) {
-    // Basic validation logic
-    bool isValid = branchName.isNotEmpty &&
-        website.isURL &&
+    // Strict Name/Dept Validation: At least 3 chars, letters and spaces preferred
+    final nameRegex = RegExp(r"^[a-zA-Z\s\.]{3,50}$");
+
+    // Strict Gmail Validation: Must end with @gmail.com
+    final gmailRegex = RegExp(r'^[\w-\.]+@gmail\.com$');
+
+    bool isValid = nameRegex.hasMatch(branchName.trim()) &&
+        (website.isEmpty || website.isURL) &&
         address.isNotEmpty &&
-        department.isNotEmpty &&
-        email.isEmail &&
+        nameRegex.hasMatch(department.trim()) &&
+        gmailRegex.hasMatch(email.trim()) &&
         phone.length >= 10;
 
     isFormValid.value = isValid;
@@ -155,10 +160,12 @@ class OtherBranchContactController extends GetxController {
     required String departmentEmailAddress,
     required String departmentPhoneNo,
   }) {
-    // Condition: All text fields not empty AND at least 1 image
-    isFormValid.value = departmentRole.isNotEmpty &&
-        departmentPhoneNo.isNotEmpty &&
-        departmentEmailAddress.isNotEmpty;
+    final nameRegex = RegExp(r"^[a-zA-Z\s\.]{3,50}$");
+    final gmailRegex = RegExp(r'^[\w-\.]+@gmail\.com$');
+
+    isFormValid.value = nameRegex.hasMatch(departmentRole.trim()) &&
+        departmentPhoneNo.length >= 10 &&
+        gmailRegex.hasMatch(departmentEmailAddress.trim());
   }
 
   ///ADD NEW DEPARTMENT CONTACT INFO...

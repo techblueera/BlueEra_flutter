@@ -47,11 +47,16 @@ class LabContactUsController extends GetxController {
     required String email,
     required String phone,
   }) {
-    // Basic validation logic
-    bool isValid = branchName.isNotEmpty &&
-        website.isURL &&
+    // Strict Name/Branch Validation: At least 3 chars, letters and spaces preferred
+    final nameRegex = RegExp(r"^[a-zA-Z\s\.]{3,50}$");
+    
+    // Strict Gmail Validation: Must end with @gmail.com
+    final gmailRegex = RegExp(r'^[\w-\.]+@gmail\.com$');
+
+    bool isValid = nameRegex.hasMatch(branchName.trim()) &&
+        (website.isEmpty || website.isURL) &&
         address.isNotEmpty &&
-        email.isEmail &&
+        gmailRegex.hasMatch(email.trim()) &&
         phone.length >= 10;
 
     isFormValid.value = isValid;
@@ -65,8 +70,7 @@ class LabContactUsController extends GetxController {
     required String phone,
   }) async {
     if (selectedLat == null || selectedLng == null) {
-      commonSnackBar(
-          message: AppStrings.hotelSelectValidLocation.tr);
+      commonSnackBar(message: AppStrings.hotelSelectValidLocation.tr);
       return;
     }
 
@@ -75,18 +79,16 @@ class LabContactUsController extends GetxController {
 
       // Prepare Request Body
       Map<String, dynamic> body = {
-          "name": branchName,
-          "websiteUrl": website,
-          "email": email,
-          "phoneNo": phone,
-
-          "location": {
-            "name": address,
-            "type": "Point",
-            "coordinates": [selectedLat, selectedLng]
-          },
+        "name": branchName,
+        "websiteUrl": website,
+        "email": email,
+        "phoneNo": phone,
+        "location": {
+          "name": address,
+          "type": "Point",
+          "coordinates": [selectedLat, selectedLng]
+        },
         "laboratoryId": labIDGlobal
-
       };
 
       ResponseModel response =

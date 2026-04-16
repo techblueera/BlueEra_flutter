@@ -78,8 +78,7 @@ class _LabContactUsScreenState extends State<LabContactUsScreen> {
           websiteController = TextEditingController(
               text: controller.contactUsData.value?.data?.websiteUrl ?? "");
           addressController = TextEditingController(
-              text:
-                  controller.contactUsData.value?.data?.location?.name ?? "");
+              text: controller.contactUsData.value?.data?.location?.name ?? "");
           emailController = TextEditingController(
               text: controller.contactUsData.value?.data?.email ?? "");
           phoneController = TextEditingController(
@@ -130,7 +129,9 @@ class _LabContactUsScreenState extends State<LabContactUsScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _sectionIcon(Icons.person_outline, AppStrings.labPersonalInfo.tr,
+                      _sectionIcon(
+                          Icons.person_outline,
+                          AppStrings.labPersonalInfo.tr,
                           AppStrings.labPersonalInfoSub.tr),
                       const SizedBox(height: 16),
                       CommonTextField(
@@ -160,7 +161,9 @@ class _LabContactUsScreenState extends State<LabContactUsScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _sectionIcon(Icons.phone_outlined, AppStrings.labContactDetailsTitle.tr,
+                      _sectionIcon(
+                          Icons.phone_outlined,
+                          AppStrings.labContactDetailsTitle.tr,
                           AppStrings.labContactDetailsSub.tr),
                       const SizedBox(height: 16),
                       CommonTextField(
@@ -204,16 +207,15 @@ class _LabContactUsScreenState extends State<LabContactUsScreen> {
                           try {
                             final detailsResponse = await PlaceRepo()
                                 .getCompletePlaceDetails(placeId: placeId);
-                            final detailsData =
-                                detailsResponse.response?.data;
+                            final detailsData = detailsResponse.response?.data;
                             final placeDetails =
                                 PlaceDetailsResponse.fromJson(detailsData);
-                            controller.selectedLat = placeDetails
-                                    .result?.geometry?.location?.lat ??
-                                0.0;
-                            controller.selectedLng = placeDetails
-                                    .result?.geometry?.location?.lng ??
-                                0.0;
+                            controller.selectedLat =
+                                placeDetails.result?.geometry?.location?.lat ??
+                                    0.0;
+                            controller.selectedLng =
+                                placeDetails.result?.geometry?.location?.lng ??
+                                    0.0;
                           } catch (e) {
                             debugPrint("Error fetching place details: $e");
                           }
@@ -238,9 +240,7 @@ class _LabContactUsScreenState extends State<LabContactUsScreen> {
                               phone: phoneController.text,
                             )
                         : null,
-                    title: isEdit
-                        ? AppStrings.update.tr
-                        : AppStrings.submit.tr,
+                    title: isEdit ? AppStrings.update.tr : AppStrings.submit.tr,
                     isValidate: controller.isFormValid.value,
                   )),
               SizedBox(height: SizeConfig.size20),
