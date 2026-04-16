@@ -217,6 +217,15 @@
         <meta-data
             android:name="firebase_messaging_auto_init_enabled"
             android:value="true" />
+        <!-- Incoming call notification button receiver -->
+        <receiver
+            android:name=".CallActionReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="ai.bluecs.app.CALL_ACCEPT" />
+                <action android:name="ai.bluecs.app.CALL_DECLINE" />
+            </intent-filter>
+        </receiver>
     </application>
 
     <!-- Queries (for deep links / external apps) -->

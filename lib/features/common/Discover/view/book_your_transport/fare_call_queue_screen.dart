@@ -51,6 +51,7 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
   int _localSeconds = 0;
 
   // Rider accepted state
+  bool _callWasConnected = false;
   bool _riderAccepted = false;
   bool _rideCompleted = false;
   Map<String, dynamic>? _acceptedRiderInfo;
@@ -111,14 +112,34 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
       }
     });
 
-    // Watch call status for timer
+    // Watch call status for timer and ride-accepted fallback
     _callStatusWorker = ever(_callController.callStatus, (status) {
       if (!mounted) return;
       if (status == CallStatus.connected) {
+        _callWasConnected = true;
         _startLocalTimer();
       }
       if (status == CallStatus.idle || status == CallStatus.ended) {
         _localTimer?.cancel();
+        // Fallback: if the call was connected and now ended, but
+        // ride:queue:accepted socket event never fired, the rider likely
+        // accepted the ride and ended the call. Trigger the accepted flow
+        // using the current rider ID and details from the selected riders list.
+        if (_callWasConnected && !_riderAccepted) {
+          debugPrint('[FARE_CALL_QUEUE] call ended after connection — triggering ride-accepted fallback');
+          final riderId = discoverController.fareCallCurrentRiderId.value;
+          if (riderId.isNotEmpty) {
+            // Try to find rider details from the selected riders list
+            final riderUser = discoverController.selectedRiders
+                .firstWhereOrNull((r) => r.riderId == riderId);
+            discoverController.fareCallAcceptedRiderId.value = riderId;
+            discoverController.fareCallAcceptedRiderInfo.value = {
+              'riderId': riderId,
+              if (riderUser?.name != null) 'name': riderUser!.name,
+              if (riderUser?.profileImage != null) 'profileImage': riderUser!.profileImage,
+            };
+          }
+        }
       }
     });
 
@@ -157,8 +178,10 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
 
   void _onRiderAccepted(Map<String, dynamic> riderInfo) {
     // Rider accepted the ride order (after speaking on call).
-    // End the call first, then switch to map view.
-    _callController.endCall();
+    // End the call if still active, then switch to map view.
+    if (_callController.callStatus.value != CallStatus.idle) {
+      _callController.endCall();
+    }
     _localTimer?.cancel();
 
     setState(() {

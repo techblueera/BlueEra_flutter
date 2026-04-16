@@ -357,6 +357,39 @@ Future<void> main() async {
   /// Always clear the stashed extras + flag so a stale value can't replay
   /// and so firebaseNotificationSetup()'s tap router can't accidentally
   /// open chat for an incoming-call payload.
+  // Check for native call notification action (filled-button notification)
+  try {
+    final nativeAction = await readAndClearPendingNativeCallAction();
+    if (nativeAction != null) {
+      final action = nativeAction['action']?.toString() ?? '';
+      final callId = nativeAction['callId']?.toString() ?? '';
+      final roomId = nativeAction['roomId']?.toString() ?? '';
+      final callType = nativeAction['callType']?.toString() ?? '';
+      final isVideo = callType == 'video_call';
+      final pending = await readAndClearPendingIncomingCallExtras();
+
+      if (action == 'accept' && callId.isNotEmpty) {
+        debugPrint('[COLD_START_CALL] native notification accept → callId=$callId');
+        final callController = getOrPut(() => CallController());
+        if (pending != null) callController.initStateFromCallKitExtra(pending);
+        CallController.setKilledStateAcceptHandled();
+        CallController.markColdStartCall();
+        callController.acceptCall(
+          callIdParams: callId,
+          roomIdParams: roomId,
+          isVideoCall: isVideo,
+        );
+      } else if (action == 'decline' && callId.isNotEmpty) {
+        debugPrint('[COLD_START_CALL] native notification decline → callId=$callId');
+        final callController = getOrPut(() => CallController());
+        if (pending != null) callController.initStateFromCallKitExtra(pending);
+        callController.declineCall();
+      }
+    }
+  } catch (e) {
+    debugPrint('[COLD_START_CALL] native pending action check error: $e');
+  }
+
   try {
     String? acceptedCallId = await readAndClearPendingIncomingCallAccept();
     Map<String, dynamic>? pending =
