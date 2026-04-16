@@ -2850,10 +2850,10 @@ class ChatViewController extends GetxController {
       }).toList();
 
       final Map<String, dynamic> messagePayload = {
-        // if (isInitialMessage)
-          ApiKeys.other_user_id: userId,
-        // else
-        //   ApiKeys.conversation_id: conversationId,
+        if (conversationId==null)
+          ApiKeys.other_user_id: userId
+        else
+          ApiKeys.conversation_id: conversationId,
         if (commands != null) ApiKeys.message: commands,
         ApiKeys.message_type: messageType,
         ApiKeys.url: urlList,
