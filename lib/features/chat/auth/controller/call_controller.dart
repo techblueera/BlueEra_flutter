@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:BlueEra/widgets/global_message_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -22,6 +23,7 @@ import '../../../../core/constants/app_strings.dart';
 import '../../../../core/constants/shared_preference_utils.dart';
 import '../../../../core/constants/snackbar_helper.dart';
 import '../../../../core/services/app_notification.dart';
+import '../../../../core/services/notifications/default_ringtone.dart';
 
 import '../model/call_models.dart';
 import '../repo/call_repo.dart';
@@ -90,6 +92,24 @@ class CallController extends GetxController {
   var callDurationSeconds = 0.obs;
   Timer? _callTimer;
   Timer? _ringTimer;
+
+  // Ringtone player — lives in the controller so it is always reachable
+  // regardless of whether the call screen widget is mounted or disposed.
+  final AudioPlayer _ringtonePlayer = AudioPlayer();
+
+  /// Start the incoming-call ringtone (loops until stopped).
+  void startRingtone() {
+    _ringtonePlayer.setReleaseMode(ReleaseMode.loop);
+    _ringtonePlayer.play(AssetSource('sound/hangouts_call.mp3'));
+  }
+
+  /// Stop all incoming-call ringtones immediately — covers both:
+  /// - In-app AudioPlayer ringtone (regular voice/video calls)
+  /// - Native system ringtone via DefaultRingtone (rider/fare-call)
+  void stopRingtone() {
+    _ringtonePlayer.stop();
+    try { DefaultRingtone.stop(); } catch (_) {}
+  }
 
   // WebRTC
   MediaStream? localStream;
@@ -484,6 +504,8 @@ class CallController extends GetxController {
           : null;
       debugPrint('[FARE_CALL] Incoming fare-call detected, orderId=${fareCallOrderId.value}, rideDetails=${fareCallRideDetails.value}');
       debugPrint('[FARE_CALL_DEBUG] _handleIncomingCall → currentRoute=${Get.currentRoute}, navigating to IncomingRiderOrderScreen');
+      // Start ringtone for fare-call too
+      startRingtone();
       // Navigate to rider order screen instead of regular call screen
       if (Get.currentRoute != '/IncomingRiderOrderScreen') {
         Get.toNamed('/IncomingRiderOrderScreen');
@@ -530,6 +552,10 @@ class CallController extends GetxController {
       return;
     }
 
+    // Start ringtone from controller so it keeps playing even if screen is
+    // not yet mounted, and can be reliably stopped on decline/cancel/end.
+    startRingtone();
+
     if (Get.currentRoute != '/IncomingCallScreen') {
       Get.toNamed('/IncomingCallScreen');
     }
@@ -542,6 +568,9 @@ class CallController extends GetxController {
     debugPrint('[CALL_DEBUG] acceptCall → START, callIdParams=$callIdParams, roomIdParams=$roomIdParams, isVideoCall=$isVideoCall, currentStatus=${callStatus.value}');
 
     // Prevent double accept (multiple CallKit listeners may fire)
+    stopRingtone();
+    // Cancel Android local notification (background/terminated path)
+    if (callId.value.isNotEmpty) cancelIncomingCallLocalNotification(callId.value);
     isIncomingCall.value=false;
     if (callStatus.value == CallStatus.accepting ||
         callStatus.value == CallStatus.connecting ||
@@ -924,6 +953,9 @@ class CallController extends GetxController {
 
   /// Decline an incoming call
   Future<void> declineCall() async {
+    stopRingtone();
+    // Cancel Android local notification (background/terminated path)
+    if (callId.value.isNotEmpty) cancelIncomingCallLocalNotification(callId.value);
     isIncomingCall.value=false;
 
     if (callStatus.value == CallStatus.idle) return;
@@ -1097,6 +1129,7 @@ class CallController extends GetxController {
   }
 
   void _handleCallDeclined(dynamic data) {
+    stopRingtone();
     final callEnded = data['call_ended'] ?? true;
     _ringTimer?.cancel();
 
@@ -1110,7 +1143,7 @@ class CallController extends GetxController {
     }
 
     if (callEnded == true) {
-      commonSnackBar(message: AppStrings.callDeclined.tr);
+      try { commonSnackBar(message: AppStrings.callDeclined.tr); } catch (_) {}
       _leaveRoomAndCleanup();
       Get.back();
     } else {
@@ -1120,8 +1153,17 @@ class CallController extends GetxController {
   }
 
   void _handleCallCancelled(dynamic data) {
+    stopRingtone();
     debugPrint('[CALL_DEBUG] _handleCallCancelled → isFareCall=${isFareCall.value}, callStatus=${callStatus.value}, data=$data');
     if (isCallActivityActive && !isCallActivityEngine) return;
+
+    // Always cancel the Android local notification for this call — it may have
+    // been posted by the FCM background isolate and keeps ringing independently
+    // of any in-app AudioPlayer.
+    final cancelledCallId = (data is Map ? (data['call_id'] ?? '').toString() : '');
+    if (cancelledCallId.isNotEmpty) {
+      cancelIncomingCallLocalNotification(cancelledCallId);
+    }
 
     // Even if main isolate's CallController state is idle, CallKit may have
     // been shown by the FCM background isolate (different isolate, different
@@ -1130,11 +1172,10 @@ class CallController extends GetxController {
     // dismiss the cancelled call's id at the plugin level before bailing.
     if (callStatus.value == CallStatus.idle) {
       try {
-        final cancelledId = (data is Map ? (data['call_id'] ?? '').toString() : '');
-        if (cancelledId.isNotEmpty && callKitWasShownFor(cancelledId)) {
-          FlutterCallkitIncoming.endCall(cancelledId);
-          clearCallKitShownFor(cancelledId);
-          debugPrint('[CALL_DEBUG] _handleCallCancelled → dismissed lingering CallKit id=$cancelledId (state was idle)');
+        if (cancelledCallId.isNotEmpty && callKitWasShownFor(cancelledCallId)) {
+          FlutterCallkitIncoming.endCall(cancelledCallId);
+          clearCallKitShownFor(cancelledCallId);
+          debugPrint('[CALL_DEBUG] _handleCallCancelled → dismissed lingering CallKit id=$cancelledCallId (state was idle)');
         }
       } catch (_) {}
       return;
@@ -1158,6 +1199,12 @@ class CallController extends GetxController {
   }
 
   void _handleCallEnded(dynamic data) {
+    stopRingtone();
+    // Cancel any lingering Android local notification for this call
+    final endedId = data is Map ? (data['call_id'] ?? '').toString() : '';
+    if (endedId.isNotEmpty) cancelIncomingCallLocalNotification(endedId);
+    if (callId.value.isNotEmpty) cancelIncomingCallLocalNotification(callId.value);
+
     debugPrint('[CALL_DEBUG] _handleCallEnded → isFareCall=${isFareCall.value}, callStatus=${callStatus.value}, data=$data');
     if (isCallActivityActive && !isCallActivityEngine) return;
     if (callStatus.value == CallStatus.idle) return;
@@ -1186,6 +1233,7 @@ class CallController extends GetxController {
   }
 
   void _handleAnsweredElsewhere(dynamic data) {
+    stopRingtone();
     // Only dismiss if still ringing - do NOT reset if accepting or active
     if (callStatus.value != CallStatus.ringing) return;
     if (callKitWasShownFor(callId.value)) {
@@ -2347,6 +2395,7 @@ class CallController extends GetxController {
   }
 
   void _resetState() {
+    stopRingtone();
     debugPrint('[FARE_CALL_DEBUG] _resetState → resetting all state, was isFareCall=${isFareCall.value}, fareCallOrderId=${fareCallOrderId.value}');
     callStatus.value = CallStatus.idle;
     callId.value = '';

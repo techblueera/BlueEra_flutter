@@ -187,7 +187,7 @@ class _GoLivePermissionScreenState extends State<GoLivePermissionScreen>
     });
   }
 
-  bool get _allGranted => true;
+  bool get _allGranted => _granted.values.every((v) => v);
 
   void _onSubmit() {
     if (!_allGranted) {
@@ -282,6 +282,7 @@ class _GoLivePermissionScreenState extends State<GoLivePermissionScreen>
                     subtitle: 'Helps go live with location based content',
                     granted:
                         _granted[GoLivePermissionType.backgroundLocation]!,
+                    hintImage: 'assets/images/L1.png',
                     onTap: () =>
                         _handleTap(GoLivePermissionType.backgroundLocation),
                   ),
@@ -303,6 +304,7 @@ class _GoLivePermissionScreenState extends State<GoLivePermissionScreen>
                         'Permit app to display on top of other apps to get live alerts',
                     granted:
                         _granted[GoLivePermissionType.displayOverOtherApps]!,
+                    hintImage: 'assets/images/L2.png',
                     onTap: () =>
                         _handleTap(GoLivePermissionType.displayOverOtherApps),
                   ),
@@ -356,6 +358,7 @@ class _PermissionCard extends StatelessWidget {
   final String title;
   final String subtitle;
   final bool granted;
+  final String? hintImage;
   final VoidCallback onTap;
 
   const _PermissionCard({
@@ -363,6 +366,7 @@ class _PermissionCard extends StatelessWidget {
     required this.title,
     required this.subtitle,
     required this.granted,
+    this.hintImage,
     required this.onTap,
   });
 
@@ -384,43 +388,59 @@ class _PermissionCard extends StatelessWidget {
             width: granted ? 1.2 : 1,
           ),
         ),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: AppColors.primaryColor.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(icon, color: AppColors.primaryColor, size: 22),
-            ),
-            SizedBox(width: SizeConfig.size12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CustomText(
-                    title,
-                    fontSize: SizeConfig.large,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.mainTextColor,
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryColor.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
                   ),
-                  SizedBox(height: SizeConfig.size4),
-                  CustomText(
-                    subtitle,
-                    fontSize: SizeConfig.medium,
-                    color: AppColors.secondaryTextColor,
-                    maxLines: 2,
+                  child: Icon(icon, color: AppColors.primaryColor, size: 22),
+                ),
+                SizedBox(width: SizeConfig.size12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CustomText(
+                        title,
+                        fontSize: SizeConfig.large,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.mainTextColor,
+                      ),
+                      SizedBox(height: SizeConfig.size4),
+                      CustomText(
+                        subtitle,
+                        fontSize: SizeConfig.medium,
+                        color: AppColors.secondaryTextColor,
+                        maxLines: 2,
+                      ),
+                    ],
                   ),
-                ],
+                ),
+                SizedBox(width: SizeConfig.size8),
+                Icon(
+                  granted ? Icons.check_circle : Icons.chevron_right,
+                  color: granted ? Colors.green : AppColors.primaryColor,
+                  size: granted ? 24 : 26,
+                ),
+              ],
+            ),
+            if (hintImage != null) ...[
+              SizedBox(height: SizeConfig.size12),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.asset(
+                  hintImage!,
+                  width: double.infinity,
+                  fit: BoxFit.contain,
+                ),
               ),
-            ),
-            SizedBox(width: SizeConfig.size8),
-            Icon(
-              granted ? Icons.check_circle : Icons.chevron_right,
-              color: granted ? Colors.green : AppColors.primaryColor,
-              size: granted ? 24 : 26,
-            ),
+            ],
           ],
         ),
       ),

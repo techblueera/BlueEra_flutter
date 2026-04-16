@@ -46,7 +46,7 @@ import 'features/chat/auth/controller/call_controller.dart';
 // already imported via the `app_notification.dart` import above.
 import 'features/chat/view/call_screen/audio_calling_handler.dart';
 import 'features/chat/view/call_screen/call_activity_main.dart' as call_entry;
-import 'features/chat/view/call_screen/widget/call_floating_overlay.dart';
+import 'features/chat/view/call_screen/widget/ongoing_call_overlay.dart';
 import 'features/chat/view/call_screen/rider_call/ride_navigation_floating_overlay.dart';
 import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 import 'features/personal/personal_profile/controller/languge_list_controller.dart';
@@ -201,6 +201,33 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       log('[CALL_DEBUG] bg handler incoming_call error: $e\n$st');
     }
     return; // Don't play sound or show notification for calls
+  }
+
+  // Handle missed_call / call_cancelled — caller hung up before receiver answered.
+  // Cancel the ringing incoming-call notification so the phone stops ringing.
+  if (operation == 'missed_call' || operation == 'call_cancelled') {
+    try {
+      final data = message.data;
+      final payloadRaw = data['payload'];
+      Map<String, dynamic> payload = {};
+      if (payloadRaw is String && payloadRaw.isNotEmpty) {
+        payload = Map<String, dynamic>.from(jsonDecode(payloadRaw));
+      } else if (payloadRaw is Map) {
+        payload = Map<String, dynamic>.from(payloadRaw);
+      }
+      final callId = (payload['call_id'] ?? data['callId'] ?? '').toString();
+      if (callId.isNotEmpty) {
+        await cancelIncomingCallLocalNotification(callId);
+        log('[CALL_DEBUG] bg handler → cancelled incoming notification for callId=$callId (operation=$operation)');
+      }
+      // Also dismiss CallKit on iOS
+      if (Platform.isIOS && callId.isNotEmpty) {
+        try { await FlutterCallkitIncoming.endCall(callId); } catch (_) {}
+      }
+    } catch (e, st) {
+      log('[CALL_DEBUG] bg handler missed_call error: $e\n$st');
+    }
+    return;
   }
 
   try {
@@ -651,8 +678,8 @@ class _MyAppState extends State<MyApp> {
 // Safe null handling:
               if (child != null) child,
               const GlobalMessage(),
-// Draggable floating call overlay -- shown when back from call screens
-              const CallFloatingOverlay(),
+// WhatsApp-style call bar at top -- shown when navigating away from call screen
+              const OngoingCallOverlay(),
 // Floating mini-map for ride navigation
               const RideNavigationFloatingOverlay(),
             ],

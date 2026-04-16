@@ -451,8 +451,13 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
         else if (Platform.isAndroid)
           Builder(builder: (_) {
             final statusData = serviceProviderStatusGlobal.toUpperCase();
-            viewPersonalDetailsController.shopStatusOpenClose.value =
-                statusData == AppConstants.OPEN.toUpperCase();
+            // Sync status after build to avoid setState-during-build crash
+            final isOpen = statusData == AppConstants.OPEN.toUpperCase();
+            if (viewPersonalDetailsController.shopStatusOpenClose.value != isOpen) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                viewPersonalDetailsController.shopStatusOpenClose.value = isOpen;
+              });
+            }
 
             return Container(
               margin: EdgeInsets.only(

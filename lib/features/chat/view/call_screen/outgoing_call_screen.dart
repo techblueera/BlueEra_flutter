@@ -152,7 +152,7 @@ class _CallRoomScreenState extends State<CallRoomScreen>
   Future<void> _playRingback() async {
     try {
       await _ringbackPlayer.setReleaseMode(ReleaseMode.loop);
-      await _ringbackPlayer.play(AssetSource('sound/iphone_tone.mp3'));
+      await _ringbackPlayer.play(AssetSource('sound/hangouts_call.mp3'));
       await _ringbackPlayer.setVolume(0.3);
     } catch (_) {}
   }

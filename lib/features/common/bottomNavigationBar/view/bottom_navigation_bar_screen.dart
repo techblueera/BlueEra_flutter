@@ -334,13 +334,36 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
               children: [
                 // Your dynamic screen based on index
                 Obx(() {
+                  final hasActiveCall =
+                      callController.callStatus.value == CallStatus.connected;
+                  final isRiderLive = viewPersonalDetailsController
+                      .shopStatusOpenClose.value;
+                  // Push content down when live bar or call bar is showing
+                  double topOffset = 0;
+                  if (hasActiveCall) topOffset = 50;
+                  else if (isRiderLive) topOffset = 42;
+
                   return Positioned.fill(
-                    top: (callController.callStatus.value !=
-                            CallStatus.connected)
-                        ? 0
-                        : 50,
+                    top: topOffset,
                     child: _getScreen(
                         bottomBarController.currentIndex.value, isVisible),
+                  );
+                }),
+
+                // Fixed "I'm Live" bar at top
+                Obx(() {
+                  final isLive = viewPersonalDetailsController
+                      .shopStatusOpenClose.value;
+                  // Hide when call overlay is showing (call takes priority)
+                  final hasActiveCall =
+                      callController.callStatus.value != CallStatus.idle;
+                  return Positioned(
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    child: (!isLive || hasActiveCall)
+                        ? const SizedBox.shrink()
+                        : const _RiderLiveBar(),
                   );
                 }),
 
@@ -670,5 +693,120 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
         dialogService.saveDialogShown();
       });
     }
+  }
+}
+
+/// Fixed "I'm Live" bar shown at the top of the BottomNavigationBarScreen
+/// when the rider is online. Matches the WhatsApp call-bar style.
+class _RiderLiveBar extends StatefulWidget {
+  const _RiderLiveBar();
+
+  @override
+  State<_RiderLiveBar> createState() => _RiderLiveBarState();
+}
+
+class _RiderLiveBarState extends State<_RiderLiveBar>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _pulseController;
+
+  @override
+  void initState() {
+    super.initState();
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _pulseController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final controller =
+        getOrPut(() => ViewPersonalDetailsController(), permanent: true);
+
+    return SafeArea(
+      bottom: false,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: const BoxDecoration(
+          color: Color(0xFF1A2E35),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black26,
+              blurRadius: 4,
+              offset: Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            // Pulsing green dot
+            AnimatedBuilder(
+              animation: _pulseController,
+              builder: (_, __) {
+                final opacity = 0.4 + (_pulseController.value * 0.6);
+                return Container(
+                  width: 10,
+                  height: 10,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Color(0xFF00C853).withValues(alpha: opacity),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Color(0xFF00C853).withValues(alpha: opacity * 0.5),
+                        blurRadius: 6,
+                        spreadRadius: 1,
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+            const SizedBox(width: 10),
+
+            // "I'm Live" label
+            const Expanded(
+              child: Text(
+                "I'm Live",
+                style: TextStyle(
+                  color: Color(0xFF00C853),
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  fontFamily: 'OpenSans',
+                ),
+              ),
+            ),
+
+            // Go Offline button
+            GestureDetector(
+              onTap: () => controller.toggleShopStatus(),
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEA4335),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: const Text(
+                  'Go Offline',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    fontFamily: 'OpenSans',
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
