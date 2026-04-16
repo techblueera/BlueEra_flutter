@@ -173,6 +173,7 @@ class BusinessCommonGalleryCard extends StatelessWidget {
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 10.0),
+
                 // Glassmorphism button
                 ClipRRect(
                   borderRadius: BorderRadius.circular(6.0),

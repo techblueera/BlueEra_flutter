@@ -38,7 +38,7 @@ class InventoryRepo extends BaseService {
     return ApiBaseHelper().patchHTTP(
       updateProductInventoryVariant(inventoryId, variantId),
       params: params,
-      showProgress: true,
+      showProgress: false,
     );
   }
 

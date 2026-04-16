@@ -34,11 +34,11 @@ class CommonBusinessLivePhoto extends StatefulWidget {
 class _CommonBusinessLivePhotoState extends State<CommonBusinessLivePhoto> {
   static const int _maxPhotos = 4;
 
-  static const List<Map<String, String>> _slotConfig = [
-    {'label': 'Road Side Image', 'image': 'roadside_view_image.png'},
-    {'label': 'Reception/Counter', 'image': 'front_desk_image.png'},
-    {'label': 'Interior 1', 'image': 'office_image.png'},
-    {'label': 'Interior 2', 'image': 'office_image.png'},
+  static final List<Map<String, String>> _slotConfig = [
+    {'label': 'Storefront / Exterior\n(Roadside)', 'image': AppImageAssets.storefrontExterior},
+    {'label': 'Interior / Inside\nthe Shop', 'image': AppImageAssets.interiorInsideShop},
+    {'label': 'Billing Counter\n/ Reception Area', 'image': AppImageAssets.billingCounterReceptionArea},
+    {'label': 'Products / Services\nDisplay', 'image': AppImageAssets.productServiceDisplay},
   ];
 
   final Map<int, bool> _loadingSlots = {};
@@ -283,14 +283,14 @@ class _CommonBusinessLivePhotoState extends State<CommonBusinessLivePhoto> {
       fit: StackFit.expand,
       children: [
         Image.asset(
-          '${AppImageAssets.imgPath}$imageName',
+          imageName,
           fit: BoxFit.cover,
         ),
         ClipRRect(
           child: BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
             child: Container(
-              color: AppColors.black.withValues(alpha: 0.35),
+              color: AppColors.black.withValues(alpha: 0.1),
             ),
           ),
         ),

@@ -3,48 +3,58 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/grocery/view/grocery_self_pickup_cart_screen.dart';
-import 'package:BlueEra/features/common/Discover/widget/common_generic_left_side_category_list.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
+import 'package:BlueEra/features/common/Discover/widget/banner_carousel.dart';
+import 'package:BlueEra/features/common/Discover/widget/sticky_category_header_delegate.dart';
 import 'package:BlueEra/features/common/store/controller/new_store_controller.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_selfpickup_consumer_controller.dart';
 import 'package:BlueEra/features/me/grocery/widget/grocery_self_pickup_cart.dart';
 import 'package:BlueEra/features/me/grocery/widget/grocery_store_card.dart';
-import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import '../../../../core/constants/app_enum.dart';
 
 class GroceryStoresScreen extends StatefulWidget {
-
   const GroceryStoresScreen({super.key});
 
   @override
-  State<GroceryStoresScreen> createState() =>
-      _GroceryStoresScreenState();
+  State<GroceryStoresScreen> createState() => _GroceryStoresScreenState();
 }
 
 class _GroceryStoresScreenState extends State<GroceryStoresScreen>
     with SingleTickerProviderStateMixin {
   final controller = getOrPut(() => NewStoreController());
   final groceryController = getOrPut(() => GroceryController());
-  final groceryCustomerController = getOrPut(() => GrocerySelfPickupConsumerController());
-  final ScrollController storesScrollController = ScrollController();
+  final groceryCustomerController =
+      getOrPut(() => GrocerySelfPickupConsumerController());
+  final ScrollController _nestedScrollController = ScrollController();
   final AuthController _authController = Get.find<AuthController>();
   AnimationController? _shimmerController;
 
-  List<CategoryData> get _arrCategories => _authController.businessOnboardingGroceriesCategories;
+  List<CategoryData> get _arrCategories =>
+      _authController.businessOnboardingGroceriesCategories;
+
   final List<Color> cardColors = [
-    const Color(0xFFFFFEF7), // Soft Cream
-    const Color(0xFFFFF9F3), // Pale Peach
-    const Color(0xFFFFF5F5), // Light Rose
+    const Color(0xFFFFFEF7),
+    const Color(0xFFFFF9F3),
+    const Color(0xFFFFF5F5),
+  ];
+
+  int _locationVersion = 0;
+
+  final List<String> _bannerImages = const [
+    "https://img.freepik.com/free-photo/top-view-table-full-delicious-food-composition_23-2149141353.jpg?w=1380",
+    "https://img.freepik.com/free-photo/fruit-salad-spilling-floor-was-vibrant-tasty-generative-ai_188544-12370.jpg?w=1380",
+    "https://img.freepik.com/free-photo/high-angle-arrangement-with-veggies-paper-bag_23-2148853335.jpg?w=1380",
   ];
 
   @override
-  initState() {
+  void initState() {
     super.initState();
 
     _shimmerController = AnimationController(
@@ -54,23 +64,20 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
 
     controller.typeOfBusiness = BusinessType.Grocery.name;
 
-    if(controller.selectedGroceryCategoryData.value != null){
-      controller.businessCategoryId = controller.selectedGroceryCategoryData.value?.tagId;
+    if (controller.selectedGroceryCategoryData.value != null) {
+      controller.businessCategoryId =
+          controller.selectedGroceryCategoryData.value?.tagId;
     } else if (_arrCategories.isNotEmpty) {
       controller.businessCategoryId = _arrCategories.first.tagId;
       controller.selectedGroceryCategoryData.value = _arrCategories.first;
     }
 
     controller.getAllStoreNearBy();
-
-    // Listener for Pagination on ScrollController
-    storesScrollController.addListener(_onLoadMore);
   }
 
   @override
-  dispose(){
-    storesScrollController.removeListener(_onLoadMore);
-    storesScrollController.dispose();
+  void dispose() {
+    _nestedScrollController.dispose();
     _shimmerController?.dispose();
     _shimmerController = null;
     deleteIfRegistered<GroceryController>();
@@ -78,24 +85,24 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
     super.dispose();
   }
 
-  void _onLoadMore(){
-    if (storesScrollController.position.pixels >=
-        storesScrollController.position.maxScrollExtent - 200) {
+  bool _onScrollNotification(ScrollNotification notification) {
+    if (notification is ScrollUpdateNotification &&
+        notification.metrics.pixels >=
+            notification.metrics.maxScrollExtent - 200) {
       controller.getAllStoreNearBy(isLoadMore: true);
     }
+    return false;
   }
 
-  void showCartWarning(){
-    // Logic: If cart is NOT empty, show warning
-    final bool isCartEmpty = groceryCustomerController.selectedGroceriesVariants.isEmpty;
+  void showCartWarning() {
+    final bool isCartEmpty =
+        groceryCustomerController.selectedGroceriesVariants.isEmpty;
 
     if (isCartEmpty) {
-      Get.back(); // Allow exit
+      Get.back();
     } else {
       showCartWarningDialog(
         onPlaceOrder: () {
-          // Your logic to navigate to Checkout
-          print("Navigate to Checkout from Dialog");
           Navigator.push(
             context,
             MaterialPageRoute(
@@ -109,90 +116,82 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
 
   @override
   Widget build(BuildContext context) {
+    final statusBarHeight = MediaQuery.of(context).padding.top;
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
         showCartWarning();
       },
-      child: Scaffold(
-        appBar: CommonBackAppBar(
-          isCustomTitleWidget: () => Obx(() => Text(
-            controller.selectedGroceryCategoryData.value == null
-                ? AppStrings.groceryNdStationary.tr
-                : controller.selectedGroceryCategoryData.value?.name ?? '',
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: AppColors.mainTextColor,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          )),
-          onBackTap: () => showCartWarning(),
+      child: AnnotatedRegion<SystemUiOverlayStyle>(
+        value: SystemUiOverlayStyle.light.copyWith(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.light,
+          statusBarBrightness: Brightness.dark,
         ),
-        body: SafeArea(
-          child: Stack(
+        child: Scaffold(
+          body: Stack(
             children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  leftCategoryList(),
-                  SizedBox(
-                    width: SizeConfig.size6,
+              NestedScrollView(
+                controller: _nestedScrollController,
+                physics: const AlwaysScrollableScrollPhysics(),
+                headerSliverBuilder: (context, innerBoxIsScrolled) => [
+                  SliverToBoxAdapter(
+                    child: BannerCarousel(
+                      images: _bannerImages,
+                      onBack: () => showCartWarning(),
+                      statusBarHeight: statusBarHeight,
+                    ),
                   ),
-                  Expanded(
-                      child: rightContent()
+                  SliverPersistentHeader(
+                    pinned: true,
+                    delegate: StickyCategoryHeaderDelegate(
+                      topPadding: statusBarHeight,
+                      categories: _arrCategories.map((c) => StickyCategory(
+                        id: c.tagId ?? '',
+                        name: c.name ?? '',
+                        imageUrl: c.imageUrl,
+                      )).toList(),
+                      selectedId: controller.selectedGroceryCategoryData.value?.tagId,
+                      onCategoryTap: (item) {
+                        final cat = _arrCategories.firstWhere((c) => c.tagId == item.id);
+                        controller.selectedGroceryCategoryData.value = cat;
+                        controller.businessCategoryId = cat.tagId;
+                        controller.getAllStoreNearBy();
+                        setState(() {});
+                      },
+                      onBack: () => showCartWarning(),
+                    ),
                   ),
                 ],
+                body: NotificationListener<ScrollNotification>(
+                  onNotification: _onScrollNotification,
+                  child: _storeListContent(),
+                ),
               ),
-
-              GrocerySelfPickupCart(
-                controller: groceryCustomerController,
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: SafeArea(
+                  child: GrocerySelfPickupCart(
+                    controller: groceryCustomerController,
+                  ),
+                ),
               ),
             ],
-          )
+          ),
         ),
       ),
     );
   }
 
-  Widget leftCategoryList() {
-    // final allItem = OnboardingCategoryModel(
-    //   name: 'Recently Visited',
-    //   slugId: 'RECENTLY_VISITED',
-    //   icon: AppImageAssets.all,
-    //   accountType: AppConstants.business,
-    // );
-    //
-    // final fullList = [allItem, ..._arrCategories];
-    return CommonGenericLeftSideCategoryList<CategoryData>(
-      items: _arrCategories,
-      getLabel: (item) => item.name ?? '',
-      getIcon: (item) => item.imageUrl ?? '',
-      isSelected: (item) {
-        // if (item.slugId == 'RECENTLY_VISITED') {
-        //   return controller.selectedGroceryOrFoodCategoryData.value == null;
-        // }
-        return controller.selectedGroceryCategoryData.value?.tagId == item.tagId;
-      },
-      onTap: (item, index) {
-        // if (item.slugId == 'RECENTLY_VISITED') {
-        //   controller.selectedGroceryOrFoodCategoryData.value = null;
-        // } else {
-        //   controller.selectedGroceryOrFoodCategoryData.value = item;
-        // }
-        controller.selectedGroceryCategoryData.value = item;
-        controller.businessCategoryId = item.tagId;
+  // ─── Store list content ───────────────────────────────────────────────
 
-        // Single API Call (Clean & Shared)
-        controller.getAllStoreNearBy();
-      },
-    );
-  }
-  
-  Widget rightContent() {
+  Widget _storeListContent() {
     return Obx(() {
+      final _ = _locationVersion;
+
       if (controller.isAllStoreFirstLoading.value &&
           controller.allStore.isEmpty) {
         return _buildSkeletonLoading();
@@ -200,8 +199,8 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
 
       if (controller.allStore.isEmpty) {
         return Center(
-            child: EmptyStateWidget(
-                message: AppStrings.groceryNoStoresFound));
+            child:
+                EmptyStateWidget(message: AppStrings.groceryNoStoresFound));
       }
 
       return AnimatedSwitcher(
@@ -210,19 +209,20 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
           key: ValueKey(controller.businessCategoryId),
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header chip
             Padding(
               padding: EdgeInsets.only(
-                top: SizeConfig.paddingS,
-                right: SizeConfig.paddingXS,
+                left: SizeConfig.size12,
+                right: SizeConfig.size12,
                 bottom: SizeConfig.size6,
               ),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
                   color: AppColors.white,
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppColors.greyE5, width: 0.5),
+                  border:
+                      Border.all(color: AppColors.greyE5, width: 0.5),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -240,19 +240,18 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
                 ),
               ),
             ),
-
-            // Store list
             Expanded(
               child: ListView.builder(
-                controller: storesScrollController,
                 itemCount: controller.allStore.length +
                     (controller.isAllStoreLoadingMore.value ? 1 : 0),
                 padding: EdgeInsets.only(
+                  left: SizeConfig.size12,
+                  right: SizeConfig.size12,
                   bottom: SizeConfig.paddingL + 70,
-                  right: SizeConfig.paddingXS,
                 ),
                 itemBuilder: (context, index) {
-                  final Color bgColor = cardColors[index % cardColors.length];
+                  final Color bgColor =
+                      cardColors[index % cardColors.length];
 
                   if (index == controller.allStore.length) {
                     return Padding(
@@ -285,7 +284,7 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
     });
   }
 
-  /// Skeleton with shimmer pulse animation mirroring [GroceryStoreCard] layout
+  /// Skeleton loading
   Widget _buildSkeletonLoading() {
     final shimmer = _shimmerController;
     if (shimmer == null) {
@@ -303,7 +302,8 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
       child: ListView.builder(
         padding: EdgeInsets.only(
           top: SizeConfig.paddingS,
-          right: SizeConfig.paddingXS,
+          left: SizeConfig.size12,
+          right: SizeConfig.size12,
         ),
         physics: const NeverScrollableScrollPhysics(),
         itemCount: 4,
@@ -320,11 +320,11 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Header: avatar + name + badges
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _shimmerBox(SizeConfig.size40, SizeConfig.size40, radius: SizeConfig.size20),
+                    _shimmerBox(SizeConfig.size40, SizeConfig.size40,
+                        radius: SizeConfig.size20),
                     SizedBox(width: SizeConfig.size8),
                     Expanded(
                       child: Column(
@@ -344,15 +344,13 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
                     ),
                   ],
                 ),
-
                 SizedBox(height: SizeConfig.paddingXSL),
-
-                // Address card
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: AppColors.greyE5, width: 0.5),
+                    border:
+                        Border.all(color: AppColors.greyE5, width: 0.5),
                     color: AppColors.white,
                   ),
                   child: Row(
@@ -372,10 +370,7 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
                     ],
                   ),
                 ),
-
                 SizedBox(height: SizeConfig.size6),
-
-                // Stats row
                 Row(
                   children: [
                     Expanded(
@@ -383,7 +378,8 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: AppColors.greyE5, width: 0.5),
+                          border: Border.all(
+                              color: AppColors.greyE5, width: 0.5),
                           color: AppColors.white,
                         ),
                         child: Row(
@@ -391,7 +387,8 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
                             _shimmerBox(30, 30, radius: 6),
                             const SizedBox(width: 10),
                             Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                              crossAxisAlignment:
+                                  CrossAxisAlignment.start,
                               children: [
                                 _shimmerBox(12, 24),
                                 const SizedBox(height: 4),
@@ -408,7 +405,8 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: AppColors.greyE5, width: 0.5),
+                          border: Border.all(
+                              color: AppColors.greyE5, width: 0.5),
                           color: AppColors.white,
                         ),
                         child: Row(
@@ -416,7 +414,8 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
                             _shimmerBox(30, 30, radius: 6),
                             const SizedBox(width: 10),
                             Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                              crossAxisAlignment:
+                                  CrossAxisAlignment.start,
                               children: [
                                 _shimmerBox(12, 24),
                                 const SizedBox(height: 4),
@@ -451,21 +450,19 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
   void showCartWarningDialog({required VoidCallback onPlaceOrder}) {
     Get.dialog(
       Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         child: Padding(
           padding: const EdgeInsets.all(20.0),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Warning Icon
               const Icon(
                 Icons.error_rounded,
                 color: Colors.red,
                 size: 100,
               ),
               const SizedBox(height: 24),
-
-              // Message Text
               CustomText(
                 AppStrings.groceryCartWarningMessage,
                 textAlign: TextAlign.center,
@@ -474,48 +471,47 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
                 color: AppColors.mainTextColor,
               ),
               const SizedBox(height: 24),
-
-              // Buttons
               Row(
                 children: [
-                  // Skip Button
                   Expanded(
                     flex: 1,
                     child: OutlinedButton(
                       onPressed: () {
-                        Get.back(); // Close Dialog
-                        Get.back(); // Exit Screen (The "Skip" action)
+                        Get.back();
+                        Get.back();
                       },
                       style: OutlinedButton.styleFrom(
                         side: BorderSide(color: Colors.grey.shade300),
-                        padding: const EdgeInsets.symmetric(vertical: 15),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        padding:
+                            const EdgeInsets.symmetric(vertical: 15),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
                       ),
                       child: CustomText(
-                          AppStrings.skip,
-                          color: AppColors.secondaryTextColor,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
+                        AppStrings.skip,
+                        color: AppColors.secondaryTextColor,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
                   const SizedBox(width: 15),
-
-                  // Place Order Button
                   Expanded(
                     flex: 2,
                     child: ElevatedButton(
                       onPressed: () {
-                        Get.back(); // Close Dialog
+                        Get.back();
                         onPlaceOrder();
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue,
-                        padding: const EdgeInsets.symmetric(vertical: 15),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        padding:
+                            const EdgeInsets.symmetric(vertical: 15),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
                       ),
                       child: CustomText(
-                          AppStrings.groceryPlaceOrderBtn,
+                        AppStrings.groceryPlaceOrderBtn,
                         color: AppColors.white,
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -530,6 +526,4 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
       ),
     );
   }
-
 }
-

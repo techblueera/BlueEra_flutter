@@ -172,6 +172,23 @@ class _RouteMapBottomSheetState extends State<RouteMapBottomSheet> {
     }
   }
 
+  void _fitBounds() {
+    if (_mapController == null) return;
+
+    final bounds = LatLngBounds(
+      southwest: LatLng(
+        _userLatLng.latitude < _destinationLatLng.latitude ? _userLatLng.latitude : _destinationLatLng.latitude,
+        _userLatLng.longitude < _destinationLatLng.longitude ? _userLatLng.longitude : _destinationLatLng.longitude,
+      ),
+      northeast: LatLng(
+        _userLatLng.latitude > _destinationLatLng.latitude ? _userLatLng.latitude : _destinationLatLng.latitude,
+        _userLatLng.longitude > _destinationLatLng.longitude ? _userLatLng.longitude : _destinationLatLng.longitude,
+      ),
+    );
+
+    _mapController?.animateCamera(CameraUpdate.newLatLngBounds(bounds, 60));
+  }
+
   Future<void> _openInGoogleMaps() async {
     final url = Uri.parse(
       'https://www.google.com/maps/dir/?api=1'
@@ -304,89 +321,171 @@ List<String> get _validPhotos =>
 
 
 
-          const SizedBox(height: 10),
+          const SizedBox(height: 4),
 
           // Map (card view)
           Expanded(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              child: Card(
-                elevation: 3,
-                color: AppColors.white,
-                clipBehavior: Clip.antiAlias,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  side: BorderSide(color: AppColors.greyE5, width: 0.5),
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.greyE5, width: 1.0),
                 ),
+                child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
                 child: Stack(
                   children: [
                     GoogleMap(
-                    initialCameraPosition: CameraPosition(
-                      target: _destinationLatLng,
-                      zoom: 15,
+                      initialCameraPosition: CameraPosition(
+                        target: _destinationLatLng,
+                        zoom: 13,
+                      ),
+                      markers: _markers,
+                      polylines: _polylines,
+                      myLocationEnabled: false,
+                      zoomControlsEnabled: true,
+                      zoomGesturesEnabled: true,
+                      scrollGesturesEnabled: true,
+                      rotateGesturesEnabled: true,
+                      tiltGesturesEnabled: true,
+                      mapToolbarEnabled: false,
+                      gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>{
+                        Factory<OneSequenceGestureRecognizer>(() => EagerGestureRecognizer()),
+                      },
+                      onMapCreated: (controller) {
+                        _mapController = controller;
+                        Future.delayed(const Duration(milliseconds: 500), _fitBounds);
+                      },
                     ),
-                    markers: _markers,
-                    polylines: _polylines,
-                    myLocationEnabled: false,
-                    zoomControlsEnabled: false,
-                    zoomGesturesEnabled: false,
-                    scrollGesturesEnabled: false,
-                    rotateGesturesEnabled: false,
-                    tiltGesturesEnabled: false,
-                    mapToolbarEnabled: false,
-                    liteModeEnabled: true,
-                    onTap: (_) => _openInGoogleMaps(),
-                    onMapCreated: (controller) {
-                      _mapController = controller;
-                    },
-                  ),
-                  if (_isLoadingRoute)
-                    Positioned(
-                      top: 12,
-                      left: 0,
-                      right: 0,
-                      child: Center(
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                          decoration: BoxDecoration(
-                            color: AppColors.white,
-                            borderRadius: BorderRadius.circular(20),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.1),
-                                blurRadius: 8,
-                              ),
-                            ],
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              SizedBox(
-                                height: 14,
-                                width: 14,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: Colors.blue.shade400,
+                    if (_isLoadingRoute)
+                      Positioned(
+                        top: 12,
+                        left: 0,
+                        right: 0,
+                        child: Center(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: AppColors.white,
+                              borderRadius: BorderRadius.circular(20),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.1),
+                                  blurRadius: 8,
                                 ),
-                              ),
-                              const SizedBox(width: 8),
-                              const CustomText(
-                                'Loading route...',
-                                fontSize: 11,
-                                fontWeight: FontWeight.w500,
-                                color: AppColors.secondaryTextColor,
-                              ),
-                            ],
+                              ],
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                SizedBox(
+                                  height: 14,
+                                  width: 14,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.blue.shade400,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                const CustomText(
+                                  'Loading route...',
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w500,
+                                  color: AppColors.secondaryTextColor,
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
-                    ),
                   ],
                 ),
               ),
+              ),
             ),
           ),
+          // Expanded(
+          //   child: Padding(
+          //     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          //     child: Card(
+          //       elevation: 3,
+          //       color: AppColors.white,
+          //       clipBehavior: Clip.antiAlias,
+          //       shape: RoundedRectangleBorder(
+          //         borderRadius: BorderRadius.circular(16),
+          //         side: BorderSide(color: AppColors.greyE5, width: 0.5),
+          //       ),
+          //       child: Stack(
+          //         children: [
+          //           GoogleMap(
+          //           initialCameraPosition: CameraPosition(
+          //             target: _destinationLatLng,
+          //             zoom: 15,
+          //           ),
+          //           markers: _markers,
+          //           polylines: _polylines,
+          //           myLocationEnabled: false,
+          //           zoomControlsEnabled: false,
+          //           zoomGesturesEnabled: false,
+          //           scrollGesturesEnabled: false,
+          //           rotateGesturesEnabled: false,
+          //           tiltGesturesEnabled: false,
+          //           mapToolbarEnabled: false,
+          //           liteModeEnabled: true,
+          //           onTap: (_) => _openInGoogleMaps(),
+          //           onMapCreated: (controller) {
+          //             _mapController = controller;
+          //           },
+          //         ),
+          //         if (_isLoadingRoute)
+          //           Positioned(
+          //             top: 12,
+          //             left: 0,
+          //             right: 0,
+          //             child: Center(
+          //               child: Container(
+          //                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          //                 decoration: BoxDecoration(
+          //                   color: AppColors.white,
+          //                   borderRadius: BorderRadius.circular(20),
+          //                   boxShadow: [
+          //                     BoxShadow(
+          //                       color: Colors.black.withValues(alpha: 0.1),
+          //                       blurRadius: 8,
+          //                     ),
+          //                   ],
+          //                 ),
+          //                 child: Row(
+          //                   mainAxisSize: MainAxisSize.min,
+          //                   children: [
+          //                     SizedBox(
+          //                       height: 14,
+          //                       width: 14,
+          //                       child: CircularProgressIndicator(
+          //                         strokeWidth: 2,
+          //                         color: Colors.blue.shade400,
+          //                       ),
+          //                     ),
+          //                     const SizedBox(width: 8),
+          //                     const CustomText(
+          //                       'Loading route...',
+          //                       fontSize: 11,
+          //                       fontWeight: FontWeight.w500,
+          //                       color: AppColors.secondaryTextColor,
+          //                     ),
+          //                   ],
+          //                 ),
+          //               ),
+          //             ),
+          //           ),
+          //         ],
+          //       ),
+          //     ),
+          //   ),
+          // ),
           // Address
+
           if (widget.destinationAddress.isNotEmpty)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),

@@ -31,7 +31,7 @@ class HealthServiceCardWidget extends StatelessWidget {
                 onTap: () {
                   var categoryItem = healthCareList[0];
 
-                  Get.to(HealthCareListingScreen(
+                  Get.to(()=> HealthCareListingScreen(
                     selectedProfessionConsultantData: categoryItem,
                   ));
                 },

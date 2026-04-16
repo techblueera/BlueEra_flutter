@@ -29,6 +29,7 @@ import 'package:BlueEra/widgets/RatingBadge.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/common_business_live_photo.dart';
+import 'package:BlueEra/widgets/business_live_photo_bottom_sheet.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -55,6 +56,15 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
     super.initState();
     controller.fetchHomeData(businessId: businessId);
     controller.fetchDiscountFoodProducts(businessId: businessId);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        showBusinessLivePhotoBottomSheetIfNeeded(
+          context: context,
+          controller: viewBusinessDetailsController,
+        );
+      }
+    });
   }
 
   @override
@@ -815,4 +825,5 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
       ],
     );
   }
+
 }

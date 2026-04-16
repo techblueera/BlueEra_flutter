@@ -16,6 +16,7 @@ import 'package:BlueEra/features/business/widgets/business_qrcode_widget.dart';
 import 'package:BlueEra/features/business/widgets/business_stats.dart';
 import 'package:BlueEra/features/me/grocery/widget/price_row.dart';
 import 'package:BlueEra/widgets/common_business_live_photo.dart';
+import 'package:BlueEra/widgets/business_live_photo_bottom_sheet.dart';
 import 'package:BlueEra/features/me/product/controller/inventory_controller.dart';
 import 'package:BlueEra/features/me/product/view/all_top_selling_products_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
@@ -49,6 +50,15 @@ class _ProductHomeScreenState extends State<ProductHomeScreen> {
         viewBusinessDetailsController.businessProfileDetails.value?.data;
     controller.fetchAllProductData();
     super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        showBusinessLivePhotoBottomSheetIfNeeded(
+          context: context,
+          controller: viewBusinessDetailsController,
+        );
+      }
+    });
   }
 
   @override
@@ -371,4 +381,5 @@ class _ProductHomeScreenState extends State<ProductHomeScreen> {
       ),
     );
   }
+
 }

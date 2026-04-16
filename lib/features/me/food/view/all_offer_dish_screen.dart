@@ -162,7 +162,12 @@ class _AllOfferDishScreenState extends State<AllOfferDishScreen> {
               ),
             );
           }),
-          FoodSelfPickupCart(controller: foodCartController),
+          Positioned(
+            bottom: 40,
+            left: 0,
+            right: 0,
+            child: FoodSelfPickupCart(controller: foodCartController),
+          ),
         ],
       ),
     );

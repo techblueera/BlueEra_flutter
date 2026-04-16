@@ -1,13 +1,17 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/Discover/controller/finance_discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/finance_search_res_model.dart';
 import 'package:BlueEra/features/common/Discover/view/finance/finance_detail_screen.dart';
+import 'package:BlueEra/features/common/store/widget/store_live_photo_widget.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -47,7 +51,6 @@ class _FinanceListScreenState extends State<FinanceListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    SizeConfig.init(context);
     return Material(
       color: AppColors.appBackgroundColor,
       child: Obx(() {
@@ -85,7 +88,8 @@ class _FinanceListScreenState extends State<FinanceListScreen> {
             itemBuilder: (context, index) {
               if (index >= controller.profiles.length) {
                 return Padding(
-                  padding: EdgeInsets.symmetric(vertical: SizeConfig.size12),
+                  padding: EdgeInsets.symmetric(
+                      vertical: SizeConfig.size12),
                   child: const Center(
                       child: CircularProgressIndicator(
                           color: AppColors.primaryColor)),
@@ -132,7 +136,7 @@ class _FinanceCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   ClipRRect(
-                    borderRadius: BorderRadius.circular(SizeConfig.size12),
+                    borderRadius: BorderRadius.circular(SizeConfig.size10),
                     child: Container(
                       width: SizeConfig.size60,
                       height: SizeConfig.size60,
@@ -195,6 +199,110 @@ class _FinanceCard extends StatelessWidget {
                   ),
                 ],
               ),
+              // ─── Gallery / Cover / Logo Photo ───
+              Builder(builder: (_) {
+                final galleryPhotos = <String>[];
+                if (item.gallery != null) {
+                  for (final g in item.gallery!) {
+                    if (g.imageUrls != null) {
+                      galleryPhotos.addAll(
+                          g.imageUrls!.where((u) => u.trim().isNotEmpty));
+                    }
+                  }
+                }
+                final hasCover = (item.coverUrl ?? '').isNotEmpty;
+                final hasLogo = (item.logoUrl ?? '').isNotEmpty;
+
+                if (galleryPhotos.isNotEmpty) {
+                  return Padding(
+                    padding: EdgeInsets.only(top: SizeConfig.size6),
+                    child: StoreLivePhotoWidget(
+                      livePhotos: galleryPhotos,
+                      natureOfBusiness: item.type ?? 'Finance',
+                      height: 200,
+                      onViewFullScreen: ({
+                        required int index,
+                        required List<String> storeImage,
+                        required String natureOfBusiness,
+                      }) {
+                        Get.to(() => ImageViewScreen(
+                            subTitle: natureOfBusiness,
+                            appBarTitle: AppStrings.imageViewer,
+                            imageUrls: storeImage,
+                            initialIndex: index,
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                } else if (hasCover) {
+                  return Padding(
+                    padding: EdgeInsets.only(top: SizeConfig.size6),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: GestureDetector(
+                        onTap: () => Get.to(() => ImageViewScreen(
+                            subTitle: item.type ?? 'Finance',
+                            appBarTitle: AppStrings.imageViewer,
+                            imageUrls: [item.coverUrl!],
+                            initialIndex: 0,
+                          ),
+                        ),
+                        child: CachedNetworkImage(
+                          imageUrl: item.coverUrl!,
+                          height: 200,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                          memCacheWidth: 600,
+                          memCacheHeight: 600,
+                          placeholder: (_, __) => LocalAssets(
+                            imagePath: AppIconAssets.place_holder_image,
+                            boxFix: BoxFit.fill,
+                          ),
+                          errorWidget: (_, __, ___) => LocalAssets(
+                            imagePath: AppIconAssets.place_holder_image,
+                            boxFix: BoxFit.fill,
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                } else if (hasLogo) {
+                  return Padding(
+                    padding: EdgeInsets.only(top: SizeConfig.size6),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: GestureDetector(
+                        onTap: () => Get.to(() => ImageViewScreen(
+                            subTitle: item.type ?? 'Finance',
+                            appBarTitle: AppStrings.imageViewer,
+                            imageUrls: [item.logoUrl!],
+                            initialIndex: 0,
+                          ),
+                        ),
+                        child: CachedNetworkImage(
+                          imageUrl: item.logoUrl!,
+                          height: 200,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                          memCacheWidth: 600,
+                          memCacheHeight: 600,
+                          placeholder: (_, __) => LocalAssets(
+                            imagePath: AppIconAssets.place_holder_image,
+                            boxFix: BoxFit.fill,
+                          ),
+                          errorWidget: (_, __, ___) => LocalAssets(
+                            imagePath: AppIconAssets.place_holder_image,
+                            boxFix: BoxFit.fill,
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                }
+                return const SizedBox.shrink();
+              }),
+
               if (phone.isNotEmpty || email.isNotEmpty) ...[
                 SizedBox(height: SizeConfig.size6),
                 Row(

@@ -285,8 +285,13 @@ class _AllTopSellingGroceryProductsScreenState
           }),
 
           if (_isCustomerMode && _groceryCustomerController != null)
-            GrocerySelfPickupCart(
-              controller: _groceryCustomerController!,
+            Positioned(
+              bottom: 40,
+              left: 0,
+              right: 0,
+              child: GrocerySelfPickupCart(
+                controller: _groceryCustomerController!,
+              ),
             ),
         ],
       ),

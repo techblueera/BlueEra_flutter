@@ -6,15 +6,15 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/book_via_blueera_partner_banner.dart';
-import 'package:BlueEra/features/common/Discover/widget/common_generic_left_side_category_list.dart';
+import 'package:BlueEra/features/common/Discover/widget/banner_carousel.dart';
+import 'package:BlueEra/features/common/Discover/widget/sticky_category_header_delegate.dart';
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
 import 'package:BlueEra/features/common/store/view/store_product_card.dart';
 import 'package:BlueEra/features/me/product/model/get_product_model.dart';
-import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
 import 'package:flutter/material.dart';
-import 'package:BlueEra/features/common/Discover/widget/discover_cart_icon.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 class HomeMadeProductScreen extends StatefulWidget {
@@ -30,8 +30,13 @@ class _HomeMadeProductScreenState extends State<HomeMadeProductScreen> {
   final controller = getOrPut(() => DiscoverController());
   final List<OnboardingCategoryModel> _homeMadeProductCategories =
       homeMadeProductCategories;
-  ScrollController _scrollController = ScrollController();
   ProviderType _providerType = ProviderType.user;
+
+  final List<String> _bannerImages = const [
+    "https://img.freepik.com/free-photo/top-view-table-full-delicious-food-composition_23-2149141353.jpg?w=1380",
+    "https://img.freepik.com/free-photo/flat-lay-batch-cooking-composition_23-2148765597.jpg?w=1380",
+    "https://img.freepik.com/free-photo/home-made-food-concept-with-salad_23-2148580246.jpg?w=1380",
+  ];
 
   @override
   initState() {
@@ -41,15 +46,6 @@ class _HomeMadeProductScreenState extends State<HomeMadeProductScreen> {
       controller.getAllProductNearBy(
         providerType: _providerType,
       );
-
-      // Listener for Pagination
-      _scrollController.addListener(() {
-        if (_scrollController.position.pixels ==
-            _scrollController.position.maxScrollExtent) {
-          controller.getAllProductNearBy(
-              providerType: _providerType, isLoadMore: true);
-        }
-      });
     });
   }
 
@@ -58,80 +54,99 @@ class _HomeMadeProductScreenState extends State<HomeMadeProductScreen> {
     controller.selectedTabIndex.value = 0;
   }
 
+  bool _onScrollNotification(ScrollNotification notification) {
+    if (notification is ScrollUpdateNotification &&
+        notification.metrics.pixels >=
+            notification.metrics.maxScrollExtent - 200) {
+      controller.getAllProductNearBy(
+          providerType: _providerType, isLoadMore: true);
+    }
+    return false;
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: CommonBackAppBar(
-          buildCustomActionWidget: () => const DiscoverCartIcon()),
-      body: SafeArea(
-        child: Column(
-          children: [
-            BookViaBlueEraPartnerBanner(
-              onTap: () {
-                // your navigation here
-              },
-            ),
+    final statusBarHeight = MediaQuery.of(context).padding.top;
+    final stickyCategories = _homeMadeProductCategories
+        .map((c) => StickyCategory(
+              id: c.slugId,
+              name: c.name,
+              imageUrl: c.icon,
+            ))
+        .toList();
 
-            Expanded(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  leftCategoryList(),
-                  SizedBox(
-                    width: SizeConfig.size6,
-                  ),
-                  Expanded(child: rightContent()),
-                ],
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light.copyWith(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+        statusBarBrightness: Brightness.dark,
+      ),
+      child: Scaffold(
+        body: NestedScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          headerSliverBuilder: (context, innerBoxIsScrolled) => [
+            SliverToBoxAdapter(
+              child: BannerCarousel(
+                images: _bannerImages,
+                onBack: () => Navigator.pop(context),
+                statusBarHeight: statusBarHeight,
               ),
-            )
+            ),
+            SliverPersistentHeader(
+              pinned: true,
+              delegate: StickyCategoryHeaderDelegate(
+                topPadding: statusBarHeight,
+                categories: stickyCategories,
+                selectedId:
+                    controller.selectedEarnServiceData.value?.slugId ??
+                        stickyCategories.first.id,
+                onCategoryTap: (item) {
+                  final index = stickyCategories
+                      .indexWhere((c) => c.id == item.id);
+                  controller.selectedTabIndex.value = index;
+                  controller.selectedEarnServiceData.value =
+                      _homeMadeProductCategories
+                          .firstWhere((c) => c.slugId == item.id);
+                  controller.getAllProductNearBy(
+                    providerType: _providerType,
+                  );
+                  setState(() {});
+                },
+                onBack: () => Navigator.pop(context),
+              ),
+            ),
           ],
+          body: NotificationListener<ScrollNotification>(
+            onNotification: _onScrollNotification,
+            child: rightContent(),
+          ),
         ),
       ),
     );
   }
 
-  Widget leftCategoryList() {
-    return CommonGenericLeftSideCategoryList<OnboardingCategoryModel>(
-      items: _homeMadeProductCategories,
-      getLabel: (item) => item.name,
-      getIcon: (item) => item.icon ?? '',
-      isSelected: (item) =>
-          controller.selectedEarnServiceData.value?.slugId == item.slugId,
-      onTap: (item, index) {
-        controller.selectedTabIndex.value = index;
-        controller.selectedEarnServiceData.value = item;
-        controller.getAllProductNearBy(
-          providerType: _providerType,
-        );
-      },
-    );
-  }
-
   Widget rightContent() {
     return Obx(() => Padding(
-          padding: EdgeInsets.only(right: SizeConfig.size8),
+          padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // BookViaBlueEraPartnerBanner(onTap: () {}),
               HorizontalTabSelector<CategoryFilter>(
                 tabs: controller.filters,
                 selectedIndex:
                     controller.filters.indexOf(controller.selectedFilter.value),
                 horizontalMargin: 0.0,
+                verticalMargin: 0.0,
                 onTabSelected: (index, _) {
                   final selectedEnum = controller.filters[index];
-
-                  if (controller.filters == selectedEnum) return;
-
+                  if (controller.selectedFilter.value == selectedEnum) return;
                   controller.selectedFilter.value = selectedEnum;
-                  // controller.callApi();
                 },
                 labelBuilder: (r) => r.localizedLabel,
                 unSelectedBackgroundColor: AppColors.white,
               ),
-              SizedBox(
-                height: SizeConfig.size5,
-              ),
+              SizedBox(height: SizeConfig.size5),
               Expanded(
                 child: Obx(() {
                   if (controller.isProductDataFirstLoading.value) {
@@ -165,7 +180,6 @@ class _HomeMadeProductScreenState extends State<HomeMadeProductScreen> {
                                 itemWidth / approximateItemHeight;
 
                             return GridView.builder(
-                              controller: _scrollController,
                               padding: EdgeInsets.symmetric(
                                   horizontal: SizeConfig.size8,
                                   vertical: SizeConfig.size15),
@@ -200,14 +214,12 @@ class _HomeMadeProductScreenState extends State<HomeMadeProductScreen> {
                           },
                         )
                       : ListView.builder(
-                          controller: _scrollController,
                           padding: EdgeInsets.zero,
                           itemCount: productList.length +
                               (controller.isProductDataLoadingMore.value
                                   ? 1
                                   : 0),
                           itemBuilder: (context, index) {
-                            // Pagination Loader
                             if (index >= productList.length) {
                               return const Padding(
                                 padding: EdgeInsets.all(20),

@@ -113,7 +113,12 @@ class _FoodCustomerListingScreenState extends State<FoodCustomerListingScreen> {
               _buildRightContent(),
             ],
           ),
-          FoodSelfPickupCart(controller: controller),
+          Positioned(
+            bottom: 40,
+            left: 0,
+            right: 0,
+            child: FoodSelfPickupCart(controller: controller),
+          ),
         ],
       ),
     );
