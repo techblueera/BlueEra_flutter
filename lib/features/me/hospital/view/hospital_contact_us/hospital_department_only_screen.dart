@@ -8,7 +8,6 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-
 class HospitalDepartmentOnlyScreen extends StatefulWidget {
   final OtherProfileDepartments? contactInfo;
   final bool? isContactInfoEdit;
@@ -18,10 +17,12 @@ class HospitalDepartmentOnlyScreen extends StatefulWidget {
       {super.key, this.isContactInfoEdit, this.contactInfo, this.branchId});
 
   @override
-  _HospitalDepartmentOnlyScreenState createState() => _HospitalDepartmentOnlyScreenState();
+  _HospitalDepartmentOnlyScreenState createState() =>
+      _HospitalDepartmentOnlyScreenState();
 }
 
-class _HospitalDepartmentOnlyScreenState extends State<HospitalDepartmentOnlyScreen> {
+class _HospitalDepartmentOnlyScreenState
+    extends State<HospitalDepartmentOnlyScreen> {
   final schoolAboutUsController = Get.find<HospitalBranchContactController>();
 
   final titleController = TextEditingController();
@@ -64,54 +65,51 @@ class _HospitalDepartmentOnlyScreenState extends State<HospitalDepartmentOnlyScr
               CommonTextField(
                 textEditController: titleController,
                 hintText: "E.g.Admission Cell",
-                title:  AppStrings.department,
+                title: AppStrings.department,
                 onChange: (_) => _runValidation(),
               ),
               SizedBox(height: 12),
               CommonTextField(
                 textEditController: emailController,
                 hintText: "dpsdehradun@gmail.com",
-                title:  AppStrings.enterEmailAddress,
+                title: AppStrings.enterEmailAddress,
                 onChange: (_) => _runValidation(),
               ),
               SizedBox(height: 12),
               CommonTextField(
                 textEditController: phoneController,
                 hintText: "+91 1234567890",
-                title:  AppStrings.phoneNumber,
+                title: AppStrings.phoneNumber,
                 maxLength: 10,
                 onChange: (_) => _runValidation(),
               ),
               SizedBox(height: 12),
               Obx(() {
                 return CustomBtn(
-                    isValidate: schoolAboutUsController.isFormValid.value,
-                    onTap: () async {
-                      if (widget.isContactInfoEdit ?? false) {
-                        await schoolAboutUsController
-                            .updateBranchContactDetailsController(
-                                reqBody: {
-                              "department": titleController.text,
-                              "email": emailController.text,
-                              "phone": phoneController.text,
-                            },
-                                branchID: widget.contactInfo?.id ?? "",
-                                contactID: widget.branchId ?? "");
-                      }
-                      else{
-                        await schoolAboutUsController
-                            .addBranchDepartmentController(
-                            reqBody: {
-                              "department": titleController.text,
-                              "email": emailController.text,
-                              "phone": phoneController.text,
-                            },
-                            branchID:
-                            widget.branchId ?? "");
-                        // addBranchDepartmentController
-                      }
-                    },
-                    title:  AppStrings.submit,);
+                  isValidate: schoolAboutUsController.isFormValid.value,
+                  onTap: () async {
+                    if (widget.isContactInfoEdit ?? false) {
+                      await schoolAboutUsController
+                          .updateBranchContactDetailsController(
+                              reqBody: {
+                            "department": titleController.text,
+                            "email": emailController.text,
+                            "phone": phoneController.text,
+                          },
+                              branchID: widget.contactInfo?.id ?? "",
+                              contactID: widget.branchId ?? "");
+                    } else {
+                      await schoolAboutUsController
+                          .addBranchDepartmentController(reqBody: {
+                        "department": titleController.text,
+                        "email": emailController.text,
+                        "phone": phoneController.text,
+                      }, branchID: widget.branchId ?? "");
+                      // addBranchDepartmentController
+                    }
+                  },
+                  title: AppStrings.submit,
+                );
               }),
             ],
           ),

@@ -18,7 +18,8 @@ class HospitalBranchDetailsFormScreen extends StatefulWidget {
       _HospitalBranchDetailsFormScreenState();
 }
 
-class _HospitalBranchDetailsFormScreenState extends State<HospitalBranchDetailsFormScreen> {
+class _HospitalBranchDetailsFormScreenState
+    extends State<HospitalBranchDetailsFormScreen> {
   // Initialize the specific controller
   final controller = Get.find<HospitalBranchContactController>();
 
@@ -61,7 +62,7 @@ class _HospitalBranchDetailsFormScreenState extends State<HospitalBranchDetailsF
               HttpsTextField(
                 controller: websiteController,
                 hintText: "https://dpsdehradun.com",
-                title:AppStrings.website,
+                title: AppStrings.website,
                 onChange: (_) => _triggerValidation(),
               ),
               SizedBox(height: 12),
@@ -96,7 +97,7 @@ class _HospitalBranchDetailsFormScreenState extends State<HospitalBranchDetailsF
               CommonTextField(
                 textEditController: phoneController,
                 hintText: "+91 1234567890",
-                title:  AppStrings.phoneNumber,
+                title: AppStrings.phoneNumber,
                 maxLength: 10,
                 onChange: (_) => _triggerValidation(),
               ),

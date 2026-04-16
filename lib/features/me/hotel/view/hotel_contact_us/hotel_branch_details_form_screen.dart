@@ -15,7 +15,8 @@ class HotelBranchDetailsFormScreen extends StatefulWidget {
       _HotelBranchDetailsFormScreenState();
 }
 
-class _HotelBranchDetailsFormScreenState extends State<HotelBranchDetailsFormScreen> {
+class _HotelBranchDetailsFormScreenState
+    extends State<HotelBranchDetailsFormScreen> {
   // Initialize the specific controller
   final controller = Get.find<HotelBranchContactController>();
 
@@ -56,7 +57,7 @@ class _HotelBranchDetailsFormScreenState extends State<HotelBranchDetailsFormScr
               SizedBox(height: 12),
               CommonLocationSearchField(
                 controller: addressController,
-                title:  AppStrings.location.tr,
+                title: AppStrings.location.tr,
                 isShowLeading: false,
                 onSelected: (placeId, lat, lng, address) {
                   addressController.text = address;
@@ -78,7 +79,7 @@ class _HotelBranchDetailsFormScreenState extends State<HotelBranchDetailsFormScr
               CommonTextField(
                 textEditController: phoneController,
                 hintText: AppStrings.hotelPhoneExampleHint.tr,
-                title:  AppStrings.phoneNumber.tr,
+                title: AppStrings.phoneNumber.tr,
                 maxLength: 10,
                 onChange: (_) => _triggerValidation(),
               ),
@@ -98,7 +99,7 @@ class _HotelBranchDetailsFormScreenState extends State<HotelBranchDetailsFormScr
                               phone: phoneController.text,
                             )
                         : null, // Button disabled if form invalid
-                    title:  AppStrings.submit.tr,
+                    title: AppStrings.submit.tr,
                     isValidate: controller.isFormValid.value,
                   )),
             ],
@@ -107,5 +108,4 @@ class _HotelBranchDetailsFormScreenState extends State<HotelBranchDetailsFormScr
       ),
     );
   }
-
 }

@@ -60,7 +60,9 @@ class _LabTestCatalogScreenState extends State<LabTestCatalogScreen> {
               padding: EdgeInsets.symmetric(horizontal: 5),
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                border: Border.all(color: AppColors.primaryColor,),
+                border: Border.all(
+                  color: AppColors.primaryColor,
+                ),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: CustomText(
@@ -72,7 +74,6 @@ class _LabTestCatalogScreenState extends State<LabTestCatalogScreen> {
             ),
           ),
         ),
-
       ),
       body: Obx(() {
         if (controller.isLoading.value && controller.catalogTests.isEmpty) {
@@ -86,7 +87,7 @@ class _LabTestCatalogScreenState extends State<LabTestCatalogScreen> {
         }
 
 // Component Code
-     return   ListView.separated(
+        return ListView.separated(
           padding: EdgeInsets.all(SizeConfig.size12),
           itemCount: controller.catalogTests.length,
           separatorBuilder: (_, __) => SizedBox(height: SizeConfig.size16),
@@ -143,19 +144,26 @@ class _LabTestCatalogScreenState extends State<LabTestCatalogScreen> {
                             children: [
                               // Report Timing Badge
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 8),
                                 decoration: BoxDecoration(
                                   color: Colors.white,
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: RichText(
                                   text: TextSpan(
-                                    style: TextStyle(color: Colors.black87, fontSize: SizeConfig.small),
+                                    style: TextStyle(
+                                        color: Colors.black87,
+                                        fontSize: SizeConfig.small),
                                     children: [
-                                      TextSpan(text: "${AppStrings.labReportsWithinPrefix.tr} "),
                                       TextSpan(
-                                        text: "${item.estimatedReportHours ?? 0} ${AppStrings.labHoursWord.tr}",
-                                        style: const TextStyle(fontWeight: FontWeight.bold),
+                                          text:
+                                              "${AppStrings.labReportsWithinPrefix.tr} "),
+                                      TextSpan(
+                                        text:
+                                            "${item.estimatedReportHours ?? 0} ${AppStrings.labHoursWord.tr}",
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.bold),
                                       ),
                                     ],
                                   ),
@@ -164,7 +172,8 @@ class _LabTestCatalogScreenState extends State<LabTestCatalogScreen> {
 
                               // Price Badge
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 8),
                                 decoration: BoxDecoration(
                                   color: Colors.white,
                                   borderRadius: BorderRadius.circular(8),
@@ -184,19 +193,22 @@ class _LabTestCatalogScreenState extends State<LabTestCatalogScreen> {
 
                     // Bottom Section: Home Collection Bar
                     Padding(
-                      padding: EdgeInsets.fromLTRB(SizeConfig.size16, 0, SizeConfig.size16, SizeConfig.size16),
+                      padding: EdgeInsets.fromLTRB(SizeConfig.size16, 0,
+                          SizeConfig.size16, SizeConfig.size16),
                       child: Row(
                         children: [
                           Expanded(
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 10),
                               decoration: BoxDecoration(
                                 color: Colors.black.withOpacity(0.05),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Row(
                                 children: [
-                                  Icon(Icons.circle, size: 8, color: Colors.grey.shade600),
+                                  Icon(Icons.circle,
+                                      size: 8, color: Colors.grey.shade600),
                                   const SizedBox(width: 8),
                                   CustomText(
                                     AppStrings.labHomeSampleAvailable.tr,
@@ -213,10 +225,12 @@ class _LabTestCatalogScreenState extends State<LabTestCatalogScreen> {
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
                               color: Colors.white,
-                              border: Border.all(color: Colors.blue.shade400, width: 1.5),
+                              border: Border.all(
+                                  color: Colors.blue.shade400, width: 1.5),
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            child: const Icon(Icons.arrow_forward_ios, size: 18, color: Colors.blue),
+                            child: const Icon(Icons.arrow_forward_ios,
+                                size: 18, color: Colors.blue),
                           ),
                         ],
                       ),
@@ -227,7 +241,6 @@ class _LabTestCatalogScreenState extends State<LabTestCatalogScreen> {
             );
           },
         );
-
       }),
     );
   }
@@ -241,13 +254,15 @@ class _LabTestCatalogScreenState extends State<LabTestCatalogScreen> {
         .map((e) => e.trim())
         .where((e) => e.isNotEmpty)
         .toList();
-    final selectedMethod = RxString(methodOptions.isNotEmpty ? methodOptions.first : "");
+    final selectedMethod =
+        RxString(methodOptions.isNotEmpty ? methodOptions.first : "");
     final hoursCtrl = TextEditingController(
         text: (item.estimatedReportHours ?? 24).toString());
     final feesCtrl =
         TextEditingController(text: (item.suggestedTestFees ?? 0).toString());
     final priceCtrl = TextEditingController(
         text: (item.suggestedCustomerPrice ?? 0).toString());
+    final GlobalKey<FormState> _catalogFormKey = GlobalKey<FormState>();
 
     showModalBottomSheet(
       context: context,
@@ -257,14 +272,16 @@ class _LabTestCatalogScreenState extends State<LabTestCatalogScreen> {
       ),
       builder: (_) {
         return SafeArea(
-          child: Padding(
-            padding: EdgeInsets.only(
-              left: SizeConfig.size16,
-              right: SizeConfig.size16,
-              top: SizeConfig.size16,
-              bottom:
-                  MediaQuery.of(context).viewInsets.bottom + SizeConfig.size16,
-            ),
+            child: Padding(
+          padding: EdgeInsets.only(
+            left: SizeConfig.size16,
+            right: SizeConfig.size16,
+            top: SizeConfig.size16,
+            bottom:
+                MediaQuery.of(context).viewInsets.bottom + SizeConfig.size16,
+          ),
+          child: Form(
+            key: _catalogFormKey,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -276,6 +293,7 @@ class _LabTestCatalogScreenState extends State<LabTestCatalogScreen> {
                   textEditController: nameCtrl,
                   title: AppStrings.labHintHemoglobin.tr,
                   hintText: AppStrings.labHint138.tr,
+                  isValidate: true,
                 ),
                 SizedBox(height: SizeConfig.size8),
                 CommonTextField(
@@ -330,6 +348,16 @@ class _LabTestCatalogScreenState extends State<LabTestCatalogScreen> {
                   textEditController: hoursCtrl,
                   title: AppStrings.labEstimatedReportHours.tr,
                   keyBoardType: TextInputType.number,
+                  isValidate: true,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return AppStrings.required.tr;
+                    }
+                    int? hours = int.tryParse(value);
+                    if (hours == null || hours <= 0) return "Invalid hours";
+                    if (hours > 999) return "Max 999 hours";
+                    return null;
+                  },
                 ),
                 SizedBox(height: SizeConfig.size8),
                 Row(
@@ -339,6 +367,16 @@ class _LabTestCatalogScreenState extends State<LabTestCatalogScreen> {
                         textEditController: feesCtrl,
                         title: AppStrings.labTestFees.tr,
                         keyBoardType: TextInputType.number,
+                        isValidate: true,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return AppStrings.required.tr;
+                          }
+                          int? fees = int.tryParse(value);
+                          if (fees == null || fees <= 0) return "Invalid fees";
+                          if (fees > 1000000) return "Max 1,000,000";
+                          return null;
+                        },
                       ),
                     ),
                     SizedBox(width: SizeConfig.size12),
@@ -347,6 +385,20 @@ class _LabTestCatalogScreenState extends State<LabTestCatalogScreen> {
                         textEditController: priceCtrl,
                         title: AppStrings.labCustomerPrice.tr,
                         keyBoardType: TextInputType.number,
+                        isValidate: true,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return AppStrings.required.tr;
+                          }
+                          int? price = int.tryParse(value);
+                          int? mrp = int.tryParse(feesCtrl.text);
+                          if (price == null || price <= 0)
+                            return "Invalid price";
+                          if (price > 1000000) return "Max 1,000,000";
+                          if (mrp != null && price > mrp)
+                            return "Customer price cannot exceed MRP";
+                          return null;
+                        },
                       ),
                     ),
                   ],
@@ -357,9 +409,25 @@ class _LabTestCatalogScreenState extends State<LabTestCatalogScreen> {
                       onTap: controller.isLoading.value
                           ? null
                           : () async {
-                              final ok =
-                                  await controller.selectCatalog(item.id!);
-                              if (ok) Get.back();
+                              if (_catalogFormKey.currentState!.validate()) {
+                                final overrides = {
+                                  "testName": nameCtrl.text,
+                                  "testParameters": paramsCtrl.text
+                                      .split(",")
+                                      .map((e) => e.trim())
+                                      .toList(),
+                                  "estimatedReportHours":
+                                      int.tryParse(hoursCtrl.text) ?? 24,
+                                  "testFees": int.tryParse(feesCtrl.text) ?? 0,
+                                  "customerPrice":
+                                      int.tryParse(priceCtrl.text) ?? 0,
+                                  "testMethod": selectedMethod.value,
+                                };
+                                final ok = await controller.selectCatalog(
+                                    item.id!,
+                                    customData: overrides);
+                                if (ok) Get.back();
+                              }
                             },
                       title: AppStrings.postNow);
                 }),
@@ -367,9 +435,8 @@ class _LabTestCatalogScreenState extends State<LabTestCatalogScreen> {
               ],
             ),
           ),
-        );
+        ));
       },
     );
   }
-
 }

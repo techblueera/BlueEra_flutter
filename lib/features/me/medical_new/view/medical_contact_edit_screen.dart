@@ -47,10 +47,8 @@ class _MedicalContactEditScreenState extends State<MedicalContactEditScreen> {
     super.initState();
     final p = widget.profile;
     final owner = p.ownerDetails?.firstOrNull;
-    _businessNameCtrl =
-        TextEditingController(text: p.businessName ?? '');
-    _descriptionCtrl =
-        TextEditingController(text: p.businessDescription ?? '');
+    _businessNameCtrl = TextEditingController(text: p.businessName ?? '');
+    _descriptionCtrl = TextEditingController(text: p.businessDescription ?? '');
     _addressCtrl = TextEditingController(text: p.address ?? '');
     _websiteCtrl = TextEditingController(text: p.websiteUrl ?? '');
     _ownerNameCtrl = TextEditingController(text: owner?.name ?? '');
@@ -241,8 +239,7 @@ class _MedicalContactEditScreenState extends State<MedicalContactEditScreen> {
                   color: AppColors.primaryColor.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Icon(icon,
-                    size: 18, color: AppColors.primaryColor),
+                child: Icon(icon, size: 18, color: AppColors.primaryColor),
               ),
               SizedBox(width: SizeConfig.size8),
               CustomText(

@@ -67,7 +67,7 @@ class _BranchOnlyScreenState extends State<BranchOnlyScreen> {
               CommonTextField(
                 textEditController: branchNameController,
                 hintText: "E.g. DPS Dehradun",
-                title:AppStrings.branchName,
+                title: AppStrings.branchName,
                 maxLength: 50,
                 onChange: (_) => _runValidation(),
               ),
@@ -107,7 +107,7 @@ class _BranchOnlyScreenState extends State<BranchOnlyScreen> {
                               "name": branchNameController.text,
                               "website": websiteController.text,
                               "location": {
-                                "name":addressController.text,
+                                "name": addressController.text,
                                 "type": "Point",
                                 "coordinates": [
                                   schoolAboutUsController.selectedLat,

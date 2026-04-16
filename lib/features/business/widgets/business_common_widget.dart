@@ -1,4 +1,3 @@
-
 import 'package:BlueEra/core/api/model/type_of_business_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
@@ -415,7 +414,6 @@ void openBusinessDetailsEditSheet(BuildContext context) {
                                   return;
                                 }
 
-
                                 Map<String, dynamic> updatedParams = {
                                   ApiKeys.businessId: businessId,
                                   ApiKeys.opening_time:
@@ -456,7 +454,7 @@ void openBusinessDetailsEditSheet(BuildContext context) {
                                       //     ? '68a80b766fdb4e82b42b77c0'
                                       //     :
                                       viewBusinessDetailsController
-                                              .selectedCategory.value?.tagId,
+                                          .selectedCategory.value?.tagId,
                                   ApiKeys.Nature_of_Business:
                                       selectedBusiness ==
                                           selectedBusiness?.displayName,

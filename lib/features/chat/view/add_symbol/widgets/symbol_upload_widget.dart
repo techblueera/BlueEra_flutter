@@ -96,12 +96,15 @@ class _SymbolUploadWidgetState extends State<SymbolUploadWidget> {
             if (isVideo) _buildVideoPreview(),
           ],
 
-          // --- MEDIA NOT SELECTED BUT TYPE CHOSEN ---
+          // --- MEDIA NOT SELECTED BUT TYPE CHOSEN (for Photo/Video) ---
           if (!hasMedia && (isPhoto || isVideo)) ...[
             _buildMediaHeader(),
             const SizedBox(height: 16),
             _buildEmptyMediaPlaceholder(),
           ],
+
+          // --- TEXT OR LINK TYPE CHOSEN ---
+          // Removed redundant display as per user request
         ],
       );
     });
@@ -257,19 +260,23 @@ class _SymbolUploadWidgetState extends State<SymbolUploadWidget> {
         // Add more / Pick button
         if (count < (isPhoto ? 4 : 1))
           GestureDetector(
-            onTap: () => isPhoto ? controller.pickMedia() : controller.pickVideoMedia(),
+            onTap: () =>
+                isPhoto ? controller.pickMedia() : controller.pickVideoMedia(),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: isPhoto 
+                  colors: isPhoto
                       ? [const Color(0xFF667EEA), const Color(0xFF764BA2)]
                       : [const Color(0xFFFF6B6B), const Color(0xFFEE5A24)],
                 ),
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: (isPhoto ? const Color(0xFF667EEA) : const Color(0xFFFF6B6B)).withValues(alpha: 0.25),
+                    color: (isPhoto
+                            ? const Color(0xFF667EEA)
+                            : const Color(0xFFFF6B6B))
+                        .withValues(alpha: 0.25),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -278,11 +285,12 @@ class _SymbolUploadWidgetState extends State<SymbolUploadWidget> {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.add_rounded,
-                      size: 16, color: Colors.white),
+                  const Icon(Icons.add_rounded, size: 16, color: Colors.white),
                   const SizedBox(width: 4),
                   CustomText(
-                    count == 0 ? AppStrings.selectLabel.tr : AppStrings.addMoreLabel.tr,
+                    count == 0
+                        ? AppStrings.selectLabel.tr
+                        : AppStrings.addMoreLabel.tr,
                     color: Colors.white,
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -434,7 +442,8 @@ class _SymbolUploadWidgetState extends State<SymbolUploadWidget> {
               child: FutureBuilder<Uint8List>(
                 future: file.readAsBytes(),
                 builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.done && snapshot.hasData) {
+                  if (snapshot.connectionState == ConnectionState.done &&
+                      snapshot.hasData) {
                     return Image.memory(
                       snapshot.data!,
                       fit: BoxFit.cover,
@@ -460,7 +469,8 @@ class _SymbolUploadWidgetState extends State<SymbolUploadWidget> {
                       child: const Center(
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF667EEA)),
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(Color(0xFF667EEA)),
                         ),
                       ),
                     );
@@ -595,8 +605,8 @@ class _SymbolUploadWidgetState extends State<SymbolUploadWidget> {
                 right: 0,
                 child: Center(
                   child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 14, vertical: 6),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                     decoration: BoxDecoration(
                       color: Colors.black.withValues(alpha: 0.5),
                       borderRadius: BorderRadius.circular(20),
@@ -692,7 +702,8 @@ class _SymbolUploadWidgetState extends State<SymbolUploadWidget> {
           border: Border.all(
             color: option.gradient.first.withValues(alpha: 0.2),
             width: 2,
-            style: BorderStyle.none, // We'll use a dotted border effect via decoration if possible, or just a nice shadow
+            style: BorderStyle
+                .none, // We'll use a dotted border effect via decoration if possible, or just a nice shadow
           ),
           boxShadow: [
             BoxShadow(
@@ -780,8 +791,8 @@ class _SymbolUploadWidgetState extends State<SymbolUploadWidget> {
             ],
           ),
           child: const Center(
-            child: Icon(Icons.close_rounded,
-                color: Color(0xFF2D3142), size: 16),
+            child:
+                Icon(Icons.close_rounded, color: Color(0xFF2D3142), size: 16),
           ),
         ),
       ),
@@ -802,21 +813,24 @@ class _SymbolUploadWidgetState extends State<SymbolUploadWidget> {
               FutureBuilder<Uint8List>(
                 future: files[currentIndex].readAsBytes(),
                 builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.done && snapshot.hasData) {
+                  if (snapshot.connectionState == ConnectionState.done &&
+                      snapshot.hasData) {
                     return InteractiveViewer(
                       child: Image.memory(
                         snapshot.data!,
                         fit: BoxFit.contain,
                         errorBuilder: (context, error, stackTrace) {
                           return const Center(
-                            child: Icon(Icons.broken_image, color: Colors.white, size: 50),
+                            child: Icon(Icons.broken_image,
+                                color: Colors.white, size: 50),
                           );
                         },
                       ),
                     );
                   } else if (snapshot.hasError) {
                     return const Center(
-                      child: Icon(Icons.broken_image, color: Colors.white, size: 50),
+                      child: Icon(Icons.broken_image,
+                          color: Colors.white, size: 50),
                     );
                   } else {
                     return const Center(
@@ -842,7 +856,8 @@ class _SymbolUploadWidgetState extends State<SymbolUploadWidget> {
                   left: 20,
                   top: MediaQuery.of(context).size.height / 2 - 30,
                   child: IconButton(
-                    icon: const Icon(Icons.arrow_back, color: Colors.white, size: 40),
+                    icon: const Icon(Icons.arrow_back,
+                        color: Colors.white, size: 40),
                     onPressed: () {
                       setState(() {
                         currentIndex = currentIndex - 1;
@@ -856,7 +871,8 @@ class _SymbolUploadWidgetState extends State<SymbolUploadWidget> {
                   right: 20,
                   top: MediaQuery.of(context).size.height / 2 - 30,
                   child: IconButton(
-                    icon: const Icon(Icons.arrow_forward, color: Colors.white, size: 40),
+                    icon: const Icon(Icons.arrow_forward,
+                        color: Colors.white, size: 40),
                     onPressed: () {
                       setState(() {
                         currentIndex = currentIndex + 1;
@@ -871,7 +887,8 @@ class _SymbolUploadWidgetState extends State<SymbolUploadWidget> {
                 right: 0,
                 child: Center(
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
                       color: Colors.black.withOpacity(0.5),
                       borderRadius: BorderRadius.circular(20),
@@ -891,12 +908,21 @@ class _SymbolUploadWidgetState extends State<SymbolUploadWidget> {
                 child: IconButton(
                   icon: const Icon(Icons.delete, color: Colors.black, size: 30),
                   onPressed: () {
-                    Get.find<AddChatSymbolController>().removeMedia(currentIndex);
-                    if (Get.find<AddChatSymbolController>().imagesList.isEmpty) {
+                    Get.find<AddChatSymbolController>()
+                        .removeMedia(currentIndex);
+                    if (Get.find<AddChatSymbolController>()
+                        .imagesList
+                        .isEmpty) {
                       Navigator.of(context).pop();
                     } else {
-                      if (currentIndex >= Get.find<AddChatSymbolController>().imagesList.length) {
-                        currentIndex = Get.find<AddChatSymbolController>().imagesList.length - 1;
+                      if (currentIndex >=
+                          Get.find<AddChatSymbolController>()
+                              .imagesList
+                              .length) {
+                        currentIndex = Get.find<AddChatSymbolController>()
+                                .imagesList
+                                .length -
+                            1;
                       }
                       setState(() {});
                     }

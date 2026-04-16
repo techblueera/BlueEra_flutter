@@ -46,15 +46,24 @@ class ValidationMethod {
       return AppStrings.emailIsRequired.tr;
     }
 
+    final email = value.toString().trim();
+
+    // Standard email regex
     bool regex = RegExp(
             r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$')
-        .hasMatch(value);
+        .hasMatch(email);
 
     if (regex == false) {
       return AppStrings.pleaseEnterValidEmail.tr;
     }
 
-    final localPart = value.toString().split('@')[0];
+    // Additional check to reject invalid TLDs like .vop or .vkm (as per user request)
+    // And optionally enforce @gmail.com if that's the strict requirement
+    if (!email.toLowerCase().endsWith('@gmail.com')) {
+      return "Only @gmail.com emails are allowed";
+    }
+
+    final localPart = email.split('@')[0];
     if (RegExp(r'^[0-9]+$').hasMatch(localPart)) {
       return AppStrings.pleaseEnterValidEmail.tr;
     }

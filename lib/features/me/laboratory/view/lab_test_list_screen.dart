@@ -143,8 +143,10 @@ class _LabTestListScreenState extends State<LabTestListScreen> {
                             showCommonDialog(
                               context: context,
                               text: AppStrings.deleteThisTest.tr,
-                              confirmCallback: () =>
-                                  controller.deleteTest(t.id!, widget.collection),
+                              confirmCallback: () {
+                                Get.back();
+                                controller.deleteTest(t.id!, widget.collection);
+                              },
                               cancelCallback: () => Get.back(),
                               confirmText: AppStrings.delete,
                               cancelText: AppStrings.cancel,

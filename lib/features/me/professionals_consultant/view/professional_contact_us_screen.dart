@@ -43,8 +43,7 @@ class _ProfessionalContactUsScreenState
   void initState() {
     super.initState();
     apiCalling();
-    WidgetsBinding.instance
-        .addPostFrameCallback((_) => _triggerValidation());
+    WidgetsBinding.instance.addPostFrameCallback((_) => _triggerValidation());
   }
 
   @override
@@ -77,28 +76,21 @@ class _ProfessionalContactUsScreenState
       body: Obx(() {
         if (controller.contactUsData.value != null) {
           branchNameController = TextEditingController(
-              text: controller.contactUsData.value?.data
-                      ?.contactPerson ??
-                  "");
+              text: controller.contactUsData.value?.data?.contactPerson ?? "");
           websiteController = TextEditingController(
-              text: controller.contactUsData.value?.data?.website ??
-                  "");
+              text: controller.contactUsData.value?.data?.website ?? "");
           addressController = TextEditingController(
-              text: controller.contactUsData.value?.data?.address ??
-                  "");
+              text: controller.contactUsData.value?.data?.address ?? "");
           emailController = TextEditingController(
-              text:
-                  controller.contactUsData.value?.data?.email ?? "");
+              text: controller.contactUsData.value?.data?.email ?? "");
           phoneController = TextEditingController(
-              text:
-                  controller.contactUsData.value?.data?.phone ?? "");
+              text: controller.contactUsData.value?.data?.phone ?? "");
 
-          if (controller.contactUsData.value?.data?.location !=
-              null) {
-            controller.selectedLat = controller.contactUsData.value
-                ?.data?.location?.coordinates![0];
-            controller.selectedLng = controller.contactUsData.value
-                ?.data?.location?.coordinates![1];
+          if (controller.contactUsData.value?.data?.location != null) {
+            controller.selectedLat =
+                controller.contactUsData.value?.data?.location?.coordinates![0];
+            controller.selectedLng =
+                controller.contactUsData.value?.data?.location?.coordinates![1];
           }
         }
         return SingleChildScrollView(
@@ -109,12 +101,10 @@ class _ProfessionalContactUsScreenState
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppColors.primaryColor
-                      .withValues(alpha: 0.06),
+                  color: AppColors.primaryColor.withValues(alpha: 0.06),
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
-                      color: AppColors.primaryColor
-                          .withValues(alpha: 0.15)),
+                      color: AppColors.primaryColor.withValues(alpha: 0.15)),
                 ),
                 child: Row(
                   children: [
@@ -141,8 +131,8 @@ class _ProfessionalContactUsScreenState
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _sectionIcon(Icons.person_outline,
-                          "Personal Info", "Your name and website"),
+                      _sectionIcon(Icons.person_outline, "Personal Info",
+                          "Your name and website"),
                       const SizedBox(height: 16),
                       CommonTextField(
                         textEditController: branchNameController,
@@ -171,8 +161,8 @@ class _ProfessionalContactUsScreenState
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _sectionIcon(Icons.phone_outlined,
-                          "Contact Details", "Email and phone"),
+                      _sectionIcon(Icons.phone_outlined, "Contact Details",
+                          "Email and phone"),
                       const SizedBox(height: 16),
                       CommonTextField(
                         textEditController: emailController,
@@ -210,34 +200,22 @@ class _ProfessionalContactUsScreenState
                         controller: addressController,
                         title: AppStrings.location,
                         isShowLeading: false,
-                        onSelected:
-                            (placeId, lat, lng, address) async {
+                        onSelected: (placeId, lat, lng, address) async {
                           addressController.text = address;
                           try {
-                            final detailsResponse =
-                                await PlaceRepo()
-                                    .getCompletePlaceDetails(
-                                        placeId: placeId);
-                            final detailsData =
-                                detailsResponse.response?.data;
+                            final detailsResponse = await PlaceRepo()
+                                .getCompletePlaceDetails(placeId: placeId);
+                            final detailsData = detailsResponse.response?.data;
                             final placeDetails =
-                                PlaceDetailsResponse.fromJson(
-                                    detailsData);
-                            controller.selectedLat = placeDetails
-                                    .result
-                                    ?.geometry
-                                    ?.location
-                                    ?.lat ??
-                                0.0;
-                            controller.selectedLng = placeDetails
-                                    .result
-                                    ?.geometry
-                                    ?.location
-                                    ?.lng ??
-                                0.0;
+                                PlaceDetailsResponse.fromJson(detailsData);
+                            controller.selectedLat =
+                                placeDetails.result?.geometry?.location?.lat ??
+                                    0.0;
+                            controller.selectedLng =
+                                placeDetails.result?.geometry?.location?.lng ??
+                                    0.0;
                           } catch (e) {
-                            debugPrint(
-                                "Error fetching place details: $e");
+                            debugPrint("Error fetching place details: $e");
                           }
                           _triggerValidation();
                         },
@@ -253,17 +231,14 @@ class _ProfessionalContactUsScreenState
                     isLoading: controller.isLoading.value,
                     onTap: controller.isFormValid.value
                         ? () => controller.submitBranchDetails(
-                              branchName:
-                                  branchNameController.text,
+                              branchName: branchNameController.text,
                               website: websiteController.text,
                               address: addressController.text,
                               email: emailController.text,
                               phone: phoneController.text,
                             )
                         : null,
-                    title: isEdit
-                        ? AppStrings.update.tr
-                        : AppStrings.submit.tr,
+                    title: isEdit ? AppStrings.update.tr : AppStrings.submit.tr,
                     isValidate: controller.isFormValid.value,
                   )),
               SizedBox(height: SizeConfig.size20),
@@ -274,8 +249,7 @@ class _ProfessionalContactUsScreenState
     );
   }
 
-  Widget _sectionIcon(
-      IconData icon, String title, String subtitle) {
+  Widget _sectionIcon(IconData icon, String title, String subtitle) {
     return Row(
       children: [
         Container(
@@ -284,8 +258,7 @@ class _ProfessionalContactUsScreenState
             color: AppColors.primaryColor.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
           ),
-          child:
-              Icon(icon, color: AppColors.primaryColor, size: 20),
+          child: Icon(icon, color: AppColors.primaryColor, size: 20),
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -293,8 +266,7 @@ class _ProfessionalContactUsScreenState
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               CustomText(title,
-                  fontWeight: FontWeight.w600,
-                  fontSize: SizeConfig.medium),
+                  fontWeight: FontWeight.w600, fontSize: SizeConfig.medium),
               const SizedBox(height: 2),
               CustomText(subtitle,
                   color: AppColors.secondaryTextColor,

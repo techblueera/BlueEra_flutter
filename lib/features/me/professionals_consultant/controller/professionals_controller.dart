@@ -16,7 +16,7 @@ class ProfessionalsController extends GetxController {
     super.onInit();
   }
 
-   fetchHomeData() async {
+  fetchHomeData() async {
     try {
       isLoading(true);
 

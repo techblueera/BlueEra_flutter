@@ -190,11 +190,7 @@ class _AddChatSymbolScreenState extends State<AddChatSymbolScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Step indicator
-                    if (controller.selectedPostType.value != null) ...[
-                      _buildStepIndicator(),
-                      const SizedBox(height: 20),
-                    ],
+                    // Step indicator removed as per user request
 
                     // Type selector / Upload widget
                     _buildSection(

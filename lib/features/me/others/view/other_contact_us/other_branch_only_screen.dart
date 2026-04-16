@@ -96,15 +96,19 @@ class _OtherBranchOnlyScreenState extends State<OtherBranchOnlyScreen> {
                         .getCompletePlaceDetails(placeId: placeId);
                     final detailsData = detailsResponse.response?.data;
                     final placeDetails =
-                    PlaceDetailsResponse.fromJson(detailsData);
+                        PlaceDetailsResponse.fromJson(detailsData);
                     logs("detailsData=== ${detailsData}");
-                    logs("placeDetails.result?.geometry?.location?.lat??0.0=== ${placeDetails.result?.geometry?.location?.lat??0.0}");
-                    logs("placeDetails.result?.geometry?.location?.lng??0.0=== ${placeDetails.result?.geometry?.location?.lng??0.0}");
+                    logs(
+                        "placeDetails.result?.geometry?.location?.lat??0.0=== ${placeDetails.result?.geometry?.location?.lat ?? 0.0}");
+                    logs(
+                        "placeDetails.result?.geometry?.location?.lng??0.0=== ${placeDetails.result?.geometry?.location?.lng ?? 0.0}");
                     // controller.selectedLat = placeDetails.result?.geometry?.location?.lat??0.0;
                     // controller.selectedLng = placeDetails.result?.geometry?.location?.lng??0.0;
 
-                    schoolAboutUsController.selectedLat =  placeDetails.result?.geometry?.location?.lat??0.0;
-                    schoolAboutUsController.selectedLng =  placeDetails.result?.geometry?.location?.lng??0.0;
+                    schoolAboutUsController.selectedLat =
+                        placeDetails.result?.geometry?.location?.lat ?? 0.0;
+                    schoolAboutUsController.selectedLng =
+                        placeDetails.result?.geometry?.location?.lng ?? 0.0;
                   } catch (e) {
                     print("Error fetching place details: $e");
                   }
@@ -126,7 +130,8 @@ class _OtherBranchOnlyScreenState extends State<OtherBranchOnlyScreen> {
                             "branch": {
                               "name": branchNameController.text,
                               "website": websiteController.text,
-                              if (schoolAboutUsController.selectedLat != null&&schoolAboutUsController.selectedLng!=null)
+                              if (schoolAboutUsController.selectedLat != null &&
+                                  schoolAboutUsController.selectedLng != null)
                                 "location": {
                                   "name": addressController.text,
                                   "type": "Point",

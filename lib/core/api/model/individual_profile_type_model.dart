@@ -26,15 +26,15 @@ class IndividualProfileTypeModel{
   String get hintText {
     switch (type) {
       case SOCIAL_PROFILE:
-        return "Eg. Politician, Student, Artist...";
+        return "Select Profession";
       case SELF_EMPLOYED:
-        return "Eg. Electrician, Plumber, Carpenter...";
+        return "Select Profession";
       case GIG_WORKER:
-        return "Eg. Driver, Delivery Rider...";
+        return "Select Profession";
       case PROFESSIONAL:
-        return "Eg. Doctor, Lawyer, Consultant...";
+        return "Select Profession";
       default:
-        return "";
+        return "Select Profession";
     }
   }
 }
