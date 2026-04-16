@@ -1,10 +1,13 @@
 package ai.bluecs.app
 
+import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.media.AudioAttributes
+import android.net.Uri
 import android.os.Build
 import android.widget.RemoteViews
 import androidx.core.app.NotificationCompat
@@ -78,6 +81,9 @@ object IncomingCallNotificationHelper {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
+        // --- Custom ringtone URI from res/raw ---
+        val soundUri = Uri.parse("android.resource://${context.packageName}/${R.raw.hangouts_call}")
+
         // --- Build notification ---
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_stat)
@@ -90,8 +96,12 @@ object IncomingCallNotificationHelper {
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setOngoing(true)
             .setAutoCancel(false)
-            .setDefaults(NotificationCompat.DEFAULT_SOUND or NotificationCompat.DEFAULT_VIBRATE)
+            .setSound(soundUri)
+            .setVibrate(longArrayOf(0, 1000, 500, 1000))
             .build()
+
+        // FLAG_INSISTENT makes the sound repeat until the user acts on the notification
+        notification.flags = notification.flags or Notification.FLAG_INSISTENT
 
         val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         manager.notify(notifId, notification)
@@ -105,19 +115,31 @@ object IncomingCallNotificationHelper {
     private fun ensureChannel(context: Context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            if (manager.getNotificationChannel(CHANNEL_ID) == null) {
-                val channel = NotificationChannel(
-                    CHANNEL_ID,
-                    CHANNEL_NAME,
-                    NotificationManager.IMPORTANCE_HIGH
-                ).apply {
-                    description = "Incoming voice and video call alerts"
-                    lockscreenVisibility = android.app.Notification.VISIBILITY_PUBLIC
-                    setShowBadge(true)
-                    enableVibration(true)
-                }
-                manager.createNotificationChannel(channel)
+
+            // Delete old channel so the updated sound takes effect.
+            // Android caches channel settings after creation — the only way
+            // to change the sound is to delete and recreate.
+            manager.deleteNotificationChannel(CHANNEL_ID)
+
+            val soundUri = Uri.parse("android.resource://${context.packageName}/${R.raw.hangouts_call}")
+            val audioAttr = AudioAttributes.Builder()
+                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                .setUsage(AudioAttributes.USAGE_NOTIFICATION_RINGTONE)
+                .build()
+
+            val channel = NotificationChannel(
+                CHANNEL_ID,
+                CHANNEL_NAME,
+                NotificationManager.IMPORTANCE_HIGH
+            ).apply {
+                description = "Incoming voice and video call alerts"
+                lockscreenVisibility = Notification.VISIBILITY_PUBLIC
+                setShowBadge(true)
+                enableVibration(true)
+                vibrationPattern = longArrayOf(0, 1000, 500, 1000)
+                setSound(soundUri, audioAttr)
             }
+            manager.createNotificationChannel(channel)
         }
     }
 

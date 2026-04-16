@@ -1,6 +1,5 @@
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:audioplayers/audioplayers.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -20,7 +19,6 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
   late AnimationController _pulseController;
   late AnimationController _ringController;
   late Worker _callStatusWorker;
-  final AudioPlayer _ringtonePlayer = AudioPlayer();
   bool _isAccepting = false;
 
   @override
@@ -39,29 +37,20 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
       duration: const Duration(milliseconds: 600),
     )..repeat(reverse: true);
 
-    _playRingtone();
+    // Ringtone is played by CallController.startRingtone() in _handleIncomingCall
+    // so it can be reliably stopped regardless of screen lifecycle.
     HapticFeedback.heavyImpact();
 
     // Watch call status to auto-close when call is cancelled/ended/answered elsewhere
     final controller = Get.find<CallController>();
     _callStatusWorker = ever(controller.callStatus, (status) {
       if (!mounted) return;
-      if (status == CallStatus.idle) {
-        // Call was cancelled/ended/answered elsewhere — stop ringtone
-        // (navigation back is handled by CallController)
-        _stopRingtone();
-      } else if (status == CallStatus.connected) {
-        // Call connected (e.g. after accept) — stop ringtone and go to active screen
-        _stopRingtone();
+      if (status == CallStatus.idle ||
+          status == CallStatus.connected ||
+          status == CallStatus.ended) {
+        controller.stopRingtone();
       }
     });
-  }
-
-  Future<void> _playRingtone() async {
-    try {
-      await _ringtonePlayer.setReleaseMode(ReleaseMode.loop);
-      await _ringtonePlayer.play(AssetSource('sound/iphone_tone.mp3'));
-    } catch (_) {}
   }
 
   @override
@@ -69,13 +58,11 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
     _callStatusWorker.dispose();
     _pulseController.dispose();
     _ringController.dispose();
-    _ringtonePlayer.stop();
-    _ringtonePlayer.dispose();
+    // Stop controller ringtone on screen dispose as safety net
+    if (Get.isRegistered<CallController>()) {
+      Get.find<CallController>().stopRingtone();
+    }
     super.dispose();
-  }
-
-  void _stopRingtone() {
-    _ringtonePlayer.stop();
   }
 
   @override
@@ -292,7 +279,7 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
                   icon: Icons.message_rounded,
                   label: AppStrings.messageLabel.tr,
                   onTap: () {
-                    _stopRingtone();
+                    controller.stopRingtone();
                     controller.declineCall();
                   },
                 ),
@@ -312,7 +299,7 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
                   color: const Color(0xFFEA4335),
                   label: AppStrings.declineLabel.tr,
                   onTap: () {
-                    _stopRingtone();
+                    controller.stopRingtone();
                     controller.declineCall();
                   },
                 ),
@@ -324,7 +311,7 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
                   color: const Color(0xFF00A884),
                   label: AppStrings.acceptLabel.tr,
                   onTap: () async {
-                    _stopRingtone();
+                    controller.stopRingtone();
                     setState(() => _isAccepting = true);
                     // acceptCall() handles launching CallActivity on Android main engine,
                     // or does full WebRTC setup in CallActivity engine / iOS.

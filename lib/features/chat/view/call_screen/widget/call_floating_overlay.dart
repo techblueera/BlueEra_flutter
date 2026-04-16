@@ -29,13 +29,16 @@ class CallFloatingOverlay extends StatelessWidget {
       final isOnCallScreen = route == '/ActiveCallScreen' ||
           route == '/OutgoingCallScreen' ||
           route == '/IncomingCallScreen' ||
-          route == '/CallRoomScreen';
+          route == '/CallRoomScreen' ||
+          route == '/IncomingRiderOrderScreen';
 
+      // OngoingCallOverlay (top bar) now handles all states — hide the
+      // draggable bubble so they don't overlap.
       if (!isActive || isOnCallScreen) {
         return const SizedBox.shrink();
       }
 
-      return _DraggableCallBubble(controller: controller);
+      return const SizedBox.shrink();
     });
   }
 }

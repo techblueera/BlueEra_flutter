@@ -124,14 +124,15 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
 
     final controller = Get.find<CallController>();
 
-    // Play ringback/ringtone based on caller state
+    // Play ringback for outgoing calls only.
+    // Incoming ringtone is managed by CallController.startRingtone() so it
+    // can be reliably stopped even if this screen is disposed early.
     if (controller.isCaller.value) {
       if (controller.callStatus.value == CallStatus.outgoing ||
           controller.callStatus.value == CallStatus.ringing) {
         _playRingback();
       }
     } else {
-      _playRingtone();
       HapticFeedback.heavyImpact();
     }
 
@@ -149,8 +150,12 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
         _ripple2Controller.stop();
         _ripple3Controller.stop();
       }
-      // For incoming: stop ringtone on idle/connected
-      if (status == CallStatus.idle || status == CallStatus.connected) {
+      // Stop ringtone on decline, cancel, accept, end, or any non-ringing state
+      if (status == CallStatus.idle ||
+          status == CallStatus.accepting ||
+          status == CallStatus.connecting ||
+          status == CallStatus.connected ||
+          status == CallStatus.ended) {
         _stopRingtone();
       }
     });
@@ -185,20 +190,17 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
   Future<void> _playRingback() async {
     try {
       await _ringbackPlayer.setReleaseMode(ReleaseMode.loop);
-      await _ringbackPlayer.play(AssetSource('sound/iphone_tone.mp3'));
+      await _ringbackPlayer.play(AssetSource('sound/hangouts_call.mp3'));
       await _ringbackPlayer.setVolume(0.3);
-    } catch (_) {}
-  }
-
-  Future<void> _playRingtone() async {
-    try {
-      await _ringbackPlayer.setReleaseMode(ReleaseMode.loop);
-      await _ringbackPlayer.play(AssetSource('sound/iphone_tone.mp3'));
     } catch (_) {}
   }
 
   void _stopRingtone() {
     _ringbackPlayer.stop();
+    // Also stop controller's ringtone as a safety measure
+    if (Get.isRegistered<CallController>()) {
+      Get.find<CallController>().stopRingtone();
+    }
   }
 
   @override
@@ -212,6 +214,10 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
     _ringController.dispose();
     _ringbackPlayer.stop();
     _ringbackPlayer.dispose();
+    // Stop controller ringtone on screen dispose as safety net
+    if (Get.isRegistered<CallController>()) {
+      Get.find<CallController>().stopRingtone();
+    }
     CallPipService.dispose();
     super.dispose();
   }
