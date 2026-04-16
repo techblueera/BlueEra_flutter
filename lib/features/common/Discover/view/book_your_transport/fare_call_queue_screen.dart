@@ -126,10 +126,15 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
         // accepted the ride and ended the call. Trigger the accepted flow
         // using the current rider ID and details from the selected riders list.
         if (_callWasConnected && !_riderAccepted) {
-          debugPrint('[FARE_CALL_QUEUE] call ended after connection — triggering ride-accepted fallback');
-          final riderId = discoverController.fareCallCurrentRiderId.value;
+          var riderId = discoverController.fareCallCurrentRiderId.value;
+
+          // If ride:queue:calling was skipped, fareCallCurrentRiderId may be
+          // empty. Fall back to the first selected rider (single-rider orders).
+          if (riderId.isEmpty && discoverController.selectedRiders.isNotEmpty) {
+            riderId = discoverController.selectedRiders.first.riderId ?? '';
+          }
+
           if (riderId.isNotEmpty) {
-            // Try to find rider details from the selected riders list
             final riderUser = discoverController.selectedRiders
                 .firstWhereOrNull((r) => r.riderId == riderId);
             discoverController.fareCallAcceptedRiderId.value = riderId;

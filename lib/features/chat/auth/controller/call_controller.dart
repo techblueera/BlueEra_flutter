@@ -30,6 +30,7 @@ import '../service/call_activity_service.dart';
 import '../service/overlay_service.dart';
 import '../service/socket_keep_alive_service.dart';
 import '../socket/chat_socket.dart';
+import '../../../common/Discover/controller/discover_controller.dart';
 
 enum CallType { audio, video }
 
@@ -1023,6 +1024,15 @@ class CallController extends GetxController {
         final acceptedRoomId = (data['room_id'] ?? '').toString();
         final acceptedBy = (data['accepted_by'] ?? '').toString();
         if (acceptedCallId.isNotEmpty && acceptedRoomId.isNotEmpty && acceptedBy.isNotEmpty) {
+          // Also set fareCallCurrentRiderId on DiscoverController so the
+          // fallback path on FareCallQueueScreen has it when
+          // ride:queue:calling was skipped by the server.
+          try {
+            final dc = Get.find<DiscoverController>();
+            if (dc.fareCallCurrentRiderId.value.isEmpty) {
+              dc.fareCallCurrentRiderId.value = acceptedBy;
+            }
+          } catch (_) {}
           await joinFareCallAsCustomer(
             fareCallId: acceptedCallId,
             fareRoomId: acceptedRoomId,
