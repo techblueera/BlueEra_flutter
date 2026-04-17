@@ -48,22 +48,13 @@ class EmergencyQrWidget extends StatelessWidget {
   }
 
   Widget _buildActiveQr(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 1.0, vertical: 0.0),
-      child: RepaintBoundary(
+    return RepaintBoundary(
         key: _qrKey,
         child: Container(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(0),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.shade200,
-                blurRadius: 12,
-                spreadRadius: 4,
-              ),
-            ],
+            borderRadius: BorderRadius.circular(20),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -180,7 +171,6 @@ class EmergencyQrWidget extends StatelessWidget {
             ],
           ),
         ),
-      ),
     );
   }
 
@@ -213,14 +203,11 @@ class EmergencyQrWidget extends StatelessWidget {
 
   Widget _buildDisabledQr(
       BuildContext context, EmergencyProfileController controller) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 1.0,),
-      child: Container(
-        padding: const EdgeInsets.all(20),
+    return Container(
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: Colors.grey.shade50,
-          borderRadius: BorderRadius.circular(0),
-          // border: Border.all(color: Colors.grey.shade300),
+          borderRadius: BorderRadius.circular(20),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -307,7 +294,6 @@ class EmergencyQrWidget extends StatelessWidget {
             ),
           ],
         ),
-      ),
     );
   }
 

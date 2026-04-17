@@ -91,6 +91,13 @@ class _PickupOrderScreenState extends State<PickupOrderScreen> {
           switch (controller.selectedPickUp.value) {
 
             case PickUpTab.orders:
+              // Show merged new + ongoing orders as default view
+              if (controller.newOrders.isNotEmpty || controller.onGoingOrders.isNotEmpty) {
+                return _buildMergedOrderList(
+                  onGoing: controller.onGoingOrders,
+                  newOrders: controller.newOrders,
+                );
+              }
               return _buildOngoingRideOrEmpty();
 
             case PickUpTab.newOrder:

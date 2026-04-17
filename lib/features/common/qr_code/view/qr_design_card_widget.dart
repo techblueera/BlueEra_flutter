@@ -128,17 +128,18 @@ class QrDesignCardWidget extends StatelessWidget {
     // handled by an outer FittedBox in build() which uniformly scales the
     // entire card down to fit the carousel tile — keeping the preview a
     // perfect miniature of the full-screen version.
-    const cardPadding = 18.0;
+    const cardPadding = 16.0;
     const cardRadius = 22.0;
     const qrSize = 200.0;
     const qrPadding = 10.0;
-    const headerTitleSize = 16.0;
-    const headerSubSize = 10.0;
-    const captionSize = 14.0;
-    const chipSize = 10.0;
-    const taglineSize = 10.0;
-    const logoSize = 44.0;
-    const logoFontSize = 14.0;
+    const headerTitleSize = 22.0;
+    const headerSubSize = 12.0;
+    const captionSize = 15.0;
+    const scanTextSize = 26.0;
+    const chipSize = 14.0;
+    const taglineSize = 12.0;
+    const logoSize = 48.0;
+    const logoFontSize = 16.0;
 
     final cardDecoration = BoxDecoration(
       gradient: design.backgroundGradient,
@@ -159,7 +160,7 @@ class QrDesignCardWidget extends StatelessWidget {
     );
 
     return Container(
-      width: 280, // fixed natural width — FittedBox scales for thumbnails
+      width: 300, // fixed natural width — FittedBox scales for thumbnails
       padding: const EdgeInsets.all(cardPadding),
       decoration: cardDecoration,
       child: Column(
@@ -179,16 +180,26 @@ class QrDesignCardWidget extends StatelessWidget {
           // ── Caption above QR ──
           if ((design.captionText ?? '').isNotEmpty)
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
               child: CustomText(
                 design.captionText!,
                 fontSize: captionSize,
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w500,
                 color: captionColor,
                 textAlign: TextAlign.center,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
+            ),
+
+          // ── Scan Me call-to-action ──
+          if ((design.scanText ?? '').isNotEmpty)
+            CustomText(
+              design.scanText!,
+              fontSize: scanTextSize,
+              fontWeight: FontWeight.w900,
+              color: headline,
+              textAlign: TextAlign.center,
             ),
 
           const SizedBox(height: 10),
@@ -311,23 +322,23 @@ class QrDesignCardWidget extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Container(
-                width: 18,
-                height: 18,
-                decoration: BoxDecoration(
-                  color: headline,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                alignment: Alignment.center,
-                child: Icon(
-                  Icons.qr_code_2_rounded,
-                  size: 14,
-                  color: design.backgroundGradient != null
-                      ? design.qrColor
-                      : (design.backgroundColor),
-                ),
-              ),
-              const SizedBox(width: 6),
+              // Container(
+              //   width: 22,
+              //   height: 22,
+              //   decoration: BoxDecoration(
+              //     color: headline,
+              //     borderRadius: BorderRadius.circular(5),
+              //   ),
+              //   alignment: Alignment.center,
+              //   child: Icon(
+              //     Icons.qr_code_2_rounded,
+              //     size: 16,
+              //     color: design.backgroundGradient != null
+              //         ? design.qrColor
+              //         : (design.backgroundColor),
+              //   ),
+              // ),
+              // const SizedBox(width: 6),
               Flexible(
                 child: CustomText(
                   design.headerTitle!,
@@ -424,8 +435,8 @@ class QrDesignCardWidget extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                width: 16,
-                height: 16,
+                width: 20,
+                height: 20,
                 decoration: BoxDecoration(
                   color: headline,
                   shape: BoxShape.circle,
@@ -433,7 +444,7 @@ class QrDesignCardWidget extends StatelessWidget {
                 alignment: Alignment.center,
                 child: CustomText(
                   'B',
-                  fontSize: 10,
+                  fontSize: 12,
                   fontWeight: FontWeight.w800,
                   color: design.backgroundGradient != null
                       ? design.qrColor
@@ -444,7 +455,7 @@ class QrDesignCardWidget extends StatelessWidget {
               const SizedBox(width: 6),
               CustomText(
                 'BlueEra',
-                fontSize: 11,
+                fontSize: 14,
                 fontWeight: FontWeight.w800,
                 color: headline,
                 letterSpacing: 0.4,
@@ -453,7 +464,7 @@ class QrDesignCardWidget extends StatelessWidget {
           ),
           CustomText(
             _shortCode(),
-            fontSize: 10,
+            fontSize: 12,
             fontWeight: FontWeight.w700,
             color: headline.withValues(alpha: 0.75),
             letterSpacing: 0.5,

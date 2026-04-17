@@ -118,6 +118,8 @@ class DeliverPartnerOrdersController extends GetxController {
                       || e.status == 'payment-pending').toList();
     if(onGoingOrders.isEmpty){
       setPipStatus(false);
+    } else {
+      setPipStatus(true);
     }
     ordersListResponse.value = ApiResponse.complete(riderOrdersList);
 
@@ -212,7 +214,7 @@ class DeliverPartnerOrdersController extends GetxController {
       ResponseModel? response = await MakeOrderRepo().completePickupRiderApi(params,orderId);
       if (response.isSuccess ) {
         commonSnackBar(
-            message: response.message ?? "OTP successfully verified.");
+            message: response.message ?? "Ride Completed Successfully!");
       return true;
       } else {
         commonSnackBar(
@@ -315,6 +317,8 @@ class DeliverPartnerOrdersController extends GetxController {
 
         otpVerifiedMap[orderId] = true;
         commonSnackBar(message: response.message ?? 'OTP successfully verified.');
+        // Mark order as delivered/completed after OTP verification
+        await completePickupRiderApi(orderId);
       } else {
 
         otpVerifiedMap[orderId] = false;

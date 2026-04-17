@@ -38,6 +38,7 @@ class GroceryOrderDetails {
 
 class BusinessOrder {
   final String businessId;
+  final String businessName;
   final List<OrderItem> items;
   final bool paymentStatus;
   final String paymentMode;
@@ -45,6 +46,7 @@ class BusinessOrder {
 
   BusinessOrder({
     required this.businessId,
+    this.businessName = '',
     required this.items,
     required this.paymentStatus,
     required this.paymentMode,
@@ -54,6 +56,7 @@ class BusinessOrder {
   factory BusinessOrder.fromJson(Map<String, dynamic> json) {
     return BusinessOrder(
       businessId: json['businessId'] ?? '',
+      businessName: json['businessName'] ?? json['businessId'] ?? '',
       items: (json['items'] as List? ?? [])
           .map((e) => OrderItem.fromJson(e))
           .toList(),
@@ -65,6 +68,7 @@ class BusinessOrder {
 
   Map<String, dynamic> toJson() => {
     'businessId': businessId,
+    'businessName': businessName,
     'items': items.map((e) => e.toJson()).toList(),
     'paymentStatus': paymentStatus,
     'paymentMode': paymentMode,

@@ -3029,10 +3029,11 @@ class ChatViewController extends GetxController {
       await ChatViewRepo().checkTrackOrderStatusApi(orderId);
       if (responseModel.isSuccess) {
         var details=responseModel.response?.data;
-        if(details["status"]!="completed"||details["status"]!="rejected"||details["status"]!="cancelled"){
-          return true;
-        }else{
+        if(details["status"]=="rejected"||details["status"]=="cancelled"){
+        // if(details["status"]=="completed"||details["status"]=="rejected"||details["status"]=="cancelled"){
           return false;
+        }else{
+          return true;
         }
 
       } else {

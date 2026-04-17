@@ -4,10 +4,12 @@ import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
+import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_orders_controller.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/delivery_partner_orders/pickup_order_screen.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -102,21 +104,21 @@ class _DeliveryPartnerOrdersState extends State<DeliveryPartnerOrders> {
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Padding(
-                          //   padding: EdgeInsets.all(SizeConfig.size15),
-                          //   child: HorizontalTabSelector(
-                          //     tabs: controller.deliveryPartnerOrdersTabs,
-                          //     selectedIndex: controller
-                          //         .selectedDeliveryPartnerOrderIndex.value,
-                          //     onTabSelected: (index, value) {
-                          //       if (mounted) {
-                          //         controller.selectedDeliveryPartnerOrderIndex
-                          //             .value = index;
-                          //       }
-                          //     },
-                          //     labelBuilder: (value) => value.label,
-                          //   ),
-                          // ),
+                          Padding(
+                            padding: EdgeInsets.all(SizeConfig.size15),
+                            child: HorizontalTabSelector(
+                              tabs: controller.deliveryPartnerOrdersTabs,
+                              selectedIndex: controller
+                                  .selectedDeliveryPartnerOrderIndex.value,
+                              onTabSelected: (index, value) {
+                                if (mounted) {
+                                  controller.selectedDeliveryPartnerOrderIndex
+                                      .value = index;
+                                }
+                              },
+                              labelBuilder: (value) => value.label,
+                            ),
+                          ),
                           Expanded(
                             child: Builder(
                               builder: (context) {

@@ -101,6 +101,17 @@ print("actionId==== ${actionId}");
       return;
     }
 
+    // Fare ride: Decline — just dismiss the notification
+    if (actionId == 'fare_ride_decline') {
+      return;
+    }
+
+    // Fare ride: View — open the rider order screen
+    if (actionId == 'fare_ride_view') {
+      AppNotificationHandler()._showRiderOrderScreen(data);
+      return;
+    }
+
     // Ongoing call hangup
     if (actionId == 'hangup_call') {
       if (Get.isRegistered<CallController>()) {
@@ -151,6 +162,19 @@ Future<void> _handleBackgroundNotificationResponse(
       iOS: DarwinInitializationSettings(),
     ),
   );
+
+  // --- Fare ride: Decline — just cancel the notification ---
+  if (actionId == 'fare_ride_decline') {
+    await plugin.cancel(response.id ?? 0);
+    return;
+  }
+
+  // --- Fare ride: View — showsUserInterface: true brings the app to foreground,
+  // the default tap handler (_onTapNotificationFromStatusBar) will route it ---
+  if (actionId == 'fare_ride_view') {
+    // App opens via showsUserInterface: true — tap routing handles navigation
+    return;
+  }
 
   // --- Incoming call: Decline (no app open required) ---
   // Cancel the notification, drop the stashed extras, and POST a decline so
@@ -938,10 +962,11 @@ class AppNotificationHandler {
   Future<void> showMsg(RemoteMessage message) async {
     final operation =
         (message.data['operation'] ?? '').toString().toLowerCase();
-
+print("ORDER SCREEN NAME ${operation}");
+print("ORDER SCREEN NAME message.data ${message.data}");
     // Handle fare-call incoming call — show IncomingRiderOrderScreen with ride details.
     // Regular calls are handled by socket `call:incoming` in CallController.
-    if (operation == 'incoming_call') {
+   /* if (operation == 'incoming_call') {
       try {
         final rawPayload = message.data['payload'];
         Map<String, dynamic> payload = {};
@@ -955,6 +980,15 @@ class AppNotificationHandler {
           _showRiderOrderScreen(message.data);
           return;
         }
+      } catch (_) {}
+      // Regular calls — socket handler takes care of it, skip FCM processing
+      return;
+    }
+    else*/ if (operation == 'fare_ride_incoming_call') {
+      try {
+
+          _showRiderOrderScreen(message.data);
+
       } catch (_) {}
       // Regular calls — socket handler takes care of it, skip FCM processing
       return;
@@ -1871,6 +1905,11 @@ class AppNotificationHandler {
       case 'followed_profile':
       case 'user_enrolled':
         Get.toNamed(RouteHelper.getNotificationScreenRoute());
+        break;
+
+      // Fare ride incoming — open the rider order screen
+      case 'fare_ride_incoming_call':
+        AppNotificationHandler()._showRiderOrderScreen(data);
         break;
 
       // Ride operations

@@ -23,8 +23,11 @@ class QrDesignModel {
   /// Small line under the header. e.g. "A smarter way to reach the vehicle Owner".
   final String? headerSubtitle;
 
-  /// Bold caption right above the QR. e.g. "Parking or emergency? Scan here."
+  /// Bold caption right above the QR. e.g. "Parking or emergency?"
   final String? captionText;
+
+  /// Large bold scan call-to-action below caption. e.g. "Scan Me"
+  final String? scanText;
 
   /// Short feature labels rendered as chips under the QR.
   /// e.g. ["Parking issue", "Emergency", "Vehicle alert"]
@@ -60,6 +63,7 @@ class QrDesignModel {
     this.headerTitle,
     this.headerSubtitle,
     this.captionText,
+    this.scanText,
     this.featureChips = const [],
     this.footerTagline,
     this.backgroundGradient,
@@ -72,7 +76,7 @@ class QrDesignModel {
     // ─── Classic black & white captioned ───
     const QrDesignModel(
       id: 'qr_connects_bw',
-      name: 'BE Connects',
+      name: 'BE Connect',
       shape: QrDesignShape.captionedCard,
       backgroundColor: Colors.white,
       qrColor: Colors.black,
@@ -80,9 +84,10 @@ class QrDesignModel {
       borderWidth: 2.5,
       showLabel: false,
       showBranding: true,
-      headerTitle: 'BE Connects',
-      headerSubtitle: 'A smarter way to reach the vehicle Owner',
-      captionText: 'Parking or emergency? Scan here.',
+      headerTitle: 'BE Connect',
+      headerSubtitle: 'Safe journey, with BlueEra at every step.',
+      captionText: 'Parking or emergency?',
+      scanText: 'Scan Me',
       featureChips: ['Parking issue', 'Emergency', 'Vehicle alert'],
       footerTagline: 'Start using your phone camera or any QR app',
       accentColor: Colors.black,
@@ -92,7 +97,7 @@ class QrDesignModel {
         // ─── Featured: Bright yellow captioned card (matches mock) ───
         const QrDesignModel(
           id: 'qr_connects_yellow',
-          name: 'BE Connects',
+          name: 'BE Connect',
           shape: QrDesignShape.captionedCard,
           backgroundColor: Color(0xFFFFD400),
           qrColor: Color(0xFF1A1A2E),
@@ -100,9 +105,10 @@ class QrDesignModel {
           borderWidth: 2.5,
           showLabel: false,
           showBranding: true,
-          headerTitle: 'BE Connects',
-          headerSubtitle: 'A smarter way to reach the vehicle Owner',
-          captionText: 'Parking or emergency? Scan here.',
+          headerTitle: 'BE Connect',
+          headerSubtitle: 'Safe journey, with BlueEra at every step.',
+          captionText: 'Parking or emergency?',
+          scanText: 'Scan Me',
           featureChips: ['Parking issue', 'Emergency', 'Vehicle alert'],
           footerTagline:
               'Start using your phone camera or any QR app',
@@ -125,6 +131,7 @@ class QrDesignModel {
           headerTitle: 'BE Connect',
           headerSubtitle: 'Reach the owner in one tap',
           captionText: 'Scan to call or chat instantly',
+          scanText: 'Scan Me',
           featureChips: const ['Call', 'Chat', 'Locate'],
           footerTagline: 'Powered by BlueEra Safety',
           backgroundGradient: const LinearGradient(
@@ -155,9 +162,10 @@ class QrDesignModel {
           borderWidth: 2.5,
           showLabel: false,
           showBranding: true,
-          headerTitle: 'BE Connects',
-          headerSubtitle: 'A smarter way to reach the vehicle Owner',
-          captionText: 'Parking or emergency? Scan here.',
+          headerTitle: 'BE Connect',
+          headerSubtitle: 'Safe journey, with BlueEra at every step.',
+          captionText: 'Parking or emergency?',
+          scanText: 'Scan Me',
           featureChips: ['Parking issue', 'Emergency', 'Vehicle alert'],
           footerTagline: 'Start using your phone camera or any QR app',
           accentColor: Color(0xFF0F3D2E),
@@ -176,9 +184,10 @@ class QrDesignModel {
           borderWidth: 2.5,
           showLabel: false,
           showBranding: true,
-          headerTitle: 'BE Connects',
+          headerTitle: 'BE Connect',
           headerSubtitle: 'Reach the owner in one tap',
           captionText: 'Need help? Just scan & connect.',
+          scanText: 'Scan Me',
           featureChips: ['Parking', 'Emergency', 'Tow alert'],
           footerTagline: 'Open camera or any QR app to scan',
           accentColor: Color(0xFF3D1F1F),
@@ -199,9 +208,10 @@ class QrDesignModel {
           borderWidth: 2.5,
           showLabel: false,
           showBranding: true,
-          headerTitle: 'BE Connects',
-          headerSubtitle: 'Smart way to reach vehicle owner',
-          captionText: 'Parking or emergency? Scan here.',
+          headerTitle: 'BE Connect',
+          headerSubtitle: 'Safe journey, with BlueEra at every step.',
+          captionText: 'Parking or emergency?',
+          scanText: 'Scan Me',
           featureChips: ['Parking issue', 'Emergency', 'Vehicle alert'],
           footerTagline: 'Start using your phone camera or any QR app',
           accentColor: Color(0xFF0D2A4D),

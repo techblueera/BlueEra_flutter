@@ -42,6 +42,7 @@ import 'core/services/home_cache_service.dart';
 import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'features/chat/auth/controller/call_controller.dart';
+
 // `showIncomingCallLocalNotification` lives in app_notification.dart and is
 // already imported via the `app_notification.dart` import above.
 import 'features/chat/view/call_screen/audio_calling_handler.dart';
@@ -67,7 +68,7 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   try {
     await firebaseInitializeApp();
   } catch (e, st) {
-    log('[CALL_DEBUG] bg handler firebaseInitializeApp error: $e\n$st');
+    logs('[CALL_DEBUG] bg handler firebaseInitializeApp error: $e\n$st');
   }
 
   // NOTE: Do NOT call getInitialMsg(), onMsgOpen(), or _onTapNotificationFromStatusBar() here.
@@ -77,7 +78,8 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   // getNotificationAppLaunchDetails() in firebaseNotificationSetup().
 
   final operation = (message.data['operation'] ?? '').toString().toLowerCase();
-  log('[CALL_DEBUG] bg handler received → operation=$operation, data=${message.data}');
+  logs(
+      '[CALL_DEBUG] bg handler received → operation= $operation, data=${message.data}');
 
   // Handle incoming call in background - show native call UI
   if (operation == 'incoming_call') {
@@ -182,7 +184,8 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
           extra: extras,
         );
         log('[CALL_DEBUG] bg handler → local notification shown for callId=$callId');
-      } else {
+      }
+      /*else {
         showFlutterCallNotification(
           desiginations: designation,
           callSessionId: callId,
@@ -196,12 +199,187 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
           extra: extras,
         );
         log('[CALL_DEBUG] bg handler → CallKit shown for callId=$callId');
-      }
+      }*/
     } catch (e, st) {
       log('[CALL_DEBUG] bg handler incoming_call error: $e\n$st');
     }
     return; // Don't play sound or show notification for calls
   }
+  if (operation == 'fare_ride_incoming_call') {
+    try {
+      final data = message.data;
+      final callerName = (data['senderName'] ?? 'Unknown').toString();
+
+      // Parse payload to extract ride details
+      final payloadRaw = data['payload'];
+      Map<String, dynamic> payload = {};
+      if (payloadRaw is String && payloadRaw.isNotEmpty) {
+        payload = Map<String, dynamic>.from(jsonDecode(payloadRaw));
+      } else if (payloadRaw is Map) {
+        payload = Map<String, dynamic>.from(payloadRaw);
+      }
+
+      final metadata = payload['metadata'];
+
+      // Build notification body from ride details
+      String notifBody = 'New ride request from $callerName';
+      if (metadata is Map) {
+        final rideDetails = metadata['rideDetails'];
+        if (rideDetails is Map) {
+          final fare = rideDetails['fare'];
+          final pickup = rideDetails['pickup'];
+          final pickupAddr = pickup is Map ? (pickup['address'] ?? '') : '';
+          if (fare != null) {
+            notifBody = 'Ride fare: ₹$fare';
+            if (pickupAddr.toString().isNotEmpty) {
+              notifBody += ' • Pickup: $pickupAddr';
+            }
+          }
+        } else {
+          final rideFare = metadata['ridefare'];
+          if (rideFare != null) notifBody = 'Ride fare: ₹$rideFare';
+        }
+      }
+
+      // Show a normal local notification with Decline/View actions —
+      // this is a ride request, not a phone call.
+      final plugin = FlutterLocalNotificationsPlugin();
+      await plugin.initialize(
+        const InitializationSettings(
+          android: AndroidInitializationSettings('@drawable/ic_stat'),
+          iOS: DarwinInitializationSettings(),
+        ),
+        onDidReceiveBackgroundNotificationResponse:
+            onBackgroundNotificationResponse,
+      );
+
+      final notifId = DateTime.now().millisecondsSinceEpoch % 2147483647;
+
+      await plugin.show(
+        notifId,
+        'Ride Request',
+        notifBody,
+        NotificationDetails(
+          android: AndroidNotificationDetails(
+            'fare_ride_incoming',
+            'Ride Requests',
+            importance: Importance.max,
+            priority: Priority.high,
+            playSound: true,
+            enableVibration: true,
+            icon: '@drawable/ic_stat',
+            fullScreenIntent: true,
+            actions: <AndroidNotificationAction>[
+              const AndroidNotificationAction(
+                'fare_ride_decline',
+                'Decline',
+                showsUserInterface: false,
+              ),
+              const AndroidNotificationAction(
+                'fare_ride_view',
+                'View',
+                showsUserInterface: true,
+              ),
+            ],
+          ),
+          iOS: const DarwinNotificationDetails(
+            presentAlert: true,
+            presentBadge: true,
+            presentSound: true,
+            interruptionLevel: InterruptionLevel.timeSensitive,
+          ),
+        ),
+        payload: jsonEncode(data),
+      );
+      log('[CALL_DEBUG] bg handler → fare_ride notification shown');
+    } catch (e, st) {
+      log('[CALL_DEBUG] bg handler incoming_call error: $e\n$st');
+    }
+    return; // Don't play sound or show notification for calls
+  }
+/*
+  if (operation == 'fare_ride_incoming_call') {
+    try {
+      final data = message.data;
+      final callerName = (data['senderName'] ?? 'Unknown').toString();
+
+      // Parse payload to extract ride details for the notification body
+      final payloadRaw = data['payload'];
+      Map<String, dynamic> payload = {};
+      if (payloadRaw is String && payloadRaw.isNotEmpty) {
+        payload = Map<String, dynamic>.from(jsonDecode(payloadRaw));
+      } else if (payloadRaw is Map) {
+        payload = Map<String, dynamic>.from(payloadRaw);
+      }
+
+      final metadata = payload['metadata'];
+      String notifBody = 'New ride request from $callerName';
+      if (metadata is Map) {
+        final rideDetails = metadata['rideDetails'];
+        if (rideDetails is Map) {
+          final fare = rideDetails['fare'];
+          final pickup = rideDetails['pickup'];
+          final pickupAddr = pickup is Map ? (pickup['address'] ?? '') : '';
+          if (fare != null) {
+            notifBody = 'Ride fare: ₹$fare';
+            if (pickupAddr.toString().isNotEmpty) {
+              notifBody += ' • Pickup: $pickupAddr';
+            }
+          }
+        } else {
+          final rideFare = metadata['ridefare'];
+          if (rideFare != null) notifBody = 'Ride fare: ₹$rideFare';
+        }
+      }
+
+      // Show a high-priority local notification with full-screen intent
+      // so the rider sees the ride request even from background/terminated.
+      // This is NOT a call — it's a ride notification, so we use
+      // flutter_local_notifications instead of CallKit.
+      final plugin = FlutterLocalNotificationsPlugin();
+      await plugin.initialize(
+        const InitializationSettings(
+          android: AndroidInitializationSettings('@drawable/ic_stat'),
+          iOS: DarwinInitializationSettings(),
+        ),
+        onDidReceiveBackgroundNotificationResponse:
+            onBackgroundNotificationResponse,
+      );
+
+      final notifId = DateTime.now().millisecondsSinceEpoch % 2147483647;
+
+      await plugin.show(
+        notifId,
+        'Ride Request',
+        notifBody,
+        NotificationDetails(
+          android: AndroidNotificationDetails(
+            'fare_ride_incoming',
+            'Ride Requests',
+            importance: Importance.max,
+            priority: Priority.high,
+            playSound: true,
+            enableVibration: true,
+            icon: '@drawable/ic_stat',
+            fullScreenIntent: true,
+            category: AndroidNotificationCategory.call,
+          ),
+          iOS: const DarwinNotificationDetails(
+            presentAlert: true,
+            presentBadge: true,
+            presentSound: true,
+            interruptionLevel: InterruptionLevel.timeSensitive,
+          ),
+        ),
+        payload: jsonEncode(data),
+      );
+      log('[CALL_DEBUG] bg handler → fare_ride_incoming_call notification shown');
+    } catch (e, st) {
+      log('[CALL_DEBUG] bg handler fare_ride_incoming_call error: $e\n$st');
+    }
+    return;
+  }
+*/
 
   // Handle missed_call / call_cancelled — caller hung up before receiver answered.
   // Cancel the ringing incoming-call notification so the phone stops ringing.
@@ -691,7 +869,7 @@ class _MyAppState extends State<MyApp> {
               if (child != null) child,
               const GlobalMessage(),
 // WhatsApp-style call bar at top -- shown when navigating away from call screen
-              const OngoingCallOverlay(),
+//               const OngoingCallOverlay(),
 // Floating mini-map for ride navigation
               const RideNavigationFloatingOverlay(),
             ],
