@@ -25,7 +25,15 @@ class HospitalHistoryController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    historyController.addListener(validate);
     fetch();
+  }
+
+  @override
+  void onClose() {
+    historyController.removeListener(validate);
+    historyController.dispose();
+    super.onClose();
   }
 
   Future<void> fetch() async {
@@ -54,12 +62,20 @@ class HospitalHistoryController extends GetxController {
 
   void validate() {
     final text = historyController.text.trim();
-    isFormValid.value = text.isNotEmpty && text.length <= maxLen;
+    bool hasValidChars = RegExp(r'[a-zA-Z0-9]').hasMatch(text);
+    isFormValid.value = text.isNotEmpty && text.length <= maxLen && hasValidChars;
   }
 
   Future<void> saveOrUpdate() async {
     validate();
-    if (!isFormValid.value) return;
+    if (!isFormValid.value) {
+      if (historyController.text.trim().isEmpty) {
+        commonSnackBar(message: 'Please enter history description');
+      } else {
+        commonSnackBar(message: 'Please enter a valid history description (only punctuation/spaces are not allowed)');
+      }
+      return;
+    }
     try {
       isSaving.value = true;
       String imageUrl = initialImageUrl;
@@ -88,6 +104,7 @@ class HospitalHistoryController extends GetxController {
           data.value = hr.data;
           initialImageUrl = hr.data?.imageUrl ?? '';
           commonSnackBar(message: AppStrings.hospitalCtrlSaved.tr);
+          Get.back();
         } else {
           commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong);
         }
@@ -100,6 +117,7 @@ class HospitalHistoryController extends GetxController {
           data.value = hr.data;
           initialImageUrl = hr.data?.imageUrl ?? '';
           commonSnackBar(message: AppStrings.hospitalCtrlUpdated.tr);
+          Get.back();
         } else {
           commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong);
         }

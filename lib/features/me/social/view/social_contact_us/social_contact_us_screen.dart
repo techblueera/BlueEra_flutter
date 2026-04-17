@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_http_links_textfiled_widget.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/me/social/controller/social_contact_us_controller.dart';
 import 'package:BlueEra/features/me/social/model/social_contact_us_res_model.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
@@ -62,6 +63,38 @@ class _SocialContactUsScreenState extends State<SocialContactUsScreen> {
       address: addressController.text,
       email: emailController.text,
       phone: phoneController.text,
+    );
+  }
+
+  void _handleSubmit() {
+    _triggerValidation();
+    if (!controller.isFormValid.value) {
+      final error = controller.getFirstError();
+      if (error != null) {
+        commonSnackBar(message: error);
+      }
+      return;
+    }
+    controller.submitBranchDetails(
+      branchName: branchNameController.text,
+      website: websiteController.text,
+      address: addressController.text,
+      email: emailController.text,
+      phone: phoneController.text,
+    );
+  }
+
+  Widget _buildErrorText(String error) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 4, left: 4),
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: CustomText(
+          error,
+          fontSize: 12,
+          color: Colors.red,
+        ),
+      ),
     );
   }
 
@@ -154,6 +187,8 @@ class _SocialContactUsScreenState extends State<SocialContactUsScreen> {
                         title: AppStrings.fullName,
                         onChange: (_) => _triggerValidation(),
                       ),
+                      if (controller.nameError.value.isNotEmpty)
+                        _buildErrorText(controller.nameError.value),
                       const SizedBox(height: 12),
                       HttpsTextField(
                         controller: websiteController,
@@ -161,6 +196,8 @@ class _SocialContactUsScreenState extends State<SocialContactUsScreen> {
                         title: AppStrings.website,
                         onChange: (_) => _triggerValidation(),
                       ),
+                      if (controller.websiteError.value.isNotEmpty)
+                        _buildErrorText(controller.websiteError.value),
                     ],
                   ),
                 ),
@@ -198,14 +235,17 @@ class _SocialContactUsScreenState extends State<SocialContactUsScreen> {
                         textEditController: emailController,
                         hintText: "yourname@gmail.com",
                         title: AppStrings.email,
+                        keyBoardType: TextInputType.emailAddress,
                         onChange: (_) => _triggerValidation(),
                       ),
+                      if (controller.emailError.value.isNotEmpty)
+                        _buildErrorText(controller.emailError.value),
                       const SizedBox(height: 12),
                       CommonTextField(
                         textEditController: phoneController,
-                        hintText: "+91 1234567890",
+                        hintText: "9876543210",
                         title: AppStrings.phoneNumber,
-                        maxLength: 13,
+                        maxLength: 10,
                         keyBoardType: TextInputType.phone,
                         inputFormatters: [
                           FilteringTextInputFormatter.allow(RegExp(r'[+0-9]')),
@@ -231,6 +271,8 @@ class _SocialContactUsScreenState extends State<SocialContactUsScreen> {
                         ],
                         onChange: (_) => _triggerValidation(),
                       ),
+                      if (controller.phoneError.value.isNotEmpty)
+                        _buildErrorText(controller.phoneError.value),
                     ],
                   ),
                 ),
@@ -288,27 +330,21 @@ class _SocialContactUsScreenState extends State<SocialContactUsScreen> {
                           _triggerValidation();
                         },
                       ),
+                      if (controller.addressError.value.isNotEmpty)
+                        _buildErrorText(controller.addressError.value),
                     ],
                   ),
                 ),
               ),
               const SizedBox(height: 32),
 
-              // --- Submit Button ---
-              Obx(() => CustomBtn(
-                    isLoading: controller.isLoading.value,
-                    onTap: controller.isFormValid.value
-                        ? () => controller.submitBranchDetails(
-                              branchName: branchNameController.text,
-                              website: websiteController.text,
-                              address: addressController.text,
-                              email: emailController.text,
-                              phone: phoneController.text,
-                            )
-                        : null,
-                    title: isEdit ? AppStrings.update.tr : AppStrings.submit.tr,
-                    isValidate: controller.isFormValid.value,
-                  )),
+              // --- Submit Button (always clickable for validation feedback) ---
+              CustomBtn(
+                isLoading: controller.isLoading.value,
+                onTap: () => _handleSubmit(),
+                title: isEdit ? AppStrings.update.tr : AppStrings.submit.tr,
+                isValidate: controller.isFormValid.value,
+              ),
               SizedBox(height: SizeConfig.size20),
             ],
           ),

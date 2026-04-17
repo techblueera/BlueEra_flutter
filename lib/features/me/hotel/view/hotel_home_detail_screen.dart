@@ -4,6 +4,8 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
+
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
@@ -504,7 +506,10 @@ SizedBox(height: 15,),
                         longitude: double.parse(
                             profile?.locationHotel?.longitude?.toString() ??
                                 "0.0"),
-                        businessName: profile?.name ?? "",
+                        businessName: (profile?.name?.isNotEmpty ?? false)
+                            ? profile!.name!
+                            : businessNameGlobal,
+
                         padding: 0,
                         isTitleShow: true),
 
@@ -714,8 +719,13 @@ SizedBox(height: 15,),
                     ),
                     const SizedBox(height: 10),
                   ],
-                  CustomText(profile?.name,
-                      fontSize: 18, fontWeight: FontWeight.bold),
+                  CustomText(
+                      (profile?.name?.isNotEmpty ?? false)
+                          ? profile!.name!
+                          : businessNameGlobal,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold),
+
                   const SizedBox(height: 5),
                   CustomText(
                     profile?.description,

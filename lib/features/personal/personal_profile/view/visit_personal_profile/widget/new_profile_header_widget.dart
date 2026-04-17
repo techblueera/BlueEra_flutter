@@ -341,8 +341,7 @@ class NewProfileHeaderWidget extends StatelessWidget {
                 height:
                 1.5, // 👈 increases vertical gap between lines (default is ~1.0)
               ),
-              expandMode: ExpandMode.dialog,
-              dialogTitle: AppStrings.bio.tr,
+
             ),
           ),
           const SizedBox(height: 10),

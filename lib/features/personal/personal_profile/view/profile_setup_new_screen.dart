@@ -1953,11 +1953,8 @@ class _PersonalProfileSetupNewScreenState
                         wordSpacing: 0.4,
                         letterSpacing: 0.2,
                         fontWeight: FontWeight.w400,
-                        height:
-                            1.5, // 👈 increases vertical gap between lines (default is ~1.0)
+                        height: 1.5,
                       ),
-                      expandMode: ExpandMode.dialog,
-                      dialogTitle: AppStrings.bio,
                     ),
                   )
                 : SizedBox(),

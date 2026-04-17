@@ -231,7 +231,7 @@ class ViewBusinessDetailsController extends GetxController {
   }
 
   ///UPDATE BUSINESS IMAGES....
-  saveBusinessImages(
+  Future<void> saveBusinessImages(
       String imagePath, ViewBusinessDetailsController controller) async {
     dio.MultipartFile? imageByPart;
 
@@ -241,8 +241,7 @@ class ViewBusinessDetailsController extends GetxController {
 
     Map<String, dynamic> params = {ApiKeys.category_image: imageByPart};
 
-    controller.uploadLiveStoreImage(params);
-    await Future.delayed(Duration(seconds: 1));
+    await controller.uploadLiveStoreImage(params);
     controller.imgDeleteL3.clear();
   }
 

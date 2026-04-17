@@ -191,11 +191,10 @@ class _TwitterPostDetailScreenState extends State<TwitterPostDetailScreen> {
             ExpandableText(
               text: _post.subTitle ?? '',
               trimLines: 25,
-              expandMode: ExpandMode.dialog,
               style: TextStyle(
                 color: AppColors.mainTextColor,
                 fontSize: 15,
-                height: 1.5,
+                fontWeight: FontWeight.w400,
                 fontFamily: AppConstants.OpenSans,
               ),
             ),

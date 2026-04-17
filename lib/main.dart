@@ -222,7 +222,9 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       }
       // Also dismiss CallKit on iOS
       if (Platform.isIOS && callId.isNotEmpty) {
-        try { await FlutterCallkitIncoming.endCall(callId); } catch (_) {}
+        try {
+          await FlutterCallkitIncoming.endCall(callId);
+        } catch (_) {}
       }
     } catch (e, st) {
       log('[CALL_DEBUG] bg handler missed_call error: $e\n$st');
@@ -396,7 +398,8 @@ Future<void> main() async {
       final pending = await readAndClearPendingIncomingCallExtras();
 
       if (action == 'accept' && callId.isNotEmpty) {
-        debugPrint('[COLD_START_CALL] native notification accept → callId=$callId');
+        debugPrint(
+            '[COLD_START_CALL] native notification accept → callId=$callId');
         final callController = getOrPut(() => CallController());
         if (pending != null) callController.initStateFromCallKitExtra(pending);
         CallController.setKilledStateAcceptHandled();
@@ -407,7 +410,8 @@ Future<void> main() async {
           isVideoCall: isVideo,
         );
       } else if (action == 'decline' && callId.isNotEmpty) {
-        debugPrint('[COLD_START_CALL] native notification decline → callId=$callId');
+        debugPrint(
+            '[COLD_START_CALL] native notification decline → callId=$callId');
         final callController = getOrPut(() => CallController());
         if (pending != null) callController.initStateFromCallKitExtra(pending);
         callController.declineCall();
@@ -435,16 +439,16 @@ Future<void> main() async {
       if (raw != null && raw.isNotEmpty) {
         launchPayload = Map<String, dynamic>.from(jsonDecode(raw));
       }
-      debugPrint('[COLD_START_CALL] launch details → actionId=$launchActionId, hasPayload=${launchPayload != null}');
+      debugPrint(
+          '[COLD_START_CALL] launch details → actionId=$launchActionId, hasPayload=${launchPayload != null}');
     } catch (e) {
       debugPrint('[COLD_START_CALL] getNotificationAppLaunchDetails error: $e');
     }
 
-    final launchPayloadIsAccept =
-        launchActionId.startsWith('incoming_call_accept_') ||
-            (launchPayload != null &&
-                (launchPayload['operation'] ?? '').toString() ==
-                    'incoming_call');
+    final launchPayloadIsAccept = launchActionId
+            .startsWith('incoming_call_accept_') ||
+        (launchPayload != null &&
+            (launchPayload['operation'] ?? '').toString() == 'incoming_call');
 
     Map<String, dynamic>? acceptExtras;
     if (launchPayloadIsAccept && launchPayload != null) {
@@ -465,19 +469,21 @@ Future<void> main() async {
       callController.initStateFromCallKitExtra(acceptExtras);
       CallController.setKilledStateAcceptHandled();
       CallController.markColdStartCall();
-      debugPrint('[COLD_START_CALL] local-notification accept → acceptCall(callId=$callId, roomId=$roomId, isVideo=$isVideo)');
+      debugPrint(
+          '[COLD_START_CALL] local-notification accept → acceptCall(callId=$callId, roomId=$roomId, isVideo=$isVideo)');
       callController
           .acceptCall(
             callIdParams: callId,
             roomIdParams: roomId,
             isVideoCall: isVideo,
           )
-          .then((ok) =>
-              debugPrint('[COLD_START_CALL] local-notif acceptCall returned: $ok'))
-          .catchError((e, st) =>
-              debugPrint('[COLD_START_CALL] local-notif acceptCall threw: $e\n$st'));
+          .then((ok) => debugPrint(
+              '[COLD_START_CALL] local-notif acceptCall returned: $ok'))
+          .catchError((e, st) => debugPrint(
+              '[COLD_START_CALL] local-notif acceptCall threw: $e\n$st'));
     } else {
-      debugPrint('[COLD_START_CALL] local-notif: no Accept signal (acceptedCallId=$acceptedCallId, hasPending=${pending != null}, launchActionId=$launchActionId)');
+      debugPrint(
+          '[COLD_START_CALL] local-notif: no Accept signal (acceptedCallId=$acceptedCallId, hasPending=${pending != null}, launchActionId=$launchActionId)');
     }
   } catch (e, st) {
     debugPrint('[COLD_START_CALL] local-notif pending check threw: $e\n$st');
@@ -492,30 +498,36 @@ Future<void> main() async {
       final extra = Map<String, dynamic>.from(first['extra'] as Map? ?? {});
       final operation = (extra['operation'] ?? '').toString();
       final accepted = first['accepted'] == true;
-      debugPrint('[COLD_START_CALL] first call → operation=$operation, accepted=$accepted, callId=${extra['callId']}, roomId=${extra['roomId']}');
+      debugPrint(
+          '[COLD_START_CALL] first call → operation=$operation, accepted=$accepted, callId=${extra['callId']}, roomId=${extra['roomId']}');
       if (operation == 'incoming_call' && accepted) {
         final callController = getOrPut(() => CallController());
         callController.initStateFromCallKitExtra(extra);
         CallController.setKilledStateAcceptHandled();
         CallController.markColdStartCall();
         bool isVideoCalling = extra['callType'] == 'video_call';
-        debugPrint('[COLD_START_CALL] invoking acceptCall(callId=${extra['callId']}, roomId=${extra['roomId']}, isVideo=$isVideoCalling)');
+        debugPrint(
+            '[COLD_START_CALL] invoking acceptCall(callId=${extra['callId']}, roomId=${extra['roomId']}, isVideo=$isVideoCalling)');
         // Fire-and-forget is intentional — runApp must not block. Log the outcome
         // so we can see whether the API accept and CallActivity launch succeed.
-        callController.acceptCall(
+        callController
+            .acceptCall(
           callIdParams: extra['callId'],
           roomIdParams: extra['roomId'],
           isVideoCall: isVideoCalling,
-        ).then((ok) {
+        )
+            .then((ok) {
           debugPrint('[COLD_START_CALL] acceptCall returned: $ok');
         }).catchError((e, st) {
           debugPrint('[COLD_START_CALL] acceptCall threw: $e\n$st');
         });
       } else {
-        debugPrint('[COLD_START_CALL] skipping acceptCall — operation=$operation, accepted=$accepted');
+        debugPrint(
+            '[COLD_START_CALL] skipping acceptCall — operation=$operation, accepted=$accepted');
       }
     } else {
-      debugPrint('[COLD_START_CALL] no active calls at launch — user likely tapped notification body, not Accept action');
+      debugPrint(
+          '[COLD_START_CALL] no active calls at launch — user likely tapped notification body, not Accept action');
     }
   } catch (e, st) {
     debugPrint('[COLD_START_CALL] activeCalls check threw: $e\n$st');

@@ -69,10 +69,11 @@ class _HistoryScreenState extends State<HospitalHistoryScreen> {
 
                     // Submit Button
                     CustomBtn(
-                      onTap: controller.isFormValid.value
-                          ? () => _handleSubmit()
-                          : null,
-                      title: AppStrings.submit,
+                      onTap: () => _handleSubmit(),
+                      title: (controller.data.value == null ||
+                              (controller.data.value?.id?.isEmpty ?? true))
+                          ? AppStrings.submit
+                          : AppStrings.update,
                       isValidate: controller.isFormValid.value,
                     ),
                   ],

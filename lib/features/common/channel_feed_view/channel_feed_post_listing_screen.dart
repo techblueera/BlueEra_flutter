@@ -228,7 +228,7 @@ class _ChannelFeedPostListingScreenState
                               text: widget.channelData?.bio ?? "N/A",
                               trimLines: 3,
                               isReadMoreNewLine: false,
-                              expandMode: ExpandMode.dialog,
+
                               style: TextStyle(
                                 color: AppColors.secondaryTextColor,
                                 fontSize: SizeConfig.medium,

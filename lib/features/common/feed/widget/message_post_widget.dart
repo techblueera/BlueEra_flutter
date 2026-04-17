@@ -185,12 +185,9 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                                             left: SizeConfig.size15,
                                             right: SizeConfig.size15),
                                         child: ExpandableText(
-                                          // Use the text from the controller
-                                          // text:"Gemini said Birds are feathered, warm-blooded vertebrates that lay hard-shelled eggs. Known for their lightweight skeletons and wings, most species possess the remarkable ability to fly and inhabit every global ecosystem.",
                                           text:
                                               transController.currentText.value,
                                           trimLines: 4,
-                                          expandMode: ExpandMode.dialog,
                                           style: TextStyle(
                                               color: AppColors.mainTextColor,
                                               fontFamily: AppConstants.OpenSans,

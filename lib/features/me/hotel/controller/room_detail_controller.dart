@@ -43,7 +43,10 @@ class RoomDetailController extends GetxController {
     update(); // Triggers UI refresh for validation
   }
 
+  var isFormValidRx = false.obs;
+
   void triggerValidation() {
+    isFormValidRx.value = isFormValid;
     update(); // Simple way to refresh the Obx wrapping the button
   }
 
@@ -74,20 +77,35 @@ class RoomDetailController extends GetxController {
   // Update your validation logic to include these dropdowns
   bool get isFormValid {
     return totalRoomsTotal.text.isNotEmpty &&
+        numericRegex.hasMatch(totalRoomsTotal.text) &&
         roomLength.text.isNotEmpty &&
+        numericRegex.hasMatch(roomLength.text) &&
         roomWidth.text.isNotEmpty &&
+        numericRegex.hasMatch(roomWidth.text) &&
         selectedBedType.value != null && // Bed Type must be selected
         selectedOccupancy.value != null && // Occupancy must be selected
-        pricePerDay.text.isNotEmpty;
+        pricePerDay.text.isNotEmpty &&
+        numericRegex.hasMatch(pricePerDay.text);
   }
 
 // Validation for Coupon Modal (Code is optional)
   RxBool isCouponValid = false.obs;
 
   isCouponValidMethod() {
-    return isCouponValid.value = couponName.text.isNotEmpty &&
-        couponDesc.text.isNotEmpty &&
-        totalOff.text.isNotEmpty;
+    bool baseValidation = couponName.text.trim().length >= 3 &&
+        couponDesc.text.trim().length >= 5 &&
+        totalOff.text.isNotEmpty &&
+        numericRegex.hasMatch(totalOff.text);
+
+    if (offType.value == "In Percentage") {
+      int val = int.tryParse(totalOff.text) ?? 101;
+      baseValidation = baseValidation && val <= 100 && val > 0;
+    } else {
+      int val = int.tryParse(totalOff.text) ?? 0;
+      baseValidation = baseValidation && val > 0;
+    }
+
+    return isCouponValid.value = baseValidation;
   }
 
   // Observable list of coupons
@@ -106,13 +124,16 @@ class RoomDetailController extends GetxController {
     };
 
     savedCoupons.add(newCoupon);
+    savedCoupons.refresh(); // Explicitly trigger UI update
 
     // Clear fields for next entry
     _clearCouponFields();
+    isCouponValid.value = false;
   }
 
   void removeCoupon(int index) {
     savedCoupons.removeAt(index);
+    savedCoupons.refresh();
   }
 
   void _clearCouponFields() {
@@ -158,6 +179,7 @@ class RoomDetailController extends GetxController {
   }
 
   // POST API Logic
+
   Future<void> submitRoomDetails() async {
     try {
       Map<String, dynamic> requestBody = {
@@ -216,8 +238,7 @@ class RoomDetailController extends GetxController {
 
   Future<void> pickImage(ImageSource source, RxList<XFile> targetList) async {
     if (targetList.length >= 4) {
-      commonSnackBar(
-          message: AppStrings.hotelLimitReached4Images.tr);
+      commonSnackBar(message: AppStrings.hotelLimitReached4Images.tr);
       return;
     }
 
@@ -347,29 +368,26 @@ class RoomDetailController extends GetxController {
     savedCoupons.clear();
   }
 
-
-
   ///DELETE NOTICE....
-  Future<void> deleteHotelRoomController(
-      {required String hotelRoomType,required String hotelRoomId,}) async {
+  Future<void> deleteHotelRoomController({
+    required String hotelRoomType,
+    required String hotelRoomId,
+  }) async {
     try {
       ResponseModel response =
-      await HotelServiceRepo().deleteHotelRoomRepo(hotelRoomId);
+          await HotelServiceRepo().deleteHotelRoomRepo(hotelRoomId);
 
       if (response.isSuccess) {
         Get.back();
         commonSnackBar(
             message:
-            response.response?.data['message'] ?? AppStrings.successful);
+                response.response?.data['message'] ?? AppStrings.successful);
         getHotelRoomDetails(roomTYPE: hotelRoomType);
-
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);
-
       }
     } on Exception catch (e) {
       logs("ERROR ${e}");
-
     }
   }
 }

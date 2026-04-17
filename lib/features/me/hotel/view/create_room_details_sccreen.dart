@@ -59,10 +59,9 @@ class RoomDesignScreen extends StatelessWidget {
               title: AppStrings.hotelTotalRooms.tr,
               hintText: AppStrings.hotelHintTotalRooms.tr,
               keyBoardType: TextInputType.number,
-              inputFormatters: [
-                FilteringTextInputFormatter.digitsOnly,
-                LengthLimitingTextInputFormatter(3),
-              ],
+              regularExpression: r'[0-9]',
+              inputLength: 3,
+              validationMessage: AppStrings.required.tr,
               onChange: (_) => controller.triggerValidation(),
             ),
             SizedBox(height: 12),
@@ -74,6 +73,9 @@ class RoomDesignScreen extends StatelessWidget {
                   child: CommonTextField(
                     textEditController: controller.roomLength,
                     hintText: AppStrings.hotelHintLength.tr,
+                    keyBoardType: TextInputType.number,
+                    regularExpression: r'[0-9]',
+                    inputLength: 3,
                     onChange: (_) => controller.triggerValidation(),
                   ),
                 ),
@@ -82,6 +84,9 @@ class RoomDesignScreen extends StatelessWidget {
                   child: CommonTextField(
                     textEditController: controller.roomWidth,
                     hintText: AppStrings.hotelHintWidth.tr,
+                    keyBoardType: TextInputType.number,
+                    regularExpression: r'[0-9]',
+                    inputLength: 3,
                     onChange: (_) => controller.triggerValidation(),
                   ),
                 ),
@@ -129,6 +134,10 @@ class RoomDesignScreen extends StatelessWidget {
               textEditController: controller.pricePerDay,
               title: AppStrings.hotelPricePerDay.tr,
               hintText: AppStrings.hotelHintPricePerDay.tr,
+              keyBoardType: TextInputType.number,
+              regularExpression: r'[0-9]',
+              inputLength: 6,
+              validationMessage: AppStrings.required.tr,
               onChange: (_) => controller.triggerValidation(),
             ),
             SizedBox(height: 12),
@@ -266,9 +275,8 @@ class RoomDesignScreen extends StatelessWidget {
   }
 
   Widget _buildSubmitButton() {
-    return GetBuilder<RoomDetailController>(
-      builder: (_) {
-        bool isValid = controller.isFormValid;
+      return Obx(() {
+        bool isValid = controller.isFormValidRx.value;
 
         return CustomBtn(
           isValidate: isValid,
@@ -282,9 +290,7 @@ class RoomDesignScreen extends StatelessWidget {
                 }
               : null,
         );
-
-      },
-    );
+      });
   }
 }
 
@@ -320,10 +326,9 @@ void showCouponModal(BuildContext context) {
                 title: AppStrings.hotelCouponName.tr,
                 hintText: AppStrings.hotelHintCouponName.tr,
                 textEditController: controller.couponName,
-                // onChange: (_) => controller.update(),
+                inputLength: 30,
                 onChange: (_) {
                   controller.isCouponValidMethod();
-                  // controller.update();
                 },
               ),
               const SizedBox(height: 15),
@@ -332,10 +337,9 @@ void showCouponModal(BuildContext context) {
                 hintText: AppStrings.hotelHintLoremIpsum.tr,
                 maxLine: 3,
                 textEditController: controller.couponDesc,
-                // onChange: (_) => controller.update(),
+                inputLength: 100,
                 onChange: (_) {
                   controller.isCouponValidMethod();
-                  // controller.update();
                 },
               ),
               const SizedBox(height: 15),
@@ -343,6 +347,8 @@ void showCouponModal(BuildContext context) {
                 title: AppStrings.hotelCodeNameOptional.tr,
                 hintText: AppStrings.hotelHintCouponCode.tr,
                 textEditController: controller.couponCode,
+                regularExpression: r'[a-zA-Z0-9]',
+                inputLength: 12,
                 onChange: (_) {
                   controller.isCouponValidMethod();
                   // controller.update();
@@ -360,10 +366,11 @@ void showCouponModal(BuildContext context) {
               CommonTextField(
                 hintText: AppStrings.hotelHintPercentageOff.tr,
                 textEditController: controller.totalOff,
+                keyBoardType: TextInputType.number,
+                regularExpression: r'[0-9]',
+                inputLength: 5,
                 onChange: (_) {
-
                   controller.isCouponValidMethod();
-                  // controller.update();
                 },
               ),
               const SizedBox(height: 20),

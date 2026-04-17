@@ -1,4 +1,3 @@
-
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -80,9 +79,7 @@ class FeedControllerNew extends GetxController {
 
     // Pagination Logic: Load more when we are 3 items away from end
     if (index >= posts.length - 3 && hasMoreData) {
-      fetchPosts(
-        cursor: nextCursor,postType: "message_post"
-      );
+      fetchPosts(cursor: nextCursor, postType: "message_post");
     }
   }
 
@@ -337,7 +334,6 @@ class _AllMessagePostScreenState extends State<AllMessagePostScreen> {
           ),
         ),
 
-
         // 5. Bottom Info (Username & Caption)
         Positioned(
           bottom: 20,
@@ -361,7 +357,6 @@ class _AllMessagePostScreenState extends State<AllMessagePostScreen> {
                   text: post.subTitle ?? '',
                   trimLines: 4,
                   isReadMoreNewLine: true,
-                  expandMode: ExpandMode.dialog,
                   style: TextStyle(
                     color: AppColors.white,
                     fontSize: SizeConfig.large,
@@ -509,8 +504,6 @@ class _AllMessagePostScreenState extends State<AllMessagePostScreen> {
       ],
     );
   }
-
-
 
   void onCommentPressed(BuildContext context, Post _post) {
     showModalBottomSheet(
