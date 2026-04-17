@@ -82,14 +82,11 @@ class _OrderChatScreenState extends State<OrderChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      onPopInvoked: (val)  {
+        chatViewController.leaveConversation();
         chatViewController.emitEvent(
             ChatEmitEvents.ChatList, {ApiKeys.type: AppConstants.personal_Chat_Type}, );
-        chatViewController.emitEvent(
-            ChatEmitEvents.newMessageReceived, {ApiKeys.type: AppConstants.personal_Chat_Type}, );
-
-        return true;
       },
       child: Obx(() {
         return Scaffold(

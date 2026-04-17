@@ -88,19 +88,18 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      onPopInvoked: (val)  {
+        chatViewController.leaveConversation();
         if (chatViewController.canPopBusiness.value) {
           chatViewController.emitEvent(
               ChatEmitEvents.ChatList, {ApiKeys.type: "business"},);
           // chatViewController.onSelectChatTab(1);
           // bottomBarController.onChangeIndex(4);
-         Get.back();
         } else {
           chatViewController.emitEvent(
               ChatEmitEvents.ChatList, {ApiKeys.type: "business"},);
         }
-        return true;
       },
       child: Obx(() {
         return Scaffold(
