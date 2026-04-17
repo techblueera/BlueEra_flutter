@@ -34,7 +34,6 @@ class ServiceHomeHeaderTitleWidget extends StatelessWidget {
               text: description,
               trimLines: 2,
               isReadMoreNewLine: false,
-              expandMode: ExpandMode.dialog,
               style: TextStyle(
                 color: AppColors.secondaryTextColor,
                 fontSize: SizeConfig.medium,

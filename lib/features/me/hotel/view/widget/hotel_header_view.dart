@@ -8,6 +8,8 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/service_home_header_title_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
+
 
 class HotelHeaderView extends StatefulWidget {
   final HotelDetailController schoolAboutUsController;
@@ -194,9 +196,11 @@ class _HotelHeaderViewState extends State<HotelHeaderView> {
 
           // --- FORM SECTION ---
           ServiceHomeHeaderTitleWidget(
-            title:
-                widget.schoolAboutUsController.hotelData.value?.profile?.name ??
-                    "",
+            title: (widget.schoolAboutUsController.hotelData.value?.profile?.name
+                        ?.isNotEmpty ??
+                    false)
+                ? widget.schoolAboutUsController.hotelData.value!.profile!.name!
+                : businessNameGlobal,
             description: widget.schoolAboutUsController.hotelData.value?.profile
                     ?.description ??
                 "",

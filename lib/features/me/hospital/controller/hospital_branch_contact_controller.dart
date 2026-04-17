@@ -25,6 +25,14 @@ class HospitalBranchContactController extends GetxController {
   double? selectedLat;
   double? selectedLng;
 
+  // Per-field error messages
+  var branchNameError = ''.obs;
+  var websiteError = ''.obs;
+  var addressError = ''.obs;
+  var departmentError = ''.obs;
+  var emailError = ''.obs;
+  var phoneError = ''.obs;
+
   void validateForm({
     required String branchName,
     required String website,
@@ -33,20 +41,65 @@ class HospitalBranchContactController extends GetxController {
     required String email,
     required String phone,
   }) {
-    // Strict Name/Dept Validation: At least 3 chars, letters and spaces preferred
-    final nameRegex = RegExp(r"^[a-zA-Z\s\.]{3,50}$");
+    // Branch name: at least 3 chars, letters, numbers, spaces, dots allowed
+    final nameRegex = RegExp(r'^[a-zA-Z0-9\s\.\-]{3,50}$');
+    // Email: must end with @gmail.com
+    final gmailRegex = RegExp(r'^[a-zA-Z0-9][\w\-\.]*@gmail\.com$');
+    // Website: must start with http:// or https://
+    final websiteRegex = RegExp(r'^https?://[\w\-]+(\.[\w\-]+)+.*$', caseSensitive: false);
+    // Phone: valid Indian mobile number (starts with 6-9, exactly 10 digits)
+    final phoneRegex = RegExp(r'^[6-9][0-9]{9}$');
 
-    // Strict Gmail Validation: Must end with @gmail.com
-    final gmailRegex = RegExp(r'^[\w-\.]+@gmail\.com$');
+    // Validate each field
+    branchNameError.value = branchName.trim().isEmpty
+        ? 'Branch name is required'
+        : !nameRegex.hasMatch(branchName.trim())
+            ? 'Branch name must be 3-50 characters (letters, numbers, spaces)'
+            : '';
 
-    bool isValid = nameRegex.hasMatch(branchName.trim()) &&
-        (website.isEmpty || website.isURL) &&
-        address.isNotEmpty &&
-        nameRegex.hasMatch(department.trim()) &&
-        gmailRegex.hasMatch(email.trim()) &&
-        phone.length >= 10;
+    websiteError.value = website.trim().isNotEmpty && !websiteRegex.hasMatch(website.trim())
+        ? 'Please enter a valid website URL (e.g. https://example.com)'
+        : '';
+
+    addressError.value = address.trim().isEmpty ? 'Location is required' : '';
+
+    departmentError.value = department.trim().isEmpty
+        ? 'Department name is required'
+        : !nameRegex.hasMatch(department.trim())
+            ? 'Department must be 3-50 characters (letters, numbers, spaces)'
+            : '';
+
+    emailError.value = email.trim().isEmpty
+        ? 'Email is required'
+        : !gmailRegex.hasMatch(email.trim())
+            ? 'Please enter a valid Gmail address (e.g. name@gmail.com)'
+            : '';
+
+    phoneError.value = phone.trim().isEmpty
+        ? 'Phone number is required'
+        : !phoneRegex.hasMatch(phone.trim())
+            ? 'Please enter a valid 10-digit mobile number (starts with 6-9)'
+            : '';
+
+    bool isValid = branchNameError.value.isEmpty &&
+        websiteError.value.isEmpty &&
+        addressError.value.isEmpty &&
+        departmentError.value.isEmpty &&
+        emailError.value.isEmpty &&
+        phoneError.value.isEmpty;
 
     isFormValid.value = isValid;
+  }
+
+  /// Returns the first validation error message, or null if all valid
+  String? getFirstError() {
+    if (branchNameError.value.isNotEmpty) return branchNameError.value;
+    if (websiteError.value.isNotEmpty) return websiteError.value;
+    if (addressError.value.isNotEmpty) return addressError.value;
+    if (departmentError.value.isNotEmpty) return departmentError.value;
+    if (emailError.value.isNotEmpty) return emailError.value;
+    if (phoneError.value.isNotEmpty) return phoneError.value;
+    return null;
   }
 
   Future<void> submitBranchDetails({
@@ -93,6 +146,7 @@ class HospitalBranchContactController extends GetxController {
         commonSnackBar(
             message: response.response?.data['message'] ??
                 AppStrings.hospitalCtrlBranchAddedSuccessfully.tr);
+        Get.back();
         await getBranchDetailsController();
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);
@@ -140,18 +194,17 @@ class HospitalBranchContactController extends GetxController {
     }
   }
 
-  ///Only Department Validation
-
   void departmentValidateForm({
     required String departmentRole,
     required String departmentEmailAddress,
     required String departmentPhoneNo,
   }) {
-    final nameRegex = RegExp(r"^[a-zA-Z\s\.]{3,50}$");
-    final gmailRegex = RegExp(r'^[\w-\.]+@gmail\.com$');
+    final nameRegex = RegExp(r'^[a-zA-Z0-9\s\.\-]{3,50}$');
+    final gmailRegex = RegExp(r'^[a-zA-Z0-9][\w\-\.]*@gmail\.com$');
+    final phoneRegex = RegExp(r'^[6-9][0-9]{9}$');
 
     isFormValid.value = nameRegex.hasMatch(departmentRole.trim()) &&
-        departmentPhoneNo.length >= 10 &&
+        phoneRegex.hasMatch(departmentPhoneNo.trim()) &&
         gmailRegex.hasMatch(departmentEmailAddress.trim());
   }
 

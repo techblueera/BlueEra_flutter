@@ -39,6 +39,13 @@ class SocialContactUsController extends GetxController {
   double? selectedLat;
   double? selectedLng;
 
+  // Per-field error messages
+  var nameError = ''.obs;
+  var websiteError = ''.obs;
+  var addressError = ''.obs;
+  var emailError = ''.obs;
+  var phoneError = ''.obs;
+
   void validateForm({
     required String branchName,
     required String website,
@@ -46,14 +53,59 @@ class SocialContactUsController extends GetxController {
     required String email,
     required String phone,
   }) {
-    // Basic validation logic
-    bool isValid = branchName.isNotEmpty &&
-        website.isURL &&
-        address.isNotEmpty &&
-        email.isEmail &&
-        phone.length >= 10;
+    // Name: at least 3 chars, letters, numbers, spaces allowed
+    final nameRegex = RegExp(r'^[a-zA-Z0-9\s\.\-]{3,50}$');
+    // Email: must end with @gmail.com
+    final gmailRegex = RegExp(r'^[a-zA-Z0-9][\w\-\.]*@gmail\.com$');
+    // Website: must start with http:// or https://
+    final websiteRegex = RegExp(r'^https?://[\w\-]+(\.[\w\-]+)+.*$', caseSensitive: false);
+    // Phone: strip +91 prefix then validate 10-digit Indian mobile (starts with 6-9)
+    String cleanPhone = phone.trim().replaceFirst(RegExp(r'^\+91\s?'), '');
+    final phoneRegex = RegExp(r'^[6-9][0-9]{9}$');
+
+    nameError.value = branchName.trim().isEmpty
+        ? 'Full name is required'
+        : !nameRegex.hasMatch(branchName.trim())
+            ? 'Name must be 3-50 characters (letters, numbers, spaces)'
+            : '';
+
+    websiteError.value = website.trim().isNotEmpty && !websiteRegex.hasMatch(website.trim())
+        ? 'Please enter a valid website URL (e.g. https://example.com)'
+        : website.trim().isEmpty
+            ? 'Website URL is required'
+            : '';
+
+    addressError.value = address.trim().isEmpty ? 'Location is required' : '';
+
+    emailError.value = email.trim().isEmpty
+        ? 'Email is required'
+        : !gmailRegex.hasMatch(email.trim())
+            ? 'Please enter a valid Gmail address (e.g. name@gmail.com)'
+            : '';
+
+    phoneError.value = phone.trim().isEmpty
+        ? 'Phone number is required'
+        : !phoneRegex.hasMatch(cleanPhone)
+            ? 'Please enter a valid 10-digit mobile number (starts with 6-9)'
+            : '';
+
+    bool isValid = nameError.value.isEmpty &&
+        websiteError.value.isEmpty &&
+        addressError.value.isEmpty &&
+        emailError.value.isEmpty &&
+        phoneError.value.isEmpty;
 
     isFormValid.value = isValid;
+  }
+
+  /// Returns first validation error message, or null if all valid
+  String? getFirstError() {
+    if (nameError.value.isNotEmpty) return nameError.value;
+    if (websiteError.value.isNotEmpty) return websiteError.value;
+    if (emailError.value.isNotEmpty) return emailError.value;
+    if (phoneError.value.isNotEmpty) return phoneError.value;
+    if (addressError.value.isNotEmpty) return addressError.value;
+    return null;
   }
 
   Future<void> submitBranchDetails({

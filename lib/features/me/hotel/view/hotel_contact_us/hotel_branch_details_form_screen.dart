@@ -32,7 +32,6 @@ class _HotelBranchDetailsFormScreenState
       branchName: branchNameController.text,
       website: websiteController.text,
       address: addressController.text,
-      department: titleController.text,
       email: emailController.text,
       phone: phoneController.text,
     );
@@ -52,6 +51,7 @@ class _HotelBranchDetailsFormScreenState
                 controller: websiteController,
                 hintText: AppStrings.hotelWebsiteHint.tr,
                 title: AppStrings.website.tr,
+                isUrlValidate: true,
                 onChange: (_) => _triggerValidation(),
               ),
               SizedBox(height: 12),
@@ -72,6 +72,14 @@ class _HotelBranchDetailsFormScreenState
                 textEditController: emailController,
                 hintText: AppStrings.hotelEmailExampleHint.tr,
                 title: AppStrings.email.tr,
+                validator: (value) {
+                  if (value == null || value.isEmpty)
+                    return AppStrings.required.tr;
+                  if (!value.trim().toLowerCase().endsWith("@gmail.com")) {
+                    return "Only @gmail.com is allowed";
+                  }
+                  return null;
+                },
                 onChange: (_) => _triggerValidation(),
               ),
 
@@ -80,7 +88,19 @@ class _HotelBranchDetailsFormScreenState
                 textEditController: phoneController,
                 hintText: AppStrings.hotelPhoneExampleHint.tr,
                 title: AppStrings.phoneNumber.tr,
+                keyBoardType: TextInputType.number,
+                regularExpression: r'[0-9]',
                 maxLength: 10,
+                validator: (value) {
+                  if (value == null || value.isEmpty)
+                    return AppStrings.required.tr;
+                  if (value.length != 10)
+                    return "Enter a valid 10-digit number";
+                  bool isRepetitive =
+                      value.split('').every((char) => char == value[0]);
+                  if (isRepetitive) return "Invalid phone number";
+                  return null;
+                },
                 onChange: (_) => _triggerValidation(),
               ),
 

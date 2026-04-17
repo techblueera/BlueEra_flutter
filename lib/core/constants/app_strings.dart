@@ -3665,8 +3665,7 @@ class AppStrings {
   static const visionMissionSubtitle = "vision_mission_subtitle";
   static const visionMissionDescription = "vision_mission_description";
 
-  static const hospitalHistoryTitle =
-      "hospAppStrings.hospitalHistoryTitleital_history_title";
+  static const hospitalHistoryTitle = "hospital_history_title";
   static const hospitalHistorySubtitle = "hospital_history_subtitle";
 
   static const deleteMemberConfirm = "delete_member_confirm";

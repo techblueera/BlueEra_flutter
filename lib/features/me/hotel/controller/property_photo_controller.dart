@@ -16,6 +16,7 @@ class PropertyPhotoController extends GetxController {
   var isLoading = true.obs;
 
   Future<void> fetchPhotos() async {
+    isLoading.value = true;
     propertyPhotosList.clear();
 
     ResponseModel response =
@@ -94,12 +95,20 @@ class PropertyPhotoController extends GetxController {
   List<String> urlList = [];
 
   Future buildRequestBody() async {
+    isLoading.value = true;
     try {
+      urlList
+          .clear(); // Clear to avoid accumulating URLs from previous attempts
       for (var filePath in selectedImages) {
         UploadResult? result = await S3UploadService.uploadFile(File(filePath));
         if (result.isSuccess) {
           urlList.add(result.url);
         }
+      }
+
+      if (urlList.isEmpty) {
+        commonSnackBar(message: AppStrings.somethingWentWrong);
+        return;
       }
 
       var requestBody = {
@@ -113,6 +122,12 @@ class PropertyPhotoController extends GetxController {
       if (response.isSuccess) {
         Get.back();
         commonSnackBar(message: response.response?.data['message']);
+
+        // Clear state after successful upload
+        selectedImages.clear();
+        selectedCategory.value = "";
+        urlList.clear();
+
         fetchPhotos();
         try {
           Get.find<HotelDetailController>().loadHotelData();
@@ -120,10 +135,10 @@ class PropertyPhotoController extends GetxController {
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);
       }
-    } on Exception {
+    } catch (e) {
+      logs("Error in buildRequestBody: $e");
       commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {
-      // 5. Always hide loader at the end
       isLoading.value = false;
     }
   }
@@ -150,5 +165,11 @@ class PropertyPhotoController extends GetxController {
     } on Exception catch (e) {
       logs("ERROR ${e}");
     }
+  }
+
+  void clearSelection() {
+    selectedImages.clear();
+    selectedCategory.value = "";
+    urlList.clear();
   }
 }

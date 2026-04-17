@@ -27,20 +27,16 @@ class HotelBranchContactController extends GetxController {
     required String branchName,
     required String website,
     required String address,
-    required String department,
     required String email,
     required String phone,
   }) {
-    // Basic validation logic
-    bool isValid =
-        // branchName.isNotEmpty &&
-        // website.isURL &&
-        address.isNotEmpty &&
-            // department.isNotEmpty &&
-            email.isEmail &&
-            phone.length >= 10;
+    bool isGmail = email.trim().toLowerCase().endsWith("@gmail.com");
+    bool isRepetitive = phone.split('').every((char) => char == phone[0]);
+    bool isPhoneValid = phone.length == 10 && RegExp(r'^[0-9]+$').hasMatch(phone) && !isRepetitive;
+    bool isWebsiteValid = website.isEmpty || GetUtils.isURL(website);
+    bool isAddressValid = address.isNotEmpty;
 
-    isFormValid.value = isValid;
+    isFormValid.value = isAddressValid && isGmail && isPhoneValid && isWebsiteValid;
   }
 
   Future<void> submitBranchDetails({

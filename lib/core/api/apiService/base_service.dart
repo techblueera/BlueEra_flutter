@@ -829,7 +829,7 @@ abstract class BaseService {
   final String hospitalVisionMissionBase = 'hospital-service/vision-mission';
   final String hospitalVisionMissionByHospital= 'hospital-service/vision-mission/hospital/$hospitalIDGlobal';
   String hospitalVisionMissionById(String id) => 'hospital-service/vision-mission/$id';
-  final String hospitalHistoryBase = 'hospital-service/history/$hospitalIDGlobal';
+  final String hospitalHistoryBase = 'hospital-service/history';
   final String hospitalHistoryGet = 'hospital-service/history/hospital/$hospitalIDGlobal';
   String hospitalHistoryById(String id) => 'hospital-service/history/$id';
   final String  userCurrentPlan= 'subscription-service/subscription/user-subscriptions';
