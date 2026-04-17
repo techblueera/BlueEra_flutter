@@ -20,6 +20,7 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:pinput/pinput.dart';
+import '../../../chat/auth/controller/call_controller.dart';
 import '../../../chat/auth/model/rider_orders_details_model.dart';
 import '../../../chat/view/orders_chat/widget/lat_lng_to_location_text.dart';
 import '../../../me/laboratory/view/widgets/me_menu_card_design.dart';
@@ -257,7 +258,7 @@ class _OrderCardState extends State<OrderCard> {
         _buildTimeText(),
         SizedBox(height: SizeConfig.size8),
         InkWell(
-          // onTap: () => _handleCancelOrder(controller),
+          onTap: () => _handleCancelOrder(controller),
           borderRadius: BorderRadius.circular(100.0),
           child: Container(
             padding: EdgeInsets.symmetric(
@@ -407,10 +408,17 @@ class _OrderCardState extends State<OrderCard> {
               onTap: (){
                 showItemsReceivedDialog(
                   context,
-                  businessName: 'Gupta General Store',
+                  businessName: business.businessName.isNotEmpty
+                      ? business.businessName
+                      : business.businessId,
                   items: business.items,
                   onSubmit: (allReceived, missingItems) {
-                    // handle submit
+                    // Track received/missing items status
+                    if (allReceived) {
+                      commonSnackBar(message: 'All items received from ${business.businessName.isNotEmpty ? business.businessName : "store"}');
+                    } else {
+                      commonSnackBar(message: '${missingItems.length} item(s) missing');
+                    }
                   },
                 );
 
@@ -422,7 +430,9 @@ class _OrderCardState extends State<OrderCard> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         CustomText(
-                          business.businessId, // or business name if available
+                          business.businessName.isNotEmpty
+                              ? business.businessName
+                              : business.businessId,
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
                         ),
@@ -456,9 +466,9 @@ class _OrderCardState extends State<OrderCard> {
                       ],
                     ),
                     CustomToggleSwitch(
-                      isOn: true,
+                      isOn: business.items.every((item) => item.isPickedUp),
                       onChanged: (val){
-
+                        // Toggle is informational — items are marked via the dialog
                       },
                     )
                   ],
@@ -552,19 +562,14 @@ class _OrderCardState extends State<OrderCard> {
                             child: Row(
                               children: [
                                 /// IMAGE
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: Image.network(
-                                    // item.productDetails.product?.images
-                                    //     ?.first.url ??
-                                    //     '',
-                                    "",
-                                    width: 42,
-                                    height: 42,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (_, __, ___) =>
-                                    const Icon(Icons.image_not_supported),
+                                Container(
+                                  width: 42,
+                                  height: 42,
+                                  decoration: BoxDecoration(
+                                    color: AppColors.whiteE5,
+                                    borderRadius: BorderRadius.circular(8),
                                   ),
+                                  child: const Icon(Icons.shopping_bag_outlined, size: 24, color: AppColors.secondaryTextColor),
                                 ),
 
                                 const SizedBox(width: 10),
@@ -1327,6 +1332,25 @@ class _OrderCardState extends State<OrderCard> {
   }
 
   void _handleCallAction(String? contactNo) {
+    // For ride/parcel ongoing orders, use in-app calling via WebRTC
+    if (widget.selectedPickUp == PickUpTab.onGoing &&
+        (widget.order.orderFor == AppConstants.InCity ||
+            widget.order.orderFor == AppConstants.OutStation ||
+            widget.order.orderFor == AppConstants.HourlyRental ||
+            widget.order.orderFor == AppConstants.Parcel)) {
+      final userId = widget.order.user?.id;
+      if (userId != null && userId.isNotEmpty) {
+        final callController = Get.find<CallController>();
+        callController.initiateCall(
+          type: CallType.audio,
+          otherUserId: userId,
+          userName: widget.order.user?.name ?? '',
+          userImage: widget.order.user?.profileImage ?? '',
+        );
+        return;
+      }
+    }
+    // Fallback to phone dialer for delivery orders (grocery, food, medical)
     if (contactNo?.isNotEmpty ?? false) {
       openDialer(contactNo ?? '');
     } else {
@@ -1348,21 +1372,25 @@ class _OrderCardState extends State<OrderCard> {
     );
   }
 
-  void _handleOtpSubmit(
+  Future<void> _handleOtpSubmit(
       String pin,
       String orderId,
       DeliverPartnerOrdersController controller,
-      ) {
+      ) async {
     if (pin.length == 4) {
       log('is correct--> ${pin}');
       if(widget.order.orderFor==AppConstants.InCity
           ||widget.order.orderFor==AppConstants.OutStation
           ||widget.order.orderFor==AppConstants.HourlyRental
           ||widget.order.orderFor==AppConstants.Parcel){
-        controller.verifyPickupOtpRideOrParcelApi(
+        final verified = await controller.verifyPickupOtpRideOrParcelApi(
           {ApiKeys.pickupOTP: pin},
           widget.order.id ?? "",
         );
+        // Navigate to ride navigation screen after successful pickup OTP
+        if (verified && mounted) {
+          _navigateToRideMap();
+        }
       }else {
         controller.verifyDeliveredOtp(orderId, pin);
       }

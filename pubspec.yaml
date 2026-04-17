@@ -57,7 +57,6 @@ dependencies:
   webview_flutter: ^4.13.0
   open_file: ^3.5.10
   package_info_plus: ^8.3.0
-
   share_plus: ^11.1.0
   app_links: ^6.4.1
 #  workmanager: ^0.7.0
@@ -107,24 +106,9 @@ dependencies:
   flutter_native_splash: ^2.4.7
   gal: ^2.3.2
   pdf: ^3.12.0
-  # smooth_page_indicator: ^2.0.1
-#  googleapis: ^16.0.0
-#  googleapis_auth:
 
 dependency_overrides:
   intl: ^0.19.0
-#flutter_native_splash:
-#  color: "#ffffff"
-#
-#  image: assets/onboarding/sp_full.png  # your logo path
-#
-#  android: true
-#  ios: true
-#
-#  android_gravity: center
-#  ios_content_mode: center
-#
-#  fullscreen: true
 
 flutter_native_splash:
   color: "#ffffff"              # Background color for older Android versions

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
@@ -16,11 +17,13 @@ class TrackRiderLiveLocationPage extends StatefulWidget {
       {super.key,
       required this.riderId,
       required this.dropLat,
-      required this.dropLng});
+      required this.dropLng,
+      this.orderId});
 
   final double dropLat;
   final double dropLng;
   final String riderId;
+  final String? orderId;
 
   @override
   State<TrackRiderLiveLocationPage> createState() =>
@@ -34,7 +37,26 @@ class _TrackRiderLiveLocationPageState
   @override
   void initState() {
     orderController.fetchStream(widget.riderId);
+    // Listen for ride completion — when rider location stream ends or
+    // coordinates stop updating, the stream's onDone will fire.
+    // Additionally, watch for the stream closing which indicates ride completion.
+    _listenForCompletion();
     super.initState();
+  }
+
+  void _listenForCompletion() {
+    // Watch if live location stops (stream closed = ride likely completed)
+    ever(orderController.rideCompleted, (completed) {
+      if (completed && mounted) {
+        commonSnackBar(message: 'Ride has been completed!');
+        // Navigate back after a brief moment
+        Future.delayed(const Duration(seconds: 2), () {
+          if (mounted && Navigator.of(context).canPop()) {
+            Navigator.of(context).pop();
+          }
+        });
+      }
+    });
   }
 
   @override

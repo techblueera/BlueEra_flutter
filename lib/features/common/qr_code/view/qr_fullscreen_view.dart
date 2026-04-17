@@ -42,30 +42,22 @@ class QrFullScreenView extends StatelessWidget {
     appBar: CommonBackAppBar(title: AppStrings.myQrCode.tr,),
 
       body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+
         children: [
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Only the QR card sits inside the RepaintBoundary so that
-                  // the captured image (used by Download / Share) contains
-                  // ONLY the design — never the action buttons below it.
                   RepaintBoundary(
                     key: _repaintKey,
                     child: Container(
-                      padding: const EdgeInsets.all(24),
+                      padding: const EdgeInsets.all(40),
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.shade200,
-                            blurRadius: 12,
-                            spreadRadius: 4,
-                          ),
-                        ],
+                        borderRadius: BorderRadius.circular(20),
                       ),
                       child: QrDesignCardWidget(
                         design: design,
@@ -75,7 +67,7 @@ class QrFullScreenView extends StatelessWidget {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 16),
 
                   // Action bar lives OUTSIDE the RepaintBoundary so it
                   // never appears in the downloaded / shared image.

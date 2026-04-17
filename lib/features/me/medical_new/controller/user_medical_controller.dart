@@ -553,9 +553,32 @@ class UserMedicalController extends GetxController{
     } else if(status == 'rejected' || status == 'cancelled'){
       hide(); // TERMINAL STATE: Hide loader
       commonSnackBar(message: AppStrings.medicalRiderRejectedRequest.tr);
-    }else{
+      // Cancel stream and redirect to home
+      _cleanupAndNavigateHome();
+    } else if(status == 'completed' || status == 'delivered'){
+      hide();
+      commonSnackBar(message: 'Your medical order has been delivered successfully!');
+      // Cancel stream and redirect to home
+      _cleanupAndNavigateHome();
+    } else{
 
     }
+  }
+
+  void _cleanupAndNavigateHome() {
+    subscription?.cancel();
+    subscription = null;
+    // Navigate back to bottom navigation bar (home)
+    Get.until((route) =>
+        route.settings.name == '/BottomNavigationBarScreen' ||
+        route.isFirst);
+  }
+
+  @override
+  void onClose() {
+    subscription?.cancel();
+    subscription = null;
+    super.onClose();
   }
 
 }

@@ -9,6 +9,7 @@ import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../../../../common/delivery_partner/controller/delivery_partner_orders_controller.dart';
+import 'ride_navigation_overlay_controller.dart';
 
 /// Screen shown after "Start Ride" — pickup location → drop location map.
 class RiderRideNavigationScreen extends StatefulWidget {
@@ -844,7 +845,16 @@ class _RiderRideNavigationScreenState extends State<RiderRideNavigationScreen> {
               width: double.infinity,
               height: 54,
               child: ElevatedButton(
-                onPressed: () => Navigator.of(context).pop(),
+                onPressed: () {
+                  // Clear ride overlay data
+                  if (Get.isRegistered<RideNavigationOverlayController>()) {
+                    Get.find<RideNavigationOverlayController>().clearRideData();
+                  }
+                  // Clear PIP status
+                  final ordersCtrl = Get.put(DeliverPartnerOrdersController());
+                  ordersCtrl.setPipStatus(false);
+                  Navigator.of(context).pop();
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF1A1A2E),
                   foregroundColor: Colors.white,

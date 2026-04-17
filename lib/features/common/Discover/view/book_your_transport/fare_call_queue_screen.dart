@@ -50,10 +50,12 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
   Timer? _localTimer;
   int _localSeconds = 0;
 
+  // Order status polling timer (fallback when ride:completed socket doesn't fire)
+
   // Rider accepted state
   bool _callWasConnected = false;
-  bool _riderAccepted = false;
-  bool _rideCompleted = false;
+  final RxBool _riderAccepted = false.obs;
+  final RxBool _rideCompleted = false.obs;
   Map<String, dynamic>? _acceptedRiderInfo;
 
   // Map state (after rider accepted)
@@ -94,6 +96,7 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
     // Watch for ride accepted
     _queueAcceptedWorker =
         ever(discoverController.fareCallAcceptedRiderInfo, (riderInfo) {
+      debugPrint('[FARE_CALL_SCREEN] fareCallAcceptedRiderInfo changed → riderInfo=$riderInfo, mounted=$mounted');
       if (!mounted) return;
       if (riderInfo != null) {
         _onRiderAccepted(riderInfo);
@@ -103,9 +106,11 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
     // Watch for queue exhausted (no riders)
     _queueExhaustedWorker =
         ever(discoverController.isFareCallInProgress, (inProgress) {
+      debugPrint('[FARE_CALL_SCREEN] isFareCallInProgress changed → inProgress=$inProgress, riderInfo=${discoverController.fareCallAcceptedRiderInfo.value}, mounted=$mounted');
       if (!mounted) return;
       if (!inProgress &&
           discoverController.fareCallAcceptedRiderInfo.value == null) {
+        debugPrint('[FARE_CALL_SCREEN] ⚠️ Queue exhausted → popping screen in 1s');
         Future.delayed(const Duration(seconds: 1), () {
           if (mounted) Get.back();
         });
@@ -114,6 +119,7 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
 
     // Watch call status for timer and ride-accepted fallback
     _callStatusWorker = ever(_callController.callStatus, (status) {
+      debugPrint('[FARE_CALL_SCREEN] callStatus changed → $status, mounted=$mounted, _callWasConnected=$_callWasConnected, _riderAccepted=${_riderAccepted.value}');
       if (!mounted) return;
       if (status == CallStatus.connected) {
         _callWasConnected = true;
@@ -125,44 +131,47 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
         // ride:queue:accepted socket event never fired, the rider likely
         // accepted the ride and ended the call. Trigger the accepted flow
         // using the current rider ID and details from the selected riders list.
-        if (_callWasConnected && !_riderAccepted) {
+        if (_callWasConnected && !_riderAccepted.value) {
           var riderId = discoverController.fareCallCurrentRiderId.value;
+          debugPrint('[FARE_CALL_SCREEN] fallback → fareCallCurrentRiderId=$riderId, selectedRiders count=${discoverController.selectedRiders.length}');
 
           // If ride:queue:calling was skipped, fareCallCurrentRiderId may be
           // empty. Fall back to the first selected rider (single-rider orders).
           if (riderId.isEmpty && discoverController.selectedRiders.isNotEmpty) {
             riderId = discoverController.selectedRiders.first.riderId ?? '';
+            debugPrint('[FARE_CALL_SCREEN] fallback → using first selectedRider riderId=$riderId');
           }
 
           if (riderId.isNotEmpty) {
             final riderUser = discoverController.selectedRiders
                 .firstWhereOrNull((r) => r.riderId == riderId);
+            debugPrint('[FARE_CALL_SCREEN] fallback → setting fareCallAcceptedRiderInfo, riderUser found=${riderUser != null}, name=${riderUser?.name}');
             discoverController.fareCallAcceptedRiderId.value = riderId;
             discoverController.fareCallAcceptedRiderInfo.value = {
               'riderId': riderId,
               if (riderUser?.name != null) 'name': riderUser!.name,
               if (riderUser?.profileImage != null) 'profileImage': riderUser!.profileImage,
             };
+          } else {
+            debugPrint('[FARE_CALL_SCREEN] fallback → FAILED: riderId is empty, cannot set riderAccepted!');
           }
         }
       }
     });
 
-    // Watch for ride completed
+    // Watch for ride completed (from socket event)
     _rideCompletedWorker =
         ever(discoverController.isFareCallRideCompleted, (completed) {
+      debugPrint('[FARE_CALL_SCREEN] isFareCallRideCompleted changed → completed=$completed, mounted=$mounted');
       if (!mounted || !completed) return;
-      _liveTrackController?.dispose();
-      _riderLatWorker?.dispose();
-      _riderLngWorker?.dispose();
-      setState(() => _rideCompleted = true);
+      _handleRideCompleted();
     });
 
     // If rider was already accepted (e.g. returning from floating overlay),
     // restore map state directly.
     final existingRiderInfo = discoverController.fareCallAcceptedRiderInfo.value;
-    if (existingRiderInfo != null && !_riderAccepted) {
-      _riderAccepted = true;
+    if (existingRiderInfo != null && !_riderAccepted.value) {
+      _riderAccepted.value = true;
       _acceptedRiderInfo = existingRiderInfo;
 
       if (Platform.isAndroid) {
@@ -175,6 +184,13 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
         _liveTrackController!.fetchStream(riderId);
         _riderLatWorker = ever(_liveTrackController!.liveLat, (_) => _updateRiderOnMap());
         _riderLngWorker = ever(_liveTrackController!.liveLng, (_) => _updateRiderOnMap());
+
+        // Listen for completion from live tracking stream
+        ever(_liveTrackController!.rideCompleted, (completed) {
+          if (completed && mounted && !_rideCompleted.value) {
+            _handleRideCompleted();
+          }
+        });
       }
 
       _setupPickupMarker();
@@ -182,6 +198,7 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
   }
 
   void _onRiderAccepted(Map<String, dynamic> riderInfo) {
+    debugPrint('[FARE_CALL_SCREEN] _onRiderAccepted CALLED → riderInfo=$riderInfo, mounted=$mounted, _riderAccepted=${_riderAccepted.value}');
     // Rider accepted the ride order (after speaking on call).
     // End the call if still active, then switch to map view.
     if (_callController.callStatus.value != CallStatus.idle) {
@@ -189,10 +206,9 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
     }
     _localTimer?.cancel();
 
-    setState(() {
-      _riderAccepted = true;
-      _acceptedRiderInfo = riderInfo;
-    });
+    _riderAccepted.value = true;
+    _acceptedRiderInfo = riderInfo;
+    debugPrint('[FARE_CALL_SCREEN] _onRiderAccepted → _riderAccepted is now TRUE');
 
     // Enable PiP for map phase
     if (Platform.isAndroid) {
@@ -207,10 +223,34 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
 
       _riderLatWorker = ever(_liveTrackController!.liveLat, (_) => _updateRiderOnMap());
       _riderLngWorker = ever(_liveTrackController!.liveLng, (_) => _updateRiderOnMap());
+
+      // Listen for ride completion from live tracking stream (fallback for socket)
+      ever(_liveTrackController!.rideCompleted, (completed) {
+        if (completed && mounted && !_rideCompleted.value) {
+          _handleRideCompleted();
+        }
+      });
     }
 
     // Setup initial markers for customer pickup location
     _setupPickupMarker();
+  }
+
+  /// Handle ride completion (from any source: socket or stream)
+  void _handleRideCompleted() {
+    debugPrint('[FARE_CALL_SCREEN] _handleRideCompleted CALLED → _rideCompleted=${_rideCompleted.value}, _riderAccepted=${_riderAccepted.value}');
+    if (_rideCompleted.value) return; // Prevent duplicate handling
+
+
+    _liveTrackController?.dispose();
+    _riderLatWorker?.dispose();
+    _riderLngWorker?.dispose();
+
+    if (!discoverController.isFareCallRideCompleted.value) {
+      discoverController.isFareCallRideCompleted.value = true;
+    }
+
+    _rideCompleted.value = true;
   }
 
   void _setupPickupMarker() {
@@ -355,6 +395,7 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
     _riderLatWorker?.dispose();
     _riderLngWorker?.dispose();
     _localTimer?.cancel();
+
     _mapController?.dispose();
     if (_liveTrackController != null && Get.isRegistered<LiveTrachRiderController>()) {
       Get.delete<LiveTrachRiderController>();
@@ -364,7 +405,7 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (!Platform.isAndroid || !_riderAccepted) return;
+    if (!Platform.isAndroid || !_riderAccepted.value) return;
     if (state == AppLifecycleState.inactive) {
       PipService.enterPip();
     }
@@ -422,7 +463,7 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
         if (didPop) return;
-        if (_riderAccepted) {
+        if (_riderAccepted.value) {
           _minimiseToOverlay();
         } else {
           _endCallAndGoBack();
@@ -430,7 +471,7 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
       },
       child: Scaffold(
         backgroundColor: const Color(0xFF0B141A),
-        body: _riderAccepted ? _buildMapScreen() : _buildCallingScreen(),
+        body: Obx(() => _riderAccepted.value ? _buildMapScreen() : _buildCallingScreen()),
       ),
     );
   }
@@ -512,7 +553,7 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
           bottom: 0,
           left: 0,
           right: 0,
-          child: _rideCompleted
+          child: _rideCompleted.value
               ? _buildRideCompletedPanel()
               : _buildMapBottomPanel(),
         ),

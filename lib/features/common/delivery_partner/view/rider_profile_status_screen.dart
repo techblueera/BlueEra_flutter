@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -56,6 +57,7 @@ class _RiderProfileStatusScreenState extends State<RiderProfileStatusScreen> {
             color: AppColors.appBackgroundColor,
             child: RiderFormWidget(
               deliveryPartnerController: controller,
+              isEmbeddedInTabView: true,
             ));
   }
 }
@@ -64,9 +66,11 @@ class RiderFormWidget extends StatefulWidget {
   RiderFormWidget({
     super.key,
     required this.deliveryPartnerController,
+    this.isEmbeddedInTabView = false,
   });
 
   final DeliveryPartnerController deliveryPartnerController;
+  final bool isEmbeddedInTabView;
 
   @override
   State<RiderFormWidget> createState() => _RiderFormWidgetState();
@@ -327,13 +331,14 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
 
           const SizedBox(height: 20),
 
-          // Go Back button
-          CustomBtn(
-            onTap: () => Get.back(),
-            title: 'Go to Home',
-            bgColor: AppColors.primaryColor,
-            radius: 12,
-          ),
+          // Go Back button — hide when embedded in tab view
+          if (!widget.isEmbeddedInTabView)
+            CustomBtn(
+              onTap: () => Get.back(),
+              title: 'Go to Home',
+              bgColor: AppColors.primaryColor,
+              radius: 12,
+            ),
 
           SizedBox(height: SizeConfig.size60),
         ],
@@ -583,13 +588,14 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
 
           const SizedBox(height: 16),
 
-          // Go to Home
-          CustomBtn(
-            onTap: () => Get.back(),
-            title: 'Go to Home',
-            bgColor: AppColors.primaryColor,
-            radius: 12,
-          ),
+          // Go to Home — hide when embedded in tab view
+          if (!widget.isEmbeddedInTabView)
+            CustomBtn(
+              onTap: () => Get.back(),
+              title: 'Go to Home',
+              bgColor: AppColors.primaryColor,
+              radius: 12,
+            ),
 
           SizedBox(height: SizeConfig.size60),
         ],
@@ -891,7 +897,9 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
               Obx(() => CustomBtn(
                     onTap: selectedType.value.isEmpty
                         ? null
-                        : () {
+                        : () async {
+                            await SharedPreferenceUtils.setSecureValue(
+                                'riderTypePreference', selectedType.value);
                             Get.back();
                             commonSnackBar(
                                 message:
@@ -1402,8 +1410,11 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
   }
 
   Widget _buildDocumentCard(_DocumentItem item) {
+    final state = widget.deliveryPartnerController.riderVerificationState;
+    // Allow re-upload when rejected, even if document was previously completed
+    final canTap = !item.isCompleted || state == RiderVerificationState.rejected;
     return GestureDetector(
-      onTap: item.isCompleted ? null : item.onTap,
+      onTap: canTap ? item.onTap : null,
       child: Container(
         margin: EdgeInsets.only(bottom: SizeConfig.size10),
         padding: const EdgeInsets.all(14),

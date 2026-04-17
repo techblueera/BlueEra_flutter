@@ -32,8 +32,6 @@
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.VIBRATE" />
 
-    <!--        android:networkSecurityConfig="@xml/network_security_config"-->
-
     <application
         android:enableOnBackInvokedCallback="true"
         android:icon="@mipmap/ic_launcher_adaptive_fore"

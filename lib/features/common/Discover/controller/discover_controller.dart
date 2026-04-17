@@ -32,6 +32,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../../chat/auth/controller/call_controller.dart';
 import '../../../chat/auth/repo/make_order_repo.dart';
 import '../../../chat/auth/socket/chat_socket.dart';
+import '../../../chat/auth/controller/live_trach_rider_controller.dart';
 import '../../../chat/view/call_screen/rider_call/ride_navigation_overlay_controller.dart';
 
 enum CategoryFilter {
@@ -889,7 +890,7 @@ class DiscoverController extends GetxController {
     final socket = ChatSocketService();
 
     socket.listenEvent('ride:queue:calling', (data) {
-      debugPrint('[FARE_CALL_QUEUE] ride:queue:calling → $data');
+      print('[FARE_CALL_QUEUE] ride:queue:calling → $data');
       fareCallCurrentRiderIndex.value = (data['riderIndex'] ?? 0) + 1;
       fareCallTotalRiders.value = data['totalRiders'] ?? selectedRiders.length;
       fareCallCurrentRiderId.value = data['riderId'] ?? '';
@@ -910,16 +911,16 @@ class DiscoverController extends GetxController {
         iceServers = [];
       }
 
-      debugPrint('[FARE_CALL_DEBUG] ride:queue:calling → callId=$callId, roomId=$roomId, riderId=$riderId, iceServers count=${iceServers.length}');
-      debugPrint('[FARE_CALL_DEBUG] ride:queue:calling → iceServers=$iceServers');
+      print('[FARE_CALL_DEBUG] ride:queue:calling → callId=$callId, roomId=$roomId, riderId=$riderId, iceServers count=${iceServers.length}');
+      print('[FARE_CALL_DEBUG] ride:queue:calling → iceServers=$iceServers');
 
       if (callId.isNotEmpty && roomId.isNotEmpty && riderId.isNotEmpty) {
         if (!Get.isRegistered<CallController>()) {
-          debugPrint('[FARE_CALL_DEBUG] ride:queue:calling → CallController not registered, creating new');
+          print('[FARE_CALL_DEBUG] ride:queue:calling → CallController not registered, creating new');
           Get.put(CallController(), permanent: true);
         }
         final callController = Get.find<CallController>();
-        debugPrint('[FARE_CALL_DEBUG] ride:queue:calling → CallController current status=${callController.callStatus.value}');
+        print('[FARE_CALL_DEBUG] ride:queue:calling → CallController current status=${callController.callStatus.value}');
         callController.joinFareCallAsCustomer(
           fareCallId: callId,
           fareRoomId: roomId,
@@ -928,12 +929,12 @@ class DiscoverController extends GetxController {
           iceServers: iceServers,
         );
       } else {
-        debugPrint('[FARE_CALL_DEBUG] ride:queue:calling → ⚠️ MISSING DATA: callId=$callId, roomId=$roomId, riderId=$riderId — cannot join call!');
+        print('[FARE_CALL_DEBUG] ride:queue:calling → ⚠️ MISSING DATA: callId=$callId, roomId=$roomId, riderId=$riderId — cannot join call!');
       }
     });
 
     socket.listenEvent('ride:queue:accepted', (data) {
-      debugPrint('[FARE_CALL_QUEUE] ride:queue:accepted → $data');
+      print('[FARE_CALL_QUEUE] ride:queue:accepted → $data');
       // IMPORTANT: Set riderInfo BEFORE setting isFareCallInProgress=false.
       // The exhausted worker triggers on isFareCallInProgress change and checks
       // fareCallAcceptedRiderInfo — if riderInfo is still null, it pops the screen.
@@ -946,14 +947,14 @@ class DiscoverController extends GetxController {
     });
 
     socket.listenEvent('ride:queue:exhausted', (data) {
-      debugPrint('[FARE_CALL_QUEUE] ride:queue:exhausted → $data');
+      print('[FARE_CALL_QUEUE] ride:queue:exhausted → $data');
       isFareCallInProgress.value = false;
       fareCallAcceptedRiderInfo.value = null;
       commonSnackBar(message: 'No riders available. Please try again.');
     });
 
     socket.listenEvent('ride:started', (data) {
-      log('[FARE_CALL_QUEUE] ride:started → $data');
+      print('[FARE_CALL_QUEUE] ride:started → $data');
       isFareCallRideStarted.value = true;
       fareCallRideStartedData.value = data != null
           ? Map<String, dynamic>.from(data)
@@ -961,19 +962,16 @@ class DiscoverController extends GetxController {
     });
 
     socket.listenEvent('ride:completed', (data) {
-      log('[FARE_CALL_QUEUE] ride:completed → $data');
+      print('[FARE_CALL_QUEUE] ✅ ride:completed RECEIVED from backend → $data');
       isFareCallRideCompleted.value = true;
       fareCallRideCompletedData.value = data != null
           ? Map<String, dynamic>.from(data)
           : null;
 
-      // If the floating overlay is showing, close it and show a snackbar
+      // Clear the floating overlay and its ride data
       if (Get.isRegistered<RideNavigationOverlayController>()) {
         final overlayCtrl = Get.find<RideNavigationOverlayController>();
-        if (overlayCtrl.isOverlayVisible.value) {
-          overlayCtrl.hideOverlay();
-          commonSnackBar(message: 'Ride completed successfully!');
-        }
+        overlayCtrl.clearRideData();
       }
     });
   }
@@ -990,7 +988,7 @@ class DiscoverController extends GetxController {
     }
   }
 
-  /// Cleanup fare-call queue state
+  /// Cleanup fare-call queue state and all ride-related cache
   void resetFareCallState() {
     isFareCallInProgress.value = false;
     fareCallOrderId.value = '';
@@ -1004,6 +1002,16 @@ class DiscoverController extends GetxController {
     fareCallRideStartedData.value = null;
     isFareCallRideCompleted.value = false;
     fareCallRideCompletedData.value = null;
+
+    // Clean up live tracking controller if registered
+    if (Get.isRegistered<LiveTrachRiderController>()) {
+      Get.delete<LiveTrachRiderController>();
+    }
+
+    // Clean up ride overlay if registered
+    if (Get.isRegistered<RideNavigationOverlayController>()) {
+      Get.find<RideNavigationOverlayController>().clearRideData();
+    }
   }
 
   Future<void> fetchRentalServices(
