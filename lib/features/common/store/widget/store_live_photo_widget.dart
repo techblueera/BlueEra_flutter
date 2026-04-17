@@ -19,7 +19,7 @@ class StoreLivePhotoWidget extends StatelessWidget {
     required this.livePhotos,
     required this.onViewFullScreen,
     this.natureOfBusiness,
-    this.height = 240,
+    this.height = 220,
   }) : super(key: key);
 
   @override

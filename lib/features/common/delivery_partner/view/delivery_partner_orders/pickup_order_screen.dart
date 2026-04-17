@@ -1,6 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
-import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_orders_controller.dart';
@@ -13,6 +12,7 @@ import '../../../../../core/api/apiService/api_response.dart';
 import '../../../../../core/constants/app_enum.dart';
 import '../../../../chat/auth/model/rider_orders_details_model.dart';
 import '../../../../chat/view/call_screen/rider_call/ride_navigation_overlay_controller.dart';
+import 'no_orders_widget.dart';
 import '../../../../chat/view/call_screen/rider_call/rider_pickup_navigation_screen.dart';
 import '../../../../chat/view/call_screen/rider_call/rider_ride_navigation_screen.dart';
 import '../../controller/pip_floating_page_controller.dart';
@@ -109,9 +109,7 @@ class _PickupOrderScreenState extends State<PickupOrderScreen> {
               return _buildOrderList(controller.rejectedOrders);
           }
         } else {
-          return Center(
-            child: CustomText(AppStrings.noOrdersFound),
-          );
+          return const NoOrdersWidget();
         }
       }),
     );
@@ -119,7 +117,7 @@ class _PickupOrderScreenState extends State<PickupOrderScreen> {
 
   Widget _buildOngoingRideOrEmpty() {
     if (!Get.isRegistered<RideNavigationOverlayController>()) {
-      return Center(child: CustomText(AppStrings.noOrdersFound));
+      return const NoOrdersWidget();
     }
     final overlayCtrl = Get.find<RideNavigationOverlayController>();
 
@@ -129,7 +127,7 @@ class _PickupOrderScreenState extends State<PickupOrderScreen> {
       overlayCtrl.screenParams.length;
 
       if (!overlayCtrl.hasOngoingRide) {
-        return Center(child: CustomText(AppStrings.noOrdersFound));
+        return const NoOrdersWidget();
       }
 
       final p = overlayCtrl.screenParams;
@@ -402,7 +400,7 @@ class _PickupOrderScreenState extends State<PickupOrderScreen> {
     required List<RiderOrdersDetailsModel> newOrders,
   }) {
     if (onGoing.isEmpty && newOrders.isEmpty) {
-      return Center(child: CustomText(AppStrings.noOrdersFound));
+      return const NoOrdersWidget();
     }
 
     return ListView(
@@ -451,9 +449,7 @@ class _PickupOrderScreenState extends State<PickupOrderScreen> {
 
     return
       ordersList.isEmpty
-        ? Center(
-      child: CustomText(AppStrings.noOrdersFound),
-    )
+        ? const NoOrdersWidget()
         : ListView.builder(
         padding: EdgeInsets.only(
           top: SizeConfig.size10,

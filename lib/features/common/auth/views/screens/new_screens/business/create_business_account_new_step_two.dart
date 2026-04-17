@@ -20,6 +20,7 @@ import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/contact_number_widget.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/controller/bottom_bar_controller.dart';
+import 'package:BlueEra/features/subscription/widget/promo_code_dialog.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -540,6 +541,8 @@ class _CreateBusinessAccountNewStepTwoState
                                           await viewBusinessDetailsController
                                               .updateBusinessDetails(reqParam,
                                                   showProgress: false);
+                                          if (!mounted) return;
+                                          await _showReferralDialog(context);
                                           Get.toNamed(
                                               RouteHelper
                                                   .getCreateBusinessAccountNewStepThreeRoute(),
@@ -566,6 +569,24 @@ class _CreateBusinessAccountNewStepTwoState
               ),
             ),
           )),
+    );
+  }
+
+  Future<void> _showReferralDialog(BuildContext context) async {
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => PromoCodeDialog(
+        onBtnPressed: (code) async {
+          Navigator.of(ctx).pop();
+          if (code.isNotEmpty) {
+            await viewBusinessDetailsController.updateBusinessDetails(
+              {ApiKeys.referral_code: code},
+              showProgress: false,
+            );
+          }
+        },
+      ),
     );
   }
 }

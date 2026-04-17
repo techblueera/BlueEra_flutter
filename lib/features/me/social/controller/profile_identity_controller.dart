@@ -80,10 +80,17 @@ class ProfileIdentityController extends GetxController {
           // keeping locationController text as is or setting it if we have address
           locationController.text = data.location?.name ?? "";
           familyBackgroundController.text = data.familyBackground ?? "";
+          if ((data.familyBackground ?? "").isNotEmpty) {
+            isAddingBackground.value = true;
+            rxValue.value = data.familyBackground ?? "";
+          }
         }
 
-        // If we have data, we are in edit mode
-        isEditMode.value = true;
+        // Only set edit mode if user has actually saved content before
+        isEditMode.value = (data.bio ?? "").isNotEmpty ||
+            (data.journey ?? "").isNotEmpty ||
+            (data.familyBackground ?? "").isNotEmpty ||
+            (data.location?.name ?? "").isNotEmpty;
       }
     } catch (e) {
       print("Error fetching profile: $e");

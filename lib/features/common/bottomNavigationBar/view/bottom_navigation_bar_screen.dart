@@ -651,7 +651,6 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       case SOCIAL_PROFILE:
         return const SocialMainScreen();
 
-
       case PROFESSIONAL:
         return const ProfessionalsMainScreen();
 

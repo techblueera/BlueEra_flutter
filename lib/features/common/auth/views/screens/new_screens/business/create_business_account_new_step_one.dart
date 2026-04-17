@@ -38,7 +38,6 @@ class _CreateBusinessAccountNewStepOneState extends State<CreateBusinessAccountN
   final _formKey = GlobalKey<FormState>();
   AutovalidateMode _autoValidate = AutovalidateMode.disabled;
 
-  bool _referralCodeEnable = false;
   final authController = Get.find<AuthController>();
   String? _imagePath;
   bool isServiceOrManufacturing =  false;
@@ -519,42 +518,7 @@ class _CreateBusinessAccountNewStepOneState extends State<CreateBusinessAccountN
                             height: SizeConfig.size20,
                           ),
           
-                          ..._referralCodeEnable
-                              ? [
-                            CommonTextField(
-                              textEditController:
-                              authController.referralCodeController,
-                              inputLength: AppConstants.inputCharterLimit10,
-                              keyBoardType: TextInputType.text,
-                              regularExpression:
-                              RegularExpressionUtils.alphanumericPattern,
-                              title: AppStrings.referralCode,
-                              hintText: AppStrings.enterReferralCode,
-                              autovalidateMode: _autoValidate,
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return  AppStrings.pleaseEnterReferralCode.tr;
-                                }
-                                return null;
-                              },
-                            ),
-                          ]
-                              : [
-                            Center(
-                              child: InkWell(
-                                onTap: () =>
-                                    setState(() => _referralCodeEnable = true),
-                                child: CustomText(
-                                  AppStrings.doYouHaveReferralCode,
-                                  color: AppColors.primaryColor,
-                                  decoration: TextDecoration.underline,
-                                  fontSize: SizeConfig.medium,
-                                  decorationColor: AppColors.primaryColor,
-                                ),
-                              ),
-                            ),
-                          ],
-          
+                
                         ],
                       ),
                     ),
@@ -699,9 +663,6 @@ class _CreateBusinessAccountNewStepOneState extends State<CreateBusinessAccountN
                     false))
             ? true
             : false,
-
-        if (authController.referralCodeController.text.isNotEmpty)
-          ApiKeys.referral_code: authController.referralCodeController.text.trim(),
 
         if(isServiceOrManufacturing && authController.selectedNumberOfEmployees!=null)
          ApiKeys.number_of_Employees: authController.selectedNumberOfEmployees,

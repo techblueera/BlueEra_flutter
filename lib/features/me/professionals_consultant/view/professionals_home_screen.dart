@@ -1,15 +1,10 @@
-import 'package:BlueEra/core/api/apiService/api_keys.dart';
-import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/core/services/multipart_image_service.dart';
-import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
-import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import 'package:BlueEra/features/me/professionals_consultant/controller/ai_professionals_controller.dart';
 import 'package:BlueEra/features/me/professionals_consultant/model/professional_profile_res_model.dart';
 import 'package:BlueEra/features/me/professionals_consultant/view/portfolio_project_card_widget.dart';
@@ -20,16 +15,12 @@ import 'package:BlueEra/features/me/professionals_consultant/view/professional_s
 import 'package:BlueEra/features/me/professionals_consultant/view/professionals_certificates_screen.dart';
 import 'package:BlueEra/features/me/professionals_consultant/view/professionals_timing_screen.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
-import 'package:BlueEra/widgets/common_circular_profile_image.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/service_home_title_widget.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:croppy/croppy.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -42,8 +33,6 @@ class ProfessionalsHomeScreen extends StatelessWidget {
       getOrPut(() => ViewPersonalDetailsController(), permanent: true);
 
   final controller = Get.find<AiProfessionalsController>();
-  final personalCreateProfileController =
-      getOrPut(() => PersonalCreateProfileController());
 
   // Dummy placeholder colors
   static const _dummyCardBg = Color(0xFFEEEEEE);
@@ -51,18 +40,9 @@ class ProfessionalsHomeScreen extends StatelessWidget {
   static const _dummyDarkText = Color(0xFF9E9E9E);
   static const _dummyBorderColor = Color(0xFFE0E0E0);
 
-  bool _statsFetched = false;
-
   void _navigateToEdit(Widget screen) async {
     await Get.to(() => screen);
     controller.professionalsFullDetailsController();
-  }
-
-  void _fetchStatsOnce() {
-    if (!_statsFetched && userId.isNotEmpty) {
-      _statsFetched = true;
-      viewProfileController.UserFollowersAndPostsCount(userId);
-    }
   }
 
   @override
@@ -74,7 +54,6 @@ class ProfessionalsHomeScreen extends StatelessWidget {
         if (data == null) {
           return const Center(child: CircularProgressIndicator());
         }
-        _fetchStatsOnce();
 
         return Padding(
           padding: EdgeInsets.all(SizeConfig.paddingXS),
@@ -82,18 +61,6 @@ class ProfessionalsHomeScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Header
-                CommonCardWidget(
-                  cardMargin: 0,
-                  padding: 0,
-                  child: _buildHeaderSection(context),
-                ),
-                SizedBox(height: SizeConfig.size14),
-
-                // Stats (Followers, Following, etc.)
-                _buildStatsSection(data),
-                SizedBox(height: SizeConfig.size14),
-
                 // Expertise
                 _buildExpertiseSection(data),
                 SizedBox(height: SizeConfig.size14),
@@ -221,248 +188,6 @@ class ProfessionalsHomeScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(height / 2),
       ),
     );
-  }
-
-  // ============================================================
-  // HEADER
-  // ============================================================
-
-  Widget _buildHeaderSection(BuildContext context) {
-    String capitalizeFirstLetter(String text) {
-      if (text.isEmpty) return '';
-      return text[0].toUpperCase() + text.substring(1).toLowerCase();
-    }
-
-    return CustomFormCard(
-      padding: EdgeInsets.zero,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            height: 180,
-            child: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                ClipRRect(
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(10),
-                    topRight: Radius.circular(10),
-                  ),
-                  child: Container(
-                    height: 130,
-                    width: double.infinity,
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [Color(0xFF1A1A1A), Color(0xFF2B2B2B)],
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                      ),
-                    ),
-                    child: Obx(() {
-                      final banner = personalCreateProfileController
-                              .coverImagePath?.value ??
-                          '';
-                      return banner.isNotEmpty
-                          ? Image.network(banner, fit: BoxFit.cover)
-                          : CachedNetworkImage(
-                              imageUrl: personalCreateProfileController
-                                      .imagePath?.value ??
-                                  '',
-                              fit: BoxFit.cover,
-                              placeholder: (context, url) => Container(
-                                color: Colors.grey[300],
-                              ),
-                              errorWidget: (context, url, error) =>
-                                  Icon(Icons.person,
-                                      size: SizeConfig.size32 / 2),
-                            );
-                    }),
-                  ),
-                ),
-                Positioned(
-                  left: 20,
-                  top: 90,
-                  child: Obx(() {
-                    return CommonProfileImage(
-                      imagePath:
-                          personalCreateProfileController.imagePath?.value ??
-                              "",
-                      onImageUpdate: (image) async {
-                        personalCreateProfileController.imagePath?.value =
-                            image;
-                        dynamic dataImage =
-                            await multiPartImage(imagePath: image);
-                        var reqProfile = {ApiKeys.profile_image: dataImage};
-                        await personalCreateProfileController
-                            .updateUserProfileDetails(
-                                params: reqProfile,
-                                isFromProfileOnly: true);
-                      },
-                      dialogTitle: AppStrings.uploadProfilePicture,
-                      showProfileBorder: true,
-                    );
-                  }),
-                ),
-                Positioned(
-                  right: 10,
-                  top: 8,
-                  child: InkWell(
-                    onTap: () async {
-                      final String? newPath =
-                          await SelectProfilePictureDialog.showLogoDialog(
-                        context,
-                        AppStrings.editCoverPicture,
-                        cropAspectRatio:
-                            CropAspectRatio(width: 3, height: 1),
-                      );
-                      if (newPath == null || newPath.isEmpty) return;
-                      dynamic dataImage =
-                          await multiPartImage(imagePath: newPath);
-                      var reqProfile = {ApiKeys.coverpicture: dataImage};
-                      await personalCreateProfileController
-                          .updateUserProfileDetails(
-                              params: reqProfile,
-                              isFromProfileOnly: true);
-                    },
-                    child: CircleAvatar(
-                      backgroundColor:
-                          AppColors.black.withValues(alpha: 0.3),
-                      child: LocalAssets(
-                          imagePath: 'assets/images/image.png'),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Padding(
-            padding:
-                EdgeInsets.symmetric(horizontal: SizeConfig.size15),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CustomText(
-                  capitalizeFirstLetter(
-                    viewProfileController.personalProfileDetails.value
-                            .user?.name ??
-                        '',
-                  ),
-                  fontSize: SizeConfig.size24,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.mainTextColor,
-                ),
-              ],
-            ),
-          ),
-          if (viewProfileController.personalProfileDetails.value.user?.bio
-                  ?.isNotEmpty ??
-              false)
-            Padding(
-              padding: EdgeInsets.symmetric(
-                  horizontal: SizeConfig.size15),
-              child: ExpandableText(
-                text: viewProfileController
-                        .personalProfileDetails.value.user?.bio ??
-                    "",
-                trimLines: 3,
-                style: TextStyle(
-                  color: AppColors.mainTextColor,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w400,
-                  height: 1.5,
-                ),
-                expandMode: ExpandMode.dialog,
-                dialogTitle: AppStrings.bio,
-              ),
-            ),
-          const SizedBox(height: 12),
-        ],
-      ),
-    );
-  }
-
-  // ============================================================
-  // STATS SECTION (Followers, Following, Posts, Joined)
-  // ============================================================
-
-  Widget _buildStatsSection(ProfessionalProfileData data) {
-    String formatJoinedDate(String? dateStr) {
-      if (dateStr == null || dateStr.isEmpty) return '-';
-      try {
-        final date = DateTime.parse(dateStr);
-        return "${date.day}/${date.month}/${date.year}";
-      } catch (_) {
-        return '-';
-      }
-    }
-
-    return CommonCardWidget(
-      cardMargin: 0,
-      padding: 0,
-      child: Obx(() {
-        final followers = viewProfileController.followersCount.value;
-        final following = viewProfileController.followingCount.value;
-        final posts = viewProfileController.postsCount.value;
-        final joinedDate = formatJoinedDate(data.createdAt);
-
-        return Container(
-          padding: EdgeInsets.symmetric(
-              horizontal: SizeConfig.size14, vertical: SizeConfig.size12),
-          decoration: BoxDecoration(
-            color: AppColors.white,
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: Colors.grey.shade200),
-          ),
-          child: Row(
-            children: [
-              _statItem("Posts", "$posts"),
-              _statDivider(),
-              _statItem("Followers", _formatCount(followers)),
-              _statDivider(),
-              _statItem("Following", _formatCount(following)),
-              _statDivider(),
-              _statItem("Joined", joinedDate),
-            ],
-          ),
-        );
-      }),
-    );
-  }
-
-  Widget _statItem(String label, String value) {
-    return Expanded(
-      child: Column(
-        children: [
-          CustomText(
-            label,
-            fontSize: SizeConfig.small,
-            color: AppColors.secondaryTextColor,
-            fontWeight: FontWeight.w400,
-          ),
-          const SizedBox(height: 4),
-          CustomText(
-            value,
-            fontSize: SizeConfig.medium,
-            fontWeight: FontWeight.bold,
-            color: AppColors.mainTextColor,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _statDivider() {
-    return Container(
-      height: 30,
-      width: 1,
-      color: Colors.grey.shade200,
-    );
-  }
-
-  String _formatCount(int count) {
-    if (count >= 1000000) return "${(count / 1000000).toStringAsFixed(1)}M";
-    if (count >= 1000) return "${(count / 1000).toStringAsFixed(1)}k";
-    return "$count";
   }
 
   // ============================================================

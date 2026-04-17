@@ -4,9 +4,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
-import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
 import 'package:BlueEra/features/me/product/view/visit_product_store_details_screen.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/business/widgets/business_common_subcategory_widget.dart';
@@ -58,7 +56,7 @@ class ProductStoreCard extends StatelessWidget {
               children: [
                 CachedAvatarWidget(
                   imageUrl: getAllStoreResData?.logo,
-                  size: ds(40),
+                  size: ds(50),
                   borderRadius: ds(20),
                 ),
                 SizedBox(width: ds(10)),
@@ -234,14 +232,14 @@ class ProductStoreCard extends StatelessWidget {
                             getAllStoreResData?.businessLocation?.lat?.toDouble() ?? 0.0,
                             getAllStoreResData?.businessLocation?.lon?.toDouble() ?? 0.0,
                           ).toStringAsFixed(2)} Km Away',
-                          fontSize: 13.0,
+                          fontSize: 14.0,
                           color: AppColors.secondaryTextColor,
                           fontWeight: FontWeight.w600,
                         ),
                         SizedBox(height: SizeConfig.size4),
                         CustomText(
                           getAllStoreResData?.address ?? AppStrings.na,
-                          fontSize: 11.0,
+                          fontSize: 12.0,
                           color: AppColors.secondaryTextColor,
                           fontWeight: FontWeight.w400,
                         ),
@@ -253,6 +251,29 @@ class ProductStoreCard extends StatelessWidget {
                 ],
               ),
             ),
+          ),
+
+          SizedBox(height: ds(5)),
+
+          // --- Stats: Category & Product ---
+          Row(
+            children: [
+              _buildStatBox(
+                icon: AppIconAssets.staggeredIcon,
+                count: '${getAllStoreResData?.totalCategoryCount ?? 0}',
+                label: 'Category',
+                iconColor: const Color(0xFF9964F4),
+                bgColor: AppColors.purpleFD,
+              ),
+              SizedBox(width: SizeConfig.size6),
+              _buildStatBox(
+                icon: AppIconAssets.productCartIcon,
+                count: '${getAllStoreResData?.totalProductCount ?? 0}',
+                label: 'Product',
+                iconColor: const Color(0xFF6179CD),
+                bgColor: AppColors.purpleFF,
+              ),
+            ],
           ),
 
           SizedBox(height: ds(5)),
@@ -306,30 +327,6 @@ class ProductStoreCard extends StatelessWidget {
               ),
             ),
           ],
-
-          SizedBox(height: ds(5)),
-
-          // --- Stats: Category & Product ---
-          Row(
-            children: [
-              _buildStatBox(
-                icon: AppIconAssets.staggeredIcon,
-                count: '${getAllStoreResData?.totalCategoryCount ?? 0}',
-                label: 'Category',
-                iconColor: const Color(0xFF9964F4),
-                bgColor: AppColors.purpleFD,
-              ),
-              SizedBox(width: SizeConfig.size6),
-              _buildStatBox(
-                icon: AppIconAssets.productCartIcon,
-                count: '${getAllStoreResData?.totalProductCount ?? 0}',
-                label: 'Product',
-                iconColor: const Color(0xFF6179CD),
-                bgColor: AppColors.purpleFF,
-              ),
-            ],
-          ),
-
 
         ],
       ),

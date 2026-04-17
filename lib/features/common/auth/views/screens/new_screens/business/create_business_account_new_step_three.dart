@@ -199,10 +199,10 @@ class _CreateBusinessAccountNewStepThreeState
                     ),
                     CommonTextField(
                       textEditController: nameTextController,
-                      inputLength: AppConstants.inputCharterLimit50,
+                      inputLength: AppConstants.inputCharterLimit30,
                       keyBoardType: TextInputType.text,
                       regularExpression:
-                          RegularExpressionUtils.alphabetSpacePattern,
+                          RegularExpressionUtils.alphabetSpacePattern_,
                       title: AppStrings.yourNameHint,
                       hintText: AppConstants.name,
                       isValidate: false,
@@ -213,10 +213,10 @@ class _CreateBusinessAccountNewStepThreeState
                     ),
                     CommonTextField(
                       textEditController: yourRoleController,
-                      inputLength: AppConstants.inputCharterLimit50,
+                      inputLength: AppConstants.inputCharterLimit30,
                       keyBoardType: TextInputType.text,
                       regularExpression:
-                          RegularExpressionUtils.alphabetSpacePattern,
+                          RegularExpressionUtils.alphabetSpacePattern_,
                       title: AppStrings.yourRole,
                       hintText: AppStrings.yourRoleHint,
                       isValidate: false,
@@ -308,8 +308,14 @@ class _CreateBusinessAccountNewStepThreeState
                                         await viewBusinessDetailsController
                                             .updateBusinessDetails(reqParam,
                                                 showProgress: false);
-                                        Get.toNamed(RouteHelper
-                                            .getAddBusinessLivePhotoRoute());
+                                        Get.offAllNamed(
+                                            RouteHelper.getBottomNavigationBarScreenRoute(),
+                                            arguments: {
+                                              ApiKeys.initialIndex: 2
+                                            }
+                                        );
+                                        // Get.toNamed(RouteHelper
+                                        //     .getAddBusinessLivePhotoRoute());
                                       }
                                     : null,
                                 title: viewBusinessDetailsController

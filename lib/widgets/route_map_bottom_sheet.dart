@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
@@ -7,6 +8,7 @@ import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/features/common/store/widget/store_live_photo_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -212,348 +214,371 @@ List<String> get _validPhotos =>
     final hasPhotos = _validPhotos.isNotEmpty;
 
     return Container(
-      height: MediaQuery.of(context).size.height * (hasPhotos ? 0.7 : 0.4),
+      // height: MediaQuery.of(context).size.height * (hasPhotos ? 0.7 : 0.4),
       // height: MediaQuery.of(context).size.height * (hasPhotos ? 0.8 : 0.6),
       decoration: const BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      child: Column(
-        children: [
-          // Drag handle
-          Container(
-            margin: const EdgeInsets.only(top: 10, bottom: 6),
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: Colors.grey.shade300,
-              borderRadius: BorderRadius.circular(2),
+      child: SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Drag handle
+            Container(
+              margin: const EdgeInsets.only(top: 10, bottom: 6),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(2),
+              ),
             ),
-          ),
-
-          // Header
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      InkWell(
-                        onTap: (){
-                          Get.toNamed(RouteHelper.getVisitGroceryStoreScreenRoute(), arguments: {
-                            ApiKeys.userId:widget.storeUserID,
-                            ApiKeys.businessId: widget.storeBusinessID,
-                          });
-                        },
-                        child: CustomText(
-                          widget.destinationName,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.mainTextColor,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      CustomText(
-                        '$distance Km Away',
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.secondaryTextColor,
-                      ),
-                    ],
-                  ),
-                ),
-                // Visit Store button
-                GestureDetector(
-                  onTap: () {
-                    Navigator.of(context).maybePop();
-                    Get.toNamed(
-                      RouteHelper.getVisitGroceryStoreScreenRoute(),
-                      arguments: {
-                        ApiKeys.userId: widget.storeUserID,
-                        ApiKeys.businessId: widget.storeBusinessID,
-                      },
-                    );
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: Colors.blue,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: const Row(
-                      mainAxisSize: MainAxisSize.min,
+        
+            // Header
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(Icons.storefront_rounded, size: 16, color: Colors.white),
-                        SizedBox(width: 6),
+                        InkWell(
+                          onTap: (){
+                            Get.toNamed(RouteHelper.getVisitGroceryStoreScreenRoute(), arguments: {
+                              ApiKeys.userId:widget.storeUserID,
+                              ApiKeys.businessId: widget.storeBusinessID,
+                            });
+                          },
+                          child: CustomText(
+                            widget.destinationName,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.mainTextColor,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
                         CustomText(
-                          AppStrings.view,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.white,
+                          '$distance Km Away',
+                          fontSize: 13,
+                          fontWeight: FontWeight.w400,
+                          color: AppColors.secondaryTextColor,
                         ),
                       ],
                     ),
                   ),
-                ),
-                const SizedBox(width: 10),
-                // Close button
-                DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade100,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: AppColors.greyE5, width: 0.5),
-                  ),
-                  child: CloseButton(
-                    style: ButtonStyle(
-                      iconSize: WidgetStatePropertyAll(18),
-                      padding: WidgetStatePropertyAll(EdgeInsets.all(6)),
-                      minimumSize: WidgetStatePropertyAll(Size.zero),
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                    color: Colors.grey.shade600,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-
-
-          const SizedBox(height: 4),
-
-          // Map (card view)
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.greyE5, width: 1.0),
-                ),
-                child: ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: Stack(
-                  children: [
-                    GoogleMap(
-                      initialCameraPosition: CameraPosition(
-                        target: _destinationLatLng,
-                        zoom: 13,
+                  // Visit Store button
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.of(context).maybePop();
+                      Get.toNamed(
+                        RouteHelper.getVisitGroceryStoreScreenRoute(),
+                        arguments: {
+                          ApiKeys.userId: widget.storeUserID,
+                          ApiKeys.businessId: widget.storeBusinessID,
+                        },
+                      );
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.blue,
+                        borderRadius: BorderRadius.circular(20),
                       ),
-                      markers: _markers,
-                      polylines: _polylines,
-                      myLocationEnabled: false,
-                      zoomControlsEnabled: true,
-                      zoomGesturesEnabled: true,
-                      scrollGesturesEnabled: true,
-                      rotateGesturesEnabled: true,
-                      tiltGesturesEnabled: true,
-                      mapToolbarEnabled: false,
-                      gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>{
-                        Factory<OneSequenceGestureRecognizer>(() => EagerGestureRecognizer()),
-                      },
-                      onMapCreated: (controller) {
-                        _mapController = controller;
-                        Future.delayed(const Duration(milliseconds: 500), _fitBounds);
-                      },
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.storefront_rounded, size: 16, color: Colors.white),
+                          SizedBox(width: 6),
+                          CustomText(
+                            AppStrings.view,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.white,
+                          ),
+                        ],
+                      ),
                     ),
-                    if (_isLoadingRoute)
-                      Positioned(
-                        top: 12,
-                        left: 0,
-                        right: 0,
-                        child: Center(
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                            decoration: BoxDecoration(
-                              color: AppColors.white,
-                              borderRadius: BorderRadius.circular(20),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.1),
-                                  blurRadius: 8,
-                                ),
-                              ],
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                SizedBox(
-                                  height: 14,
-                                  width: 14,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: Colors.blue.shade400,
+                  ),
+                  const SizedBox(width: 10),
+                  // Close button
+                  DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade100,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: AppColors.greyE5, width: 0.5),
+                    ),
+                    child: CloseButton(
+                      style: ButtonStyle(
+                        iconSize: WidgetStatePropertyAll(18),
+                        padding: WidgetStatePropertyAll(EdgeInsets.all(6)),
+                        minimumSize: WidgetStatePropertyAll(Size.zero),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        
+        
+        
+            const SizedBox(height: 4),
+        
+            // Map (card view)
+            SizedBox(
+              height: 200,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.greyE5, width: 1.0),
+                  ),
+                  child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Stack(
+                    children: [
+                      GoogleMap(
+                        initialCameraPosition: CameraPosition(
+                          target: _destinationLatLng,
+                          zoom: 13,
+                        ),
+                        markers: _markers,
+                        polylines: _polylines,
+                        myLocationEnabled: false,
+                        zoomControlsEnabled: true,
+                        zoomGesturesEnabled: true,
+                        scrollGesturesEnabled: true,
+                        rotateGesturesEnabled: true,
+                        tiltGesturesEnabled: true,
+                        mapToolbarEnabled: false,
+                        gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>{
+                          Factory<OneSequenceGestureRecognizer>(() => EagerGestureRecognizer()),
+                        },
+                        onMapCreated: (controller) {
+                          _mapController = controller;
+                          Future.delayed(const Duration(milliseconds: 500), _fitBounds);
+                        },
+                      ),
+                      if (_isLoadingRoute)
+                        Positioned(
+                          top: 12,
+                          left: 0,
+                          right: 0,
+                          child: Center(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: AppColors.white,
+                                borderRadius: BorderRadius.circular(20),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.1),
+                                    blurRadius: 8,
                                   ),
-                                ),
-                                const SizedBox(width: 8),
-                                const CustomText(
-                                  'Loading route...',
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w500,
-                                  color: AppColors.secondaryTextColor,
-                                ),
-                              ],
+                                ],
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  SizedBox(
+                                    height: 14,
+                                    width: 14,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Colors.blue.shade400,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  const CustomText(
+                                    'Loading route...',
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w500,
+                                    color: AppColors.secondaryTextColor,
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
+                    ],
+                  ),
+                ),
+                ),
+              ),
+            ),
+
+            // Expanded(
+            //   child: Padding(
+            //     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            //     child: Card(
+            //       elevation: 3,
+            //       color: AppColors.white,
+            //       clipBehavior: Clip.antiAlias,
+            //       shape: RoundedRectangleBorder(
+            //         borderRadius: BorderRadius.circular(16),
+            //         side: BorderSide(color: AppColors.greyE5, width: 0.5),
+            //       ),
+            //       child: Stack(
+            //         children: [
+            //           GoogleMap(
+            //           initialCameraPosition: CameraPosition(
+            //             target: _destinationLatLng,
+            //             zoom: 15,
+            //           ),
+            //           markers: _markers,
+            //           polylines: _polylines,
+            //           myLocationEnabled: false,
+            //           zoomControlsEnabled: false,
+            //           zoomGesturesEnabled: false,
+            //           scrollGesturesEnabled: false,
+            //           rotateGesturesEnabled: false,
+            //           tiltGesturesEnabled: false,
+            //           mapToolbarEnabled: false,
+            //           liteModeEnabled: true,
+            //           onTap: (_) => _openInGoogleMaps(),
+            //           onMapCreated: (controller) {
+            //             _mapController = controller;
+            //           },
+            //         ),
+            //         if (_isLoadingRoute)
+            //           Positioned(
+            //             top: 12,
+            //             left: 0,
+            //             right: 0,
+            //             child: Center(
+            //               child: Container(
+            //                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            //                 decoration: BoxDecoration(
+            //                   color: AppColors.white,
+            //                   borderRadius: BorderRadius.circular(20),
+            //                   boxShadow: [
+            //                     BoxShadow(
+            //                       color: Colors.black.withValues(alpha: 0.1),
+            //                       blurRadius: 8,
+            //                     ),
+            //                   ],
+            //                 ),
+            //                 child: Row(
+            //                   mainAxisSize: MainAxisSize.min,
+            //                   children: [
+            //                     SizedBox(
+            //                       height: 14,
+            //                       width: 14,
+            //                       child: CircularProgressIndicator(
+            //                         strokeWidth: 2,
+            //                         color: Colors.blue.shade400,
+            //                       ),
+            //                     ),
+            //                     const SizedBox(width: 8),
+            //                     const CustomText(
+            //                       'Loading route...',
+            //                       fontSize: 11,
+            //                       fontWeight: FontWeight.w500,
+            //                       color: AppColors.secondaryTextColor,
+            //                     ),
+            //                   ],
+            //                 ),
+            //               ),
+            //             ),
+            //           ),
+            //         ],
+            //       ),
+            //     ),
+            //   ),
+            // ),
+            // Address
+
+            const SizedBox(height: 4),
+
+            if (widget.destinationAddress.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 4.0,
+                          horizontal: 6.0,
                       ),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(6.0),
+                        color: AppColors.white,
+                        border: Border.all(
+                          color: AppColors.greyE5
+                        ),
+                      ),
+                      child: LocalAssets(
+                        imagePath: AppIconAssets.location_outline,
+                        imgColor: AppColors.secondaryTextColor,
+                        height: 24,
+                        width: 20,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: CustomText(
+                        widget.destinationAddress,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w400,
+                        color: AppColors.secondaryTextColor,
+                        maxLines: 2,
+                      ),
+                    ),
                   ],
                 ),
               ),
-              ),
-            ),
-          ),
-          // Expanded(
-          //   child: Padding(
-          //     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          //     child: Card(
-          //       elevation: 3,
-          //       color: AppColors.white,
-          //       clipBehavior: Clip.antiAlias,
-          //       shape: RoundedRectangleBorder(
-          //         borderRadius: BorderRadius.circular(16),
-          //         side: BorderSide(color: AppColors.greyE5, width: 0.5),
-          //       ),
-          //       child: Stack(
-          //         children: [
-          //           GoogleMap(
-          //           initialCameraPosition: CameraPosition(
-          //             target: _destinationLatLng,
-          //             zoom: 15,
-          //           ),
-          //           markers: _markers,
-          //           polylines: _polylines,
-          //           myLocationEnabled: false,
-          //           zoomControlsEnabled: false,
-          //           zoomGesturesEnabled: false,
-          //           scrollGesturesEnabled: false,
-          //           rotateGesturesEnabled: false,
-          //           tiltGesturesEnabled: false,
-          //           mapToolbarEnabled: false,
-          //           liteModeEnabled: true,
-          //           onTap: (_) => _openInGoogleMaps(),
-          //           onMapCreated: (controller) {
-          //             _mapController = controller;
-          //           },
-          //         ),
-          //         if (_isLoadingRoute)
-          //           Positioned(
-          //             top: 12,
-          //             left: 0,
-          //             right: 0,
-          //             child: Center(
-          //               child: Container(
-          //                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-          //                 decoration: BoxDecoration(
-          //                   color: AppColors.white,
-          //                   borderRadius: BorderRadius.circular(20),
-          //                   boxShadow: [
-          //                     BoxShadow(
-          //                       color: Colors.black.withValues(alpha: 0.1),
-          //                       blurRadius: 8,
-          //                     ),
-          //                   ],
-          //                 ),
-          //                 child: Row(
-          //                   mainAxisSize: MainAxisSize.min,
-          //                   children: [
-          //                     SizedBox(
-          //                       height: 14,
-          //                       width: 14,
-          //                       child: CircularProgressIndicator(
-          //                         strokeWidth: 2,
-          //                         color: Colors.blue.shade400,
-          //                       ),
-          //                     ),
-          //                     const SizedBox(width: 8),
-          //                     const CustomText(
-          //                       'Loading route...',
-          //                       fontSize: 11,
-          //                       fontWeight: FontWeight.w500,
-          //                       color: AppColors.secondaryTextColor,
-          //                     ),
-          //                   ],
-          //                 ),
-          //               ),
-          //             ),
-          //           ),
-          //         ],
-          //       ),
-          //     ),
-          //   ),
-          // ),
-          // Address
-
-          if (widget.destinationAddress.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                children: [
-                  Icon(Icons.location_on_outlined, size: 14, color: Colors.grey.shade500),
-                  const SizedBox(width: 4),
-                  Expanded(
-                    child: CustomText(
-                      widget.destinationAddress,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w400,
-                      color: AppColors.secondaryTextColor,
-                      maxLines: 2,
+            const SizedBox(height: 10),
+        
+            // Live Photos
+            if (hasPhotos) ...[
+              Padding(
+                padding: const EdgeInsets.only(left: 16, right: 16, top: 12, bottom: 8),
+                child: Row(
+                  children: [
+                    Icon(Icons.store, size: 16, color: AppColors.primaryColor),
+                    const SizedBox(width: 6),
+                    CustomText(
+                      'Store Photos (${_validPhotos.length})',
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.mainTextColor,
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          const SizedBox(height: 10),
-
-          // Live Photos
-          if (hasPhotos) ...[
-            Padding(
-              padding: const EdgeInsets.only(left: 16, right: 16, top: 12, bottom: 8),
-              child: Row(
-                children: [
-                  Icon(Icons.photo_library_outlined, size: 16, color: Colors.grey.shade600),
-                  const SizedBox(width: 6),
-                  CustomText(
-                    'Live Photos (${_validPhotos.length})',
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.mainTextColor,
-                  ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
-              child: StoreLivePhotoWidget(
-                livePhotos: _validPhotos,
-                natureOfBusiness: widget.destinationName,
-                height: 150,
-                onViewFullScreen: ({
-                  required int index,
-                  required List<String> storeImage,
-                  required String natureOfBusiness,
-                }) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => ImageViewScreen(
-                        appBarTitle: widget.destinationName,
-                        subTitle: widget.destinationName,
-                        imageUrls: storeImage,
-                        initialIndex: index,
+              Padding(
+                padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
+                child: StoreLivePhotoWidget(
+                  livePhotos: _validPhotos,
+                  natureOfBusiness: widget.destinationName,
+                  height: 180,
+                  onViewFullScreen: ({
+                    required int index,
+                    required List<String> storeImage,
+                    required String natureOfBusiness,
+                  }) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => ImageViewScreen(
+                          appBarTitle: widget.destinationName,
+                          subTitle: widget.destinationName,
+                          imageUrls: storeImage,
+                          initialIndex: index,
+                        ),
                       ),
-                    ),
-                  );
-                },
+                    );
+                  },
+                ),
               ),
-            ),
-            SizedBox(
-              height: kBottomNavigationBarHeight,
-            ),
+            ],
+            const SizedBox(height: 20),
           ],
-        ],
+        ),
       ),
     );
   }

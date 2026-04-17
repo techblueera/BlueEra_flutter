@@ -72,32 +72,62 @@ class _ExpandableTextState extends State<ExpandableText> {
     }
 
     if (_readMore) {
-      return RichText(
-        text: TextSpan(
-          children: [
-            TextSpan(
-              style: widget.style ?? const TextStyle(color: AppColors.black28),
-              text: widget.text.length > 120
-                  ? '${widget.text.substring(0, 120)}... '
-                  : widget.text,
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          final textSpan = TextSpan(
+            text: widget.text,
+            style: style,
+          );
+          final tp = TextPainter(
+            text: textSpan,
+            maxLines: widget.trimLines,
+            textDirection: TextDirection.ltr,
+          );
+          tp.layout(maxWidth: constraints.maxWidth);
+
+          // Find the end position for trimLines
+          final endPos = tp.getPositionForOffset(
+            Offset(tp.size.width, tp.size.height),
+          );
+          // Leave room for "... Read more"
+          final truncateIndex = endPos.offset > 10
+              ? endPos.offset - 10
+              : endPos.offset;
+          final truncatedText = widget.text.substring(
+            0,
+            truncateIndex.clamp(0, widget.text.length),
+          );
+
+          return RichText(
+            maxLines: widget.trimLines,
+            overflow: TextOverflow.clip,
+            text: TextSpan(
+              children: [
+                TextSpan(
+                  style: style,
+                  text: '$truncatedText... ',
+                ),
+                TextSpan(
+                  text: (widget.isReadMoreNewLine ?? false)
+                      ? "${AppStrings.read_more.tr}\n"
+                      : AppStrings.read_more.tr,
+                  style: style.copyWith(
+                    color: AppColors.primaryColor,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  recognizer: TapGestureRecognizer()
+                    ..onTap = () {
+                      if (widget.expandMode == ExpandMode.dialog) {
+                        _showFullTextDialog(context, style);
+                      } else {
+                        setState(() => _readMore = false);
+                      }
+                    },
+                ),
+              ],
             ),
-            TextSpan(
-              text: (widget.isReadMoreNewLine ?? false) ? "${AppStrings.read_more.tr}\n" : '${AppStrings.read_more.tr}',
-              style: style.copyWith(
-                color: AppColors.primaryColor,
-                fontWeight: FontWeight.w600,
-              ),
-              recognizer: TapGestureRecognizer()
-                ..onTap = () {
-                  if (widget.expandMode == ExpandMode.dialog) {
-                    _showFullTextDialog(context, style);
-                  } else {
-                    setState(() => _readMore = false);
-                  }
-                },
-            ),
-          ],
-        ),
+          );
+        },
       );
     }
 

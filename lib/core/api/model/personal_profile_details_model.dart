@@ -84,6 +84,8 @@ class User {
     this.profileType,
     this.schoolOrCollegeName,
     this.pincode,
+    this.address,
+    this.createdAt,
   });
 
   User.fromJson(dynamic json) {
@@ -119,6 +121,8 @@ class User {
     profileType = json['profileType'];
     schoolOrCollegeName = json['schoolOrCollegeName'];
     pincode = json['pincode'];
+    address = json['address'];
+    createdAt = json['created_at'];
   }
 
   String? id;
@@ -150,6 +154,8 @@ class User {
   String? profileType;
   String? schoolOrCollegeName;
   num? pincode;
+  String? address;
+  String? createdAt;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
@@ -189,6 +195,8 @@ class User {
     map['profileType'] = profileType;
     map['schoolOrCollegeName'] = schoolOrCollegeName;
     map['pincode'] = pincode;
+    map['address'] = address;
+    map['created_at'] = createdAt;
     return map;
   }
 }

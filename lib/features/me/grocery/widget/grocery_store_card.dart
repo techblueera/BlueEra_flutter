@@ -61,9 +61,9 @@ class GroceryStoreCard extends StatelessWidget {
                     children: [
                       CachedAvatarWidget(
                         imageUrl: store.logo ?? '',
-                        size: SizeConfig.size40,
+                        size: SizeConfig.size50,
                         borderColor: Colors.white,
-                        borderRadius: SizeConfig.size20,
+                        borderRadius: SizeConfig.size25,
                       ),
                       SizedBox(width: SizeConfig.size8),
                       Expanded(
@@ -72,7 +72,7 @@ class GroceryStoreCard extends StatelessWidget {
                           children: [
                             CustomText(
                               store.businessName ?? 'Unknown Business',
-                              fontSize: SizeConfig.medium,
+                              fontSize: SizeConfig.large,
                               color: AppColors.mainTextColor,
                               fontWeight: FontWeight.w700,
                             ),
@@ -119,14 +119,14 @@ class GroceryStoreCard extends StatelessWidget {
                                     store.businessLocation?.lat?.toDouble() ?? 0.0,
                                     store.businessLocation?.lon?.toDouble() ?? 0.0,
                                   ).toStringAsFixed(2)} Km Away',
-                                  fontSize: 13.0,
+                                  fontSize: 14.0,
                                   color: AppColors.secondaryTextColor,
                                   fontWeight: FontWeight.w600,
                                 ),
                                 SizedBox(height: SizeConfig.size4),
                                 CustomText(
                                   store.address ?? AppStrings.na,
-                                  fontSize: 11.0,
+                                  fontSize: 12.0,
                                   color: AppColors.secondaryTextColor,
                                   fontWeight: FontWeight.w400,
                                 ),
@@ -138,6 +138,29 @@ class GroceryStoreCard extends StatelessWidget {
                         ],
                       ),
                     ),
+                  ),
+
+                  SizedBox(height: SizeConfig.size6),
+
+                  // --- Stats: Category & Product ---
+                  Row(
+                    children: [
+                      _buildStatBox(
+                        icon: AppIconAssets.staggeredIcon,
+                        count: '${store.totalCategoryCount}',
+                        label: 'Category',
+                        iconColor: const Color(0xFF9964F4),
+                        bgColor: AppColors.purpleFD,
+                      ),
+                      SizedBox(width: SizeConfig.size6),
+                      _buildStatBox(
+                        icon: AppIconAssets.productCartIcon,
+                        count: '${store.totalProductCount}',
+                        label: 'Product',
+                        iconColor: const Color(0xFF6179CD),
+                        bgColor: AppColors.purpleFF,
+                      ),
+                    ],
                   ),
 
                   SizedBox(height: SizeConfig.size6),
@@ -161,7 +184,6 @@ class GroceryStoreCard extends StatelessWidget {
                         );
                       },
                     ),
-                    SizedBox(height: SizeConfig.size6),
                   ] else if ((store.logo ?? '').isNotEmpty) ...[
                     ClipRRect(
                       borderRadius: BorderRadius.circular(12),
@@ -191,29 +213,9 @@ class GroceryStoreCard extends StatelessWidget {
                         ),
                       ),
                     ),
-                    SizedBox(height: SizeConfig.size6),
                   ],
 
-                  // --- Stats: Category & Product ---
-                  Row(
-                    children: [
-                      _buildStatBox(
-                        icon: AppIconAssets.staggeredIcon,
-                        count: '${store.totalCategoryCount}',
-                        label: 'Category',
-                        iconColor: const Color(0xFF9964F4),
-                        bgColor: AppColors.purpleFD,
-                      ),
-                      SizedBox(width: SizeConfig.size6),
-                      _buildStatBox(
-                        icon: AppIconAssets.productCartIcon,
-                        count: '${store.totalProductCount}',
-                        label: 'Product',
-                        iconColor: const Color(0xFF6179CD),
-                        bgColor: AppColors.purpleFF,
-                      ),
-                    ],
-                  )
+
                 ],
               ),
             ),
@@ -268,7 +270,7 @@ class GroceryStoreCard extends StatelessWidget {
         color: AppColors.greenCB,
         border: Border.all(color: AppColors.greenCB, width: 0.5),
       ),
-      child: CustomText(text, fontSize: 10, color: AppColors.green2C, fontWeight: FontWeight.w400),
+      child: CustomText(text, fontSize: 12, color: AppColors.green2C, fontWeight: FontWeight.w400),
     );
   }
 
@@ -300,7 +302,7 @@ class GroceryStoreCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CustomText(count, fontSize: SizeConfig.medium, color: AppColors.secondaryTextColor, fontWeight: FontWeight.w600),
-                  CustomText(label, fontSize: SizeConfig.extraSmall, color: AppColors.secondaryTextColor, fontWeight: FontWeight.w400),
+                  CustomText(label, fontSize: SizeConfig.small, color: AppColors.secondaryTextColor, fontWeight: FontWeight.w400),
                 ],
               ),
             ),
@@ -329,10 +331,11 @@ class GroceryStoreCard extends StatelessWidget {
           color: AppColors.primaryColor.withValues(alpha: 0.1),
           border: Border.all(color: AppColors.primaryColor, width: 0.5),
         ),
-        child: Icon(
-          Icons.chat_bubble_outline_rounded,
-          size: 18,
-          color: AppColors.primaryColor,
+        child: LocalAssets(
+          imagePath: AppIconAssets.chat,
+          height: 18,
+          width: 18,
+          imgColor: AppColors.primaryColor,
         ),
       ),
     );

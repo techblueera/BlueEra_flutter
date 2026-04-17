@@ -33,7 +33,9 @@ class _ProfessionalsMainState extends State<ProfessionalsMain> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Obx(() {
+    return SafeArea(
+      bottom: false,
+      child: Obx(() {
         return Column(crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SizedBox(height: SizeConfig.size10,),
@@ -68,6 +70,6 @@ class _ProfessionalsMainState extends State<ProfessionalsMain> {
 
           ],
         );
-    });
+    }));
   }
 }
