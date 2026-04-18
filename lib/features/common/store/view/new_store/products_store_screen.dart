@@ -192,6 +192,12 @@ class _ProductsStoreScreenState extends State<ProductsStoreScreen> {
                       images: _bannerImages,
                       onBack: _handleBackWithCartWarning,
                       statusBarHeight: statusBarHeight,
+                      backgroundColor:
+                          AppColors.blue5CAF.withValues(alpha: 0.1),
+                      bottomBorderSide: const BorderSide(
+                        color: AppColors.white,
+                        width: 2,
+                      ),
                     ),
                   ),
                   SliverPersistentHeader(
@@ -213,6 +219,15 @@ class _ProductsStoreScreenState extends State<ProductsStoreScreen> {
                         setState(() {});
                       },
                       onBack: _handleBackWithCartWarning,
+                      expandedLabelColor: AppColors.white,
+                      backgroundGradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          AppColors.blue5CAF.withValues(alpha: 0.1),
+                          AppColors.blue5CAF.withValues(alpha: 0.8),
+                        ],
+                      ),
                     ),
                   ),
                 ],
@@ -259,6 +274,7 @@ class _ProductsStoreScreenState extends State<ProductsStoreScreen> {
               left: SizeConfig.size12,
               right: SizeConfig.size12,
               bottom: SizeConfig.size6,
+              top: SizeConfig.size6,
             ),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),

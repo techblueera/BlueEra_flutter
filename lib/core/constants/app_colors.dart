@@ -155,4 +155,7 @@ class AppColors {
   static const kBg        = Color(0xFFF1F5F9);
   static const kCard      = Colors.white;
   static const kRed       = Color(0xFFEF4444);
+
+  static const blue85FE = Color(0xFF0085FE);
+  static const blue5CAF = Color(0xFF005CAF);
 }

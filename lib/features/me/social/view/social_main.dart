@@ -99,7 +99,6 @@ class _SocialMainScreenState extends State<SocialMainScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        bottom: false,
         child: Obx(() {
         _ctrl.profile.value;
         _rebuildTabsIfNeeded();

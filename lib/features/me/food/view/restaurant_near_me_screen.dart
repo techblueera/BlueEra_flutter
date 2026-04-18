@@ -197,6 +197,12 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
                       images: _bannerImages,
                       onBack: _handleBackWithCartWarning,
                       statusBarHeight: statusBarHeight,
+                      backgroundColor:
+                          AppColors.blue5CAF.withValues(alpha: 0.1),
+                      bottomBorderSide: const BorderSide(
+                        color: AppColors.white,
+                        width: 2,
+                      ),
                     ),
                   ),
                   SliverPersistentHeader(
@@ -221,6 +227,15 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
                         setState(() {});
                       },
                       onBack: _handleBackWithCartWarning,
+                      expandedLabelColor: AppColors.white,
+                      backgroundGradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          AppColors.blue5CAF.withValues(alpha: 0.1),
+                          AppColors.blue5CAF.withValues(alpha: 0.8),
+                        ],
+                      ),
                     ),
                   ),
                 ],

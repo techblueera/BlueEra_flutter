@@ -78,9 +78,14 @@ class BusinessProfileHeaderView extends StatelessWidget {
   Widget _buildBannerSection(BuildContext context) {
     final coverUrl = _coverImageUrl;
     final profileUrl = controller.imagePath?.value ?? "";
+    // When the parent doesn't use SafeArea (e.g. OthersMain), this is the
+    // status bar height, so the cover extends behind the status bar and
+    // the overlay controls stay clear of it. When SafeArea is applied
+    // upstream, this is 0 and nothing changes.
+    final double topInset = MediaQuery.of(context).padding.top;
 
     return SizedBox(
-      height: 260,
+      height: 260 + topInset,
       child: Stack(
         clipBehavior: Clip.none,
         children: [
@@ -90,7 +95,7 @@ class BusinessProfileHeaderView extends StatelessWidget {
               topRight: Radius.circular(10),
             ),
             child: SizedBox(
-              height: 210,
+              height: 210 + topInset,
               width: double.infinity,
               child: coverUrl.isNotEmpty
                   ? Image.network(
@@ -104,7 +109,7 @@ class BusinessProfileHeaderView extends StatelessWidget {
           ),
           Positioned(
             left: 16,
-            top: 180,
+            top: 180 + topInset,
             child: CommonProfileImage(
               key: ValueKey(profileUrl),
               imagePath: profileUrl,
@@ -114,7 +119,7 @@ class BusinessProfileHeaderView extends StatelessWidget {
           ),
           Positioned(
             right: 10,
-            top: 8,
+            top: 8 + topInset,
             child: InkWell(
               onTap: () => _onCoverImageEdit(context),
               child: Image.asset('assets/images/camera.png'),
@@ -231,71 +236,86 @@ class BusinessProfileHeaderView extends StatelessWidget {
   }
 
   Widget _buildLocationInfoBlock(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: AppColors.primaryColor.withValues(alpha: 0.04),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: AppColors.primaryColor.withValues(alpha: 0.08),
+    final cityState = _extractCityState(details?.address ?? '');
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: AppColors.primaryColor.withValues(alpha: 0.04),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: AppColors.primaryColor.withValues(alpha: 0.08),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.near_me_rounded,
+                size: 14, color: AppColors.primaryColor),
+            const SizedBox(width: 5),
+            CustomText(
+              '${calculateDistance(
+                    details?.businessLocation?.lat?.toDouble() ?? 0.0,
+                    details?.businessLocation?.lon?.toDouble() ?? 0.0,
+                  )?.toStringAsFixed(2) ?? '--'} KM',
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: AppColors.primaryColor,
+            ),
+            if (_hasAddress && cityState.isNotEmpty) ...[
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: CustomText('|',
+                    fontSize: 11,
+                    color:
+                        AppColors.secondaryTextColor.withValues(alpha: 0.4)),
+              ),
+              Flexible(
+                child: CustomText(
+                  cityState,
+                  fontSize: 11,
+                  color: AppColors.secondaryTextColor,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+            if (!_hasAddress)
+              InkWell(
+                onTap: () => _openAddressEditSheet(context),
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 8),
+                  child: CustomText(
+                    '+ ${AppStrings.addAddress.tr}',
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.primaryColor,
+                  ),
+                ),
+              ),
+          ],
         ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Distance + locality
-          Row(
-            children: [
-              Icon(Icons.near_me_rounded,
-                  size: 14, color: AppColors.primaryColor),
-              const SizedBox(width: 5),
-              CustomText(
-                '${calculateDistance(
-                      details?.businessLocation?.lat?.toDouble() ?? 0.0,
-                      details?.businessLocation?.lon?.toDouble() ?? 0.0,
-                    )?.toStringAsFixed(2) ?? '--'} KM',
-                fontSize: 11,
-                fontWeight: FontWeight.w700,
-                color: AppColors.primaryColor,
-              ),
-              if (_hasAddress) ...[
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                  child: CustomText('|',
-                      fontSize: 11,
-                      color:
-                          AppColors.secondaryTextColor.withValues(alpha: 0.4)),
-                ),
-                Expanded(
-                  child: CustomText(
-                    getLocalityAddress(details?.address),
-                    fontSize: 11,
-                    color: AppColors.secondaryTextColor,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-              if (!_hasAddress)
-                Expanded(
-                  child: InkWell(
-                    onTap: () => _openAddressEditSheet(context),
-                    child: Padding(
-                      padding: const EdgeInsets.only(left: 8),
-                      child: CustomText(
-                        '+ ${AppStrings.addAddress.tr}',
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.primaryColor,
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        ],
-      ),
     );
+  }
+
+  /// Extract "City, State" from a full address. Splits on commas and
+  /// picks the last-3 / last-2 parts (common India address shape:
+  /// street, locality, city, state pincode, country). Strips any
+  /// 5–6-digit pincode embedded in the state segment.
+  String _extractCityState(String address) {
+    if (address.trim().isEmpty) return '';
+    final parts = address.split(',').map((e) => e.trim()).toList();
+    if (parts.length >= 3) {
+      final statePart = parts[parts.length - 2]
+          .replaceAll(RegExp(r'\d{5,6}'), '')
+          .trim();
+      final city = parts[parts.length - 3].trim();
+      if (city.isNotEmpty && statePart.isNotEmpty) return '$city, $statePart';
+      return city.isNotEmpty ? city : statePart;
+    }
+    return address;
   }
 
   Widget _buildQuickInfoRow(BuildContext context, bool hasAvailability) {

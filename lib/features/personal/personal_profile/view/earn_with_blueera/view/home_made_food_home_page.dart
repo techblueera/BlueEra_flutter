@@ -17,9 +17,7 @@ import 'package:BlueEra/features/me/grocery/widget/food_type_or_cooking_method.d
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/earn_service_contact_map_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/earn_service_gallery_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/controller/earn_profile_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/earn_service_profile_header.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/earn_service_qr_code_widget.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/earn_service_stats.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/earn_service_testimonial_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/controller/home_made_food_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/controller/tiffin_controller.dart';
@@ -71,7 +69,6 @@ class _HomeMadeFoodHomePageState extends State<HomeMadeFoodHomePage> {
     earnProfileController = getOrPut(() => EarnProfileController());
     tiffinController.fetchAllMeals();
     foodController.fetchAllItems();
-    earnProfileController.fetchEarnProfile();
   }
 
   @override
@@ -80,11 +77,6 @@ class _HomeMadeFoodHomePageState extends State<HomeMadeFoodHomePage> {
       padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 15.0),
       child: Column(
         children: [
-          EarnServiceProfileHeader(
-            controller: earnProfileController,
-            isFoodProfile: true,
-          ),
-          EarnServiceStats(controller: earnProfileController),
           _buildTiffinSection(),
           _buildHomeMadeFoodSection(),
           Obx(() => EarnServiceGalleryCard(

@@ -87,40 +87,59 @@ class _HomeMadeFoodScreenState extends State<HomeMadeFoodScreen> {
       ),
       child: Scaffold(
         backgroundColor: AppColors.appBackgroundColor,
-        body: NestedScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          headerSliverBuilder: (context, innerBoxIsScrolled) => [
-            SliverToBoxAdapter(
-              child: BannerCarousel(
-                images: _bannerImages,
-                onBack: () => Navigator.pop(context),
-                statusBarHeight: statusBarHeight,
-              ),
-            ),
-            SliverPersistentHeader(
-              pinned: true,
-              delegate: StickyCategoryHeaderDelegate(
-                topPadding: statusBarHeight,
-                singleLineLabel: true,
-                categories: _categories.map((c) => StickyCategory(
-                  id: c.name,
-                  name: c.name,
-                  imageUrl: c.icon,
-                )).toList(),
-                selectedId: _categories[controller.selectedCategoryIndex.value].name,
-                onCategoryTap: (item) {
-                  final idx = _categories.indexWhere((c) => c.name == item.id);
-                  if (idx >= 0) controller.onCategoryChanged(idx);
-                  setState(() {});
-                },
-                onBack: () => Navigator.pop(context),
+        body: Stack(
+          children: [
+            NestedScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              headerSliverBuilder: (context, innerBoxIsScrolled) => [
+                SliverToBoxAdapter(
+                  child: BannerCarousel(
+                    images: _bannerImages,
+                    onBack: () => Navigator.pop(context),
+                    statusBarHeight: statusBarHeight,
+                    backgroundColor:
+                        AppColors.blue5CAF.withValues(alpha: 0.1),
+                    bottomBorderSide: const BorderSide(
+                      color: AppColors.white,
+                      width: 2,
+                    ),
+                  ),
+                ),
+                SliverPersistentHeader(
+                  pinned: true,
+                  delegate: StickyCategoryHeaderDelegate(
+                    topPadding: statusBarHeight,
+                    singleLineLabel: true,
+                    categories: _categories.map((c) => StickyCategory(
+                      id: c.name,
+                      name: c.name,
+                      imageUrl: c.icon,
+                    )).toList(),
+                    selectedId: _categories[controller.selectedCategoryIndex.value].name,
+                    onCategoryTap: (item) {
+                      final idx = _categories.indexWhere((c) => c.name == item.id);
+                      if (idx >= 0) controller.onCategoryChanged(idx);
+                      setState(() {});
+                    },
+                    onBack: () => Navigator.pop(context),
+                    expandedLabelColor: AppColors.white,
+                    backgroundGradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        AppColors.blue5CAF.withValues(alpha: 0.1),
+                        AppColors.blue5CAF.withValues(alpha: 0.8),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+              body: NotificationListener<ScrollNotification>(
+                onNotification: _onScrollNotification,
+                child: _buildContent(),
               ),
             ),
           ],
-          body: NotificationListener<ScrollNotification>(
-            onNotification: _onScrollNotification,
-            child: _buildContent(),
-          ),
         ),
       ),
     );
