@@ -51,6 +51,7 @@ class _RiderRideNavigationScreenState extends State<RiderRideNavigationScreen> {
   GoogleMapController? _mapController;
   final Set<Marker> _markers = {};
   final Set<Polyline> _polylines = {};
+  List<LatLng> _routeCoords = [];
 
   StreamSubscription<Position>? _locationSubscription;
   LatLng? _currentRiderPosition;
@@ -117,9 +118,10 @@ class _RiderRideNavigationScreenState extends State<RiderRideNavigationScreen> {
       );
 
       if (result.points.isNotEmpty) {
-        final routeCoords = result.points
+        _routeCoords = result.points
             .map((p) => LatLng(p.latitude, p.longitude))
             .toList();
+        final routeCoords = _routeCoords;
 
         setState(() {
           _polylines.add(
@@ -218,9 +220,46 @@ class _RiderRideNavigationScreenState extends State<RiderRideNavigationScreen> {
     _locationSubscription?.cancel();
   }
 
+  void _minimiseToOverlay() {
+    final overlayCtrl = Get.put(RideNavigationOverlayController());
+    final currentRider =
+        _currentRiderPosition ?? _pickupLatLng;
+    overlayCtrl.showOverlay(
+      riderLatVal: currentRider.latitude,
+      riderLngVal: currentRider.longitude,
+      destLatVal: _dropLatLng.latitude,
+      destLngVal: _dropLatLng.longitude,
+      destLabelVal: widget.dropLocation,
+      customerNameVal: widget.customerName,
+      fareAmountVal: widget.fareAmount,
+      routePoints: _routeCoords,
+      type: 'ride',
+      params: {
+        'pickupLocation': widget.pickupLocation,
+        'dropLocation': widget.dropLocation,
+        'pickupLat': widget.pickupLat,
+        'pickupLng': widget.pickupLng,
+        'dropLat': widget.dropLat,
+        'dropLng': widget.dropLng,
+        'fareAmount': widget.fareAmount,
+        'distanceKm': widget.distanceKm,
+        'customerName': widget.customerName,
+        'customerImage': widget.customerImage,
+        'paymentMethod': widget.paymentMethod,
+        'orderId': widget.orderId,
+      },
+    );
+    Navigator.of(context).pop();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _minimiseToOverlay();
+      },
+      child: Scaffold(
       body: Stack(
         children: [
           // Full-screen map
@@ -267,6 +306,7 @@ class _RiderRideNavigationScreenState extends State<RiderRideNavigationScreen> {
                 _rideCompleted ? _buildRideCompletedPanel() : _buildRidePanel(),
           ),
         ],
+      ),
       ),
     );
   }

@@ -66,6 +66,12 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
   LiveTrachRiderController? _liveTrackController;
   Worker? _riderLatWorker;
   Worker? _riderLngWorker;
+  Worker? _rideStartedWorker;
+
+  /// Once the rider has verified the pickup OTP, both sides should mirror the
+  /// same pickup → drop route and zoom so the customer can visually confirm
+  /// the rider is on the agreed track.
+  bool _rideStartedMapSynced = false;
 
   @override
   void initState() {
@@ -82,6 +88,14 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
       Get.put(CallController(), permanent: true);
     }
     _callController = Get.find<CallController>();
+
+    // Enable PiP auto-entry from the moment this screen mounts so the
+    // whole call flow (calling → rider accepted → live tracking) minimises
+    // to PiP if the user navigates away or presses back, instead of
+    // cancelling the in-flight ride request.
+    if (Platform.isAndroid) {
+      PipService.updatePipStatus(true);
+    }
 
     _pulseController = AnimationController(
       vsync: this,
@@ -194,6 +208,7 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
       }
 
       _setupPickupMarker();
+      _observeRideStarted();
     }
   }
 
@@ -234,6 +249,7 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
 
     // Setup initial markers for customer pickup location
     _setupPickupMarker();
+    _observeRideStarted();
   }
 
   /// Handle ride completion (from any source: socket or stream)
@@ -278,9 +294,6 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
     if (riderLat == 0.0 || riderLng == 0.0) return;
 
     final riderPos = LatLng(riderLat, riderLng);
-    final pickupLat = discoverController.selectedFromLat?.value ?? 0.0;
-    final pickupLng = discoverController.selectedFromLong?.value ?? 0.0;
-    final pickupPos = LatLng(pickupLat, pickupLng);
 
     setState(() {
       _markers.removeWhere((m) => m.markerId.value == 'rider');
@@ -296,8 +309,83 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
       );
     });
 
+    // After the rider has started the ride, both sides mirror the same
+    // pickup → drop route. Only the rider marker moves — don't re-fetch
+    // the route or re-fit the camera on every position tick.
+    if (discoverController.isFareCallRideStarted.value) return;
+
+    final pickupLat = discoverController.selectedFromLat?.value ?? 0.0;
+    final pickupLng = discoverController.selectedFromLong?.value ?? 0.0;
+    final pickupPos = LatLng(pickupLat, pickupLng);
+
     _fetchRoute(riderPos, pickupPos);
     _fitBounds(riderPos, pickupPos);
+  }
+
+  /// Hook to switch the map into ride-started mode (same pickup→drop route
+  /// and zoom as the rider's screen) as soon as the server announces the
+  /// ride has started.
+  void _observeRideStarted() {
+    _rideStartedWorker?.dispose();
+    if (discoverController.isFareCallRideStarted.value) {
+      _syncRideStartedMap();
+    }
+    _rideStartedWorker =
+        ever(discoverController.isFareCallRideStarted, (started) {
+      if (!mounted) return;
+      if (started == true) _syncRideStartedMap();
+    });
+  }
+
+  /// Redraw markers + polyline to match the rider's pickup → drop view and
+  /// fit the camera to the same bounds, so the customer can visually confirm
+  /// they are on the same track as the rider.
+  Future<void> _syncRideStartedMap() async {
+    if (_rideStartedMapSynced) return;
+    final pickupLat = discoverController.selectedFromLat?.value ?? 0.0;
+    final pickupLng = discoverController.selectedFromLong?.value ?? 0.0;
+    final dropLat = discoverController.selectedToLat?.value ?? 0.0;
+    final dropLng = discoverController.selectedToLong?.value ?? 0.0;
+    if (pickupLat == 0.0 || pickupLng == 0.0) return;
+    if (dropLat == 0.0 || dropLng == 0.0) return;
+
+    final pickupPos = LatLng(pickupLat, pickupLng);
+    final dropPos = LatLng(dropLat, dropLng);
+    _rideStartedMapSynced = true;
+
+    setState(() {
+      _markers
+        ..removeWhere((m) =>
+            m.markerId.value == 'pickup' || m.markerId.value == 'drop')
+        ..add(
+          Marker(
+            markerId: const MarkerId('pickup'),
+            position: pickupPos,
+            icon: BitmapDescriptor.defaultMarkerWithHue(
+                BitmapDescriptor.hueGreen),
+            infoWindow: InfoWindow(
+              title: AppStrings.yourPickup.tr,
+              snippet: discoverController.selectedFromAddress?.value ?? '',
+            ),
+          ),
+        )
+        ..add(
+          Marker(
+            markerId: const MarkerId('drop'),
+            position: dropPos,
+            icon:
+                BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+            infoWindow: InfoWindow(
+              title: AppStrings.dropLabel.tr,
+              snippet: discoverController.selectedToAddress?.value ?? '',
+            ),
+          ),
+        );
+      _polylines.clear();
+    });
+
+    await _fetchRoute(pickupPos, dropPos);
+    _fitBounds(pickupPos, dropPos);
   }
 
   Future<void> _fetchRoute(LatLng from, LatLng to) async {
@@ -394,6 +482,7 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
     _rideCompletedWorker?.dispose();
     _riderLatWorker?.dispose();
     _riderLngWorker?.dispose();
+    _rideStartedWorker?.dispose();
     _localTimer?.cancel();
 
     _mapController?.dispose();
@@ -405,7 +494,9 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (!Platform.isAndroid || !_riderAccepted.value) return;
+    // Auto-enter PiP during the entire call flow — calling phase included —
+    // so leaving the app never cancels the in-flight ride request.
+    if (!Platform.isAndroid) return;
     if (state == AppLifecycleState.inactive) {
       PipService.enterPip();
     }
@@ -461,13 +552,23 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
   Widget build(BuildContext context) {
     return PopScope(
       canPop: false,
-      onPopInvokedWithResult: (didPop, _) {
+      onPopInvokedWithResult: (didPop, _) async {
         if (didPop) return;
         if (_riderAccepted.value) {
+          // After rider accepted there is a map to show — minimise to the
+          // in-app floating overlay.
           _minimiseToOverlay();
-        } else {
-          _endCallAndGoBack();
+          return;
         }
+        // Calling phase (no rider accepted yet): enter native PiP so the
+        // ride request and WebRTC call stay alive in the background. Never
+        // cancel on back press.
+        if (Platform.isAndroid) {
+          final entered = await PipService.enterPip();
+          if (entered) return;
+        }
+        // iOS / PiP not available: absorb the back press rather than
+        // tearing down the in-flight ride + call.
       },
       child: Scaffold(
         backgroundColor: const Color(0xFF0B141A),

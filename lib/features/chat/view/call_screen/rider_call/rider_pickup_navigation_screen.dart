@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/core/services/pip_service.dart';
 import 'package:BlueEra/environment_config.dart';
@@ -12,6 +13,7 @@ import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../../../../common/delivery_partner/controller/delivery_partner_orders_controller.dart';
+import '../../../auth/controller/call_controller.dart';
 import 'ride_navigation_overlay_controller.dart';
 import 'rider_ride_navigation_screen.dart';
 
@@ -192,20 +194,50 @@ class _RiderPickupNavigationScreenState
   }
 
   Future<void> _verifyOtp() async {
-    final entered = _otpControllers.map((c) => c.text).join();
+    // Trim each digit — FilteringTextInputFormatter strips non-digits but
+    // belt-and-braces guards against stray whitespace / invisible chars
+    // from paste actions that would make the server reject a visually
+    // correct OTP.
+    final entered = _otpControllers.map((c) => c.text.trim()).join();
     if (entered.length < 4) return;
 
-    final orderId = widget.orderId;
-print("ldkclskdclskdcsdc ${orderId}");
+    // Resolve the server-side order id. widget.orderId is the primary source
+    // (set by the fare-call rider flow). When it's missing — e.g. the
+    // metadata.orderMongoId didn't arrive in the incoming-call payload — fall
+    // back to whatever CallController has captured so the API path can still
+    // be attempted rather than silently short-circuiting to a local check
+    // against an empty widget.otp (which would reject every correct OTP).
+    String orderId = widget.orderId;
+    if (orderId.isEmpty && Get.isRegistered<CallController>()) {
+      final cc = Get.find<CallController>();
+      if (cc.fareCallOrderMongoId.value.isNotEmpty) {
+        orderId = cc.fareCallOrderMongoId.value;
+      } else if (cc.fareCallOrderId.value.isNotEmpty) {
+        orderId = cc.fareCallOrderId.value;
+      }
+    }
+
+    debugPrint(
+        '[PICKUP_OTP] verifying entered=$entered orderId=$orderId widgetOtp=${widget.otp}');
+
     if (orderId.isEmpty) {
-      // Fallback: local OTP check if no orderId
-      if (entered == widget.otp) {
-        setState(() {
-          _otpVerified = true;
-          _otpError = false;
-        });
-        HapticFeedback.mediumImpact();
+      // Only trust the local fallback when the caller actually supplied a
+      // real OTP to compare against. Previously an empty widget.otp plus
+      // empty widget.orderId silently rejected every correct code.
+      if (widget.otp.isNotEmpty) {
+        if (entered == widget.otp.trim()) {
+          setState(() {
+            _otpVerified = true;
+            _otpError = false;
+          });
+          HapticFeedback.mediumImpact();
+          _autoStartRideAfterVerify();
+        } else {
+          _handleOtpError();
+        }
       } else {
+        commonSnackBar(
+            message: 'Unable to verify OTP: missing order reference.');
         _handleOtpError();
       }
       return;
@@ -226,9 +258,21 @@ print("ldkclskdclskdcsdc ${orderId}");
         _otpError = false;
       });
       HapticFeedback.mediumImpact();
+      _autoStartRideAfterVerify();
     } else {
       _handleOtpError();
     }
+  }
+
+  /// After OTP verification succeeds, briefly show the "Verified" state then
+  /// auto-navigate to the ride screen so the rider doesn't have to tap
+  /// "Start Ride" manually.
+  void _autoStartRideAfterVerify() {
+    FocusScope.of(context).unfocus();
+    Future.delayed(const Duration(milliseconds: 600), () {
+      if (!mounted || _isStartingRide) return;
+      _startRide();
+    });
   }
 
   void _handleOtpError() {

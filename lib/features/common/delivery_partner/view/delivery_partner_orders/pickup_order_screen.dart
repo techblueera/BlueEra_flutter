@@ -146,9 +146,13 @@ class _PickupOrderScreenState extends State<PickupOrderScreen> {
       final paymentMethod = p['paymentMethod'] ?? 'Cash';
 
       return ListView(
-        padding: EdgeInsets.symmetric(
-          horizontal: SizeConfig.size15,
-          vertical: SizeConfig.size10,
+        padding: EdgeInsets.only(
+          top: SizeConfig.size10,
+          // Match the other order ListViews so the ongoing-ride card
+          // isn't clipped by the bottom nav bar / system gesture area.
+          bottom: kBottomNavigationBarHeight + SizeConfig.size40,
+          left: SizeConfig.size15,
+          right: SizeConfig.size15,
         ),
         children: [
           Padding(

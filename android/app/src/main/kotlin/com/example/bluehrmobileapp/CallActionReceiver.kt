@@ -53,8 +53,11 @@ class CallActionReceiver : BroadcastReceiver() {
             }
             ACTION_DECLINE -> {
                 Log.d(TAG, "Decline tapped for call $callId")
+                // Stash a pending-decline flag so the next organic app open
+                // can reconcile server state. Intentionally NOT calling
+                // launchApp(): decline from terminate/background should not
+                // bring the app to the foreground.
                 savePendingAction(context, "decline", callId, roomId, callType)
-                launchApp(context)
             }
         }
     }
