@@ -99,22 +99,7 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 20),
-
-                    /// PRODUCT
-                    CommonCardWidget(
-                        cardMargin: 0,
-                        padding: 10,
-                        bgColor: Color(0xff0085FE).withValues(alpha: 0.10),
-                        child: Column(
-                          children: [
-                            _buildSectionTitle(AppStrings.otherProduct.tr, onSeeAll: () {
-                              Get.toNamed(RouteHelper.getInventoryScreenRoute());
-                            }),
-                            OtherProductWidget(),
-                          ],
-                        )),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 10),
 
                     /// "Our Organisation"
                     CommonCardWidget(
@@ -133,7 +118,7 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 10),
 
                     /// "Our Blogs"
                     CommonCardWidget(
@@ -156,7 +141,7 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 10),
 
                     /// Gallery
                     CommonCardWidget(
@@ -201,7 +186,7 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 10),
 
                     /// Website Section
                     Obx(() {
@@ -263,8 +248,7 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
                             padding: 10,
                             isTitleShow: true),
                       ),
-                    const SizedBox(height: kBottomNavigationBarHeight),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 4 * kBottomNavigationBarHeight),
 
                   ],
                 ),

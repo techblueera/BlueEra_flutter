@@ -119,16 +119,16 @@ class _BannerCarouselState extends State<BannerCarousel> {
             ),
           ),
 
-          // Optional stroke that follows the ClipRRect shape.
+          // Optional stroke along the bottom (curved) edge only —
+          // no stroke on the sides or top.
           if (widget.bottomBorderSide != null)
             Positioned.fill(
               child: IgnorePointer(
-                child: DecoratedBox(
-                  decoration: ShapeDecoration(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: clipRadius,
-                      side: widget.bottomBorderSide!,
-                    ),
+                child: CustomPaint(
+                  painter: _BottomEdgePainter(
+                    side: widget.bottomBorderSide!,
+                    borderRadius: clipRadius
+                        .resolve(Directionality.maybeOf(context)),
                   ),
                 ),
               ),
@@ -262,4 +262,55 @@ class _BannerCarouselState extends State<BannerCarousel> {
     if (!mounted) return;
     setState(() => _isLocationLoading = false);
   }
+}
+
+/// Paints a stroke that traces just the bottom edge of the banner,
+/// following the rounded bottom-left and bottom-right corners. The
+/// sides and top are left un-stroked.
+class _BottomEdgePainter extends CustomPainter {
+  final BorderSide side;
+  final BorderRadius borderRadius;
+
+  _BottomEdgePainter({required this.side, required this.borderRadius});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = side.color
+      ..strokeWidth = side.width
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.butt;
+
+    final blX = borderRadius.bottomLeft.x;
+    final blY = borderRadius.bottomLeft.y;
+    final brX = borderRadius.bottomRight.x;
+    final brY = borderRadius.bottomRight.y;
+
+    final path = Path()..moveTo(0, size.height - blY);
+    if (blX > 0 && blY > 0) {
+      path.arcToPoint(
+        Offset(blX, size.height),
+        radius: Radius.elliptical(blX, blY),
+        clockwise: false,
+      );
+    } else {
+      path.lineTo(0, size.height);
+    }
+    path.lineTo(size.width - brX, size.height);
+    if (brX > 0 && brY > 0) {
+      path.arcToPoint(
+        Offset(size.width, size.height - brY),
+        radius: Radius.elliptical(brX, brY),
+        clockwise: false,
+      );
+    } else {
+      path.lineTo(size.width, size.height);
+    }
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(_BottomEdgePainter oldDelegate) =>
+      side != oldDelegate.side || borderRadius != oldDelegate.borderRadius;
 }

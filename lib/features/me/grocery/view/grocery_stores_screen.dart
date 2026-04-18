@@ -117,10 +117,6 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
   @override
   Widget build(BuildContext context) {
     final statusBarHeight = MediaQuery.of(context).padding.top;
-    final screenWidth = MediaQuery.of(context).size.width;
-    final bannerHeight = (screenWidth * 8 / 16) + statusBarHeight;
-    // Matches StickyCategoryHeaderDelegate.maxExtent when singleLineLabel=false.
-    const double stickyMaxHeight = 165;
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) async {
@@ -136,30 +132,6 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
         child: Scaffold(
           body: Stack(
             children: [
-              // Blue backdrop spanning banner top → tab bottom. Lighter
-              // at the top (behind the banner's rounded corner gaps)
-              // and ramping to the pure spec color at the bottom of
-              // the tabs area.
-              Positioned(
-                top: 0,
-                left: 0,
-                right: 0,
-                height: bannerHeight + stickyMaxHeight,
-                child: IgnorePointer(
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          AppColors.blue5CAF.withValues(alpha: 0.5),
-                          AppColors.blue5CAF.withValues(alpha: 0.8),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
               NestedScrollView(
                 controller: _nestedScrollController,
                 physics: const AlwaysScrollableScrollPhysics(),
@@ -169,7 +141,8 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
                       images: _bannerImages,
                       onBack: () => showCartWarning(),
                       statusBarHeight: statusBarHeight,
-                      backgroundColor: Colors.transparent,
+                      backgroundColor:
+                          AppColors.blue5CAF.withValues(alpha: 0.1),
                       bottomBorderSide: const BorderSide(
                         color: AppColors.white,
                         width: 2,
@@ -195,6 +168,14 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
                       },
                       onBack: () => showCartWarning(),
                       expandedLabelColor: AppColors.white,
+                      backgroundGradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          AppColors.blue5CAF.withValues(alpha: 0.1),
+                          AppColors.blue5CAF.withValues(alpha: 0.8),
+                        ],
+                      ),
                     ),
                   ),
                 ],

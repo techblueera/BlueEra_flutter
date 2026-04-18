@@ -79,9 +79,6 @@ class _HomeMadeFoodScreenState extends State<HomeMadeFoodScreen> {
   @override
   Widget build(BuildContext context) {
     final statusBarHeight = MediaQuery.of(context).padding.top;
-    final screenWidth = MediaQuery.of(context).size.width;
-    final bannerHeight = (screenWidth * 8 / 16) + statusBarHeight;
-    const double stickyMaxHeight = 146;
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light.copyWith(
         statusBarColor: Colors.transparent,
@@ -92,26 +89,6 @@ class _HomeMadeFoodScreenState extends State<HomeMadeFoodScreen> {
         backgroundColor: AppColors.appBackgroundColor,
         body: Stack(
           children: [
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              height: bannerHeight + stickyMaxHeight,
-              child: IgnorePointer(
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        AppColors.blue5CAF.withValues(alpha: 0.5),
-                        AppColors.blue5CAF.withValues(alpha: 0.8),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
             NestedScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               headerSliverBuilder: (context, innerBoxIsScrolled) => [
@@ -120,7 +97,8 @@ class _HomeMadeFoodScreenState extends State<HomeMadeFoodScreen> {
                     images: _bannerImages,
                     onBack: () => Navigator.pop(context),
                     statusBarHeight: statusBarHeight,
-                    backgroundColor: Colors.transparent,
+                    backgroundColor:
+                        AppColors.blue5CAF.withValues(alpha: 0.1),
                     bottomBorderSide: const BorderSide(
                       color: AppColors.white,
                       width: 2,
@@ -145,6 +123,14 @@ class _HomeMadeFoodScreenState extends State<HomeMadeFoodScreen> {
                     },
                     onBack: () => Navigator.pop(context),
                     expandedLabelColor: AppColors.white,
+                    backgroundGradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        AppColors.blue5CAF.withValues(alpha: 0.1),
+                        AppColors.blue5CAF.withValues(alpha: 0.8),
+                      ],
+                    ),
                   ),
                 ),
               ],

@@ -8,7 +8,6 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
-import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
 import 'package:BlueEra/features/business/widgets/business_contact_map_card.dart';
 import 'package:BlueEra/features/business/widgets/business_description_card.dart';
 import 'package:BlueEra/features/business/widgets/business_profile_header_view.dart';
@@ -42,12 +41,9 @@ class _ProductHomeScreenState extends State<ProductHomeScreen> {
   final controller = getOrPut(() => InventoryController());
   final viewBusinessDetailsController =
       Get.find<ViewBusinessDetailsController>();
-  BusinessProfileDetails? businessProfileDetails;
 
   @override
   void initState() {
-    businessProfileDetails =
-        viewBusinessDetailsController.businessProfileDetails.value?.data;
     controller.fetchAllProductData();
     super.initState();
 
@@ -64,7 +60,9 @@ class _ProductHomeScreenState extends State<ProductHomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: RefreshIndicator(
+      backgroundColor: AppColors.white,
+      body: SafeArea(
+        child: RefreshIndicator(
         onRefresh: () async {
           controller.fetchAllProductData();
         },
@@ -75,13 +73,21 @@ class _ProductHomeScreenState extends State<ProductHomeScreen> {
           ),
           child: Column(
             children: [
-              BusinessProfileHeaderView(
-                details: businessProfileDetails,
-                controller: viewBusinessDetailsController,
-              ),
+              Obx(() {
+                final details = viewBusinessDetailsController
+                    .businessProfileDetails.value?.data;
+                return BusinessProfileHeaderView(
+                  details: details,
+                  controller: viewBusinessDetailsController,
+                );
+              }),
 
               // --- Business Stats ---
-              BusinessStats(details: businessProfileDetails),
+              Obx(() {
+                final details = viewBusinessDetailsController
+                    .businessProfileDetails.value?.data;
+                return BusinessStats(details: details);
+              }),
 
               // --- Top Selling Products ---
               Obx(() {
@@ -116,20 +122,29 @@ class _ProductHomeScreenState extends State<ProductHomeScreen> {
               const BusinessDescriptionCard(),
 
               // --- Contact & Map ---
-              BusinessContactMapCard(
-                businessProfileDetails: businessProfileDetails,
-              ),
+              Obx(() {
+                final details = viewBusinessDetailsController
+                    .businessProfileDetails.value?.data;
+                return BusinessContactMapCard(
+                  businessProfileDetails: details,
+                );
+              }),
 
               // --- QR Code ---
-              BusinessQrCodeWidget(
-                data: businessProfileDetails,
-              ),
+              Obx(() {
+                final details = viewBusinessDetailsController
+                    .businessProfileDetails.value?.data;
+                return BusinessQrCodeWidget(
+                  data: details,
+                );
+              }),
 
               SizedBox(
                 height: SizeConfig.size100,
               ),
             ],
           ),
+        ),
         ),
       ),
     );

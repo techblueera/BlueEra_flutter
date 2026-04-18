@@ -74,7 +74,7 @@ class BusinessStats extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CustomFormCard(
-      margin: EdgeInsets.only(top: 10),
+      margin: const EdgeInsets.only(left: 12.0, right: 12.0, top: 10),
       padding: EdgeInsets.all(SizeConfig.size12),
       border: Border.all(color: AppColors.greyE5),
       child: IntrinsicHeight(

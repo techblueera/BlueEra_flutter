@@ -45,7 +45,7 @@ class StickyCategoryHeaderDelegate extends SliverPersistentHeaderDelegate {
   static const double _searchBarHeight = 44;
   static const double _searchGap = 10;
   static const double _tabsHeight = 95;
-  static const double _tabsHeightSingleLine = 76;
+  static const double _tabsHeightSingleLine = 72;
   static const double _vPad = 8;
 
   static const double _collapsible = _searchBarHeight + _searchGap;
