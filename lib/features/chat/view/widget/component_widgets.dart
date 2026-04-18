@@ -67,32 +67,39 @@ Widget timeAndReadInfoWidget({required Messages message,
         size: 16,
       )
           : Obx(() {
-        return Container(
-          child: (message.sendStatus == "pending")
-              ? Icon(
+        // Determine the effective status: use whichever is further along
+        // between the per-message status and the conversation-level status.
+        const statusOrder = {'sent': 0, 'delivered': 1, 'read': 2};
+        final msgStatus = message.status ?? 'sent';
+        final convStatus = chatViewController.readMessageStatus.value;
+        final msgRank = statusOrder[msgStatus] ?? 0;
+        final convRank = statusOrder[convStatus] ?? -1;
+        final effectiveStatus = (convRank > msgRank) ? convStatus : msgStatus;
+
+        if (message.sendStatus == "pending") {
+          return Icon(
             Icons.timelapse_outlined,
             color: Colors.grey,
             size: 16,
-          )
-              : (chatViewController.readMessageStatus.value == 'read')
-              ? SvgPicture.asset(
+          );
+        } else if (effectiveStatus == 'read') {
+          return SvgPicture.asset(
             AppIconAssets.chat_double_tick,
             color: Colors.blue,
-          )
-              : (message.status == 'sent' ||
-              message.status == null)
-              ? Icon(
+          );
+        } else if (effectiveStatus == 'delivered') {
+          return SvgPicture.asset(
+            AppIconAssets.chat_double_tick,
+            color: Colors.grey,
+          );
+        } else {
+          // sent or null
+          return Icon(
             Icons.check,
             color: indicateColor ?? AppColors.white,
             size: 16,
-          )
-              : SvgPicture.asset(
-            AppIconAssets.chat_double_tick,
-            color: ((message.status == 'delivered'))
-                ? Colors.grey
-                : Colors.blue,
-          ),
-        );
+          );
+        }
       })
           : SizedBox()
     ],
@@ -619,7 +626,7 @@ Widget  ChatListTile({
                       child: Icon(Icons.push_pin,
                           size: 14, color: Colors.grey.shade500),
                     ),
-                  if ((index == 0 || index == 1 || index == 2) && unreadCount > 0)
+                  if (unreadCount > 0)
                     CircleAvatar(
                       radius: SizeConfig.size12,
                       backgroundColor: Colors.lightBlue,
@@ -1241,6 +1248,8 @@ AppBar getChatTitleAppBar(BuildContext context, {
     leadingWidth: 38,
     leading: InkWell(
       onTap: onBackCallback ?? () {
+        // Tell server we left this conversation (screenRoom → "online")
+        chatViewController.leaveConversation();
         if (chatViewController.canPopBusiness.value) {
           chatViewController.emitEvent(
               ChatEmitEvents.ChatList, {ApiKeys.type: "$socketType"}, );

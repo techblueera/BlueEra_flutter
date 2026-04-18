@@ -85,16 +85,16 @@ class _PersonalChatScreenState extends State<PersonalChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
-        // Clear conversation context so socket events don't keep adding to this screen
-        chatViewController.userOpenConversationId.value = '';
-        // Refresh chat list only — do NOT emit newMessageReceived, it causes
-        // the socket listener to re-add messages and create duplicates
-        chatViewController.emitEvent(
-            ChatEmitEvents.ChatList, {ApiKeys.type: AppConstants.personal_Chat_Type}, );
-        return true;
-      },
+    return PopScope(
+      onPopInvoked: (val){
+      // Tell server we left this conversation (screenRoom → "online")
+      chatViewController.leaveConversation();
+      // Refresh chat list only — do NOT emit newMessageReceived, it causes
+      // the socket listener to re-add messages and create duplicates
+      chatViewController.emitEvent(
+        ChatEmitEvents.ChatList, {ApiKeys.type: AppConstants.personal_Chat_Type}, );
+
+    },
       child: Scaffold(
         backgroundColor: AppColors.fillColor,
         // AppBar in its own Obx — only rebuilds when selection state changes

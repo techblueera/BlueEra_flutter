@@ -76,11 +76,11 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      onPopInvoked: (val)  {
+        chatViewController.leaveConversation();
         chatViewController.emitEvent(
             ChatEmitEvents.ChatList, {ApiKeys.type: "group"});
-        return true;
       },
       child: Obx(() {
         return Scaffold(

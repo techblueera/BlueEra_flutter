@@ -872,6 +872,10 @@ class ChatViewController extends GetxController {
         String checkedConversationId = userOpenConversationId.value;
         if (checkedConversationId.isEmpty ||
             checkedConversationId != message.conversationId) {
+          // Increment unread count locally for conversations the user is not viewing
+          if (message.myMessage != true && message.conversationId != null) {
+            _incrementChatListUnreadCount(message.conversationId!);
+          }
           return;
         }
 
@@ -995,6 +999,20 @@ class ChatViewController extends GetxController {
           final newRank = statusOrder[newStatus] ?? -1;
           if (newRank > currentRank) {
             readMessageStatus.value = newStatus;
+          }
+
+          // Update per-message status for all outgoing messages in this conversation
+          final messages = getListOfMessageData;
+          if (messages != null) {
+            for (final msg in messages) {
+              if (msg.myMessage == true) {
+                final msgRank = statusOrder[msg.status] ?? 0;
+                if (newRank > msgRank) {
+                  msg.status = newStatus;
+                }
+              }
+            }
+            getListOfMessageResponse.refresh();
           }
         }
       });
@@ -1381,6 +1399,23 @@ class ChatViewController extends GetxController {
     _typingHideTimers.clear();
   }
 
+  /// Call this when the user leaves a conversation (back button, dispose, etc.).
+  /// Tells the server the user is no longer viewing any conversation so new
+  /// incoming messages get "delivered" status instead of "read".
+  void leaveConversation() {
+    debugPrint('[CHAT_DEBUG] leaveConversation() called — emitting screenRoom: online');
+    userOpenConversationId.value = '';
+    userOpenUserId.value = '';
+    readMessageStatus.value = '';
+    typingText.value = '';
+    userOnlineStatus.value = '';
+    _typingHideTimers.forEach((_, timer) => timer.cancel());
+    _typingHideTimers.clear();
+    // Tell the server the user is online but not in any conversation
+    chatSocket.emitEvent(
+        ChatEmitEvents.screenRoom, {ApiKeys.conversation_id: "online"});
+  }
+
   /// Check if a user is currently online (for chat list dots).
   bool isUserOnline(String? userId) =>
       userId != null && onlineUserIds.contains(userId);
@@ -1391,6 +1426,25 @@ class ChatViewController extends GetxController {
     chatSocket.emitEvent(ChatEmitEvents.isTyping,
         {ApiKeys.conversation_id: conversationId});
     _typingDebounceTimer = Timer(const Duration(seconds: 1), () {});
+  }
+
+  /// Increment unread count by 1 for a conversation in all chat list models
+  void _incrementChatListUnreadCount(String conversationId) {
+    for (final model in [
+      getPersonalChatListModel,
+      getBusinessChatListModel,
+      getGroupChatListModel,
+      getOrderChatListModel,
+    ]) {
+      final chatList = model?.value.chatList;
+      if (chatList == null) continue;
+      for (final chat in chatList) {
+        if (chat?.conversationId == conversationId) {
+          chat?.unreadCount = (chat.unreadCount ?? 0) + 1;
+        }
+      }
+      model?.refresh();
+    }
   }
 
   /// Update unread count in chat list models
@@ -2040,6 +2094,14 @@ class ChatViewController extends GetxController {
         final data = responseModel.response?.data;
         Messages? message = Messages.fromJson(data['data']);
         if (message.subType != "comment") {
+          // Reset conversation-level status to match the new message's actual
+          // status from the server. Without this, a stale 'read' value from a
+          // previous messageStatusUpdate would make new messages show blue ticks
+          // even when the receiver has already left the conversation.
+          if (message.status != null) {
+            readMessageStatus.value = message.status!;
+          }
+
           // Deduplicate: newMessageReceived socket event may have already added this
 
           final alreadyExists = message.id != null &&
@@ -2631,6 +2693,9 @@ class ChatViewController extends GetxController {
         final data = responseModel.response?.data;
 
         Messages? message = Messages.fromJson(data['data']);
+        if (message.status != null) {
+          readMessageStatus.value = message.status!;
+        }
         getListOfMessageData?.add(message);
         getListOfMessageResponse.value =
             ApiResponse.complete(getListOfMessageData);
@@ -2915,6 +2980,9 @@ class ChatViewController extends GetxController {
         final data = responseModel.response?.data;
         Messages? message = Messages.fromJson(data['data']);
         if (message.subType != "comment") {
+          if (message.status != null) {
+            readMessageStatus.value = message.status!;
+          }
           if (isPendingMessage != null && isPendingMessage) {
             Messages? msg = getListOfMessageData
                 ?.firstWhere((element) => element.id == messageId);
