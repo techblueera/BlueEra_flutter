@@ -67,6 +67,9 @@ class _HomeMadeProductScreenState extends State<HomeMadeProductScreen> {
   @override
   Widget build(BuildContext context) {
     final statusBarHeight = MediaQuery.of(context).padding.top;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final bannerHeight = (screenWidth * 8 / 16) + statusBarHeight;
+    const double stickyMaxHeight = 165;
     final stickyCategories = _homeMadeProductCategories
         .map((c) => StickyCategory(
               id: c.slugId,
@@ -82,44 +85,74 @@ class _HomeMadeProductScreenState extends State<HomeMadeProductScreen> {
         statusBarBrightness: Brightness.dark,
       ),
       child: Scaffold(
-        body: NestedScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          headerSliverBuilder: (context, innerBoxIsScrolled) => [
-            SliverToBoxAdapter(
-              child: BannerCarousel(
-                images: _bannerImages,
-                onBack: () => Navigator.pop(context),
-                statusBarHeight: statusBarHeight,
+        body: Stack(
+          children: [
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              height: bannerHeight + stickyMaxHeight,
+              child: IgnorePointer(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        AppColors.blue5CAF.withValues(alpha: 0.5),
+                        AppColors.blue5CAF.withValues(alpha: 0.8),
+                      ],
+                    ),
+                  ),
+                ),
               ),
             ),
-            SliverPersistentHeader(
-              pinned: true,
-              delegate: StickyCategoryHeaderDelegate(
-                topPadding: statusBarHeight,
-                categories: stickyCategories,
-                selectedId:
-                    controller.selectedEarnServiceData.value?.slugId ??
-                        stickyCategories.first.id,
-                onCategoryTap: (item) {
-                  final index = stickyCategories
-                      .indexWhere((c) => c.id == item.id);
-                  controller.selectedTabIndex.value = index;
-                  controller.selectedEarnServiceData.value =
-                      _homeMadeProductCategories
-                          .firstWhere((c) => c.slugId == item.id);
-                  controller.getAllProductNearBy(
-                    providerType: _providerType,
-                  );
-                  setState(() {});
-                },
-                onBack: () => Navigator.pop(context),
+            NestedScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              headerSliverBuilder: (context, innerBoxIsScrolled) => [
+                SliverToBoxAdapter(
+                  child: BannerCarousel(
+                    images: _bannerImages,
+                    onBack: () => Navigator.pop(context),
+                    statusBarHeight: statusBarHeight,
+                    backgroundColor: Colors.transparent,
+                    bottomBorderSide: const BorderSide(
+                      color: AppColors.white,
+                      width: 2,
+                    ),
+                  ),
+                ),
+                SliverPersistentHeader(
+                  pinned: true,
+                  delegate: StickyCategoryHeaderDelegate(
+                    topPadding: statusBarHeight,
+                    categories: stickyCategories,
+                    selectedId:
+                        controller.selectedEarnServiceData.value?.slugId ??
+                            stickyCategories.first.id,
+                    onCategoryTap: (item) {
+                      final index = stickyCategories
+                          .indexWhere((c) => c.id == item.id);
+                      controller.selectedTabIndex.value = index;
+                      controller.selectedEarnServiceData.value =
+                          _homeMadeProductCategories
+                              .firstWhere((c) => c.slugId == item.id);
+                      controller.getAllProductNearBy(
+                        providerType: _providerType,
+                      );
+                      setState(() {});
+                    },
+                    onBack: () => Navigator.pop(context),
+                    expandedLabelColor: AppColors.white,
+                  ),
+                ),
+              ],
+              body: NotificationListener<ScrollNotification>(
+                onNotification: _onScrollNotification,
+                child: rightContent(),
               ),
             ),
           ],
-          body: NotificationListener<ScrollNotification>(
-            onNotification: _onScrollNotification,
-            child: rightContent(),
-          ),
         ),
       ),
     );
@@ -137,7 +170,7 @@ class _HomeMadeProductScreenState extends State<HomeMadeProductScreen> {
                 selectedIndex:
                     controller.filters.indexOf(controller.selectedFilter.value),
                 horizontalMargin: 0.0,
-                verticalMargin: 0.0,
+                verticalMargin: 5.0,
                 onTabSelected: (index, _) {
                   final selectedEnum = controller.filters[index];
                   if (controller.selectedFilter.value == selectedEnum) return;
@@ -146,7 +179,6 @@ class _HomeMadeProductScreenState extends State<HomeMadeProductScreen> {
                 labelBuilder: (r) => r.localizedLabel,
                 unSelectedBackgroundColor: AppColors.white,
               ),
-              SizedBox(height: SizeConfig.size5),
               Expanded(
                 child: Obx(() {
                   if (controller.isProductDataFirstLoading.value) {

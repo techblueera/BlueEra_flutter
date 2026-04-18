@@ -70,6 +70,9 @@ class _HomeServiceScreenState extends State<HomeServiceScreen> {
   @override
   Widget build(BuildContext context) {
     final statusBarHeight = MediaQuery.of(context).padding.top;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final bannerHeight = (screenWidth * 8 / 16) + statusBarHeight;
+    const double stickyMaxHeight = 165;
     final stickyCategories = [
       StickyCategory(
           id: 'ALL_OPTION', name: 'All', imageUrl: AppImageAssets.all),
@@ -87,46 +90,76 @@ class _HomeServiceScreenState extends State<HomeServiceScreen> {
         statusBarBrightness: Brightness.dark,
       ),
       child: Scaffold(
-        body: NestedScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          headerSliverBuilder: (context, innerBoxIsScrolled) => [
-            SliverToBoxAdapter(
-              child: BannerCarousel(
-                images: _bannerImages,
-                onBack: () => Navigator.pop(context),
-                statusBarHeight: statusBarHeight,
+        body: Stack(
+          children: [
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              height: bannerHeight + stickyMaxHeight,
+              child: IgnorePointer(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        AppColors.blue5CAF.withValues(alpha: 0.5),
+                        AppColors.blue5CAF.withValues(alpha: 0.8),
+                      ],
+                    ),
+                  ),
+                ),
               ),
             ),
-            SliverPersistentHeader(
-              pinned: true,
-              delegate: StickyCategoryHeaderDelegate(
-                topPadding: statusBarHeight,
-                categories: stickyCategories,
-                selectedId:
-                    controller.selectedEarnServiceData.value?.slugId ??
-                        'ALL_OPTION',
-                onCategoryTap: (item) {
-                  if (item.id == 'ALL_OPTION') {
-                    controller.selectedEarnServiceData.value = null;
-                  } else {
-                    controller.selectedEarnServiceData.value =
-                        _homeServicesCategories
-                            .firstWhere((c) => c.slugId == item.id);
-                  }
-                  controller.fetchEarnServices(
-                    earnServiceType: earnServiceType,
-                    subType: serviceSubType,
-                  );
-                  setState(() {});
-                },
-                onBack: () => Navigator.pop(context),
+            NestedScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              headerSliverBuilder: (context, innerBoxIsScrolled) => [
+                SliverToBoxAdapter(
+                  child: BannerCarousel(
+                    images: _bannerImages,
+                    onBack: () => Navigator.pop(context),
+                    statusBarHeight: statusBarHeight,
+                    backgroundColor: Colors.transparent,
+                    bottomBorderSide: const BorderSide(
+                      color: AppColors.white,
+                      width: 2,
+                    ),
+                  ),
+                ),
+                SliverPersistentHeader(
+                  pinned: true,
+                  delegate: StickyCategoryHeaderDelegate(
+                    topPadding: statusBarHeight,
+                    categories: stickyCategories,
+                    selectedId:
+                        controller.selectedEarnServiceData.value?.slugId ??
+                            'ALL_OPTION',
+                    onCategoryTap: (item) {
+                      if (item.id == 'ALL_OPTION') {
+                        controller.selectedEarnServiceData.value = null;
+                      } else {
+                        controller.selectedEarnServiceData.value =
+                            _homeServicesCategories
+                                .firstWhere((c) => c.slugId == item.id);
+                      }
+                      controller.fetchEarnServices(
+                        earnServiceType: earnServiceType,
+                        subType: serviceSubType,
+                      );
+                      setState(() {});
+                    },
+                    onBack: () => Navigator.pop(context),
+                    expandedLabelColor: AppColors.white,
+                  ),
+                ),
+              ],
+              body: NotificationListener<ScrollNotification>(
+                onNotification: _onScrollNotification,
+                child: _buildRightContent(),
               ),
             ),
           ],
-          body: NotificationListener<ScrollNotification>(
-            onNotification: _onScrollNotification,
-            child: _buildRightContent(),
-          ),
         ),
       ),
     );
@@ -144,7 +177,7 @@ class _HomeServiceScreenState extends State<HomeServiceScreen> {
                 selectedIndex:
                     controller.filters.indexOf(controller.selectedFilter.value),
                 horizontalMargin: 0.0,
-                verticalMargin: 0.0,
+                verticalMargin: 5.0,
                 onTabSelected: (index, _) {
                   final selectedEnum = controller.filters[index];
                   if (controller.selectedFilter.value == selectedEnum) return;
@@ -153,7 +186,6 @@ class _HomeServiceScreenState extends State<HomeServiceScreen> {
                 labelBuilder: (r) => r.localizedLabel,
                 unSelectedBackgroundColor: AppColors.white,
               ),
-              SizedBox(height: SizeConfig.size5),
               Expanded(
                 child: Obx(() {
                   if (controller.isEarnServiceLoading.value &&

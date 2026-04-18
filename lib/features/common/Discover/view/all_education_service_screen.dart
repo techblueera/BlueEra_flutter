@@ -66,6 +66,9 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
   @override
   Widget build(BuildContext context) {
     final statusBarHeight = MediaQuery.of(context).padding.top;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final bannerHeight = (screenWidth * 8 / 16) + statusBarHeight;
+    const double stickyMaxHeight = 165;
     final stickyCategories = [
       StickyCategory(
           id: 'ALL_OPTION', name: 'All', imageUrl: AppImageAssets.all),
@@ -84,41 +87,71 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
       ),
       child: Scaffold(
         backgroundColor: AppColors.appBackgroundColor,
-        body: CustomScrollView(
-          controller: scrollController,
-          physics: const AlwaysScrollableScrollPhysics(),
-          slivers: [
-            SliverToBoxAdapter(
-              child: BannerCarousel(
-                images: _bannerImages,
-                onBack: () => Navigator.pop(context),
-                statusBarHeight: statusBarHeight,
+        body: Stack(
+          children: [
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              height: bannerHeight + stickyMaxHeight,
+              child: IgnorePointer(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        AppColors.blue5CAF.withValues(alpha: 0.5),
+                        AppColors.blue5CAF.withValues(alpha: 0.8),
+                      ],
+                    ),
+                  ),
+                ),
               ),
             ),
-            SliverPersistentHeader(
-              pinned: true,
-              delegate: StickyCategoryHeaderDelegate(
-                topPadding: statusBarHeight,
-                categories: stickyCategories,
-                selectedId:
-                    controller_.selectedEducationServiceData.value?.slugId ??
-                        'ALL_OPTION',
-                onCategoryTap: (item) {
-                  final index =
-                      stickyCategories.indexWhere((c) => c.id == item.id);
-                  controller_.selectedTabIndex.value = index;
-                  controller_.selectedEducationServiceData.value =
-                      item.id == 'ALL_OPTION'
-                          ? null
-                          : _professionalConsultantCategories
-                              .firstWhere((c) => c.slugId == item.id);
-                  controller_.fetchEducationServiceServices();
-                  setState(() {});
-                },
-                onBack: () => Navigator.pop(context),
-              ),
+            CustomScrollView(
+              controller: scrollController,
+              physics: const AlwaysScrollableScrollPhysics(),
+              slivers: [
+                SliverToBoxAdapter(
+                  child: BannerCarousel(
+                    images: _bannerImages,
+                    onBack: () => Navigator.pop(context),
+                    statusBarHeight: statusBarHeight,
+                    backgroundColor: Colors.transparent,
+                    bottomBorderSide: const BorderSide(
+                      color: AppColors.white,
+                      width: 2,
+                    ),
+                  ),
+                ),
+                SliverPersistentHeader(
+                  pinned: true,
+                  delegate: StickyCategoryHeaderDelegate(
+                    topPadding: statusBarHeight,
+                    categories: stickyCategories,
+                    selectedId:
+                        controller_.selectedEducationServiceData.value?.slugId ??
+                            'ALL_OPTION',
+                    onCategoryTap: (item) {
+                      final index =
+                          stickyCategories.indexWhere((c) => c.id == item.id);
+                      controller_.selectedTabIndex.value = index;
+                      controller_.selectedEducationServiceData.value =
+                          item.id == 'ALL_OPTION'
+                              ? null
+                              : _professionalConsultantCategories
+                                  .firstWhere((c) => c.slugId == item.id);
+                      controller_.fetchEducationServiceServices();
+                      setState(() {});
+                    },
+                    onBack: () => Navigator.pop(context),
+                    expandedLabelColor: AppColors.white,
+                  ),
+                ),
+                _buildListSliver(),
+              ],
             ),
-            _buildListSliver(),
           ],
         ),
       ),

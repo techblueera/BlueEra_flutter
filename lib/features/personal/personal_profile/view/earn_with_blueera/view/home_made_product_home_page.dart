@@ -17,9 +17,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueer
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/home_made_products_view_all_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/earn_service_contact_map_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/earn_service_gallery_card.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/earn_service_profile_header.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/earn_service_qr_code_widget.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/earn_service_stats.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/earn_service_testimonial_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/product_price_edit_sheet.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/controller/earn_service_controller.dart';
@@ -50,7 +48,6 @@ class _HomeMadeProductHomePageState extends State<HomeMadeProductHomePage> {
     earnProfileController = getOrPut(() => EarnProfileController());
     earnServiceController = getOrPut(() => EarnServiceController());
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      earnProfileController.fetchEarnProfile();
       earnServiceController.fetchOwnProducts();
     });
   }
@@ -58,11 +55,12 @@ class _HomeMadeProductHomePageState extends State<HomeMadeProductHomePage> {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 15.0),
+      padding: EdgeInsets.symmetric(
+        vertical: SizeConfig.size15,
+        horizontal: SizeConfig.size8,
+      ),
       child: Column(
         children: [
-          EarnServiceProfileHeader(controller: earnProfileController),
-          EarnServiceStats(controller: earnProfileController),
           _buildProductSection(),
           Obx(() => EarnServiceGalleryCard(
                 gallery: earnProfileController.earnProfile.value?.galleryImages,
@@ -82,7 +80,6 @@ class _HomeMadeProductHomePageState extends State<HomeMadeProductHomePage> {
   Widget _buildProductSection() {
     return CustomFormCard(
       padding: EdgeInsets.all(SizeConfig.size10),
-      margin: const EdgeInsets.only(top: 10),
       child: Obx(() {
         final isLoading = earnServiceController.isOwnProductDataFirstLoading.value;
         final products = earnServiceController.ownProductDataList;

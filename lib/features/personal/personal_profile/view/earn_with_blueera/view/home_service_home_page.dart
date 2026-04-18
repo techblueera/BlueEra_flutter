@@ -14,9 +14,7 @@ import 'package:BlueEra/features/common/delivery_partner/widget/common_image_upl
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/controller/earn_profile_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/earn_service_contact_map_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/earn_service_gallery_card.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/earn_service_profile_header.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/earn_service_qr_code_widget.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/earn_service_stats.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/earn_service_testimonial_card.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -37,9 +35,6 @@ class _HomeServiceHomePageState extends State<HomeServiceHomePage> {
   void initState() {
     super.initState();
     earnProfileController = getOrPut(() => EarnProfileController());
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      earnProfileController.fetchEarnProfile();
-    });
   }
 
   @override
@@ -48,8 +43,6 @@ class _HomeServiceHomePageState extends State<HomeServiceHomePage> {
       padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 15.0),
       child: Column(
         children: [
-          EarnServiceProfileHeader(controller: earnProfileController),
-          EarnServiceStats(controller: earnProfileController),
           _buildServiceSection(),
           Obx(() => EarnServiceGalleryCard(
                 gallery:

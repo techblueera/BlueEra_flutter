@@ -174,6 +174,9 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
   @override
   Widget build(BuildContext context) {
     final statusBarHeight = MediaQuery.of(context).padding.top;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final bannerHeight = (screenWidth * 8 / 16) + statusBarHeight;
+    const double stickyMaxHeight = 165;
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
@@ -189,6 +192,26 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
         child: Scaffold(
           body: Stack(
             children: [
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                height: bannerHeight + stickyMaxHeight,
+                child: IgnorePointer(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          AppColors.blue5CAF.withValues(alpha: 0.5),
+                          AppColors.blue5CAF.withValues(alpha: 0.8),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
               NestedScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
                 headerSliverBuilder: (context, innerBoxIsScrolled) => [
@@ -197,6 +220,11 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
                       images: _bannerImages,
                       onBack: _handleBackWithCartWarning,
                       statusBarHeight: statusBarHeight,
+                      backgroundColor: Colors.transparent,
+                      bottomBorderSide: const BorderSide(
+                        color: AppColors.white,
+                        width: 2,
+                      ),
                     ),
                   ),
                   SliverPersistentHeader(
@@ -221,6 +249,7 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
                         setState(() {});
                       },
                       onBack: _handleBackWithCartWarning,
+                      expandedLabelColor: AppColors.white,
                     ),
                   ),
                 ],

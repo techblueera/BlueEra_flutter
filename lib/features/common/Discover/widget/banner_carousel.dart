@@ -14,11 +14,36 @@ class BannerCarousel extends StatefulWidget {
   final VoidCallback onBack;
   final double statusBarHeight;
 
+  /// Optional overlay gradient painted on top of the banner. If null,
+  /// a default dark vignette is drawn for text readability.
+  final LinearGradient? overlayGradient;
+
+  /// Optional stroke painted around the banner (matches the bottom
+  /// rounded corners). Pass a white `BorderSide` to get a crisp edge
+  /// where the banner meets the content below.
+  final BorderSide? bottomBorderSide;
+
+  /// Background fill behind the rounded banner (visible in the
+  /// corner gaps). Defaults to [AppColors.appBackgroundColor]; pass
+  /// [Colors.transparent] when the surrounding screen paints its own
+  /// backdrop and you want it to show through.
+  final Color? backgroundColor;
+
+  /// Shape applied to the banner image clip and the optional stroke.
+  /// Defaults to a 24px bottom radius; pass [BorderRadius.zero] to
+  /// get a straight-bottomed banner that meets the content below
+  /// cleanly.
+  final BorderRadiusGeometry? bannerBorderRadius;
+
   const BannerCarousel({
     super.key,
     required this.images,
     required this.onBack,
     required this.statusBarHeight,
+    this.overlayGradient,
+    this.bottomBorderSide,
+    this.backgroundColor,
+    this.bannerBorderRadius,
   });
 
   @override
@@ -33,16 +58,17 @@ class _BannerCarouselState extends State<BannerCarousel> {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final bannerHeight = (screenWidth * 8 / 16) + widget.statusBarHeight;
+    final BorderRadiusGeometry clipRadius = widget.bannerBorderRadius ??
+        const BorderRadius.vertical(bottom: Radius.circular(24));
 
     return Container(
       height: bannerHeight,
       width: double.infinity,
-      color: AppColors.appBackgroundColor,
+      color: widget.backgroundColor ?? AppColors.appBackgroundColor,
       child: Stack(
         children: [
           ClipRRect(
-            borderRadius:
-                const BorderRadius.vertical(bottom: Radius.circular(24)),
+            borderRadius: clipRadius,
             child: CarouselSlider.builder(
               itemCount: widget.images.length,
               options: CarouselOptions(
@@ -77,20 +103,36 @@ class _BannerCarouselState extends State<BannerCarousel> {
             child: IgnorePointer(
               child: DecoratedBox(
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      AppColors.black.withValues(alpha: 0.35),
-                      Colors.transparent,
-                      AppColors.black.withValues(alpha: 0.35),
-                    ],
-                    stops: const [0.0, 0.5, 1.0],
-                  ),
+                  gradient: widget.overlayGradient ??
+                      LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          AppColors.black.withValues(alpha: 0.35),
+                          Colors.transparent,
+                          AppColors.black.withValues(alpha: 0.35),
+                        ],
+                        stops: const [0.0, 0.5, 1.0],
+                      ),
                 ),
               ),
             ),
           ),
+
+          // Optional stroke that follows the ClipRRect shape.
+          if (widget.bottomBorderSide != null)
+            Positioned.fill(
+              child: IgnorePointer(
+                child: DecoratedBox(
+                  decoration: ShapeDecoration(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: clipRadius,
+                      side: widget.bottomBorderSide!,
+                    ),
+                  ),
+                ),
+              ),
+            ),
 
           // Top row: back + location
           Positioned(

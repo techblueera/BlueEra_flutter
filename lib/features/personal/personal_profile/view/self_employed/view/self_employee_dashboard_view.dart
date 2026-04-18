@@ -473,7 +473,6 @@ class _SelfEmployeeDashboardViewState extends State<SelfEmployeeDashboardView>
               ],
               selectedIndex: controller.selectedProfileIndex.value,
               onProfileSelected: (index) => controller.switchProfile(index),
-              onAddTap: () => Get.to(() => const chooseEarnServiceScreen()),
             )
           else
             CommonProfileAvatar(),

@@ -167,6 +167,8 @@ class _ProductsStoreScreenState extends State<ProductsStoreScreen> {
   Widget build(BuildContext context) {
     final statusBarHeight = MediaQuery.of(context).padding.top;
     final width = SizeConfig.screenWidth;
+    final bannerHeight = (width * 8 / 16) + statusBarHeight;
+    const double stickyMaxHeight = 165;
     double dynamicSize(double base) => base * (width / 390);
 
     return PopScope(
@@ -184,6 +186,26 @@ class _ProductsStoreScreenState extends State<ProductsStoreScreen> {
         child: Scaffold(
           body: Stack(
             children: [
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                height: bannerHeight + stickyMaxHeight,
+                child: IgnorePointer(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          AppColors.blue5CAF.withValues(alpha: 0.5),
+                          AppColors.blue5CAF.withValues(alpha: 0.8),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
               NestedScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
                 headerSliverBuilder: (context, innerBoxIsScrolled) => [
@@ -192,6 +214,11 @@ class _ProductsStoreScreenState extends State<ProductsStoreScreen> {
                       images: _bannerImages,
                       onBack: _handleBackWithCartWarning,
                       statusBarHeight: statusBarHeight,
+                      backgroundColor: Colors.transparent,
+                      bottomBorderSide: const BorderSide(
+                        color: AppColors.white,
+                        width: 2,
+                      ),
                     ),
                   ),
                   SliverPersistentHeader(
@@ -213,6 +240,7 @@ class _ProductsStoreScreenState extends State<ProductsStoreScreen> {
                         setState(() {});
                       },
                       onBack: _handleBackWithCartWarning,
+                      expandedLabelColor: AppColors.white,
                     ),
                   ),
                 ],
@@ -259,6 +287,7 @@ class _ProductsStoreScreenState extends State<ProductsStoreScreen> {
               left: SizeConfig.size12,
               right: SizeConfig.size12,
               bottom: SizeConfig.size6,
+              top: SizeConfig.size6,
             ),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),

@@ -197,7 +197,7 @@ class GroceryStoreCard extends StatelessWidget {
                         ),
                         child: CachedNetworkImage(
                           imageUrl: store.logo!,
-                          height: 240,
+                          height: 160,
                           width: double.infinity,
                           fit: BoxFit.cover,
                           memCacheWidth: 600,

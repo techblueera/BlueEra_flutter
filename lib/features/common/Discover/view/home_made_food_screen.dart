@@ -79,6 +79,9 @@ class _HomeMadeFoodScreenState extends State<HomeMadeFoodScreen> {
   @override
   Widget build(BuildContext context) {
     final statusBarHeight = MediaQuery.of(context).padding.top;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final bannerHeight = (screenWidth * 8 / 16) + statusBarHeight;
+    const double stickyMaxHeight = 146;
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light.copyWith(
         statusBarColor: Colors.transparent,
@@ -87,40 +90,70 @@ class _HomeMadeFoodScreenState extends State<HomeMadeFoodScreen> {
       ),
       child: Scaffold(
         backgroundColor: AppColors.appBackgroundColor,
-        body: NestedScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          headerSliverBuilder: (context, innerBoxIsScrolled) => [
-            SliverToBoxAdapter(
-              child: BannerCarousel(
-                images: _bannerImages,
-                onBack: () => Navigator.pop(context),
-                statusBarHeight: statusBarHeight,
+        body: Stack(
+          children: [
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              height: bannerHeight + stickyMaxHeight,
+              child: IgnorePointer(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        AppColors.blue5CAF.withValues(alpha: 0.5),
+                        AppColors.blue5CAF.withValues(alpha: 0.8),
+                      ],
+                    ),
+                  ),
+                ),
               ),
             ),
-            SliverPersistentHeader(
-              pinned: true,
-              delegate: StickyCategoryHeaderDelegate(
-                topPadding: statusBarHeight,
-                singleLineLabel: true,
-                categories: _categories.map((c) => StickyCategory(
-                  id: c.name,
-                  name: c.name,
-                  imageUrl: c.icon,
-                )).toList(),
-                selectedId: _categories[controller.selectedCategoryIndex.value].name,
-                onCategoryTap: (item) {
-                  final idx = _categories.indexWhere((c) => c.name == item.id);
-                  if (idx >= 0) controller.onCategoryChanged(idx);
-                  setState(() {});
-                },
-                onBack: () => Navigator.pop(context),
+            NestedScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              headerSliverBuilder: (context, innerBoxIsScrolled) => [
+                SliverToBoxAdapter(
+                  child: BannerCarousel(
+                    images: _bannerImages,
+                    onBack: () => Navigator.pop(context),
+                    statusBarHeight: statusBarHeight,
+                    backgroundColor: Colors.transparent,
+                    bottomBorderSide: const BorderSide(
+                      color: AppColors.white,
+                      width: 2,
+                    ),
+                  ),
+                ),
+                SliverPersistentHeader(
+                  pinned: true,
+                  delegate: StickyCategoryHeaderDelegate(
+                    topPadding: statusBarHeight,
+                    singleLineLabel: true,
+                    categories: _categories.map((c) => StickyCategory(
+                      id: c.name,
+                      name: c.name,
+                      imageUrl: c.icon,
+                    )).toList(),
+                    selectedId: _categories[controller.selectedCategoryIndex.value].name,
+                    onCategoryTap: (item) {
+                      final idx = _categories.indexWhere((c) => c.name == item.id);
+                      if (idx >= 0) controller.onCategoryChanged(idx);
+                      setState(() {});
+                    },
+                    onBack: () => Navigator.pop(context),
+                    expandedLabelColor: AppColors.white,
+                  ),
+                ),
+              ],
+              body: NotificationListener<ScrollNotification>(
+                onNotification: _onScrollNotification,
+                child: _buildContent(),
               ),
             ),
           ],
-          body: NotificationListener<ScrollNotification>(
-            onNotification: _onScrollNotification,
-            child: _buildContent(),
-          ),
         ),
       ),
     );

@@ -31,6 +31,17 @@ class StickyCategoryHeaderDelegate extends SliverPersistentHeaderDelegate {
   final VoidCallback onBack;
   final bool singleLineLabel;
 
+  /// Optional gradient painted behind the header while it is in the
+  /// non-sticky (expanded) state. When the header collapses into its
+  /// sticky state, the existing dark background takes over.
+  final Gradient? backgroundGradient;
+
+  /// Optional label color applied to tab text in the non-sticky
+  /// (expanded) state — useful when [backgroundGradient] is dark. Bold
+  /// weight still distinguishes the active tab. Sticky-state text
+  /// remains white regardless.
+  final Color? expandedLabelColor;
+
   static const double _searchBarHeight = 44;
   static const double _searchGap = 10;
   static const double _tabsHeight = 95;
@@ -46,6 +57,8 @@ class StickyCategoryHeaderDelegate extends SliverPersistentHeaderDelegate {
     required this.onCategoryTap,
     required this.onBack,
     this.singleLineLabel = false,
+    this.backgroundGradient,
+    this.expandedLabelColor,
   });
 
   double get _effectiveTabsHeight =>
@@ -70,7 +83,12 @@ class StickyCategoryHeaderDelegate extends SliverPersistentHeaderDelegate {
     final searchOpacity = (1 - t * 1.5).clamp(0.0, 1.0);
     final currentTopPad = (1 - t) * _vPad + t * topPadding;
 
-    return Material(
+    final expandedGradient =
+        !isSticky ? backgroundGradient : null;
+
+    return DecoratedBox(
+      decoration: BoxDecoration(gradient: expandedGradient),
+      child: Material(
       type: isSticky ? MaterialType.canvas : MaterialType.transparency,
       elevation: isSticky ? 4 : 0,
       shadowColor: Colors.black26,
@@ -243,10 +261,11 @@ class StickyCategoryHeaderDelegate extends SliverPersistentHeaderDelegate {
                                             : FontWeight.w500,
                                         color: isSticky
                                             ? AppColors.white
-                                            : isActive
-                                                ? AppColors.primaryColor
-                                                : AppColors
-                                                    .secondaryTextColor,
+                                            : (expandedLabelColor ??
+                                                (isActive
+                                                    ? AppColors.primaryColor
+                                                    : AppColors
+                                                        .secondaryTextColor)),
                                         maxLines:
                                             singleLineLabel ? 1 : 2,
                                         overflow:
@@ -270,6 +289,7 @@ class StickyCategoryHeaderDelegate extends SliverPersistentHeaderDelegate {
             SizedBox(height: _vPad),
           ],
         ),
+      ),
       ),
     );
   }
@@ -316,5 +336,7 @@ class StickyCategoryHeaderDelegate extends SliverPersistentHeaderDelegate {
       categories != oldDelegate.categories ||
       selectedId != oldDelegate.selectedId ||
       onCategoryTap != oldDelegate.onCategoryTap ||
-      onBack != oldDelegate.onBack;
+      onBack != oldDelegate.onBack ||
+      backgroundGradient != oldDelegate.backgroundGradient ||
+      expandedLabelColor != oldDelegate.expandedLabelColor;
 }
