@@ -153,7 +153,7 @@ class AboutOrganization extends StatelessWidget {
             text: item.description ?? "",
             trimLines: 2,
             isReadMoreNewLine: false,
-            expandMode: ExpandMode.dialog,
+            expandMode: ExpandMode.expandable,
             style: TextStyle(
               color: AppColors.secondaryTextColor,
               fontSize: SizeConfig.large,

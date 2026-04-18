@@ -56,6 +56,7 @@ class _HotelHomeDetailScreenState extends State<HotelHomeDetailScreen> {
     controller.loadHotelData();
     super.initState();
   }
+
   Widget _buildCircleIcon(String iconImage) {
     return LocalAssets(
       imagePath: iconImage,
@@ -73,7 +74,7 @@ class _HotelHomeDetailScreenState extends State<HotelHomeDetailScreen> {
 
   Widget _buildMyDocumentWidget() {
     return CustomFormCard(
-        margin: EdgeInsets.only(right: 20,left: 20,top: 20),
+        margin: EdgeInsets.only(right: 20, left: 20, top: 20),
         child: Column(
           children: [
             Row(
@@ -89,10 +90,11 @@ class _HotelHomeDetailScreenState extends State<HotelHomeDetailScreen> {
                 SizedBox(width: SizeConfig.size6),
                 PositiveCustomBtn(
                   onTap: () {
-                    Get.toNamed(
-                        RouteHelper.getAddDocumentScreenRoute(),
-                        arguments: {ApiKeys.argDocumentVia: AppConstants.hotelServiceScreen}
-                    );
+                    Get.toNamed(RouteHelper.getAddDocumentScreenRoute(),
+                        arguments: {
+                          ApiKeys.argDocumentVia:
+                              AppConstants.hotelServiceScreen
+                        });
                   },
                   title: AppStrings.addDocument,
                   padding: EdgeInsets.symmetric(horizontal: 3),
@@ -119,62 +121,66 @@ class _HotelHomeDetailScreenState extends State<HotelHomeDetailScreen> {
                     boxShadow: [AppShadows.textFieldShadow]),
                 child: (myDocumentsController.documents.isEmpty)
                     ? ListTile(
-                  dense: true,
-                  onTap: () {
-                    Get.toNamed(
-                        RouteHelper.getAddDocumentScreenRoute(),
-                        arguments: {ApiKeys.argDocumentVia: AppConstants.hotelServiceScreen}
-                    );
-                  },
-                  leading: Icon(
-                    Icons.folder_open,
-                    color: AppColors.primaryColor,
-                  ),
-                  title: CustomText(
-                    AppStrings.noDocumentsFound,
-                    fontSize: SizeConfig.medium,
-                    fontWeight: FontWeight.w400,
-                    color: AppColors.mainTextColor,
-                  ),
-                  subtitle: CustomText(
-                    AppStrings.addYourFirstDocument,
-                    fontSize: SizeConfig.small,
-                    fontWeight: FontWeight.w400,
-                    color: AppColors.secondaryTextColor,
-                  ),
-                )
-                    : ExpansionTile(
-                    dense: true,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10)),
-                    collapsedShape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10)),
-                    title: CustomText(
-                      AppStrings.myDocuments,
-                      fontSize: SizeConfig.medium,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.secondaryTextColor,
-                    ),
-                    childrenPadding: EdgeInsets.only(bottom: SizeConfig.size8),
-                    children: [
-                      for (int i = 0;
-                      i < myDocumentsController.documents.length;
-                      i++) ...[
-                        _buildDocumentCard(
-                          myDocumentsController.documents[i],
-                          myDocumentsController,
+                        dense: true,
+                        onTap: () {
+                          Get.toNamed(RouteHelper.getAddDocumentScreenRoute(),
+                              arguments: {
+                                ApiKeys.argDocumentVia:
+                                    AppConstants.hotelServiceScreen
+                              });
+                        },
+                        leading: Icon(
+                          Icons.folder_open,
+                          color: AppColors.primaryColor,
                         ),
-                        if (i != myDocumentsController.documents.length - 1)
-                          CommonHorizontalDivider(
-                            color: AppColors.greyE5, // <-- your colour
-                          ),
-                      ]
-                    ]),
+                        title: CustomText(
+                          AppStrings.noDocumentsFound,
+                          fontSize: SizeConfig.medium,
+                          fontWeight: FontWeight.w400,
+                          color: AppColors.mainTextColor,
+                        ),
+                        subtitle: CustomText(
+                          AppStrings.addYourFirstDocument,
+                          fontSize: SizeConfig.small,
+                          fontWeight: FontWeight.w400,
+                          color: AppColors.secondaryTextColor,
+                        ),
+                      )
+                    : ExpansionTile(
+                        dense: true,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10)),
+                        collapsedShape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10)),
+                        title: CustomText(
+                          AppStrings.myDocuments,
+                          fontSize: SizeConfig.medium,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.secondaryTextColor,
+                        ),
+                        childrenPadding:
+                            EdgeInsets.only(bottom: SizeConfig.size8),
+                        children: [
+                            for (int i = 0;
+                                i < myDocumentsController.documents.length;
+                                i++) ...[
+                              _buildDocumentCard(
+                                myDocumentsController.documents[i],
+                                myDocumentsController,
+                              ),
+                              if (i !=
+                                  myDocumentsController.documents.length - 1)
+                                CommonHorizontalDivider(
+                                  color: AppColors.greyE5, // <-- your colour
+                                ),
+                            ]
+                          ]),
               );
             })
           ],
         ));
   }
+
   Widget _buildDocumentCard(
       DocumentsResponse document, MyDocumentsController controller) {
     return Container(
@@ -229,15 +235,15 @@ class _HotelHomeDetailScreenState extends State<HotelHomeDetailScreen> {
               Get.bottomSheet(
                 CommonDocumentBottomSheet(
                   title:
-                  controller.getDocumentName(document.documentType ?? ''),
+                      controller.getDocumentName(document.documentType ?? ''),
                   child: (document.isVerified ?? false)
                       ? ViewDocumentWidget(
-                    document: document,
-                  )
+                          document: document,
+                        )
                       : DocumentVerificationPendingWidget(
-                    documentName: controller
-                        .getDocumentName(document.documentType ?? ''),
-                  ),
+                          documentName: controller
+                              .getDocumentName(document.documentType ?? ''),
+                        ),
                 ),
                 isScrollControlled: true,
                 backgroundColor: Colors.transparent,
@@ -254,6 +260,7 @@ class _HotelHomeDetailScreenState extends State<HotelHomeDetailScreen> {
       ),
     );
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -268,9 +275,11 @@ class _HotelHomeDetailScreenState extends State<HotelHomeDetailScreen> {
           slivers: [
             // 1. Header Image
             SliverAppBar(
-              expandedHeight: (controller.hotelData.value?.profile
-                  ?.description?.isNotEmpty??false)?Get.height * 0.35:Get.height * 0.28,
-
+              expandedHeight: (controller
+                          .hotelData.value?.profile?.description?.isNotEmpty ??
+                      false)
+                  ? Get.height * 0.35
+                  : Get.height * 0.28,
               flexibleSpace: FlexibleSpaceBar(
                 background: Container(
                   color: AppColors.appBackgroundColor,
@@ -289,11 +298,12 @@ class _HotelHomeDetailScreenState extends State<HotelHomeDetailScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     CommonCardWidget(
-
                         padding: 10,
                         cardMargin: 0,
                         child: _buildMyDocumentWidget()),
-SizedBox(height: 15,),
+                    SizedBox(
+                      height: 15,
+                    ),
                     // 2. Room Section
                     CommonCardWidget(
                       padding: 10,
@@ -319,20 +329,17 @@ SizedBox(height: 15,),
                                   bool isSelected =
                                       controller.selectedRoomType.value == type;
                                   return GestureDetector(
-                                    onTap: () =>
-                                        controller.selectedRoomType.value =
-                                            type,
+                                    onTap: () => controller
+                                        .selectedRoomType.value = type,
                                     child: Container(
-                                      margin:
-                                          const EdgeInsets.only(right: 10),
+                                      margin: const EdgeInsets.only(right: 10),
                                       padding: const EdgeInsets.symmetric(
                                           horizontal: 16, vertical: 5),
                                       decoration: BoxDecoration(
                                         color: isSelected
                                             ? AppColors.primaryColor
                                             : AppColors.white,
-                                        borderRadius:
-                                            BorderRadius.circular(10),
+                                        borderRadius: BorderRadius.circular(10),
                                         border: Border.all(
                                           color: isSelected
                                               ? AppColors.primaryColor
@@ -370,7 +377,8 @@ SizedBox(height: 15,),
                               return SizedBox(
                                 height: 80,
                                 child: Center(
-                                  child: CustomText(AppStrings.hotelNoRoomsForType.tr),
+                                  child: CustomText(
+                                      AppStrings.hotelNoRoomsForType.tr),
                                 ),
                               );
                             }
@@ -455,13 +463,12 @@ SizedBox(height: 15,),
                               onEdit: () => Get.to(HotelAmenitiesScreen()),
                             ),
                             const SizedBox(height: 15),
-                            profile?.amenities != null
-                                ? _buildAmenities(profile?.amenities)
+                            profile?.hotelAmenities != null
+                                ? _buildAmenities(profile?.hotelAmenities)
                                 : _buildEmptyPlaceholder(
                                     AppStrings.hotelNoAmenitiesAdded.tr,
                                     icon: Icons.spa_outlined,
-                                    onAdd: () =>
-                                        Get.to(HotelAmenitiesScreen()),
+                                    onAdd: () => Get.to(HotelAmenitiesScreen()),
                                   ),
                           ],
                         ),
@@ -486,8 +493,7 @@ SizedBox(height: 15,),
                               : _buildEmptyPlaceholder(
                                   AppStrings.hotelNoPoliciesAdded.tr,
                                   icon: Icons.policy_outlined,
-                                  onAdd: () =>
-                                      Get.to(HotelPoliciesScreen()),
+                                  onAdd: () => Get.to(HotelPoliciesScreen()),
                                 ),
                         ],
                       ),
@@ -509,7 +515,6 @@ SizedBox(height: 15,),
                         businessName: (profile?.name?.isNotEmpty ?? false)
                             ? profile!.name!
                             : businessNameGlobal,
-
                         padding: 0,
                         isTitleShow: true),
 
@@ -559,8 +564,8 @@ SizedBox(height: 15,),
                     color: AppColors.primaryColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Icon(Icons.add,
-                      size: 18, color: AppColors.primaryColor),
+                  child:
+                      Icon(Icons.add, size: 18, color: AppColors.primaryColor),
                 ),
               ),
           ],
@@ -588,7 +593,8 @@ SizedBox(height: 15,),
               shape: BoxShape.circle,
             ),
             child: Icon(icon,
-                size: 44, color: AppColors.primaryColor.withValues(alpha: 0.55)),
+                size: 44,
+                color: AppColors.primaryColor.withValues(alpha: 0.55)),
           ),
           const SizedBox(height: 12),
           CustomText(
@@ -635,12 +641,23 @@ SizedBox(height: 15,),
       items.add(AppStrings.hotelEarlyCheckInAllowed.tr);
     if (policy.lateCheckOutAllowed == true)
       items.add(AppStrings.hotelLateCheckOutAllowed.tr);
-    if (policy.freeCancellation == true) items.add(AppStrings.hotelFreeCancellation.tr);
-    if (policy.localIdAllowed == true) items.add(AppStrings.hotelLocalIdAccepted.tr);
+    if (policy.freeCancellation == true)
+      items.add(AppStrings.hotelFreeCancellation.tr);
+    if (policy.localIdAllowed == true)
+      items.add(AppStrings.hotelLocalIdAccepted.tr);
     if (policy.marriedCoupleAllowed == true)
       items.add(AppStrings.hotelMarriedCouplesAllowed.tr);
     if (policy.bachelorStudentAllowed == true)
       items.add(AppStrings.hotelBachelorsStudentsAllowed.tr);
+    if (policy.aadharMandatory == true)
+      items.add(AppStrings.hotelAadharMandatoryChip.tr);
+    if (policy.smokingDrinkingAllowed == true)
+      items.add(AppStrings.hotelSmokingDrinkingAllowedChip.tr);
+    if (policy.foodRestrictions?.enabled == true &&
+        policy.foodRestrictions?.restrictions?.isNotEmpty == true) {
+      items.add(
+          "${AppStrings.hotelFoodRestrictionsLabel.tr}: ${policy.foodRestrictions!.restrictions!.join(', ')}");
+    }
 
     if (items.isEmpty) {
       return _buildEmptyPlaceholder(
@@ -655,8 +672,8 @@ SizedBox(height: 15,),
       runSpacing: 8,
       children: items
           .map((item) => Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 12, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
                   color: AppColors.primaryColor.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(20),
@@ -706,13 +723,11 @@ SizedBox(height: 15,),
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         boxShadow: const [
-                          BoxShadow(
-                              color: Colors.black12, blurRadius: 10)
+                          BoxShadow(color: Colors.black12, blurRadius: 10)
                         ],
                         image: DecorationImage(
                             image: NetworkImage(
-                                profile?.photos?.first.imageReferences
-                                        ?.first ??
+                                profile?.photos?.first.imageReferences?.first ??
                                     ''),
                             fit: BoxFit.cover),
                       ),
@@ -747,10 +762,8 @@ SizedBox(height: 15,),
                       AppIconAssets.phone_outline,
                       profile?.contacts?.firstOrNull?.phone ?? "N/A",
                       AppColors.secondaryTextColor),
-                  _contactItem(
-                      AppIconAssets.location_new,
-                      profile?.locationHotel?.name ?? "N/A",
-                      Colors.grey[700]!),
+                  _contactItem(AppIconAssets.location_new,
+                      profile?.locationHotel?.name ?? "N/A", Colors.grey[700]!),
                 ],
               ),
             ),
@@ -771,9 +784,7 @@ SizedBox(height: 15,),
             height: 20,
           ),
           const SizedBox(width: 12),
-          Expanded(
-              child:
-                  CustomText(label, color: AppColors.mainTextColor)),
+          Expanded(child: CustomText(label, color: AppColors.mainTextColor)),
         ],
       ),
     );
@@ -799,8 +810,7 @@ SizedBox(height: 15,),
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) => Container(
                   color: Colors.grey[200],
-                  child:
-                      const Icon(Icons.hotel, size: 50, color: Colors.grey),
+                  child: const Icon(Icons.hotel, size: 50, color: Colors.grey),
                 ),
               ),
             ),
@@ -849,7 +859,6 @@ SizedBox(height: 15,),
                   ],
                 ),
                 const SizedBox(height: 4),
-
                 CustomText(
                   "₹${room.pricePerDay}/day",
                   color: Colors.white,
@@ -857,7 +866,6 @@ SizedBox(height: 15,),
                   fontWeight: FontWeight.w600,
                 ),
                 const SizedBox(height: 12),
-
                 Row(
                   children: [
                     LocalAssets(
@@ -872,7 +880,6 @@ SizedBox(height: 15,),
                   ],
                 ),
                 const SizedBox(height: 4),
-
                 Row(
                   children: [
                     LocalAssets(
@@ -896,30 +903,36 @@ SizedBox(height: 15,),
   }
 
   // ─── Amenities Grid ────────────────────────────────────────────────────────
-  Widget _buildAmenities(Amenities? amen) {
+  Widget _buildAmenities(HotelAmenities? amen) {
     if (amen == null) return const SizedBox();
     return Wrap(
       spacing: 20,
       children: [
-        if (amen.freeWifi ?? false) _amenityIcon(Icons.wifi, AppStrings.hotelAmenityWifi.tr),
-        if (amen.airConditioning ?? false) _amenityIcon(Icons.ac_unit, AppStrings.hotelAmenityAc.tr),
-        if (amen.television ?? false) _amenityIcon(Icons.tv, AppStrings.hotelAmenityTv.tr),
-        if (amen.roomService ?? false)
-          _amenityIcon(Icons.room_service, AppStrings.hotelAmenityRoomService.tr),
+        if (amen.freeParking ?? false)
+          _amenityIcon(Icons.local_parking, AppStrings.hotelFreeParking.tr),
+        if (amen.restaurant ?? false)
+          _amenityIcon(Icons.restaurant, AppStrings.hotelRestaurant.tr),
+        if (amen.frontDesk24x7 ?? false)
+          _amenityIcon(Icons.support_agent, AppStrings.hotelFrontDesk247.tr),
+        if (amen.elevatorLift ?? false)
+          _amenityIcon(Icons.elevator, AppStrings.hotelElevatorLift.tr),
+        if (amen.cctvSurveillance ?? false)
+          _amenityIcon(Icons.videocam, AppStrings.hotelCctvSurveillance.tr),
         if (amen.powerBackup ?? false)
+          _amenityIcon(Icons.battery_charging_full_sharp,
+              AppStrings.hotelPowerBackup.tr),
+        if (amen.laundryService ?? false)
           _amenityIcon(
-              Icons.battery_charging_full_sharp, AppStrings.hotelAmenityPowerBank.tr),
-        if (amen.balcony ?? false) _amenityIcon(Icons.balcony, AppStrings.hotelAmenityBalcony.tr),
-        if (amen.attachedBathroom ?? false)
-          _amenityIcon(Icons.bathroom, AppStrings.hotelAmenityBathroom.tr),
-        if (amen.wardrobe ?? false)
-          _amenityIcon(Icons.devices_other, AppStrings.hotelAmenityWardrobe.tr),
-        if (amen.deskChair ?? false)
-          _amenityIcon(Icons.chair, AppStrings.hotelAmenityDeskChair.tr),
-        if (amen.roomRefrigerators ?? false)
-          _amenityIcon(Icons.cabin_sharp, AppStrings.hotelAmenityRoomRefrigerators.tr),
-        if (amen.electricKettle ?? false)
-          _amenityIcon(Icons.electric_bolt, AppStrings.hotelAmenityElectricKettle.tr),
+              Icons.local_laundry_service, AppStrings.hotelLaundryService.tr),
+        if (amen.swimmingPool ?? false)
+          _amenityIcon(Icons.pool, AppStrings.hotelSwimmingPool.tr),
+        if (amen.airportTransportation ?? false)
+          _amenityIcon(
+              Icons.airport_shuttle, AppStrings.hotelAirportTransportation.tr),
+        if (amen.bar ?? false)
+          _amenityIcon(Icons.local_bar, AppStrings.hotelBar.tr),
+        if (amen.gym ?? false)
+          _amenityIcon(Icons.fitness_center, AppStrings.hotelGym.tr),
       ],
     );
   }
