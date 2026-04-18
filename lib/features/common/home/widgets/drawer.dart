@@ -194,7 +194,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
                 decoration: BoxDecoration(
                   border: Border.all(color: AppColors.primaryColor),
                   borderRadius: BorderRadius.circular(10),
-                  color: AppColors.blueShade.withOpacity(0.1),
+                  color: AppColors.blueShade.withValues(alpha: 0.1),
                 ),
                 child: Row(
                   children: [

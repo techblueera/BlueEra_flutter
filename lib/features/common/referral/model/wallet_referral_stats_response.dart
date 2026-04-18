@@ -21,6 +21,7 @@ class WalletReferralStatsResponse {
 
 class WalletRefferalStatsData {
   String? referralCode;
+  String? serialCode;
   num? balance;
   num? totalIncome;
   num? estimatedEarning;
@@ -29,6 +30,7 @@ class WalletRefferalStatsData {
 
   WalletRefferalStatsData(
       {this.referralCode,
+        this.serialCode,
         this.balance,
         this.totalIncome,
         this.estimatedEarning,
@@ -37,6 +39,7 @@ class WalletRefferalStatsData {
 
   WalletRefferalStatsData.fromJson(Map<String, dynamic> json) {
     referralCode = json['referralCode'];
+    serialCode = json['serialCode'] ?? json['serial_code'];
     balance = json['balance'];
     totalIncome = json['totalIncome'];
     estimatedEarning = json['estimatedEarning'];
@@ -49,6 +52,7 @@ class WalletRefferalStatsData {
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
     data['referralCode'] = this.referralCode;
+    data['serialCode'] = this.serialCode;
     data['balance'] = this.balance;
     data['totalIncome'] = this.totalIncome;
     data['estimatedEarning'] = this.estimatedEarning;

@@ -22,7 +22,6 @@ import '../controller/referral_controller.dart';
 class BdmDocumentVerifiedPage extends StatefulWidget {
   const BdmDocumentVerifiedPage({
     super.key,
-
   });
 
   @override

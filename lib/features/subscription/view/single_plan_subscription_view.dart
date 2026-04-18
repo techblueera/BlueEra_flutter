@@ -203,7 +203,7 @@ class _SinglePlanSubscriptionViewState
         perks: plan.perks ?? const [],
       ),
       cta: _primaryButton(
-        title: 'Go Live Now',
+        title: 'Go Live Now @ Rs 5',
         onTap: _handlePay,
       ),
     );

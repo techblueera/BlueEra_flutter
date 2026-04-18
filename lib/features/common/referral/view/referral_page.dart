@@ -3,6 +3,7 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/referral/model/referral_get_bdm_details_model.dart';
 import 'package:BlueEra/features/common/referral/view/bdm_document_verified_page.dart';
+import 'package:BlueEra/features/common/referral/view/bdm_id_card_page.dart';
 import 'package:BlueEra/features/common/referral/view/join_as_bdm_screen.dart';
 import 'package:BlueEra/features/common/referral/widgets/generate_referral_section.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/my_documents/controller/my_documents_controller.dart';
@@ -88,7 +89,51 @@ class _ReferralPageState extends State<ReferralPage> {
         print('bdm status -- $status');
 
         if(status == 'COMPLETED')
-          return BdmDocumentVerifiedPage();
+          return Column(
+            children: [
+              Padding(
+                padding: EdgeInsets.fromLTRB(
+                  SizeConfig.size15,
+                  SizeConfig.paddingXSL,
+                  SizeConfig.size15,
+                  0,
+                ),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(10),
+                  onTap: () => Get.to(() => const BdmIdCardPage()),
+                  child: Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: SizeConfig.size12,
+                      vertical: SizeConfig.size10,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryColor.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: AppColors.primaryColor),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.badge_outlined,
+                            color: AppColors.primaryColor),
+                        SizedBox(width: SizeConfig.size8),
+                        Expanded(
+                          child: CustomText(
+                            "View My BlueEra ID Card",
+                            fontSize: SizeConfig.medium,
+                            color: AppColors.primaryColor,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        Icon(Icons.chevron_right,
+                            color: AppColors.primaryColor),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              Expanded(child: BdmDocumentVerifiedPage()),
+            ],
+          );
         else
         return SingleChildScrollView(
           child: Column(
@@ -118,13 +163,7 @@ class _ReferralPageState extends State<ReferralPage> {
                                     color: AppColors.primaryColor
                                 )
                             ),
-                            padding: EdgeInsets.all(
-                              10,
-                            ),
-                            // padding: EdgeInsets.symmetric(
-                            //     horizontal: 15,
-                            //     vertical: 10,
-                            // ),
+                            padding: EdgeInsets.all(10,),
                             child: CustomText(
                               "Join As Business Development Manager (BDM)",
                               fontSize: 12,

@@ -67,7 +67,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
   @override
   void initState() {
     _checkRiderStatus();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 2, vsync: this);
     _tabController.addListener(_onTabChanged);
     MeTabRegistry.register(_tabController);
     _viewCtrl.UserFollowersAndPostsCount(userId);
@@ -227,7 +227,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
                     text: allCompleted
                         ? AppStrings.myOrder.tr
                         : AppStrings.document.tr),
-                Tab(text: AppStrings.myStore.tr),
+                // Tab(text: AppStrings.myStore.tr),
                 Tab(text: AppStrings.statistics.tr),
               ],
             ),
@@ -253,7 +253,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
                             ? DeliveryPartnerOrders()
                             : RiderProfileStatusScreen(
                                 screeName: 'from_tab_view'),
-            const RiderMyStoreTab(),
+            // const RiderMyStoreTab(),
             const SubscriptionStatusView(),
           ],
         ),
