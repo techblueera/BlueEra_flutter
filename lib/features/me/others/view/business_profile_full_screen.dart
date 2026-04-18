@@ -9,7 +9,8 @@ import 'package:BlueEra/features/business/visiting_card/view/widget/business_loc
 import 'package:BlueEra/features/me/laboratory/view/widgets/me_menu_card_design.dart';
 import 'package:BlueEra/features/me/others/controller/business_profile_full_controller.dart';
 import 'package:BlueEra/features/me/others/controller/other_branch_contact_controller.dart';
-import 'package:BlueEra/features/me/others/model/business_profile_full_model.dart' hide Location;
+import 'package:BlueEra/features/me/others/model/business_profile_full_model.dart'
+    hide Location;
 import 'package:BlueEra/features/me/others/view/about_us/about_us.dart';
 import 'package:BlueEra/features/me/others/view/other_blog/other_blogs_screen.dart';
 import 'package:BlueEra/features/me/others/view/other_contact_us/other_branch_details_form_screen.dart';
@@ -62,7 +63,11 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
         return CustomScrollView(
           slivers: [
             SliverAppBar(
-              expandedHeight:(controller.businessProfile.value?.profile?.description?.isNotEmpty??false)? Get.height * 0.35: Get.height * 0.30,
+              expandedHeight: (controller.businessProfile.value?.profile
+                          ?.description?.isNotEmpty ??
+                      false)
+                  ? Get.height * 0.35
+                  : Get.height * 0.30,
               flexibleSpace: FlexibleSpaceBar(
                 background: OtherHeaderView(
                   schoolAboutUsController: controller,
@@ -72,7 +77,8 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
             ),
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12.0,vertical: 10),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12.0, vertical: 10),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -84,7 +90,8 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
                         mainAxisAlignment: MainAxisAlignment.start,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _buildSectionTitle(AppStrings.otherOurStaffs.tr, onSeeAll: () {
+                          _buildSectionTitle(AppStrings.otherOurStaffs.tr,
+                              onSeeAll: () {
                             Get.to(StaffScreen());
                           }),
                           const SizedBox(height: 10),
@@ -108,8 +115,10 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
                         bgColor: Color(0xff0085FE).withValues(alpha: 0.10),
                         child: Column(
                           children: [
-                            _buildSectionTitle(AppStrings.otherProduct.tr, onSeeAll: () {
-                              Get.toNamed(RouteHelper.getInventoryScreenRoute());
+                            _buildSectionTitle(AppStrings.otherProduct.tr,
+                                onSeeAll: () {
+                              Get.toNamed(
+                                  RouteHelper.getInventoryScreenRoute());
                             }),
                             OtherProductWidget(),
                           ],
@@ -122,14 +131,17 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
                       padding: 10,
                       child: Column(
                         children: [
-                          _buildSectionTitle(AppStrings.otherOurOrganisation.tr, onSeeAll: () {
+                          _buildSectionTitle(AppStrings.otherOurOrganisation.tr,
+                              onSeeAll: () {
                             Get.to(OthersAboutUs());
                           }),
                           const SizedBox(height: 10),
-                          if (data.aboutOrganisation != null && data.aboutOrganisation!.isNotEmpty)
+                          if (data.aboutOrganisation != null &&
+                              data.aboutOrganisation!.isNotEmpty)
                             _buildServicesList(data.aboutOrganisation!)
                           else
-                            _buildOrgEmptyCard(onTap: () => Get.to(OthersAboutUs())),
+                            _buildOrgEmptyCard(
+                                onTap: () => Get.to(OthersAboutUs())),
                         ],
                       ),
                     ),
@@ -141,7 +153,8 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
                       padding: 10,
                       child: Column(
                         children: [
-                          _buildSectionTitle(AppStrings.otherOurBlogs.tr, onSeeAll: () {
+                          _buildSectionTitle(AppStrings.otherOurBlogs.tr,
+                              onSeeAll: () {
                             Get.to(OtherBlogsScreen());
                           }),
                           const SizedBox(height: 10),
@@ -168,11 +181,14 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              ServiceHomeTitleWidget(title: AppStrings.gallery.tr),
+                              ServiceHomeTitleWidget(
+                                  title: AppStrings.gallery.tr),
                               GestureDetector(
-                                onTap: () => Get.to(OtherServicePhotosPhotoScreen()),
+                                onTap: () =>
+                                    Get.to(OtherServicePhotosPhotoScreen()),
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 10, vertical: 4),
                                   decoration: BoxDecoration(
                                     color: AppColors.primaryColor,
                                     borderRadius: BorderRadius.circular(6),
@@ -180,9 +196,13 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      const Icon(Icons.add_photo_alternate_outlined, size: 14, color: Colors.white),
+                                      const Icon(
+                                          Icons.add_photo_alternate_outlined,
+                                          size: 14,
+                                          color: Colors.white),
                                       const SizedBox(width: 4),
-                                      CustomText(AppStrings.otherAddEdit.tr, fontSize: 12, color: Colors.white),
+                                      CustomText(AppStrings.otherAddEdit.tr,
+                                          fontSize: 12, color: Colors.white),
                                     ],
                                   ),
                                 ),
@@ -196,7 +216,8 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
                             _buildEmptySectionCard(
                               title: AppStrings.otherAddGalleryPhotos.tr,
                               icon: AppIconAssets.other_gallery,
-                              onTap: () => Get.to(OtherServicePhotosPhotoScreen()),
+                              onTap: () =>
+                                  Get.to(OtherServicePhotosPhotoScreen()),
                             ),
                         ],
                       ),
@@ -239,33 +260,51 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
                       padding: 10,
                       child: Column(
                         children: [
-                          _buildSectionTitle(AppStrings.contactUs.tr, onSeeAll: () {
+                          _buildSectionTitle(AppStrings.contactUs.tr,
+                              onSeeAll: () {
                             Get.to(OtherContactUs());
                           }),
                           const SizedBox(height: 10),
-                          _buildContactUs(data.contactUs?.firstOrNull ?? ContactUsOtherProfile()),
+                          _buildContactUs(data.contactUs?.firstOrNull ??
+                              ContactUsOtherProfile()),
                         ],
                       ),
                     ),
 
                     /// Map Section
-                    if ((data.contactUs?.firstOrNull?.branch?.location?.coordinates != null &&
-                        data.contactUs!.firstOrNull!.branch!.location!.coordinates!.length >= 2 &&
-                        (double.tryParse(data.contactUs!.firstOrNull!.branch!.location!.coordinates![0].toString()) ?? 0.0) != 0.0 &&
-                        (double.tryParse(data.contactUs!.firstOrNull!.branch!.location!.coordinates![1].toString()) ?? 0.0) != 0.0))
+                    if ((data.contactUs?.firstOrNull?.branch?.location
+                                ?.coordinates !=
+                            null &&
+                        data.contactUs!.firstOrNull!.branch!.location!
+                                .coordinates!.length >=
+                            2 &&
+                        (double.tryParse(data.contactUs!.firstOrNull!.branch!
+                                    .location!.coordinates![0]
+                                    .toString()) ??
+                                0.0) !=
+                            0.0 &&
+                        (double.tryParse(data.contactUs!.firstOrNull!.branch!
+                                    .location!.coordinates![1]
+                                    .toString()) ??
+                                0.0) !=
+                            0.0))
                       ClipRRect(
                         borderRadius: BorderRadius.circular(12),
                         child: BusinessLocationWidget(
-                            locationText: data.contactUs?.firstOrNull?.branch?.location?.name,
-                            latitude: double.parse(data.contactUs!.firstOrNull!.branch!.location!.coordinates![0].toString()),
-                            longitude: double.parse(data.contactUs!.firstOrNull!.branch!.location!.coordinates![1].toString()),
+                            locationText: data
+                                .contactUs?.firstOrNull?.branch?.location?.name,
+                            latitude: double.parse(data.contactUs!.firstOrNull!
+                                .branch!.location!.coordinates![0]
+                                .toString()),
+                            longitude: double.parse(data.contactUs!.firstOrNull!
+                                .branch!.location!.coordinates![1]
+                                .toString()),
                             businessName: data.profile?.profileName ?? "",
                             padding: 10,
                             isTitleShow: true),
                       ),
                     const SizedBox(height: kBottomNavigationBarHeight),
                     const SizedBox(height: 20),
-
                   ],
                 ),
               ),
@@ -288,7 +327,8 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.business_center_outlined, size: 36, color: Colors.grey[350]),
+          Icon(Icons.business_center_outlined,
+              size: 36, color: Colors.grey[350]),
           const SizedBox(height: 8),
           CustomText(
             AppStrings.otherNoOrganisationInfoAdded.tr,
@@ -466,14 +506,14 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      CustomText(
-                        service.title ?? "",
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16),
+                      CustomText(service.title ?? "",
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16),
                       CustomText(
                         service.description ?? "",
-                            color: AppColors.whiteE5, fontSize: 12,
+                        color: AppColors.whiteE5,
+                        fontSize: 12,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -620,7 +660,8 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
     }
 
     if (display.length == 1) {
-      return SizedBox(height: height, width: double.infinity, child: imgTile(0));
+      return SizedBox(
+          height: height, width: double.infinity, child: imgTile(0));
     }
 
     if (display.length == 2) {
@@ -687,7 +728,9 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
 
   Widget _buildContactUs(ContactUsOtherProfile contacts) {
     final branch = contacts.branch;
-    final firstDept = contacts.departments?.isNotEmpty == true ? contacts.departments!.first : null;
+    final firstDept = contacts.departments?.isNotEmpty == true
+        ? contacts.departments!.first
+        : null;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -705,7 +748,8 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
             children: [
               Row(
                 children: [
-                  const Icon(Icons.business_outlined, size: 16, color: AppColors.secondaryTextColor),
+                  const Icon(Icons.business_outlined,
+                      size: 16, color: AppColors.secondaryTextColor),
                   const SizedBox(width: 6),
                   Expanded(
                     child: CustomText(
@@ -716,9 +760,23 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
                     ),
                   ),
                   GestureDetector(
-                    onTap: () => Get.to(OtherBranchOnlyScreen(schoolContactUsData: SchoolContactUsData(id: contacts.id,branch: Branch(name: contacts.branch?.name,location:SchoolLocation(name: contacts.branch!.location?.name ,coordinates:  contacts.branch!.location?.coordinates??[]),website: contacts.branch?.website),departments: contacts.departments??[] ,schoolId: contacts.id,v:contacts.v ))),
+                    onTap: () => Get.to(OtherBranchOnlyScreen(
+                        schoolContactUsData: SchoolContactUsData(
+                            id: contacts.id,
+                            branch: Branch(
+                                name: contacts.branch?.name,
+                                location: SchoolLocation(
+                                    name: contacts.branch!.location?.name,
+                                    coordinates: contacts
+                                            .branch!.location?.coordinates ??
+                                        []),
+                                website: contacts.branch?.website),
+                            departments: contacts.departments ?? [],
+                            schoolId: contacts.id,
+                            v: contacts.v))),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
                         border: Border.all(color: AppColors.primaryColor),
                         borderRadius: BorderRadius.circular(6),
@@ -726,9 +784,11 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: const [
-                          Icon(Icons.edit_outlined, size: 14, color: AppColors.primaryColor),
+                          Icon(Icons.edit_outlined,
+                              size: 14, color: AppColors.primaryColor),
                           SizedBox(width: 4),
-                          CustomText(AppStrings.edit, fontSize: 12, color: AppColors.primaryColor),
+                          CustomText(AppStrings.edit,
+                              fontSize: 12, color: AppColors.primaryColor),
                         ],
                       ),
                     ),
@@ -737,15 +797,16 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
               ),
               const SizedBox(height: 10),
               if (branch?.website != null && branch!.website!.isNotEmpty)
-                _buildContactRow(AppIconAssets.website_click,
-                    branch.website!, AppColors.primaryColor, isLink: true),
+                _buildContactRow(AppIconAssets.website_click, branch.website!,
+                    AppColors.primaryColor,
+                    isLink: true),
               if (firstDept != null) ...[
                 if (firstDept.phone != null && firstDept.phone!.isNotEmpty)
                   _buildContactRow(AppIconAssets.phone_outline,
                       firstDept.phone!, AppColors.mainTextColor),
                 if (firstDept.email != null && firstDept.email!.isNotEmpty)
-                  _buildContactRow(AppIconAssets.email,
-                      firstDept.email!, AppColors.mainTextColor),
+                  _buildContactRow(AppIconAssets.email, firstDept.email!,
+                      AppColors.mainTextColor),
               ],
             ],
           ),
@@ -759,14 +820,18 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
             decoration: BoxDecoration(
               color: AppColors.primaryColor.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: AppColors.primaryColor.withValues(alpha: 0.3)),
+              border: Border.all(
+                  color: AppColors.primaryColor.withValues(alpha: 0.3)),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: const [
                 Icon(Icons.add, size: 16, color: AppColors.primaryColor),
                 SizedBox(width: 6),
-                CustomText(AppStrings.addMore, fontSize: 13, color: AppColors.primaryColor, fontWeight: FontWeight.w600),
+                CustomText(AppStrings.addMore,
+                    fontSize: 13,
+                    color: AppColors.primaryColor,
+                    fontWeight: FontWeight.w600),
               ],
             ),
           ),

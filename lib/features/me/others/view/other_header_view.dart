@@ -49,7 +49,8 @@ class _OtherHeaderViewState extends State<OtherHeaderView> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    final profile = widget.schoolAboutUsController.businessProfile.value?.profile;
+    final profile =
+        widget.schoolAboutUsController.businessProfile.value?.profile;
 
     return Container(
       color: AppColors.white,
@@ -75,10 +76,17 @@ class _OtherHeaderViewState extends State<OtherHeaderView> {
                           ? CachedNetworkImage(
                               imageUrl: profile!.coverUrl!,
                               fit: BoxFit.cover,
-                              placeholder: (context, url) => const Center(child: CircularProgressIndicator(strokeWidth: 2)),
-                              errorWidget: (context, url, error) => const Icon(Icons.broken_image, size: 40, color: Colors.grey),
+                              placeholder: (context, url) => const Center(
+                                  child: CircularProgressIndicator(
+                                      strokeWidth: 2)),
+                              errorWidget: (context, url, error) => const Icon(
+                                  Icons.broken_image,
+                                  size: 40,
+                                  color: Colors.grey),
                             )
-                          : const Center(child: Icon(Icons.image, color: Colors.grey, size: 40)),
+                          : const Center(
+                              child: Icon(Icons.image,
+                                  color: Colors.grey, size: 40)),
                 ),
 
                 // Edit Banner Button
@@ -92,7 +100,9 @@ class _OtherHeaderViewState extends State<OtherHeaderView> {
                       decoration: BoxDecoration(
                         color: Colors.white.withValues(alpha: 0.8),
                         shape: BoxShape.circle,
-                        boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 4)],
+                        boxShadow: [
+                          BoxShadow(color: Colors.black12, blurRadius: 4)
+                        ],
                       ),
                       child: const LocalAssets(
                         imagePath: AppIconAssets.edit_banner_icon,
@@ -117,7 +127,10 @@ class _OtherHeaderViewState extends State<OtherHeaderView> {
                         shape: BoxShape.circle,
                         border: Border.all(color: Colors.white, width: 3),
                         boxShadow: [
-                          BoxShadow(color: Colors.black12, blurRadius: 8, spreadRadius: 2)
+                          BoxShadow(
+                              color: Colors.black12,
+                              blurRadius: 8,
+                              spreadRadius: 2)
                         ],
                       ),
                       child: ClipOval(
@@ -127,10 +140,16 @@ class _OtherHeaderViewState extends State<OtherHeaderView> {
                                 ? CachedNetworkImage(
                                     imageUrl: profile!.logoUrl!,
                                     fit: BoxFit.cover,
-                                    placeholder: (context, url) => const Center(child: CircularProgressIndicator(strokeWidth: 2)),
-                                    errorWidget: (context, url, error) => const Icon(Icons.business, size: 40, color: Colors.grey),
+                                    placeholder: (context, url) => const Center(
+                                        child: CircularProgressIndicator(
+                                            strokeWidth: 2)),
+                                    errorWidget: (context, url, error) =>
+                                        const Icon(Icons.business,
+                                            size: 40, color: Colors.grey),
                                   )
-                                : const Center(child: Icon(Icons.add_a_photo, color: Colors.grey, size: 30)),
+                                : const Center(
+                                    child: Icon(Icons.add_a_photo,
+                                        color: Colors.grey, size: 30)),
                       ),
                     ),
                   ),
@@ -160,7 +179,7 @@ class _OtherHeaderViewState extends State<OtherHeaderView> {
               ],
             ),
           ),
-          
+
           ServiceHomeHeaderTitleWidget(
             title: profile?.profileName ?? "",
             description: profile?.description ??
@@ -168,7 +187,6 @@ class _OtherHeaderViewState extends State<OtherHeaderView> {
                     ?.aboutOrganisation?.firstOrNull?.description ??
                 "N/A",
           ),
-
         ],
       ),
     );

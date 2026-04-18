@@ -1,14 +1,21 @@
 import 'dart:convert';
-HotelDetailsHomeResModel hotelDetailsHomeResModelFromJson(String str) => HotelDetailsHomeResModel.fromJson(json.decode(str));
-String hotelDetailsHomeResModelToJson(HotelDetailsHomeResModel data) => json.encode(data.toJson());
+
+HotelDetailsHomeResModel hotelDetailsHomeResModelFromJson(String str) =>
+    HotelDetailsHomeResModel.fromJson(json.decode(str));
+String hotelDetailsHomeResModelToJson(HotelDetailsHomeResModel data) =>
+    json.encode(data.toJson());
+
 class HotelDetailsHomeResModel {
   HotelDetailsHomeResModel({
-      this.success, 
-      this.data,});
+    this.success,
+    this.data,
+  });
 
   HotelDetailsHomeResModel.fromJson(dynamic json) {
     success = json['success'];
-    data = json['data'] != null ? HotelDetailsHomeData.fromJson(json['data']) : null;
+    data = json['data'] != null
+        ? HotelDetailsHomeData.fromJson(json['data'])
+        : null;
   }
   bool? success;
   HotelDetailsHomeData? data;
@@ -21,28 +28,29 @@ class HotelDetailsHomeResModel {
     }
     return map;
   }
-
 }
 
-HotelDetailsHomeData dataFromJson(String str) => HotelDetailsHomeData.fromJson(json.decode(str));
+HotelDetailsHomeData dataFromJson(String str) =>
+    HotelDetailsHomeData.fromJson(json.decode(str));
 String dataToJson(HotelDetailsHomeData data) => json.encode(data.toJson());
+
 class HotelDetailsHomeData {
   HotelDetailsHomeData({
-      this.businessId, 
-      this.profile, 
-      this.rooms, 
-     });
+    this.businessId,
+    this.profile,
+    this.rooms,
+  });
 
   HotelDetailsHomeData.fromJson(dynamic json) {
     businessId = json['businessId'];
-    profile = json['profile'] != null ? Profile.fromJson(json['profile']) : null;
+    profile =
+        json['profile'] != null ? Profile.fromJson(json['profile']) : null;
     if (json['rooms'] != null) {
       rooms = [];
       json['rooms'].forEach((v) {
         rooms?.add(Rooms.fromJson(v));
       });
     }
-
   }
   String? businessId;
   Profile? profile;
@@ -60,28 +68,29 @@ class HotelDetailsHomeData {
 
     return map;
   }
-
 }
 
 Rooms roomsFromJson(String str) => Rooms.fromJson(json.decode(str));
 String roomsToJson(Rooms data) => json.encode(data.toJson());
+
 class Rooms {
   Rooms({
-      this.size, 
-      this.images, 
-      this.id, 
-      this.businessId, 
-      this.name, 
-      this.type, 
-      this.totalRooms, 
-      this.bedType, 
-      this.maxOccupancy, 
-      this.pricePerDay, 
-      this.discount, 
-      this.isActive, 
-      this.v, 
-      this.amenities, 
-      this.coupons,});
+    this.size,
+    this.images,
+    this.id,
+    this.businessId,
+    this.name,
+    this.type,
+    this.totalRooms,
+    this.bedType,
+    this.maxOccupancy,
+    this.pricePerDay,
+    this.discount,
+    this.isActive,
+    this.v,
+    this.amenities,
+    this.coupons,
+  });
 
   Rooms.fromJson(dynamic json) {
     size = json['size'] != null ? Size.fromJson(json['size']) : null;
@@ -97,7 +106,9 @@ class Rooms {
     discount = json['discount'];
     isActive = json['isActive'];
     v = json['__v'];
-    amenities = json['amenities'] != null ? Amenities.fromJson(json['amenities']) : null;
+    amenities = json['amenities'] != null
+        ? Amenities.fromJson(json['amenities'])
+        : null;
     if (json['coupons'] != null) {
       coupons = [];
       json['coupons'].forEach((v) {
@@ -148,28 +159,29 @@ class Rooms {
     }
     return map;
   }
-
 }
 
 Amenities amenitiesFromJson(String str) => Amenities.fromJson(json.decode(str));
 String amenitiesToJson(Amenities data) => json.encode(data.toJson());
+
 class Amenities {
   Amenities({
-      this.id, 
-      this.businessId, 
-      this.roomId, 
-      this.airConditioning, 
-      this.freeWifi, 
-      this.television, 
-      this.roomService, 
-      this.powerBackup, 
-      this.balcony, 
-      this.attachedBathroom, 
-      this.wardrobe, 
-      this.deskChair, 
-      this.roomRefrigerators, 
-      this.electricKettle, 
-      this.v,});
+    this.id,
+    this.businessId,
+    this.roomId,
+    this.airConditioning,
+    this.freeWifi,
+    this.television,
+    this.roomService,
+    this.powerBackup,
+    this.balcony,
+    this.attachedBathroom,
+    this.wardrobe,
+    this.deskChair,
+    this.roomRefrigerators,
+    this.electricKettle,
+    this.v,
+  });
 
   Amenities.fromJson(dynamic json) {
     id = json['_id'];
@@ -223,35 +235,38 @@ class Amenities {
     map['__v'] = v;
     return map;
   }
-
 }
 
 Images imagesFromJson(String str) => Images.fromJson(json.decode(str));
 String imagesToJson(Images data) => json.encode(data.toJson());
+
 class Images {
   Images({
-      this.exteriorImages, 
-      this.washroomImages, 
-      this.amenityImages,});
+    this.exteriorImages,
+    this.washroomImages,
+    this.amenityImages,
+  });
 
   Images.fromJson(dynamic json) {
     if (json['exteriorImages'] != null) {
       exteriorImages = [];
-      exteriorImages = json['exteriorImages'] != null ? json['exteriorImages'].cast<String>() : [];
-
+      exteriorImages = json['exteriorImages'] != null
+          ? json['exteriorImages'].cast<String>()
+          : [];
     }
     if (json['washroomImages'] != null) {
       washroomImages = [];
 
-      washroomImages = json['washroomImages'] != null ? json['washroomImages'].cast<String>() : [];
-
-
+      washroomImages = json['washroomImages'] != null
+          ? json['washroomImages'].cast<String>()
+          : [];
     }
     if (json['amenityImages'] != null) {
       amenityImages = [];
 
-      amenityImages = json['amenityImages'] != null ? json['amenityImages'].cast<String>() : [];
-
+      amenityImages = json['amenityImages'] != null
+          ? json['amenityImages'].cast<String>()
+          : [];
     }
   }
   List<String>? exteriorImages;
@@ -262,27 +277,25 @@ class Images {
     final map = <String, dynamic>{};
     if (exteriorImages != null) {
       map['exteriorImages'] = exteriorImages;
-
     }
     if (washroomImages != null) {
       map['washroomImages'] = washroomImages;
-
     }
     if (amenityImages != null) {
       map['amenityImages'] = amenityImages;
-
     }
     return map;
   }
-
 }
 
 Size sizeFromJson(String str) => Size.fromJson(json.decode(str));
 String sizeToJson(Size data) => json.encode(data.toJson());
+
 class Size {
   Size({
-      this.length, 
-      this.width,});
+    this.length,
+    this.width,
+  });
 
   Size.fromJson(dynamic json) {
     length = json['length'];
@@ -297,33 +310,37 @@ class Size {
     map['width'] = width;
     return map;
   }
-
 }
 
 Profile profileFromJson(String str) => Profile.fromJson(json.decode(str));
 String profileToJson(Profile data) => json.encode(data.toJson());
+
 class Profile {
   Profile({
-      this.address, 
-      this.locationHotel,
-      this.id,
-      this.businessId, 
-      this.v, 
-      this.createdAt, 
-      this.description, 
-      this.name, 
-      this.updatedAt, 
-      this.logoUrl,
-      this.coverUrl,
-      this.website,
-      this.contacts, 
-      this.policy, 
-      this.amenities, 
-      this.photos,});
+    this.address,
+    this.locationHotel,
+    this.id,
+    this.businessId,
+    this.v,
+    this.createdAt,
+    this.description,
+    this.name,
+    this.updatedAt,
+    this.logoUrl,
+    this.coverUrl,
+    this.website,
+    this.contacts,
+    this.policy,
+    this.hotelAmenities,
+    this.photos,
+  });
 
   Profile.fromJson(dynamic json) {
-    address = json['address'] != null ? Address.fromJson(json['address']) : null;
-    locationHotel = json['location'] != null ? LocationHotel.fromJson(json['location']) : null;
+    address =
+        json['address'] != null ? Address.fromJson(json['address']) : null;
+    locationHotel = json['location'] != null
+        ? LocationHotel.fromJson(json['location'])
+        : null;
     id = json['_id'];
     businessId = json['businessId'];
     v = json['__v'];
@@ -341,7 +358,9 @@ class Profile {
       });
     }
     policy = json['policy'] != null ? Policy.fromJson(json['policy']) : null;
-    amenities = json['amenities'] != null ? Amenities.fromJson(json['amenities']) : null;
+    hotelAmenities = json['amenities'] != null
+        ? HotelAmenities.fromJson(json['amenities'])
+        : null;
     if (json['photos'] != null) {
       photos = [];
       json['photos'].forEach((v) {
@@ -363,7 +382,7 @@ class Profile {
   String? coverUrl;
   List<Contacts>? contacts;
   Policy? policy;
-  Amenities? amenities;
+  HotelAmenities? hotelAmenities;
   List<Photos>? photos;
 
   Map<String, dynamic> toJson() {
@@ -390,33 +409,36 @@ class Profile {
     if (policy != null) {
       map['policy'] = policy?.toJson();
     }
-    if (amenities != null) {
-      map['amenities'] = amenities?.toJson();
+    if (hotelAmenities != null) {
+      map['amenities'] = hotelAmenities?.toJson();
     }
     if (photos != null) {
       map['photos'] = photos?.map((v) => v.toJson()).toList();
     }
     return map;
   }
-
 }
 
 Photos photosFromJson(String str) => Photos.fromJson(json.decode(str));
 String photosToJson(Photos data) => json.encode(data.toJson());
+
 class Photos {
   Photos({
-      this.id, 
-      this.category, 
-      this.businessId, 
-      this.v, 
-      this.imageReferences,});
+    this.id,
+    this.category,
+    this.businessId,
+    this.v,
+    this.imageReferences,
+  });
 
   Photos.fromJson(dynamic json) {
     id = json['_id'];
     category = json['category'];
     businessId = json['businessId'];
     v = json['__v'];
-    imageReferences = json['imageReferences'] != null ? json['imageReferences'].cast<String>() : [];
+    imageReferences = json['imageReferences'] != null
+        ? json['imageReferences'].cast<String>()
+        : [];
   }
   String? id;
   String? category;
@@ -433,29 +455,31 @@ class Photos {
     map['imageReferences'] = imageReferences;
     return map;
   }
-
 }
 
-/*Amenities amenitiesFromJson(String str) => Amenities.fromJson(json.decode(str));
-String amenitiesToJson(Amenities data) => json.encode(data.toJson());
-class Amenities {
-  Amenities({
-      this.id, 
-      this.businessId, 
-      this.v, 
-      this.airportTransportation, 
-      this.bar, 
-      this.cctvSurveillance, 
-      this.elevatorLift, 
-      this.freeParking, 
-      this.frontDesk24x7, 
-      this.gym, 
-      this.laundryService, 
-      this.powerBackup, 
-      this.restaurant, 
-      this.swimmingPool,});
+HotelAmenities hotelAmenitiesFromJson(String str) =>
+    HotelAmenities.fromJson(json.decode(str));
+String hotelAmenitiesToJson(HotelAmenities data) => json.encode(data.toJson());
 
-  Amenities.fromJson(dynamic json) {
+class HotelAmenities {
+  HotelAmenities({
+    this.id,
+    this.businessId,
+    this.v,
+    this.airportTransportation,
+    this.bar,
+    this.cctvSurveillance,
+    this.elevatorLift,
+    this.freeParking,
+    this.frontDesk24x7,
+    this.gym,
+    this.laundryService,
+    this.powerBackup,
+    this.restaurant,
+    this.swimmingPool,
+  });
+
+  HotelAmenities.fromJson(dynamic json) {
     id = json['_id'];
     businessId = json['businessId'];
     v = json['__v'];
@@ -504,31 +528,34 @@ class Amenities {
     map['swimmingPool'] = swimmingPool;
     return map;
   }
-
-}*/
+}
 
 Policy policyFromJson(String str) => Policy.fromJson(json.decode(str));
 String policyToJson(Policy data) => json.encode(data.toJson());
+
 class Policy {
   Policy({
-      this.foodRestrictions, 
-      this.id, 
-      this.businessId, 
-      this.v, 
-      this.aadharMandatory, 
-      this.bachelorStudentAllowed, 
-      this.checkInHours, 
-      this.checkInTime, 
-      this.checkOutTime, 
-      this.earlyCheckInAllowed, 
-      this.freeCancellation, 
-      this.lateCheckOutAllowed, 
-      this.localIdAllowed, 
-      this.marriedCoupleAllowed, 
-      this.smokingDrinkingAllowed,});
+    this.foodRestrictions,
+    this.id,
+    this.businessId,
+    this.v,
+    this.aadharMandatory,
+    this.bachelorStudentAllowed,
+    this.checkInHours,
+    this.checkInTime,
+    this.checkOutTime,
+    this.earlyCheckInAllowed,
+    this.freeCancellation,
+    this.lateCheckOutAllowed,
+    this.localIdAllowed,
+    this.marriedCoupleAllowed,
+    this.smokingDrinkingAllowed,
+  });
 
   Policy.fromJson(dynamic json) {
-    foodRestrictions = json['foodRestrictions'] != null ? FoodRestrictions.fromJson(json['foodRestrictions']) : null;
+    foodRestrictions = json['foodRestrictions'] != null
+        ? FoodRestrictions.fromJson(json['foodRestrictions'])
+        : null;
     id = json['_id'];
     businessId = json['businessId'];
     v = json['__v'];
@@ -581,19 +608,23 @@ class Policy {
     map['smokingDrinkingAllowed'] = smokingDrinkingAllowed;
     return map;
   }
-
 }
 
-FoodRestrictions foodRestrictionsFromJson(String str) => FoodRestrictions.fromJson(json.decode(str));
-String foodRestrictionsToJson(FoodRestrictions data) => json.encode(data.toJson());
+FoodRestrictions foodRestrictionsFromJson(String str) =>
+    FoodRestrictions.fromJson(json.decode(str));
+String foodRestrictionsToJson(FoodRestrictions data) =>
+    json.encode(data.toJson());
+
 class FoodRestrictions {
   FoodRestrictions({
-      this.enabled, 
-      this.restrictions,});
+    this.enabled,
+    this.restrictions,
+  });
 
   FoodRestrictions.fromJson(dynamic json) {
     enabled = json['enabled'];
-    restrictions = json['restrictions'] != null ? json['restrictions'].cast<String>() : [];
+    restrictions =
+        json['restrictions'] != null ? json['restrictions'].cast<String>() : [];
   }
   bool? enabled;
   List<String>? restrictions;
@@ -604,20 +635,21 @@ class FoodRestrictions {
     map['restrictions'] = restrictions;
     return map;
   }
-
 }
 
 Contacts contactsFromJson(String str) => Contacts.fromJson(json.decode(str));
 String contactsToJson(Contacts data) => json.encode(data.toJson());
+
 class Contacts {
   Contacts({
-      this.id, 
-      this.businessId, 
-      this.type, 
-      this.email, 
-      this.phone, 
-      this.address, 
-      this.v,});
+    this.id,
+    this.businessId,
+    this.type,
+    this.email,
+    this.phone,
+    this.address,
+    this.v,
+  });
 
   Contacts.fromJson(dynamic json) {
     id = json['_id'];
@@ -647,17 +679,18 @@ class Contacts {
     map['__v'] = v;
     return map;
   }
-
 }
 
 Address addressFromJson(String str) => Address.fromJson(json.decode(str));
 String addressToJson(Address data) => json.encode(data.toJson());
+
 class Address {
   Address({
-      this.country, 
-      this.city, 
-      this.state, 
-      this.pincode,});
+    this.country,
+    this.city,
+    this.state,
+    this.pincode,
+  });
 
   Address.fromJson(dynamic json) {
     country = json['country'];
@@ -678,10 +711,7 @@ class Address {
     map['pincode'] = pincode;
     return map;
   }
-
 }
-
-
 
 class LocationHotel {
   LocationHotel({
@@ -712,6 +742,8 @@ class LocationHotel {
   }
 
   // Helper getters for easier access in UI
-  double? get latitude => coordinates != null && coordinates!.isNotEmpty ? coordinates![0] : null;
-  double? get longitude => coordinates != null && coordinates!.length > 1 ? coordinates![1] : null;
+  double? get latitude =>
+      coordinates != null && coordinates!.isNotEmpty ? coordinates![0] : null;
+  double? get longitude =>
+      coordinates != null && coordinates!.length > 1 ? coordinates![1] : null;
 }
