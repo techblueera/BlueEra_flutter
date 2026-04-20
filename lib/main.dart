@@ -16,6 +16,7 @@ import 'package:BlueEra/core/services/app_notification.dart';
 import 'package:BlueEra/core/services/app_version_checker_service.dart';
 import 'package:BlueEra/core/services/firebase_crshanalitics_service.dart';
 import 'package:BlueEra/core/services/hive_services.dart';
+import 'package:BlueEra/core/services/pending_message_drainer.dart';
 import 'package:BlueEra/core/theme/themes.dart';
 import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/features/app_maintannace/app_maintenance_controller.dart';
@@ -768,6 +769,12 @@ Future<void> _initDeferred(LocalizationService localizationService) async {
 
   /// Notification setup (depends on Firebase, which is already initialized)
   AppNotificationHandler().firebaseNotificationSetup();
+
+  /// Start the pending-message drainer. Watches connectivity and retries any
+  /// chat messages that were saved locally with sendStatus: "pending" — this
+  /// covers messages queued while offline and messages left over from a
+  /// previous session that was killed before they could be sent.
+  unawaited(PendingMessageDrainer.instance.start());
 
   /// Share handler -- check if app was launched via share intent
   try {

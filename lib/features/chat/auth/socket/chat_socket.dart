@@ -6,6 +6,7 @@ import 'package:socket_io_client/socket_io_client.dart' as IO;
 import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/constants/app_constant.dart';
 import '../../../../core/constants/shared_preference_utils.dart';
+import '../../../../core/services/pending_message_drainer.dart';
 import '../../../../environment_config.dart';
 
 class ChatSocketService {
@@ -92,6 +93,10 @@ class ChatSocketService {
         }
         debugPrint('[SOCKET_DEBUG] ✅ All listeners registered, total=${_registeredListeners.length}');
         _pendingListeners.clear();
+
+        // Socket reconnect is also a strong signal that the network is back —
+        // flush any pending chat messages in the background.
+        unawaited(PendingMessageDrainer.instance.drainNow());
       });
 
       _socket!.onConnectError((err) {

@@ -270,8 +270,11 @@ class LocalStorageHelper {
   // MESSAGE PERSISTENCE
   // ═══════════════════════════════════════════════════════════════════════════
 
-  /// Bulk-save (replace) all messages for a conversation.
-  /// Called when server responds with authoritative message data.
+  /// Bulk-merge server messages into the local conversation cache.
+  /// Server pages arrive one at a time (page 1 is latest 30, page 2 is older
+  /// 30, etc.) so a REPLACE strategy would clobber previously-cached pages
+  /// whenever the user scrolls. Instead we merge by message id and sort
+  /// chronologically. Pending messages are preserved untouched.
   Future<void> saveMessagesByConversationId(
       String conversationId, List<Messages> messages) async {
     if (conversationId.isEmpty) {
@@ -280,37 +283,43 @@ class LocalStorageHelper {
     }
     try {
       final box = await _messagesBoxRef;
-
-      // Preserve any local pending messages that aren't in the server response
       final existing = await _getRawMessages(conversationId, box);
-      final pendingMessages = existing
-          .where((m) => m['sendStatus'] == 'pending')
-          .toList();
 
-      // Build server message ID set for dedup
-      final serverIds = <String>{};
+      // Index existing by id for O(1) dedup/replace.
+      final byId = <String, Map<String, dynamic>>{};
+      final pendingWithoutId = <Map<String, dynamic>>[];
+      for (final m in existing) {
+        final id = m['_id']?.toString() ?? '';
+        if (id.isEmpty) {
+          // Pending temp messages may land here if their temp id was ever empty;
+          // keep them as-is since we can't key them.
+          if (m['sendStatus'] == 'pending') pendingWithoutId.add(m);
+          continue;
+        }
+        byId[id] = m;
+      }
+
+      // Merge in server messages — server data wins for any overlapping id.
       for (final m in messages) {
-        if (m.id != null && m.id!.isNotEmpty) serverIds.add(m.id!);
+        final id = m.id ?? '';
+        if (id.isEmpty) continue;
+        byId[id] = _messageToStorableJson(m);
       }
 
-      // Filter pending that aren't in server response (still truly pending)
-      final survivingPending = pendingMessages
-          .where((m) => !serverIds.contains(m['_id']?.toString()))
-          .toList();
+      // Combine + sort by createdAt ascending (oldest first) so the UI, which
+      // reverses the list itself, renders newest-at-bottom consistently.
+      final merged = <Map<String, dynamic>>[
+        ...byId.values,
+        ...pendingWithoutId,
+      ];
+      merged.sort((a, b) {
+        final aT = a['createdAt']?.toString() ?? '';
+        final bT = b['createdAt']?.toString() ?? '';
+        return aT.compareTo(bT);
+      });
 
-      // Convert server messages to JSON (skip File objects that can't serialize)
-      final jsonList = messages.map((m) => _messageToStorableJson(m)).toList();
-
-      // Prepend surviving pending messages
-      if (survivingPending.isNotEmpty) {
-        jsonList.insertAll(0, survivingPending);
-        ChatStorageLogger.info('saveMessages',
-            'Preserved ${survivingPending.length} pending messages',
-            data: {'conversationId': conversationId});
-      }
-
-      await box.put(conversationId, jsonEncode(jsonList));
-      ChatStorageLogger.messagesSaved(conversationId, jsonList.length);
+      await box.put(conversationId, jsonEncode(merged));
+      ChatStorageLogger.messagesSaved(conversationId, merged.length);
     } catch (e, stack) {
       ChatStorageLogger.error('saveMessages', 'Failed to save messages',
           error: e, stack: stack, data: {'conversationId': conversationId});
@@ -414,6 +423,71 @@ class LocalStorageHelper {
       ChatStorageLogger.error('markSent', 'Failed to mark message as sent',
           error: e, stack: stack,
           data: {'conversationId': conversationId, 'messageId': messageId});
+    }
+  }
+
+  /// Replace a local pending message (identified by temp id) with the server-side
+  /// authoritative message. Keeps chronological order stable by replacing in place.
+  Future<void> replacePendingWithServerMessage(
+      String conversationId, String tempId, Messages serverMessage) async {
+    if (conversationId.isEmpty || tempId.isEmpty) return;
+    try {
+      final box = await _messagesBoxRef;
+      final messages = await _getRawMessages(conversationId, box);
+
+      final serverJson = _messageToStorableJson(serverMessage);
+      final serverId = serverMessage.id ?? '';
+
+      // If the server message is already present (socket beat us), just remove the pending.
+      final serverAlreadyExists = serverId.isNotEmpty &&
+          messages.any((m) => m['_id']?.toString() == serverId);
+
+      int replacedAt = -1;
+      for (int i = 0; i < messages.length; i++) {
+        if (messages[i]['_id']?.toString() == tempId) {
+          replacedAt = i;
+          break;
+        }
+      }
+
+      if (replacedAt >= 0) {
+        if (serverAlreadyExists) {
+          messages.removeAt(replacedAt);
+        } else {
+          messages[replacedAt] = serverJson;
+        }
+        await box.put(conversationId, jsonEncode(messages));
+      } else if (!serverAlreadyExists) {
+        messages.add(serverJson);
+        await box.put(conversationId, jsonEncode(messages));
+      }
+    } catch (e, stack) {
+      ChatStorageLogger.error('replacePending',
+          'Failed to replace pending with server message',
+          error: e, stack: stack,
+          data: {'conversationId': conversationId, 'tempId': tempId});
+    }
+  }
+
+  /// List every conversationId that currently has at least one pending message.
+  /// Used by the drainer on app start / connectivity restore.
+  Future<List<String>> getConversationIdsWithPending() async {
+    try {
+      final box = await _messagesBoxRef;
+      final result = <String>[];
+      for (final k in box.keys) {
+        final convId = k.toString();
+        final raw = await _getRawMessages(convId, box);
+        if (raw.any((m) => m['sendStatus'] == 'pending')) {
+          result.add(convId);
+        }
+      }
+      return result;
+    } catch (e, stack) {
+      ChatStorageLogger.error('listPendingConvs',
+          'Failed to list conversations with pending messages',
+          error: e, stack: stack);
+      return [];
     }
   }
 
