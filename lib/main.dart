@@ -624,10 +624,13 @@ Future<void> main() async {
       debugPrint('[COLD_START_CALL] getNotificationAppLaunchDetails error: $e');
     }
 
-    final launchPayloadIsAccept = launchActionId
-            .startsWith('incoming_call_accept_') ||
-        (launchPayload != null &&
-            (launchPayload['operation'] ?? '').toString() == 'incoming_call');
+    // Only auto-accept on cold start when the launch was triggered by the
+    // explicit Accept action button. A body tap on the call notification
+    // also carries `operation == 'incoming_call'` in the payload, but that
+    // means the user wants to SEE the IncomingCallScreen (handled by
+    // firebaseNotificationSetup), not auto-join the call.
+    final launchPayloadIsAccept =
+        launchActionId.startsWith('incoming_call_accept_');
 
     Map<String, dynamic>? acceptExtras;
     if (launchPayloadIsAccept && launchPayload != null) {

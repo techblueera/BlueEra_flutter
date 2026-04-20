@@ -64,38 +64,57 @@ class _HealthCareListingScreenState extends State<HealthCareListingScreen> {
       ),
       child: Scaffold(
         backgroundColor: AppColors.appBackgroundColor,
-        body: NestedScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          headerSliverBuilder: (context, innerBoxIsScrolled) => [
-            SliverToBoxAdapter(
-              child: BannerCarousel(
-                images: _bannerImages,
-                onBack: () => Navigator.pop(context),
-                statusBarHeight: statusBarHeight,
-              ),
-            ),
-            SliverPersistentHeader(
-              pinned: true,
-              delegate: StickyCategoryHeaderDelegate(
-                topPadding: statusBarHeight,
-                singleLineLabel: true,
-                categories: _professionalConsultantCategories.map((c) => StickyCategory(
-                  id: c.slugId,
-                  name: c.name,
-                  imageUrl: c.icon,
-                )).toList(),
-                selectedId: controller.selectedProfessionalConsultantData.value?.slugId,
-                onCategoryTap: (item) {
-                  final cat = _professionalConsultantCategories.firstWhere((c) => c.slugId == item.id);
-                  controller.selectedTabIndex.value = _professionalConsultantCategories.indexOf(cat);
-                  controller.selectedProfessionalConsultantData.value = cat;
-                  setState(() {});
-                },
-                onBack: () => Navigator.pop(context),
-              ),
+        body: Stack(
+          children: [
+            NestedScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              headerSliverBuilder: (context, innerBoxIsScrolled) => [
+                SliverToBoxAdapter(
+                  child: BannerCarousel(
+                    images: _bannerImages,
+                    onBack: () => Navigator.pop(context),
+                    statusBarHeight: statusBarHeight,
+                    backgroundColor:
+                        AppColors.blue5CAF.withValues(alpha: 0.1),
+                    bottomBorderSide: const BorderSide(
+                      color: AppColors.white,
+                      width: 2,
+                    ),
+                  ),
+                ),
+                SliverPersistentHeader(
+                  pinned: true,
+                  delegate: StickyCategoryHeaderDelegate(
+                    topPadding: statusBarHeight,
+                    singleLineLabel: true,
+                    categories: _professionalConsultantCategories.map((c) => StickyCategory(
+                      id: c.slugId,
+                      name: c.name,
+                      imageUrl: c.icon,
+                    )).toList(),
+                    selectedId: controller.selectedProfessionalConsultantData.value?.slugId,
+                    onCategoryTap: (item) {
+                      final cat = _professionalConsultantCategories.firstWhere((c) => c.slugId == item.id);
+                      controller.selectedTabIndex.value = _professionalConsultantCategories.indexOf(cat);
+                      controller.selectedProfessionalConsultantData.value = cat;
+                      setState(() {});
+                    },
+                    onBack: () => Navigator.pop(context),
+                    expandedLabelColor: AppColors.white,
+                    backgroundGradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        AppColors.blue5CAF.withValues(alpha: 0.1),
+                        AppColors.blue5CAF.withValues(alpha: 0.8),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+              body: rightContent(),
             ),
           ],
-          body: rightContent(),
         ),
       ),
     );

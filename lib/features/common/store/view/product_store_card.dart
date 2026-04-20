@@ -310,7 +310,7 @@ class ProductStoreCard extends StatelessWidget {
                 ),
                 child: CachedNetworkImage(
                   imageUrl: getAllStoreResData!.logo!,
-                  height: 240,
+                  height: 160,
                   width: double.infinity,
                   fit: BoxFit.cover,
                   memCacheWidth: 600,

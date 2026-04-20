@@ -108,11 +108,11 @@ class SubscriptionController extends GetxController {
   Rx<SubscriptionPlanDetailsNewModel> subscriptionPlanDetailsNewModel = SubscriptionPlanDetailsNewModel().obs;
 
   static String? resolveEntityType() {
-    if(isIndividualUser()){
-      debugPrint('user profile type -- $userProfileTypeGlobal');
-    }else{
-      debugPrint('business type -- $businessTypeGlobal');
-    }
+    // if(isIndividualUser()){
+    //   debugPrint('user profile type -- $userProfileTypeGlobal');
+    // }else{
+    //   debugPrint('business type -- $businessTypeGlobal');
+    // }
 
     // ─── Individual profile types ─────────────────────────────────
     if (userProfileTypeGlobal == SELF_EMPLOYED) return 'SELF_EMPLOYED';

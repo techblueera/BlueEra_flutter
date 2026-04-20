@@ -588,27 +588,26 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     } else if (businessTypeGlobal.toUpperCase() ==
         BusinessType.Product.name.toUpperCase()) {
       return const InventoryScreen(fromBottomNavBar: true);
-    } else if (_isServiceOrSpecificAutomotive()) {
+    } else if (businessTypeGlobal.toUpperCase() == BusinessType.Finance.name.toUpperCase()) {
       return const OthersMain();
-    } else if (businessTypeGlobal.toUpperCase() == "FINANCE") {
+    } else if (businessTypeGlobal.toUpperCase() == BusinessType.Service.name.toUpperCase()) {
       return const OthersMain();
-    } else if (checkInventoryEligibility(
-        businessTypeGlobal, businessCategoryGlobal)) {
+    }  else if (businessTypeGlobal.toUpperCase() == BusinessType.Manufacturing.name.toUpperCase()) {
       return const ManufactureMain();
+    } else if (_isSpecificServiceAutomotive()) {
+      return const OthersMain();
+    }  else if (_isSpecificProductAutomotive()) {
+      return const InventoryScreen();
     } else {
       // return const InventoryScreen(fromBottomNavBar: true);
       return SizedBox();
     }
   }
 
-  bool _isServiceOrSpecificAutomotive() {
-    final type = businessTypeGlobal.toUpperCase();
+  bool _isSpecificServiceAutomotive() {
     final category = businessCategoryGlobal.toUpperCase();
 
-    // 1. Check if it's a Service type
-    if (type == BusinessType.Service.name.toUpperCase()) return true;
-
-    // 2. Define the Automotive sectors that count as "Others"
+    // 1. Define the Automotive sectors that count as "Others"
     final automotiveOthersSectors = {
       AppConstants.RENTAL_SECTOR.toUpperCase(),
       AppConstants.SERVICE_SECTOR.toUpperCase(),
@@ -616,23 +615,20 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       AppConstants.TRANSPORT_LOGISTIC.toUpperCase(),
     };
 
-    // 3. Check if it's Automotive AND in one of those sectors
-    return type == BusinessType.Automotive.name.toUpperCase() &&
+    // 2. Check if it's Automotive AND in one of those sectors
+    return businessTypeGlobal.toUpperCase() == BusinessType.Automotive.name.toUpperCase() &&
         automotiveOthersSectors.contains(category);
   }
 
-  bool checkInventoryEligibility(String type, String category) {
-    final isProductOrMfg = [
-      BusinessType.Product.name,
-      BusinessType.Manufacturing.name
-    ].any((t) => t.equalsIgnoreCase(type));
-
+  bool _isSpecificProductAutomotive() {
+    final type = businessTypeGlobal.toUpperCase();
+    final category = businessCategoryGlobal.toUpperCase();
     final isAutoEligible =
         type.equalsIgnoreCase(BusinessType.Automotive.name) &&
             [AppConstants.SALES_SECTOR, AppConstants.PARTS_SECTOR]
                 .any((s) => s.equalsIgnoreCase(category));
 
-    return isProductOrMfg || isAutoEligible;
+    return isAutoEligible;
   }
 
   Widget resolveIndividualScreen() {

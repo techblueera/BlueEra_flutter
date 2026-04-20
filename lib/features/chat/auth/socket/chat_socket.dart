@@ -43,8 +43,6 @@ class ChatSocketService {
       // Dispose old socket if exists
       _socket?.dispose();
 
-      debugPrint('[SOCKET_DEBUG] 🔌 Connecting to chatSocketUrl=$chatSocketUrl');
-      debugPrint('[SOCKET_DEBUG] 🔌 authToken present=${authTokenGlobal != null && authTokenGlobal!.isNotEmpty}');
 
       _socket = IO.io(chatSocketUrl,
         IO.OptionBuilder()
@@ -71,9 +69,6 @@ class ChatSocketService {
         _reconnectAttempts = 0;
         _reconnectTimer?.cancel();
 
-        debugPrint('[SOCKET_DEBUG] ✅ Connected to $chatSocketUrl, socketId=${_socket?.id}');
-        debugPrint('[SOCKET_DEBUG] ✅ Re-registering ${_registeredListeners.length} listeners + ${_pendingListeners.length} pending');
-        debugPrint('[SOCKET_DEBUG] ✅ Registered events: ${_registeredListeners.map((e) => e.key).toList()}');
 
         _socket!.emit(ChatEmitEvents.screenRoom, {ApiKeys.conversation_id: "online"});
         _socket!.emit(ChatEmitEvents.isOnlineFromChatList, {});
@@ -91,7 +86,6 @@ class ChatSocketService {
           _socket!.on(entry.key, entry.value);
           _registeredListeners.add(entry);
         }
-        debugPrint('[SOCKET_DEBUG] ✅ All listeners registered, total=${_registeredListeners.length}');
         _pendingListeners.clear();
 
         // Socket reconnect is also a strong signal that the network is back —
@@ -100,11 +94,9 @@ class ChatSocketService {
       });
 
       _socket!.onConnectError((err) {
-        debugPrint('[SOCKET_DEBUG] ❌ Connection error to $chatSocketUrl → $err');
       });
 
       _socket!.onDisconnect((reason) {
-        debugPrint('[SOCKET_DEBUG] ⚠️ Disconnected from $chatSocketUrl, reason=$reason, registered listeners=${_registeredListeners.length}');
         _isConnected = false;
         _scheduleReconnect();
       });
@@ -146,12 +138,10 @@ print("SOCKET ERROR catch ${e}");
     if (_socket != null) {
       _socket!.on(event, callback);
       // if (event.startsWith('ride:')) {
-        debugPrint('[SOCKET_DEBUG] 📡 listenEvent registered: $event (socket connected=$_isConnected, socketId=${_socket?.id})');
       // }
     } else {
       _pendingListeners.add(MapEntry(event, callback));
       // if (event.startsWith('ride:')) {
-        debugPrint('[SOCKET_DEBUG] ⏳ listenEvent QUEUED (socket is null): $event');
       // }
     }
   }

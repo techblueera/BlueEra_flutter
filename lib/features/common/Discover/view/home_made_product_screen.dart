@@ -82,44 +82,63 @@ class _HomeMadeProductScreenState extends State<HomeMadeProductScreen> {
         statusBarBrightness: Brightness.dark,
       ),
       child: Scaffold(
-        body: NestedScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          headerSliverBuilder: (context, innerBoxIsScrolled) => [
-            SliverToBoxAdapter(
-              child: BannerCarousel(
-                images: _bannerImages,
-                onBack: () => Navigator.pop(context),
-                statusBarHeight: statusBarHeight,
-              ),
-            ),
-            SliverPersistentHeader(
-              pinned: true,
-              delegate: StickyCategoryHeaderDelegate(
-                topPadding: statusBarHeight,
-                categories: stickyCategories,
-                selectedId:
-                    controller.selectedEarnServiceData.value?.slugId ??
-                        stickyCategories.first.id,
-                onCategoryTap: (item) {
-                  final index = stickyCategories
-                      .indexWhere((c) => c.id == item.id);
-                  controller.selectedTabIndex.value = index;
-                  controller.selectedEarnServiceData.value =
-                      _homeMadeProductCategories
-                          .firstWhere((c) => c.slugId == item.id);
-                  controller.getAllProductNearBy(
-                    providerType: _providerType,
-                  );
-                  setState(() {});
-                },
-                onBack: () => Navigator.pop(context),
+        body: Stack(
+          children: [
+            NestedScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              headerSliverBuilder: (context, innerBoxIsScrolled) => [
+                SliverToBoxAdapter(
+                  child: BannerCarousel(
+                    images: _bannerImages,
+                    onBack: () => Navigator.pop(context),
+                    statusBarHeight: statusBarHeight,
+                    backgroundColor:
+                        AppColors.blue5CAF.withValues(alpha: 0.1),
+                    bottomBorderSide: const BorderSide(
+                      color: AppColors.white,
+                      width: 2,
+                    ),
+                  ),
+                ),
+                SliverPersistentHeader(
+                  pinned: true,
+                  delegate: StickyCategoryHeaderDelegate(
+                    topPadding: statusBarHeight,
+                    categories: stickyCategories,
+                    selectedId:
+                        controller.selectedEarnServiceData.value?.slugId ??
+                            stickyCategories.first.id,
+                    onCategoryTap: (item) {
+                      final index = stickyCategories
+                          .indexWhere((c) => c.id == item.id);
+                      controller.selectedTabIndex.value = index;
+                      controller.selectedEarnServiceData.value =
+                          _homeMadeProductCategories
+                              .firstWhere((c) => c.slugId == item.id);
+                      controller.getAllProductNearBy(
+                        providerType: _providerType,
+                      );
+                      setState(() {});
+                    },
+                    onBack: () => Navigator.pop(context),
+                    expandedLabelColor: AppColors.white,
+                    backgroundGradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        AppColors.blue5CAF.withValues(alpha: 0.1),
+                        AppColors.blue5CAF.withValues(alpha: 0.8),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+              body: NotificationListener<ScrollNotification>(
+                onNotification: _onScrollNotification,
+                child: rightContent(),
               ),
             ),
           ],
-          body: NotificationListener<ScrollNotification>(
-            onNotification: _onScrollNotification,
-            child: rightContent(),
-          ),
         ),
       ),
     );
@@ -137,7 +156,7 @@ class _HomeMadeProductScreenState extends State<HomeMadeProductScreen> {
                 selectedIndex:
                     controller.filters.indexOf(controller.selectedFilter.value),
                 horizontalMargin: 0.0,
-                verticalMargin: 0.0,
+                verticalMargin: 5.0,
                 onTabSelected: (index, _) {
                   final selectedEnum = controller.filters[index];
                   if (controller.selectedFilter.value == selectedEnum) return;
@@ -146,7 +165,6 @@ class _HomeMadeProductScreenState extends State<HomeMadeProductScreen> {
                 labelBuilder: (r) => r.localizedLabel,
                 unSelectedBackgroundColor: AppColors.white,
               ),
-              SizedBox(height: SizeConfig.size5),
               Expanded(
                 child: Obx(() {
                   if (controller.isProductDataFirstLoading.value) {

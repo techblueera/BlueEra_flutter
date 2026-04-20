@@ -483,8 +483,26 @@ class CallController extends GetxController {
         data['call_type'] == 'video_call' ? CallType.video : CallType.audio;
     isGroupCall.value = data['is_group_call'] ?? false;
     isCaller.value = false;
-    callerName.value = data['caller_name'] ?? data['initiated_by'] ?? '';
-    callerImage.value = data['caller_image'] ?? '';
+    // Resolve caller name from any key the backend may use. NEVER fall back
+    // to `initiated_by` — that's the sender's user ID and was showing up in
+    // the UI (IncomingCallScreen, rider order screen, CallKit) whenever the
+    // socket payload didn't carry `caller_name` verbatim.
+    callerName.value = (data['caller_name'] ??
+            data['senderName'] ??
+            data['sender_name'] ??
+            data['name'] ??
+            (data['caller'] is Map ? data['caller']['name'] : null) ??
+            (data['sender'] is Map ? data['sender']['name'] : null) ??
+            '')
+        .toString();
+    callerImage.value = (data['caller_image'] ??
+            data['senderProfileImage'] ??
+            data['sender_profile_image'] ??
+            data['profile_image'] ??
+            (data['caller'] is Map ? data['caller']['profile_image'] : null) ??
+            (data['sender'] is Map ? data['sender']['profile_image'] : null) ??
+            '')
+        .toString();
     remoteUserName.value = callerName.value;
     remoteUserImage.value = callerImage.value;
     _remoteUserId = data['initiated_by'] ?? '';
@@ -2752,7 +2770,12 @@ void showFlutterCallNotification({
     nameCaller: callerName.isNotEmpty?callerName:"N/A",
     appName: 'BlueEra',
     avatar: callerImage ?? '',
-    handle: desiginations,
+    // `handle` renders as the secondary identifier on some OEM CallKit UIs
+    // (and as the contact line on iOS). Fall back to the caller name so we
+    // never surface a raw designation/user-id string when the name is known.
+    handle: (desiginations.isNotEmpty && desiginations != callerName)
+        ? desiginations
+        : (callerName.isNotEmpty ? callerName : 'BlueEra'),
     type: isVideo ? 1 : 0,
     duration: duration,
     textAccept: 'Accept',

@@ -494,7 +494,9 @@ Future<void> showIncomingCallLocalNotification({
         'incoming_call_decline_$callId',
         'Decline',
         titleColor: Color(0xFFF44336),
-        showsUserInterface: true,
+        // Stay in background/terminated — bg handler runs REST decline + cancels
+        // the notification without foregrounding the app.
+        showsUserInterface: false,
         cancelNotification: true,
       ),
       AndroidNotificationAction(
@@ -617,7 +619,23 @@ class AppNotificationHandler {
           // is what the user reported).
           final op = (data['operation'] ?? '').toString().toLowerCase();
           if (op == 'incoming_call') {
-            print("[COLD_START_CALL] launch payload is incoming_call — skipping chat-screen routing");
+            // Body-tap cold start on an incoming-call notification.
+            // main()'s pre-runApp checks already auto-accepted if the user
+            // tapped the Accept action button (or the native filled-button
+            // notification). If they tapped the BODY, those checks were
+            // no-ops and CallController is still idle — open the in-app
+            // IncomingCallScreen so the user can accept/decline.
+            print(
+                "[COLD_START_CALL] launch payload is incoming_call — opening IncomingCallScreen");
+            // Wait for the home screen / navigator to settle before pushing
+            // the call screen on top of it.
+            await Future.delayed(const Duration(milliseconds: 600));
+            final ctrl = getOrPut(() => CallController());
+            final activeStatus = ctrl.callStatus.value;
+            if (activeStatus == CallStatus.idle ||
+                activeStatus == CallStatus.ringing) {
+              _openIncomingCallScreen(data);
+            }
           } else {
             // Wait for navigator to be ready (splash screen signals this)
             await Future.delayed(const Duration(milliseconds: 300));
@@ -1857,10 +1875,12 @@ print("ORDER SCREEN NAME message.data ${message.data}");
     switch (operation) {
       // Call operations
       case 'incoming_call':
-        // Already handled by CallKit; tapping missed notification opens chat
-        if (data['senderId'] != null) {
-          _openChatWithUser(data['senderId']!);
-        }
+        // Body tap on the incoming-call notification → show the in-app
+        // IncomingCallScreen so the user can accept or decline. (The
+        // dedicated Accept/Decline action buttons are routed earlier in
+        // onForegroundNotificationResponse / _handleBackgroundNotificationResponse
+        // and never reach this switch.)
+        _openIncomingCallScreen(data);
         break;
       case 'missed_call':
         if (data['senderId'] != null) {
@@ -2063,6 +2083,36 @@ print("ORDER SCREEN NAME message.data ${message.data}");
     Future.delayed(const Duration(milliseconds: 200), () {
       chatViewController.checkChatConnectionAndOpenChat(userId: userId);
     });
+  }
+
+  /// Open the incoming-call receiving screen from a notification body tap.
+  /// Hydrates CallController state from the notification payload (the same
+  /// shape `showIncomingCallLocalNotification` writes) so the screen can
+  /// render the caller name/image and so Accept/Decline buttons can fire
+  /// the correct API calls. Skips opening if a call for the same id is
+  /// already being handled (avoids stomping on auto-accept paths).
+  static void _openIncomingCallScreen(Map<String, dynamic> data) {
+    final callId = (data['callId'] ?? '').toString();
+    if (callId.isEmpty) return;
+
+    cancelIncomingCallLocalNotification(callId);
+
+    final ctrl = getOrPut(() => CallController());
+
+    final activeStatus = ctrl.callStatus.value;
+    final activeId = ctrl.callId.value;
+    if (activeId == callId &&
+        (activeStatus == CallStatus.accepting ||
+            activeStatus == CallStatus.connecting ||
+            activeStatus == CallStatus.connected)) {
+      return;
+    }
+
+    ctrl.initStateFromCallKitExtra(data);
+
+    if (Get.currentRoute != '/IncomingCallScreen') {
+      Get.toNamed('/IncomingCallScreen');
+    }
   }
 
   ///SET AUDIO SOUND....

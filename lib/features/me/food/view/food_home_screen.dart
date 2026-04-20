@@ -9,7 +9,6 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
-import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
 import 'package:BlueEra/features/business/widgets/business_common_gallery_card.dart';
 import 'package:BlueEra/features/business/widgets/business_contact_map_card.dart';
 import 'package:BlueEra/features/business/widgets/business_description_card.dart';
@@ -44,7 +43,6 @@ class RestaurantHomeScreen extends StatefulWidget {
 class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
   final controller = getOrPut(() => RestaurantController());
   final viewBusinessDetailsController = Get.find<ViewBusinessDetailsController>();
-  BusinessProfileDetails? businessProfileDetails;
 
   /// Number of discount dishes shown on the home preview. The full list
   /// lives behind the "View All" action which opens
@@ -70,13 +68,13 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: AppColors.appBackgroundColor,
-      child: Obx(() {
+      color: AppColors.white,
+      child: SafeArea(
+        child: Obx(() {
         if (controller.foodHomeDataResponse.value.status == Status.INITIAL) {
           return const Center(child: CircularProgressIndicator());
         }
 
-        businessProfileDetails = viewBusinessDetailsController.businessProfileDetails.value?.data;
         final data = controller.restaurantData.value;
         if (data == null)
           return Center(child: CustomText(AppStrings.noDataFound.tr));
@@ -95,14 +93,22 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
               children: [
 
                 ///FOOD HOTEL....
-                BusinessProfileHeaderView(
-                  details:  businessProfileDetails,
-                  controller: viewBusinessDetailsController,
-                  isRestaurantProfile: true
-                ),
+                Obx(() {
+                  final details = viewBusinessDetailsController
+                      .businessProfileDetails.value?.data;
+                  return BusinessProfileHeaderView(
+                    details: details,
+                    controller: viewBusinessDetailsController,
+                    isRestaurantProfile: true,
+                  );
+                }),
 
                 // ── 4. Business Stats ──
-                BusinessStats(details: businessProfileDetails),
+                Obx(() {
+                  final details = viewBusinessDetailsController
+                      .businessProfileDetails.value?.data;
+                  return BusinessStats(details: details);
+                }),
 
                 ///Offer Dish (Discount) — paginated via discountProducts API
                 Obx(() {
@@ -188,20 +194,28 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
                 ),
 
                 // ── 11. Contact & Map ──
-                BusinessContactMapCard(
-                  businessProfileDetails: businessProfileDetails,
-                ),
+                Obx(() {
+                  final details = viewBusinessDetailsController
+                      .businessProfileDetails.value?.data;
+                  return BusinessContactMapCard(
+                    businessProfileDetails: details,
+                  );
+                }),
 
                 // ── 11. QR Code ──
-                BusinessQrCodeWidget(
-                  data:  businessProfileDetails,
-                  onDownload: () {
-                    // downloadQrCode();
-                  },
-                  onShare:    () {
-                    // shareQrCode();
-                  },
-                ),
+                Obx(() {
+                  final details = viewBusinessDetailsController
+                      .businessProfileDetails.value?.data;
+                  return BusinessQrCodeWidget(
+                    data: details,
+                    onDownload: () {
+                      // downloadQrCode();
+                    },
+                    onShare: () {
+                      // shareQrCode();
+                    },
+                  );
+                }),
                 const SizedBox(height: 100),
 
               ],
@@ -209,6 +223,7 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
           ),
         );
       }),
+      ),
     );
   }
 

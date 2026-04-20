@@ -56,7 +56,7 @@ class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
   @override
   void initState() {
     _checkRiderStatus();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 2, vsync: this);
     _viewCtrl.UserFollowersAndPostsCount(userId);
     super.initState();
   }
@@ -174,7 +174,7 @@ class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
                       text: allCompleted
                           ? AppStrings.myOrder.tr
                           : AppStrings.document.tr),
-                  Tab(text: AppStrings.myStore.tr),
+                  // Tab(text: AppStrings.myStore.tr),
                   Tab(text: AppStrings.statistics.tr),
                 ],
               ),
@@ -184,7 +184,7 @@ class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
             controller: _tabController,
             children: [
               CabsAndTransportPartnerOrders(),
-              const Center(child: CustomText(AppStrings.comingSoon)),
+              // const Center(child: CustomText(AppStrings.comingSoon)),
               const Center(child: CustomText(AppStrings.comingSoon)),
             ],
           ),

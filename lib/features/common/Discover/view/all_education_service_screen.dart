@@ -84,41 +84,60 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
       ),
       child: Scaffold(
         backgroundColor: AppColors.appBackgroundColor,
-        body: CustomScrollView(
-          controller: scrollController,
-          physics: const AlwaysScrollableScrollPhysics(),
-          slivers: [
-            SliverToBoxAdapter(
-              child: BannerCarousel(
-                images: _bannerImages,
-                onBack: () => Navigator.pop(context),
-                statusBarHeight: statusBarHeight,
-              ),
+        body: Stack(
+          children: [
+            CustomScrollView(
+              controller: scrollController,
+              physics: const AlwaysScrollableScrollPhysics(),
+              slivers: [
+                SliverToBoxAdapter(
+                  child: BannerCarousel(
+                    images: _bannerImages,
+                    onBack: () => Navigator.pop(context),
+                    statusBarHeight: statusBarHeight,
+                    backgroundColor:
+                        AppColors.blue5CAF.withValues(alpha: 0.1),
+                    bottomBorderSide: const BorderSide(
+                      color: AppColors.white,
+                      width: 2,
+                    ),
+                  ),
+                ),
+                SliverPersistentHeader(
+                  pinned: true,
+                  delegate: StickyCategoryHeaderDelegate(
+                    topPadding: statusBarHeight,
+                    categories: stickyCategories,
+                    selectedId:
+                        controller_.selectedEducationServiceData.value?.slugId ??
+                            'ALL_OPTION',
+                    onCategoryTap: (item) {
+                      final index =
+                          stickyCategories.indexWhere((c) => c.id == item.id);
+                      controller_.selectedTabIndex.value = index;
+                      controller_.selectedEducationServiceData.value =
+                          item.id == 'ALL_OPTION'
+                              ? null
+                              : _professionalConsultantCategories
+                                  .firstWhere((c) => c.slugId == item.id);
+                      controller_.fetchEducationServiceServices();
+                      setState(() {});
+                    },
+                    onBack: () => Navigator.pop(context),
+                    expandedLabelColor: AppColors.white,
+                    backgroundGradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        AppColors.blue5CAF.withValues(alpha: 0.1),
+                        AppColors.blue5CAF.withValues(alpha: 0.8),
+                      ],
+                    ),
+                  ),
+                ),
+                _buildListSliver(),
+              ],
             ),
-            SliverPersistentHeader(
-              pinned: true,
-              delegate: StickyCategoryHeaderDelegate(
-                topPadding: statusBarHeight,
-                categories: stickyCategories,
-                selectedId:
-                    controller_.selectedEducationServiceData.value?.slugId ??
-                        'ALL_OPTION',
-                onCategoryTap: (item) {
-                  final index =
-                      stickyCategories.indexWhere((c) => c.id == item.id);
-                  controller_.selectedTabIndex.value = index;
-                  controller_.selectedEducationServiceData.value =
-                      item.id == 'ALL_OPTION'
-                          ? null
-                          : _professionalConsultantCategories
-                              .firstWhere((c) => c.slugId == item.id);
-                  controller_.fetchEducationServiceServices();
-                  setState(() {});
-                },
-                onBack: () => Navigator.pop(context),
-              ),
-            ),
-            _buildListSliver(),
           ],
         ),
       ),

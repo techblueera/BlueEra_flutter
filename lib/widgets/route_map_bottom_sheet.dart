@@ -555,7 +555,7 @@ List<String> get _validPhotos =>
                 child: StoreLivePhotoWidget(
                   livePhotos: _validPhotos,
                   natureOfBusiness: widget.destinationName,
-                  height: 180,
+                  height: 160,
                   onViewFullScreen: ({
                     required int index,
                     required List<String> storeImage,

@@ -6,7 +6,6 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
-import 'package:BlueEra/features/common/Discover/view/widget/book_via_blueera_partner_banner.dart';
 import 'package:BlueEra/features/common/Discover/widget/banner_carousel.dart';
 import 'package:BlueEra/features/common/Discover/widget/sticky_category_header_delegate.dart';
 import 'package:BlueEra/features/common/Discover/model/service_model_response.dart';
@@ -111,41 +110,61 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
       ),
       child: Scaffold(
         backgroundColor: AppColors.appBackgroundColor,
-        body: NestedScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          headerSliverBuilder: (context, innerBoxIsScrolled) => [
-            SliverToBoxAdapter(
-              child: BannerCarousel(
-                images: _bannerImages,
-                onBack: () => Navigator.pop(context),
-                statusBarHeight: statusBarHeight,
-              ),
-            ),
-            SliverPersistentHeader(
-              pinned: true,
-              delegate: StickyCategoryHeaderDelegate(
-                topPadding: statusBarHeight,
-                categories: stickyCategories,
-                selectedId: controller.selectedEarnServiceData.value?.slugId ?? 'ALL_OPTION',
-                onCategoryTap: (item) {
-                  controller.selectedEarnServiceData.value =
-                      item.id == 'ALL_OPTION' ? null : OnboardingCategoryModel(
-                        name: item.name,
-                        slugId: item.id,
-                        accountType: AppConstants.individual,
-                      );
-                  controller.fetchEarnServices(
-                      earnServiceType: earnServiceType, subType: serviceSubType);
-                  setState(() {});
-                },
-                onBack: () => Navigator.pop(context),
+        body: Stack(
+          children: [
+            NestedScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              headerSliverBuilder: (context, innerBoxIsScrolled) => [
+                SliverToBoxAdapter(
+                  child: BannerCarousel(
+                    images: _bannerImages,
+                    onBack: () => Navigator.pop(context),
+                    statusBarHeight: statusBarHeight,
+                    backgroundColor:
+                        AppColors.blue5CAF.withValues(alpha: 0.1),
+                    bottomBorderSide: const BorderSide(
+                      color: AppColors.white,
+                      width: 2,
+                    ),
+                  ),
+                ),
+                SliverPersistentHeader(
+                  pinned: true,
+                  delegate: StickyCategoryHeaderDelegate(
+                    topPadding: statusBarHeight,
+                    categories: stickyCategories,
+                    singleLineLabel: true,
+                    selectedId: controller.selectedEarnServiceData.value?.slugId ?? 'ALL_OPTION',
+                    onCategoryTap: (item) {
+                      controller.selectedEarnServiceData.value =
+                          item.id == 'ALL_OPTION' ? null : OnboardingCategoryModel(
+                            name: item.name,
+                            slugId: item.id,
+                            accountType: AppConstants.individual,
+                          );
+                      controller.fetchEarnServices(
+                          earnServiceType: earnServiceType, subType: serviceSubType);
+                      setState(() {});
+                    },
+                    onBack: () => Navigator.pop(context),
+                    expandedLabelColor: AppColors.white,
+                    backgroundGradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        AppColors.blue5CAF.withValues(alpha: 0.1),
+                        AppColors.blue5CAF.withValues(alpha: 0.8),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+              body: NotificationListener<ScrollNotification>(
+                onNotification: _onScrollNotification,
+                child: rightContent(),
               ),
             ),
           ],
-          body: NotificationListener<ScrollNotification>(
-            onNotification: _onScrollNotification,
-            child: rightContent(),
-          ),
         ),
       ),
     );
@@ -163,7 +182,7 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
                 selectedIndex:
                     controller.filters.indexOf(controller.selectedFilter.value),
                 horizontalMargin: 0.0,
-                verticalMargin: 0.0,
+                verticalMargin: 8.0,
                 onTabSelected: (index, _) {
                   final selectedEnum = controller.filters[index];
                   if (controller.selectedFilter.value == selectedEnum) return;
@@ -172,7 +191,6 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
                 labelBuilder: (r) => r.localizedLabel,
                 unSelectedBackgroundColor: AppColors.white,
               ),
-              SizedBox(height: SizeConfig.size8),
               Expanded(
                 child: Obx(() {
                   if (controller.isEarnServiceLoading.value &&
@@ -319,6 +337,46 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
               ),
             ),
 
+            // ─── Expertise bullets ───
+            if (service.service?.expertise?.isNotEmpty == true)
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: List.generate(
+                    service.service!.expertise!.take(2).length,
+                        (index) => Padding(
+                      padding: const EdgeInsets.only(bottom: 3.0),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding:
+                            const EdgeInsets.only(top: 6.0, right: 6.0),
+                            child: Container(
+                                width: 4,
+                                height: 4,
+                                decoration: BoxDecoration(
+                                    color: AppColors.primaryColor,
+                                    shape: BoxShape.circle)),
+                          ),
+                          Expanded(
+                            child: CustomText(
+                              service.service!.expertise![index],
+                              fontSize: SizeConfig.small,
+                              color: AppColors.secondaryTextColor,
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+
+            SizedBox(height: SizeConfig.size8),
+
             // ─── Service Media Photos / Profile Picture ───
             if (service.serviceMedia?.photos?.isNotEmpty == true) ...[
               Padding(
@@ -382,43 +440,6 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
               SizedBox(height: SizeConfig.size6),
             ],
 
-            // ─── Expertise bullets ───
-            if (service.service?.expertise?.isNotEmpty == true)
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: List.generate(
-                    service.service!.expertise!.take(2).length,
-                    (index) => Padding(
-                      padding: const EdgeInsets.only(bottom: 3.0),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding:
-                                const EdgeInsets.only(top: 6.0, right: 6.0),
-                            child: Container(
-                                width: 4,
-                                height: 4,
-                                decoration: BoxDecoration(
-                                    color: AppColors.primaryColor,
-                                    shape: BoxShape.circle)),
-                          ),
-                          Expanded(
-                            child: CustomText(
-                              service.service!.expertise![index],
-                              fontSize: SizeConfig.small,
-                              color: AppColors.secondaryTextColor,
-                              fontWeight: FontWeight.w400,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
 
             // ─── Footer — timing + action ───
             Container(

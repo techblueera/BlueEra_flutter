@@ -104,47 +104,66 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
       ),
       child: Scaffold(
         backgroundColor: AppColors.appBackgroundColor,
-        body: CustomScrollView(
-          controller: scrollController,
-          physics: const AlwaysScrollableScrollPhysics(),
-          slivers: [
-            SliverToBoxAdapter(
-              child: BannerCarousel(
-                images: _bannerImages,
-                onBack: () => Navigator.pop(context),
-                statusBarHeight: statusBarHeight,
-              ),
+        body: Stack(
+          children: [
+            CustomScrollView(
+              controller: scrollController,
+              physics: const AlwaysScrollableScrollPhysics(),
+              slivers: [
+                SliverToBoxAdapter(
+                  child: BannerCarousel(
+                    images: _bannerImages,
+                    onBack: () => Navigator.pop(context),
+                    statusBarHeight: statusBarHeight,
+                    backgroundColor:
+                        AppColors.blue5CAF.withValues(alpha: 0.1),
+                    bottomBorderSide: const BorderSide(
+                      color: AppColors.white,
+                      width: 2,
+                    ),
+                  ),
+                ),
+                SliverPersistentHeader(
+                  pinned: true,
+                  delegate: StickyCategoryHeaderDelegate(
+                    topPadding: statusBarHeight,
+                    categories: _stayCategories.map((c) => StickyCategory(
+                      id: c.slugId,
+                      name: c.name,
+                      imageUrl: c.icon,
+                    )).toList(),
+                    selectedId: controller.selectedStayCategory.value?.slugId,
+                    onCategoryTap: (item) {
+                      final cat = _stayCategories.firstWhere((c) => c.slugId == item.id);
+                      controller.selectedStayCategory.value = cat;
+                      controller.selectedTabIndex.value = _stayCategories.indexOf(cat);
+                      _category = cat.slugId;
+                      if (cat.accountType == AppConstants.individual) {
+                        final serviceType = _category.toRentalServiceType();
+                        controller.fetchRentalServices(rentalServiceType: serviceType);
+                      } else {
+                        controller.fetchHotelServices(category: _category);
+                      }
+                      setState(() {});
+                    },
+                    onBack: () => Navigator.pop(context),
+                    expandedLabelColor: AppColors.white,
+                    backgroundGradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        AppColors.blue5CAF.withValues(alpha: 0.1),
+                        AppColors.blue5CAF.withValues(alpha: 0.8),
+                      ],
+                    ),
+                  ),
+                ),
+                SliverToBoxAdapter(
+                  child: BookViaBlueEraPartnerBanner(onTap: () {}),
+                ),
+                _buildListSliver(),
+              ],
             ),
-            SliverPersistentHeader(
-              pinned: true,
-              delegate: StickyCategoryHeaderDelegate(
-                topPadding: statusBarHeight,
-                categories: _stayCategories.map((c) => StickyCategory(
-                  id: c.slugId,
-                  name: c.name,
-                  imageUrl: c.icon,
-                )).toList(),
-                selectedId: controller.selectedStayCategory.value?.slugId,
-                onCategoryTap: (item) {
-                  final cat = _stayCategories.firstWhere((c) => c.slugId == item.id);
-                  controller.selectedStayCategory.value = cat;
-                  controller.selectedTabIndex.value = _stayCategories.indexOf(cat);
-                  _category = cat.slugId;
-                  if (cat.accountType == AppConstants.individual) {
-                    final serviceType = _category.toRentalServiceType();
-                    controller.fetchRentalServices(rentalServiceType: serviceType);
-                  } else {
-                    controller.fetchHotelServices(category: _category);
-                  }
-                  setState(() {});
-                },
-                onBack: () => Navigator.pop(context),
-              ),
-            ),
-            SliverToBoxAdapter(
-              child: BookViaBlueEraPartnerBanner(onTap: () {}),
-            ),
-            _buildListSliver(),
           ],
         ),
       ),

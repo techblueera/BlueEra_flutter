@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 import '../../../auth/controller/call_controller.dart';
+import '../../../auth/service/call_pip_service.dart';
 import 'rider_pickup_navigation_screen.dart';
 
 /// Incoming ride request screen for the rider.
@@ -283,14 +284,11 @@ class _IncomingRiderOrderScreenState extends State<IncomingRiderOrderScreen>
   Widget build(BuildContext context) {
     return PopScope(
       canPop: false,
-      onPopInvokedWithResult: (didPop, _) {
-        if (!didPop) {
-          if (_isCallConnected) {
-            _endCallOnly();
-          } else {
-            _onRejectRide();
-          }
-        }
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop) return;
+        // Back press minimises the call into Android PiP instead of
+        // ending the call or rejecting the ride request.
+        await CallPipService.enterPipMode();
       },
       child: Scaffold(
         backgroundColor: const Color(0xFF0B141A),

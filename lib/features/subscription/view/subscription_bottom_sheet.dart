@@ -62,7 +62,7 @@ class _SubscriptionDraggableSheetState
     final list = _subController.currentPlansList;
 
     if (list.isEmpty) {
-      return _ctaPill(title: 'Go Live Now');
+      return _ctaPill(title: 'Go Live Now @ Rs 5');
     }
 
     final userSub = list.first;
@@ -86,7 +86,7 @@ class _SubscriptionDraggableSheetState
           //     : 'Resubscribe Now',
         );
       default:
-        return _ctaPill(title: 'Go Live Now');
+        return _ctaPill(title: 'Go Live Now @ Rs 5');
     }
   }
 

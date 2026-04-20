@@ -101,43 +101,62 @@ class _AllProfessionConsultantScreenState
         statusBarBrightness: Brightness.dark,
       ),
       child: Scaffold(
-        body: NestedScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          headerSliverBuilder: (context, innerBoxIsScrolled) => [
-            SliverToBoxAdapter(
-              child: BannerCarousel(
-                images: _bannerImages,
-                onBack: () => Navigator.pop(context),
-                statusBarHeight: statusBarHeight,
-              ),
-            ),
-            SliverPersistentHeader(
-              pinned: true,
-              delegate: StickyCategoryHeaderDelegate(
-                topPadding: statusBarHeight,
-                categories: stickyCategories,
-                selectedId: controller.selectedProfessionalConsultantData.value?.slugId ?? 'ALL_OPTION',
-                onCategoryTap: (item) {
-                  if (item.id == 'ALL_OPTION') {
-                    controller.selectedProfessionalConsultantData.value = null;
-                  } else {
-                    controller.selectedProfessionalConsultantData.value = OnboardingCategoryModel(
-                      name: item.name,
-                      slugId: item.id,
-                      accountType: AppConstants.individual,
-                    );
-                  }
-                  controller.fetchProfessionalConsultantServices();
-                  setState(() {});
-                },
-                onBack: () => Navigator.pop(context),
+        body: Stack(
+          children: [
+            NestedScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              headerSliverBuilder: (context, innerBoxIsScrolled) => [
+                SliverToBoxAdapter(
+                  child: BannerCarousel(
+                    images: _bannerImages,
+                    onBack: () => Navigator.pop(context),
+                    statusBarHeight: statusBarHeight,
+                    backgroundColor:
+                        AppColors.blue5CAF.withValues(alpha: 0.1),
+                    bottomBorderSide: const BorderSide(
+                      color: AppColors.white,
+                      width: 2,
+                    ),
+                  ),
+                ),
+                SliverPersistentHeader(
+                  pinned: true,
+                  delegate: StickyCategoryHeaderDelegate(
+                    topPadding: statusBarHeight,
+                    categories: stickyCategories,
+                    selectedId: controller.selectedProfessionalConsultantData.value?.slugId ?? 'ALL_OPTION',
+                    onCategoryTap: (item) {
+                      if (item.id == 'ALL_OPTION') {
+                        controller.selectedProfessionalConsultantData.value = null;
+                      } else {
+                        controller.selectedProfessionalConsultantData.value = OnboardingCategoryModel(
+                          name: item.name,
+                          slugId: item.id,
+                          accountType: AppConstants.individual,
+                        );
+                      }
+                      controller.fetchProfessionalConsultantServices();
+                      setState(() {});
+                    },
+                    onBack: () => Navigator.pop(context),
+                    expandedLabelColor: AppColors.white,
+                    backgroundGradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        AppColors.blue5CAF.withValues(alpha: 0.1),
+                        AppColors.blue5CAF.withValues(alpha: 0.8),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+              body: NotificationListener<ScrollNotification>(
+                onNotification: _onScrollNotification,
+                child: rightContent(),
               ),
             ),
           ],
-          body: NotificationListener<ScrollNotification>(
-            onNotification: _onScrollNotification,
-            child: rightContent(),
-          ),
         ),
       ),
     );

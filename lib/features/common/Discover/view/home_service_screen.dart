@@ -87,46 +87,65 @@ class _HomeServiceScreenState extends State<HomeServiceScreen> {
         statusBarBrightness: Brightness.dark,
       ),
       child: Scaffold(
-        body: NestedScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          headerSliverBuilder: (context, innerBoxIsScrolled) => [
-            SliverToBoxAdapter(
-              child: BannerCarousel(
-                images: _bannerImages,
-                onBack: () => Navigator.pop(context),
-                statusBarHeight: statusBarHeight,
-              ),
-            ),
-            SliverPersistentHeader(
-              pinned: true,
-              delegate: StickyCategoryHeaderDelegate(
-                topPadding: statusBarHeight,
-                categories: stickyCategories,
-                selectedId:
-                    controller.selectedEarnServiceData.value?.slugId ??
-                        'ALL_OPTION',
-                onCategoryTap: (item) {
-                  if (item.id == 'ALL_OPTION') {
-                    controller.selectedEarnServiceData.value = null;
-                  } else {
-                    controller.selectedEarnServiceData.value =
-                        _homeServicesCategories
-                            .firstWhere((c) => c.slugId == item.id);
-                  }
-                  controller.fetchEarnServices(
-                    earnServiceType: earnServiceType,
-                    subType: serviceSubType,
-                  );
-                  setState(() {});
-                },
-                onBack: () => Navigator.pop(context),
+        body: Stack(
+          children: [
+            NestedScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              headerSliverBuilder: (context, innerBoxIsScrolled) => [
+                SliverToBoxAdapter(
+                  child: BannerCarousel(
+                    images: _bannerImages,
+                    onBack: () => Navigator.pop(context),
+                    statusBarHeight: statusBarHeight,
+                    backgroundColor:
+                        AppColors.blue5CAF.withValues(alpha: 0.1),
+                    bottomBorderSide: const BorderSide(
+                      color: AppColors.white,
+                      width: 2,
+                    ),
+                  ),
+                ),
+                SliverPersistentHeader(
+                  pinned: true,
+                  delegate: StickyCategoryHeaderDelegate(
+                    topPadding: statusBarHeight,
+                    categories: stickyCategories,
+                    selectedId:
+                        controller.selectedEarnServiceData.value?.slugId ??
+                            'ALL_OPTION',
+                    onCategoryTap: (item) {
+                      if (item.id == 'ALL_OPTION') {
+                        controller.selectedEarnServiceData.value = null;
+                      } else {
+                        controller.selectedEarnServiceData.value =
+                            _homeServicesCategories
+                                .firstWhere((c) => c.slugId == item.id);
+                      }
+                      controller.fetchEarnServices(
+                        earnServiceType: earnServiceType,
+                        subType: serviceSubType,
+                      );
+                      setState(() {});
+                    },
+                    onBack: () => Navigator.pop(context),
+                    expandedLabelColor: AppColors.white,
+                    backgroundGradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        AppColors.blue5CAF.withValues(alpha: 0.1),
+                        AppColors.blue5CAF.withValues(alpha: 0.8),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+              body: NotificationListener<ScrollNotification>(
+                onNotification: _onScrollNotification,
+                child: _buildRightContent(),
               ),
             ),
           ],
-          body: NotificationListener<ScrollNotification>(
-            onNotification: _onScrollNotification,
-            child: _buildRightContent(),
-          ),
         ),
       ),
     );
@@ -144,7 +163,7 @@ class _HomeServiceScreenState extends State<HomeServiceScreen> {
                 selectedIndex:
                     controller.filters.indexOf(controller.selectedFilter.value),
                 horizontalMargin: 0.0,
-                verticalMargin: 0.0,
+                verticalMargin: 5.0,
                 onTabSelected: (index, _) {
                   final selectedEnum = controller.filters[index];
                   if (controller.selectedFilter.value == selectedEnum) return;
@@ -153,7 +172,6 @@ class _HomeServiceScreenState extends State<HomeServiceScreen> {
                 labelBuilder: (r) => r.localizedLabel,
                 unSelectedBackgroundColor: AppColors.white,
               ),
-              SizedBox(height: SizeConfig.size5),
               Expanded(
                 child: Obx(() {
                   if (controller.isEarnServiceLoading.value &&

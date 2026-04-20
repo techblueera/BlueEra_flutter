@@ -188,7 +188,9 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
 
     return Scaffold(
       body: SafeArea(
-        bottom: false,
+        // Keep bottom safe-area padding so the tab content doesn't get
+        // clipped by the device's system gesture/nav area.
+        bottom: true,
         child: NestedScrollView(
         headerSliverBuilder: (context, innerBoxIsScrolled) => [
           // Cover section
@@ -233,29 +235,35 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
             ),
           ),
         ],
-        body: TabBarView(
-          controller: _tabController,
-          children: [
-            (firstIncompleteEntry?.key == RiderProfileStep.personalInfo)
-                ? PersonalInformationRidingScreen(
-                    screeName: 'from_tab_view')
-                : (firstIncompleteEntry?.key ==
-                        RiderProfileStep.addressInfo)
-                    ? AddressLocationRidingScreen(
-                        screeName: 'from_tab_view')
-                    : (firstIncompleteEntry?.key ==
-                            RiderProfileStep.vehicleInfo)
-                        ? VehicleInformationRidingScreen(
-                            screeName: 'from_tab_view')
-                        : controller.riderOnboardingStatusData.value
-                                    ?.verificationStatus ==
-                                "approved"
-                            ? DeliveryPartnerOrders()
-                            : RiderProfileStatusScreen(
-                                screeName: 'from_tab_view'),
-            const RiderMyStoreTab(),
-            const SubscriptionStatusView(),
-          ],
+        body: Padding(
+          // Extra breathing room so UI at the very bottom of each tab
+          // (action buttons, list tails) isn't clipped by the system
+          // gesture area / bottom nav bar on smaller devices.
+          padding: const EdgeInsets.only(bottom: 80),
+          child: TabBarView(
+            controller: _tabController,
+            children: [
+              (firstIncompleteEntry?.key == RiderProfileStep.personalInfo)
+                  ? PersonalInformationRidingScreen(
+                      screeName: 'from_tab_view')
+                  : (firstIncompleteEntry?.key ==
+                          RiderProfileStep.addressInfo)
+                      ? AddressLocationRidingScreen(
+                          screeName: 'from_tab_view')
+                      : (firstIncompleteEntry?.key ==
+                              RiderProfileStep.vehicleInfo)
+                          ? VehicleInformationRidingScreen(
+                              screeName: 'from_tab_view')
+                          : controller.riderOnboardingStatusData.value
+                                      ?.verificationStatus ==
+                                  "approved"
+                              ? DeliveryPartnerOrders()
+                              : RiderProfileStatusScreen(
+                                  screeName: 'from_tab_view'),
+              const RiderMyStoreTab(),
+              const SubscriptionStatusView(),
+            ],
+          ),
         ),
       )),
     );

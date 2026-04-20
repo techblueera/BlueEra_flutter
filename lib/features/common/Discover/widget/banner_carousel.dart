@@ -14,11 +14,36 @@ class BannerCarousel extends StatefulWidget {
   final VoidCallback onBack;
   final double statusBarHeight;
 
+  /// Optional overlay gradient painted on top of the banner. If null,
+  /// a default dark vignette is drawn for text readability.
+  final LinearGradient? overlayGradient;
+
+  /// Optional stroke painted around the banner (matches the bottom
+  /// rounded corners). Pass a white `BorderSide` to get a crisp edge
+  /// where the banner meets the content below.
+  final BorderSide? bottomBorderSide;
+
+  /// Background fill behind the rounded banner (visible in the
+  /// corner gaps). Defaults to [AppColors.appBackgroundColor]; pass
+  /// [Colors.transparent] when the surrounding screen paints its own
+  /// backdrop and you want it to show through.
+  final Color? backgroundColor;
+
+  /// Shape applied to the banner image clip and the optional stroke.
+  /// Defaults to a 24px bottom radius; pass [BorderRadius.zero] to
+  /// get a straight-bottomed banner that meets the content below
+  /// cleanly.
+  final BorderRadiusGeometry? bannerBorderRadius;
+
   const BannerCarousel({
     super.key,
     required this.images,
     required this.onBack,
     required this.statusBarHeight,
+    this.overlayGradient,
+    this.bottomBorderSide,
+    this.backgroundColor,
+    this.bannerBorderRadius,
   });
 
   @override
@@ -33,16 +58,17 @@ class _BannerCarouselState extends State<BannerCarousel> {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final bannerHeight = (screenWidth * 8 / 16) + widget.statusBarHeight;
+    final BorderRadiusGeometry clipRadius = widget.bannerBorderRadius ??
+        const BorderRadius.vertical(bottom: Radius.circular(24));
 
     return Container(
       height: bannerHeight,
       width: double.infinity,
-      color: AppColors.appBackgroundColor,
+      color: widget.backgroundColor ?? AppColors.appBackgroundColor,
       child: Stack(
         children: [
           ClipRRect(
-            borderRadius:
-                const BorderRadius.vertical(bottom: Radius.circular(24)),
+            borderRadius: clipRadius,
             child: CarouselSlider.builder(
               itemCount: widget.images.length,
               options: CarouselOptions(
@@ -77,20 +103,36 @@ class _BannerCarouselState extends State<BannerCarousel> {
             child: IgnorePointer(
               child: DecoratedBox(
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      AppColors.black.withValues(alpha: 0.35),
-                      Colors.transparent,
-                      AppColors.black.withValues(alpha: 0.35),
-                    ],
-                    stops: const [0.0, 0.5, 1.0],
-                  ),
+                  gradient: widget.overlayGradient ??
+                      LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          AppColors.black.withValues(alpha: 0.35),
+                          Colors.transparent,
+                          AppColors.black.withValues(alpha: 0.35),
+                        ],
+                        stops: const [0.0, 0.5, 1.0],
+                      ),
                 ),
               ),
             ),
           ),
+
+          // Optional stroke along the bottom (curved) edge only —
+          // no stroke on the sides or top.
+          if (widget.bottomBorderSide != null)
+            Positioned.fill(
+              child: IgnorePointer(
+                child: CustomPaint(
+                  painter: _BottomEdgePainter(
+                    side: widget.bottomBorderSide!,
+                    borderRadius: clipRadius
+                        .resolve(Directionality.maybeOf(context)),
+                  ),
+                ),
+              ),
+            ),
 
           // Top row: back + location
           Positioned(
@@ -220,4 +262,55 @@ class _BannerCarouselState extends State<BannerCarousel> {
     if (!mounted) return;
     setState(() => _isLocationLoading = false);
   }
+}
+
+/// Paints a stroke that traces just the bottom edge of the banner,
+/// following the rounded bottom-left and bottom-right corners. The
+/// sides and top are left un-stroked.
+class _BottomEdgePainter extends CustomPainter {
+  final BorderSide side;
+  final BorderRadius borderRadius;
+
+  _BottomEdgePainter({required this.side, required this.borderRadius});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = side.color
+      ..strokeWidth = side.width
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.butt;
+
+    final blX = borderRadius.bottomLeft.x;
+    final blY = borderRadius.bottomLeft.y;
+    final brX = borderRadius.bottomRight.x;
+    final brY = borderRadius.bottomRight.y;
+
+    final path = Path()..moveTo(0, size.height - blY);
+    if (blX > 0 && blY > 0) {
+      path.arcToPoint(
+        Offset(blX, size.height),
+        radius: Radius.elliptical(blX, blY),
+        clockwise: false,
+      );
+    } else {
+      path.lineTo(0, size.height);
+    }
+    path.lineTo(size.width - brX, size.height);
+    if (brX > 0 && brY > 0) {
+      path.arcToPoint(
+        Offset(size.width, size.height - brY),
+        radius: Radius.elliptical(brX, brY),
+        clockwise: false,
+      );
+    } else {
+      path.lineTo(size.width, size.height);
+    }
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(_BottomEdgePainter oldDelegate) =>
+      side != oldDelegate.side || borderRadius != oldDelegate.borderRadius;
 }
