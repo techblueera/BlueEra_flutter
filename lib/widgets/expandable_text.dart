@@ -41,9 +41,10 @@ class _ExpandableTextState extends State<ExpandableText> {
   bool get _isLong {
     if (widget.text.isEmpty) return false;
 
+    final style = widget.style ?? const TextStyle(color: AppColors.black28);
     final textSpan = TextSpan(
       text: widget.text,
-      style: widget.style ?? const TextStyle(color: AppColors.black28),
+      style: style,
     );
 
     final tp = TextPainter(
@@ -52,8 +53,8 @@ class _ExpandableTextState extends State<ExpandableText> {
       textDirection: TextDirection.ltr,
     );
 
-    // subtract your padding (15 left & right)
-    tp.layout(maxWidth: MediaQuery.of(context).size.width - (SizeConfig.size15 * 2));
+    double width = MediaQuery.of(context).size.width - (SizeConfig.size16 * 2);
+    tp.layout(maxWidth: width);
 
     return tp.didExceedMaxLines;
   }
@@ -143,8 +144,7 @@ class _ExpandableTextState extends State<ExpandableText> {
             AppStrings.show_less,
             color: AppColors.primaryColor,
             fontWeight: FontWeight.w600,
-            fontSize: SizeConfig.size13,
-
+            fontSize: style.fontSize ?? SizeConfig.medium,
           ),
         ),
       ],
@@ -156,53 +156,48 @@ class _ExpandableTextState extends State<ExpandableText> {
       context: context,
 
       builder: (_) => Dialog(
-        insetPadding: EdgeInsets.zero,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: Container(
-          padding: EdgeInsets.all(SizeConfig.size20),
+          padding: EdgeInsets.all(SizeConfig.size24),
           constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height * 0.7,
-            maxWidth: MediaQuery.of(context).size.width * 0.9,
+            maxHeight: MediaQuery.of(context).size.height * 0.6,
+            maxWidth: MediaQuery.of(context).size.width * 0.85,
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CustomText(
-                widget.dialogTitle ?? AppStrings.description,
-                  fontSize: SizeConfig.large18,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.mainTextColor,
-              ),
-              SizedBox(height: SizeConfig.size8),
-              Flexible(
-                child: Scrollbar(
-                  radius: const Radius.circular(10),
-                  trackVisibility: false,
-                  thumbVisibility: false,
-                  thickness: 3,
-                  child: SingleChildScrollView(
-                    child: Padding(
-                      padding: const EdgeInsets.only(right: 10.0),
-                      child: HighlightText(
-                          text: widget.text,
-                        style: TextStyle(
-                          color: AppColors.mainTextColor,
-                          fontSize: SizeConfig.large,
-                          fontWeight: FontWeight.w400,
-                          fontFamily: AppConstants.OpenSans,
-                        )
-                      ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: CustomText(
+                      widget.dialogTitle ?? AppStrings.description,
+                      fontSize: SizeConfig.large,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.mainTextColor,
                     ),
                   ),
-                ),
+                  IconButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    icon: const Icon(Icons.close, size: 20),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  ),
+                ],
               ),
-              SizedBox(height: SizeConfig.size8),
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: Navigator.of(context).pop,
-                  child: const CustomText(AppStrings.close, fontWeight: FontWeight.w600),
+              const Divider(height: 24),
+              Flexible(
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  child: HighlightText(
+                    text: widget.text,
+                    style: style.copyWith(
+                      color: AppColors.mainTextColor,
+                      fontSize: SizeConfig.medium,
+                      height: 1.5,
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -247,9 +242,10 @@ class _ExpandableTextVideoState extends State<ExpandableTextVideo> {
   bool get _isLong {
     if (widget.text.isEmpty) return false;
 
+    final style = widget.style ?? const TextStyle(color: AppColors.black28);
     final textSpan = TextSpan(
       text: widget.text,
-      style: widget.style ?? const TextStyle(color: AppColors.black28),
+      style: style,
     );
 
     final tp = TextPainter(
@@ -258,8 +254,8 @@ class _ExpandableTextVideoState extends State<ExpandableTextVideo> {
       textDirection: TextDirection.ltr,
     );
 
-    // subtract your padding (15 left & right)
-    tp.layout(maxWidth: MediaQuery.of(context).size.width - (SizeConfig.size15 * 2));
+    double width = MediaQuery.of(context).size.width - (SizeConfig.size16 * 2);
+    tp.layout(maxWidth: width);
 
     return tp.didExceedMaxLines;
   }
@@ -278,36 +274,60 @@ class _ExpandableTextVideoState extends State<ExpandableTextVideo> {
     }
 
     if (_readMore) {
-      return RichText(
-        text: TextSpan(
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          final textSpan = TextSpan(
+            text: widget.text,
+            style: style,
+          );
+          final tp = TextPainter(
+            text: textSpan,
+            maxLines: widget.trimLines,
+            textDirection: TextDirection.ltr,
+          );
+          tp.layout(maxWidth: constraints.maxWidth);
 
-          children: [
-            TextSpan(
-             style: widget.style ?? const TextStyle(color: AppColors.black28),
-              text: widget.text.length > 50
-                  ? '${widget.text.substring(0, 50)}... '
-                  : widget.text,
+          if (!tp.didExceedMaxLines) {
+            return HighlightText(text: widget.text, style: style);
+          }
+
+          final endPos = tp.getPositionForOffset(
+            Offset(tp.size.width, tp.size.height),
+          );
+          final truncateIndex = endPos.offset > 12 ? endPos.offset - 12 : endPos.offset;
+          final truncatedText = widget.text.substring(0, truncateIndex.clamp(0, widget.text.length));
+
+          return RichText(
+            maxLines: widget.trimLines,
+            overflow: TextOverflow.clip,
+            text: TextSpan(
+              children: [
+                TextSpan(
+                  style: style,
+                  text: '$truncatedText... ',
+                ),
+                TextSpan(
+                  text: (widget.isReadMoreNewLine ?? false)
+                      ? "${AppStrings.read_more.tr}\n"
+                      : AppStrings.read_more.tr,
+                  style: style.copyWith(
+                    color: AppColors.primaryColor,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  recognizer: TapGestureRecognizer()
+                    ..onTap = () {
+                      if (widget.expandMode == ExpandMode.dialog) {
+                        _showFullTextDialog(context, style);
+                      } else {
+                        setState(() => _readMore = false);
+                      }
+                    },
+                ),
+              ],
             ),
-            TextSpan(
-              text: (widget.isReadMoreNewLine ?? false) ? "${AppStrings.read_more.tr}\n" : '${AppStrings.read_more.tr}',
-              style: style.copyWith(
-                color: AppColors.primaryColor,
-                fontWeight: FontWeight.w600,
-              ),
-              recognizer: TapGestureRecognizer()
-                ..onTap = () {
-                  if (widget.expandMode == ExpandMode.dialog) {
-                    _showFullTextDialog(context, style);
-                  } else {
-                    setState(() => _readMore = false);
-                  }
-                },
-            ),
-          ],
-        ),
+          );
+        },
       );
-
-
     }
 
     return Column(
@@ -322,8 +342,7 @@ class _ExpandableTextVideoState extends State<ExpandableTextVideo> {
             AppStrings.show_less,
             color: AppColors.primaryColor,
             fontWeight: FontWeight.w600,
-            fontSize: SizeConfig.size13,
-
+            fontSize: style.fontSize ?? SizeConfig.medium,
           ),
         ),
       ],
@@ -335,53 +354,48 @@ class _ExpandableTextVideoState extends State<ExpandableTextVideo> {
       context: context,
 
       builder: (_) => Dialog(
-        insetPadding: EdgeInsets.zero,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: Container(
-          padding: EdgeInsets.all(SizeConfig.size20),
+          padding: EdgeInsets.all(SizeConfig.size24),
           constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height * 0.7,
-            maxWidth: MediaQuery.of(context).size.width * 0.9,
+            maxHeight: MediaQuery.of(context).size.height * 0.6,
+            maxWidth: MediaQuery.of(context).size.width * 0.85,
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CustomText(
-                widget.dialogTitle ?? AppStrings.description,
-                  fontSize: SizeConfig.large18,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.mainTextColor,
-              ),
-              SizedBox(height: SizeConfig.size8),
-              Flexible(
-                child: Scrollbar(
-                  radius: const Radius.circular(10),
-                  trackVisibility: false,
-                  thumbVisibility: false,
-                  thickness: 3,
-                  child: SingleChildScrollView(
-                    child: Padding(
-                      padding: const EdgeInsets.only(right: 10.0),
-                      child: HighlightText(
-                          text: widget.text,
-                        style: TextStyle(
-                          color: AppColors.mainTextColor,
-                          fontSize: SizeConfig.large,
-                          fontWeight: FontWeight.w400,
-                          fontFamily: AppConstants.OpenSans,
-                        )
-                      ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: CustomText(
+                      widget.dialogTitle ?? AppStrings.description,
+                      fontSize: SizeConfig.large,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.mainTextColor,
                     ),
                   ),
-                ),
+                  IconButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    icon: const Icon(Icons.close, size: 20),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  ),
+                ],
               ),
-              SizedBox(height: SizeConfig.size8),
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: Navigator.of(context).pop,
-                  child: const CustomText(AppStrings.close, fontWeight: FontWeight.w600),
+              const Divider(height: 24),
+              Flexible(
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  child: HighlightText(
+                    text: widget.text,
+                    style: style.copyWith(
+                      color: AppColors.mainTextColor,
+                      fontSize: SizeConfig.medium,
+                      height: 1.5,
+                    ),
+                  ),
                 ),
               ),
             ],

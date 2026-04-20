@@ -54,30 +54,31 @@ class CertificationsController extends GetxController {
     issuingOrgController.text = certification.issuingOrg;
   }
 
-  Future<void> addCertification(Map<String, dynamic> params,
+  Future<bool> addCertification(Map<String, dynamic> params,
       {String? photoPath}) async {
     final res =
         await _repo.addCertification(params: params, photoPath: photoPath);
     if (res.isSuccess) {
       commonSnackBar(message: AppStrings.certificationAdded);
       await callAPIGetResume();
-
-      // await getAllCertifications();
+      return true;
     } else {
-      commonSnackBar(message: res.message ??AppStrings.certificationAddFailed);
+      commonSnackBar(message: res.message ?? AppStrings.certificationAddFailed);
+      return false;
     }
   }
 
-  Future<void> updateCertification(String id, Map<String, dynamic> params,
+  Future<bool> updateCertification(String id, Map<String, dynamic> params,
       {String? photoPath}) async {
     final res = await _repo.updateCertification(
         id: id, params: params, photoPath: photoPath);
     if (res.isSuccess) {
       commonSnackBar(message: AppStrings.certificationUpdated);
-     await callAPIGetResume();
-      // await getAllCertifications();
+      await callAPIGetResume();
+      return true;
     } else {
       commonSnackBar(message: res.message ?? AppStrings.certificationUpdateFailed);
+      return false;
     }
   }
 

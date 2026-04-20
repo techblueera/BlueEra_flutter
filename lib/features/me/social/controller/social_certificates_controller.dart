@@ -70,7 +70,47 @@ class SocialCertificatesController extends GetxController {
     editingCertificateId.value = cert.id;
   }
 
-  Future<void> save() async {
+  String? get certificateValidationMessage {
+    if (titleController.text.trim().isEmpty) {
+      return "Please enter a title for the certificate.";
+    }
+    if (!isValidIssueDate) {
+      return "Please select a valid issued date.";
+    }
+    if ((editingCertificateId.value?.isEmpty ?? true) &&
+        selectedFile.value == null) {
+      return AppStrings.uploadImages;
+    }
+    return null;
+  }
+
+  bool get isValidIssueDate {
+    if (selectedDay == null || selectedMonth == null || selectedYear == null) {
+      return false;
+    }
+    try {
+      final date = DateTime(selectedYear!, selectedMonth!, selectedDay!);
+      return date.year == selectedYear &&
+          date.month == selectedMonth &&
+          date.day == selectedDay;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  String _formatIssuedDate() {
+    return "${selectedYear.toString().padLeft(4, '0')}-"
+        "${selectedMonth.toString().padLeft(2, '0')}-"
+        "${selectedDay.toString().padLeft(2, '0')}";
+  }
+
+  Future<bool> save() async {
+    final validationMessage = certificateValidationMessage;
+    if (validationMessage != null) {
+      commonSnackBar(message: validationMessage);
+      return false;
+    }
+
     try {
       isSaving.value = true;
       UploadResult? uploadResult;
@@ -84,10 +124,8 @@ class SocialCertificatesController extends GetxController {
         "title": titleController.text.trim(),
         // "documentType": documentType.value,
         // "issuedBy": issuedByController.text.trim(),
-        "issuedDate": "${selectedYear}-${selectedMonth}-$selectedDay",
-        // "issueDate": _formatIso(issueDate.value),
+        "issuedDate": _formatIssuedDate(),
         if (uploadResult?.url.isNotEmpty ?? false) "fileUrl": uploadResult?.url,
-
         "description": descriptionController.text.trim()
       };
 
@@ -102,12 +140,15 @@ class SocialCertificatesController extends GetxController {
       if (response.isSuccess) {
         await getCertificateController();
         commonSnackBar(message: "Saved Successfully");
+        return true;
       } else {
         commonSnackBar(
             message: response.message ?? AppStrings.somethingWentWrong);
+        return false;
       }
     } catch (e) {
       commonSnackBar(message: AppStrings.somethingWentWrong);
+      return false;
     } finally {
       isSaving.value = false;
     }

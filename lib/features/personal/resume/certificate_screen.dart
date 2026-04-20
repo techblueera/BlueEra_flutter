@@ -221,24 +221,26 @@ class _CertificateScreenState extends State<CertificateScreen> {
                                         _selectedYear.toString(),
                                   };
 
+                                  final bool saved;
                                   if (widget.isEdit &&
                                       widget.certificationId != null) {
-                                    await certificationsController
+                                    saved = await certificationsController
                                         .updateCertification(
                                       widget.certificationId!,
                                       inputParams,
                                       photoPath: imagePath,
                                     );
                                   } else {
-                                    await certificationsController
+                                    saved = await certificationsController
                                         .addCertification(
                                       inputParams,
                                       photoPath: imagePath,
                                     );
                                   }
 
-                                  if (!certificationsController
-                                      .isLoading.value) {
+                                  if (saved &&
+                                      !certificationsController
+                                          .isLoading.value) {
                                     Navigator.pop(context, true);
                                   }
                                 }

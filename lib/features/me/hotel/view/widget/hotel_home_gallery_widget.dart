@@ -13,10 +13,8 @@ class HotelHomeGalleryWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final List<String> all = photos
-            ?.expand((p) => p.imageReferences ?? <String>[])
-            .toList() ??
-        [];
+    final List<String> all =
+        photos?.expand((p) => p.imageReferences ?? <String>[]).toList() ?? [];
 
     if (all.isEmpty) return const SizedBox.shrink();
 
@@ -25,9 +23,7 @@ class HotelHomeGalleryWidget extends StatelessWidget {
     // ── 1 image: full-width card ──────────────────────────────────────────
     if (count == 1) {
       return _tap(context, 0, all,
-          child: _img(all[0],
-              height: 220,
-              radius: BorderRadius.circular(12)));
+          child: _img(all[0], height: 220, radius: BorderRadius.circular(12)));
     }
 
     // ── 2 images: side by side ────────────────────────────────────────────
@@ -117,8 +113,7 @@ class HotelHomeGalleryWidget extends StatelessWidget {
         ),
         itemBuilder: (context, index) => _tap(context, index, all,
             child: _img(all[index],
-                height: double.infinity,
-                radius: _corner(index))),
+                height: double.infinity, radius: _corner(index))),
       );
     }
 
@@ -184,8 +179,7 @@ class HotelHomeGalleryWidget extends StatelessWidget {
     );
   }
 
-  Widget _img(String url,
-      {double? height, required BorderRadius radius}) {
+  Widget _img(String url, {double? height, required BorderRadius radius}) {
     return ClipRRect(
       borderRadius: radius,
       child: CachedNetworkImage(
