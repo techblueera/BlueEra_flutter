@@ -19,9 +19,8 @@ class HotelStayServiceCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CustomFormCard(
-      color: AppColors.whiteFC,
-      padding: EdgeInsets.all(SizeConfig.size10),
-      borderRadius: BorderRadius.circular(0),
+      color: AppColors.white,
+      padding: EdgeInsets.all(SizeConfig.size12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -38,9 +37,10 @@ class HotelStayServiceCard extends StatelessWidget {
           SizedBox(height: SizeConfig.paddingXSL),
           isShowInGrid
               ? Padding(
-            padding: const EdgeInsets.symmetric(horizontal:18.0),
+            padding: EdgeInsets.zero,
+            // padding: const EdgeInsets.symmetric(horizontal:18.0),
             child: LayoutBuilder(builder: (context, constraints) {
-              const double spacing = 10;
+              const double spacing = 8;
               const int columns = 2;
               final double itemWidth =
                   (constraints.maxWidth - spacing * (columns - 1)) / columns;
@@ -118,7 +118,8 @@ class HotelStayServiceCard extends StatelessWidget {
           )
               : SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
-                  padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
+                  // padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
+                  padding: EdgeInsets.zero,
                   child: IntrinsicHeight(
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -131,7 +132,7 @@ class HotelStayServiceCard extends StatelessWidget {
                           },
                           child: Container(
                             width: SizeConfig.size150,
-                            margin: EdgeInsets.only(right: SizeConfig.size12),
+                            margin: EdgeInsets.only(right: SizeConfig.size8),
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(

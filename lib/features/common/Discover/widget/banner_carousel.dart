@@ -98,26 +98,18 @@ class _BannerCarouselState extends State<BannerCarousel> {
             ),
           ),
 
-          // Gradient scrim
-          Positioned.fill(
-            child: IgnorePointer(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: widget.overlayGradient ??
-                      LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          AppColors.black.withValues(alpha: 0.35),
-                          Colors.transparent,
-                          AppColors.black.withValues(alpha: 0.35),
-                        ],
-                        stops: const [0.0, 0.5, 1.0],
-                      ),
+          // Gradient scrim — only painted when the caller explicitly
+          // supplies one. A null overlay means no darkening.
+          if (widget.overlayGradient != null)
+            Positioned.fill(
+              child: IgnorePointer(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: widget.overlayGradient,
+                  ),
                 ),
               ),
             ),
-          ),
 
           // Optional stroke along the bottom (curved) edge only —
           // no stroke on the sides or top.

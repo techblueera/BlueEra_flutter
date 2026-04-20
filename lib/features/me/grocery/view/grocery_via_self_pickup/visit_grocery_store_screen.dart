@@ -89,6 +89,10 @@ class _VisitGroceryStoreScreenState extends State<VisitGroceryStoreScreen> {
               children: [
                 // --- 1. Profile Header Section (Independent) ---
                 Obx(() {
+                  // Subscribe to silent refreshes — profileVersion bumps
+                  // every successful fetch, so tapping it here causes
+                  // this Obx to rebuild even when the loader is skipped.
+                  viewBusinessDetailsController.profileVersion.value;
                   if (viewBusinessDetailsController.isProfileLoading.value) {
                     return buildBusinessHeaderSkeleton();
                   }
@@ -98,7 +102,15 @@ class _VisitGroceryStoreScreenState extends State<VisitGroceryStoreScreen> {
                       VisitBusinessCommonHeader(
                         details: details,
                         onRated: () => viewBusinessDetailsController
-                            .viewBusinessProfileById(widget.visitBusinessId),
+                            .viewBusinessProfileById(
+                          widget.visitBusinessId,
+                          silent: true,
+                        ),
+                        onFollowChanged: () => viewBusinessDetailsController
+                            .viewBusinessProfileById(
+                          widget.visitBusinessId,
+                          silent: true,
+                        ),
                       ),
                       const SizedBox(height: 10),
                       VisitBusinessStatsCard(details: details),

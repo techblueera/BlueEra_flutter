@@ -27,7 +27,7 @@ class PriceRow extends StatelessWidget {
           // --- Selling Price ---
           CustomText(
             sellingPrice,
-            fontSize: 13,
+            fontSize: 14,
             color: AppColors.mainTextColor,
             fontWeight: FontWeight.bold,
           ),

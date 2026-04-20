@@ -17,9 +17,8 @@ class ProfessionalsCardWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CustomFormCard(
-      color: AppColors.whiteFC,
-      borderRadius: BorderRadius.circular(0),
-      padding: EdgeInsets.all(SizeConfig.size10),
+      color: AppColors.white,
+      padding: EdgeInsets.all(SizeConfig.size12),
       child: Column(
         children: [
           Row(
@@ -42,9 +41,10 @@ class ProfessionalsCardWidget extends StatelessWidget {
           ),
           SizedBox(height: SizeConfig.paddingXSL),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 18.0),
+            padding: EdgeInsets.zero,
+            // padding: const EdgeInsets.symmetric(horizontal: 18.0),
             child: LayoutBuilder(builder: (context, constraints) {
-              const double spacing = 6;
+              const double spacing = 8;
               const int columns = 3;
               final double itemWidth =
                   (constraints.maxWidth - spacing * (columns - 1)) / columns;

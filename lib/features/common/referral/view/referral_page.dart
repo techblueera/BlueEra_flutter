@@ -215,6 +215,7 @@ class _ReferralPageState extends State<ReferralPage> {
                               ),
                             ),
 
+                            // Aadhaar
                             _buildDocumentButton(
                               title: AppStrings.uploadAadhar,
                               document: DocumentKeys.aadhar,
@@ -243,6 +244,8 @@ class _ReferralPageState extends State<ReferralPage> {
                                 );
                               },
                             ),
+
+                            // Pan
                             _buildDocumentButton(
                               title: AppStrings.uploadPan,
                               document: DocumentKeys.pan,
@@ -269,6 +272,8 @@ class _ReferralPageState extends State<ReferralPage> {
                                 );
                               },
                             ),
+
+                            // Address Proof
                             _buildDocumentButton(
                               title: AppStrings.uploadAddressProof,
                               document: DocumentKeys.addressProof,
@@ -296,6 +301,8 @@ class _ReferralPageState extends State<ReferralPage> {
                                 );
                               },
                             ),
+
+                            // Bank Cancel Cheque
                             _buildDocumentButton(
                               title: AppStrings.uploadBankerCancelCheck,
                               document: DocumentKeys.bankersCancelledCheque,
@@ -316,104 +323,6 @@ class _ReferralPageState extends State<ReferralPage> {
                             ),
 
                             SizedBox(height: SizeConfig.size8),
-
-                            // SizedBox(height: 16),
-                            // InkWell(
-                            //   onTap: (){
-                            //     Get.bottomSheet(
-                            //       CommonDocumentBottomSheet(
-                            //         title: AppStrings.aadharCard,
-                            //         child: GenericDocumentWidget(
-                            //           documentType: DocumentKeys.aadhar,
-                            //           uploadSectionLabel:
-                            //           AppStrings.uploadAadharBothSide,
-                            //           backImage: true,
-                            //           textFieldLabel:
-                            //           'Enter Aadhaar Number',
-                            //           textFieldHint: 'E.g. 5678 1234 6679 9012',
-                            //           textFieldValidation:
-                            //           ValidationMethod.validateAadhaar,
-                            //           maxLength: 12,
-                            //           keyboardType: TextInputType.number,
-                            //         ),
-                            //       ),
-                            //       isScrollControlled: true,
-                            //       backgroundColor: Colors.transparent,
-                            //     );
-                            //   },
-                            //   child: Row(
-                            //     children: [
-                            //       (details.aadharDocumentUploaded??false)?
-                            //       Icon(Icons.check_circle, color: AppColors.greenShade,):
-                            //       Icon(Icons.add, color: AppColors.primaryColor,),
-                            //       SizedBox(width: 10,),
-                            //       CustomText("Upload Aadhaar Card",
-                            //         color:
-                            //         (details.aadharDocumentUploaded??false)?
-                            //         AppColors.greenShade:AppColors.primaryColor,
-                            //
-                            //         fontSize: 16,
-                            //         fontWeight: FontWeight.w600,)
-                            //     ],
-                            //   ),
-                            // ),
-                            // SizedBox(height: 16),
-                            // InkWell(
-                            //   onTap: (){
-                            //     Get.bottomSheet(
-                            //       CommonDocumentBottomSheet(
-                            //         title: AppStrings.panCard,
-                            //         child: GenericDocumentWidget(
-                            //           documentType: DocumentKeys.pan,
-                            //           uploadSectionLabel: AppStrings.uploadPan,
-                            //           backImage: false,
-                            //           textFieldLabel: AppStrings.panNumber,
-                            //           textFieldHint: 'E.g. ABCDE1234F',
-                            //           textFieldValidation:
-                            //           ValidationMethod.validatePAN,
-                            //           maxLength: 10,
-                            //           keyboardType: TextInputType.text,
-                            //         ),
-                            //       ),
-                            //       isScrollControlled: true,
-                            //       backgroundColor: Colors.transparent,
-                            //     );
-                            //   },
-                            //   child: Row(
-                            //     children: [
-                            //       (details.panDocumentUploaded??false)?
-                            //       Icon(Icons.check_circle, color: AppColors.greenShade,):
-                            //       Icon(Icons.add, color: AppColors.primaryColor,),
-                            //       SizedBox(width: 10,),
-                            //       CustomText("Upload Pan Card",
-                            //         color:       (details.panDocumentUploaded??false)?
-                            //         AppColors.greenShade:AppColors.primaryColor,
-                            //
-                            //         fontSize: 16,
-                            //         fontWeight: FontWeight.w600,)
-                            //     ],
-                            //   ),
-                            // ),
-                            // SizedBox(height: 16,),
-                            // InkWell(
-                            //   onTap: (){
-                            //     Get.toNamed(
-                            //         RouteHelper.getAddBankAccountScreenRoute());
-                            //   },
-                            //   child: Row(
-                            //     children: [
-                            //       (details.bankDetailsDocumentUploaded??false)?
-                            //       Icon(Icons.check_circle, color: AppColors.greenShade,):
-                            //       Icon(Icons.add, color: AppColors.primaryColor,),
-                            //       SizedBox(width: 10,),
-                            //       CustomText("Upload Bank Details",
-                            //         color: (details.bankDetailsDocumentUploaded??false)?
-                            //         AppColors.greenShade:AppColors.primaryColor,
-                            //         fontSize: 16,
-                            //         fontWeight: FontWeight.w600,)
-                            //     ],
-                            //   ),
-                            // ),
 
                           ],
                         ),

@@ -18,9 +18,8 @@ class GroceryCardWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CustomFormCard(
-        color: AppColors.whiteFC,
-        borderRadius: BorderRadius.circular(0),
-        padding: EdgeInsets.all(SizeConfig.size10),
+        color: AppColors.white,
+        padding: EdgeInsets.all(SizeConfig.size12),
         child: Column(
           children: [
             Row(
@@ -31,7 +30,8 @@ class GroceryCardWidget extends StatelessWidget {
             ),
             SizedBox(height: SizeConfig.paddingXSL),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal:18.0),
+              padding: EdgeInsets.zero,
+              // padding: const EdgeInsets.symmetric(horizontal:18.0),
               child: GridIconImageWidget(
                 items: groceryOrFoodCategories,
                 crossAxisCount: 3,

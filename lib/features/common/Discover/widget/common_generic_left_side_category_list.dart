@@ -75,7 +75,7 @@ class CommonGenericLeftSideCategoryList<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: width ?? SizeConfig.screenWidth * 0.18,
+      width: width ?? SizeConfig.screenWidth * 0.16,
       height: SizeConfig.screenHeight,
       color: AppColors.white,
       child: ListView.builder(
@@ -124,29 +124,29 @@ class CommonGenericLeftSideCategoryList<T> extends StatelessWidget {
                         duration: const Duration(milliseconds: 300),
                         curve: Curves.easeOutBack,
                         padding: EdgeInsets.all(6),
-                        height: selected ? 60 : 50,
-                        width: selected ? 60 : 50,
+                        height: selected ? 55 : 45,
+                        width: selected ? 55 : 45,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           color: selected ? null : AppColors.skyBlueE4,
                         ),
                         child: (icon.isEmpty)
-                            ? _fallbackIcon(selected ? 60 : 50)
+                            ? _fallbackIcon(selected ? 55 : 45)
                             : isNetworkImage(icon)
                                 ? CachedNetworkImage(
                                     imageUrl: icon,
-                                    height: selected ? 60 : 50,
-                                    width: selected ? 60 : 50,
+                                    height: selected ? 55 : 45,
+                                    width: selected ? 55 : 45,
                                     // fit: BoxFit.cover,
                                     placeholder: (context, url) => const Padding(
                                       padding: EdgeInsets.all(8.0),
                                       child: CircularProgressIndicator(strokeWidth: 2),
                                     ),
                                     errorWidget: (context, url, error) =>
-                                        _fallbackIcon(selected ? 60 : 50),
+                                        _fallbackIcon(selected ? 55 : 45),
                                   )
                                 : _buildLocalAssetWithFallback(
-                                    icon, selected ? 60 : 50),
+                                    icon, selected ? 55 : 45),
                       ),
                       const SizedBox(height: 6),
                       AnimatedDefaultTextStyle(

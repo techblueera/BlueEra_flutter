@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -22,7 +24,7 @@ class StickyCategory {
 
 /// Generic sticky header delegate.
 /// - Normal (below banner): search bar + category tabs, no topPadding.
-/// - Sticky (pinned): back button + tabs on dark bg, topPadding, no search bar.
+/// - Sticky (pinned): back button + tabs on the same gradient bg, topPadding, no search bar.
 class StickyCategoryHeaderDelegate extends SliverPersistentHeaderDelegate {
   final double topPadding;
   final List<StickyCategory> categories;
@@ -31,15 +33,13 @@ class StickyCategoryHeaderDelegate extends SliverPersistentHeaderDelegate {
   final VoidCallback onBack;
   final bool singleLineLabel;
 
-  /// Optional gradient painted behind the header while it is in the
-  /// non-sticky (expanded) state. When the header collapses into its
-  /// sticky state, the existing dark background takes over.
+  /// Optional gradient painted behind the header in both states so the
+  /// collapsed (sticky) header matches the expanded look.
   final Gradient? backgroundGradient;
 
-  /// Optional label color applied to tab text in the non-sticky
-  /// (expanded) state — useful when [backgroundGradient] is dark. Bold
-  /// weight still distinguishes the active tab. Sticky-state text
-  /// remains white regardless.
+  /// Optional label color applied to tab text — useful when
+  /// [backgroundGradient] is dark. Bold weight still distinguishes the
+  /// active tab.
   final Color? expandedLabelColor;
 
   static const double _searchBarHeight = 44;
@@ -83,16 +83,17 @@ class StickyCategoryHeaderDelegate extends SliverPersistentHeaderDelegate {
     final searchOpacity = (1 - t * 1.5).clamp(0.0, 1.0);
     final currentTopPad = (1 - t) * _vPad + t * topPadding;
 
-    final expandedGradient =
-        !isSticky ? backgroundGradient : null;
-
-    return DecoratedBox(
-      decoration: BoxDecoration(gradient: expandedGradient),
+    return ClipRect(
+      child: BackdropFilter(
+        // iOS-style glass: blur whatever scroll content sits behind the
+        // header. When callers pass a fully opaque [backgroundGradient]
+        // the blur is masked; with a translucent gradient the frosted
+        // look shows through.
+        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        child: DecoratedBox(
+      decoration: BoxDecoration(gradient: backgroundGradient),
       child: Material(
-      type: isSticky ? MaterialType.canvas : MaterialType.transparency,
-      elevation: isSticky ? 4 : 0,
-      shadowColor: Colors.black26,
-      color: isSticky ? const Color(0xFF1E2124) : null,
+      type: MaterialType.transparency,
       child: Padding(
         padding: EdgeInsets.only(top: currentTopPad),
         child: Column(
@@ -259,13 +260,11 @@ class StickyCategoryHeaderDelegate extends SliverPersistentHeaderDelegate {
                                         fontWeight: isActive
                                             ? FontWeight.w600
                                             : FontWeight.w500,
-                                        color: isSticky
-                                            ? AppColors.white
-                                            : (expandedLabelColor ??
-                                                (isActive
-                                                    ? AppColors.primaryColor
-                                                    : AppColors
-                                                        .secondaryTextColor)),
+                                        color: expandedLabelColor ??
+                                            (isActive
+                                                ? AppColors.primaryColor
+                                                : AppColors
+                                                    .secondaryTextColor),
                                         maxLines:
                                             singleLineLabel ? 1 : 2,
                                         overflow:
@@ -290,6 +289,8 @@ class StickyCategoryHeaderDelegate extends SliverPersistentHeaderDelegate {
           ],
         ),
       ),
+      ),
+        ),
       ),
     );
   }

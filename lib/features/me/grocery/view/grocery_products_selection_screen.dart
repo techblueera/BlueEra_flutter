@@ -294,7 +294,7 @@ class _GroceryProductsSelectionScreenState extends State<GroceryProductsSelectio
           ),
           Padding(
             padding: EdgeInsets.symmetric(
-                horizontal: 9.0,
+                horizontal: 8.0,
                 vertical: SizeConfig.size6),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

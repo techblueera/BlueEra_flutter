@@ -266,14 +266,16 @@ submitLoading.value = false;
       final aadharId = myDocumentController.documentStatuses[DocumentKeys.aadhar]?.id;
       final panId = myDocumentController.documentStatuses[DocumentKeys.pan]?.id;
       final addressId = myDocumentController.documentStatuses[DocumentKeys.addressProof]?.id;
-      final bankId = myDocumentController.documentStatuses[DocumentKeys.bankDetails]?.id;
+      // final bankId = myDocumentController.documentStatuses[DocumentKeys.bankDetails]?.id;
+      final bankersCancelledCheque = myDocumentController.documentStatuses[DocumentKeys.bankersCancelledCheque]?.id;
 
       var params={
         'documents': {
           if (aadharId != null && aadharId.isNotEmpty) "aadharCard": aadharId,
           if (panId != null && panId.isNotEmpty) "panCard": panId,
           if (addressId != null && addressId.isNotEmpty) "addressProof": addressId,
-          if (bankId != null && bankId.isNotEmpty) "bankDetails": bankId,
+          // if (bankId != null && bankId.isNotEmpty) "bankDetails": bankId,
+          if (bankersCancelledCheque != null && bankersCancelledCheque.isNotEmpty) "bankDetails": bankersCancelledCheque,
         },
         ApiKeys.referralCode: mainReferralCode.text
       };

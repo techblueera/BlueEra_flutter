@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
@@ -121,8 +123,8 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
   Widget build(BuildContext context) {
     final statusBarHeight = MediaQuery.of(context).padding.top;
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      // Banner is dark and the sticky header bg is dark too, so keep
-      // status bar icons light (white) throughout this screen.
+      // Banner is dark and the header gradient stays consistent across
+      // states, so keep status bar icons light (white) throughout.
         value: SystemUiOverlayStyle.light.copyWith(
           statusBarColor: Colors.transparent,
           statusBarIconBrightness: Brightness.light,
@@ -230,6 +232,8 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                     ),
                   ),
 
+                  _sliverGap(),
+
                   /// Sections filtered by the currently selected tab.
                   ..._buildSectionSlivers(),
 
@@ -301,7 +305,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
 
   Widget _sliverGap([double? gap]) {
     return SliverToBoxAdapter(
-      child: SizedBox(height: gap ?? SizeConfig.size8),
+      child: SizedBox(height: gap ?? SizeConfig.paddingXSL),
     );
   }
 }
@@ -333,19 +337,25 @@ class DottedLinePainter extends CustomPainter {
 }
 
 Widget titleWidget(String title) {
-  return Container(
-    padding: EdgeInsets.symmetric(horizontal: 10),
-    decoration: BoxDecoration(
-        border: Border.all(
-            color: AppColors.secondaryTextColor,
-            width: 0.1),
-        borderRadius: BorderRadius.circular(8)),
-    child: CustomText(
-        title,
-        fontSize: SizeConfig.large18,
-        color: AppColors.mainTextColor,
-        fontWeight: FontWeight.w600),
+  return CustomText(
+      title,
+      fontSize: SizeConfig.large18,
+      color: AppColors.mainTextColor,
+      fontWeight: FontWeight.w600
   );
+  // return Container(
+  //   padding: EdgeInsets.symmetric(horizontal: 10),
+  //   decoration: BoxDecoration(
+  //       border: Border.all(
+  //           color: AppColors.secondaryTextColor,
+  //           width: 0.1),
+  //       borderRadius: BorderRadius.circular(8)),
+  //   child: CustomText(
+  //       title,
+  //       fontSize: SizeConfig.large18,
+  //       color: AppColors.mainTextColor,
+  //       fontWeight: FontWeight.w600),
+  // );
 }
 
 class _StickySearchBarDelegate extends SliverPersistentHeaderDelegate {
@@ -362,7 +372,18 @@ class _StickySearchBarDelegate extends SliverPersistentHeaderDelegate {
   // Fixed inner heights so min/maxExtent stay consistent with the layout.
   static const double _searchBarHeight = 52;
   static const double _searchTabsGap = 16;
-  static const double _tabsHeight = 72;
+
+  // Tab row is deterministic: the icon square + the gap + a generous
+  // reservation for the label row. The label fontSize (`SizeConfig.small`)
+  // is 12 on phones and 16 on tablets, so the reserved row height is
+  // sized for tablet line-height with headroom — prevents the bottom
+  // overflow we hit when the icon square grew from 46 → 60.
+  static const double _tabIconSquare = 60; // 10 padding + 40 icon + 10 padding
+  static const double _tabIconToText = 6;
+  static const double _tabLabelRow = 24;
+  static const double _tabsHeight =
+      _tabIconSquare + _tabIconToText + _tabLabelRow; // 90
+
   static const double _vTop = 10;
   static const double _vBottom = 10;
 
@@ -395,17 +416,32 @@ class _StickySearchBarDelegate extends SliverPersistentHeaderDelegate {
     final currentCollapsibleHeight = (1 - t) * _collapsibleHeight;
     final currentTopPad = _vTop + t * topPadding;
     final searchOpacity = (1 - t * 1.4).clamp(0.0, 1.0);
-    final isSticky = t >= 0.999;
 
-    return Container(
-      color: isSticky ? const Color(0xFF1E2124) : Colors.transparent,
-      padding: EdgeInsets.only(
-        top: currentTopPad,
-        left: SizeConfig.size16,
-        right: SizeConfig.size16,
-        bottom: _vBottom,
-      ),
-      child: Column(
+    return ClipRect(
+      child: BackdropFilter(
+        // iOS-style glass: as scroll content passes behind the header
+        // (including the status bar area once it's pinned), the blur
+        // frosts it. The translucent gradient below tints the blurred
+        // content with the brand blue.
+        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                AppColors.blue5CAF.withValues(alpha: 0.25),
+                AppColors.blue5CAF.withValues(alpha: 0.65),
+              ],
+            ),
+          ),
+          padding: EdgeInsets.only(
+            top: currentTopPad,
+            left: SizeConfig.size12,
+            right: SizeConfig.size12,
+            bottom: _vBottom,
+          ),
+          child: Column(
         children: [
           // Collapsing search bar + 16px gap below it.
           SizedBox(
@@ -483,18 +519,18 @@ class _StickySearchBarDelegate extends SliverPersistentHeaderDelegate {
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Container(
-                          padding: EdgeInsets.all(8.0),
+                          padding: const EdgeInsets.all(10.0),
                           decoration: BoxDecoration(
                             color: isActive ? null : AppColors.white,
                             gradient: isActive
-                                ? LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [
-                                AppColors.white,
-                                Color(0xFFA4D4FF)
-                              ],
-                            )
+                                ? const LinearGradient(
+                                    begin: Alignment.topCenter,
+                                    end: Alignment.bottomCenter,
+                                    colors: [
+                                      AppColors.white,
+                                      Color(0xFFA4D4FF),
+                                    ],
+                                  )
                                 : null,
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
@@ -505,8 +541,8 @@ class _StickySearchBarDelegate extends SliverPersistentHeaderDelegate {
                           ),
                           child: LocalAssets(
                             imagePath: item['icon']!,
-                            width: 30,
-                            height: 30,
+                            width: 40,
+                            height: 40,
                             boxFix: BoxFit.cover,
                           ),
                         ),
@@ -517,9 +553,11 @@ class _StickySearchBarDelegate extends SliverPersistentHeaderDelegate {
                             item['title']!,
                             fontSize: SizeConfig.small,
                             fontWeight: FontWeight.w500,
-                            color: isSticky
-                                ? AppColors.white
-                                : AppColors.secondaryTextColor,
+                            // White on both states — sticky is dark and
+                            // the expanded gradient ends in saturated
+                            // blue where the tabs sit, so white reads
+                            // cleanly in both.
+                            color: AppColors.white,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             textAlign: TextAlign.center,
@@ -533,6 +571,8 @@ class _StickySearchBarDelegate extends SliverPersistentHeaderDelegate {
             ),
           ),
         ],
+      ),
+        ),
       ),
     );
   }

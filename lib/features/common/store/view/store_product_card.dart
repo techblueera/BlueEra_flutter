@@ -2,6 +2,7 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
@@ -16,6 +17,7 @@ import 'package:BlueEra/features/me/product/widget/attribute_two_rows.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -111,15 +113,81 @@ class StoreProductCard extends StatelessWidget {
               /// Product Image
               SizedBox(
                 height: SizeConfig.size150,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: CustomImageSlideshow(
-                    isLoading: false,
-                    width: double.infinity,
-                    height: SizeConfig.size150,
-                    imagePaths: details.media,
-                    borderRadius: BorderRadius.zero,
-                  ),
+                child: Stack(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
+                      child: CustomImageSlideshow(
+                        isLoading: false,
+                        width: double.infinity,
+                        height: SizeConfig.size150,
+                        imagePaths: details.media,
+                        borderRadius: BorderRadius.zero,
+                      ),
+                    ),
+                    if (discountProduct > 0)
+                      Positioned(
+                        top: 0,
+                        left: 0,
+                        child: Container(
+                          padding: const EdgeInsets.fromLTRB(9, 6, 10, 6),
+                          decoration: BoxDecoration(
+                            // Diagonal sheen — brighter top-left fades to
+                            // a deeper green bottom-right. Adds dimension
+                            // without photoreal gloss.
+                            gradient: const LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                Color(0xFF1ED693),
+                                Color(0xFF008F5F),
+                              ],
+                            ),
+                            borderRadius: const BorderRadius.only(
+                              topLeft: Radius.circular(10),
+                              bottomRight: Radius.circular(14),
+                            ),
+                            // Thin inner stroke → crafted, stamped feel.
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.25),
+                              width: 0.8,
+                            ),
+                            // Green-tinted shadow lifts the tag off the
+                            // image while staying on-brand.
+                            boxShadow: const [
+                              BoxShadow(
+                                color: Color(0x4D008E5E),
+                                blurRadius: 10,
+                                offset: Offset(0, 3),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              LocalAssets(
+                                imagePath:
+                                    AppIconAssets.discountTagWhiteIcon,
+                                height: 12,
+                                width: 12,
+                              ),
+                              const SizedBox(width: 5),
+                              Text(
+                                '$discountProduct% ${AppStrings.off.tr.toUpperCase()}',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 0.3,
+                                  height: 1.0,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
               ),
 
@@ -141,12 +209,14 @@ class StoreProductCard extends StatelessWidget {
                     ),
                     SizedBox(height: SizeConfig.size5),
 
-                    // Price Row
-                    // if (variants.isNotEmpty)
+                    // Price Row — discount lives on the image now,
+                    // so we hide the in-row badge to avoid duplication.
                     PriceRow(
-                      sellingPrice: "₹${variants[0].sellingPrice}",
-                      mrp: "₹${variants[0].mrp}",
-                      discount: "${discountProduct}% ${AppStrings.off.tr}",
+                      sellingPrice:
+                          "₹${formatNumber(int.tryParse(variants[0].sellingPrice.toString()) ?? 0)}",
+                      mrp:
+                          "₹${formatNumber(int.tryParse(variants[0].mrp.toString()) ?? 0)}",
+                      discount: '',
                     ),
 
                     AttributeRows(attributeMap: uniqueAttributes),
@@ -241,7 +311,7 @@ class StoreProductCard extends StatelessWidget {
                           ),
 
                           CustomText(
-                              '₹${sellerClassification?.variants[0].sellingPrice}',
+                              '₹${formatNumber(int.tryParse(sellerClassification?.variants[0].sellingPrice.toString() ?? '0') ?? 0)}',
                               fontSize: SizeConfig.medium,
                               fontWeight: FontWeight.w700,
                               color: AppColors.primaryColor
@@ -258,7 +328,7 @@ class StoreProductCard extends StatelessWidget {
 
                           ],
                           CustomText(
-                              ' ₹${sellerClassification?.variants[0].mrp}',
+                              ' ₹${formatNumber(int.tryParse(sellerClassification?.variants[0].mrp.toString() ?? '0') ?? 0)}',
                             fontSize: SizeConfig.small,
                             fontWeight: FontWeight.w400,
                             color: AppColors.secondaryTextColor,

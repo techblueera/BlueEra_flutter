@@ -36,10 +36,15 @@ class VisitBusinessCommonHeader extends StatefulWidget {
   final BusinessProfileDetails? details;
   final VoidCallback? onRated;
 
+  /// Fires after a successful follow / unfollow so the parent can
+  /// re-fetch the business profile (e.g. to refresh `total_followers`).
+  final VoidCallback? onFollowChanged;
+
   const VisitBusinessCommonHeader({
     super.key,
     required this.details,
     this.onRated,
+    this.onFollowChanged,
   });
 
   @override
@@ -55,6 +60,26 @@ class _VisitBusinessCommonHeaderState extends State<VisitBusinessCommonHeader> {
   BusinessProfileDetails? get details => widget.details;
 
   @override
+  void initState() {
+    super.initState();
+    _isFollowed.value = widget.details?.is_following ?? false;
+  }
+
+  @override
+  void didUpdateWidget(covariant VisitBusinessCommonHeader oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Re-sync when parent supplies a refreshed details payload — e.g.,
+    // after a pull-to-refresh or a follow/unfollow call reloads the
+    // profile. Guard against overwriting a pending optimistic toggle by
+    // only syncing when the server value actually changed.
+    final newValue = widget.details?.is_following ?? false;
+    if (oldWidget.details?.is_following != widget.details?.is_following &&
+        _isFollowed.value != newValue) {
+      _isFollowed.value = newValue;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final hasCover =
         details?.coverimage != null && details!.coverimage!.isNotEmpty;
@@ -63,8 +88,6 @@ class _VisitBusinessCommonHeaderState extends State<VisitBusinessCommonHeader> {
     final hasDietaryType =
         details?.dietaryType != null && details!.dietaryType!.trim().isNotEmpty;
     final hasAvailability = details?.availability?.schedule != null;
-    final avgRating = details?.avg_rating ?? 0;
-    final totalRatings = details?.total_ratings ?? 0;
 
     return CustomFormCard(
       padding: EdgeInsets.zero,
@@ -177,42 +200,12 @@ class _VisitBusinessCommonHeaderState extends State<VisitBusinessCommonHeader> {
                   ),
                 ),
 
-                // Rating badge on banner
-                if (avgRating > 0)
-                  Positioned(
-                    top: 12,
-                    right: 12,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 5),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.55),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.star_rounded,
-                              size: 14, color: Colors.amber),
-                          const SizedBox(width: 4),
-                          CustomText(
-                            '$avgRating',
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.white,
-                          ),
-                          if (totalRatings > 0) ...[
-                            CustomText(
-                              ' ($totalRatings)',
-                              fontSize: 10,
-                              fontWeight: FontWeight.w400,
-                              color: Colors.white70,
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                  ),
+                // Rate + Share actions on banner (top-right)
+                Positioned(
+                  top: 12,
+                  right: 12,
+                  child: _buildActionRow(),
+                ),
               ],
             ),
           ),
@@ -259,8 +252,7 @@ class _VisitBusinessCommonHeaderState extends State<VisitBusinessCommonHeader> {
                 ],
 
                 // Distance + Address card (tappable for map)
-                if (hasAddress)
-                  GestureDetector(
+                if (hasAddress) GestureDetector(
                     onTap: () => RouteMapBottomSheet.show(
                       context: context,
                       destinationName: details?.businessName ?? 'Business',
@@ -269,7 +261,8 @@ class _VisitBusinessCommonHeaderState extends State<VisitBusinessCommonHeader> {
                           details?.businessLocation?.lat?.toDouble() ?? 0.0,
                       destinationLng:
                           details?.businessLocation?.lon?.toDouble() ?? 0.0,
-                        storeBusinessID:details?.id??"" ,storeUserID: details?.userId??""
+                        storeBusinessID:details?.id ?? "" ,
+                        storeUserID: details?.userId??""
 
                     ),
                     child: Container(
@@ -329,16 +322,11 @@ class _VisitBusinessCommonHeaderState extends State<VisitBusinessCommonHeader> {
                 if (hasAddress) const SizedBox(height: 10),
 
                 // Availability
-                if (hasAvailability) ...[
+                if (hasAvailability)
                   BusinessAvailabilityWidget(
                     hasAvailability: true,
                     schedule: details?.availability?.schedule,
                   ),
-                  const SizedBox(height: 10),
-                ],
-
-                // Action row: Rate + Share
-                _buildActionRow(),
               ],
             ),
           ),
@@ -347,12 +335,18 @@ class _VisitBusinessCommonHeaderState extends State<VisitBusinessCommonHeader> {
     );
   }
 
-  // ─── Action Row: Rate + Share ───
+  // ─── Action Row: Rate + Share (over cover image) ───
   Widget _buildActionRow() {
     return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        // Rate
-        InkWell(
+        _overBannerIconButton(
+          child: LocalAssets(
+            imagePath: AppIconAssets.star_rounded,
+            width: 15,
+            height: 15,
+            imgColor: Colors.white,
+          ),
           onTap: () async {
             final success = await showDialog(
               context: context,
@@ -365,32 +359,15 @@ class _VisitBusinessCommonHeaderState extends State<VisitBusinessCommonHeader> {
               widget.onRated?.call();
             }
           },
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              border: Border.all(color: AppColors.greyE5),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.star_border_rounded,
-                    size: 16, color: AppColors.primaryColor),
-                const SizedBox(width: 4),
-                CustomText(
-                  'Rate',
-                  fontSize: 11,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.primaryColor,
-                ),
-              ],
-            ),
-          ),
         ),
-        const SizedBox(width: 8),
-
-        // Share
-        InkWell(
+        const SizedBox(width: 6),
+        _overBannerIconButton(
+          child: LocalAssets(
+            imagePath: AppIconAssets.share_bold,
+            width: 15,
+            height: 15,
+            imgColor: Colors.white,
+          ),
           onTap: () async {
             final link = profileDeepLink(
               userId: details?.userId,
@@ -403,21 +380,39 @@ class _VisitBusinessCommonHeaderState extends State<VisitBusinessCommonHeader> {
               subject: details?.businessName,
             ));
           },
-          child: Container(
-            padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(
-              border: Border.all(color: AppColors.greyE5),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: LocalAssets(
-              imagePath: AppIconAssets.share_bold,
-              width: 14,
-              height: 14,
-              imgColor: AppColors.primaryColor,
-            ),
-          ),
         ),
       ],
+    );
+  }
+
+  /// 36×36 floating circular button designed to sit on top of a cover
+  /// photo. Light translucent black fill + thin white ring keeps the
+  /// icon readable on both light and dark images.
+  Widget _overBannerIconButton({
+    required Widget child,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      shape: const CircleBorder(),
+      child: InkWell(
+        customBorder: const CircleBorder(),
+        onTap: onTap,
+        child: Container(
+          width: 36,
+          height: 36,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: Colors.black.withValues(alpha: 0.3),
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.5),
+              width: 1,
+            ),
+          ),
+          child: child,
+        ),
+      ),
     );
   }
 
@@ -429,15 +424,15 @@ class _VisitBusinessCommonHeaderState extends State<VisitBusinessCommonHeader> {
     return InkWell(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(8),
+        padding: const EdgeInsets.all(8.0),
         decoration: BoxDecoration(
-          color: Colors.white,
           shape: BoxShape.circle,
-          border: Border.all(color: AppColors.greyE5),
-          boxShadow: [AppShadows.textFieldShadow],
+          color: AppColors.white,
+          border: Border.all(color: AppColors.greyE5, width: 0.5),
+          boxShadow: [AppShadows.textFieldShadow]
         ),
         child: LocalAssets(
-          imagePath: icon,
+          imagePath: AppIconAssets.chat,
           height: 16,
           width: 16,
           imgColor: AppColors.secondaryTextColor,
@@ -471,6 +466,9 @@ class _VisitBusinessCommonHeaderState extends State<VisitBusinessCommonHeader> {
               );
               _isFollowed.value = true;
             }
+            // Let the parent refresh the profile so follower count
+            // reflects the server state.
+            widget.onFollowChanged?.call();
           },
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),

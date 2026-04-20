@@ -111,6 +111,10 @@ class _VisitFoodStoreDetailsScreenState
 
   Widget _buildScrollBody() {
     return Obx(() {
+        // Subscribe to silent profile refreshes — bumps on every
+        // successful viewBusinessProfileById fetch so the rate / follow
+        // callbacks can refresh the header + stats without a loader.
+        viewBusinessDetailsController.profileVersion.value;
         if (controller.foodHomeDataResponse.value.status == Status.INITIAL) {
           return const Center(child: CircularProgressIndicator());
         }
@@ -140,7 +144,15 @@ class _VisitFoodStoreDetailsScreenState
                 VisitBusinessCommonHeader(
                   details: details,
                   onRated: () => viewBusinessDetailsController
-                      .viewBusinessProfileById(widget.visitBusinessId),
+                      .viewBusinessProfileById(
+                    widget.visitBusinessId,
+                    silent: true,
+                  ),
+                  onFollowChanged: () => viewBusinessDetailsController
+                      .viewBusinessProfileById(
+                    widget.visitBusinessId,
+                    silent: true,
+                  ),
                 ),
 
                 /// Business Stats

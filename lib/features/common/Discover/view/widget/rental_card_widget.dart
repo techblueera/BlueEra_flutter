@@ -17,9 +17,8 @@ class ResponsiveRentalCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: AppColors.whiteFC,
-
-      padding: EdgeInsets.all(10),
+      color: AppColors.white,
+      padding: EdgeInsets.all(SizeConfig.size12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -29,7 +28,8 @@ class ResponsiveRentalCard extends StatelessWidget {
           SizedBox(height: SizeConfig.paddingXSL),
 
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal:18.0),
+            padding: EdgeInsets.zero,
+            // padding: const EdgeInsets.symmetric(horizontal:18.0),
             child: CommonCardWidget(
               cardMargin: 0,
               padding: 0,borderColorColor: Color(0xffDDE2EE),

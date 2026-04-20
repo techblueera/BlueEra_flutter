@@ -13,6 +13,7 @@ import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.
 import 'package:BlueEra/features/me/medical_new/model/medical_nested_category_model.dart';
 import 'package:BlueEra/features/me/product/model/all_stores_feed_response_model.dart';
 import 'package:BlueEra/features/me/product/model/get_product_model.dart';
+import 'package:BlueEra/features/me/product/model/product_nested_category_response.dart';
 import 'package:hive/hive.dart';
 
 class HiveServices{
@@ -27,6 +28,7 @@ class HiveServices{
   static const String _savedAdminVideosBox = 'savedAdminVideosBox';
   static const String _savedGroceryNestedCategoryBox = 'savedGroceryNestedCategoryBox';
   static const String _savedMedicalNestedCategoryBox = 'savedMedicalNestedCategoryBox';
+  static const String _savedProductNestedCategoryBox = 'savedProductNestedCategoryBox';
 
   /// Initialize Hive boxes
   static Future<void> init() async {
@@ -41,6 +43,7 @@ class HiveServices{
     await Hive.openBox(_savedAdminVideosBox);
     await Hive.openBox(_savedGroceryNestedCategoryBox);
     await Hive.openBox(_savedMedicalNestedCategoryBox);
+    await Hive.openBox(_savedProductNestedCategoryBox);
   }
 
   static List<String> get allBoxNames => [
@@ -55,6 +58,7 @@ class HiveServices{
     _savedAdminVideosBox,
     _savedGroceryNestedCategoryBox,
     _savedMedicalNestedCategoryBox,
+    _savedProductNestedCategoryBox,
   ];
 
   bool isPostSaved(String id) {
@@ -585,6 +589,37 @@ class HiveServices{
     final List<Map<String, dynamic>> jsonList = nestedCategories.map((item) => item.toJson()).toList();
 
     await box.put(key, jsonList);
+  }
+
+  /// Save all nested categories (Product)
+  Future<void> saveProductNestedCategories(List<ProductNestedCategoryResponse> nestedCategories) async {
+    final box = Hive.box(_savedProductNestedCategoryBox);
+    final String key = 'productData';
+
+    final List<Map<String, dynamic>> jsonList = nestedCategories.map((item) => item.toJson()).toList();
+
+    await box.put(key, jsonList);
+  }
+
+  /// Get all nested categories (Product)
+  List<ProductNestedCategoryResponse>? getProductNestedCategories() {
+    try {
+      final box = Hive.box(_savedProductNestedCategoryBox);
+      const String key = 'productData';
+      final data = box.get(key);
+
+      if (data == null) return null;
+      if (data is! List) return null;
+
+      final List<ProductNestedCategoryResponse> nestedCategories = data
+          .map((json) => ProductNestedCategoryResponse.fromJson(jsonDecode(jsonEncode(json)) as Map<String, dynamic>))
+          .toList();
+
+      return nestedCategories;
+    } catch (e) {
+      print('Error loading product nested categories: $e');
+      return null;
+    }
   }
 
   /// Get all nested categories (Medical)

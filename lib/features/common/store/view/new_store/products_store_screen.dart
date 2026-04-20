@@ -192,8 +192,7 @@ class _ProductsStoreScreenState extends State<ProductsStoreScreen> {
                       images: _bannerImages,
                       onBack: _handleBackWithCartWarning,
                       statusBarHeight: statusBarHeight,
-                      backgroundColor:
-                          AppColors.blue5CAF.withValues(alpha: 0.1),
+                      backgroundColor: AppColors.blue5CAF.withValues(alpha: 0.1),
                       bottomBorderSide: const BorderSide(
                         color: AppColors.white,
                         width: 2,

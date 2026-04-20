@@ -135,6 +135,11 @@ class ViewBusinessDetailsController extends GetxController {
   final isLoading = false.obs;
   final isProfileLoading = false.obs;
 
+  /// Bumped whenever [visitedBusinessProfileDetails] is replaced with a
+  /// fresh fetch — even in `silent: true` mode. `Obx` consumers that
+  /// read plain fields on the model can touch this to subscribe.
+  final RxInt profileVersion = 0.obs;
+
   /// business rating list
   RxList<BusinessRatingsData> businessRatingsList = <BusinessRatingsData>[].obs;
   RxBool isBusinessRatingsLoadingMore = false.obs;
@@ -472,9 +477,13 @@ class ViewBusinessDetailsController extends GetxController {
 
   final visitingcontroller = Get.put(VisitProfileController());
 
-  Future<void> viewBusinessProfileById(String userId) async {
+  Future<void> viewBusinessProfileById(String userId,
+      {bool silent = false}) async {
     try {
-      isProfileLoading.value = true;
+      // Silent mode skips the loading flag so consumers (e.g. the
+      // rate / follow callbacks) can refresh in the background without
+      // tearing down the UI behind a shimmer.
+      if (!silent) isProfileLoading.value = true;
       ResponseModel responseModel =
           await BusinessProfileRepo().viewBusinessProfileById(userId);
 
@@ -482,6 +491,7 @@ class ViewBusinessDetailsController extends GetxController {
         final data = responseModel.response?.data;
 
         visitedBusinessProfileDetails = ViewBusinessProfileModel.fromJson(data);
+        profileVersion.value++;
         // visitedBusinessProfileDetails = visitedBusinessProfileDetails_ as ViewBusinessProfileModel?;
         final chatViewController = Get.find<ChatViewController>();
         Map<String, dynamic> detas = {
@@ -514,7 +524,7 @@ class ViewBusinessDetailsController extends GetxController {
       logs("Stack trace ${s}");
       viewBusinessResponseNew = ApiResponse.error('error');
     } finally {
-      isProfileLoading.value = false;
+      if (!silent) isProfileLoading.value = false;
     }
   }
 

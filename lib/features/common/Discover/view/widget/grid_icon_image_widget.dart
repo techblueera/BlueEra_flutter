@@ -21,7 +21,7 @@ class GridIconImageWidget<T> extends StatelessWidget {
   Widget build(BuildContext context) {
     final list = items ?? [];
     return LayoutBuilder(builder: (context, constraints) {
-      const double spacing = 6;
+      const double spacing = 8;
       final double itemWidth =
           (constraints.maxWidth - spacing * (crossAxisCount - 1)) / crossAxisCount;
       return Wrap(

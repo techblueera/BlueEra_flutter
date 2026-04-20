@@ -15,6 +15,7 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/core/services/hive_services.dart';
 import 'package:BlueEra/features/common/store/repo/product_repo.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
 import 'package:BlueEra/features/me/product/model/generate_ai_product_content.dart';
@@ -949,6 +950,17 @@ class ProductController extends GetxController{
       nestedProductCategoryResponse.value = ApiResponse.initial('Initial');
       productsNestedCategoryList.clear();
 
+      // Cache-first for the top-level (no category key) fetch. Nested
+      // sub-levels (groceryCatKey != null) always hit the network.
+      if (groceryCatKey == null) {
+        final cached = HiveServices().getProductNestedCategories();
+        if (cached != null && cached.isNotEmpty) {
+          productsNestedCategoryList.assignAll(cached);
+          nestedProductCategoryResponse.value = ApiResponse.complete();
+          return;
+        }
+      }
+
       Map<String, dynamic> queryParams = {};
       if(groceryCatKey!=null) queryParams[ApiKeys.categoryKey] = groceryCatKey;
 
@@ -960,6 +972,10 @@ class ProductController extends GetxController{
         productsNestedCategoryList.value = (responseModel.response?.data ?? [])
             .map<ProductNestedCategoryResponse>((e) => ProductNestedCategoryResponse.fromJson(e))
             .toList();
+        if (groceryCatKey == null && productsNestedCategoryList.isNotEmpty) {
+          await HiveServices()
+              .saveProductNestedCategories(productsNestedCategoryList);
+        }
       } else {
         nestedProductCategoryResponse.value = ApiResponse.error('error');
       }

@@ -16,9 +16,8 @@ class HealthServiceCardWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CustomFormCard(
-      color: AppColors.whiteFC,
-      borderRadius: BorderRadius.circular(0),
-      padding: EdgeInsets.all(SizeConfig.size10),
+      color: AppColors.white,
+      padding: EdgeInsets.all(SizeConfig.size12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -40,7 +39,8 @@ class HealthServiceCardWidget extends StatelessWidget {
           ),
           SizedBox(height: SizeConfig.paddingXSL),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal:18.0),
+            padding: EdgeInsets.zero,
+            // padding: const EdgeInsets.symmetric(horizontal:18.0),
             child: SizedBox(
               height: SizeConfig.size124,
               child: ListView.builder(
@@ -55,9 +55,9 @@ class HealthServiceCardWidget extends StatelessWidget {
                     service: categoryItem,
                     getName: (item) => item.name,
                     getIcon: (item) => item.icon ?? '',
-                    margin: EdgeInsets.only(right: 6),
+                    margin: EdgeInsets.only(right: 8),
                     onTap: (item) {
-                      Get.to(HealthCareListingScreen(
+                      Get.to(()=> HealthCareListingScreen(
                         selectedProfessionConsultantData: categoryItem,
                       ));
                     },

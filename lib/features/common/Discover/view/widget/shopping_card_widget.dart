@@ -34,9 +34,8 @@ class _ShoppingCardWidgetState extends State<ShoppingCardWidget> {
     final displayCategories = _showAll ? allCategories : allCategories.take(9).toList();
 
     return CustomFormCard(
-        color: AppColors.whiteFC,
-        padding: EdgeInsets.all(SizeConfig.size10),
-        borderRadius: BorderRadius.circular(0),
+        color: AppColors.white,
+        padding: EdgeInsets.all(SizeConfig.size12),
         child: Column(
           children: [
             Row(
@@ -67,10 +66,11 @@ class _ShoppingCardWidgetState extends State<ShoppingCardWidget> {
             ),
             SizedBox(height: SizeConfig.paddingXSL),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 18.0),
+              padding: EdgeInsets.zero,
+              // padding: const EdgeInsets.symmetric(horizontal: 18.0),
               child: LayoutBuilder(
                   builder: (context, constraints) {
-                const double spacing = 6;
+                const double spacing = 8;
                 const int columns = 3;
                 final double itemWidth =
                     (constraints.maxWidth - spacing * (columns - 1)) / columns;
@@ -140,7 +140,6 @@ class _ShoppingCardWidgetState extends State<ShoppingCardWidget> {
                 title: AppStrings.browseProducts.tr,
                 subtitle: AppStrings.browseProductsSubtitle.tr,
                 onTap: () {
-                  // Get.back();
                   Get.to(() => AllBusinessProductsScreen(
                     productCategoryName: categoryData?.name,
                     productCategory: categoryData?.tagId,
@@ -155,7 +154,6 @@ class _ShoppingCardWidgetState extends State<ShoppingCardWidget> {
                 title: AppStrings.shopViaStore.tr,
                 subtitle: AppStrings.shopViaStoreSubtitle.tr,
                 onTap: () {
-                  // Get.back();
                   Get.to(() => ProductsStoreScreen(
                     productCategoryName: categoryData?.name,
                     productCategory: categoryData?.tagId,

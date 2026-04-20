@@ -21,9 +21,8 @@ class BookHomeServiceWidget extends StatelessWidget {
     final categories = Get.find<AuthController>().individualOnboardingSkillWorkList;
 
     return CustomFormCard(
-      color: AppColors.whiteFC,
-      padding: EdgeInsets.all(SizeConfig.size10),
-      borderRadius: BorderRadius.circular(0),
+      color: AppColors.white,
+      padding: EdgeInsets.all(SizeConfig.size12),
       child: Column(
         children: [
           Row(
@@ -44,9 +43,10 @@ class BookHomeServiceWidget extends StatelessWidget {
           ),
           SizedBox(height: SizeConfig.paddingXSL),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 18.0),
+            padding: EdgeInsets.zero,
+            // padding: const EdgeInsets.symmetric(horizontal: 18.0),
             child: LayoutBuilder(builder: (context, constraints) {
-              const double spacing = 6;
+              const double spacing = 8;
               const int columns = 3;
               final double itemWidth =
                   (constraints.maxWidth - spacing * (columns - 1)) / columns;

@@ -116,6 +116,10 @@ class _VisitProductStoreDetailsScreenState
           children: [
             // ─── 1. Header + Business Stats ───
             Obx(() {
+              // Subscribe to silent profile refreshes — bumps on every
+              // successful fetch so this Obx rebuilds even when the
+              // loader is skipped.
+              viewBusinessDetailsController.profileVersion.value;
               if (viewBusinessDetailsController.isProfileLoading.value) {
                 return buildBusinessHeaderSkeleton();
               }
@@ -126,7 +130,15 @@ class _VisitProductStoreDetailsScreenState
                   VisitBusinessCommonHeader(
                     details: details,
                     onRated: () => viewBusinessDetailsController
-                        .viewBusinessProfileById(widget.visitBusinessId),
+                        .viewBusinessProfileById(
+                      widget.visitBusinessId,
+                      silent: true,
+                    ),
+                    onFollowChanged: () => viewBusinessDetailsController
+                        .viewBusinessProfileById(
+                      widget.visitBusinessId,
+                      silent: true,
+                    ),
                   ),
                   const SizedBox(height: 10),
                   VisitBusinessStatsCard(details: details),

@@ -17,7 +17,6 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 
 class AllBusinessProductsScreen extends StatefulWidget {
@@ -227,6 +226,53 @@ class _AllBusinessProductsScreenState extends State<AllBusinessProductsScreen> {
     });
   }
 
+  /// Two-column grid that pushes an odd-count last item to the right cell.
+  Widget _buildTwoColumnGrid(List<GetProductData> products) {
+    final rowCount = (products.length / 2).ceil();
+    final hasLoadMore = controller.isProductDataLoadingMore.value;
+    final totalItems = rowCount + (hasLoadMore ? 1 : 0);
+
+    return ListView.builder(
+      controller: storesScrollController,
+      padding: EdgeInsets.only(
+        right: SizeConfig.paddingXS,
+        bottom: SizeConfig.paddingL,
+      ),
+      itemCount: totalItems,
+      itemBuilder: (context, rowIdx) {
+        if (rowIdx >= rowCount) {
+          return const Padding(
+            padding: EdgeInsets.all(20),
+            child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+          );
+        }
+        final leftIdx = rowIdx * 2;
+        final rightIdx = leftIdx + 1;
+        final Widget leftCell = StoreProductCard(
+          productStore: products[leftIdx].product,
+          isShowInGrid: true,
+        );
+        final Widget rightCell = rightIdx < products.length
+            ? StoreProductCard(
+                productStore: products[rightIdx].product,
+                isShowInGrid: true,
+              )
+            : const SizedBox.shrink();
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(child: leftCell),
+              const SizedBox(width: 8),
+              Expanded(child: rightCell),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildProductContent() {
     return Obx(() {
       if (controller.isProductDataFirstLoading.value) {
@@ -280,32 +326,7 @@ class _AllBusinessProductsScreenState extends State<AllBusinessProductsScreen> {
           // Product grid/list
           Expanded(
             child: widget.isShowInGrid
-                ? MasonryGridView.count(
-                    controller: storesScrollController,
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 8,
-                    mainAxisSpacing: 8,
-                    padding: EdgeInsets.only(
-                      right: SizeConfig.paddingXS,
-                      bottom: SizeConfig.paddingL,
-                    ),
-                    itemCount: productList.length +
-                        (controller.isProductDataLoadingMore.value ? 1 : 0),
-                    itemBuilder: (context, index) {
-                      if (index >= productList.length) {
-                        return const Padding(
-                          padding: EdgeInsets.all(20),
-                          child: Center(
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          ),
-                        );
-                      }
-                      return StoreProductCard(
-                        productStore: productList[index].product,
-                        isShowInGrid: widget.isShowInGrid,
-                      );
-                    },
-                  )
+                ? _buildTwoColumnGrid(productList)
                 : ListView.builder(
                     controller: storesScrollController,
                     padding: EdgeInsets.only(

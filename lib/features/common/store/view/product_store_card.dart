@@ -31,15 +31,16 @@ class ProductStoreCard extends StatelessWidget {
     return Container(
       padding: EdgeInsets.all(ds(10)),
       decoration: BoxDecoration(
-        color: AppColors.whiteFE,
+        color: AppColors.white,
         borderRadius: BorderRadius.circular(10),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.shadowColor,
-            blurRadius: ds(1.4),
-            offset: const Offset(0, 0.7),
-          ),
-        ],
+        border: Border.all(color: AppColors.greyE5),
+        // boxShadow: [
+        //   BoxShadow(
+        //     color: AppColors.shadowColor,
+        //     blurRadius: ds(1.4),
+        //     offset: const Offset(0, 0.7),
+        //   ),
+        // ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -57,7 +58,7 @@ class ProductStoreCard extends StatelessWidget {
                 CachedAvatarWidget(
                   imageUrl: getAllStoreResData?.logo,
                   size: ds(50),
-                  borderRadius: ds(20),
+                  borderRadius: ds(25),
                 ),
                 SizedBox(width: ds(10)),
                 Expanded(
