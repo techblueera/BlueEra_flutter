@@ -5264,6 +5264,10 @@ class AppStrings {
   static const String hotelAadharMandatory = "hotelAadharMandatory";
   static const String hotelSmokingDrinkingAllowed =
       "hotelSmokingDrinkingAllowed";
+  static const String hotelAadharMandatoryChip = "hotelAadharMandatoryChip";
+  static const String hotelSmokingDrinkingAllowedChip =
+      "hotelSmokingDrinkingAllowedChip";
+  static const String hotelFoodRestrictionsLabel = "hotelFoodRestrictionsLabel";
 
   static const String hotelStepOneOfTwo = "hotelStepOneOfTwo";
   static const String hotelTotalRooms = "hotelTotalRooms";

@@ -43,7 +43,9 @@ class _OtherBlogsFormScreenState extends State<OtherBlogsFormScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: widget.item == null ? AppStrings.otherAddBlogs.tr : AppStrings.otherEditBlogs.tr,
+        title: widget.item == null
+            ? AppStrings.otherAddBlogs.tr
+            : AppStrings.otherEditBlogs.tr,
       ),
       body: CommonCardWidget(
         child: SingleChildScrollView(
@@ -64,6 +66,7 @@ class _OtherBlogsFormScreenState extends State<OtherBlogsFormScreen> {
                     height: 150,
                     width: double.infinity,
                     decoration: BoxDecoration(
+                      color: AppColors.whiteF3,
                       border: Border.all(color: AppColors.whiteE5),
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -72,7 +75,7 @@ class _OtherBlogsFormScreenState extends State<OtherBlogsFormScreen> {
                             borderRadius: BorderRadius.circular(8),
                             child: Image.file(
                               controller.selectedImage.value!,
-                              fit: BoxFit.cover,
+                              fit: BoxFit.contain,
                             ),
                           )
                         : (widget.item?.imageUrl != null &&
@@ -81,7 +84,7 @@ class _OtherBlogsFormScreenState extends State<OtherBlogsFormScreen> {
                                 borderRadius: BorderRadius.circular(8),
                                 child: Image.network(
                                   widget.item?.imageUrl ?? "",
-                                  fit: BoxFit.cover,
+                                  fit: BoxFit.contain,
                                 ),
                               )
                             : Column(
@@ -157,7 +160,9 @@ class _OtherBlogsFormScreenState extends State<OtherBlogsFormScreen> {
                     ),
                   ),
                   child: CustomText(
-                    widget.item == null ? AppStrings.create.tr : AppStrings.update.tr,
+                    widget.item == null
+                        ? AppStrings.create.tr
+                        : AppStrings.update.tr,
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                     color: Colors.white,

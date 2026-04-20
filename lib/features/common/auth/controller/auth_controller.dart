@@ -1041,7 +1041,6 @@ class AuthController extends GetxController {
 
     // 2. Call the debug printer
     // debugPrintBusinessCategories();
-
   }
 
   void debugPrintBusinessCategories() {
@@ -1066,7 +1065,8 @@ class AuthController extends GetxController {
           log('--- $name (${list.length} items) ---', name: 'CategorySync');
           for (var item in list) {
             // Replace 'name' with whatever property identifies your CategoryData
-            log('  ID: ${item.id} | Title: ${item.name} | Tag Id: ${item.tagId}', name: 'CategorySync');
+            log('  ID: ${item.id} | Title: ${item.name} | Tag Id: ${item.tagId}',
+                name: 'CategorySync');
           }
         } else {
           log('--- $name (Empty) ---', name: 'CategorySync');
@@ -1075,6 +1075,5 @@ class AuthController extends GetxController {
 
       log('=== BUSINESS CATEGORIES DEBUG END ===', name: 'CategorySync');
     }
-    }
-
+  }
 }

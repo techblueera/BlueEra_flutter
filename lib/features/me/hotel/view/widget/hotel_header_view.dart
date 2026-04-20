@@ -10,7 +10,6 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 
-
 class HotelHeaderView extends StatefulWidget {
   final HotelDetailController schoolAboutUsController;
 
@@ -60,7 +59,7 @@ class _HotelHeaderViewState extends State<HotelHeaderView> {
         children: [
           // --- HEADER SECTION (Banner & Logo) ---
           SizedBox(
-         height: size.height * 0.21,
+            height: size.height * 0.21,
             child: Stack(
               clipBehavior: Clip.none,
               children: [
@@ -196,8 +195,8 @@ class _HotelHeaderViewState extends State<HotelHeaderView> {
 
           // --- FORM SECTION ---
           ServiceHomeHeaderTitleWidget(
-            title: (widget.schoolAboutUsController.hotelData.value?.profile?.name
-                        ?.isNotEmpty ??
+            title: (widget.schoolAboutUsController.hotelData.value?.profile
+                        ?.name?.isNotEmpty ??
                     false)
                 ? widget.schoolAboutUsController.hotelData.value!.profile!.name!
                 : businessNameGlobal,

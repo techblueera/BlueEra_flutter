@@ -54,15 +54,58 @@ class ProfessionalsCertificatesController extends GetxController {
     descriptionController.text = cert.description ?? "";
     documentType.value = cert.documentType ?? "Award";
     issueDate.value = _parseIsoDate(cert.issueDate);
-    selectedDay=issueDate.value?.day;
-    selectedMonth=issueDate.value?.month;
-    selectedYear=issueDate.value?.year;
+    selectedDay = issueDate.value?.day;
+    selectedMonth = issueDate.value?.month;
+    selectedYear = issueDate.value?.year;
     selectedFile.value = null;
     isImageEdit.value = false;
     editingCertificateId.value = cert.id;
   }
 
-  Future<void> save() async {
+  String? get certificateValidationMessage {
+    if (titleController.text.trim().isEmpty) {
+      return "Please enter a title for the certificate.";
+    }
+    if (issuedByController.text.trim().isEmpty) {
+      return "Please enter the issuer name.";
+    }
+    if (!isValidIssueDate) {
+      return "Please select a valid issue date.";
+    }
+    if ((editingCertificateId.value?.isEmpty ?? true) &&
+        selectedFile.value == null) {
+      return "Upload image file is required.";
+    }
+    return null;
+  }
+
+  bool get isValidIssueDate {
+    if (selectedDay == null || selectedMonth == null || selectedYear == null) {
+      return false;
+    }
+    try {
+      final date = DateTime(selectedYear!, selectedMonth!, selectedDay!);
+      return date.year == selectedYear &&
+          date.month == selectedMonth &&
+          date.day == selectedDay;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  String _formatIssueDate() {
+    return "${selectedYear.toString().padLeft(4, '0')}-"
+        "${selectedMonth.toString().padLeft(2, '0')}-"
+        "${selectedDay.toString().padLeft(2, '0')}";
+  }
+
+  Future<bool> save() async {
+    final validationMessage = certificateValidationMessage;
+    if (validationMessage != null) {
+      commonSnackBar(message: validationMessage);
+      return false;
+    }
+
     try {
       isSaving.value = true;
       final contentType = selectedFile.value != null
@@ -72,8 +115,7 @@ class ProfessionalsCertificatesController extends GetxController {
         "title": titleController.text.trim(),
         "documentType": documentType.value,
         "issuedBy": issuedByController.text.trim(),
-        "issueDate": "${selectedDay}-${selectedMonth}-$selectedYear",
-        // "issueDate": _formatIso(issueDate.value),
+        "issueDate": _formatIssueDate(),
         "description": descriptionController.text.trim(),
         if (selectedFile.value != null) "contentType": contentType,
       };
@@ -102,17 +144,19 @@ class ProfessionalsCertificatesController extends GetxController {
             .professionalsFullDetailsController();
 
         commonSnackBar(message: "Saved Successfully");
+        return true;
       } else {
         commonSnackBar(
             message: response.message ?? AppStrings.somethingWentWrong);
+        return false;
       }
     } catch (e) {
       commonSnackBar(message: AppStrings.somethingWentWrong);
+      return false;
     } finally {
       isSaving.value = false;
     }
   }
-
 
   DateTime? _parseIsoDate(String? s) {
     if (s == null || s.isEmpty) return null;

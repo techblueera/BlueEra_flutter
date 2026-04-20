@@ -989,12 +989,15 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
             ),
           ),
         if (isShowMoreInfoIcon ?? false)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14.0),
-            child: SvgPicture.asset(
-              AppIconAssets.chat_info_pop,
-              height: 24,
-              width: 24,
+          InkWell(
+            onTap: onMoreTap,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14.0),
+              child: SvgPicture.asset(
+                AppIconAssets.chat_info_pop,
+                height: 24,
+                width: 24,
+              ),
             ),
           ),
         if (isShowAcceptOrRejectBtn ?? false)

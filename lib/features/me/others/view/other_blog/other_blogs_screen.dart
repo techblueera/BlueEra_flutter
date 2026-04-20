@@ -86,15 +86,21 @@ class OtherBlogsScreen extends StatelessWidget {
                   ),
                 );
               },
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.network(
-                  item.imageUrl!,
-                  height: 150,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) =>
-                      const SizedBox.shrink(),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: AppColors.whiteF3,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.network(
+                    item.imageUrl!,
+                    height: 150,
+                    width: double.infinity,
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) =>
+                        const SizedBox.shrink(),
+                  ),
                 ),
               ),
             ),
@@ -152,7 +158,7 @@ class OtherBlogsScreen extends StatelessWidget {
             text: item.description ?? "",
             trimLines: 2,
             isReadMoreNewLine: false,
-            expandMode: ExpandMode.dialog,
+            expandMode: ExpandMode.expandable,
             style: TextStyle(
               color: AppColors.secondaryTextColor,
               fontSize: SizeConfig.large,

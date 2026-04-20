@@ -365,18 +365,9 @@ class SocialCertificatesScreen extends StatelessWidget {
                             onTap: certController.isSaving.value
                                 ? null
                                 : () async {
-                                    if (!isEdit &&
-                                        certController
-                                                .selectedFile
-                                                .value ==
-                                            null) {
-                                      commonSnackBar(
-                                          message: AppStrings
-                                              .uploadImages);
-                                      return;
+                                    if (await certController.save()) {
+                                      Get.back();
                                     }
-                                    await certController.save();
-                                    Get.back();
                                   },
                           )),
                       if (isEdit) ...[

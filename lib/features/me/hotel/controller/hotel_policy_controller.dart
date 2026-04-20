@@ -46,13 +46,12 @@ class HotelPolicyController extends GetxController {
     try {
       isLoading(true);
       // Simulated GET Response based on your provided JSON
-      await Future.delayed(const Duration(seconds: 1));
       ResponseModel response = await HotelServiceRepo().getHotelPoliciesRepo();
 
       if (response.isSuccess) {
         final Map<String, dynamic> data = response.response?.data['data'];
-        // userCheckInSelections.value = data['checkInTime'] ?? "10:00 AM";
-        // userCheckOutSelections.value = data['checkOutTime'] ?? "23:00 PM";
+        userCheckInSelections.value = data['checkInTime'] ?? "12:00";
+        userCheckOutSelections.value = data['checkOutTime'] ?? "11:00";
         is24Hours.value = data['checkInHours'] == "24 Hours";
         logs("is24Hours.value=== ${is24Hours.value}");
 
@@ -68,7 +67,7 @@ class HotelPolicyController extends GetxController {
         if (data['foodRestrictions'] != null) {
           foodRestrictionsEnabled.value =
               data['foodRestrictions']['enabled'] ?? false;
-          selectedRestrictions.assignAll(List<String>.from(
+          userFoodTypeSelections.assignAll(List<String>.from(
               data['foodRestrictions']['restrictions'] ?? []));
         }
 
@@ -89,7 +88,7 @@ class HotelPolicyController extends GetxController {
     Map<String, dynamic> requestBody = {
       "checkInTime": userCheckInSelections.value,
       "checkOutTime": userCheckOutSelections.value,
-      if (is24Hours.value) "checkInHours": "24 Hours",
+      "checkInHours": is24Hours.value ? "24 Hours" : "12 Hours",
       "earlyCheckInAllowed": earlyCheckInAllowed.value,
       "lateCheckOutAllowed": lateCheckOutAllowed.value,
       "marriedCoupleAllowed": marriedCoupleAllowed.value,
@@ -100,14 +99,14 @@ class HotelPolicyController extends GetxController {
       "smokingDrinkingAllowed": smokingDrinkingAllowed.value,
       "foodRestrictions": {
         "enabled": foodRestrictionsEnabled.value,
-        if (foodRestrictionsEnabled.value)
-          "restrictions": userFoodTypeSelections
+        "restrictions":
+            foodRestrictionsEnabled.value ? userFoodTypeSelections.value : []
       }
     };
 
     try {
       ResponseModel response =
-          await HotelServiceRepo().addHotelAmenitiesRepo(reqBody: requestBody);
+          await HotelServiceRepo().addHotelPoliciesRepo(reqBody: requestBody);
 
       if (response.isSuccess) {
         Get.back();

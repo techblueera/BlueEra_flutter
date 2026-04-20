@@ -21,8 +21,6 @@ class HotelAmenityController extends GetxController {
   Future<void> fetchAmenities() async {
     try {
       isLoading(true);
-      // Simulated GET Response based on your provided JSON
-      await Future.delayed(const Duration(seconds: 1));
       ResponseModel response = await HotelServiceRepo().getHotelAmenitiesRepo();
 
       if (response.isSuccess) {
