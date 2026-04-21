@@ -31,6 +31,16 @@ class AppStrings {
   static const deleteAccountConfirmationMessage =
       "deleteAccountConfirmationMessage";
 
+  ///ACCOUNT DELETION V2
+  static const deleteAccountDialogBody = "deleteAccountDialogBody";
+  static const deleteAccountContinue = "deleteAccountContinue";
+  static const accountDeletionAlreadyPending = "accountDeletionAlreadyPending";
+  static const accountDeletionRateLimited = "accountDeletionRateLimited";
+  static const accountDeletionFeatureDisabled =
+      "accountDeletionFeatureDisabled";
+  static const accountDeletionCancelledBanner =
+      "accountDeletionCancelledBanner";
+
   ///ACCOUNT SETTING SCREEN
   static const editProfile = "editProfile";
   static const changePhoneNumber = "changePhoneNumber";

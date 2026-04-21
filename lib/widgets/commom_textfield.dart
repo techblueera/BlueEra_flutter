@@ -163,6 +163,7 @@ class CommonTextField extends StatelessWidget {
             controller: textEditController,
             maxLength: maxLength ?? AppConstants.inputCharterLimit,
             onTap: onTap,
+            textInputAction: textInputAction,
             keyboardType: keyBoardType ?? TextInputType.text,
             maxLines: maxLine ?? 1,
             enableInteractiveSelection: true,

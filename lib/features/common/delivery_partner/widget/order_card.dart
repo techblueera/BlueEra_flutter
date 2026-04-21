@@ -932,6 +932,7 @@ class _OrderCardState extends State<OrderCard> {
             customerImage: customerImage,
             otp: order.pickupOTP ?? '',
             paymentMethod: paymentMethod,
+            customerUserId: order.user?.id ?? '',
           ),
         ),
       );

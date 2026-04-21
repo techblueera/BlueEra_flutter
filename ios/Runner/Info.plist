@@ -93,7 +93,7 @@
 		<key>GADApplicationIdentifier</key>
 		<string>ca-app-pub-4151367085462604~5043177104</string>
 		<key>FirebaseAppDelegateProxyEnabled</key>
-		<false/>
+		<true/>
 		<key>FirebaseMessagingAutoInitEnabled</key>
 		<true/>
 		<!-- share_handler -->

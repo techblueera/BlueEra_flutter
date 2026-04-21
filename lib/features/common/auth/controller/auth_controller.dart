@@ -207,10 +207,19 @@ class AuthController extends GetxController {
               await personalController.viewPersonalProfile();
             }
 
+            final wasDeletionCancelled = data.accountDeletionCancelled == true;
             Get.offNamedUntil(
               RouteHelper.getBottomNavigationBarScreenRoute(),
               (route) => false,
             );
+            if (wasDeletionCancelled) {
+              Future.delayed(const Duration(milliseconds: 400), () {
+                commonSnackBar(
+                  message: AppStrings.accountDeletionCancelledBanner.tr,
+                  isFromHomeScreen: true,
+                );
+              });
+            }
           } else {
             commonSnackBar(message: response.message ?? AppStrings.tokenIsNull);
           }
