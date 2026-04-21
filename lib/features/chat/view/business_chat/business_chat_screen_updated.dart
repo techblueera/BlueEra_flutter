@@ -126,10 +126,14 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated> {
                   conversationId: widget.conversationId,
                 ),
           body: Obx(() {
-            if (chatViewController.getListOfMessageResponse.value.status ==
-                Status.COMPLETE) {
-              List<Messages> messages =
-                  chatViewController.getListOfMessageData ?? [];
+            final _status =
+                chatViewController.getListOfMessageResponse.value.status;
+            List<Messages> messages =
+                chatViewController.getListOfMessageData ?? [];
+            // Show the body as soon as cached history is available; only fall
+            // back to the spinner when there is truly nothing to paint yet.
+            // This keeps the offline chat screen populated from Hive.
+            if (messages.isNotEmpty || _status == Status.COMPLETE) {
               messages.sort((a, b) {
                 final dateA = (a.createdAt != null && a.createdAt!.isNotEmpty)
                     ? DateTime.parse(a.createdAt!).toLocal()

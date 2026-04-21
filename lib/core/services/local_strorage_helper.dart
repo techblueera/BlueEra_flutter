@@ -17,6 +17,64 @@ class LocalStorageHelper {
 
   LocalStorageHelper._internal();
 
+  /// Temp message ids currently being retried by sendOfflineMessage. While a
+  /// retry is in flight, saveMessagesByConversationId must NOT re-introduce
+  /// these pending rows from a stale read — otherwise the race between the
+  /// pagination save and replacePendingWithServerMessage leaves both the
+  /// pending and the server-issued row in Hive, producing a visible duplicate
+  /// on next chat open (and a second server-send on the reopen after that).
+  static final Set<String> _inFlightPendingIds = <String>{};
+
+  void markPendingInFlight(String tempId) {
+    if (tempId.isNotEmpty) _inFlightPendingIds.add(tempId);
+  }
+
+  void clearPendingInFlight(String tempId) {
+    if (tempId.isNotEmpty) _inFlightPendingIds.remove(tempId);
+  }
+
+  /// Day bucket used for chronological sort. Date-divider rows carry the
+  /// calendar date in their `message` field (not in `created_at`), so we
+  /// key off that; every other message sorts by its own `created_at`.
+  /// Truncating to 10 chars gives us YYYY-MM-DD.
+  String _dayKeyFromJson(Map<String, dynamic> m) {
+    final isDate = m['message_type']?.toString() == 'date';
+    final iso = isDate
+        ? (m['message']?.toString() ?? '')
+        : (m['created_at']?.toString() ?? '');
+    return iso.length >= 10 ? iso.substring(0, 10) : iso;
+  }
+
+  /// Sort comparator for the raw JSON maps stored in Hive. Groups by day,
+  /// places the date-divider for a day ahead of that day's messages, then
+  /// orders within the day by `created_at` ascending. Without the
+  /// date-aware branch, a server-issued "Today" row would land wherever
+  /// its own `created_at` fell — often in the middle of the day's messages.
+  int _compareMessageJson(Map<String, dynamic> a, Map<String, dynamic> b) {
+    final dayCmp = _dayKeyFromJson(a).compareTo(_dayKeyFromJson(b));
+    if (dayCmp != 0) return dayCmp;
+    final aIsDate = a['message_type']?.toString() == 'date';
+    final bIsDate = b['message_type']?.toString() == 'date';
+    if (aIsDate && !bIsDate) return -1;
+    if (!aIsDate && bIsDate) return 1;
+    return (a['created_at']?.toString() ?? '')
+        .compareTo(b['created_at']?.toString() ?? '');
+  }
+
+  String _dayKeyFromMessage(Messages m) {
+    final isDate = m.messageType == 'date';
+    final iso = isDate ? (m.message ?? '') : (m.createdAt ?? '');
+    return iso.length >= 10 ? iso.substring(0, 10) : iso;
+  }
+
+  int _compareMessages(Messages a, Messages b) {
+    final dayCmp = _dayKeyFromMessage(a).compareTo(_dayKeyFromMessage(b));
+    if (dayCmp != 0) return dayCmp;
+    if (a.messageType == 'date' && b.messageType != 'date') return -1;
+    if (a.messageType != 'date' && b.messageType == 'date') return 1;
+    return (a.createdAt ?? '').compareTo(b.createdAt ?? '');
+  }
+
   // ── Cached box references (avoid repeated openBox calls) ──
   Box<String>? _conversationBox;
   Box<String>? _userImagesBox;
@@ -296,6 +354,13 @@ class LocalStorageHelper {
           if (m['sendStatus'] == 'pending') pendingWithoutId.add(m);
           continue;
         }
+        // Drop pending rows that are currently being drained — a concurrent
+        // replacePendingWithServerMessage will write the authoritative server
+        // row, so re-introducing the temp id here would double the message.
+        if (m['sendStatus'] == 'pending' &&
+            _inFlightPendingIds.contains(id)) {
+          continue;
+        }
         byId[id] = m;
       }
 
@@ -306,17 +371,14 @@ class LocalStorageHelper {
         byId[id] = _messageToStorableJson(m);
       }
 
-      // Combine + sort by createdAt ascending (oldest first) so the UI, which
-      // reverses the list itself, renders newest-at-bottom consistently.
+      // Combine + sort chronologically (oldest first) with date-divider
+      // rows placed ahead of their day's messages. Uses the shared
+      // comparator so every save site and load site agree on order.
       final merged = <Map<String, dynamic>>[
         ...byId.values,
         ...pendingWithoutId,
       ];
-      merged.sort((a, b) {
-        final aT = a['createdAt']?.toString() ?? '';
-        final bT = b['createdAt']?.toString() ?? '';
-        return aT.compareTo(bT);
-      });
+      merged.sort(_compareMessageJson);
 
       await box.put(conversationId, jsonEncode(merged));
       ChatStorageLogger.messagesSaved(conversationId, merged.length);
@@ -361,6 +423,9 @@ class LocalStorageHelper {
       }
 
       existing.add(msgJson);
+      // Keep the cache chronologically sorted so reloads match the server
+      // snapshot instead of drifting by insertion order.
+      existing.sort(_compareMessageJson);
       await box.put(conversationId, jsonEncode(existing));
 
       ChatStorageLogger.singleMessageSaved(
@@ -516,6 +581,10 @@ class LocalStorageHelper {
           })
           .whereType<Messages>()
           .toList();
+
+      // Stable chronological order regardless of insertion order, with
+      // date-divider rows pinned to the start of their calendar day.
+      messages.sort(_compareMessages);
 
       ChatStorageLogger.messagesLoaded(conversationId, messages.length);
       return messages;

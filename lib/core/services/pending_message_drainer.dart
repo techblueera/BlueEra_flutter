@@ -73,7 +73,21 @@ class PendingMessageDrainer {
       final convIds =
           await LocalStorageHelper().getConversationIdsWithPending();
       for (final convId in convIds) {
-        await _drainConversation(convId);
+        // Prefer the controller path when it's registered — it drains both
+        // text-like types AND media (image/video) via the presigned-URL
+        // pipeline. The local _drainConversation fallback below can only do
+        // the plain HTTP types, which is what left media stuck in "waiting"
+        // until the user manually reopened the chat.
+        if (Get.isRegistered<ChatViewController>()) {
+          try {
+            await Get.find<ChatViewController>().sendOfflineMessage(convId);
+          } catch (e, st) {
+            debugPrint(
+                '[PendingMessageDrainer] controller drain failed for $convId: $e\n$st');
+          }
+        } else {
+          await _drainConversation(convId);
+        }
       }
     } catch (e, st) {
       debugPrint('[PendingMessageDrainer] drain error: $e\n$st');
@@ -150,12 +164,14 @@ class PendingMessageDrainer {
       if (list == null) return;
       final idx = list.indexWhere((m) => m.id == tempId);
       if (idx >= 0) {
-        list[idx] = serverMessage;
-      } else {
-        final alreadyExists = serverMessage.id != null &&
-            list.any((m) => m.id == serverMessage.id);
-        if (!alreadyExists) list.add(serverMessage);
+        list.removeAt(idx);
       }
+      // Dedup guard: the newMessageReceived socket echo may have inserted the
+      // same server id while the HTTP ack was in flight. Replacing blindly
+      // at the temp index in that race left two copies of the server message.
+      final alreadyExists = serverMessage.id != null &&
+          list.any((m) => m.id == serverMessage.id);
+      if (!alreadyExists) list.add(serverMessage);
       ctrl.getListOfMessageResponse.value = ApiResponse.complete(list);
     } catch (_) {}
   }

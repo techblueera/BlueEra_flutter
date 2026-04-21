@@ -170,10 +170,13 @@ class _WalletChatScreenState extends State<WalletChatScreen> {
                 )
               : _buildWalletAppBar(context),
           body: Obx(() {
-            if (chatViewController.getListOfMessageResponse.value.status ==
-                Status.COMPLETE) {
-              List<Messages> messages =
-                  chatViewController.getListOfMessageData ?? [];
+            final _status =
+                chatViewController.getListOfMessageResponse.value.status;
+            List<Messages> messages =
+                chatViewController.getListOfMessageData ?? [];
+            // Show cached Hive history immediately; spinner only when empty
+            // and still loading. Required for WhatsApp-style offline view.
+            if (messages.isNotEmpty || _status == Status.COMPLETE) {
               messages.sort((a, b) {
                 final dateA =
                     (a.createdAt != null && a.createdAt!.isNotEmpty)

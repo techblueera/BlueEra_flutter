@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'dart:developer';
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:dio/dio.dart' as dio;
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
@@ -40,6 +41,7 @@ import '../model/Generate_Upload_Ulr_Model.dart';
 import '../model/GetChatListModel.dart';
 import '../model/GetChatRequestListModel.dart';
 import '../model/GetListOfMessageData.dart';
+import '../model/GetListOfMessageData.dart' as messageModel;
 import '../model/ai_chat_history_msg_model.dart';
 import '../model/ai_chat_reply_msg_model.dart';
 import '../model/contactListModel.dart';
@@ -290,6 +292,12 @@ class ChatViewController extends GetxController {
   RxList selectedUserIds = <String>[].obs;
   RxList<ChatList?> selectedChatList = <ChatList?>[].obs;
   RxList<String> openedConversation = <String>[].obs;
+  // Conversations whose pending queue is currently being drained. The drainer
+  // (on connectivity change) and getLocalConversation (on chat reopen) can both
+  // fire sendOfflineMessage nearly simultaneously; without this guard the same
+  // pending row gets retried twice, so the server receives each queued message
+  // twice.
+  final Set<String> _drainingConversations = <String>{};
   RxList<Map<String, dynamic>> groupConnections = <Map<String, dynamic>>[].obs;
   List<Messages>? getListOfAiMessageData = [];
   Rx<GenerateUploadUlrModel?>? generateUploadUlrModel =
@@ -796,6 +804,7 @@ class ChatViewController extends GetxController {
             GetMediaMsgCommentsModel.fromJson(data);
       });
       chatSocket.listenEvent(ChatEmitEvents.messageReceived, (data) async {
+        log("sldcsdlkslk ${data}");
           final parsedData = GetListOfMessageData.fromJson(data);
 
           if (parsedData.messages != null) {
@@ -809,8 +818,25 @@ class ChatViewController extends GetxController {
           }
 
           if (parsedData.messages?.isNotEmpty ?? false) {
-            final conversationId =
-                parsedData.messages?.first.conversationId ?? '';
+            // The first entry is often a "date" separator with
+            // conversation_id "0" — scan until we find a real message so the
+            // Hive save key matches the actual conversationId the chat list
+            // uses when loading offline. Otherwise every conversation's
+            // messages would be stored under "0" and getMessagesByConversationId
+            // would return empty for the real id.
+            String conversationId = '';
+            for (final m in parsedData.messages!) {
+              if (m.messageType == 'date') continue;
+              final id = m.conversationId ?? '';
+              if (id.isEmpty || id == '0') continue;
+              conversationId = id;
+              break;
+            }
+            // Fall back to the open conversation id so sync still works for
+            // edge cases where every message entry is a date separator.
+            if (conversationId.isEmpty) {
+              conversationId = userOpenConversationId.value;
+            }
             if (parsedData.messages != null && conversationId.isNotEmpty) {
               // Deduplicate server messages by ID before setting
               final seen = <String>{};
@@ -843,6 +869,7 @@ class ChatViewController extends GetxController {
 
       });
       chatSocket.listenEvent(ChatEmitEvents.newMessageReceived, (data) async {
+
 
         Messages? message;
         if (data['message'] != null) {
@@ -1319,39 +1346,92 @@ class ChatViewController extends GetxController {
     String conversationId,
   ) async {
     if (conversationId.isEmpty) return;
+    if (_drainingConversations.contains(conversationId)) return;
+    _drainingConversations.add(conversationId);
+    try {
+      await _sendOfflineMessageInternal(conversationId);
+    } finally {
+      _drainingConversations.remove(conversationId);
+    }
+  }
+
+  Future<void> _sendOfflineMessageInternal(String conversationId) async {
     List<Map<String, dynamic>> data =
         await localStorageHelper.getUnsentMessages(conversationId);
 
     if (data.isEmpty) return;
 
-    data = data.reversed.toList();
+    // Iterate oldest-first so each retry gets a server createdAt in the same
+    // order the user queued them offline. Reversing here made the last item
+    // hit the server first, inverting the visible chronological order once
+    // the pending rows were replaced by server-authoritative ones.
     for (int i = 0; i < data.length; i++) {
-      if ((data[i]["message_type"] == 'document' ||
-              data[i]["message_type"] == 'text' ||
-              data[i]["message_type"] == 'contact' ||
-              data[i]["message_type"] == 'location') &&
-          data[i]['sendPendingMsgParams'] != null) {
+      final String type = data[i]["message_type"]?.toString() ?? '';
+      final bool hasFilePaths = data[i]['pendingFilePaths'] is List &&
+          (data[i]['pendingFilePaths'] as List).isNotEmpty;
+      final bool hasParams = data[i]['sendPendingMsgParams'] != null;
+      if (!hasParams) continue;
+
+      // Audio / document queued offline save their local paths so the
+      // drainer can rebuild MultipartFile parts on retry. Without this
+      // branch these types silently fell back to the plain text retry
+      // path, which does a JSON POST and so delivered no file.
+      if ((type == 'audio' || type == 'document') && hasFilePaths) {
+        final List<String> paths = (data[i]['pendingFilePaths'] as List)
+            .map((e) => e.toString())
+            .toList();
+        final String tempId = data[i]['_id']?.toString() ?? '';
+        localStorageHelper.markPendingInFlight(tempId);
+        try {
+          await _retryPendingFileMessage(
+            params:
+                Map<String, dynamic>.from(data[i]['sendPendingMsgParams']),
+            filePaths: paths,
+            messageId: tempId,
+            fileName: data[i]['docFileName']?.toString(),
+          );
+        } finally {
+          localStorageHelper.clearPendingInFlight(tempId);
+        }
+      } else if (type == 'document' ||
+          type == 'text' ||
+          type == 'contact' ||
+          type == 'location' ||
+          type == 'live_location') {
         if (data[i]['_id'] != null) {
-          sendOfflineMessageToServer(
+          // Awaited so the per-conversation drain guard is only released
+          // after the HTTP ack + Hive replace lands. Otherwise a second
+          // drain event could fire during the in-flight window and resend.
+          await sendOfflineMessageToServer(
               Map<String, dynamic>.from(data[i]['sendPendingMsgParams']),
               data[i]['_id'].toString());
         }
-      } else if ((data[i]["message_type"] == 'image' ||
-              data[i]["message_type"] == 'video') &&
-          data[i]['sendPendingMsgParams'] != null &&
-          data[i]['pendingFilePaths'] is List) {
+      } else if ((type == 'image' || type == 'video') && hasFilePaths) {
         final List<File> listFiles = (data[i]['pendingFilePaths'] as List)
             .map((e) => File(e.toString()))
             .toList();
-        await generateUploadUrlsApi(
-            params: Map<String, dynamic>.from(data[i]['sendPendingMsgParams']),
-            listFile: listFiles,
-            userId: [data[i]['userId']?.toString() ?? ""],
-            conversationId: data[i][ApiKeys.conversation_id]?.toString(),
-            commands: data[i]["comments"]?.toString(),
-            messageType: data[i]["message_type"].toString(),
-            isPendingMessage: true,
-            messageId: data[i]['_id']?.toString());
+        final String tempId = data[i]['_id']?.toString() ?? '';
+        // Block concurrent pagination saves from re-preserving this pending
+        // row while the retry is in flight. Cleared after retry + Hive
+        // replace completes (or the call throws).
+        localStorageHelper.markPendingInFlight(tempId);
+        try {
+          await generateUploadUrlsApi(
+              params:
+                  Map<String, dynamic>.from(data[i]['sendPendingMsgParams']),
+              listFile: listFiles,
+              userId: [data[i]['userId']?.toString() ?? ""],
+              conversationId: data[i][ApiKeys.conversation_id]?.toString(),
+              // The caption was saved into the Messages.message field
+              // (JSON key "message"). Reading "comments" here dropped the
+              // caption on every retry, so the receiver only saw the media.
+              commands: data[i]["message"]?.toString(),
+              messageType: type,
+              isPendingMessage: true,
+              messageId: tempId);
+        } finally {
+          localStorageHelper.clearPendingInFlight(tempId);
+        }
       }
     }
   }
@@ -1376,7 +1456,13 @@ class ChatViewController extends GetxController {
           if (msg != null) {
             getListOfMessageData?.remove(msg);
           }
-          getListOfMessageData?.add(message);
+          // Dedup: the newMessageReceived socket echo may have already
+          // inserted this server message while the HTTP ack was in flight.
+          final alreadyExists = message.id != null &&
+              (getListOfMessageData?.any((m) => m.id == message.id) ?? false);
+          if (!alreadyExists) {
+            getListOfMessageData?.add(message);
+          }
           getListOfMessageResponse.value =
               ApiResponse.complete(getListOfMessageData);
           // Replace the local pending entry with the server-authoritative
@@ -1405,6 +1491,16 @@ class ChatViewController extends GetxController {
     // Set current user's online status from cache
     userOnlineStatus.value =
         onlineUserIds.contains(userId) ? "Online" : "Offline";
+    // Paint cached history immediately (WhatsApp-style offline-first).
+    // Always fire-and-forget — cheap Hive read, and calling it on every
+    // entry keeps the screen in sync with disk even when the caller did
+    // not run getLocalConversation first, or when leaveConversation never
+    // ran between opens. loadOfflineMessages publishes a complete() with
+    // the cached list, so the UI renders history instantly — even when
+    // offline and the socket emit below never gets a reply.
+    if (conversationId.isNotEmpty) {
+      unawaited(loadOfflineMessages(conversationId));
+    }
     emitEvent(ChatEmitEvents.screenRoom,
         {ApiKeys.conversation_id: "${conversationId}"});
     // Mark conversation as read on the server
@@ -1614,80 +1710,7 @@ class ChatViewController extends GetxController {
     return null;
   }
 
-  Future<void> openAnyOneChatFunction(
-      {required String conversationId,
-      String? otherUserId,
-      required String? userId,
-      required String? type,
-      String? profileImage,
-      bool? isWithProductSend,
-      Map<String, dynamic>? shareProductParams,
-      required String? contactName,
-      required String? contactNo,
-      required bool isInitialMessage,
-      bool? isFromContactList}) async {
-    businessTabIndexSelected.value = 0;
-    await getLocalConversation(
-        conversationId, userId, otherUserId, contactName);
 
-    if (isWithProductSend == true) {
-      await sendProductMessages(shareProductParams ?? {});
-    }
-
-    if (type == AppConstants.business_Chat_Type) {
-      if (isFromContactList != null && isFromContactList) {
-        Get.off(
-          () => BusinessChatScreenUpdated(
-            type: type,
-            isInitialMessage: isInitialMessage,
-            userId: userId,
-            conversationId: conversationId,
-            profileImage: profileImage,
-            name: contactName,
-            contactNo: contactNo,
-          ),
-        );
-      } else {
-        Get.to(
-          () => BusinessChatScreenUpdated(
-            type: type,
-            isInitialMessage: isInitialMessage,
-            userId: userId,
-            conversationId: conversationId,
-            profileImage: profileImage,
-            name: contactName,
-            contactNo: contactNo,
-          ),
-        );
-      }
-    } else {
-      if (isFromContactList != null && isFromContactList) {
-        Get.off(
-          () => PersonalChatScreen(
-            type: type,
-            isInitialMessage: isInitialMessage,
-            userId: userId,
-            conversationId: conversationId,
-            profileImage: profileImage,
-            name: contactName,
-            contactNo: contactNo,
-          ),
-        );
-      } else {
-        Get.to(
-          () => PersonalChatScreen(
-            type: type,
-            isInitialMessage: isInitialMessage,
-            userId: userId,
-            conversationId: conversationId,
-            profileImage: profileImage,
-            name: contactName,
-            contactNo: contactNo,
-          ),
-        );
-      }
-    }
-  }
 
   Future<void> getLocalConversation(String conversationId, userId,
       [String? otherUserId, String? name]) async {
@@ -1744,7 +1767,13 @@ class ChatViewController extends GetxController {
   void emitEvent(String event, dynamic data,
       [ String? conversationId]) async {
     if (event == ChatEmitEvents.messageReceived &&
-        (conversationId ?? "") != userOpenConversationId) {
+        (conversationId ?? "").isNotEmpty &&
+        conversationId != userOpenConversationId.value) {
+      // Only clear when we're explicitly switching to a different conversation.
+      // Bare calls (no conversationId arg) must NOT wipe the cached list —
+      // that would strand the offline UI on the spinner after loadOfflineMessages
+      // just populated it. The pre-.value comparison also compared a String to
+      // an RxString object, which was always unequal.
       getListOfMessageResponse.value = ApiResponse.initial('Initial');
     }
     if (event == ChatEmitEvents.ChatList) {
@@ -1811,8 +1840,24 @@ class ChatViewController extends GetxController {
     viewContactsListResponse.value = ApiResponse.complete(value);
   }
 
+  /// Try to hydrate the contacts model from Hive without hitting the network.
+  /// Returns true when cache was found and the UI was pointed at it.
+  Future<bool> hydrateContactsFromCache() async {
+    if (contactsListModel?.value.data != null) {
+      viewContactsListResponse.value =
+          ApiResponse.complete(contactsListModel?.value);
+      return true;
+    }
+    final cached = await localStorageHelper.getContacts();
+    if (cached == null) return false;
+    contactsListModel?.value = ContactListModel.fromJson(cached);
+    viewContactsListResponse.value =
+        ApiResponse.complete(contactsListModel?.value);
+    return true;
+  }
+
   /// Upload contacts to API and save response to Hive.
-  /// If data already exists in memory, skip API call.
+  /// Memory → Hive → API, in that order.
   Future<void> uploadContacts(List<Map<String, dynamic>> params) async {
     contactListParamsData = params;
 
@@ -1823,24 +1868,25 @@ class ChatViewController extends GetxController {
       return;
     }
 
-    // // Try Hive cache first
-    // final cached = await localStorageHelper.getContacts();
-    // if (cached != null) {
-    //   contactsListModel?.value = ContactListModel.fromJson(cached);
-    //   viewContactsListResponse.value =
-    //       ApiResponse.complete(contactsListModel?.value);
-    //   return;
-    // }
+    // Hive cache — lets us render the contact list offline after the first
+    // successful sync. Callers who want a fresh snapshot use refreshContacts.
+    final cached = await localStorageHelper.getContacts();
+    if (cached != null) {
+      contactsListModel?.value = ContactListModel.fromJson(cached);
+      viewContactsListResponse.value =
+          ApiResponse.complete(contactsListModel?.value);
+      return;
+    }
 
-    // Call API directly (no local cache)
+    // No cache yet — hit the API and persist the response for next time.
     ResponseModel responseModel =
         await ChatViewRepo().getConnectionsSync(params);
 
     if (responseModel.isSuccess) {
       final data = responseModel.response?.data;
-
-      // // Save to Hive
-      // await localStorageHelper.saveContacts(data);
+      if (data is Map<String, dynamic>) {
+        await localStorageHelper.saveContacts(data);
+      }
       contactsListModel?.value = ContactListModel.fromJson(data);
       viewContactsListResponse.value = ApiResponse.complete(responseModel);
     } else {
@@ -1850,6 +1896,7 @@ class ChatViewController extends GetxController {
   }
 
   /// Force refresh contacts from API (called by refresh button).
+  /// Always hits the network; updates the Hive cache on success.
   Future<void> refreshContacts(List<Map<String, dynamic>> params) async {
     contactListParamsData = params;
     viewContactsListResponse.value = ApiResponse.initial('Initial');
@@ -1859,19 +1906,26 @@ class ChatViewController extends GetxController {
 
     if (responseModel.isSuccess) {
       final data = responseModel.response?.data;
-
-      // // Update Hive cache
-      // await localStorageHelper.saveContacts(data);
+      if (data is Map<String, dynamic>) {
+        await localStorageHelper.saveContacts(data);
+      }
       contactsListModel?.value = ContactListModel.fromJson(data);
       viewContactsListResponse.value = ApiResponse.complete(responseModel);
     } else {
-      // Fallback to existing data if available
+      // Fallback to whatever we already have so the list doesn't blank out.
       if (contactsListModel?.value.data != null) {
         viewContactsListResponse.value =
             ApiResponse.complete(contactsListModel?.value);
       } else {
-        commonSnackBar(
-            message: responseModel.message ?? AppStrings.somethingWentWrong);
+        final cached = await localStorageHelper.getContacts();
+        if (cached != null) {
+          contactsListModel?.value = ContactListModel.fromJson(cached);
+          viewContactsListResponse.value =
+              ApiResponse.complete(contactsListModel?.value);
+        } else {
+          commonSnackBar(
+              message: responseModel.message ?? AppStrings.somethingWentWrong);
+        }
       }
     }
   }
@@ -2098,6 +2152,12 @@ class ChatViewController extends GetxController {
       Map<String, dynamic> params, String? fileName) {
     final now = DateTime.now().toUtc();
     final isoTime = now.toIso8601String();
+    // Populate senderId + sender from the signed-in user so the pending card
+    // renders identically to a server-returned message. Without these, the
+    // fallback in MessageCard (currentUserId != senderId) flips the bubble
+    // to the receiver side whenever myMessage gets lost across a Hive
+    // round-trip, and tick marks / avatar / name stay blank until the
+    // server response overwrites the entry.
     return Messages(
         docFileName: fileName,
         id: "${isoTime}_${params[ApiKeys.conversation_id]}",
@@ -2109,6 +2169,7 @@ class ChatViewController extends GetxController {
             ? params[ApiKeys.shared_contact_number]
             : null,
         sendStatus: "pending",
+        status: "sent",
         message: params[ApiKeys.message],
         latitude: params[ApiKeys.message_type] == "location"
             ? params[ApiKeys.latitude]
@@ -2117,6 +2178,12 @@ class ChatViewController extends GetxController {
             ? params[ApiKeys.longitude]
             : null,
         myMessage: true,
+        senderId: userId,
+        sender: messageModel.Sender(
+          id: userId,
+          name: userNameGlobal,
+          profileImage: userProfileGlobal,
+        ),
         conversationId: params[ApiKeys.conversation_id],
         createdAt: isoTime,
         sendPendingMsgParams: params);
@@ -2139,6 +2206,118 @@ class ChatViewController extends GetxController {
       message.createdAt,
     );
     return message;
+  }
+
+  /// Queue an audio / document message for offline retry.
+  ///
+  /// MultipartFile objects can't be JSON-encoded into Hive, so the offline
+  /// path in sendMessage used to silently lose these messages. This helper
+  /// stores the raw local file path list in `pendingFilePaths` and a clean
+  /// params map (no MultipartFile) in `sendPendingMsgParams`, mirroring
+  /// the image/video offline flow. The drainer rebuilds MultipartFile
+  /// objects from the paths when it retries.
+  Future<void> enqueuePendingFileMessage({
+    required String messageType,
+    required List<String> filePaths,
+    String? conversationId,
+    String? otherUserId,
+    String? caption,
+    String? fileName,
+    bool isInitial = false,
+  }) async {
+    final now = DateTime.now().toUtc();
+    final isoTime = now.toIso8601String();
+    final convKey = conversationId ?? '';
+    final String tempId = "${isoTime}_$convKey";
+
+    final Map<String, dynamic> params = {
+      if (isInitial)
+        ApiKeys.other_user_id: otherUserId
+      else
+        ApiKeys.conversation_id: conversationId,
+      if (caption != null && caption.isNotEmpty) ApiKeys.message: caption,
+      ApiKeys.message_type: messageType,
+    };
+
+    final message = Messages(
+      docFileName: fileName,
+      id: tempId,
+      messageType: messageType,
+      sendStatus: "pending",
+      status: "sent",
+      message: caption,
+      myMessage: true,
+      senderId: userId,
+      sender: messageModel.Sender(
+        id: userId,
+        name: userNameGlobal,
+        profileImage: userProfileGlobal,
+      ),
+      conversationId: conversationId,
+      createdAt: isoTime,
+      pendingFilePaths: filePaths,
+      url: filePaths.map((p) => MessageMediaUrl(url: p)).toList(),
+      sendPendingMsgParams: params,
+    );
+
+    getListOfMessageData?.add(message);
+    getListOfMessageResponse.value =
+        ApiResponse.complete(getListOfMessageData);
+    await saveSingleMessageToLocal(convKey, message, params);
+    _updateChatListLastMessage(
+      conversationId,
+      caption,
+      messageType,
+      isoTime,
+    );
+  }
+
+  /// Retry an audio / document pending row by rebuilding MultipartFile parts
+  /// from its saved local paths, then calling the standard send endpoint.
+  Future<void> _retryPendingFileMessage({
+    required Map<String, dynamic> params,
+    required List<String> filePaths,
+    required String messageId,
+    String? fileName,
+  }) async {
+    try {
+      if (replyMessage?.value?.id != null) {
+        replyMessage?.value = Messages();
+      }
+      final List<dio.MultipartFile> parts = [];
+      for (final p in filePaths) {
+        if (p.isEmpty) continue;
+        final name = p.split('/').last;
+        parts.add(await dio.MultipartFile.fromFile(p, filename: name));
+      }
+      if (parts.isEmpty) return;
+      final retryParams = Map<String, dynamic>.from(params)
+        ..[ApiKeys.files] = parts;
+
+      final ResponseModel responseModel =
+          await ChatViewRepo().sendMessageToUser(retryParams);
+      if (!responseModel.isSuccess) return;
+
+      final data = responseModel.response?.data;
+      if (data == null) return;
+      final Messages message = Messages.fromJson(data['data']);
+      if (message.subType == "comment") return;
+
+      Messages? oldPending = getListOfMessageData
+          ?.firstWhereOrNull((element) => element.id == messageId);
+      if (oldPending != null) getListOfMessageData?.remove(oldPending);
+      final alreadyExists = message.id != null &&
+          (getListOfMessageData?.any((m) => m.id == message.id) ?? false);
+      if (!alreadyExists) getListOfMessageData?.add(message);
+      getListOfMessageResponse.value =
+          ApiResponse.complete(getListOfMessageData);
+      await localStorageHelper.replacePendingWithServerMessage(
+          params[ApiKeys.conversation_id]?.toString() ?? '',
+          messageId,
+          message);
+    } catch (e) {
+      debugPrint('_retryPendingFileMessage failed: $e');
+    }
   }
 
   Future<bool?> sendMessage(Map<String, dynamic> params,
@@ -3010,23 +3189,37 @@ class ChatViewController extends GetxController {
         ApiKeys.message_type: messageType,
         ApiKeys.url: urlList,
       };
-      sendMessageLargeFile(
+      // Await the final send + Hive write so callers (e.g. sendOfflineMessage)
+      // can clear their in-flight pending guard only after the replacement of
+      // the temp row by the server row has actually hit Hive.
+      await sendMessageLargeFile(
           messagePayload, listFile, isPendingMessage, messageId);
       generateUploadUrlResponse.value = ApiResponse.complete(uploadModel);
     } catch (e) {
       _removeUploadingPlaceholder();
       clearMessageControllerCommon();
-      if (e == "Something went wrong") {
+      // A retry of an already-pending message that fails again must not
+      // create a second pending entry — the original one is still in Hive
+      // and will be drained by the next reopen/connectivity tick. Without
+      // this guard every offline reopen duplicates the message.
+      if (isPendingMessage == true) {
+        return;
+      }
+      // Save a pending placeholder whenever the device is offline so the
+      // message waits and is re-sent when connectivity returns. Skipping the
+      // pending entry for actual server errors prevents an infinite retry.
+      final bool isOffline = !await checkInternetStatus();
+      if (isOffline || e == "Something went wrong") {
         final now = DateTime.now().toUtc();
         final isoTime = now.toIso8601String();
-        clearMessageControllerCommon();
-        List<String> filePathsList = [];
-        listFile.forEach((e) {
-          filePathsList.add(e.path);
-        });
+        List<String> filePathsList =
+            listFile.map((f) => f.path).toList();
+        final String tempId = "${isoTime}_${conversationId ?? ''}";
+        final bool alreadyExists =
+            getListOfMessageData?.any((m) => m.id == tempId) ?? false;
         Messages message = Messages(
             userId: userId?.first,
-            id: "${isoTime}_${params[ApiKeys.conversation_id]}",
+            id: tempId,
             messageType: messageType,
             sendStatus: "pending",
             message: commands,
@@ -3040,11 +3233,12 @@ class ChatViewController extends GetxController {
                     ))
                 .toList(),
             sendPendingMsgParams: params);
-        getListOfMessageData?.add(message);
-        getListOfMessageResponse.value =
-            ApiResponse.complete(getListOfMessageData);
-
-        saveSingleMessageToLocal(conversationId??'', message, params);
+        if (!alreadyExists) {
+          getListOfMessageData?.add(message);
+          getListOfMessageResponse.value =
+              ApiResponse.complete(getListOfMessageData);
+        }
+        saveSingleMessageToLocal(conversationId ?? '', message, params);
       }
     }
   }
@@ -3076,7 +3270,15 @@ class ChatViewController extends GetxController {
             if (msg != null) {
               getListOfMessageData?.remove(msg);
             }
-            getListOfMessageData?.add(message);
+            // Deduplicate: the newMessageReceived socket echo may have
+            // already inserted this server message while the HTTP response
+            // was in flight. Without this guard, retried pending media show
+            // up twice in the conversation.
+            final alreadyExists = message.id != null &&
+                (getListOfMessageData?.any((m) => m.id == message.id) ?? false);
+            if (!alreadyExists) {
+              getListOfMessageData?.add(message);
+            }
             getListOfMessageResponse.value =
                 ApiResponse.complete(getListOfMessageData);
             await localStorageHelper.replacePendingWithServerMessage(

@@ -51,14 +51,13 @@ class _ContactsPageState extends State<ContactsPage> {
   }
 
   Future<void> _loadContacts() async {
-    // If data already in memory, uploadContacts will return immediately
-    // If not, it checks Hive, then falls back to API
-    if (chatViewController.contactsListModel?.value.data == null) {
-      await _fetchAndUploadContacts();
-    } else {
-      chatViewController.viewContactsListResponse.value =
-          ApiResponse.complete(chatViewController.contactsListModel?.value);
-    }
+    // Memory → Hive short-circuit: if we've ever successfully synced before,
+    // render from cache and don't ask for the contacts permission or hit the
+    // network. Fresh data only comes in via the refresh button.
+    final hydrated = await chatViewController.hydrateContactsFromCache();
+    if (hydrated) return;
+    // No cache yet — fall through to the permission-gated fetch + sync.
+    await _fetchAndUploadContacts();
   }
 
   @override
