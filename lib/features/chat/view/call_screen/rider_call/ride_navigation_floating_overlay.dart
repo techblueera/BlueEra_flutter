@@ -111,6 +111,7 @@ class _DraggableMiniMapState extends State<_DraggableMiniMap> {
             otp: p['otp'] ?? '',
             paymentMethod: p['paymentMethod'] ?? 'Cash',
             orderId: p['orderId'] ?? '',
+            customerUserId: p['customerUserId'] ?? '',
           ));
     } else if (type == 'customer_tracking') {
       Get.to(() => FareCallQueueScreen(

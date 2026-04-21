@@ -10,9 +10,7 @@ import 'package:get/get.dart';
 
 class DirectorCard extends StatelessWidget {
   const DirectorCard(
-      {super.key,
-      required this.schoolAboutUsController,
-      this.isEdit = false});
+      {super.key, required this.schoolAboutUsController, this.isEdit = false});
 
   final SchoolAboutUsController schoolAboutUsController;
   final bool isEdit;
@@ -69,8 +67,7 @@ class DirectorCard extends StatelessWidget {
                           label: const Text("Add"),
                           style: OutlinedButton.styleFrom(
                             foregroundColor: AppColors.primaryColor,
-                            side:
-                                BorderSide(color: AppColors.primaryColor),
+                            side: BorderSide(color: AppColors.primaryColor),
                             shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8)),
                           ),
@@ -102,8 +99,7 @@ class DirectorCard extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    ServiceHomeTitleWidget(
-                        title: AppStrings.principalMessage),
+                    ServiceHomeTitleWidget(title: AppStrings.principalMessage),
                     IconButton(
                       onPressed: () => Get.to(PrincipalMessageScreen()),
                       icon: const Icon(Icons.edit_outlined, size: 20),
@@ -165,9 +161,8 @@ class DirectorCard extends StatelessWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   CustomText(
-                                    schoolAboutUsController
-                                        .schoolDetailsData?.value.aboutId
-                                        ?.principalMessage?.name,
+                                    schoolAboutUsController.schoolDetailsData
+                                        ?.value.aboutId?.principalMessage?.name,
                                     fontWeight: FontWeight.w600,
                                     color: Colors.blueGrey[900],
                                     maxLines: 2,
@@ -175,8 +170,11 @@ class DirectorCard extends StatelessWidget {
                                   ),
                                   CustomText(
                                     schoolAboutUsController
-                                            .schoolDetailsData?.value.aboutId
-                                            ?.principalMessage?.position ??
+                                            .schoolDetailsData
+                                            ?.value
+                                            .aboutId
+                                            ?.principalMessage
+                                            ?.position ??
                                         "",
                                     fontSize: 12,
                                     color: AppColors.secondaryTextColor,

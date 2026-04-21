@@ -16,6 +16,7 @@ import 'package:BlueEra/core/services/app_notification.dart';
 import 'package:BlueEra/core/services/app_version_checker_service.dart';
 import 'package:BlueEra/core/services/firebase_crshanalitics_service.dart';
 import 'package:BlueEra/core/services/hive_services.dart';
+import 'package:BlueEra/core/services/pending_message_drainer.dart';
 import 'package:BlueEra/core/theme/themes.dart';
 import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/features/app_maintannace/app_maintenance_controller.dart';
@@ -415,6 +416,28 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       await AppNotificationHandler().playCustomSound(message);
     }
 
+    // Platform-split to prevent duplicate banners for the same FCM message.
+    //
+    // iOS: when the FCM push carries a `notification` field, iOS (with
+    // FirebaseAppDelegateProxyEnabled=true) auto-shows a system banner from
+    // notification.title/body. We CANNOT remove that system-owned banner
+    // via flutter_local_notifications' cancelAll — it only cancels local
+    // notifications, not APNs system banners. If we also call showFromData
+    // here, the user sees TWO notifications (system banner + our custom
+    // one). So on iOS we let the system banner be authoritative when the
+    // notification field is present, and only fall back to showFromData
+    // for data-only pushes (no notification field).
+    //
+    // Android: Firebase's auto-shown notification uses a separate local
+    // notification id that cancelAll() DOES remove, so the existing
+    // "cancelAll + showFromData" flow yields a single custom-rendered
+    // notification with our styling, actions, group key, etc.
+    final hasNotificationField = message.notification != null;
+    if (Platform.isIOS && hasNotificationField) {
+      log('[NOTIF] bg handler → iOS + notification field present, letting system banner be authoritative (skipping showFromData)');
+      return;
+    }
+
     // For ALL other notifications in background: use the generic data-only renderer.
     // Backend sends data-only FCM messages, so we render them ourselves with
     // action buttons, BigPictureStyle, grouping, etc.
@@ -432,7 +455,10 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     await Future.delayed(const Duration(milliseconds: 200));
 
     // Cancel ALL notifications (including Firebase's auto-shown ones).
-    await plugin.cancelAll();
+    // Only safe on Android — iOS system banners survive cancelAll.
+    if (Platform.isAndroid) {
+      await plugin.cancelAll();
+    }
 
     // Use the generic showFromData renderer which reads all backend fields:
     // channelId, channelName, channelImportance, style, imageUrl, groupKey, actions, etc.
@@ -771,6 +797,12 @@ Future<void> _initDeferred(LocalizationService localizationService) async {
 
   /// Notification setup (depends on Firebase, which is already initialized)
   AppNotificationHandler().firebaseNotificationSetup();
+
+  /// Start the pending-message drainer. Watches connectivity and retries any
+  /// chat messages that were saved locally with sendStatus: "pending" — this
+  /// covers messages queued while offline and messages left over from a
+  /// previous session that was killed before they could be sent.
+  unawaited(PendingMessageDrainer.instance.start());
 
   /// Share handler -- check if app was launched via share intent
   try {

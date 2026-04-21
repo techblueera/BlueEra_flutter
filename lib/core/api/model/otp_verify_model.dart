@@ -8,7 +8,9 @@ class OtpVerifyModel {
     this.token,
     this.data,
     this.isBlocked,
-    this.blockedType,});
+    this.blockedType,
+    this.accountDeletionCancelled,
+  });
 
   OtpVerifyModel.fromJson(dynamic json) {
     success = json['success'];
@@ -17,6 +19,7 @@ class OtpVerifyModel {
     data = json['data'] != null ? User.fromJson(json['data']) : null;
     isBlocked = json['isBlocked'];
     blockedType = json['blockedType'];
+    accountDeletionCancelled = json['account_deletion_cancelled'];
   }
   bool? success;
   String? message;
@@ -25,6 +28,7 @@ class OtpVerifyModel {
 
   bool? isBlocked;
   dynamic blockedType;
+  bool? accountDeletionCancelled;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
@@ -36,6 +40,7 @@ class OtpVerifyModel {
     }
     map['isBlocked'] = isBlocked;
     map['blockedType'] = blockedType;
+    map['account_deletion_cancelled'] = accountDeletionCancelled;
     return map;
   }
 

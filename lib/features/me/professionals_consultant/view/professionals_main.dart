@@ -135,13 +135,12 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen>
                   tabAlignment: TabAlignment.fill,
                   indicatorSize: TabBarIndicatorSize.tab,
                   labelStyle: const TextStyle(
-                    fontWeight: FontWeight.w600, fontSize: 14),
+                      fontWeight: FontWeight.w600, fontSize: 14),
                   unselectedLabelStyle: const TextStyle(
-                    fontWeight: FontWeight.w400, fontSize: 14),
+                      fontWeight: FontWeight.w400, fontSize: 14),
                   tabs: [
                     Tab(text: AppStrings.home.tr),
-                    if (_lastHasWebsite)
-                      Tab(text: AppStrings.website.tr),
+                    if (_lastHasWebsite) Tab(text: AppStrings.website.tr),
                     Tab(text: AppStrings.statistics.tr),
                   ],
                 ),
@@ -200,16 +199,16 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen>
               _statDivider(),
               Expanded(
                 child: GestureDetector(
-                  onTap: () => Get.to(() => FollowersFollowingPage(
-                      tabIndex: 1, userID: userId)),
+                  onTap: () => Get.to(() =>
+                      FollowersFollowingPage(tabIndex: 1, userID: userId)),
                   child: _statItem("Followers", _formatCount(followers)),
                 ),
               ),
               _statDivider(),
               Expanded(
                 child: GestureDetector(
-                  onTap: () => Get.to(() => FollowersFollowingPage(
-                      tabIndex: 0, userID: userId)),
+                  onTap: () => Get.to(() =>
+                      FollowersFollowingPage(tabIndex: 0, userID: userId)),
                   child: _statItem("Following", _formatCount(following)),
                 ),
               ),
@@ -375,8 +374,7 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen>
                 const SizedBox(width: 8),
                 BusinessCardUi(
                   onTap: () => Get.to(() => AllPersonalVisitingCards(
-                        personalDetails:
-                            _viewCtrl.personalProfileDetails.value,
+                        personalDetails: _viewCtrl.personalProfileDetails.value,
                       )),
                 ),
               ],
@@ -408,8 +406,8 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen>
   Widget _buildProfileInfoSection() {
     final user = _viewCtrl.personalProfileDetails.value.user;
     final profData = _ctrl.getProfessionalServiceRes?.value.data;
-    final name = _capitalizeFirst(
-        profData?.basicDetails?.fullName ?? user?.name ?? '');
+    final name =
+        _capitalizeFirst(profData?.basicDetails?.fullName ?? user?.name ?? '');
     final username = user?.username ?? '';
     final designation =
         profData?.basicDetails?.professionalTitle ?? user?.designation ?? '';
@@ -476,8 +474,7 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen>
           if (designation.isNotEmpty) ...[
             const SizedBox(height: 8),
             Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
               decoration: BoxDecoration(
                 color: AppColors.primaryColor.withValues(alpha: 0.08),
                 border: Border.all(
@@ -595,9 +592,8 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen>
     if (address.isEmpty) return '';
     final parts = address.split(',').map((e) => e.trim()).toList();
     if (parts.length >= 3) {
-      final statePart = parts[parts.length - 2]
-          .replaceAll(RegExp(r'\d{5,6}'), '')
-          .trim();
+      final statePart =
+          parts[parts.length - 2].replaceAll(RegExp(r'\d{5,6}'), '').trim();
       final city = parts[parts.length - 3].trim();
       if (city.isNotEmpty && statePart.isNotEmpty) return "$city, $statePart";
       return city.isNotEmpty ? city : statePart;
@@ -607,8 +603,19 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen>
 
   String _formatDob(DateOfBirth dob) {
     final months = [
-      '', 'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
+      '',
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December'
     ];
     final month = (dob.month != null && dob.month! >= 1 && dob.month! <= 12)
         ? months[dob.month!]
@@ -713,15 +720,13 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen>
                                           },
                                           apiType: "bio",
                                           targetController: bioController,
-                                          onSaved: () =>
-                                              setSheetState(() {}),
+                                          onSaved: () => setSheetState(() {}),
                                         );
                                       },
                                       child: LocalAssets(
                                         height: 25,
                                         width: 25,
-                                        imagePath:
-                                            AppIconAssets.ai_generative,
+                                        imagePath: AppIconAssets.ai_generative,
                                         imgColor: AppColors.primaryColor,
                                       ),
                                     )),
@@ -823,4 +828,3 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen>
         params: reqProfile, isFromProfileOnly: true);
   }
 }
-

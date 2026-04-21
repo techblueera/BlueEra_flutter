@@ -36,14 +36,15 @@ import 'package:get/get.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 class SelfProfessionDetailsScreen extends StatefulWidget {
-
   const SelfProfessionDetailsScreen({Key? key}) : super(key: key);
 
   @override
-  State<SelfProfessionDetailsScreen> createState() => _SelfProfessionDetailsScreenState();
+  State<SelfProfessionDetailsScreen> createState() =>
+      _SelfProfessionDetailsScreenState();
 }
 
-class _SelfProfessionDetailsScreenState extends State<SelfProfessionDetailsScreen> {
+class _SelfProfessionDetailsScreenState
+    extends State<SelfProfessionDetailsScreen> {
   final controller = getOrPut(() => SelfWorkServiceController());
   final bookingController = getOrPut(() => BookingController());
 
@@ -54,7 +55,7 @@ class _SelfProfessionDetailsScreenState extends State<SelfProfessionDetailsScree
   }
 
   @override
-  dispose(){
+  dispose() {
     super.dispose();
     deleteIfRegistered<SelfWorkServiceController>();
   }
@@ -65,7 +66,8 @@ class _SelfProfessionDetailsScreenState extends State<SelfProfessionDetailsScree
       body: Obx(() {
         // 1. Loading State
         if (this.controller.isProfessionDataLoading.value) {
-          return Center(child: CircularProgressIndicator(color: AppColors.primaryColor));
+          return Center(
+              child: CircularProgressIndicator(color: AppColors.primaryColor));
         }
 
         // 3. Success State (Your UI)
@@ -74,9 +76,7 @@ class _SelfProfessionDetailsScreenState extends State<SelfProfessionDetailsScree
 
         return SingleChildScrollView(
           padding: EdgeInsets.symmetric(
-              vertical: SizeConfig.size15,
-              horizontal: SizeConfig.size8
-          ),
+              vertical: SizeConfig.size15, horizontal: SizeConfig.size8),
           child: SafeArea(
             child: Column(
               children: [
@@ -93,10 +93,11 @@ class _SelfProfessionDetailsScreenState extends State<SelfProfessionDetailsScree
                           clipBehavior: Clip.none,
                           children: [
                             ClipRRect(
-                              borderRadius:
-                              const BorderRadius.vertical(top: Radius.circular(10.0)),
+                              borderRadius: const BorderRadius.vertical(
+                                  top: Radius.circular(10.0)),
                               child: CachedNetworkImage(
-                                imageUrl: service.providerDetails?.profileImage ?? '',
+                                imageUrl:
+                                    service.providerDetails?.profileImage ?? '',
                                 width: SizeConfig.screenWidth,
                                 height: SizeConfig.size150,
                                 fit: BoxFit.cover,
@@ -119,7 +120,9 @@ class _SelfProfessionDetailsScreenState extends State<SelfProfessionDetailsScree
                                       color: AppColors.white,
                                       shape: BoxShape.circle),
                                   child: CachedAvatarWidget(
-                                    imageUrl: service.providerDetails?.profileImage ?? '',
+                                    imageUrl:
+                                        service.providerDetails?.profileImage ??
+                                            '',
                                     size: SizeConfig.size80,
                                     borderColor: Colors.white,
                                     borderRadius: SizeConfig.size40,
@@ -130,13 +133,15 @@ class _SelfProfessionDetailsScreenState extends State<SelfProfessionDetailsScree
                       ),
                       SizedBox(height: SizeConfig.size60),
                       Padding(
-                        padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
+                        padding:
+                            EdgeInsets.symmetric(horizontal: SizeConfig.size10),
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             Flexible(
                               child: CustomText(
-                                  service.providerDetails?.name ?? AppStrings.na,
+                                  service.providerDetails?.name ??
+                                      AppStrings.na,
                                   fontSize: SizeConfig.large,
                                   color: AppColors.mainTextColor,
                                   fontWeight: FontWeight.w700),
@@ -150,7 +155,8 @@ class _SelfProfessionDetailsScreenState extends State<SelfProfessionDetailsScree
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(12.0),
                                 border: Border.all(
-                                    color: AppColors.secondaryTextColor, width: 0.5),
+                                    color: AppColors.secondaryTextColor,
+                                    width: 0.5),
                               ),
                               child: CustomText(
                                   service.category ?? AppStrings.na,
@@ -163,9 +169,10 @@ class _SelfProfessionDetailsScreenState extends State<SelfProfessionDetailsScree
                       ),
                       SizedBox(height: SizeConfig.size12),
                       Padding(
-                        padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
+                        padding:
+                            EdgeInsets.symmetric(horizontal: SizeConfig.size10),
                         child: ExpandableText(
-                         text: service.providerDetails?.bio ?? AppStrings.na,
+                          text: service.providerDetails?.bio ?? AppStrings.na,
                           trimLines: 3,
                           expandMode: ExpandMode.dialog,
                           style: TextStyle(
@@ -183,50 +190,50 @@ class _SelfProfessionDetailsScreenState extends State<SelfProfessionDetailsScree
 
                 SizedBox(height: SizeConfig.paddingXSL),
 
-                 // --- Price ---
+                // --- Price ---
                 CustomFormCard(
-              padding: _innerPadding(),
-              child: Obx(() {
-                final details = bookingController.availabilityDetails.value?.feeDetails;
+                  padding: _innerPadding(),
+                  child: Obx(() {
+                    final details =
+                        bookingController.availabilityDetails.value?.feeDetails;
 
-                final min = details?.minFee?.toString() ?? '0';
-                final max = details?.maxFee?.toString() ?? '0';
-                final feeType = details?.feeType ?? '';
+                    final min = details?.minFee?.toString() ?? '0';
+                    final max = details?.maxFee?.toString() ?? '0';
+                    final feeType = details?.feeType ?? '';
 
-                return Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
+                    return Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(child: _buildTitle('${AppStrings.price.tr}: ')),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Expanded(
+                                child: _buildTitle('${AppStrings.price.tr}: ')),
+                            _editIcon(
+                              onTap: () => updateBookingPrice(
+                                  controller: bookingController,
+                                  minFee: min,
+                                  maxFee: max,
+                                  feeType: feeType),
+                            )
+                          ],
+                        ),
 
-                        _editIcon(
-                          onTap: () => updateBookingPrice(
-                            controller: bookingController,
-                            minFee: min,
-                            maxFee: max,
-                            feeType: feeType
-                          ),
-                        )
+                        _buildCommonDivider(),
+                        SizedBox(height: SizeConfig.size8),
+
+                        // 3. Display the live data
+                        CustomText(
+                          '₹$min - ₹$max',
+                          fontSize: SizeConfig.medium,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.secondaryTextColor,
+                        ),
                       ],
-                    ),
-
-                    _buildCommonDivider(),
-                    SizedBox(height: SizeConfig.size8),
-
-                    // 3. Display the live data
-                    CustomText(
-                      '₹$min - ₹$max',
-                      fontSize: SizeConfig.medium,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.secondaryTextColor,
-                    ),
-                  ],
-                );
-              }),
-            ),
+                    );
+                  }),
+                ),
 
                 SizedBox(height: SizeConfig.paddingXSL),
 
@@ -241,14 +248,12 @@ class _SelfProfessionDetailsScreenState extends State<SelfProfessionDetailsScree
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           Expanded(child: _buildTitle('Service Type')),
-                          _editIcon(onTap: (){
+                          _editIcon(onTap: () {
                             updateServiceType(
                                 controller: this.controller,
                                 serviceType: service.serviceType ?? [],
-                                designation: service.category ?? ELECTRICIAN
-                            );
-                           }
-                          )
+                                designation: service.category ?? ELECTRICIAN);
+                          })
                         ],
                       ),
                       // SizedBox(height: SizeConfig.size8),
@@ -256,41 +261,43 @@ class _SelfProfessionDetailsScreenState extends State<SelfProfessionDetailsScree
                       SizedBox(height: SizeConfig.size8),
                       (service.serviceType?.isNotEmpty ?? false)
                           ? Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: service.serviceType!.map((service) {
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 4.0), // Spacing between items
-                            child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // Bullet Point
-                                CustomText(
-                                  "• ",
-                                  fontSize: SizeConfig.medium,
-                                  color: AppColors.mainTextColor,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                              children: service.serviceType!.map((service) {
+                                return Padding(
+                                  padding: const EdgeInsets.only(
+                                      bottom: 4.0), // Spacing between items
+                                  child: Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      // Bullet Point
+                                      CustomText(
+                                        "• ",
+                                        fontSize: SizeConfig.medium,
+                                        color: AppColors.mainTextColor,
+                                        fontWeight: FontWeight.bold,
+                                      ),
 
-                                // The Text
-                                Expanded(
-                                  child: CustomText(
-                                    service,
-                                    fontSize: SizeConfig.small,
-                                    color: AppColors.secondaryTextColor,
-                                    fontWeight: FontWeight.w400,
+                                      // The Text
+                                      Expanded(
+                                        child: CustomText(
+                                          service,
+                                          fontSize: SizeConfig.small,
+                                          color: AppColors.secondaryTextColor,
+                                          fontWeight: FontWeight.w400,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ),
-                              ],
-                            ),
-                          );
-                        }).toList(),
-                      )
-                          :  CustomText(
-                        AppStrings.na,
-                        fontSize: SizeConfig.medium,
-                        fontWeight: FontWeight.w400,
-                        color: AppColors.secondaryTextColor,
-                      )
+                                );
+                              }).toList(),
+                            )
+                          : CustomText(
+                              AppStrings.na,
+                              fontSize: SizeConfig.medium,
+                              fontWeight: FontWeight.w400,
+                              color: AppColors.secondaryTextColor,
+                            )
                     ],
                   ),
                 ),
@@ -306,15 +313,14 @@ class _SelfProfessionDetailsScreenState extends State<SelfProfessionDetailsScree
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           Expanded(child: _buildTitle('Service Description')),
-                          _editIcon(onTap: (){
+                          _editIcon(onTap: () {
                             updateServiceDescription(
-                              controller: this.controller,
-                              desc: service.description ?? AppStrings.na,
-                              designation: service.category ?? ELECTRICIAN,
-                              experienceStartingDate: service.experienceStartDate
-                            );
-                           }
-                          )
+                                controller: this.controller,
+                                desc: service.description ?? AppStrings.na,
+                                designation: service.category ?? ELECTRICIAN,
+                                experienceStartingDate:
+                                    service.experienceStartDate);
+                          })
                         ],
                       ),
                       // SizedBox(height: SizeConfig.size8),
@@ -331,35 +337,39 @@ class _SelfProfessionDetailsScreenState extends State<SelfProfessionDetailsScree
                 ),
 
                 // --- Timing ---
-                  CustomFormCard(
-                    padding: _innerPadding(),
-                    margin: EdgeInsets.only(bottom: SizeConfig.paddingXSL),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Expanded(child: _buildTitle('Timing')),
-                            _editIcon(onTap: ()=> updateVisitingHours(
-                                controller: bookingController,
-                                availabilityData: bookingController.availabilityDetails.value
-                            ))
-                          ],
-                        ),
-                        _buildCommonDivider(),
-                        SizedBox(height: SizeConfig.size8),
-                        bookingController.availabilityDetails.value!=null
-                            ? AvailabilityScheduleCard(schedule: bookingController.availabilityDetails.value?.schedule ?? [])
-                            : CustomText(
-                          AppStrings.na,
-                          fontSize: SizeConfig.medium,
-                          fontWeight: FontWeight.w400,
-                          color: AppColors.secondaryTextColor,
-                        ),
-                      ],
-                    ),
+                CustomFormCard(
+                  padding: _innerPadding(),
+                  margin: EdgeInsets.only(bottom: SizeConfig.paddingXSL),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Expanded(child: _buildTitle('Timing')),
+                          _editIcon(
+                              onTap: () => updateVisitingHours(
+                                  controller: bookingController,
+                                  availabilityData: bookingController
+                                      .availabilityDetails.value))
+                        ],
+                      ),
+                      _buildCommonDivider(),
+                      SizedBox(height: SizeConfig.size8),
+                      bookingController.availabilityDetails.value != null
+                          ? AvailabilityScheduleCard(
+                              schedule: bookingController
+                                      .availabilityDetails.value?.schedule ??
+                                  [])
+                          : CustomText(
+                              AppStrings.na,
+                              fontSize: SizeConfig.medium,
+                              fontWeight: FontWeight.w400,
+                              color: AppColors.secondaryTextColor,
+                            ),
+                    ],
                   ),
+                ),
 
                 // --- Work Experience ---
                 CustomFormCard(
@@ -413,314 +423,333 @@ class _SelfProfessionDetailsScreenState extends State<SelfProfessionDetailsScree
                           ),
                         ],
                       );
-                  },),
+                    },
+                  ),
                 ),
 
                 // --- serviceOffered ---
-                (service.serviceOffered != null && service.serviceOffered!.isNotEmpty)
-                ? CustomFormCard(
-                  padding: _innerPadding(),
-                  margin: EdgeInsets.only(bottom: SizeConfig.paddingXSL),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Expanded(child: _buildTitle('Service Offered')),
-                          _editIcon(onTap: () {
-                            updateServiceSelectionData(
-                                controller: this.controller,
-                                key: SelfWorkServiceController.keyServicesOffered,
-                                designation: service.category,
-                                preSelectedOptions: service.serviceOffered ?? []
-                            );
-
-                          })
-                        ],
-                      ),
-                      // SizedBox(height: SizeConfig.size8),
-                      _buildCommonDivider(),
-                      SizedBox(height: SizeConfig.size8),
-                       Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: List.generate(
-                          service.serviceOffered!.length,
-                              (index) => Padding(
-                            padding: const EdgeInsets.only(bottom: 4.0),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                (service.serviceOffered != null &&
+                        service.serviceOffered!.isNotEmpty)
+                    ? CustomFormCard(
+                        padding: _innerPadding(),
+                        margin: EdgeInsets.only(bottom: SizeConfig.paddingXSL),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
-                                Container(
-                                  margin:
-                                  const EdgeInsets.only(top: 6.0, right: 8.0),
-                                  width: 4.0,
-                                  height: 4.0,
-                                  decoration: BoxDecoration(
-                                    color: AppColors.secondaryTextColor,
-                                    shape: BoxShape.circle,
-                                  ),
-                                ),
-                                Expanded(
-                                  child: CustomText(
-                                    service.serviceOffered![index],
-                                    fontSize: SizeConfig.medium,
-                                    fontWeight: FontWeight.w400,
-                                    color: AppColors.secondaryTextColor,
-                                  ),
-                                ),
+                                Expanded(child: _buildTitle('Service Offered')),
+                                _editIcon(onTap: () {
+                                  updateServiceSelectionData(
+                                      controller: this.controller,
+                                      key: SelfWorkServiceController
+                                          .keyServicesOffered,
+                                      designation: service.category,
+                                      preSelectedOptions:
+                                          service.serviceOffered ?? []);
+                                })
                               ],
                             ),
-                          ),
+                            // SizedBox(height: SizeConfig.size8),
+                            _buildCommonDivider(),
+                            SizedBox(height: SizeConfig.size8),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: List.generate(
+                                service.serviceOffered!.length,
+                                (index) => Padding(
+                                  padding: const EdgeInsets.only(bottom: 4.0),
+                                  child: Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Container(
+                                        margin: const EdgeInsets.only(
+                                            top: 6.0, right: 8.0),
+                                        width: 4.0,
+                                        height: 4.0,
+                                        decoration: BoxDecoration(
+                                          color: AppColors.secondaryTextColor,
+                                          shape: BoxShape.circle,
+                                        ),
+                                      ),
+                                      Expanded(
+                                        child: CustomText(
+                                          service.serviceOffered![index],
+                                          fontSize: SizeConfig.medium,
+                                          fontWeight: FontWeight.w400,
+                                          color: AppColors.secondaryTextColor,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            )
+                          ],
                         ),
                       )
-                    ],
-                  ),
-                ) : SizedBox(),
+                    : SizedBox(),
 
                 // --- Expertise ---
                 (service.expertise != null && service.expertise!.isNotEmpty)
                     ? CustomFormCard(
-                      padding: _innerPadding(),
-                      margin: EdgeInsets.only(bottom: SizeConfig.paddingXSL),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Expanded(child: _buildTitle('Expertise')),
-                              _editIcon(onTap: () {
-                                updateServiceSelectionData(
-                                    controller: this.controller,
-                                    key: SelfWorkServiceController.keyExpertise,
-                                    designation: service.category,
-                                    preSelectedOptions: service.expertise ?? []
-                                );
-                              })
-                            ],
-                          ),
-                          // SizedBox(height: SizeConfig.size8),
-                          _buildCommonDivider(),
-                          SizedBox(height: SizeConfig.size8),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: List.generate(
-                              service.expertise!.length,
-                                  (index) => Padding(
-                                padding: const EdgeInsets.only(bottom: 4.0),
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Container(
-                                      margin:
-                                      const EdgeInsets.only(top: 6.0, right: 8.0),
-                                      width: 4.0,
-                                      height: 4.0,
-                                      decoration: BoxDecoration(
-                                        color: AppColors.secondaryTextColor,
-                                        shape: BoxShape.circle,
+                        padding: _innerPadding(),
+                        margin: EdgeInsets.only(bottom: SizeConfig.paddingXSL),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Expanded(child: _buildTitle('Expertise')),
+                                _editIcon(onTap: () {
+                                  updateServiceSelectionData(
+                                      controller: this.controller,
+                                      key: SelfWorkServiceController
+                                          .keyExpertise,
+                                      designation: service.category,
+                                      preSelectedOptions:
+                                          service.expertise ?? []);
+                                })
+                              ],
+                            ),
+                            // SizedBox(height: SizeConfig.size8),
+                            _buildCommonDivider(),
+                            SizedBox(height: SizeConfig.size8),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: List.generate(
+                                service.expertise!.length,
+                                (index) => Padding(
+                                  padding: const EdgeInsets.only(bottom: 4.0),
+                                  child: Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Container(
+                                        margin: const EdgeInsets.only(
+                                            top: 6.0, right: 8.0),
+                                        width: 4.0,
+                                        height: 4.0,
+                                        decoration: BoxDecoration(
+                                          color: AppColors.secondaryTextColor,
+                                          shape: BoxShape.circle,
+                                        ),
                                       ),
-                                    ),
-                                    Expanded(
-                                      child: CustomText(
-                                        service.expertise![index],
-                                        fontSize: SizeConfig.medium,
-                                        fontWeight: FontWeight.w400,
-                                        color: AppColors.secondaryTextColor,
+                                      Expanded(
+                                        child: CustomText(
+                                          service.expertise![index],
+                                          fontSize: SizeConfig.medium,
+                                          fontWeight: FontWeight.w400,
+                                          color: AppColors.secondaryTextColor,
+                                        ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
                               ),
-                            ),
-                          )
-                        ],
-                      ),
-                    ) : SizedBox(),
+                            )
+                          ],
+                        ),
+                      )
+                    : SizedBox(),
 
                 // --- typesOfWork ---
                 (service.typesOfWork != null && service.typesOfWork!.isNotEmpty)
                     ? CustomFormCard(
-                      padding: _innerPadding(),
-                      margin: EdgeInsets.only(bottom: SizeConfig.paddingXSL),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Expanded(child: _buildTitle('Types of Installations')),
-                              _editIcon(onTap: () {
-                                updateServiceSelectionData(
-                                    controller: this.controller,
-                                    key: SelfWorkServiceController.keyTypeOfWork,
-                                    designation: service.category,
-                                    preSelectedOptions: service.typesOfWork ?? []
-                                );
-                              })
-                            ],
-                          ),
-                          // SizedBox(height: SizeConfig.size8),
-                          _buildCommonDivider(),
-                          SizedBox(height: SizeConfig.size8),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: List.generate(
-                              service.typesOfWork!.length,
-                                  (index) => Padding(
-                                padding: const EdgeInsets.only(bottom: 4.0),
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Container(
-                                      margin:
-                                      const EdgeInsets.only(top: 6.0, right: 8.0),
-                                      width: 4.0,
-                                      height: 4.0,
-                                      decoration: BoxDecoration(
-                                        color: AppColors.secondaryTextColor,
-                                        shape: BoxShape.circle,
+                        padding: _innerPadding(),
+                        margin: EdgeInsets.only(bottom: SizeConfig.paddingXSL),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Expanded(
+                                    child:
+                                        _buildTitle('Types of Installations')),
+                                _editIcon(onTap: () {
+                                  updateServiceSelectionData(
+                                      controller: this.controller,
+                                      key: SelfWorkServiceController
+                                          .keyTypeOfWork,
+                                      designation: service.category,
+                                      preSelectedOptions:
+                                          service.typesOfWork ?? []);
+                                })
+                              ],
+                            ),
+                            // SizedBox(height: SizeConfig.size8),
+                            _buildCommonDivider(),
+                            SizedBox(height: SizeConfig.size8),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: List.generate(
+                                service.typesOfWork!.length,
+                                (index) => Padding(
+                                  padding: const EdgeInsets.only(bottom: 4.0),
+                                  child: Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Container(
+                                        margin: const EdgeInsets.only(
+                                            top: 6.0, right: 8.0),
+                                        width: 4.0,
+                                        height: 4.0,
+                                        decoration: BoxDecoration(
+                                          color: AppColors.secondaryTextColor,
+                                          shape: BoxShape.circle,
+                                        ),
                                       ),
-                                    ),
-                                    Expanded(
-                                      child: CustomText(
-                                        service.typesOfWork![index],
-                                        fontSize: SizeConfig.medium,
-                                        fontWeight: FontWeight.w400,
-                                        color: AppColors.secondaryTextColor,
+                                      Expanded(
+                                        child: CustomText(
+                                          service.typesOfWork![index],
+                                          fontSize: SizeConfig.medium,
+                                          fontWeight: FontWeight.w400,
+                                          color: AppColors.secondaryTextColor,
+                                        ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
                               ),
-                            ),
-                          )
-                        ],
-                      ),
-                    ) : SizedBox(),
+                            )
+                          ],
+                        ),
+                      )
+                    : SizedBox(),
 
                 // --- workCategories ---
-                (service.workCategories != null && service.workCategories!.isNotEmpty)
+                (service.workCategories != null &&
+                        service.workCategories!.isNotEmpty)
                     ? CustomFormCard(
-                      padding: _innerPadding(),
-                      margin: EdgeInsets.only(bottom: SizeConfig.paddingXSL),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Expanded(child: _buildTitle('Work Categories')),
-                              _editIcon(onTap: () {
-                                updateServiceSelectionData(
-                                    controller: this.controller,
-                                    key: SelfWorkServiceController.keyWorkCategories,
-                                    designation: service.category,
-                                    preSelectedOptions: service.workCategories ?? []
-                                );
-                              })
-                            ],
-                          ),
-                          // SizedBox(height: SizeConfig.size8),
-                          _buildCommonDivider(),
-                          SizedBox(height: SizeConfig.size8),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: List.generate(
-                              service.workCategories!.length,
-                                  (index) => Padding(
-                                padding: const EdgeInsets.only(bottom: 4.0),
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Container(
-                                      margin:
-                                      const EdgeInsets.only(top: 6.0, right: 8.0),
-                                      width: 4.0,
-                                      height: 4.0,
-                                      decoration: BoxDecoration(
-                                        color: AppColors.secondaryTextColor,
-                                        shape: BoxShape.circle,
+                        padding: _innerPadding(),
+                        margin: EdgeInsets.only(bottom: SizeConfig.paddingXSL),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Expanded(child: _buildTitle('Work Categories')),
+                                _editIcon(onTap: () {
+                                  updateServiceSelectionData(
+                                      controller: this.controller,
+                                      key: SelfWorkServiceController
+                                          .keyWorkCategories,
+                                      designation: service.category,
+                                      preSelectedOptions:
+                                          service.workCategories ?? []);
+                                })
+                              ],
+                            ),
+                            // SizedBox(height: SizeConfig.size8),
+                            _buildCommonDivider(),
+                            SizedBox(height: SizeConfig.size8),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: List.generate(
+                                service.workCategories!.length,
+                                (index) => Padding(
+                                  padding: const EdgeInsets.only(bottom: 4.0),
+                                  child: Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Container(
+                                        margin: const EdgeInsets.only(
+                                            top: 6.0, right: 8.0),
+                                        width: 4.0,
+                                        height: 4.0,
+                                        decoration: BoxDecoration(
+                                          color: AppColors.secondaryTextColor,
+                                          shape: BoxShape.circle,
+                                        ),
                                       ),
-                                    ),
-                                    Expanded(
-                                      child: CustomText(
-                                        service.workCategories![index],
-                                        fontSize: SizeConfig.medium,
-                                        fontWeight: FontWeight.w400,
-                                        color: AppColors.secondaryTextColor,
+                                      Expanded(
+                                        child: CustomText(
+                                          service.workCategories![index],
+                                          fontSize: SizeConfig.medium,
+                                          fontWeight: FontWeight.w400,
+                                          color: AppColors.secondaryTextColor,
+                                        ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
                               ),
-                            ),
-                          )
-                        ],
-                      ),
-                    ) : SizedBox(),
+                            )
+                          ],
+                        ),
+                      )
+                    : SizedBox(),
 
                 // --- whyChooseMe ---
                 (service.whyChooseMe != null && service.whyChooseMe!.isNotEmpty)
                     ? CustomFormCard(
-                      padding: _innerPadding(),
-                      margin: EdgeInsets.only(bottom: SizeConfig.paddingXSL),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Expanded(child: _buildTitle('Why Choose Me')),
-                              _editIcon(onTap: () {
-                                updateServiceSelectionData(
-                                    controller: this.controller,
-                                    key: SelfWorkServiceController.keyWhyChooseMe,
-                                    designation: service.category,
-                                    preSelectedOptions: service.whyChooseMe ?? []
-                                );
-                              })
-                            ],
-                          ),
-                          // SizedBox(height: SizeConfig.size8),
-                          _buildCommonDivider(),
-                          SizedBox(height: SizeConfig.size8),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: List.generate(
-                              service.whyChooseMe!.length,
-                                  (index) => Padding(
-                                padding: const EdgeInsets.only(bottom: 4.0),
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Container(
-                                      margin:
-                                      const EdgeInsets.only(top: 6.0, right: 8.0),
-                                      width: 4.0,
-                                      height: 4.0,
-                                      decoration: BoxDecoration(
-                                        color: AppColors.secondaryTextColor,
-                                        shape: BoxShape.circle,
+                        padding: _innerPadding(),
+                        margin: EdgeInsets.only(bottom: SizeConfig.paddingXSL),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Expanded(child: _buildTitle('Why Choose Me')),
+                                _editIcon(onTap: () {
+                                  updateServiceSelectionData(
+                                      controller: this.controller,
+                                      key: SelfWorkServiceController
+                                          .keyWhyChooseMe,
+                                      designation: service.category,
+                                      preSelectedOptions:
+                                          service.whyChooseMe ?? []);
+                                })
+                              ],
+                            ),
+                            // SizedBox(height: SizeConfig.size8),
+                            _buildCommonDivider(),
+                            SizedBox(height: SizeConfig.size8),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: List.generate(
+                                service.whyChooseMe!.length,
+                                (index) => Padding(
+                                  padding: const EdgeInsets.only(bottom: 4.0),
+                                  child: Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Container(
+                                        margin: const EdgeInsets.only(
+                                            top: 6.0, right: 8.0),
+                                        width: 4.0,
+                                        height: 4.0,
+                                        decoration: BoxDecoration(
+                                          color: AppColors.secondaryTextColor,
+                                          shape: BoxShape.circle,
+                                        ),
                                       ),
-                                    ),
-                                    Expanded(
-                                      child: CustomText(
-                                        service.whyChooseMe![index],
-                                        fontSize: SizeConfig.medium,
-                                        fontWeight: FontWeight.w400,
-                                        color: AppColors.secondaryTextColor,
+                                      Expanded(
+                                        child: CustomText(
+                                          service.whyChooseMe![index],
+                                          fontSize: SizeConfig.medium,
+                                          fontWeight: FontWeight.w400,
+                                          color: AppColors.secondaryTextColor,
+                                        ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
                               ),
-                            ),
-                          )
-                        ],
-                      ),
-                    ) : SizedBox(),
+                            )
+                          ],
+                        ),
+                      )
+                    : SizedBox(),
 
                 // --- Gallery ---
                 CustomFormCard(
@@ -729,65 +758,65 @@ class _SelfProfessionDetailsScreenState extends State<SelfProfessionDetailsScree
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _buildTitle('Gallery'),
-
                       SizedBox(height: SizeConfig.size8),
                       _buildCommonDivider(),
                       SizedBox(height: SizeConfig.size8),
                       LayoutBuilder(
-                      builder: (context, constraints) {
-                      final spacing = SizeConfig.size8;
-                      final containerWidth = (constraints.maxWidth - (spacing * 3)) / 4;
+                        builder: (context, constraints) {
+                          final spacing = SizeConfig.size8;
+                          final containerWidth =
+                              (constraints.maxWidth - (spacing * 3)) / 4;
 
-                      return GetBuilder<SelfWorkServiceController>(
-                        id: 'professionPhotos',
-                        builder: (controller) {
-                          final apiPhotos = service.photos ?? [];;
-                          final totalCount = apiPhotos.length;
-                          final emptySlots = (8 - totalCount).clamp(0, 8);
+                          return GetBuilder<SelfWorkServiceController>(
+                            id: 'professionPhotos',
+                            builder: (controller) {
+                              final apiPhotos = service.photos ?? [];
+                              ;
+                              final totalCount = apiPhotos.length;
+                              final emptySlots = (8 - totalCount).clamp(0, 8);
 
-                          List<Widget> allPhotos = [];
+                              List<Widget> allPhotos = [];
 
-                          // API Photos (Already uploaded)
-                          for (int i = 0; i < apiPhotos.length; i++) {
-                            allPhotos.add(_buildImageContainer(
-                              context,
-                              ValueKey(apiPhotos[i]),
-                              apiPhotos[i],
-                              i,
-                              controller,
-                              containerWidth,
-                              apiPhotos,
-                            ));
-                          }
+                              // API Photos (Already uploaded)
+                              for (int i = 0; i < apiPhotos.length; i++) {
+                                allPhotos.add(_buildImageContainer(
+                                  context,
+                                  ValueKey(apiPhotos[i]),
+                                  apiPhotos[i],
+                                  i,
+                                  controller,
+                                  containerWidth,
+                                  apiPhotos,
+                                ));
+                              }
 
-                          // Empty slots for remaining photos
-                          for (int i = 0; i < emptySlots; i++) {
-                            allPhotos.add(_buildImageContainer(
-                              context,
-                              ValueKey("empty_${i}"),
-                              "",
-                              apiPhotos.length + i,
-                              controller,
-                              containerWidth,
-                              apiPhotos,
-                            ));
-                          }
+                              // Empty slots for remaining photos
+                              for (int i = 0; i < emptySlots; i++) {
+                                allPhotos.add(_buildImageContainer(
+                                  context,
+                                  ValueKey("empty_${i}"),
+                                  "",
+                                  apiPhotos.length + i,
+                                  controller,
+                                  containerWidth,
+                                  apiPhotos,
+                                ));
+                              }
 
-                          return Wrap(
-                            spacing: spacing,
-                            runSpacing: spacing,
-                            children: allPhotos,
+                              return Wrap(
+                                spacing: spacing,
+                                runSpacing: spacing,
+                                children: allPhotos,
+                              );
+                            },
                           );
                         },
-                      );
-                    },
-                  ),
+                      ),
                     ],
                   ),
                 ),
 
                 SizedBox(height: SizeConfig.size100)
-
               ],
             ),
           ),
@@ -816,21 +845,21 @@ class _SelfProfessionDetailsScreenState extends State<SelfProfessionDetailsScree
   // }
 
   EdgeInsets _innerPadding() => EdgeInsets.only(
-    left: SizeConfig.size10,
-    right: SizeConfig.size10,
-    bottom: SizeConfig.size10,
-  );
+        left: SizeConfig.size10,
+        right: SizeConfig.size10,
+        bottom: SizeConfig.size10,
+      );
 
- Widget _buildTitle(String title){
+  Widget _buildTitle(String title) {
     return CustomText(
-    title,
-    fontSize: SizeConfig.medium,
-    fontWeight: FontWeight.w600,
-    color: AppColors.mainTextColor,
+      title,
+      fontSize: SizeConfig.medium,
+      fontWeight: FontWeight.w600,
+      color: AppColors.mainTextColor,
     );
- }
+  }
 
-  Widget _buildCommonDivider(){
+  Widget _buildCommonDivider() {
     return Container(
       color: AppColors.greyE5,
       height: 0.5,
@@ -838,9 +867,7 @@ class _SelfProfessionDetailsScreenState extends State<SelfProfessionDetailsScree
     );
   }
 
-  Widget _editIcon({
-    required VoidCallback onTap
-}){
+  Widget _editIcon({required VoidCallback onTap}) {
     return IconButton(
       onPressed: onTap,
       visualDensity: VisualDensity(horizontal: -4, vertical: -2),
@@ -854,14 +881,14 @@ class _SelfProfessionDetailsScreenState extends State<SelfProfessionDetailsScree
   }
 
   Widget _buildImageContainer(
-      BuildContext context,
-      Key key,
-      String? imagePath,
-      int index,
-      SelfWorkServiceController controller,
-      double size,
-      List<String> allPhotos,
-      ) {
+    BuildContext context,
+    Key key,
+    String? imagePath,
+    int index,
+    SelfWorkServiceController controller,
+    double size,
+    List<String> allPhotos,
+  ) {
     final isEmpty = imagePath == null || imagePath.isEmpty;
 
     return Stack(
@@ -871,12 +898,11 @@ class _SelfProfessionDetailsScreenState extends State<SelfProfessionDetailsScree
           onTap: () async {
             if (isEmpty) {
               final imgStr = await SelectProfilePictureDialog.showLogoDialog(
-                  context,
-                  AppStrings.gallery,
-                  cropAspectRatio: CropAspectRatio(width: 3, height: 4)
-              );
+                  context, AppStrings.gallery,
+                  cropAspectRatio: CropAspectRatio(width: 3, height: 4));
               if (imgStr != null) {
-                await controller.saveGalleryImages(controller.professionData.value.sId??'', imgStr);
+                await controller.saveGalleryImages(
+                    controller.professionData.value.sId ?? '', imgStr);
                 controller.update(['professionPhotos']);
               }
             } else {
@@ -905,20 +931,19 @@ class _SelfProfessionDetailsScreenState extends State<SelfProfessionDetailsScree
               boxShadow: isEmpty ? [] : [AppShadows.textFieldShadow],
               image: !isEmpty
                   ? DecorationImage(
-                image: NetworkImage(imagePath),
-                fit: BoxFit.cover,
-              )
+                      image: NetworkImage(imagePath),
+                      fit: BoxFit.cover,
+                    )
                   : null,
             ),
             child: isEmpty
                 ? Center(
-              child: LocalAssets(
-                  imagePath: AppIconAssets.chat_input_gallery,
-                  imgColor: AppColors.greyAF,
-                  height: SizeConfig.size20,
-                  width: SizeConfig.size20
-              ),
-            )
+                    child: LocalAssets(
+                        imagePath: AppIconAssets.chat_input_gallery,
+                        imgColor: AppColors.greyAF,
+                        height: SizeConfig.size20,
+                        width: SizeConfig.size20),
+                  )
                 : null,
           ),
         ),
@@ -928,10 +953,11 @@ class _SelfProfessionDetailsScreenState extends State<SelfProfessionDetailsScree
             right: 5,
             child: GestureDetector(
               onTap: () async {
-                await controller.deleteProfessionImage(controller.professionData.value.sId??'', imagePath);
+                await controller.deleteProfessionImage(
+                    controller.professionData.value.sId ?? '', imagePath);
                 controller.professionData.value.photos?.removeAt(index);
                 controller.update(['professionPhotos']);
-                },
+              },
               child: CircleAvatar(
                 radius: 11,
                 backgroundColor: AppColors.blackMite,
@@ -939,40 +965,39 @@ class _SelfProfessionDetailsScreenState extends State<SelfProfessionDetailsScree
               ),
             ),
           ),
-
       ],
     );
   }
 
   // --- 4. Helper Widgets ---
   Widget _buildDragHandle() => Center(
-    child: Container(
-      width: 50,
-      height: 5,
-      margin: const EdgeInsets.only(bottom: 10),
-      decoration: BoxDecoration(
-        color: AppColors.secondaryTextColor,
-        borderRadius: BorderRadius.circular(10),
-      ),
-    ),
-  );
+        child: Container(
+          width: 50,
+          height: 5,
+          margin: const EdgeInsets.only(bottom: 10),
+          decoration: BoxDecoration(
+            color: AppColors.secondaryTextColor,
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
 
   Widget _buildHeader(String header) => Row(
-    children: [
-      Expanded(
-        child: CustomText(
-          header,
-          fontWeight: FontWeight.w600,
-          fontSize: SizeConfig.large,
-          color: AppColors.mainTextColor,
-        ),
-      ),
-      IconButton(
-        onPressed: () => Get.back(),
-        icon: const Icon(Icons.close),
-      ),
-    ],
-  );
+        children: [
+          Expanded(
+            child: CustomText(
+              header,
+              fontWeight: FontWeight.w600,
+              fontSize: SizeConfig.large,
+              color: AppColors.mainTextColor,
+            ),
+          ),
+          IconButton(
+            onPressed: () => Get.back(),
+            icon: const Icon(Icons.close),
+          ),
+        ],
+      );
 
   void _showCommonUpdateSheet({
     required BuildContext context,
@@ -1130,14 +1155,15 @@ class _SelfProfessionDetailsScreenState extends State<SelfProfessionDetailsScree
                 children: controller.serviceTypes.map((item) {
                   // Check if this specific item is selected
                   final isSelected =
-                  controller.selectedServiceTypes.contains(item);
+                      controller.selectedServiceTypes.contains(item);
 
                   return Theme(
-                    data: ThemeData(unselectedWidgetColor: Colors.grey.shade300),
+                    data:
+                        ThemeData(unselectedWidgetColor: Colors.grey.shade300),
                     child: CheckboxListTile(
                       contentPadding: EdgeInsets.zero,
                       visualDensity:
-                      const VisualDensity(horizontal: -4, vertical: -3),
+                          const VisualDensity(horizontal: -4, vertical: -3),
                       dense: true,
                       activeColor: AppColors.primaryColor,
                       controlAffinity: ListTileControlAffinity.leading,
@@ -1160,28 +1186,28 @@ class _SelfProfessionDetailsScreenState extends State<SelfProfessionDetailsScree
               ),
             );
           }),
-
           SizedBox(height: SizeConfig.paddingL),
-
           Obx(() => CustomBtn(
-            radius: SizeConfig.size10,
-            bgColor: AppColors.primaryColor,
-            // Fixed logic: Title should show 'Update' unless handled internally by isLoading
-            title: controller.isUpdateServiceLoading.value ? null : AppStrings.update,
-            isLoading: controller.isUpdateServiceLoading.value,
-            onTap: () {
-              if (controller.selectedServiceTypes.isEmpty) {
-                commonSnackBar(message: 'Please select a service type');
-                return;
-              }
+                radius: SizeConfig.size10,
+                bgColor: AppColors.primaryColor,
+                // Fixed logic: Title should show 'Update' unless handled internally by isLoading
+                title: controller.isUpdateServiceLoading.value
+                    ? null
+                    : AppStrings.update,
+                isLoading: controller.isUpdateServiceLoading.value,
+                onTap: () {
+                  if (controller.selectedServiceTypes.isEmpty) {
+                    commonSnackBar(message: 'Please select a service type');
+                    return;
+                  }
 
-              Map<String, dynamic> params = {
-                ApiKeys.serviceType: controller.selectedServiceTypes,
-              };
+                  Map<String, dynamic> params = {
+                    ApiKeys.serviceType: controller.selectedServiceTypes,
+                  };
 
-              controller.updateEarnServiceData(params: params);
-            },
-          )),
+                  controller.updateEarnServiceData(params: params);
+                },
+              )),
         ],
       ),
     );
@@ -1193,7 +1219,6 @@ class _SelfProfessionDetailsScreenState extends State<SelfProfessionDetailsScree
     required String designation,
     String? experienceStartingDate,
   }) {
-
     // Initialize controllers
     controller.aboutController.text = desc;
 
@@ -1205,46 +1230,42 @@ class _SelfProfessionDetailsScreenState extends State<SelfProfessionDetailsScree
       },
       content: Column(
         children: [
-          if(experienceStartingDate!=null)
-            ...[
-              Obx(()=>
-              Align(
-                alignment: Alignment.centerRight,
-                child:  !controller.isGenerateDescLoading.value
-                    ? Align(
+          if (experienceStartingDate != null) ...[
+            Obx(() => Align(
                   alignment: Alignment.centerRight,
-                  child: InkWell(
-                      onTap: () {
-                        final expData = calculateExperience(experienceStartingDate);
+                  child: !controller.isGenerateDescLoading.value
+                      ? Align(
+                          alignment: Alignment.centerRight,
+                          child: InkWell(
+                              onTap: () {
+                                final expData =
+                                    calculateExperience(experienceStartingDate);
 
-                        final int years = expData['years']!;
-                        final int months = expData['months']!;
+                                final int years = expData['years']!;
+                                final int months = expData['months']!;
 
-                        controller
-                            .generateDescriptions(bodyRequest: {
-                          ApiKeys.category: designation,
-                          ApiKeys.expYears: years,
-                          ApiKeys.expMonths: months,
-                        });
-                      },
-                      child: LocalAssets(
-                        height: 25,
-                        width: 25,
-                        imgColor: AppColors.primaryColor,
-                        imagePath: AppIconAssets.ai_generative,
-                      )),
-                ) : SizedBox(
-                    height: 25,
-                    width: 25,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2.0,
-                    )
-                ),
-              )
-
-             ),
-              SizedBox(height: SizeConfig.size8),
-            ],
+                                controller.generateDescriptions(bodyRequest: {
+                                  ApiKeys.category: designation,
+                                  ApiKeys.expYears: years,
+                                  ApiKeys.expMonths: months,
+                                });
+                              },
+                              child: LocalAssets(
+                                height: 25,
+                                width: 25,
+                                imgColor: AppColors.primaryColor,
+                                imagePath: AppIconAssets.ai_generative,
+                              )),
+                        )
+                      : SizedBox(
+                          height: 25,
+                          width: 25,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.0,
+                          )),
+                )),
+            SizedBox(height: SizeConfig.size8),
+          ],
 
           CommonTextField(
               textEditController: controller.aboutController,
@@ -1253,8 +1274,7 @@ class _SelfProfessionDetailsScreenState extends State<SelfProfessionDetailsScree
               maxLength: 250,
               isCounterVisible: true,
               isValidate: true,
-              validator: ValidationMethod().professionDescValidation
-          ),
+              validator: ValidationMethod().professionDescValidation),
 
           SizedBox(height: SizeConfig.paddingL),
 
@@ -1262,19 +1282,18 @@ class _SelfProfessionDetailsScreenState extends State<SelfProfessionDetailsScree
           CustomBtn(
             radius: SizeConfig.size10,
             bgColor: AppColors.primaryColor,
-            title: controller.isUpdateServiceLoading.value ? AppStrings.update : null,
+            title: controller.isUpdateServiceLoading.value
+                ? AppStrings.update
+                : null,
             isLoading: controller.isUpdateServiceLoading.value,
-            onTap: (){
+            onTap: () {
               Map<String, dynamic> params = {
                 ApiKeys.description: controller.aboutController.text.trim()
               };
 
-              controller.updateEarnServiceData(
-                  params: params
-              );
+              controller.updateEarnServiceData(params: params);
             },
           ),
-
         ],
       ),
     );
@@ -1285,7 +1304,6 @@ class _SelfProfessionDetailsScreenState extends State<SelfProfessionDetailsScree
     int? years,
     int? months,
   }) {
-
     controller.selectedExperienceYear.value = years.toString();
     controller.selectedExperienceMonth.value = months.toString();
 
@@ -1306,19 +1324,16 @@ class _SelfProfessionDetailsScreenState extends State<SelfProfessionDetailsScree
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    CustomText(
-                        AppStrings.years,
+                    CustomText(AppStrings.years,
                         fontSize: SizeConfig.medium,
                         fontWeight: FontWeight.w400,
-                        color: AppColors.mainTextColor
-                    ),
+                        color: AppColors.mainTextColor),
                     SizedBox(height: SizeConfig.size8),
                     CommonDropdown<String>(
                       items: controller.experienceYears,
                       selectedValue: controller.selectedExperienceYear.value,
                       hintText: "E.g 1 Year..",
                       onChanged: (val) {
-
                         controller.selectedExperienceYear.value = val;
                         log('val -- $val');
                         log('experience -- ${controller.selectedExperienceYear.value}');
@@ -1333,18 +1348,17 @@ class _SelfProfessionDetailsScreenState extends State<SelfProfessionDetailsScree
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    CustomText(
-                        'Months',
+                    CustomText('Months',
                         fontSize: SizeConfig.medium,
                         fontWeight: FontWeight.w400,
-                        color: AppColors.mainTextColor
-                    ),
+                        color: AppColors.mainTextColor),
                     SizedBox(height: SizeConfig.size8),
                     CommonDropdown<String>(
                       items: controller.experienceMonths,
                       selectedValue: controller.selectedExperienceMonth.value,
                       hintText: "E.g 3 Months..",
-                      onChanged: (val)=> controller.selectedExperienceMonth.value = val,
+                      onChanged: (val) =>
+                          controller.selectedExperienceMonth.value = val,
                       displayValue: (val) => val,
                     ),
                   ],
@@ -1358,10 +1372,11 @@ class _SelfProfessionDetailsScreenState extends State<SelfProfessionDetailsScree
           CustomBtn(
             radius: SizeConfig.size10,
             bgColor: AppColors.primaryColor,
-            title: controller.isUpdateServiceLoading.value ? AppStrings.update : null,
+            title: controller.isUpdateServiceLoading.value
+                ? AppStrings.update
+                : null,
             isLoading: controller.isUpdateServiceLoading.value,
-            onTap: (){
-
+            onTap: () {
               if (controller.selectedExperienceYear.value == null) {
                 commonSnackBar(message: 'Please select experience (Years)');
                 return;
@@ -1379,24 +1394,19 @@ class _SelfProfessionDetailsScreenState extends State<SelfProfessionDetailsScree
                 },
               };
 
-              controller.updateEarnServiceData(
-                  params: params
-              );
-
+              controller.updateEarnServiceData(params: params);
             },
           ),
-
         ],
       ),
     );
   }
 
-  void updateBookingPrice({
-    required BookingController controller,
-    required String minFee,
-    required String maxFee,
-    required String feeType
-  }){
+  void updateBookingPrice(
+      {required BookingController controller,
+      required String minFee,
+      required String maxFee,
+      required String feeType}) {
     // 2. Show Sheet
     _showCommonUpdateSheet(
       context: context,
@@ -1412,12 +1422,10 @@ class _SelfProfessionDetailsScreenState extends State<SelfProfessionDetailsScree
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    CustomText(
-                        AppStrings.min,
+                    CustomText(AppStrings.min,
                         fontSize: SizeConfig.medium,
                         fontWeight: FontWeight.w400,
-                        color: AppColors.mainTextColor
-                    ),
+                        color: AppColors.mainTextColor),
                     SizedBox(height: SizeConfig.size8),
                     CommonTextField(
                       textEditController: controller.minFeeController,
@@ -1435,12 +1443,10 @@ class _SelfProfessionDetailsScreenState extends State<SelfProfessionDetailsScree
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    CustomText(
-                        AppStrings.max,
+                    CustomText(AppStrings.max,
                         fontSize: SizeConfig.medium,
                         fontWeight: FontWeight.w400,
-                        color: AppColors.mainTextColor
-                    ),
+                        color: AppColors.mainTextColor),
                     SizedBox(height: SizeConfig.size8),
                     CommonTextField(
                       textEditController: controller.maxFeeController,
@@ -1472,87 +1478,78 @@ class _SelfProfessionDetailsScreenState extends State<SelfProfessionDetailsScree
 
           // Common Update Button
           CustomBtn(
-            title: controller.addUpdateAvailabilityResponse.value.status == Status.INITIAL
-                  ? null
-                  : AppStrings.update,
-            isLoading: controller.addUpdateAvailabilityResponse.value.status == Status.INITIAL,
+            title: controller.addUpdateAvailabilityResponse.value.status ==
+                    Status.INITIAL
+                ? null
+                : AppStrings.update,
+            isLoading: controller.addUpdateAvailabilityResponse.value.status ==
+                Status.INITIAL,
             radius: SizeConfig.size10,
             bgColor: AppColors.primaryColor,
-            onTap: (){
+            onTap: () {
               Map<String, dynamic> params = {
                 ApiKeys.minFee: controller.minFeeController.text.trim(),
                 ApiKeys.maxFee: controller.maxFeeController.text.trim(),
                 ApiKeys.feeType: controller.feeTypeController.text.trim(),
               };
-              controller.updateBookingAvailability(
-                id: userId,
-                params: params
-              );
+              controller.updateBookingAvailability(id: userId, params: params);
             },
           ),
-
         ],
       ),
     );
   }
 
-  void updateVisitingHours({
-        required BookingController controller,
-         AvailabilityData? availabilityData}) {
+  void updateVisitingHours(
+      {required BookingController controller,
+      AvailabilityData? availabilityData}) {
+    // 1. Sync Data Logic
+    controller.syncScheduleToController(availabilityData?.schedule);
 
-      // 1. Sync Data Logic
-      controller.syncScheduleToController(availabilityData?.schedule);
+    // 2. Show Sheet
+    _showCommonUpdateSheet(
+      context: context,
+      title: 'Visiting Hours',
+      onUpdate: () {
+        Navigator.pop(context);
+      },
+      content: Column(
+        children: [
+          VisitingHoursSelector(),
+          SizedBox(height: SizeConfig.paddingL),
 
-      // 2. Show Sheet
-      _showCommonUpdateSheet(
-        context: context,
-        title: 'Visiting Hours',
-        onUpdate: () {
-          Navigator.pop(context);
-        },
-        content: Column(
-          children: [
-            VisitingHoursSelector(),
-            SizedBox(height: SizeConfig.paddingL),
+          // Common Update Button
+          CustomBtn(
+            radius: SizeConfig.size10,
+            bgColor: AppColors.primaryColor,
+            title: controller.addUpdateAvailabilityResponse.value.status ==
+                    Status.INITIAL
+                ? null
+                : AppStrings.update,
+            isLoading: controller.addUpdateAvailabilityResponse.value.status ==
+                Status.INITIAL,
+            onTap: () {
+              List<Map<String, dynamic>> visitingHoursData =
+                  bookingController.payloadForVisitingHours();
+              logs("Visiting Hours: $visitingHoursData");
 
-            // Common Update Button
-            CustomBtn(
-              radius: SizeConfig.size10,
-              bgColor: AppColors.primaryColor,
-              title: controller.addUpdateAvailabilityResponse.value.status == Status.INITIAL
-                  ? null
-                  : AppStrings.update,
-              isLoading: controller.addUpdateAvailabilityResponse.value.status == Status.INITIAL,
-              onTap: (){
+              Map<String, dynamic> params = {
+                ApiKeys.schedule: visitingHoursData,
+              };
+              controller.updateBookingAvailability(id: userId, params: params);
+            },
+          ),
+        ],
+      ),
+    );
+  }
 
-                List<Map<String, dynamic>> visitingHoursData = bookingController.payloadForVisitingHours();
-                logs("Visiting Hours: $visitingHoursData");
-
-                Map<String, dynamic> params = {
-                  ApiKeys.schedule: visitingHoursData,
-                };
-                controller.updateBookingAvailability(
-                    id: userId,
-                    params: params
-                );
-
-              },
-            ),
-
-          ],
-        ),
-      );
-    }
-
-  void updateServiceSelectionData(
-      {
-        required SelfWorkServiceController controller,
-        required String key,
-        required List<String> preSelectedOptions,
-        String? designation,
-      }
-      ){
-
+  void updateServiceSelectionData({
+    required SelfWorkServiceController controller,
+    required String key,
+    required List<String> preSelectedOptions,
+    String? designation,
+  }) {
     final _displayTitle = controller.categoryTitleMap[key] ?? key;
 
     _showCommonUpdateSheet(
@@ -1567,12 +1564,7 @@ class _SelfProfessionDetailsScreenState extends State<SelfProfessionDetailsScree
           selectedCategoryKey: key,
           pageTitle: _displayTitle,
           preSelectedOptions: preSelectedOptions,
-          isDataUpdate: true
-      ),
+          isDataUpdate: true),
     );
-
   }
-
-
-
 }

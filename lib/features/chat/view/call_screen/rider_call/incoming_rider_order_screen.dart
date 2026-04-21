@@ -239,8 +239,11 @@ class _IncomingRiderOrderScreenState extends State<IncomingRiderOrderScreen>
     final rideAccepted = await _callController.acceptFareCallRide();
     if (!rideAccepted) return;
 
-    // Capture orderMongoId before endCall() clears it via _resetState()
+    // Capture orderMongoId and the customer user id before endCall() clears
+    // them via _resetState() — the rider pickup screen needs the customer id
+    // so the "call customer" button can initiate a fresh audio call.
     final orderMongoId = _callController.fareCallOrderMongoId.value;
+    final customerUserId = _callController.remoteUserId ?? '';
 
     // End the WebRTC call only if it's actually active (connected/connecting).
     // Fire-and-forget so navigation isn't blocked by the API roundtrip.
@@ -263,6 +266,7 @@ class _IncomingRiderOrderScreenState extends State<IncomingRiderOrderScreen>
           otp: '',
           paymentMethod: _paymentMethod,
           orderId: orderMongoId,
+          customerUserId: customerUserId,
         ));
   }
 

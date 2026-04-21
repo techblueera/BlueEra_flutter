@@ -296,10 +296,6 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                           // ▶️ Play/Pause button overlay
                           if (_isInitialized)
                             AnimatedOpacity(
-
-
-
-
                               opacity: _isPlaying ? 0.0 : 0.8,
                               duration: const Duration(milliseconds: 300),
                               child: Container(
@@ -494,10 +490,12 @@ class _VideoPlayerItemState extends State<VideoPlayerItem> {
                                       borderRadius: BorderRadius.circular(10),
                                     ),
                                     child: ExpandableTextVideo(
-                                      text: widget.video.subTitle!="null"?widget.video.subTitle:"N/A",
+                                      text: widget.video.subTitle != "null"
+                                          ? widget.video.subTitle
+                                          : "N/A",
                                       trimLines: 2,
                                       isReadMoreNewLine: false,
-                                      expandMode: ExpandMode.dialog,
+                                      expandMode: ExpandMode.expandable,
                                       style: TextStyle(
                                         color: AppColors.white,
                                         fontSize: SizeConfig.medium,

@@ -5,13 +5,12 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/environment_config.dart';
+import 'package:BlueEra/features/common/account_deletion/controller/account_deletion_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/account_setting_screen/account_settings_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/help_and_support_screen/help_and_support_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
-import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -104,21 +103,9 @@ class ProfileSettingsNewScreen extends StatelessWidget {
                     radius: 10.0),
                 SizedBox(height: 20),
                 CustomBtn(
-                    onTap: () async {
-                      await showCommonDialog(
-                          context: context,
-                          text: AppStrings.deleteAccountConfirmationMessage,
-                          confirmCallback: () async {
-                            await SharedPreferenceUtils.clearPreference();
-                            Navigator.of(context).pushNamedAndRemoveUntil(
-                                RouteHelper.getMobileNumberLoginRoute(),
-                                (Route<dynamic> route) => false);
-                          },
-                          cancelCallback: () {
-                            Navigator.of(context).pop(); // Close the dialog
-                          },
-                          confirmText: AppStrings.yes,
-                          cancelText: AppStrings.no);
+                    onTap: () {
+                      Get.put(AccountDeletionController())
+                          .startAccountDeletion(context);
                     },
                     title: AppStrings.deleteAccount,
                     bgColor: Colors.white,

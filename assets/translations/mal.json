@@ -2354,5 +2354,11 @@
   "yourbrowserdoesnotsupportthevideotag": "നിങ്ങളുടെ ബ്രൗസർ വീഡിയോ ടാഗ് പിന്തുണയ്ക്കുന്നില്ല",
   "youtube": "YouTube",
   "youtubeHint": "നിങ്ങളുടെ YouTube URL ഇവിടെ",
-  "youvereachedtheendofthefeed": "നിങ്ങൾ ഫീഡിന്റെ അവസാനം എത്തി"
+  "youvereachedtheendofthefeed": "നിങ്ങൾ ഫീഡിന്റെ അവസാനം എത്തി",
+  "deleteAccountDialogBody": "You'll be taken to a web page to verify your phone number and accept the deletion terms. This can't be undone after 24 hours.",
+  "deleteAccountContinue": "Continue",
+  "accountDeletionAlreadyPending": "A deletion request is already in progress for your account.",
+  "accountDeletionRateLimited": "Too many attempts. Try again in an hour.",
+  "accountDeletionFeatureDisabled": "This feature isn't available yet. Please contact support.",
+  "accountDeletionCancelledBanner": "We've cancelled your pending account deletion. If you still want to delete your account, you'll need to start over from Settings."
 }

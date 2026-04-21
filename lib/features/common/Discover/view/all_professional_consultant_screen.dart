@@ -84,14 +84,15 @@ class _AllProfessionConsultantScreenState
   Widget build(BuildContext context) {
     final statusBarHeight = MediaQuery.of(context).padding.top;
     final stickyCategories = [
-      StickyCategory(id: 'ALL_OPTION', name: 'All', imageUrl: AppImageAssets.all),
+      StickyCategory(
+          id: 'ALL_OPTION', name: 'All', imageUrl: AppImageAssets.all),
       ..._professionalConsultantCategories.map((c) => StickyCategory(
-        id: c.tagId ?? '',
-        name: c.name ?? '',
-        imageUrl: getIndividualProfessionIcon(c.tagId).isNotEmpty
-            ? getIndividualProfessionIcon(c.tagId)
-            : c.imageUrl ?? '',
-      )),
+            id: c.tagId ?? '',
+            name: c.name ?? '',
+            imageUrl: getIndividualProfessionIcon(c.tagId).isNotEmpty
+                ? getIndividualProfessionIcon(c.tagId)
+                : c.imageUrl ?? '',
+          )),
     ];
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
@@ -111,8 +112,7 @@ class _AllProfessionConsultantScreenState
                     images: _bannerImages,
                     onBack: () => Navigator.pop(context),
                     statusBarHeight: statusBarHeight,
-                    backgroundColor:
-                        AppColors.blue5CAF.withValues(alpha: 0.1),
+                    backgroundColor: AppColors.blue5CAF.withValues(alpha: 0.1),
                     bottomBorderSide: const BorderSide(
                       color: AppColors.white,
                       width: 2,
@@ -124,12 +124,16 @@ class _AllProfessionConsultantScreenState
                   delegate: StickyCategoryHeaderDelegate(
                     topPadding: statusBarHeight,
                     categories: stickyCategories,
-                    selectedId: controller.selectedProfessionalConsultantData.value?.slugId ?? 'ALL_OPTION',
+                    selectedId: controller
+                            .selectedProfessionalConsultantData.value?.slugId ??
+                        'ALL_OPTION',
                     onCategoryTap: (item) {
                       if (item.id == 'ALL_OPTION') {
-                        controller.selectedProfessionalConsultantData.value = null;
+                        controller.selectedProfessionalConsultantData.value =
+                            null;
                       } else {
-                        controller.selectedProfessionalConsultantData.value = OnboardingCategoryModel(
+                        controller.selectedProfessionalConsultantData.value =
+                            OnboardingCategoryModel(
                           name: item.name,
                           slugId: item.id,
                           accountType: AppConstants.individual,
@@ -193,15 +197,19 @@ class _AllProfessionConsultantScreenState
 
                   if (controller.professionalConsDataList.isEmpty) {
                     return Center(
-                        child: EmptyStateWidget(message: AppStrings.noServicesFound.tr));
+                        child: EmptyStateWidget(
+                            message: AppStrings.noServicesFound.tr));
                   }
 
                   return ListView.builder(
                       itemCount: controller.professionalConsDataList.length +
-                          (controller.isProfConServiceLoadingMore.value ? 1 : 0),
+                          (controller.isProfConServiceLoadingMore.value
+                              ? 1
+                              : 0),
                       padding: EdgeInsets.only(bottom: SizeConfig.paddingL),
                       itemBuilder: (context, index) {
-                        if (index == controller.professionalConsDataList.length) {
+                        if (index ==
+                            controller.professionalConsDataList.length) {
                           return const Center(
                             child: Padding(
                               padding: EdgeInsets.all(16.0),
@@ -220,7 +228,6 @@ class _AllProfessionConsultantScreenState
   }
 
   Widget selfProfessionCard(ProfessionalConsData service) {
-
     // Price
     final priceData = service.pricing?.amount;
     final isRange = service.pricing?.type == 'range';
@@ -238,8 +245,10 @@ class _AllProfessionConsultantScreenState
     String badgeText = service.pricing?.type.toString().capitalizeFirst ?? '';
 
     return InkWell(
-      onTap: (){
-        Get.to(DiscoverProfessionalsViewScreen(professionalConsData:service ,));
+      onTap: () {
+        Get.to(DiscoverProfessionalsViewScreen(
+          professionalConsData: service,
+        ));
       },
       child: CustomFormCard(
           padding: EdgeInsets.all(SizeConfig.size10),
@@ -262,7 +271,9 @@ class _AllProfessionConsultantScreenState
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      CustomText(service.userDetails?.name ?? AppStrings.unknownUser.tr,
+                      CustomText(
+                          service.userDetails?.name ??
+                              AppStrings.unknownUser.tr,
                           // fontSize: SizeConfig.small,
                           color: AppColors.mainTextColor,
                           fontWeight: FontWeight.w600),
@@ -291,7 +302,8 @@ class _AllProfessionConsultantScreenState
               if (service.gallery?.signedUrls?.isNotEmpty == true) ...[
                 StoreLivePhotoWidget(
                   livePhotos: service.gallery!.signedUrls!,
-                  natureOfBusiness: service.userDetails?.profession ?? 'Consultant',
+                  natureOfBusiness:
+                      service.userDetails?.profession ?? 'Consultant',
                   height: 200,
                   onViewFullScreen: ({
                     required int index,
@@ -310,14 +322,16 @@ class _AllProfessionConsultantScreenState
                   },
                 ),
                 SizedBox(height: SizeConfig.size6),
-              ] else if ((service.userDetails?.profileImage ?? '').isNotEmpty) ...[
+              ] else if ((service.userDetails?.profileImage ?? '')
+                  .isNotEmpty) ...[
                 ClipRRect(
                   borderRadius: BorderRadius.circular(12),
                   child: GestureDetector(
                     onTap: () => navigatePushTo(
                       context,
                       ImageViewScreen(
-                        subTitle: service.userDetails?.profession ?? 'Consultant',
+                        subTitle:
+                            service.userDetails?.profession ?? 'Consultant',
                         appBarTitle: AppStrings.imageViewer,
                         imageUrls: [service.userDetails!.profileImage!],
                         initialIndex: 0,
@@ -388,7 +402,7 @@ class _AllProfessionConsultantScreenState
                 child: Row(
                   children: [
                     CustomText(
-                      "${service.pricing?.consultationMode??"N/A"}",
+                      "${service.pricing?.consultationMode ?? "N/A"}",
                       fontSize: SizeConfig.small,
                       fontWeight: FontWeight.w400,
                       overflow: TextOverflow.ellipsis,
@@ -462,13 +476,11 @@ class _AllProfessionConsultantScreenState
                     onTap: () {
                       final targetUserId = service.userId ?? '';
                       if (targetUserId.isEmpty) return;
-                      final chatViewController = getOrPut(() => ChatViewController());
+                      final chatViewController =
+                          getOrPut(() => ChatViewController());
 
                       chatViewController.checkChatConnectionAndOpenChat(
-
-                          userId:  service.userId??""
-
-                      );
+                          userId: service.userId ?? "");
                       // Get.to(() => PersonalChatScreen(
                       //       conversationId: '',
                       //       userId: targetUserId,
@@ -1050,7 +1062,6 @@ class _AllProfessionConsultantScreenState
                               (service.gallery?.signedUrls?.isNotEmpty ??
                                   false))
                           ? Builder(builder: (context) {
-
                               // Split into rows of 4
                               final rows = <String>[];
                               rows.addAll(service.gallery?.signedUrls ?? []);
@@ -1070,13 +1081,15 @@ class _AllProfessionConsultantScreenState
                                   return Padding(
                                     padding: const EdgeInsets.all(8.0),
                                     child: ClipRRect(
-                                      borderRadius: BorderRadius.all(Radius.circular(10.0)),
+                                      borderRadius: BorderRadius.all(
+                                          Radius.circular(10.0)),
                                       child: CachedNetworkImage(
                                         imageUrl: rows[index],
                                         width: SizeConfig.size80,
                                         height: SizeConfig.size80,
                                         fit: BoxFit.cover,
-                                        placeholder: (context, url) => Container(
+                                        placeholder: (context, url) =>
+                                            Container(
                                           width: SizeConfig.size80,
                                           height: SizeConfig.size80,
                                           color: Colors.grey[300],

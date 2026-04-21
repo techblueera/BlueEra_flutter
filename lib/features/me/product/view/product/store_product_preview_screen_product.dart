@@ -60,8 +60,7 @@ class _StoreProductPreviewScreenProductState
       isOwnProduct =
           widget.productStore?.sellerClassification?.owner?.id == userId;
 
-      controller.step2Images.value =
-          widget.productStore?.details?.media ?? [];
+      controller.step2Images.value = widget.productStore?.details?.media ?? [];
       controller.productNameController.text =
           widget.productStore?.details?.name ?? '';
       controller.productDescriptionController.text =
@@ -95,28 +94,28 @@ class _StoreProductPreviewScreenProductState
       List<Variant> variants =
           widget.productStore?.sellerClassification?.variants ?? [];
       if (variants.isNotEmpty) {
-        controller.listedProducts.value = widget
-                .productStore?.sellerClassification?.variants
-                .map((variant) {
-              return ProductListing(
-                id: variant.id,
-                image: variant.mediaRelatedToVariant.isNotEmpty
-                    ? variant.mediaRelatedToVariant
-                    : [],
-                name:
-                    '${widget.productStore?.details?.name}  ${variant.attributes.values.map((v) => v.toString()).join()}',
-                selectedVariants: variant.attributes
-                    .map((key, value) => MapEntry(key, value)),
-                price: variant.sellingPrice.toString(),
-                mrp: variant.mrp.toString(),
-                discount: variant.mrp > 0
-                    ? (((variant.mrp - variant.sellingPrice) / variant.mrp) *
-                            100)
-                        .toStringAsFixed(0)
-                    : null,
-              );
-            }).toList() ??
-            [];
+        controller.listedProducts.value =
+            widget.productStore?.sellerClassification?.variants.map((variant) {
+                  return ProductListing(
+                    id: variant.id,
+                    image: variant.mediaRelatedToVariant.isNotEmpty
+                        ? variant.mediaRelatedToVariant
+                        : [],
+                    name:
+                        '${widget.productStore?.details?.name}  ${variant.attributes.values.map((v) => v.toString()).join()}',
+                    selectedVariants: variant.attributes
+                        .map((key, value) => MapEntry(key, value)),
+                    price: variant.sellingPrice.toString(),
+                    mrp: variant.mrp.toString(),
+                    discount: variant.mrp > 0
+                        ? (((variant.mrp - variant.sellingPrice) /
+                                    variant.mrp) *
+                                100)
+                            .toStringAsFixed(0)
+                        : null,
+                  );
+                }).toList() ??
+                [];
       }
     }
     super.initState();
@@ -238,11 +237,6 @@ class _StoreProductPreviewScreenProductState
     );
   }
 
-
-
-
-
-
   // ─────────────────────────────────────────────────────────────────────────
   // IMAGE CAROUSEL
   // ─────────────────────────────────────────────────────────────────────────
@@ -304,8 +298,8 @@ class _StoreProductPreviewScreenProductState
                               placeholder: (_, __) => Container(
                                 color: Colors.grey[200],
                                 child: const Center(
-                                  child: CircularProgressIndicator(
-                                      strokeWidth: 2),
+                                  child:
+                                      CircularProgressIndicator(strokeWidth: 2),
                                 ),
                               ),
                               errorWidget: (_, __, ___) => Container(
@@ -434,8 +428,7 @@ class _StoreProductPreviewScreenProductState
                             horizontal: SizeConfig.paddingXS,
                             vertical: SizeConfig.size2),
                         decoration: BoxDecoration(
-                          color: AppColors.primaryColor
-                              .withValues(alpha: 0.08),
+                          color: AppColors.primaryColor.withValues(alpha: 0.08),
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: CustomText(
@@ -469,8 +462,7 @@ class _StoreProductPreviewScreenProductState
           final screen = AppConstants.storeFeedScreen;
           final isBusiness = owner.type == ProviderType.business.title;
           final destination = isBusiness
-              ? VisitBusinessProfileNew(
-                  businessId: ownerId, screenName: screen)
+              ? VisitBusinessProfileNew(businessId: ownerId, screenName: screen)
               : NewVisitProfileScreen(
                   authorId: ownerId, screenFromName: screen);
           Get.to(() => destination);
@@ -522,8 +514,7 @@ class _StoreProductPreviewScreenProductState
                 ),
               ),
               Icon(Icons.arrow_forward_ios_rounded,
-                  size: SizeConfig.size16,
-                  color: AppColors.secondaryTextColor),
+                  size: SizeConfig.size16, color: AppColors.secondaryTextColor),
             ],
           ),
         ),
@@ -616,8 +607,7 @@ class _StoreProductPreviewScreenProductState
                 SizedBox(width: SizeConfig.paddingXS),
                 Expanded(
                   child: GestureDetector(
-                    onTap: () =>
-                        launchURL(controller.linkController.text),
+                    onTap: () => launchURL(controller.linkController.text),
                     child: CustomText(
                       controller.linkController.text,
                       fontSize: SizeConfig.size13,
@@ -770,8 +760,8 @@ class _StoreProductPreviewScreenProductState
               runSpacing: 8,
               children: controller.selectedColors.map((selected) {
                 return Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 10, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
                     color: AppColors.primaryColor.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(8),
@@ -824,8 +814,7 @@ class _StoreProductPreviewScreenProductState
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 10, vertical: 4),
                               decoration: BoxDecoration(
-                                border: Border.all(
-                                    color: Colors.grey.shade300),
+                                border: Border.all(color: Colors.grey.shade300),
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: CustomText(
@@ -908,7 +897,8 @@ class _StoreProductPreviewScreenProductState
                   itemCount: controller.listedProducts.length,
                   itemBuilder: (context, index) {
                     final product = controller.listedProducts[index];
-                    return _variantCard(product, width: itemWidth, index: index);
+                    return _variantCard(product,
+                        width: itemWidth, index: index);
                   },
                 );
               },
@@ -1059,8 +1049,7 @@ class _StoreProductPreviewScreenProductState
                     borderRadius: BorderRadius.circular(6),
                     child: Container(
                       width: double.infinity,
-                      padding:
-                          EdgeInsets.symmetric(vertical: SizeConfig.size4),
+                      padding: EdgeInsets.symmetric(vertical: SizeConfig.size4),
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
                         color: AppColors.primaryColor,
@@ -1219,8 +1208,7 @@ class _StoreProductPreviewScreenProductState
         ApiKeys.price: "${product.price}",
         ApiKeys.discount: "${product.discount}",
         if (!hasConversation)
-          ApiKeys.other_user_id:
-              userDetailsMap[ApiKeys.other_user_id] ?? ''
+          ApiKeys.other_user_id: userDetailsMap[ApiKeys.other_user_id] ?? ''
         else
           ApiKeys.conversation_id:
               userDetailsMap[ApiKeys.conversation_id] ?? '',
@@ -1248,8 +1236,8 @@ class _StoreProductPreviewScreenProductState
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: Padding(
-            padding: const EdgeInsets.only(
-                top: 8, left: 16, right: 16, bottom: 16),
+            padding:
+                const EdgeInsets.only(top: 8, left: 16, right: 16, bottom: 16),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,

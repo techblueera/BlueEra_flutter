@@ -107,7 +107,8 @@ class _HotelDiscoverHomeScreenState extends State<HotelDiscoverHomeScreen> {
                     Expanded(
                       child: PositiveCustomBtn(
                         onTap: () {
-                          commonSnackBar(message: AppStrings.comingSoonLabel.tr);
+                          commonSnackBar(
+                              message: AppStrings.comingSoonLabel.tr);
                         },
                         title: AppStrings.bookInquiry,
                       ),
@@ -126,7 +127,9 @@ class _HotelDiscoverHomeScreenState extends State<HotelDiscoverHomeScreen> {
             _buildHeader(),
             SizedBox(height: SizeConfig.size16),
 
-            ProfileImpressionStats(cardMargin: 0,),
+            ProfileImpressionStats(
+              cardMargin: 0,
+            ),
 
             // --- Choose Room ---
             SizedBox(height: SizeConfig.size16),
@@ -147,7 +150,7 @@ class _HotelDiscoverHomeScreenState extends State<HotelDiscoverHomeScreen> {
 
             /// WEBSITE PREVIEW
             WebsitePreviewCard(
-              url:profile?.website ?? '',
+              url: profile?.website ?? '',
             ),
 
             // --- Location Map ---
@@ -377,8 +380,7 @@ class _HotelDiscoverHomeScreenState extends State<HotelDiscoverHomeScreen> {
             SizedBox(
               height: 310,
               child: filteredRooms.isEmpty
-                  ? const Center(
-                      child: CustomText(AppStrings.noRoomsAvailable))
+                  ? const Center(child: CustomText(AppStrings.noRoomsAvailable))
                   : ListView.builder(
                       scrollDirection: Axis.horizontal,
                       itemCount: filteredRooms.length,
@@ -416,8 +418,7 @@ class _HotelDiscoverHomeScreenState extends State<HotelDiscoverHomeScreen> {
                       placeholder: (ctx, _) => Container(
                         color: Colors.grey[200],
                         child: const Center(
-                            child:
-                                CircularProgressIndicator(strokeWidth: 2)),
+                            child: CircularProgressIndicator(strokeWidth: 2)),
                       ),
                       errorWidget: (ctx, _, __) => Container(
                         color: Colors.grey[200],
@@ -427,8 +428,8 @@ class _HotelDiscoverHomeScreenState extends State<HotelDiscoverHomeScreen> {
                     )
                   : Container(
                       color: Colors.grey[200],
-                      child: const Icon(Icons.hotel,
-                          size: 50, color: Colors.grey),
+                      child:
+                          const Icon(Icons.hotel, size: 50, color: Colors.grey),
                     ),
             ),
           ),
@@ -447,8 +448,8 @@ class _HotelDiscoverHomeScreenState extends State<HotelDiscoverHomeScreen> {
                   ),
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.only(
-                      left: 10.0, right: 10, bottom: 10),
+                  padding:
+                      const EdgeInsets.only(left: 10.0, right: 10, bottom: 10),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.end,
@@ -554,26 +555,32 @@ class _HotelDiscoverHomeScreenState extends State<HotelDiscoverHomeScreen> {
   Widget _buildAmenitiesSection() {
     final amen = profile?.amenities;
     final chips = <_AmenityItem>[];
-    if (amen?.freeWifi == true) chips.add(_AmenityItem(Icons.wifi, AppStrings.amenityWifi.tr));
+    if (amen?.freeWifi == true)
+      chips.add(_AmenityItem(Icons.wifi, AppStrings.amenityWifi.tr));
     if (amen?.airConditioning == true)
       chips.add(_AmenityItem(Icons.ac_unit, AppStrings.amenityAC.tr));
-    if (amen?.television == true) chips.add(_AmenityItem(Icons.tv, AppStrings.amenityTV.tr));
+    if (amen?.television == true)
+      chips.add(_AmenityItem(Icons.tv, AppStrings.amenityTV.tr));
     if (amen?.roomService == true)
-      chips.add(_AmenityItem(Icons.room_service, AppStrings.amenityRoomService.tr));
+      chips.add(
+          _AmenityItem(Icons.room_service, AppStrings.amenityRoomService.tr));
     if (amen?.powerBackup == true)
-      chips.add(_AmenityItem(Icons.battery_charging_full_sharp, AppStrings.amenityPowerBackup.tr));
+      chips.add(_AmenityItem(
+          Icons.battery_charging_full_sharp, AppStrings.amenityPowerBackup.tr));
     if (amen?.balcony == true)
       chips.add(_AmenityItem(Icons.balcony, AppStrings.amenityBalcony.tr));
     if (amen?.attachedBathroom == true)
       chips.add(_AmenityItem(Icons.bathroom, AppStrings.amenityBathroom.tr));
     if (amen?.wardrobe == true)
-      chips.add(_AmenityItem(Icons.devices_other, AppStrings.amenityWardrobe.tr));
+      chips.add(
+          _AmenityItem(Icons.devices_other, AppStrings.amenityWardrobe.tr));
     if (amen?.deskChair == true)
       chips.add(_AmenityItem(Icons.chair, AppStrings.amenityDeskChair.tr));
     if (amen?.roomRefrigerators == true)
       chips.add(_AmenityItem(Icons.kitchen, AppStrings.amenityRefrigerator.tr));
     if (amen?.electricKettle == true)
-      chips.add(_AmenityItem(Icons.electric_bolt, AppStrings.amenityElectricKettle.tr));
+      chips.add(_AmenityItem(
+          Icons.electric_bolt, AppStrings.amenityElectricKettle.tr));
 
     final displayChips = chips.length > 5 ? chips.sublist(0, 5) : chips;
     final hasMore = chips.length > 5;
@@ -836,7 +843,9 @@ class _HotelDiscoverHomeScreenState extends State<HotelDiscoverHomeScreen> {
 
   Widget _buildLocationSection() {
     final coords = profile?.location?.coordinates;
-    if (coords == null || coords.length < 2 || (coords[0] == 0.0 && coords[1] == 0.0)) {
+    if (coords == null ||
+        coords.length < 2 ||
+        (coords[0] == 0.0 && coords[1] == 0.0)) {
       return const SizedBox.shrink();
     }
 

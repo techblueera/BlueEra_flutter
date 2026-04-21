@@ -33,6 +33,7 @@ class RiderPickupNavigationScreen extends StatefulWidget {
   final String otp;
   final String paymentMethod;
   final String orderId;
+  final String customerUserId;
 
   const RiderPickupNavigationScreen({
     super.key,
@@ -49,6 +50,7 @@ class RiderPickupNavigationScreen extends StatefulWidget {
     required this.otp,
     this.paymentMethod = 'Cash',
     this.orderId = '',
+    this.customerUserId = '',
   });
 
   @override
@@ -288,6 +290,68 @@ class _RiderPickupNavigationScreenState
     });
   }
 
+  Future<void> _handleCallCustomer() async {
+    if (widget.customerUserId.isEmpty) {
+      commonSnackBar(message: 'Customer contact not available');
+      return;
+    }
+    final callController = Get.find<CallController>();
+
+    // Minimise the pickup screen into the floating PiP overlay so the ride /
+    // OTP context is preserved while the call UI takes over. When the call
+    // ends we restore this screen so the rider lands back on OTP entry.
+    _minimiseToOverlay();
+
+    final success = await callController.initiateCall(
+      type: CallType.audio,
+      otherUserId: widget.customerUserId,
+      userName: widget.customerName,
+      userImage: widget.customerImage,
+    );
+    if (!success) {
+      _restorePickupScreenFromOverlay();
+      return;
+    }
+
+    late final Worker callStatusWorker;
+    callStatusWorker = ever<CallStatus>(callController.callStatus, (status) {
+      if (status == CallStatus.idle || status == CallStatus.ended) {
+        callStatusWorker.dispose();
+        _restorePickupScreenFromOverlay();
+      }
+    });
+  }
+
+  /// After a customer call ends, bring the pickup/OTP screen back in front
+  /// using the params captured in the overlay controller, then clear the
+  /// overlay so it isn't left dangling on top of the restored screen.
+  void _restorePickupScreenFromOverlay() {
+    if (!Get.isRegistered<RideNavigationOverlayController>()) return;
+    final overlayCtrl = Get.find<RideNavigationOverlayController>();
+    if (overlayCtrl.screenType.value != 'pickup' ||
+        overlayCtrl.screenParams.isEmpty) {
+      return;
+    }
+    final p = Map<String, dynamic>.from(overlayCtrl.screenParams);
+    overlayCtrl.hideOverlay();
+    Get.to(() => RiderPickupNavigationScreen(
+          pickupLocation: p['pickupLocation'] ?? '',
+          dropLocation: p['dropLocation'] ?? '',
+          pickupLat: (p['pickupLat'] as num?)?.toDouble() ?? 0,
+          pickupLng: (p['pickupLng'] as num?)?.toDouble() ?? 0,
+          dropLat: (p['dropLat'] as num?)?.toDouble() ?? 0,
+          dropLng: (p['dropLng'] as num?)?.toDouble() ?? 0,
+          fareAmount: (p['fareAmount'] as num?)?.toDouble() ?? 0,
+          distanceKm: (p['distanceKm'] as num?)?.toDouble() ?? 0,
+          customerName: p['customerName'] ?? '',
+          customerImage: p['customerImage'] ?? '',
+          otp: p['otp'] ?? '',
+          paymentMethod: p['paymentMethod'] ?? 'Cash',
+          orderId: p['orderId'] ?? '',
+          customerUserId: p['customerUserId'] ?? '',
+        ));
+  }
+
   void _minimiseToOverlay() {
     final overlayCtrl = Get.put(RideNavigationOverlayController());
     overlayCtrl.showOverlay(
@@ -311,6 +375,7 @@ class _RiderPickupNavigationScreenState
         'distanceKm': widget.distanceKm,
         'customerName': widget.customerName,
         'customerImage': widget.customerImage,
+        'customerUserId': widget.customerUserId,
         'otp': widget.otp,
         'paymentMethod': widget.paymentMethod,
         'orderId': widget.orderId,
@@ -646,15 +711,18 @@ class _RiderPickupNavigationScreenState
             ),
           ),
           // Call / navigate buttons
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: const Color(0xFF00C853).withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
+          GestureDetector(
+            onTap: _handleCallCustomer,
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: const Color(0xFF00C853).withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(Icons.phone_rounded,
+                  color: Color(0xFF00C853), size: 20),
             ),
-            child: const Icon(Icons.phone_rounded,
-                color: Color(0xFF00C853), size: 20),
           ),
         ],
       ),

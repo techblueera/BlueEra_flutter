@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/constants/check_internet_connectivity.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/services/chat_media_compression_service.dart';
 import 'package:BlueEra/features/chat/view/widget/picked_media_preview.dart';
@@ -1184,37 +1185,54 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
 
   Future<void> submitRecordedAudio(String filePath) async {
     try {
-      if (filePath.isNotEmpty) {
-        // Compress recorded audio before sending
-        File audioFile = File(filePath);
-        File compressedAudio = (await ChatMediaCompressionService.compressAudio(audioFile)) ?? audioFile;
+      if (filePath.isEmpty) return;
+      // Compress recorded audio before sending
+      File audioFile = File(filePath);
+      File compressedAudio =
+          (await ChatMediaCompressionService.compressAudio(audioFile)) ??
+              audioFile;
+      final String compressedPath = compressedAudio.path;
+      final String fileName = compressedPath.split('/').last;
+      final String caption =
+          chatViewController.sendMessageController.value.text;
 
-        String fileName = compressedAudio.path
-            .split('/')
-            .last;
-
-        dio.MultipartFile audioPart = await dio.MultipartFile.fromFile(
-          compressedAudio.path,
-          filename: fileName,
-        );
-
-        Map<String, dynamic> data = {
-          if(isInitialFlow)
-            ApiKeys.other_user_id: widget.userId
-          else
-            ApiKeys.conversation_id: widget.conversationId,
-          ApiKeys.message: chatViewController.sendMessageController.value.text,
-          ApiKeys.message_type: "audio",
-          ApiKeys.files: [audioPart],
-        };
-
-        print('SEND PAYLOAD (audio): '+data.toString());
-        await sendMessageToUser(
-          data: data,
+      // Offline: queue a pending row with the local path so the drainer can
+      // rebuild a MultipartFile and send it once the network is back.
+      if (!await checkInternetStatus()) {
+        await chatViewController.enqueuePendingFileMessage(
+          messageType: "audio",
+          filePaths: [compressedPath],
+          conversationId: widget.conversationId,
+          otherUserId: widget.userId,
+          caption: caption,
+          fileName: fileName,
           isInitial: isInitialFlow,
         );
-        return  ;
+        chatViewController.sendMessageController.value.clear();
+        chatViewController.isTextFieldEmpty.value = false;
+        return;
       }
+
+      dio.MultipartFile audioPart = await dio.MultipartFile.fromFile(
+        compressedPath,
+        filename: fileName,
+      );
+
+      Map<String, dynamic> data = {
+        if (isInitialFlow)
+          ApiKeys.other_user_id: widget.userId
+        else
+          ApiKeys.conversation_id: widget.conversationId,
+        ApiKeys.message: caption,
+        ApiKeys.message_type: "audio",
+        ApiKeys.files: [audioPart],
+      };
+
+      print('SEND PAYLOAD (audio): ' + data.toString());
+      await sendMessageToUser(
+        data: data,
+        isInitial: isInitialFlow,
+      );
     } catch (e) {
       debugPrint('Failed to submit recorded audio: $e');
     }
@@ -1421,25 +1439,44 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
 
       // Compress audio before sending
       File audioFile = File(filePath!);
-      File compressedAudio = (await ChatMediaCompressionService.compressAudio(audioFile)) ?? audioFile;
+      File compressedAudio =
+          (await ChatMediaCompressionService.compressAudio(audioFile)) ??
+              audioFile;
+      final String compressedPath = compressedAudio.path;
+      final String fileName = compressedPath.split('/').last;
+      final String caption =
+          chatViewController.sendMessageController.value.text;
 
-      String fileName = compressedAudio.path.split('/').last;
+      if (!await checkInternetStatus()) {
+        await chatViewController.enqueuePendingFileMessage(
+          messageType: "audio",
+          filePaths: [compressedPath],
+          conversationId: widget.conversationId,
+          otherUserId: widget.userId,
+          caption: caption,
+          fileName: fileName,
+          isInitial: isInitialFlow,
+        );
+        chatViewController.sendMessageController.value.clear();
+        chatViewController.isTextFieldEmpty.value = false;
+        return;
+      }
 
       dio.MultipartFile audioPart = await dio.MultipartFile.fromFile(
-        compressedAudio.path,
+        compressedPath,
         filename: fileName,
       );
 
       Map<String, dynamic> data = {
-        if(isInitialFlow)
+        if (isInitialFlow)
           ApiKeys.other_user_id: widget.userId
         else
           ApiKeys.conversation_id: widget.conversationId,
-        ApiKeys.message: chatViewController.sendMessageController.value.text,
+        ApiKeys.message: caption,
         ApiKeys.message_type: "audio",
         ApiKeys.files: [audioPart],
       };
-      print('SEND PAYLOAD (audio file): '+data.toString());
+      print('SEND PAYLOAD (audio file): ' + data.toString());
       sendMessageToUser(data: data, isInitial: isInitialFlow);
     }
   }
@@ -1451,34 +1488,52 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
     );
 
     if (result != null && result.files.isNotEmpty) {
-      List<dio.MultipartFile> documentParts = [];
+      final List<String> paths = [];
       String? fileddName;
       for (var file in result.files) {
         if (file.path != null) {
-          String filePath = file.path!;
-          String filedName = filePath
-              .split('/')
-              .last;
-          fileddName = filedName;
-          final multipartFile = await dio.MultipartFile.fromFile(
-            filePath,
-            filename: filedName,
-          );
-
-          documentParts.add(multipartFile);
+          final String filePath = file.path!;
+          fileddName = filePath.split('/').last;
+          paths.add(filePath);
         }
+      }
+      if (paths.isEmpty) return;
+
+      final String caption =
+          chatViewController.sendMessageController.value.text;
+
+      if (!await checkInternetStatus()) {
+        await chatViewController.enqueuePendingFileMessage(
+          messageType: "document",
+          filePaths: paths,
+          conversationId: widget.conversationId,
+          otherUserId: widget.userId,
+          caption: caption,
+          fileName: fileddName,
+          isInitial: isInitialFlow,
+        );
+        chatViewController.sendMessageController.value.clear();
+        chatViewController.isTextFieldEmpty.value = false;
+        return;
+      }
+
+      final List<dio.MultipartFile> documentParts = [];
+      for (final p in paths) {
+        final name = p.split('/').last;
+        documentParts.add(
+            await dio.MultipartFile.fromFile(p, filename: name));
       }
 
       Map<String, dynamic> data = {
-        if(isInitialFlow)
+        if (isInitialFlow)
           ApiKeys.other_user_id: widget.userId
         else
           ApiKeys.conversation_id: widget.conversationId,
-        ApiKeys.message: chatViewController.sendMessageController.value.text,
+        ApiKeys.message: caption,
         ApiKeys.message_type: "document",
         ApiKeys.files: documentParts,
       };
-      print('SEND PAYLOAD (document): '+data.toString());
+      print('SEND PAYLOAD (document): ' + data.toString());
       sendMessageToUser(
           data: data, isInitial: isInitialFlow, fileName: fileddName);
     }
@@ -1691,38 +1746,40 @@ class _ChatInputBarState extends State<ChatInputBar>   with WidgetsBindingObserv
                   File originalFile = File(pickedFile.path);
                   File compressedFile = (await ChatMediaCompressionService.compressImage(originalFile)) ?? originalFile;
 
-                  String? imagePath = compressedFile.path;
-                  String fileName = imagePath
-                      .split('/')
-                      .last;
-                  String fileExtension = fileName
+                  // Route through the presigned-URL upload pipeline so offline
+                  // retries and pending-message drainage work identically to
+                  // the gallery flow.
+                  List<File> selectedFiles = [compressedFile];
+                  List<String?> fileNames = [];
+                  List<String?> fileTypes = [];
+                  for (var file in selectedFiles) {
+                    Map<String, String?> fileInfo = getFileInfo(file);
+                    fileNames.add(fileInfo['fileName']);
+                    fileTypes.add(fileInfo['mimeType']);
+                  }
+
+                  String firstFileExtension = selectedFiles.first.path
                       .split('.')
                       .last
                       .toLowerCase();
                   String messageType = ['mp4', 'mov', 'avi', 'mkv'].contains(
-                      fileExtension)
+                      firstFileExtension)
                       ? 'video'
                       : 'image';
 
-                  dio.MultipartFile? imageByPart = await dio.MultipartFile
-                      .fromFile(
-                    imagePath,
-                    filename: fileName,
-                  );
-
-                  Map<String, dynamic> data = {
-                    if(isInitialFlow)
-                      ApiKeys.other_user_id: widget.userId
-                    else
-                      ApiKeys.conversation_id: widget.conversationId,
-                    if(commands != null)
-                      ApiKeys.message: commands,
-                    ApiKeys.message_type: messageType,
-                    ApiKeys.files: imageByPart,
+                  final uploadParams = {
+                    ApiKeys.fileName: fileNames,
+                    ApiKeys.fileType: fileTypes,
                   };
-                  print('SEND PAYLOAD (camera ${messageType}): '+data.toString());
-                  sendMessageToUser(
-                      data: data, isInitial: isInitialFlow);
+
+                  await chatViewController.generateUploadUrlsApi(
+                    params: uploadParams,
+                    listFile: selectedFiles,
+                    userId: [widget.userId ?? ''],
+                    conversationId: widget.conversationId,
+                    commands: commands,
+                    messageType: messageType,
+                  );
                 },
               ),
         ),

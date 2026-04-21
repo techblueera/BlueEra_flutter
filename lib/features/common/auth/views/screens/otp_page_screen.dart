@@ -119,6 +119,7 @@ class _OtpPageScreenState extends State<OtpPageScreen> with CodeAutoFill {
   Future<void> _onOtpChanged(String value) async {
     setState(() => _isSubmitDisabled = value.length == 6);
     if (value.length == 6) {
+      FocusScope.of(context).unfocus();
       await Get.find<AuthController>().verifyOTP(otp: value);
     }
   }
@@ -213,6 +214,8 @@ class _OtpPageScreenState extends State<OtpPageScreen> with CodeAutoFill {
                         showCursor: true,
                         length: 6,
                         keyboardType: TextInputType.number,
+                        textInputAction: TextInputAction.done,
+                        closeKeyboardWhenCompleted: true,
                         inputFormatters: [
                           FilteringTextInputFormatter.digitsOnly
                         ],

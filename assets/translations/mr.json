@@ -2259,5 +2259,11 @@
   "yourbrowserdoesnotsupportthevideotag": "तुमचा ब्राउझर व्हिडिओ टॅग समर्थित करत नाही",
   "youtube": "युट्युब",
   "youtubeHint": "तुमचा YouTube URL इथे",
-  "youvereachedtheendofthefeed": "तुम्ही फीडच्या शेवटापर्यंत पोहोचला आहात"
+  "youvereachedtheendofthefeed": "तुम्ही फीडच्या शेवटापर्यंत पोहोचला आहात",
+  "deleteAccountDialogBody": "You'll be taken to a web page to verify your phone number and accept the deletion terms. This can't be undone after 24 hours.",
+  "deleteAccountContinue": "Continue",
+  "accountDeletionAlreadyPending": "A deletion request is already in progress for your account.",
+  "accountDeletionRateLimited": "Too many attempts. Try again in an hour.",
+  "accountDeletionFeatureDisabled": "This feature isn't available yet. Please contact support.",
+  "accountDeletionCancelledBanner": "We've cancelled your pending account deletion. If you still want to delete your account, you'll need to start over from Settings."
 }
