@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/logout_helper.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/language_localization_service/language_controller_new.dart';
+import 'package:BlueEra/features/common/account_deletion/controller/account_deletion_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/account_setting_screen/two_step_verify_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -174,10 +175,15 @@ class _AccountSettingScreenState extends State<AccountSettingScreen> {
                         context: context,
                         text: AppStrings.deleteAccountConfirmationMessage,
                         confirmCallback: () async {
-                          await SharedPreferenceUtils.clearPreference();
+Get.back();
+                          Get.put(AccountDeletionController())
+                              .startAccountDeletion(context);
+
+
+                         /* await SharedPreferenceUtils.clearPreference();
                           Navigator.of(context).pushNamedAndRemoveUntil(
                               RouteHelper.getMobileNumberLoginRoute(),
-                                  (Route<dynamic> route) => false);
+                                  (Route<dynamic> route) => false);*/
                         },
                         cancelCallback: () {
                           Navigator.of(context).pop(); // Close the dialog

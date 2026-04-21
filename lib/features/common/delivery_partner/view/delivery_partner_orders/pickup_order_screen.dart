@@ -180,6 +180,7 @@ class _PickupOrderScreenState extends State<PickupOrderScreen> {
                       otp: p['otp'] ?? '',
                       paymentMethod: paymentMethod,
                       orderId: p['orderId'] ?? '',
+                      customerUserId: p['customerUserId'] ?? '',
                     ));
               } else {
                 Get.to(() => RiderRideNavigationScreen(

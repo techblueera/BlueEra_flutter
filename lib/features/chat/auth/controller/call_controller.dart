@@ -108,7 +108,12 @@ class CallController extends GetxController {
   /// - Native system ringtone via DefaultRingtone (rider/fare-call)
   void stopRingtone() {
     _ringtonePlayer.stop();
-    try { DefaultRingtone.stop(); } catch (_) {}
+    // DefaultRingtone.stop() is async — a sync try/catch misses the
+    // MissingPluginException that fires when this engine (e.g. CallActivity
+    // before a full Kotlin rebuild) hasn't registered the channel. Without
+    // .catchError the rejection escapes to runZonedGuarded and prints as
+    // "CALL ENGINE CRASH".
+    DefaultRingtone.stop().catchError((_) {});
   }
 
   // WebRTC
@@ -120,6 +125,11 @@ class CallController extends GetxController {
 
   IceServerConfig? _iceConfig;
   String? _remoteUserId;
+
+  /// Public read access to the current remote user id (the other party of the
+  /// active/last call). Used by downstream screens (e.g. rider pickup nav) to
+  /// initiate a fresh audio call back to the customer after a fare-call.
+  String? get remoteUserId => _remoteUserId;
 
   /// True when the app's main activity is in the foreground (resumed).
   /// Updated by AppLifecycleHandler. We use this in `_handleIncomingCall`
@@ -616,6 +626,28 @@ class CallController extends GetxController {
     } catch (e) {
       if (kDebugMode)
         print('Permission request error (may already be in progress): $e');
+    }
+
+    // --- iOS-only early room join (Android→iOS race fix) ---
+    // The /call/accept round-trip makes the server emit `call:accepted` to the
+    // caller BEFORE iOS reaches the line-752 join-room. The caller's immediate
+    // `call:offer` is then broadcast to the room while iOS is not yet a
+    // member, so the server's room filter drops it. Joining early puts iOS in
+    // the room before the offer dispatches; _handleRemoteOffer buffers into
+    // _pendingOffer (status == accepting), and the later branch consumes it
+    // once media is ready. Scoped to iOS (+ non-fare) to keep the change
+    // zero-risk on Android / CallActivity / fare-call paths.
+    if (Platform.isIOS && !isFareCall.value && savedRoomId.isNotEmpty) {
+      try {
+        if (!_socket.isConnected) {
+          _socket.connectToSocket();
+          await _waitForSocketConnection();
+        }
+        _socket.emitEvent('call:join-room', {'room_id': savedRoomId});
+        debugPrint('[CALL_DEBUG] acceptCall → early iOS join-room emitted pre-API, roomId=$savedRoomId');
+      } catch (e) {
+        debugPrint('[CALL_DEBUG] acceptCall → early join-room error (non-fatal): $e');
+      }
     }
 
     debugPrint('[CALL_DEBUG] acceptCall → API call starting, callId=$savedCallId, roomId=$savedRoomId');
@@ -1830,6 +1862,23 @@ class CallController extends GetxController {
     // ICE connection state (more granular than connection state)
     pc.onIceConnectionState = (RTCIceConnectionState state) {
       debugPrint('[CALL_DEBUG] onIceConnectionState → $state (peer=$peerId)');
+      if (_disposed) return;
+      // iOS fallback: flutter_webrtc's `onConnectionState` is unreliable on
+      // iOS (often never reports Connected), which leaves the UI stuck on
+      // "Connecting" even though ICE has succeeded and audio is flowing.
+      // Drive the connected transition off ICE state here as well. Idempotent
+      // on Android because onConnectionState already fires first there.
+      if (Platform.isIOS &&
+          (state == RTCIceConnectionState.RTCIceConnectionStateConnected ||
+              state == RTCIceConnectionState.RTCIceConnectionStateCompleted) &&
+          callStatus.value != CallStatus.connected) {
+        debugPrint('[CALL_DEBUG] ✅ iOS: promoting to connected via ICE state (peer=$peerId)');
+        _connectionTimer?.cancel();
+        _peerDisconnectTimer?.cancel();
+        _ringTimer?.cancel();
+        callStatus.value = CallStatus.connected;
+        _startCallTimer();
+      }
     };
 
     // Signaling state
@@ -2041,6 +2090,7 @@ class CallController extends GetxController {
 
   /// Show a notification during connecting phase to keep app in foreground
   Future<void> _showConnectingNotification() async {
+    if (Platform.isIOS) return; // CallKit handles the ongoing-call UI natively on iOS
     try {
       final name = callerName.value.isNotEmpty
           ? callerName.value
@@ -2085,6 +2135,7 @@ class CallController extends GetxController {
   }
 
   void _showOngoingCallNotification() {
+    if (Platform.isIOS) return; // CallKit handles the ongoing-call UI natively on iOS
     _notificationTimer?.cancel();
     // Show immediately, then update every second with call duration
     _updateOngoingNotification();
@@ -2094,6 +2145,7 @@ class CallController extends GetxController {
   }
 
   Future<void> _updateOngoingNotification() async {
+    if (Platform.isIOS) return; // CallKit handles the ongoing-call UI natively on iOS
     try {
       final name = callerName.value.isNotEmpty
           ? callerName.value

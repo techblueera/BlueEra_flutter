@@ -146,6 +146,7 @@ void enablePip()async{
             customerImage: customerImage,
             otp: order.pickupOTP ?? '',
             paymentMethod: paymentMethod,
+            customerUserId: order.user?.id ?? '',
           ),
         ),
       );

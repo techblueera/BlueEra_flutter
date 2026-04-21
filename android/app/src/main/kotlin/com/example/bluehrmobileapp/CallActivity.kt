@@ -9,6 +9,9 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.res.Configuration
 import android.graphics.drawable.Icon
+import android.media.Ringtone
+import android.media.RingtoneManager
+import android.net.Uri
 import android.os.Build
 import android.util.Rational
 import android.view.WindowManager
@@ -21,12 +24,14 @@ class CallActivity : FlutterActivity() {
     companion object {
         const val CALL_BRIDGE_CHANNEL = "com.bluehr.call/bridge"
         const val CALL_PIP_CHANNEL = "com.bluehr.call/pip"
+        const val RINGTONE_CHANNEL = "com.bluehr.ringtone/default"
         private const val ACTION_MUTE_TOGGLE = "ai.bluecs.app.calling.MUTE_TOGGLE"
         private const val ACTION_HANGUP = "ai.bluecs.app.calling.HANGUP"
     }
 
     private var pipChannel: MethodChannel? = null
     private var isInPip = false
+    private var ringtone: Ringtone? = null
 
     private val pipActionReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -147,6 +152,38 @@ class CallActivity : FlutterActivity() {
                 else -> result.notImplemented()
             }
         }
+
+        // Ringtone channel — registered here too because CallActivity runs its
+        // own FlutterEngine (dart entrypoint `callMain`), so the channel
+        // registered in MainActivity isn't reachable from this engine. Without
+        // this, DefaultRingtone.stop() throws MissingPluginException when a
+        // call is accepted via CallActivity.
+        MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            RINGTONE_CHANNEL
+        ).setMethodCallHandler { call, result ->
+            when (call.method) {
+                "playRingtone" -> {
+                    playDefaultRingtone()
+                    result.success(null)
+                }
+                "stopRingtone" -> {
+                    stopDefaultRingtone()
+                    result.success(null)
+                }
+                else -> result.notImplemented()
+            }
+        }
+    }
+
+    private fun playDefaultRingtone() {
+        val uri: Uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE)
+        ringtone = RingtoneManager.getRingtone(applicationContext, uri)
+        ringtone?.play()
+    }
+
+    private fun stopDefaultRingtone() {
+        ringtone?.stop()
     }
 
     /// Auto enter PiP when user presses Home
@@ -234,6 +271,11 @@ class CallActivity : FlutterActivity() {
         try {
             unregisterReceiver(pipActionReceiver)
         } catch (_: Exception) {}
+
+        try {
+            ringtone?.stop()
+        } catch (_: Exception) {}
+        ringtone = null
 
         window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 

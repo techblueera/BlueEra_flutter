@@ -3513,7 +3513,7 @@
   "userGuidance": "User guidance",
   "userGuide": "User Guide",
   "usernameError": "Username must be at least min 4 characters & max 8 characters",
-  "usernameHint": "Eg. @Sachin",
+  "usernameHint": "eg @Sachin",
   "validationFieldRequired": "This field is required",
   "validationTopicMinChars": "At least 30 characters are required",
   "validation_comment_required": "Comment is required.",
@@ -3725,7 +3725,6 @@
   "designationExpertise": "Designation / Expertise",
   "enterDesignationExpertise": "Enter your designation/expertise",
   "check": "Check",
-  "usernameHint": "eg @Sachin",
   "usernameMinLength": "Username must be at least 7 characters",
   "haveReferCode": "Do you have refer code?",
   "pleaseSelectDateOfBirth": "Please select your date of birth",
@@ -3757,5 +3756,11 @@
   "partnerTypeRequired": "Please select a partner type",
   "investmentAmountRequired": "Please enter the investment amount",
   "cityRequired": "City is required",
-  "acceptTermsRequired": "Please accept the terms and conditions"
+  "acceptTermsRequired": "Please accept the terms and conditions",
+  "deleteAccountDialogBody": "You'll be taken to a web page to verify your phone number and accept the deletion terms. This can't be undone after 24 hours.",
+  "deleteAccountContinue": "Continue",
+  "accountDeletionAlreadyPending": "A deletion request is already in progress for your account.",
+  "accountDeletionRateLimited": "Too many attempts. Try again in an hour.",
+  "accountDeletionFeatureDisabled": "This feature isn't available yet. Please contact support.",
+  "accountDeletionCancelledBanner": "We've cancelled your pending account deletion. If you still want to delete your account, you'll need to start over from Settings."
 }

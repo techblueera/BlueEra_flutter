@@ -11,6 +11,8 @@ abstract class BaseService {
   final String sentOtp = 'auth-service/sent-otp';
   final String verifyOtp = 'auth-service/verify-otp';
   final String addUser = 'user-service/user/add-user';
+  final String accountDeletionInit = 'user-service/user/account/deletion/init';
+  final String accountDeletionStatus = 'user-service/user/account/deletion/status';
   final String getAllcategories = 'user-service/business/getAllcategories';
   final String getAllcategoriesByType = 'user-service/business/by-type/';
   final String viewBusinessProfile = '/user-service/business/$businessId';

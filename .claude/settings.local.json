@@ -46,7 +46,9 @@
       "Bash(ls -la /tmp/grocery_widget_loc_*.json)",
       "Bash(ls /tmp/grocery_widget_loc_*.json)",
       "Bash(ls /tmp/hospital_ctrl_loc_*.json /tmp/hospital_ctrl_loc_status.md)",
-      "Bash(ls /tmp/hospital_view_loc_*.json)"
+      "Bash(ls /tmp/hospital_view_loc_*.json)",
+      "Bash(plutil -p /Users/Mr.bhavesh/Documents/GitHub/BlueEra_flutter/ios/Runner/GoogleService-Info.plist)",
+      "Bash(git *)"
     ]
   }
 }

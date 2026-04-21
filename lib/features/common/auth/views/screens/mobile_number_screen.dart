@@ -112,6 +112,7 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
                           inputLength: 10,
                           maxLength: 10,
                           keyBoardType: TextInputType.number,
+                          textInputAction: TextInputAction.done,
                           regularExpression:
                           RegularExpressionUtils.digitsPattern,
                           validationType: ValidationTypeEnum.pNumber,
@@ -121,6 +122,12 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
                             fontSize: langController.selectedCode.value == 'ta' ? 12 : 14,
                           ),                          onTapOutsideTrue: false,
                           autovalidateMode: _autoValidate,
+                          onChange: (value) {
+                            if (value.length == 10) {
+                              FocusScope.of(context).unfocus();
+                            }
+                          },
+                          onDone: (_) => _onNextButtonPressed(context),
                           validator: (value) {
                             if (value?.length != 10) {
                               return AppStrings.pleaseEnterValidMobileNo.tr;
