@@ -24,8 +24,7 @@ class EducationServiceCardWidget extends StatelessWidget {
           titleWidget(AppStrings.educationTrainingAndSectors.tr),
           SizedBox(height: SizeConfig.paddingXSL),
           Padding(
-            padding: EdgeInsets.zero,
-            // padding: const EdgeInsets.symmetric(horizontal: 18.0),
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
             child: LayoutBuilder(builder: (context, constraints) {
               const double spacing = 8;
               const int columns = 3;

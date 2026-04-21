@@ -59,7 +59,6 @@ class _EarnServiceDashboardViewState extends State<EarnServiceDashboardView>
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        bottom: false,
         child: NestedScrollView(
         headerSliverBuilder: (context, _) => [
           SliverToBoxAdapter(

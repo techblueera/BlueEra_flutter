@@ -39,8 +39,7 @@ class HealthServiceCardWidget extends StatelessWidget {
           ),
           SizedBox(height: SizeConfig.paddingXSL),
           Padding(
-            padding: EdgeInsets.zero,
-            // padding: const EdgeInsets.symmetric(horizontal:18.0),
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
             child: SizedBox(
               height: SizeConfig.size124,
               child: ListView.builder(

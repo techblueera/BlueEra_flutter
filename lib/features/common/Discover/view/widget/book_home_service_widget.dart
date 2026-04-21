@@ -7,10 +7,8 @@ import 'package:BlueEra/features/common/Discover/view/all_self_profession_screen
 import 'package:BlueEra/features/common/Discover/view/discover_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/rounded_view_all_btn.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
-import 'package:BlueEra/features/common/auth/model/personal_profession_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:flutter/material.dart';
-
 import 'package:get/get.dart';
 
 class BookHomeServiceWidget extends StatelessWidget {
@@ -35,25 +33,24 @@ class BookHomeServiceWidget extends StatelessWidget {
               ViewAllButton(
                 onTap: () {
                   Get.to(() => AllSelfProfessionScreen(
-                        selfEmployedCategories: categories,
-                      ));
+                    selfEmployedCategories: categories,
+                  ));
                 },
               ),
             ],
           ),
           SizedBox(height: SizeConfig.paddingXSL),
           Padding(
-            padding: EdgeInsets.zero,
-            // padding: const EdgeInsets.symmetric(horizontal: 18.0),
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
             child: LayoutBuilder(builder: (context, constraints) {
               const double spacing = 8;
-              const int columns = 3;
+              const int columns = 4;
               final double itemWidth =
                   (constraints.maxWidth - spacing * (columns - 1)) / columns;
               return Wrap(
                 spacing: spacing,
                 runSpacing: spacing,
-                children: categories.take(9).map((categoryItem) {
+                children: categories.take(8).map((categoryItem) {
                   return SizedBox(
                     width: itemWidth,
                     child: CommonServiceCard(

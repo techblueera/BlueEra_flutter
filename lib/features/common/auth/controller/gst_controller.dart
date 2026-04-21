@@ -195,6 +195,7 @@ class GstController extends GetxController {
       isLoading.value = false;
     }
   }
+
   static const List<Map<String, String>> gstStateCodes = [
     {"code": "01", "state": "Jammu & Kashmir"},
     {"code": "02", "state": "Himachal Pradesh"},

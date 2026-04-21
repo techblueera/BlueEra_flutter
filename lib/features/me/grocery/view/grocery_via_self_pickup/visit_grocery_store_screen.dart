@@ -48,8 +48,7 @@ class VisitGroceryStoreScreen extends StatefulWidget {
 
 class _VisitGroceryStoreScreenState extends State<VisitGroceryStoreScreen> {
   final controller = getOrPut(() => GroceryController());
-  final viewBusinessDetailsController =
-  Get.find<ViewBusinessDetailsController>();
+  final viewBusinessDetailsController = Get.find<ViewBusinessDetailsController>();
   final groceryCustomerController = getOrPut(() => GrocerySelfPickupConsumerController());
   final storeController = getOrPut(() => NewStoreController());
 

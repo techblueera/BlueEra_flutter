@@ -37,8 +37,7 @@ class HotelStayServiceCard extends StatelessWidget {
           SizedBox(height: SizeConfig.paddingXSL),
           isShowInGrid
               ? Padding(
-            padding: EdgeInsets.zero,
-            // padding: const EdgeInsets.symmetric(horizontal:18.0),
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
             child: LayoutBuilder(builder: (context, constraints) {
               const double spacing = 8;
               const int columns = 2;
@@ -118,8 +117,7 @@ class HotelStayServiceCard extends StatelessWidget {
           )
               : SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
-                  // padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
-                  padding: EdgeInsets.zero,
+                  padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
                   child: IntrinsicHeight(
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.stretch,

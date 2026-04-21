@@ -27,11 +27,10 @@ class FinancialSectors extends StatelessWidget {
           titleWidget(AppStrings.financialSectors.tr),
           SizedBox(height: SizeConfig.paddingXSL),
           Padding(
-            padding: EdgeInsets.zero,
-            // padding: const EdgeInsets.symmetric(horizontal: 18.0),
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
             child: isShowInGrid ?
             LayoutBuilder(
-                builder: (context, constraints) {
+              builder: (context, constraints) {
               const double spacing = 8;
               const int columns = 3;
               final double itemWidth =
@@ -112,8 +111,6 @@ class FinancialSectors extends StatelessWidget {
 
               return SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
-                // padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
-                padding: EdgeInsets.zero,
                 physics: const AlwaysScrollableScrollPhysics(),
                 child: IntrinsicHeight(
                   child: Row(

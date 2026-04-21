@@ -49,11 +49,11 @@ class DiscoverScreen extends StatefulWidget {
 }
 
 class _DiscoverScreenState extends State<DiscoverScreen> {
+  final bottomBarController = getOrPut(() => BottomBarController());
   final controller = getOrPut(() => DiscoverController());
 
   late final double userLat;
   late final double userLng;
-  final bottomBarController = getOrPut(() => BottomBarController());
 
   final ScrollController _scrollController = ScrollController();
   final GlobalKey _qrWidgetKey = GlobalKey();

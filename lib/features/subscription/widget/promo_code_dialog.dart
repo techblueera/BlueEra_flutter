@@ -116,7 +116,6 @@ class _PromoCodeDialogState extends State<PromoCodeDialog> {
                   bgColor: hasText ? AppColors.greenShade : AppColors.primaryColor,
                   title: hasText ? "Submit" : "No, I Don’t have",
                   onTap: () {
-
                     widget.onBtnPressed(promoCodeController.text.trim());
                   },
                 );

@@ -633,8 +633,8 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
 
   Widget resolveIndividualScreen() {
     final String currentType = userProfileTypeGlobal;
-    log("User Profile Type: $currentType");
-    log("User Profession: $userProfessionGlobal");
+    debugPrint("User Profile Type: $currentType");
+    debugPrint("User Profession: $userProfessionGlobal");
 
     // Using a Switch statement makes it cleaner and easier to add new types
     switch (currentType) {

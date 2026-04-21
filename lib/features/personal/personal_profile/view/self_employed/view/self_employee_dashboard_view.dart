@@ -29,7 +29,6 @@ import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/common_circular_profile_image.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
-import 'package:BlueEra/widgets/user_profile_widget.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:croppy/croppy.dart';
 import 'package:flutter/material.dart';
@@ -128,7 +127,6 @@ class _SelfEmployeeDashboardViewState extends State<SelfEmployeeDashboardView>
 
       return Scaffold(
         body: SafeArea(
-          bottom: false,
           child: NestedScrollView(
             headerSliverBuilder: (context, innerBoxIsScrolled) => [
               SliverToBoxAdapter(child: _buildCoverSection(context)),
@@ -222,38 +220,72 @@ class _SelfEmployeeDashboardViewState extends State<SelfEmployeeDashboardView>
                     ),
             );
           }),
-          // Top bar: back + camera + actions
+          // Top bar: [back] [profile selector] ... [clock] [add] [camera]
           Positioned(
             top: 4,
             left: 8,
             right: 8,
             child: Row(
               children: [
-                if (!widget.fromBottomNavBar)
-                  GestureDetector(
+                if (!widget.fromBottomNavBar) ...[
+                  _coverIconButton(
+                    icon: Icons.arrow_back,
                     onTap: () => Navigator.of(context).pop(),
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.35),
-                        shape: BoxShape.circle,
+                  ),
+                  const SizedBox(width: 8),
+                ],
+                // Profile selector overlay pill (top-left)
+                Flexible(
+                  child: Obx(() {
+                    final earnType = _viewCtrl.earnProfileType.value;
+                    if (earnType == null || earnType.isEmpty) {
+                      return const SizedBox.shrink();
+                    }
+                    final userImage = _viewCtrl.personalProfileDetails.value
+                            .user?.profileImage ??
+                        '';
+                    return Align(
+                      alignment: Alignment.centerLeft,
+                      child: EarnServiceProfileSelector(
+                        profileImages: [userImage, userImage],
+                        profileNames: [
+                          'Skill Work',
+                          earnServiceController.earnProfileLabel(earnType),
+                        ],
+                        selectedIndex: controller.selectedProfileIndex.value,
+                        onProfileSelected: (index) =>
+                            controller.switchProfile(index),
+                        onCoverOverlay: true,
                       ),
-                      child: const Icon(Icons.arrow_back,
-                          color: Colors.white, size: 18),
-                    ),
-                  ),
+                    );
+                  }),
+                ),
                 const Spacer(),
-                GestureDetector(
-                  onTap: () => _onCoverImageEdit(context),
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.35),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Icons.camera_alt_outlined,
-                        color: Colors.white, size: 18),
+                _coverAssetIconButton(
+                  assetPath: AppIconAssets.clockIcon,
+                  onTap: () async => await Get.toNamed(
+                    RouteHelper.getAvailabilityScreenRoute(),
+                    arguments: {ApiKeys.argId: userId},
                   ),
+                ),
+                Obx(() {
+                  final earnType = _viewCtrl.earnProfileType.value;
+                  final hasEarnProfile =
+                      earnType != null && earnType.isNotEmpty;
+                  if (hasEarnProfile) return const SizedBox.shrink();
+                  return Padding(
+                    padding: const EdgeInsets.only(left: 8),
+                    child: _coverIconButton(
+                      icon: Icons.add,
+                      onTap: () =>
+                          Get.to(() => const chooseEarnServiceScreen()),
+                    ),
+                  );
+                }),
+                const SizedBox(width: 8),
+                _coverIconButton(
+                  icon: Icons.camera_alt_outlined,
+                  onTap: () => _onCoverImageEdit(context),
                 ),
               ],
             ),
@@ -439,9 +471,6 @@ class _SelfEmployeeDashboardViewState extends State<SelfEmployeeDashboardView>
                   if (email.isNotEmpty)
                     _infoRow(Icons.email_outlined, email),
                 ],
-                // Profile switcher + actions
-                const SizedBox(height: 10),
-                _buildActionRow(),
               ],
             ),
           ),
@@ -453,67 +482,43 @@ class _SelfEmployeeDashboardViewState extends State<SelfEmployeeDashboardView>
     );
   }
 
-  Widget _buildActionRow() {
-    return Obx(() {
-      final userImage = _viewCtrl
-              .personalProfileDetails.value.user?.profileImage ??
-          '';
-      final earnType = _viewCtrl.earnProfileType.value;
-      final hasEarnProfile = earnType != null && earnType.isNotEmpty;
+  Widget _coverIconButton({
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.black.withValues(alpha: 0.35),
+          shape: BoxShape.circle,
+        ),
+        child: Icon(icon, color: Colors.white, size: 18),
+      ),
+    );
+  }
 
-      return Row(
-        children: [
-          // Profile switcher or avatar
-          if (hasEarnProfile)
-            EarnServiceProfileSelector(
-              profileImages: [userImage, userImage],
-              profileNames: [
-                'Skill Work',
-                earnServiceController.earnProfileLabel(earnType)
-              ],
-              selectedIndex: controller.selectedProfileIndex.value,
-              onProfileSelected: (index) => controller.switchProfile(index),
-            )
-          else
-            CommonProfileAvatar(),
-          const Spacer(),
-          // Availability clock
-          GestureDetector(
-            onTap: () async => await Get.toNamed(
-              RouteHelper.getAvailabilityScreenRoute(),
-              arguments: {ApiKeys.argId: userId},
-            ),
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                border: Border.all(color: AppColors.greyE5),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: LocalAssets(
-                imagePath: AppIconAssets.clockIcon,
-                width: 18,
-                height: 18,
-              ),
-            ),
-          ),
-          // Add service button (only if no earn profile)
-          if (_viewCtrl.earnProfileType.value == null) ...[
-            const SizedBox(width: 8),
-            GestureDetector(
-              onTap: () => Get.to(() => const chooseEarnServiceScreen()),
-              child: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: AppColors.primaryColor,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Icon(Icons.add, color: Colors.white, size: 18),
-              ),
-            ),
-          ],
-        ],
-      );
-    });
+  Widget _coverAssetIconButton({
+    required String assetPath,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.black.withValues(alpha: 0.35),
+          shape: BoxShape.circle,
+        ),
+        child: LocalAssets(
+          imagePath: assetPath,
+          width: 18,
+          height: 18,
+          imgColor: Colors.white,
+        ),
+      ),
+    );
   }
 
   Widget _buildGoLiveChip() {

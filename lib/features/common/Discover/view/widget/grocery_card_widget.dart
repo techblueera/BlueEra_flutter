@@ -30,8 +30,7 @@ class GroceryCardWidget extends StatelessWidget {
             ),
             SizedBox(height: SizeConfig.paddingXSL),
             Padding(
-              padding: EdgeInsets.zero,
-              // padding: const EdgeInsets.symmetric(horizontal:18.0),
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
               child: GridIconImageWidget(
                 items: groceryOrFoodCategories,
                 crossAxisCount: 3,
