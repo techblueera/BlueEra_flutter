@@ -506,7 +506,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                   fontSize: SizeConfig.medium,
                   fontWeight: FontWeight.w400,
                 ),
-                expandMode: ExpandMode.dialog,
+                expandMode: ExpandMode.expandable,
                 dialogTitle: 'Video Description',
               ),
 

@@ -40,11 +40,17 @@ class ProductPreviewArgs {
   final String? expiry;
   final String? linkOrReferralUrl;
   final List<String>? userGuide;
-  final List<ProductListing>? listedProducts; /// for seeing listed products
+  final List<ProductListing>? listedProducts;
+
+  /// for seeing listed products
 
   /// Both will be used for available options
-  final List<SelectedColor>? selectedColors;  /// for seeing all products
-  final Map<String, List<String>>? dynamicAttributes;  /// we will send all the dynamic attribute available
+  final List<SelectedColor>? selectedColors;
+
+  /// for seeing all products
+  final Map<String, List<String>>? dynamicAttributes;
+
+  /// we will send all the dynamic attribute available
 
   ProductPreviewArgs({
     this.productId,
@@ -81,26 +87,27 @@ class ProductPreviewScreen extends StatefulWidget {
   final bool isFromProductCreation;
   final bool isUserCanCreateVariants;
 
-  const ProductPreviewScreen({
-    super.key,
-    required this.id,
-    required this.providerType,
-    required this.productPreviewArgs,
-    required this.isFromProductCreation,
-    required this.isUserCanCreateVariants});
+  const ProductPreviewScreen(
+      {super.key,
+      required this.id,
+      required this.providerType,
+      required this.productPreviewArgs,
+      required this.isFromProductCreation,
+      required this.isUserCanCreateVariants});
 
   @override
   State<ProductPreviewScreen> createState() => _ProductPreviewScreenState();
 }
 
 class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
-  final CarouselSliderController _carouselController = CarouselSliderController();
+  final CarouselSliderController _carouselController =
+      CarouselSliderController();
   final ProductController controller = Get.put(ProductController());
   int _currentIndex = 0;
 
   @override
   void initState() {
-    if(widget.productPreviewArgs!=null) {
+    if (widget.productPreviewArgs != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         loadPreviewArgs(widget.productPreviewArgs!);
       });
@@ -118,9 +125,9 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
     controller.selectedProductOrVariantMrp.value = args.MRPPrice ?? '';
     controller.selectedProductOrVariantPrice.value = args.sellingPrice ?? '';
     controller.selectedProductOrVariantDiscount.value = calculateDiscount(
-        controller.selectedProductOrVariantPrice.value,
-        controller.selectedProductOrVariantMrp.value.toString()
-    ).toStringAsFixed(2);
+            controller.selectedProductOrVariantPrice.value,
+            controller.selectedProductOrVariantMrp.value.toString())
+        .toStringAsFixed(2);
 
     controller.mrpController.text = args.MRPPrice ?? '';
     controller.productWarrantyController.text = args.warranty ?? '';
@@ -132,7 +139,8 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
 
     controller.featureControllers
       ..clear()
-      ..addAll((args.features ?? []).map((f) => TextEditingController(text: f)));
+      ..addAll(
+          (args.features ?? []).map((f) => TextEditingController(text: f)));
 
     controller.detailsList.assignAll(
       (args.details ?? [])
@@ -142,7 +150,8 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
 
     controller.userGuideLineControllers
       ..clear()
-      ..addAll((args.userGuide ?? []).map((g) => TextEditingController(text: g)));
+      ..addAll(
+          (args.userGuide ?? []).map((g) => TextEditingController(text: g)));
 
     if ((args.listedProducts?.isNotEmpty ?? false)) {
       controller.listedProducts.assignAll(args.listedProducts!);
@@ -177,9 +186,7 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
 // dynamicAttributes: ${args.dynamicAttributes}
 // """);
 
-    setState(() {
-
-    });
+    setState(() {});
   }
 
   @override
@@ -197,7 +204,7 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
       confirmCallback: () {
         Navigator.of(context).pop(); // Close dialog first
 
-        if(widget.providerType == ProviderType.business){
+        if (widget.providerType == ProviderType.business) {
           bool isInventoryInStack = false;
 
           // First check entire stack WITHOUT popping it
@@ -209,21 +216,28 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
 
           // Case 1: Inventory exists → pop until product
           if (isInventoryInStack) {
-            Get.until((route) => route.settings.name == RouteHelper.getInventoryScreenRoute());
+            Get.until((route) =>
+                route.settings.name == RouteHelper.getInventoryScreenRoute());
           }
           // Case 2: Inventory not in stack → go to bottom tab, then push product
           else {
-            Get.until((route) => route.settings.name == RouteHelper.getBottomNavigationBarScreenRoute());
+            Get.until((route) =>
+                route.settings.name ==
+                RouteHelper.getBottomNavigationBarScreenRoute());
             // Get.toNamed(RouteHelper.getInventoryScreenRoute());
           }
-        }else if(widget.providerType == ProviderType.user){
+        } else if (widget.providerType == ProviderType.user) {
           if (userProfessionGlobal == BIKE_RIDER) {
-            Get.until((route) => Get.currentRoute == RouteHelper.getGigWorkerOptionsScreenRoute());
+            Get.until((route) =>
+                Get.currentRoute ==
+                RouteHelper.getGigWorkerOptionsScreenRoute());
           } else {
-            Get.until((route) => Get.currentRoute == RouteHelper.getSelfEmployeeScreenRoute());
+            Get.until((route) =>
+                Get.currentRoute == RouteHelper.getSelfEmployeeScreenRoute());
           }
-        }else if(widget.providerType == ProviderType.channel){
-          Get.until((route) => Get.currentRoute == RouteHelper.getChannelScreenRoute());
+        } else if (widget.providerType == ProviderType.channel) {
+          Get.until((route) =>
+              Get.currentRoute == RouteHelper.getChannelScreenRoute());
         }
       },
       cancelCallback: () {
@@ -248,91 +262,105 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
             child: Column(
               children: [
                 Stack(
-                  children:[
+                  children: [
                     Container(
-                      height: SizeConfig.size350,
-                      color: AppColors.white,
-                      child: Obx(()=>  Stack(
-                        alignment: Alignment.bottomCenter,
-                        children: [
-                          CarouselSlider.builder(
-                            carouselController: _carouselController,
-                            itemCount: controller.allProductImages.length,
-                            options: CarouselOptions(
-                              height: SizeConfig.size350,
-                              viewportFraction: 1.0,
-                              enlargeCenterPage: false,
-                              enableInfiniteScroll: false,
-                              autoPlay: true,
-                              onPageChanged: (index, reason) {
-                                setState(() => _currentIndex = index);
-                              },
-                            ),
-                            itemBuilder: (context, index, realIdx) {
-                              return !isNetworkImage(controller.allProductImages[index])
-                                  ? Image.file(
-                                File(controller.allProductImages[index]),
-                                fit: BoxFit.contain,
-                                width: double.infinity,
-                              ) : CachedNetworkImage(
-                                imageUrl: controller.allProductImages[index],
-                                fit: BoxFit.contain,
-                                width: double.infinity,
-                                placeholder: (context, url) => Container(
-                                  color: Colors.grey[200],
-                                  child: const Center(
-                                    child: CircularProgressIndicator(strokeWidth: 2),
-                                  ),
+                        height: SizeConfig.size350,
+                        color: AppColors.white,
+                        child: Obx(
+                          () => Stack(
+                            alignment: Alignment.bottomCenter,
+                            children: [
+                              CarouselSlider.builder(
+                                carouselController: _carouselController,
+                                itemCount: controller.allProductImages.length,
+                                options: CarouselOptions(
+                                  height: SizeConfig.size350,
+                                  viewportFraction: 1.0,
+                                  enlargeCenterPage: false,
+                                  enableInfiniteScroll: false,
+                                  autoPlay: true,
+                                  onPageChanged: (index, reason) {
+                                    setState(() => _currentIndex = index);
+                                  },
                                 ),
-                                errorWidget: (context, url, error) => Container(
-                                  color: Colors.grey[200],
-                                  child: const Icon(Icons.broken_image),
-                                ),
-                              );
-                            },
+                                itemBuilder: (context, index, realIdx) {
+                                  return !isNetworkImage(
+                                          controller.allProductImages[index])
+                                      ? Image.file(
+                                          File(controller
+                                              .allProductImages[index]),
+                                          fit: BoxFit.contain,
+                                          width: double.infinity,
+                                        )
+                                      : CachedNetworkImage(
+                                          imageUrl: controller
+                                              .allProductImages[index],
+                                          fit: BoxFit.contain,
+                                          width: double.infinity,
+                                          placeholder: (context, url) =>
+                                              Container(
+                                            color: Colors.grey[200],
+                                            child: const Center(
+                                              child: CircularProgressIndicator(
+                                                  strokeWidth: 2),
+                                            ),
+                                          ),
+                                          errorWidget: (context, url, error) =>
+                                              Container(
+                                            color: Colors.grey[200],
+                                            child:
+                                                const Icon(Icons.broken_image),
+                                          ),
+                                        );
+                                },
+                              ),
+                              (controller.allProductImages.length > 1)
+                                  ? Positioned(
+                                      bottom: 8,
+                                      left: 0,
+                                      right: 0,
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: List.generate(
+                                            controller.allProductImages.length,
+                                            (index) {
+                                          return AnimatedContainer(
+                                            duration: const Duration(
+                                                milliseconds: 300),
+                                            margin: const EdgeInsets.symmetric(
+                                                horizontal: 4.0),
+                                            width:
+                                                _currentIndex == index ? 8 : 6,
+                                            height:
+                                                _currentIndex == index ? 8 : 6,
+                                            decoration: BoxDecoration(
+                                              color: _currentIndex == index
+                                                  ? AppColors.primaryColor
+                                                  : Colors.grey,
+                                              shape: BoxShape.circle,
+                                            ),
+                                          );
+                                        }),
+                                      ),
+                                    )
+                                  : SizedBox(),
+                            ],
                           ),
-
-                          (controller.allProductImages.length > 1)
-                              ? Positioned(
-                            bottom: 8,
-                            left: 0,
-                            right: 0,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: List.generate(controller.allProductImages.length, (index) {
-                                return AnimatedContainer(
-                                  duration: const Duration(milliseconds: 300),
-                                  margin: const EdgeInsets.symmetric(horizontal: 4.0),
-                                  width: _currentIndex == index ? 8 : 6,
-                                  height: _currentIndex == index ? 8 : 6,
-                                  decoration: BoxDecoration(
-                                    color: _currentIndex == index
-                                        ? AppColors.primaryColor
-                                        : Colors.grey,
-                                    shape: BoxShape.circle,
-                                  ),
-                                );
-                              }),
-                            ),
-                          ) : SizedBox(),
-                        ],
-                       ),
-                      )
-
-                    ),
+                        )),
                     Positioned(
                       top: 15,
                       left: 15,
                       child: IconButton(
-                      padding: EdgeInsets.zero,
-                          onPressed:() {
-                            if(widget.isFromProductCreation == false) {
+                          padding: EdgeInsets.zero,
+                          onPressed: () {
+                            if (widget.isFromProductCreation == false) {
                               Get.back();
                               return;
                             }
 
-                             handleBackPress(context);
-                            },
+                            handleBackPress(context);
+                          },
                           icon: LocalAssets(
                             imagePath: AppIconAssets.back_arrow,
                             height: SizeConfig.paddingL,
@@ -342,62 +370,57 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
                     ),
                   ],
                 ),
-
-                if(controller.listedProducts.isNotEmpty)
-                 _buildListedProducts(),
-
-                Obx(()=> CustomFormCard(
-                  margin: EdgeInsets.all(SizeConfig.size15),
-                  child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        CustomText(
-                          controller.productNameController.text,
-                          fontSize: SizeConfig.large,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.mainTextColor,
-                        ),
-
-                        if(controller.selectedVariantIndex.value != - 1)
-                          Padding(
-                            padding: EdgeInsets.only(top: SizeConfig.size12),
-                            child: Row(
-                              children: [
-                                CustomText(
-                                  '₹${controller.selectedProductOrVariantPrice.value}',
-                                  fontSize: 24.0,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.mainTextColor,
-                                ),
-                                SizedBox(
-                                  width: SizeConfig.size8,
-                                ),
-                                CustomText(
-                                  '₹${controller.selectedProductOrVariantMrp.value}',
-                                  fontSize: 14.0,
-                                  fontWeight: FontWeight.w400,
-                                  color: AppColors.secondaryTextColor,
-                                  decoration: TextDecoration.lineThrough,
-                                ),
-                                CustomText(
-                                  ' ${controller.selectedProductOrVariantDiscount.value}% Off ',
-                                  fontSize: 14.0,
-                                  fontWeight: FontWeight.w400,
-                                  color: AppColors.green7F,
-                                ),
-                              ],
+                if (controller.listedProducts.isNotEmpty)
+                  _buildListedProducts(),
+                Obx(() => CustomFormCard(
+                      margin: EdgeInsets.all(SizeConfig.size15),
+                      child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            CustomText(
+                              controller.productNameController.text,
+                              fontSize: SizeConfig.large,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.mainTextColor,
                             ),
-                          )
-                      ]
-                  ),
-                )),
-
+                            if (controller.selectedVariantIndex.value != -1)
+                              Padding(
+                                padding:
+                                    EdgeInsets.only(top: SizeConfig.size12),
+                                child: Row(
+                                  children: [
+                                    CustomText(
+                                      '₹${controller.selectedProductOrVariantPrice.value}',
+                                      fontSize: 24.0,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.mainTextColor,
+                                    ),
+                                    SizedBox(
+                                      width: SizeConfig.size8,
+                                    ),
+                                    CustomText(
+                                      '₹${controller.selectedProductOrVariantMrp.value}',
+                                      fontSize: 14.0,
+                                      fontWeight: FontWeight.w400,
+                                      color: AppColors.secondaryTextColor,
+                                      decoration: TextDecoration.lineThrough,
+                                    ),
+                                    CustomText(
+                                      ' ${controller.selectedProductOrVariantDiscount.value}% Off ',
+                                      fontSize: 14.0,
+                                      fontWeight: FontWeight.w400,
+                                      color: AppColors.green7F,
+                                    ),
+                                  ],
+                                ),
+                              )
+                          ]),
+                    )),
                 CustomFormCard(
                   margin: EdgeInsets.only(
                       left: SizeConfig.size15,
                       right: SizeConfig.size15,
-                      bottom: SizeConfig.size15
-                  ),
+                      bottom: SizeConfig.size15),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -409,22 +432,34 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
                       ),
                       SizedBox(height: SizeConfig.size10),
 
-                      _buildExpandableSection(title: AppStrings.productDetails, content: _buildProductDetailsContent(), initiallyExpanded: true),
-                      _buildExpandableSection(title: AppStrings.productFeatures, content: _buildProductFeaturesContent()),
-                      _buildExpandableSection(title: AppStrings.pricingAndWarranty, content: _buildPricingAndWarrantyContent()),
+                      _buildExpandableSection(
+                          title: AppStrings.productDetails,
+                          content: _buildProductDetailsContent(),
+                          initiallyExpanded: true),
+                      _buildExpandableSection(
+                          title: AppStrings.productFeatures,
+                          content: _buildProductFeaturesContent()),
+                      _buildExpandableSection(
+                          title: AppStrings.pricingAndWarranty,
+                          content: _buildPricingAndWarrantyContent()),
 
-                      if((widget.productPreviewArgs?.selectedColors?.isNotEmpty ?? false)
-                          ||  (widget.productPreviewArgs?.dynamicAttributes?.isNotEmpty ?? false))
-                      _buildExpandableSection(title: AppStrings.variant, content: _buildProductVariantContent()),
-
+                      if ((widget.productPreviewArgs?.selectedColors
+                                  ?.isNotEmpty ??
+                              false) ||
+                          (widget.productPreviewArgs?.dynamicAttributes
+                                  ?.isNotEmpty ??
+                              false))
+                        _buildExpandableSection(
+                            title: AppStrings.variant,
+                            content: _buildProductVariantContent()),
 
                       SizedBox(height: SizeConfig.size20),
 
                       /// Submit
-                      if(widget.isUserCanCreateVariants)
-                      CustomBtn(
-                        title: AppStrings.createVariantStartSelling,
-                        onTap: (){
+                      if (widget.isUserCanCreateVariants)
+                        CustomBtn(
+                          title: AppStrings.createVariantStartSelling,
+                          onTap: () {
                             Get.toNamed(
                               RouteHelper.getCreateVariantScreenRoute(),
                               arguments: {
@@ -433,18 +468,16 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
                                 ApiKeys.providerType: widget.providerType
                               },
                             );
-                        },
-                        bgColor: AppColors.primaryColor,
-                        textColor: AppColors.white,
-                        height: SizeConfig.size40,
-                        radius: 10.0,
-                        // isLoading: addProductViaAiController.isLoading.value
-                      ),
+                          },
+                          bgColor: AppColors.primaryColor,
+                          textColor: AppColors.white,
+                          height: SizeConfig.size40,
+                          radius: 10.0,
+                          // isLoading: addProductViaAiController.isLoading.value
+                        ),
                     ],
                   ),
-
                 ),
-
               ],
             ),
           ),
@@ -469,7 +502,8 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
         initiallyExpanded: initiallyExpanded,
         dense: true,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        collapsedShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        collapsedShape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         title: CustomText(
           title,
           fontSize: SizeConfig.large,
@@ -479,15 +513,13 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
         childrenPadding: EdgeInsets.only(
             left: SizeConfig.size15,
             right: SizeConfig.size15,
-            bottom: SizeConfig.size8
-        ),
+            bottom: SizeConfig.size8),
         children: [content],
       ),
     );
   }
 
-
-  Widget _buildProductDetailsContent(){
+  Widget _buildProductDetailsContent() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -557,40 +589,41 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
         SizedBox(height: SizeConfig.size10),
         (controller.tags.isNotEmpty)
             ? Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            CustomText(
-              '${AppStrings.tagsKeywords.tr}: ',
-              fontSize: SizeConfig.medium,
-              fontWeight: FontWeight.w600,
-              color: AppColors.secondaryTextColor,
-            ),
-            SizedBox(height: SizeConfig.size3),
-            CustomText(
-              '${ controller.tags.join(', ')}', /// Keyword/tegs
-              fontSize: SizeConfig.medium,
-              fontWeight: FontWeight.w400,
-              color: AppColors.secondaryTextColor,
-              height: 1.5,
-            ),
-          ],
-        ) : SizedBox(),
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CustomText(
+                    '${AppStrings.tagsKeywords.tr}: ',
+                    fontSize: SizeConfig.medium,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.secondaryTextColor,
+                  ),
+                  SizedBox(height: SizeConfig.size3),
+                  CustomText(
+                    '${controller.tags.join(', ')}',
+
+                    /// Keyword/tegs
+                    fontSize: SizeConfig.medium,
+                    fontWeight: FontWeight.w400,
+                    color: AppColors.secondaryTextColor,
+                    height: 1.5,
+                  ),
+                ],
+              )
+            : SizedBox(),
       ],
     );
   }
 
-  Widget _buildProductFeaturesContent(){
-    return  Column(
+  Widget _buildProductFeaturesContent() {
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-
-
-        if(controller.featureControllers.isNotEmpty)
+        if (controller.featureControllers.isNotEmpty)
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: List.generate(
               controller.featureControllers.length,
-                  (index) => Padding(
+              (index) => Padding(
                 padding: const EdgeInsets.only(bottom: 4.0),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -618,8 +651,7 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
               ),
             ),
           ),
-
-        if(controller.linkController.text.isNotEmpty)
+        if (controller.linkController.text.isNotEmpty)
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 4.0),
             child: Row(
@@ -633,7 +665,7 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
                 ),
                 Expanded(
                   child: GestureDetector(
-                    onTap: ()=> launchURL(controller.linkController.text),
+                    onTap: () => launchURL(controller.linkController.text),
                     child: CustomText(
                       '${controller.linkController.text}',
                       fontSize: SizeConfig.medium,
@@ -642,96 +674,90 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
                     ),
                   ),
                 ),
-
               ],
             ),
           ),
-
-        if(controller.detailsList.isNotEmpty)
-          ...[
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CustomText(
-                    '${AppStrings.moreDetails}: ',
-                    fontSize: SizeConfig.medium,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.secondaryTextColor,
-                  ),
-                  SizedBox(height: SizeConfig.size3),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: List.generate(
-                      controller.detailsList.length, // number of items
-                          (index) => Padding(
-                        padding: const EdgeInsets.only(bottom: 4.0),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              margin: EdgeInsets.only(top: 6.0, right: 8.0),
-                              width: 4.0,
-                              height: 4.0,
-                              decoration: BoxDecoration(
-                                color: AppColors.secondaryTextColor,
-                                shape: BoxShape.circle,
-                              ),
+        if (controller.detailsList.isNotEmpty) ...[
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CustomText(
+                  '${AppStrings.moreDetails}: ',
+                  fontSize: SizeConfig.medium,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.secondaryTextColor,
+                ),
+                SizedBox(height: SizeConfig.size3),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: List.generate(
+                    controller.detailsList.length, // number of items
+                    (index) => Padding(
+                      padding: const EdgeInsets.only(bottom: 4.0),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            margin: EdgeInsets.only(top: 6.0, right: 8.0),
+                            width: 4.0,
+                            height: 4.0,
+                            decoration: BoxDecoration(
+                              color: AppColors.secondaryTextColor,
+                              shape: BoxShape.circle,
                             ),
-                            Expanded(
-                              child: CustomText(
-                                '${controller.detailsList[index].title} - ${controller.detailsList[index].details}',
-                                fontSize: SizeConfig.medium,
-                                fontWeight: FontWeight.w400,
-                                color: AppColors.secondaryTextColor,
-                                // height: 1.2,
-                              ),
+                          ),
+                          Expanded(
+                            child: CustomText(
+                              '${controller.detailsList[index].title} - ${controller.detailsList[index].details}',
+                              fontSize: SizeConfig.medium,
+                              fontWeight: FontWeight.w400,
+                              color: AppColors.secondaryTextColor,
+                              // height: 1.2,
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
-
-
+          ),
+        ],
       ],
     );
   }
 
-  Widget _buildPricingAndWarrantyContent(){
+  Widget _buildPricingAndWarrantyContent() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        (controller.selectedProductOrVariantMrp.isNotEmpty) ?
-        Padding(
-          padding: EdgeInsets.only(top: 10.0),
-          child: Row(
-            children: [
-              CustomText(
-                '${AppStrings.mrp.tr}: ',
-                fontSize: SizeConfig.medium,
-                fontWeight: FontWeight.w600,
-                color: AppColors.secondaryTextColor,
-              ),
-              Expanded(
-                child: CustomText(
-                  "${controller.selectedProductOrVariantMrp.value}",
-                  fontSize: SizeConfig.large,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.secondaryTextColor,
+        (controller.selectedProductOrVariantMrp.isNotEmpty)
+            ? Padding(
+                padding: EdgeInsets.only(top: 10.0),
+                child: Row(
+                  children: [
+                    CustomText(
+                      '${AppStrings.mrp.tr}: ',
+                      fontSize: SizeConfig.medium,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.secondaryTextColor,
+                    ),
+                    Expanded(
+                      child: CustomText(
+                        "${controller.selectedProductOrVariantMrp.value}",
+                        fontSize: SizeConfig.large,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.secondaryTextColor,
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-
-            ],
-          ),
-        ) : SizedBox(),
-
-        if(controller.productWarrantyController.text.isNotEmpty)
+              )
+            : SizedBox(),
+        if (controller.productWarrantyController.text.isNotEmpty)
           Padding(
             padding: const EdgeInsets.only(top: 10.0),
             child: Row(
@@ -754,8 +780,7 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
               ],
             ),
           ),
-
-        if(controller.productExpiryDurationController.text.isNotEmpty)
+        if (controller.productExpiryDurationController.text.isNotEmpty)
           Padding(
             padding: const EdgeInsets.only(top: 10.0),
             child: Row(
@@ -778,8 +803,7 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
               ],
             ),
           ),
-
-        if(controller.userGuideLineControllers.isNotEmpty)
+        if (controller.userGuideLineControllers.isNotEmpty)
           Padding(
             padding: const EdgeInsets.only(top: 10.0),
             child: Column(
@@ -795,8 +819,9 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: List.generate(
-                    controller.userGuideLineControllers.length, // number of items
-                        (index) => Padding(
+                    controller
+                        .userGuideLineControllers.length, // number of items
+                    (index) => Padding(
                       padding: const EdgeInsets.only(bottom: 4.0),
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -824,11 +849,9 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
                     ),
                   ),
                 )
-
               ],
             ),
           ),
-
       ],
     );
   }
@@ -837,61 +860,58 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-
-        if(controller.selectedColors.isNotEmpty)
-          ...[
-            CustomText(
-              '${AppStrings.color.tr}: ',
-              fontSize: SizeConfig.medium,
-              fontWeight: FontWeight.w600,
-              color: AppColors.secondaryTextColor,
-            ),
-            SizedBox(height: 5.0),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: List.generate(
-                controller.selectedColors.length, // number of items
-                    (i) {
-                  final selected = controller.selectedColors[i];
-                  return Container(
-                    padding: EdgeInsets.all(6.0),
-                    margin: EdgeInsets.only(bottom: 6.0),
-                    decoration: BoxDecoration(
-                      color: AppColors.lightBlue,
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Container(
-                          width: 16,
-                          height: 16,
-                          decoration: BoxDecoration(
-                            color: selected.color,
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 1),
-                          ),
+        if (controller.selectedColors.isNotEmpty) ...[
+          CustomText(
+            '${AppStrings.color.tr}: ',
+            fontSize: SizeConfig.medium,
+            fontWeight: FontWeight.w600,
+            color: AppColors.secondaryTextColor,
+          ),
+          SizedBox(height: 5.0),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: List.generate(
+              controller.selectedColors.length, // number of items
+              (i) {
+                final selected = controller.selectedColors[i];
+                return Container(
+                  padding: EdgeInsets.all(6.0),
+                  margin: EdgeInsets.only(bottom: 6.0),
+                  decoration: BoxDecoration(
+                    color: AppColors.lightBlue,
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Container(
+                        width: 16,
+                        height: 16,
+                        decoration: BoxDecoration(
+                          color: selected.color,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 1),
                         ),
-                        const SizedBox(width: 8),
-                        Text(
-                          '${selected.name}',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: AppColors.secondaryTextColor,
-                          ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        '${selected.name}',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.secondaryTextColor,
                         ),
-                      ],
-                    ),
-                  );
-                },
-              ),
+                      ),
+                    ],
+                  ),
+                );
+              },
             ),
-            SizedBox(height: SizeConfig.size10),
-          ],
-
-        if(controller.dynamicAttributes.isNotEmpty)
+          ),
+          SizedBox(height: SizeConfig.size10),
+        ],
+        if (controller.dynamicAttributes.isNotEmpty)
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: controller.dynamicAttributes.entries.map((entry) {
@@ -915,7 +935,7 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: List.generate(
                       values.length,
-                          (index) => Padding(
+                      (index) => Padding(
                         padding: const EdgeInsets.only(bottom: 4.0),
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -943,12 +963,13 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
                       ),
                     ),
                   ),
-                  SizedBox(height: SizeConfig.size8), // space between different attributes
+                  SizedBox(
+                      height: SizeConfig
+                          .size8), // space between different attributes
                 ],
               );
             }).toList(),
           )
-
       ],
     );
   }
@@ -956,9 +977,9 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
   Widget _buildListedProducts() {
     return CustomFormCard(
       margin: EdgeInsets.only(
-          left: SizeConfig.size15,
-          right: SizeConfig.size15,
-          top: SizeConfig.size15,
+        left: SizeConfig.size15,
+        right: SizeConfig.size15,
+        top: SizeConfig.size15,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -976,9 +997,9 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
               final crossSpacing = 6.0;
               final mainSpacing = 6.0;
 
-              final itemWidth =
-                  (constraints.maxWidth - ((crossAxisCount - 1) * crossSpacing)) /
-                      crossAxisCount;
+              final itemWidth = (constraints.maxWidth -
+                      ((crossAxisCount - 1) * crossSpacing)) /
+                  crossAxisCount;
 
               return MasonryGridView.count(
                 crossAxisCount: crossAxisCount,
@@ -988,12 +1009,8 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
                 physics: NeverScrollableScrollPhysics(),
                 itemCount: controller.listedProducts.length,
                 itemBuilder: (context, index) {
-                  final product =  controller.listedProducts[index];
-                  return ProductCard(
-                    product,
-                    width: itemWidth,
-                    index: index
-                  );
+                  final product = controller.listedProducts[index];
+                  return ProductCard(product, width: itemWidth, index: index);
                 },
               );
             },
@@ -1219,11 +1236,10 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
   }
 
   Widget ProductCard(
-      ProductListing product,
-     {
-        required double width,
-       required int index,
-     }) {
+    ProductListing product, {
+    required double width,
+    required int index,
+  }) {
     return Obx(() {
       final isSelected = controller.selectedVariantIndex.value == index;
 
@@ -1232,7 +1248,8 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
           // Toggle selection
           if (isSelected) {
             controller.selectedVariantIndex.value = -1;
-            controller.allProductImages.value = widget.productPreviewArgs?.media??[];
+            controller.allProductImages.value =
+                widget.productPreviewArgs?.media ?? [];
             controller.selectedProductOrVariantPrice.value = '00, 000';
             controller.selectedProductOrVariantMrp.value = '00,000';
             controller.selectedProductOrVariantDiscount.value = '0';
@@ -1240,9 +1257,12 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
             controller.selectedVariantIndex.value = index; // select
             controller.allProductImages.value = product.image;
             controller.productNameController.text = product.name;
-            controller.selectedProductOrVariantPrice.value = product.price ?? '00,000';
-            controller.selectedProductOrVariantMrp.value = product.mrp ?? '00,000';
-            controller.selectedProductOrVariantDiscount.value = product.discount ?? '0';
+            controller.selectedProductOrVariantPrice.value =
+                product.price ?? '00,000';
+            controller.selectedProductOrVariantMrp.value =
+                product.mrp ?? '00,000';
+            controller.selectedProductOrVariantDiscount.value =
+                product.discount ?? '0';
           }
         },
         child: Container(
@@ -1250,11 +1270,10 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
           decoration: BoxDecoration(
             color: AppColors.whiteFE,
             boxShadow: isSelected ? null : [AppShadows.cardShadow],
-            borderRadius:  BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(10),
             border: Border.all(
-              color: isSelected ? AppColors.primaryColor : Colors.transparent,
-              width: 1.5
-            ),
+                color: isSelected ? AppColors.primaryColor : Colors.transparent,
+                width: 1.5),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1271,15 +1290,14 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
                       imagePaths: product.image,
                       borderRadius: BorderRadius.circular(10),
                     ),
-
                     Positioned(
                       top: 8,
                       right: 8,
-                      child: _buildIconBox(
-                          InkWell(
-                              onTap: ()=> showSelectedVariantsDialog(context, product.selectedVariants),
-                              child: Icon(Icons.remove_red_eye_outlined, color: Colors.white, size: 16))
-                      ),
+                      child: _buildIconBox(InkWell(
+                          onTap: () => showSelectedVariantsDialog(
+                              context, product.selectedVariants),
+                          child: Icon(Icons.remove_red_eye_outlined,
+                              color: Colors.white, size: 16))),
                     ),
                   ],
                 ),
@@ -1325,7 +1343,6 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
                           color: Colors.green[600],
                           fontWeight: FontWeight.w400,
                         ),
-
                       ],
                     ),
                     const SizedBox(height: 6),
@@ -1347,7 +1364,6 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
         ),
       );
     });
-
   }
 
   Widget _buildIconBox(Widget child) {
@@ -1357,27 +1373,23 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
       decoration: BoxDecoration(
           color: Colors.black.withValues(alpha: 0.5),
           shape: BoxShape.circle,
-          boxShadow: [AppShadows.textFieldShadow]
-      ),
+          boxShadow: [AppShadows.textFieldShadow]),
       alignment: Alignment.center,
       child: child,
     );
   }
 
-
-  void showSelectedVariantsDialog(BuildContext context, Map<String, dynamic>? selectedVariants) {
+  void showSelectedVariantsDialog(
+      BuildContext context, Map<String, dynamic>? selectedVariants) {
     showDialog(
       context: context,
       builder: (context) {
         return Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: Padding(
             padding: const EdgeInsets.only(
-                top: 8.0,
-                left: 16.0,
-                right: 16.0,
-                bottom: 16.0
-            ),
+                top: 8.0, left: 16.0, right: 16.0, bottom: 16.0),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1390,7 +1402,6 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
                         AppStrings.selectedVariants,
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-
                       ),
                     ),
                     SizedBox(width: SizeConfig.size5),
@@ -1408,11 +1419,8 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
                 if (selectedVariants != null && selectedVariants.isNotEmpty)
                   buildVariantsList(selectedVariants)
                 else
-                  const CustomText(
-                      AppStrings.noVariantsSelected,
-                      fontSize: 14,
-                      color: Colors.grey
-                  ),
+                  const CustomText(AppStrings.noVariantsSelected,
+                      fontSize: 14, color: Colors.grey),
               ],
             ),
           ),
@@ -1471,7 +1479,6 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
     );
   }
 
-
   Widget buildVariantsList(Map<String, dynamic> selectedVariants) {
     return Flexible(
       child: SingleChildScrollView(
@@ -1483,8 +1490,7 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(Icons.check_circle,
-                      color: Colors.blue, size: 20),
+                  const Icon(Icons.check_circle, color: Colors.blue, size: 20),
                   const SizedBox(width: 8),
                   Expanded(child: _buildVariantRow(entry.key, entry.value)),
                 ],
@@ -1496,4 +1502,3 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
     );
   }
 }
-
