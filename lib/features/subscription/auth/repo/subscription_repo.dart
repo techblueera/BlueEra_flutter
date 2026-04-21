@@ -98,6 +98,21 @@ class SubscriptionRepo extends BaseService {
     return response;
   }
 
+  /// Returns any referral code the user captured earlier (via deep link,
+  /// invite flow, etc.) that hasn't been consumed yet — so the subscription
+  /// flow can auto-apply it instead of making the user re-type the code in
+  /// the PromoCodeDialog.
+  Future<ResponseModel> pendingReferralRepo() async {
+    final response = await ApiBaseHelper().getHTTP(
+      walletPendingReferral,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+
+    return response;
+  }
+
   /// SUBSCRIPTION VERIFY.....
   Future<ResponseModel> verifyTrialSubscriptionRepo({required Map<String, dynamic> params}) async {
     final response = await ApiBaseHelper().postHTTP(

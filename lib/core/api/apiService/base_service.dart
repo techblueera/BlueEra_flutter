@@ -735,6 +735,7 @@ abstract class BaseService {
   final String socialAchievements = 'social-service/achievements';
   final String socialContact = 'social-service/contact';
   final String subscriptionPlansGet = 'subscription-service/subscription/subscription-plans';
+  final String walletPendingReferral = 'wallet-service/wallet/pending-referral';
   final String makeTransportBookOrder = 'rider-service/fare/orders';
 
   final String searchMedicalCategory = 'medical-service/products/search';

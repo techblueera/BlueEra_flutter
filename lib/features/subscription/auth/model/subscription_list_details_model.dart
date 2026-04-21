@@ -56,6 +56,14 @@ class SubscriptionPlanData {
   String? createdAt;
   String? updatedAt;
   int? v;
+  String? perkType;
+  int? perkValue;
+  int? perkBonus;
+  num? taxPercent;
+  int? taxAmount;
+  int? totalAmount;
+  String? sacCode;
+  String? entityType;
 
   SubscriptionPlanData({
     this.id,
@@ -76,6 +84,14 @@ class SubscriptionPlanData {
     this.createdAt,
     this.updatedAt,
     this.v,
+    this.perkType,
+    this.perkValue,
+    this.perkBonus,
+    this.taxPercent,
+    this.taxAmount,
+    this.totalAmount,
+    this.sacCode,
+    this.entityType,
   });
 
   factory SubscriptionPlanData.fromJson(Map<String, dynamic> json) {
@@ -108,10 +124,28 @@ class SubscriptionPlanData {
           : int.tryParse('${json['rangeInKm']}'),
       mode: json['mode']?.toString(),
       createdAt: json['created_at']?.toString(),
-        updatedAt: json['updated_at']?.toString(),
-        v: json['__v'] is int
-            ? json['__v']
-            : int.tryParse('${json['__v']}'),
+      updatedAt: json['updated_at']?.toString(),
+      v: json['__v'] is int
+          ? json['__v']
+          : int.tryParse('${json['__v']}'),
+      perkType: json['perk_type']?.toString(),
+      perkValue: json['perk_value'] is int
+          ? json['perk_value']
+          : int.tryParse('${json['perk_value']}'),
+      perkBonus: json['perk_bonus'] is int
+          ? json['perk_bonus']
+          : int.tryParse('${json['perk_bonus']}'),
+      taxPercent: json['tax_percent'] is num
+          ? json['tax_percent']
+          : num.tryParse('${json['tax_percent']}'),
+      taxAmount: json['tax_amount'] is int
+          ? json['tax_amount']
+          : int.tryParse('${json['tax_amount']}'),
+      totalAmount: json['total_amount'] is int
+          ? json['total_amount']
+          : int.tryParse('${json['total_amount']}'),
+      sacCode: json['sac_code']?.toString(),
+      entityType: json['entity_type']?.toString(),
     );
   }
 
@@ -135,6 +169,14 @@ class SubscriptionPlanData {
       'created_at': createdAt,
       'updated_at': updatedAt,
       '__v': v,
+      'perk_type': perkType,
+      'perk_value': perkValue,
+      'perk_bonus': perkBonus,
+      'tax_percent': taxPercent,
+      'tax_amount': taxAmount,
+      'total_amount': totalAmount,
+      'sac_code': sacCode,
+      'entity_type': entityType,
     };
   }
 
@@ -157,6 +199,14 @@ class SubscriptionPlanData {
     String? createdAt,
     String? updatedAt,
     int? v,
+    String? perkType,
+    int? perkValue,
+    int? perkBonus,
+    num? taxPercent,
+    int? taxAmount,
+    int? totalAmount,
+    String? sacCode,
+    String? entityType,
   }) {
     return SubscriptionPlanData(
       id: id ?? this.id,
@@ -177,6 +227,14 @@ class SubscriptionPlanData {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       v: v ?? this.v,
+      perkType: perkType ?? this.perkType,
+      perkValue: perkValue ?? this.perkValue,
+      perkBonus: perkBonus ?? this.perkBonus,
+      taxPercent: taxPercent ?? this.taxPercent,
+      taxAmount: taxAmount ?? this.taxAmount,
+      totalAmount: totalAmount ?? this.totalAmount,
+      sacCode: sacCode ?? this.sacCode,
+      entityType: entityType ?? this.entityType,
     );
   }
 }

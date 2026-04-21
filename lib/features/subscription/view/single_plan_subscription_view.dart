@@ -7,7 +7,6 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/common/jobs/create_job_post/create_job.dart';
 import 'package:BlueEra/features/subscription/auth/controller/subscription_controller.dart';
 import 'package:BlueEra/features/subscription/auth/model/subscription_list_details_model.dart';
 import 'package:BlueEra/features/subscription/auth/model/user_subscription_model.dart';
@@ -16,6 +15,7 @@ import 'package:BlueEra/features/subscription/widget/subscription_payment_handle
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/dashed_border_container.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -30,9 +30,16 @@ class SinglePlanSubscriptionView extends StatefulWidget {
   /// just the body — suitable for embedding inside a bottom sheet.
   final bool isShowAppBar;
 
+  /// When true, the primary CTA is pinned to the bottom of the available
+  /// area and the card content scrolls independently above it. Used when
+  /// this view is embedded inside a bounded surface (e.g. the persistent
+  /// peek bottom sheet) so the action button stays visible without scroll.
+  final bool pinCta;
+
   const SinglePlanSubscriptionView({
     super.key,
     this.isShowAppBar = false,
+    this.pinCta = false,
   });
 
   @override
@@ -79,9 +86,11 @@ class _SinglePlanSubscriptionViewState
 
   Widget _buildContent() {
     // No fixed height — the parent (bottom sheet or scrollview) measures
-    // the natural height of this widget.
+    // the natural height of this widget. In pinCta mode the bottom sheet
+    // paints its own gradient behind us, so the Material must be
+    // transparent — otherwise it would cover that gradient with a flat fill.
     return Material(
-      color: AppColors.white,
+      color: widget.pinCta ? Colors.transparent : AppColors.white,
       child: Obx(() {
         if (controller.userSubscriptionResponse.value == Status.INITIAL ||
             controller.getSubscriptionPlanResponse.value.status ==
@@ -147,13 +156,16 @@ class _SinglePlanSubscriptionViewState
     }
   }
 
-  /// Picks the single plan to display. The API returns one plan list per
-  /// entity_type and the trial-vs-paid distinction lives on the user's
-  /// subscription status, not on the plan itself — so we just take the
-  /// first plan regardless of [isTrial].
+  /// Picks the plan to display. The API can return multiple versions of a
+  /// plan (e.g. old pricing + current pricing with tax info) — prefer the
+  /// one flagged `active: true` so tax/perk details come from the live
+  /// version. Falls back to the first plan if none are active.
   SubscriptionPlanData? _pickPlan() {
     final list = controller.subscriptionPlanDetailsNewModel.value.data;
     if (list == null || list.isEmpty) return null;
+    for (final plan in list) {
+      if (plan.active == true) return plan;
+    }
     return list.first;
   }
 
@@ -165,84 +177,473 @@ class _SinglePlanSubscriptionViewState
     if (plan == null) {
       return const Center(child: CustomText("No plans available."));
     }
+    if (isTrial) return _buildTrialOfferCard(plan);
 
-    final priceText = isTrial
-        ? '${AppConstants.rupeeSymbol}5'
-        : '${AppConstants.rupeeSymbol}${plan.amount != null ? (plan.amount! / 100).toStringAsFixed(0) : '0'}';
-    final periodText = isTrial
-        ? '3 Days'
-        : '${plan.interval ?? ''} ${(plan.period ?? '').capitalizeFirst ?? ''}'.trim();
-    final fullPriceText = isTrial
-        ? '${AppConstants.rupeeSymbol}${plan.amount != null ? (plan.amount! / 100).toStringAsFixed(0) : '0'}'
-        : (plan.amountBeforeDiscount != null
-            ? '${AppConstants.rupeeSymbol}${(plan.amountBeforeDiscount! / 100).toStringAsFixed(0)}'
-            : null);
+    final priceText =
+        '${AppConstants.rupeeSymbol}${plan.amount != null ? (plan.amount! / 100).toStringAsFixed(0) : '0'}';
+    final periodText =
+        '${plan.interval ?? ''} ${(plan.period ?? '').capitalizeFirst ?? ''}'
+            .trim();
+    final fullPriceText = plan.amountBeforeDiscount != null
+        ? '${AppConstants.rupeeSymbol}${(plan.amountBeforeDiscount! / 100).toStringAsFixed(0)}'
+        : null;
 
     return _screen(
       card: _planCard(
         plan: plan,
-        tagText: isTrial ? 'Trial Plan' : 'Premium Plan',
+        tagText: 'Premium Plan',
         priceText: priceText,
         periodText: periodText,
-        subtitle: (isTrial && fullPriceText != null)
-            ? _autoPayLine(fullPriceText)
-            : null,
+        subtitle: fullPriceText != null ? _autoPayLine(fullPriceText) : null,
         bodyText: (plan.description == null || plan.description!.isEmpty)
             ? 'Upload and showcase your products, increase visibility to local clients and expand your business with us. Get found, get noticed and get more orders here.'
             : plan.description!,
-        // Razorpay's trial flow requires a real ₹5 charge to authenticate
-        // the auto-pay mandate — that ₹5 is refunded automatically once
-        // the trial finishes successfully. We surface this up-front so the
-        // user doesn't think they were billed for the trial.
-        extraBlocks: isTrial
-            ? [
-                SizedBox(height: SizeConfig.paddingS),
-                _trialRefundNote(),
-              ]
-            : const [],
         perks: plan.perks ?? const [],
       ),
-      cta: _primaryButton(
-        title: isTrial ? 'Go Live Now @ Rs 5' : 'Go Live Now',
-        onTap: _handlePay,
+      cta: _primaryButton(title: 'Go Live Now', onTap: _handlePay),
+    );
+  }
+
+  // ──────────────────── Trial offer card (new design) ─────────────────────
+  // Matches the `free_trail_subscription.png` mock:
+  //   • ₹0 / 3 Days headline + "FREE Trial" pill
+  //   • Two static verification perks (₹5 refund note, cancel anytime)
+  //   • Dynamic "What's Included" box driven by `perk_value + perk_bonus`
+  //     with a computed bonus-percentage pill
+  //   • API perks (minus the two that duplicate the numeric box)
+  //   • After-trial billing line (₹ + GST if applicable)
+  //   • Primary CTA reading "Claim My N {perkType}"
+  Widget _buildTrialOfferCard(SubscriptionPlanData plan) {
+    final perkValue = plan.perkValue ?? 0;
+    final perkBonus = plan.perkBonus ?? 0;
+    final totalUnits = perkValue + perkBonus;
+    final perkLabel = _perkTypeLabel(plan.perkType);
+    final bonusPct =
+        perkValue > 0 ? ((perkBonus / perkValue) * 100).round() : 0;
+    final afterTrialLine = _afterTrialBillingLine(plan);
+
+    final dynamicPerks = (plan.perks ?? const <String>[])
+        .where((p) => !_perkDuplicatesCounts(p, perkValue, perkBonus))
+        .toList();
+
+    // The photo paints the full card as a DecorationImage. The frosted
+    // glass effect lives only on _trialHeader() below — the rest of the
+    // card shows the image as-is.
+    final card = ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          border: Border.all(color: AppColors.purpleE9, width: 0.5),
+          image: DecorationImage(
+            image: AssetImage(AppImageAssets.subscriptionBgCard),
+            fit: BoxFit.fill,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _trialHeader(),
+
+            Container(height: 1, color: AppColors.white),
+            _trialStaticPerks(),
+
+            // Single horizontal dashed separator below the static perks.
+            DashedHorizontalLine(
+              color: AppColors.purpleE9,
+              strokeWidth: 1,
+              dashLength: 5,
+              gapLength: 3,
+            ),
+
+            Padding(
+              padding: EdgeInsets.fromLTRB(
+                SizeConfig.size16,
+                SizeConfig.size12,
+                SizeConfig.size16,
+                SizeConfig.size16,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CustomText(
+                    "WHAT'S INCLUDED",
+                    fontSize: SizeConfig.medium,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.grey50,
+                  ),
+                  SizedBox(height: SizeConfig.size10),
+                  _includedHighlightBox(
+                    perkValue: perkValue,
+                    perkBonus: perkBonus,
+                    perkLabel: perkLabel,
+                    bonusPct: bonusPct,
+                  ),
+                  SizedBox(height: SizeConfig.size12),
+                  ...dynamicPerks.map(_trialPerkItem),
+                  if (afterTrialLine != null) ...[
+                    _trialPerkItem(afterTrialLine),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    final cta =
+        _trialCtaButton(totalUnits: totalUnits, perkLabel: perkLabel);
+
+    return _pinnableLayout(card: card, cta: cta);
+  }
+
+  Widget _trialHeader() {
+    // Frosted-glass band: blurs the card's background image underneath and
+    // lays a 60% white veil on top, then renders the header content. The
+    // ClipRRect bounds the blur so it can't leak onto the rest of the card.
+    // The purpleE9 hairline border is painted on the inner Container (inside
+    // the clip) so it isn't trimmed by the rounded corners.
+    return ClipRRect(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          padding: EdgeInsets.all(SizeConfig.size16),
+          decoration: BoxDecoration(
+            color: AppColors.white.withValues(alpha: 0.5),
+            border: Border(
+              top: BorderSide(color: AppColors.purpleE9, width: 0.5),
+              left: BorderSide(color: AppColors.purpleE9, width: 0.5),
+              right: BorderSide(color: AppColors.purpleE9, width: 0.5),
+            ),
+            borderRadius:
+                BorderRadius.vertical(top: Radius.circular(12)),
+          ),
+          child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text.rich(
+                  TextSpan(
+                    children: [
+                      TextSpan(
+                        text: '${AppConstants.rupeeSymbol}0',
+                        style: TextStyle(
+                          fontSize: 40,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.mainTextColor,
+                          height: 1.0,
+                        ),
+                      ),
+                      TextSpan(
+                        text: ' / 3 Days',
+                        style: TextStyle(
+                          fontSize: SizeConfig.extraLarge,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.grey50,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: SizeConfig.size6),
+                CustomText(
+                  'Try Free — No Upfront Cost',
+                  fontSize: SizeConfig.medium,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.grey50,
+                ),
+              ],
+            ),
+          ),
+          SizedBox(width: SizeConfig.size8),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(100),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 100, sigmaY: 100),
+              child: Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: SizeConfig.size12,
+                  vertical: SizeConfig.size6,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.white.withValues(alpha: 0.6),
+                  borderRadius: BorderRadius.circular(100),
+                  border: Border.all(color: AppColors.white),
+                ),
+                child: CustomText(
+                  'FREE Trial',
+                  fontSize: SizeConfig.medium,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.mainTextColor,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+        ),
       ),
     );
   }
 
-  /// Inline info banner explaining the ₹5 trial-charge refund. Shown only
-  /// inside the trial offer card so users understand why Razorpay is asking
-  /// for ₹5 upfront on what's labelled as a "free" trial.
-  Widget _trialRefundNote() {
+  Widget _trialStaticPerks() {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        SizeConfig.size16,
+        SizeConfig.size15,
+        SizeConfig.size16,
+        SizeConfig.size15,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _checkIcon(),
+              SizedBox(width: SizeConfig.size8),
+              Expanded(
+                child: Text.rich(
+                  TextSpan(
+                    style: TextStyle(
+                      fontSize: SizeConfig.large,
+                      fontWeight: FontWeight.w400,
+                      color: AppColors.grey50,
+                    ),
+                    children: [
+                      TextSpan(
+                        text: '${AppConstants.rupeeSymbol}5',
+                        style: TextStyle(
+                          fontSize: SizeConfig.large,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.mainTextColor,
+                        ),
+                      ),
+                      TextSpan(
+                        text: ' Verification Only  ',
+                      ),
+                      WidgetSpan(
+                        alignment: PlaceholderAlignment.middle,
+                        child: Icon(
+                          Icons.arrow_forward_rounded,
+                          size: 16,
+                          color: AppColors.mainTextColor,
+                        ),
+                      ),
+                      TextSpan(
+                        text: '  Refunded Instantly',
+                        style: TextStyle(
+                          fontSize: SizeConfig.large,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.green17,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: SizeConfig.size8),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _checkIcon(),
+              SizedBox(width: SizeConfig.size8),
+              Expanded(
+                child: CustomText(
+                  'No Card Locked. Cancel Anytime.',
+                  fontSize: SizeConfig.large,
+                  fontWeight: FontWeight.w400,
+                  color: AppColors.grey50,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _includedHighlightBox({
+    required int perkValue,
+    required int perkBonus,
+    required String perkLabel,
+    required int bonusPct,
+  }) {
     return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: SizeConfig.size12,
-        vertical: SizeConfig.size10,
-      ),
+      padding: EdgeInsets.all(SizeConfig.size12),
       decoration: BoxDecoration(
-        color: AppColors.primaryColor.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(8),
-        border:
-            Border.all(color: AppColors.primaryColor.withValues(alpha: 0.30)),
+        color: AppColors.whiteF5,
+        borderRadius: BorderRadius.circular(10.0),
+        border: Border.all(
+          color: AppColors.greyE5
+        )
       ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CustomText(
+                  '$perkValue + $perkBonus',
+                  fontSize: SizeConfig.title,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.mainTextColor,
+                ),
+                // SizedBox(height: SizeConfig.size2),
+                CustomText(
+                  '$perkLabel Total',
+                  fontSize: SizeConfig.large,
+                  fontWeight: FontWeight.w400,
+                  color: AppColors.grey50,
+                ),
+              ],
+            ),
+          ),
+          if (bonusPct > 0)
+            Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: SizeConfig.size10,
+                vertical: SizeConfig.size8,
+              ),
+              decoration: BoxDecoration(
+                color: AppColors.green17.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  CustomText(
+                    '+$bonusPct%',
+                    fontSize: SizeConfig.large,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.green17,
+                  ),
+                  // SizedBox(height: SizeConfig.size1),
+                  CustomText(
+                    'Bonus $perkLabel',
+                    fontSize: SizeConfig.medium,
+                    fontWeight: FontWeight.w400,
+                    color: AppColors.green17,
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _trialPerkItem(String text) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: SizeConfig.size10),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.info_outline_rounded,
-              size: 18, color: AppColors.primaryColor),
+          _checkIcon(),
           SizedBox(width: SizeConfig.size8),
           Expanded(
             child: CustomText(
-              'Razorpay charges ${AppConstants.rupeeSymbol}5 to start your free trial — '
-              'this amount is refunded automatically once the trial begins.',
-              fontSize: SizeConfig.small,
-              fontWeight: FontWeight.w500,
-              color: AppColors.mainTextColor,
+              text,
+              fontSize: SizeConfig.large,
+              fontWeight: FontWeight.w400,
+              color: AppColors.grey50,
               maxLines: 3,
             ),
           ),
         ],
       ),
     );
+  }
+
+  Widget _checkIcon() {
+    return LocalAssets(
+      imagePath: AppIconAssets.greenCircleTickIcon,
+      width: 18,
+      height: 18,
+      imgColor: AppColors.secondaryTextColor,
+    );
+  }
+
+  Widget _trialCtaButton({
+    required int totalUnits,
+    required String perkLabel,
+  }) {
+    return GestureDetector(
+      onTap: _handlePay,
+      child: Container(
+        width: SizeConfig.screenWidth,
+        padding: EdgeInsets.symmetric(
+          horizontal: SizeConfig.size16,
+          vertical: SizeConfig.size10,
+        ),
+        decoration: BoxDecoration(
+          color: AppColors.primaryColor,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CustomText(
+              'Start Free  —  Claim My $totalUnits $perkLabel',
+              fontSize: SizeConfig.large,
+              fontWeight: FontWeight.w700,
+              color: AppColors.white,
+            ),
+            SizedBox(height: SizeConfig.size2),
+            CustomText(
+              'Verify identity with ${AppConstants.rupeeSymbol}5  —  refunded within seconds.',
+              fontSize: SizeConfig.medium,
+              fontWeight: FontWeight.w400,
+              color: AppColors.yellow6C,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Title-cases the `perk_type` string from the API ("leads" → "Leads",
+  // "rides" → "Rides"). Falls back to a safe default when missing.
+  String _perkTypeLabel(String? type) {
+    if (type == null || type.isEmpty) return 'Items';
+    final lower = type.toLowerCase();
+    return lower[0].toUpperCase() + lower.substring(1);
+  }
+
+  // Drops perk strings whose only information is the numeric value already
+  // rendered in the highlight box (e.g. "30 Leads", "5 Bonus Leads"). Keeps
+  // everything else from the API unchanged so copy tweaks on the backend
+  // still land in the UI.
+  bool _perkDuplicatesCounts(String perk, int perkValue, int perkBonus) {
+    final lower = perk.toLowerCase();
+    if (perkValue > 0 && lower.contains('$perkValue ')) return true;
+    if (perkBonus > 0 && lower.contains('$perkBonus ') && lower.contains('bonus')) {
+      return true;
+    }
+    return false;
+  }
+
+  // "After Trial: ₹99 + GST/Year With Auto Pay". Uses `amount` (paise) and
+  // appends "+ GST" when the backend reports a non-zero tax percent. Returns
+  // null when amount is missing so the line is skipped entirely.
+  String? _afterTrialBillingLine(SubscriptionPlanData plan) {
+    if (plan.amount == null) return null;
+    final rupees = (plan.amount! / 100).toStringAsFixed(0);
+    final hasTax = (plan.taxPercent ?? 0) > 0;
+    final period = (plan.period ?? 'year').toLowerCase();
+    final periodWord = period == 'yearly' ? 'Year' : period.capitalizeFirst ?? 'Year';
+    final priceWithTax =
+        hasTax ? '${AppConstants.rupeeSymbol}$rupees+GST' : '${AppConstants.rupeeSymbol}$rupees';
+    return 'After Trial: $priceWithTax/$periodWord With Auto Pay';
   }
 
   // ─────────────────────── State 2: trial in progress ───────────────────────
@@ -311,6 +712,9 @@ class _SinglePlanSubscriptionViewState
     Widget? cta,
     bool edgeToEdge = false,
   }) {
+    if (widget.pinCta && cta != null) {
+      return _pinnableLayout(card: card, cta: cta, edgeToEdge: edgeToEdge);
+    }
     return Padding(
       padding: EdgeInsets.symmetric(
         horizontal: edgeToEdge ? 0 : SizeConfig.size12,
@@ -328,6 +732,72 @@ class _SinglePlanSubscriptionViewState
           SizedBox(height: SizeConfig.paddingS),
         ],
       ),
+    );
+  }
+
+  /// Lays out a card + CTA so the CTA sticks to the bottom of a bounded
+  /// area while the card scrolls above it. Falls back to a plain scrollable
+  /// column when [pinCta] is false.
+  Widget _pinnableLayout({
+    required Widget card,
+    required Widget cta,
+    bool edgeToEdge = false,
+  }) {
+    final horizontal = edgeToEdge ? 0.0 : SizeConfig.size12;
+
+    if (!widget.pinCta) {
+      return Padding(
+        padding: EdgeInsets.symmetric(
+          horizontal: horizontal,
+          vertical: SizeConfig.size12,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            card,
+            SizedBox(height: SizeConfig.paddingL),
+            cta,
+            SizedBox(height: SizeConfig.paddingS),
+          ],
+        ),
+      );
+    }
+
+    // `mainAxisSize.min` + `Flexible(fit: loose)` lets the column shrink to
+    // its content when the card is shorter than the parent's maxHeight, and
+    // still lets the scroll view take only the space remaining when the card
+    // overflows. This is what makes the bottom sheet height dynamic while
+    // keeping the CTA pinned at the bottom.
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Flexible(
+          fit: FlexFit.loose,
+          child: SingleChildScrollView(
+            padding: EdgeInsets.fromLTRB(
+              horizontal,
+              SizeConfig.size12,
+              horizontal,
+              SizeConfig.size12,
+            ),
+            physics: const ClampingScrollPhysics(),
+            child: card,
+          ),
+        ),
+        SafeArea(
+          top: false,
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(
+              horizontal,
+              0,
+              horizontal,
+              SizeConfig.size12,
+            ),
+            child: cta,
+          ),
+        ),
+      ],
     );
   }
 
@@ -615,3 +1085,4 @@ class _SinglePlanSubscriptionViewState
 
 
 }
+

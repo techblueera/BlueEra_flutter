@@ -244,8 +244,12 @@ class _CreateBusinessAccountNewStepThreeState
                           child: CustomBtn(
                             radius: 10,
                             onTap: () {
-                              Get.toNamed(
-                                  RouteHelper.getAddBusinessLivePhotoRoute());
+                              Get.offAllNamed(
+                                  RouteHelper.getBottomNavigationBarScreenRoute(),
+                                  arguments: {
+                                    ApiKeys.initialIndex: 2
+                                  }
+                              );
                             },
                             title: AppStrings.skip,
                             bgColor: Colors.transparent,
@@ -306,7 +310,8 @@ class _CreateBusinessAccountNewStepThreeState
                                           ]),
                                         };
                                         await viewBusinessDetailsController
-                                            .updateBusinessDetails(reqParam,
+                                            .updateBusinessDetails(
+                                                reqParam,
                                                 showProgress: false);
                                         Get.offAllNamed(
                                             RouteHelper.getBottomNavigationBarScreenRoute(),

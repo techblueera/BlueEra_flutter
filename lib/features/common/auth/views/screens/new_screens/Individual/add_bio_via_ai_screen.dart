@@ -12,6 +12,7 @@ import 'package:BlueEra/features/common/auth/controller/ai_suggestion_controller
 import 'package:BlueEra/features/common/bottomNavigationBar/controller/bottom_bar_controller.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
+import 'package:BlueEra/features/subscription/widget/promo_code_dialog.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -64,7 +65,31 @@ class _AddBioViaAiScreenState extends State<AddBioViaAiScreen> {
             "Day: ${widget.selectedDay}"
     );
     apiCalling();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _showReferralDialog());
     super.initState();
+  }
+
+  /// Shown once this screen is mounted — the user has just completed the
+  /// individual account form. If they submit a referral code, patch it
+  /// onto their profile via `updateUserProfileDetails`.
+  Future<void> _showReferralDialog() async {
+    if (!mounted) return;
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => PromoCodeDialog(
+        onBtnPressed: (code) async {
+          Navigator.of(ctx).pop();
+          if (code.isNotEmpty) {
+            await personalCreateProfileController.updateUserProfileDetails(
+              params: {ApiKeys.referred_by_code: code},
+              isFromProfileOnly: true,
+              showProgress: false,
+            );
+          }
+        },
+      ),
+    );
   }
   apiCalling()async
   {

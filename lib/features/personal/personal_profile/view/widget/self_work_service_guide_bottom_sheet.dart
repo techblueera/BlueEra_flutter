@@ -184,10 +184,10 @@ class _SelfWorkServiceGuideBottomSheetState extends State<SelfWorkServiceGuideBo
                   return;
                 }
 
-                if(isEarnServiceOpt=='true' && selectedService?.tagId == userProfessionGlobal){
-                  commonSnackBar(message: 'You are already ${userProfessionGlobal.withArticle}');
-                  return;
-                }
+                // if(isEarnServiceOpt=='true' && selectedService?.tagId == userProfessionGlobal){
+                //   commonSnackBar(message: 'You are already ${userProfessionGlobal.withArticle}');
+                //   return;
+                // }
 
 
                 ChangeProfessionWarningDialog.show(

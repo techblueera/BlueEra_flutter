@@ -76,7 +76,30 @@ class _CreateBusinessAccountNewStepTwoState
     picCodeController.addListener(_validateForm);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       updateAddressFromLocation();
+      _showReferralDialog();
     });
+  }
+
+  /// Shown once this screen is mounted — the user has just created their
+  /// business account in step one. If they enter a referral code, patch it
+  /// onto the new business via `updateBusinessDetails`.
+  Future<void> _showReferralDialog() async {
+    if (!mounted) return;
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => PromoCodeDialog(
+        onBtnPressed: (code) async {
+          Navigator.of(ctx).pop();
+          if (code.isNotEmpty) {
+            await viewBusinessDetailsController.updateBusinessDetails(
+              {ApiKeys.referral_code: code},
+              showProgress: false,
+            );
+          }
+        },
+      ),
+    );
   }
 
   Future<void> updateAddressFromLocation() async {
@@ -542,7 +565,6 @@ class _CreateBusinessAccountNewStepTwoState
                                               .updateBusinessDetails(reqParam,
                                                   showProgress: false);
                                           if (!mounted) return;
-                                          await _showReferralDialog(context);
                                           Get.toNamed(
                                               RouteHelper
                                                   .getCreateBusinessAccountNewStepThreeRoute(),
@@ -572,21 +594,4 @@ class _CreateBusinessAccountNewStepTwoState
     );
   }
 
-  Future<void> _showReferralDialog(BuildContext context) async {
-    await showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => PromoCodeDialog(
-        onBtnPressed: (code) async {
-          Navigator.of(ctx).pop();
-          if (code.isNotEmpty) {
-            await viewBusinessDetailsController.updateBusinessDetails(
-              {ApiKeys.referral_code: code},
-              showProgress: false,
-            );
-          }
-        },
-      ),
-    );
-  }
 }

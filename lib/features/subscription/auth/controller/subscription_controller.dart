@@ -291,6 +291,36 @@ class SubscriptionController extends GetxController {
     }
   }
 
+  /// Fetches the backend's view of the user's pending-referral state.
+  ///
+  /// The returned record mirrors the `GET /wallet/pending-referral` body:
+  ///   • `hasPending`        — a code was captured at onboarding and the
+  ///     server will auto-apply it on trial/subscription, so we do NOT
+  ///     need to send it back in our payload.
+  ///   • `alreadyProcessed`  — the user already has a completed referral;
+  ///     never prompt them again.
+  ///   • `code`              — display-only; useful if the UI wants to
+  ///     show "Applying your code XYZ" but not something we forward.
+  ///
+  /// Returns `null` on transport errors so the caller can fall back to
+  /// the manual prompt safely.
+  Future<({bool hasPending, bool alreadyProcessed, String? code})?>
+      fetchPendingReferralStatus() async {
+    try {
+      final res = await SubscriptionRepo().pendingReferralRepo();
+      if (!res.isSuccess) return null;
+      final data = res.response?.data?['data'];
+      if (data is! Map) return null;
+      return (
+        hasPending: data['hasPending'] == true,
+        alreadyProcessed: data['alreadyProcessed'] == true,
+        code: data['referralCode']?.toString(),
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<void> checkReferralApi(String refCode) async {
     try {
 

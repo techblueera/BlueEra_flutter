@@ -79,8 +79,6 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
   final _companyNameTextController = TextEditingController();
   final _sectorTextController = TextEditingController();
   final _governmentNameController = TextEditingController();
-  bool _referralCodeEnable = false;
-  final _referralCodeController = TextEditingController();
   final politicalPartyController = TextEditingController();
   final userNameController = TextEditingController();
   final departmentNameController = TextEditingController();
@@ -151,7 +149,6 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
     _companyNameTextController.clear();
     _sectorTextController.clear();
     _governmentNameController.clear();
-    _referralCodeController.clear();
     politicalPartyController.clear();
     userNameController.clear();
     departmentNameController.clear();
@@ -1067,60 +1064,6 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                       height: SizeConfig.paddingL,
                     ),
 
-                    if ((_selectedProfessionTagId != GOVTPSU) &&
-                        (_selectedProfessionTagId != POLITICIAN) &&
-                        (_selectedProfessionTagId != MEDIA) &&
-                        (_selectedProfessionTagId != REG_UNION) &&
-                        (_selectedProfessionTagId != NGO) &&
-                        (_selectedProfessionTagId != INDUSTRIALIST) &&
-                        (_selectedProfessionTagId != DIRECTOR)) ...[
-                      ..._referralCodeEnable
-                          ? [
-                              CommonTextField(
-                                isValidate: false,
-                                textEditController: _referralCodeController,
-                                inputLength: AppConstants.inputCharterLimit10,
-                                keyBoardType: TextInputType.text,
-                                regularExpression:
-                                    RegularExpressionUtils.alphanumericPattern,
-                                title: langController.tr(AppStrings.referralCode),
-                                hintText: langController.tr(AppStrings.enterReferralCode),
-                                // autovalidateMode: _autoValidate,
-                                // validator: (value) {
-                                //   if (value == null || value.isEmpty) {
-                                //     return 'Please enter your referral code';
-                                //   }
-                                //   return null;
-                                // },
-                              )
-                            ]
-                          : [
-                              Center(
-                                child: InkWell(
-                                  onTap: () => setState(
-                                      () => _referralCodeEnable = true),
-                                  child: CustomText(
-                                    langController.tr(AppStrings.haveReferCode),
-                                    color: AppColors.primaryColor,
-                                    decoration: TextDecoration.underline,
-                                    fontSize: SizeConfig.medium,
-                                    decorationColor: AppColors.primaryColor,
-                                  ),
-                                ),
-                              ),
-                            ],
-                      // SizedBox(height: SizeConfig.size10,),
-                      // Padding(
-                      //   padding: EdgeInsets.symmetric(
-                      //       horizontal: SizeConfig.size15, vertical: 5),
-                      //   child: CustomBtn(
-                      //     onTap: () => _onSubmitPressed(),
-                      //     title: appLocalizations?.submit,
-                      //     isValidate: true,
-                      //     radius: SizeConfig.size8,
-                      //   ),
-                      // )
-                    ],
                   ],
                 ),
               ),
@@ -1332,8 +1275,6 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
           //     ApiKeys.artName: _SeniorTextController.text,
           //   }),
 
-          ApiKeys.referred_by_code:
-              _referralCodeEnable ? _referralCodeController.text : null,
           // if (position?.latitude != null && position?.longitude != null)
           ApiKeys.user_cordinates: jsonEncode({
             ApiKeys.lat: locationData.lat,
@@ -1343,7 +1284,7 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
           ApiKeys.address: locationData.fullAddress,
         };
         logs("requestData PERSONAL ==== ${requestData}");
-        await authController.addIndivisualUser(reqData: requestData);
+        await authController.addIndividualUser(reqData: requestData);
         setState(() {
           crBtnLoading = false;
         });
@@ -1371,6 +1312,7 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
       setState(() {});
     }
   }
+
 }
 
 class UsernamePicker extends StatelessWidget {

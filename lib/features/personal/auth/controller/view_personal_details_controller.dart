@@ -189,8 +189,6 @@ class ViewPersonalDetailsController extends GetxController {
   List<_ProfileFieldStatus> fields = [];
   RxDouble myProfileCompletionPercent = 0.0.obs;
 
-  RxBool isRiderServiceUser = false.obs;
-  RxString isEarnServiceOpt = ''.obs;
   RxString userProfileType = userProfileTypeGlobal.obs;
   Rxn<String> earnProfileType = Rxn<String>();
 
@@ -258,6 +256,7 @@ class ViewPersonalDetailsController extends GetxController {
 
           myProfileCompletionPercent.value = percent;
         }
+
         if (user?.emailVerified ?? false) {
           verifiedEmail.value = user?.email ?? "";
         }
@@ -277,8 +276,7 @@ class ViewPersonalDetailsController extends GetxController {
         ///SET OVERVIEW
         overView.value = user?.objective ?? "";
 
-        Get.find<AuthController>().imgPath.value =
-            user?.profileImage ?? "";
+        Get.find<AuthController>().imgPath.value = user?.profileImage ?? "";
         // await SharedPreferenceUtils.setSecureValue(SharedPreferenceUtils.userProfile, user?.profileImage??"");
         await SharedPreferenceUtils.userLoggedInIndividualGuest(
           businesId: "",
@@ -297,15 +295,8 @@ class ViewPersonalDetailsController extends GetxController {
         // print("Hash 1: ${userProfileType.hashCode}");
 
         /// Check Earn services
-        isRiderServiceUser.value = personalProfileDetails.value.isRiderServiceUser ?? false;
-        isEarnServiceOpt.value = personalProfileDetails.value.isEarnServiceUser.toString();
         earnProfileType.value = personalProfileDetails.value.earnProfileType;
         log('=== earnProfileType: "${earnProfileType.value}", raw: "${personalProfileDetails.value.earnProfileType}" ===');
-
-        // await setRiderServiceOptData(isRiderServiceUser.value);
-        // await setEarnServiceOptData(isEarnServiceUser.value);
-        // await getRiderServiceOptData();
-        // await getEarnServiceOptData();
 
         /// need to verify (for checking is service exists or not)
         if (user?.profession?.toUpperCase() == SELF_EMPLOYED ||

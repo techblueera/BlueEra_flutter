@@ -145,60 +145,21 @@ class _GroceryScreenState extends State<GroceryScreen> with SingleTickerProvider
   }
 
   Widget _buildRiderButton() {
-    return InkWell(
-      onTap: () {
-        Get.toNamed(RouteHelper.getNearByRidersScreenRoute());
-      },
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Container(
-            height: SizeConfig.size40,
-            width: SizeConfig.size40,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(SizeConfig.size8),
-              color: AppColors.white,
-              border: Border.all(color: AppColors.greyE5),
-              boxShadow: [AppShadows.textFieldShadow],
-            ),
-            alignment: Alignment.center,
-            padding: EdgeInsets.all(6.0),
-            child: LocalAssets(
-              imagePath: AppIconAssets.riderIcon,
-              imgColor: AppColors.black,
-            ),
-          ),
-          Positioned(
-            top: -(SizeConfig.size6),
-            right: -(SizeConfig.size6),
-            child: Container(
-              padding: EdgeInsets.all(SizeConfig.size4),
-              decoration: BoxDecoration(
-                color: AppColors.white,
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.black.withValues(alpha: 0.1),
-                    blurRadius: 3.0,
-                    offset: Offset(0, 1.5),
-                  ),
-                ],
-              ),
-              child: LocalAssets(
-                imagePath: AppIconAssets.add,
-                imgColor: AppColors.secondaryTextColor,
-                width: SizeConfig.size12,
-                height: SizeConfig.size12,
-              ),
-            ),
-          ),
-        ],
+    return _headerChip(
+      onTap: () => Get.toNamed(RouteHelper.getNearByRidersScreenRoute()),
+      leading: LocalAssets(
+        imagePath: AppIconAssets.riderIcon,
+        imgColor: AppColors.mainTextColor,
+        width: SizeConfig.size16,
+        height: SizeConfig.size16,
       ),
+      label: 'Nearby Riders',
+      isPrimary: false,
     );
   }
 
   Widget _buildAddGroceryButton() {
-    return InkWell(
+    return _headerChip(
       onTap: () async {
         final groceryController = getOrPut(() => GroceryController());
         await Get.toNamed(
@@ -210,16 +171,61 @@ class _GroceryScreenState extends State<GroceryScreen> with SingleTickerProvider
           groceryController.fetchAllGroceryData(userId, otherStore: false);
         }
       },
-      child: Container(
-        height: SizeConfig.size40,
-        width: SizeConfig.size40,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(SizeConfig.size8),
-          color: AppColors.primaryColor,
+      leading: Icon(Icons.add_rounded,
+          color: AppColors.white, size: SizeConfig.size18),
+      label: AppStrings.addProduct.tr,
+      isPrimary: true,
+    );
+  }
+
+  /// Pill-shaped header action used for the two cover overlays. Labels +
+  /// icon make the intent scannable at a glance (the old square icon-only
+  /// buttons required guessing, especially for the rider one). The primary
+  /// variant is solid primary-colour for the main "Add Product" CTA; the
+  /// secondary variant is white-on-white-border for softer actions that
+  /// need to remain readable on any cover image.
+  Widget _headerChip({
+    required VoidCallback onTap,
+    required Widget leading,
+    required String label,
+    required bool isPrimary,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(100),
+        child: Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: SizeConfig.size12,
+            vertical: SizeConfig.size8,
+          ),
+          decoration: BoxDecoration(
+            color: isPrimary ? AppColors.primaryColor : AppColors.white,
+            borderRadius: BorderRadius.circular(100),
+            border: isPrimary
+                ? null
+                : Border.all(color: AppColors.greyE5),
+            boxShadow: [AppShadows.textFieldShadow],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              leading,
+              SizedBox(width: SizeConfig.size6),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: SizeConfig.small,
+                  fontWeight: FontWeight.w600,
+                  color: isPrimary
+                      ? AppColors.white
+                      : AppColors.mainTextColor,
+                ),
+              ),
+            ],
+          ),
         ),
-        alignment: Alignment.center,
-        padding: EdgeInsets.all(6.0),
-        child: LocalAssets(imagePath: AppIconAssets.add),
       ),
     );
   }

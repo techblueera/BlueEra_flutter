@@ -456,9 +456,6 @@ class RouteHelper {
   static String getCreateBusinessAccountNewStepThreeRoute() =>
       RouteConstant.createBusinessAccountNewStepThree;
 
-  static String getAddBusinessLivePhotoRoute() =>
-      RouteConstant.addBusinessLivePhoto;
-
   static String getPersonalAccountNewScreenRoute() =>
       RouteConstant.personalAccountNewScreen;
 
@@ -1400,10 +1397,6 @@ class RouteHelper {
             builder: (_) => CreateBusinessAccountNewStepThree(city: city),
             settings: RouteSettings(
                 name: getCreateBusinessAccountNewStepThreeRoute()));
-      case RouteConstant.addBusinessLivePhoto:
-        return MaterialPageRoute(
-            builder: (_) => AddBusinessLivePhoto(),
-            settings: RouteSettings(name: getAddBusinessLivePhotoRoute()));
       case RouteConstant.personalAccountNewScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final accountType = args[ApiKeys.argAccountType] as String;

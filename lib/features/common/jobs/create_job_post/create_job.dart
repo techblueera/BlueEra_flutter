@@ -21,6 +21,7 @@ import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_drop_down.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/dashed_border_container.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -1015,88 +1016,4 @@ class _CreateJobPostScreenState extends State<CreateJobPostScreen> {
   }
 }
 
-class DashedBorderContainer extends StatelessWidget {
-  final Widget child;
-  final double borderRadius;
-  final Color borderColor;
-  final double strokeWidth;
-  final double dashLength;
-  final double gapLength;
 
-  const DashedBorderContainer({
-    Key? key,
-    required this.child,
-    this.borderRadius = 12,
-    this.borderColor = const Color(0xFFB0B4BF), // light grey
-    this.strokeWidth = 1.2,
-    this.dashLength = 6,
-    this.gapLength = 4,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return CustomPaint(
-      painter: _DashedBorderPainter(
-        borderRadius: borderRadius,
-        color: borderColor,
-        strokeWidth: strokeWidth,
-        dashLength: dashLength,
-        gapLength: gapLength,
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(borderRadius),
-        child: child,
-      ),
-    );
-  }
-}
-
-class _DashedBorderPainter extends CustomPainter {
-  final double borderRadius;
-  final Color color;
-  final double strokeWidth;
-  final double dashLength;
-  final double gapLength;
-
-  _DashedBorderPainter({
-    required this.borderRadius,
-    required this.color,
-    required this.strokeWidth,
-    required this.dashLength,
-    required this.gapLength,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final Paint paint = Paint()
-      ..color = color
-      ..strokeWidth = strokeWidth
-      ..style = PaintingStyle.stroke;
-
-    final RRect rRect = RRect.fromRectAndRadius(
-      Offset.zero & size,
-      Radius.circular(borderRadius),
-    );
-
-    _drawDashedRRect(canvas, rRect, paint);
-  }
-
-  void _drawDashedRRect(Canvas canvas, RRect rRect, Paint paint) {
-    final Path path = Path()..addRRect(rRect);
-    final PathMetrics metrics = path.computeMetrics();
-    for (final PathMetric metric in metrics) {
-      double distance = 0.0;
-      while (distance < metric.length) {
-        final double next = distance + dashLength;
-        canvas.drawPath(
-          metric.extractPath(distance, next),
-          paint,
-        );
-        distance = next + gapLength;
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}

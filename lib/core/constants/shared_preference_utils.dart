@@ -46,8 +46,9 @@ String serviceProviderStatusGlobal = '';
 String earnServiceCreatedStatusGlobal = 'false';
 String businessTypeGlobal = '';
 
-String isRiderServiceOpt = '';
-String isEarnServiceOpt = '';
+// String isRiderServiceOpt = '';
+// String isEarnServiceOpt = '';
+
 String schoolIDGlobal = '';
 String otherServiceIDGlobal = '';
 String hotelIDGlobal = '';
@@ -102,8 +103,6 @@ class SharedPreferenceUtils {
   static const userServiceExistsKey = 'userServiceExistsKey';
   static const businessType = 'businessType';
   static const notificationDeviceToken = 'notificationDeviceToken';
-  static const isRiderServiceUser = 'isRiderServiceUser';
-  // static const isEarnServiceUser = 'isEarnServiceUser';
   static const schoolIDKey = 'schoolIDKey';
   static const hotelIDKey = 'hotelIDKey';
   static const labIDKey = 'labIDKey';
@@ -264,8 +263,6 @@ class SharedPreferenceUtils {
       serviceProviderStatusGlobal = '';
       earnServiceCreatedStatusGlobal = '"false"';
       businessTypeGlobal = '';
-      isRiderServiceOpt = '';
-      isEarnServiceOpt = '';
       businessCategoryGlobal = '';
       businessSubCategoryGlobal = '';
       schoolIDGlobal = '';
@@ -476,29 +473,6 @@ Future<void> clearSecureStorageIfFreshInstall() async {
     await prefs.setBool('hasInstalledBefore', true);
   }
 }
-
-setRiderServiceOptData(bool isRiderServiceUser) {
-  SharedPreferenceUtils.setSecureValue(
-      SharedPreferenceUtils.isRiderServiceUser, isRiderServiceUser.toString());
-}
-
-// setEarnServiceOptData(bool isEarnServiceUser) {
-//   SharedPreferenceUtils.setSecureValue(
-//       SharedPreferenceUtils.isEarnServiceUser, isEarnServiceUser.toString());
-// }
-
-getRiderServiceOptData() async {
-  isRiderServiceOpt = await SharedPreferenceUtils.getSecureValue(
-          SharedPreferenceUtils.isRiderServiceUser) ??
-      'false';
-}
-
-// getEarnServiceOptData() async {
-//   isEarnServiceOpt = await SharedPreferenceUtils.getSecureValue(
-//           SharedPreferenceUtils.isEarnServiceUser) ??
-//       'false';
-//   log('$isEarnServiceOpt');
-// }
 
 ///SET SCHOOL ID....
 setSchoolID(String schoolIDValue) {

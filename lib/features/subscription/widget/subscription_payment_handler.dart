@@ -22,20 +22,38 @@ class SubscriptionPaymentHandler {
 
   final subscriptionController = getOrPut(()=> SubscriptionController());
 
-  void showReferralCodeDialog() {
+  /// Entry point for the subscription flow.
+  ///
+  /// Before showing the PromoCodeDialog, we ask the backend (via
+  /// `GET /wallet/pending-referral`) for the user's referral state:
+  ///
+  ///   • `hasPending: true`         — a code was captured earlier (e.g.
+  ///     an invite deep link) and the server will auto-apply it on
+  ///     trial/subscription. Skip the dialog AND do NOT forward the
+  ///     code in our payload (it's display-only).
+  ///   • `alreadyProcessed: true`   — the user already has a completed
+  ///     referral row; never prompt them again. Skip the dialog.
+  ///   • both false                 — show the manual PromoCodeDialog so
+  ///     the user can type a code if they have one.
+  ///
+  /// On transport errors we fall through to the manual dialog so a
+  /// backend hiccup doesn't silently block the flow.
+  Future<void> showReferralCodeDialog() async {
+    final status = await subscriptionController.fetchPendingReferralStatus();
+    if (status != null && (status.hasPending || status.alreadyProcessed)) {
+      processSubscription('');
+      return;
+    }
+
     Get.dialog(
       PromoCodeDialog(
         onBtnPressed: (refCode) async {
-          if(refCode.isNotEmpty){
+          if (refCode.isNotEmpty) {
             await subscriptionController.checkReferralApi(refCode);
-            if(subscriptionController.checkReferralResponse.value.status == Status.COMPLETE){
-              Get.back();
-              processSubscription(refCode);
-            }
-          }else{
-            Get.back();
-            processSubscription(refCode);
+            if (subscriptionController.checkReferralResponse.value.status != Status.COMPLETE) return;
           }
+          Get.back();
+          processSubscription(refCode);
         },
       ),
       barrierDismissible: false,

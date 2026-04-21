@@ -129,10 +129,10 @@ class _ConsultingServiceGuideBottomSheetState extends State<ConsultingServiceGui
                   return;
                 }
 
-                if(isEarnServiceOpt=='true' && selectedService?.tagId == userProfessionGlobal){
-                  commonSnackBar(message: 'You are already ${userProfessionGlobal.withArticle}');
-                  return;
-                }
+                // if(isEarnServiceOpt=='true' && selectedService?.tagId == userProfessionGlobal){
+                //   commonSnackBar(message: 'You are already ${userProfessionGlobal.withArticle}');
+                //   return;
+                // }
 
 
                 ChangeProfessionWarningDialog.show(

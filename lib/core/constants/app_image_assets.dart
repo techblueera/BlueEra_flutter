@@ -226,7 +226,6 @@ class AppImageAssets {
   static String autoPartsShop = "${imgPath}auto_parts_shop.png";
   static String vehicleAccessories = "${imgPath}vehicle_accessories.png";
   static String locationMarkerIcon = "${imgPath}location_marker_icon.png";
-  static String welcomeSubscriptionOffer = "${imgPath}welcome_subscription_offer.png";
 
   // Financial Sector
   static String bankingSector = "${imgPath}banking_sector.png";

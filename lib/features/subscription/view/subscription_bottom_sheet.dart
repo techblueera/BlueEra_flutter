@@ -225,15 +225,23 @@ class _SubscriptionDraggableSheetState
               isExpanded: _isExpanded,
               duration: const Duration(milliseconds: 280),
               curve: Curves.easeOut,
+              // Give the child a bounded height so the pinned-CTA layout
+              // inside SinglePlanSubscriptionView can use Expanded + a
+              // scrolling card without vertical-unbounded errors.
+              // Dynamic-height body: caps at maxBodyHeight but shrinks to
+              // the natural content size when the view is shorter, so short
+              // states (trial-active, loading, etc.) don't leave a big
+              // empty pane below the card.
               child: ConstrainedBox(
                 constraints: BoxConstraints(maxHeight: maxBodyHeight),
-                child: Container(
-                  color: AppColors.whiteFC,
+                child: SizedBox(
                   width: double.infinity,
-                  child: SingleChildScrollView(
-                    physics: const ClampingScrollPhysics(),
-                    padding: EdgeInsets.zero,
-                    child: const SinglePlanSubscriptionView(),
+                  child: ColoredBox(
+                    // Body uses a single flat color — the same pale blue
+                    // the header's radial fades into — so the expanded
+                    // sheet reads as one calm surface below the header.
+                    color: const Color(0xFFEEF8FF),
+                    child: const SinglePlanSubscriptionView(pinCta: true),
                   ),
                 ),
               ),
@@ -259,36 +267,42 @@ class _SubscriptionDraggableSheetState
             children: [
               // Base white layer.
               const ColoredBox(color: Color(0xFFFFFFFF)),
-              // Strong horizontal cyan→blue band at the top, fading to
-              // transparent toward the bottom so the title row stays clean.
+              // Header background:
+              //   • Collapsed — keep the strong cyan→blue band that fades
+              //     into white so the CTA pill stays legible.
+              //   • Expanded — paint the same #DFFFFD → #FFFFFF → #DDEFFF
+              //     gradient as the body so the header flows seamlessly
+              //     into the expanded sheet surface.
               DecoratedBox(
                 decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.centerLeft,
-                    end: Alignment.centerRight,
+                  // Same radial glow for both collapsed and expanded states:
+                  // a soft mint tint anchored at the top-right fading into a
+                  // pale blue across the rest of the header.
+                  gradient: RadialGradient(
+                    center: Alignment.topRight,
+                    radius: 1.0,
                     colors: [
-                      Color(0xFF82FFFB), // cyan on the left
-                      Color(0xFFB6E3FF), // mint blend in the middle
-                      Color(0xFF7EC1FF), // blue on the right
+                      Color(0xFFE4FFFE),
+                      Color(0xFFEEF8FF),
                     ],
                   ),
                 ),
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: !_isExpanded
-                        ? const LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Color(0x00FFFFFF), // colored band at the very top
-                        Color(0xFFFFFFFF), // pure white below
-                      ],
-                      stops: [0.2, 0.7],
-                    ) : null,
-                    color: !_isExpanded ? null : AppColors.white
-                  ),
-                  child: const SizedBox.expand(),
-                ),
+                child: !_isExpanded
+                    ? DecoratedBox(
+                        decoration: const BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Color(0x00FFFFFF),
+                              Color(0xFFFFFFFF),
+                            ],
+                            stops: [0.2, 0.7],
+                          ),
+                        ),
+                        child: const SizedBox.expand(),
+                      )
+                    : const SizedBox.expand(),
               ),
               Stack(
           children: [
@@ -359,6 +373,10 @@ class _PeakHeaderClipper extends CustomClipper<Path> {
   // Small radius used to soften the four shoulder corners.
   static const double _cornerRadius = 6.0;
 
+  // Rounded radius applied to the top-left and top-right corners of the
+  // outer bar — gives the header a pill-like cap on both sides.
+  static const double _outerCornerRadius = 20.0;
+
   @override
   Path getClip(Size size) {
     final path = Path();
@@ -384,8 +402,13 @@ class _PeakHeaderClipper extends CustomClipper<Path> {
     final uxR = dxR / magR;
     final uyR = dyR / magR;
 
-    // Left flat portion of the bar, stopping short of the shoulder corner.
-    path.moveTo(0, peakHeight);
+    // Start just below the top-left, then round up to the bar edge so the
+    // outer left corner is softened with [_outerCornerRadius].
+    path.moveTo(0, peakHeight + _outerCornerRadius);
+    path.quadraticBezierTo(
+      0, peakHeight,
+      _outerCornerRadius, peakHeight,
+    );
     path.lineTo(lShoulderX - _cornerRadius, peakHeight);
     // Round the bottom-left shoulder corner: bar → diagonal up.
     path.quadraticBezierTo(
@@ -423,8 +446,13 @@ class _PeakHeaderClipper extends CustomClipper<Path> {
       rShoulderX + _cornerRadius, peakHeight,
     );
 
-    // Right flat portion of the bar.
-    path.lineTo(w, peakHeight);
+    // Right flat portion of the bar, stopping short of the rounded corner.
+    path.lineTo(w - _outerCornerRadius, peakHeight);
+    // Round the top-right outer corner down into the right edge.
+    path.quadraticBezierTo(
+      w, peakHeight,
+      w, peakHeight + _outerCornerRadius,
+    );
 
     // Down the right side, across the bottom, and close on the left.
     path.lineTo(w, h);
@@ -501,3 +529,4 @@ class _AnimatedClipRectState extends State<AnimatedClipRect>
     );
   }
 }
+

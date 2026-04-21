@@ -234,32 +234,33 @@ class _SelfEmployeeDashboardViewState extends State<SelfEmployeeDashboardView>
                   ),
                   const SizedBox(width: 8),
                 ],
-                // Profile selector overlay pill (top-left)
-                Flexible(
-                  child: Obx(() {
-                    final earnType = _viewCtrl.earnProfileType.value;
-                    if (earnType == null || earnType.isEmpty) {
-                      return const SizedBox.shrink();
-                    }
-                    final userImage = _viewCtrl.personalProfileDetails.value
-                            .user?.profileImage ??
-                        '';
-                    return Align(
-                      alignment: Alignment.centerLeft,
-                      child: EarnServiceProfileSelector(
-                        profileImages: [userImage, userImage],
-                        profileNames: [
-                          'Skill Work',
-                          earnServiceController.earnProfileLabel(earnType),
-                        ],
-                        selectedIndex: controller.selectedProfileIndex.value,
-                        onProfileSelected: (index) =>
-                            controller.switchProfile(index),
-                        onCoverOverlay: true,
-                      ),
-                    );
-                  }),
-                ),
+                // Profile selector overlay pill (top-left). Rendered without
+                // an outer Flexible: when the earn profile is absent the
+                // Obx returns SizedBox.shrink and reserves no flex share,
+                // so the Spacer below grabs all remaining width and the
+                // right-hand icons stay flush to the end. With the Flexible
+                // in place, Spacer + Flexible(loose, flex:1) split the
+                // remaining space 1:1 and the icons drifted to the middle.
+                Obx(() {
+                  final earnType = _viewCtrl.earnProfileType.value;
+                  if (earnType == null || earnType.isEmpty) {
+                    return const SizedBox.shrink();
+                  }
+                  final userImage = _viewCtrl.personalProfileDetails.value
+                          .user?.profileImage ??
+                      '';
+                  return EarnServiceProfileSelector(
+                    profileImages: [userImage, userImage],
+                    profileNames: [
+                      'Skill Work',
+                      earnServiceController.earnProfileLabel(earnType),
+                    ],
+                    selectedIndex: controller.selectedProfileIndex.value,
+                    onProfileSelected: (index) =>
+                        controller.switchProfile(index),
+                    onCoverOverlay: true,
+                  );
+                }),
                 const Spacer(),
                 _coverAssetIconButton(
                   assetPath: AppIconAssets.clockIcon,

@@ -258,7 +258,7 @@ class AuthController extends GetxController {
     }
   }
 
-  Future<void> addIndivisualUser(
+  Future<void> addIndividualUser(
       {required Map<String, dynamic>? reqData}) async {
     try {
       ResponseModel response = await AuthRepo()
@@ -306,7 +306,8 @@ class AuthController extends GetxController {
             Get.find<BottomBarController>().currentIndex.value = 0;
           }
 
-          Get.offNamedUntil(
+          Get.offAllNamed(RouteHelper.getBottomNavigationBarScreenRoute());
+          Get.toNamed(
             RouteHelper.getAddBioViaAiScreenRoute(),
             arguments: {
               ApiKeys.argProfession: reqData?[ApiKeys.profession],
@@ -315,15 +316,7 @@ class AuthController extends GetxController {
               ApiKeys.argSelectedMonth: dobMap[ApiKeys.month],
               ApiKeys.argSelectedYear: dobMap[ApiKeys.year]
             },
-            (route) =>
-                route.settings.name ==
-                RouteHelper.getBottomNavigationBarScreenRoute(),
           );
-
-          // Get.offNamedUntil(
-          //   RouteHelper.getBottomNavigationBarScreenRoute(),
-          //   (route) => false,
-          // );
 
           clearAllData();
           addUserResponse = ApiResponse.complete(response);
@@ -491,6 +484,7 @@ class AuthController extends GetxController {
             Get.find<BottomBarController>().currentIndex.value = 0;
           }
 
+          Get.offAllNamed(RouteHelper.getBottomNavigationBarScreenRoute());
           Get.toNamed(RouteHelper.getCreateBusinessAccountNewStepTwoRoute());
 
           addUserResponse = ApiResponse.complete(response);
@@ -1076,4 +1070,5 @@ class AuthController extends GetxController {
       log('=== BUSINESS CATEGORIES DEBUG END ===', name: 'CategorySync');
     }
   }
+
 }
