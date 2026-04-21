@@ -17,6 +17,64 @@ class LocalStorageHelper {
 
   LocalStorageHelper._internal();
 
+  /// Temp message ids currently being retried by sendOfflineMessage. While a
+  /// retry is in flight, saveMessagesByConversationId must NOT re-introduce
+  /// these pending rows from a stale read — otherwise the race between the
+  /// pagination save and replacePendingWithServerMessage leaves both the
+  /// pending and the server-issued row in Hive, producing a visible duplicate
+  /// on next chat open (and a second server-send on the reopen after that).
+  static final Set<String> _inFlightPendingIds = <String>{};
+
+  void markPendingInFlight(String tempId) {
+    if (tempId.isNotEmpty) _inFlightPendingIds.add(tempId);
+  }
+
+  void clearPendingInFlight(String tempId) {
+    if (tempId.isNotEmpty) _inFlightPendingIds.remove(tempId);
+  }
+
+  /// Day bucket used for chronological sort. Date-divider rows carry the
+  /// calendar date in their `message` field (not in `created_at`), so we
+  /// key off that; every other message sorts by its own `created_at`.
+  /// Truncating to 10 chars gives us YYYY-MM-DD.
+  String _dayKeyFromJson(Map<String, dynamic> m) {
+    final isDate = m['message_type']?.toString() == 'date';
+    final iso = isDate
+        ? (m['message']?.toString() ?? '')
+        : (m['created_at']?.toString() ?? '');
+    return iso.length >= 10 ? iso.substring(0, 10) : iso;
+  }
+
+  /// Sort comparator for the raw JSON maps stored in Hive. Groups by day,
+  /// places the date-divider for a day ahead of that day's messages, then
+  /// orders within the day by `created_at` ascending. Without the
+  /// date-aware branch, a server-issued "Today" row would land wherever
+  /// its own `created_at` fell — often in the middle of the day's messages.
+  int _compareMessageJson(Map<String, dynamic> a, Map<String, dynamic> b) {
+    final dayCmp = _dayKeyFromJson(a).compareTo(_dayKeyFromJson(b));
+    if (dayCmp != 0) return dayCmp;
+    final aIsDate = a['message_type']?.toString() == 'date';
+    final bIsDate = b['message_type']?.toString() == 'date';
+    if (aIsDate && !bIsDate) return -1;
+    if (!aIsDate && bIsDate) return 1;
+    return (a['created_at']?.toString() ?? '')
+        .compareTo(b['created_at']?.toString() ?? '');
+  }
+
+  String _dayKeyFromMessage(Messages m) {
+    final isDate = m.messageType == 'date';
+    final iso = isDate ? (m.message ?? '') : (m.createdAt ?? '');
+    return iso.length >= 10 ? iso.substring(0, 10) : iso;
+  }
+
+  int _compareMessages(Messages a, Messages b) {
+    final dayCmp = _dayKeyFromMessage(a).compareTo(_dayKeyFromMessage(b));
+    if (dayCmp != 0) return dayCmp;
+    if (a.messageType == 'date' && b.messageType != 'date') return -1;
+    if (a.messageType != 'date' && b.messageType == 'date') return 1;
+    return (a.createdAt ?? '').compareTo(b.createdAt ?? '');
+  }
+
   // ── Cached box references (avoid repeated openBox calls) ──
   Box<String>? _conversationBox;
   Box<String>? _userImagesBox;
@@ -270,8 +328,11 @@ class LocalStorageHelper {
   // MESSAGE PERSISTENCE
   // ═══════════════════════════════════════════════════════════════════════════
 
-  /// Bulk-save (replace) all messages for a conversation.
-  /// Called when server responds with authoritative message data.
+  /// Bulk-merge server messages into the local conversation cache.
+  /// Server pages arrive one at a time (page 1 is latest 30, page 2 is older
+  /// 30, etc.) so a REPLACE strategy would clobber previously-cached pages
+  /// whenever the user scrolls. Instead we merge by message id and sort
+  /// chronologically. Pending messages are preserved untouched.
   Future<void> saveMessagesByConversationId(
       String conversationId, List<Messages> messages) async {
     if (conversationId.isEmpty) {
@@ -280,37 +341,47 @@ class LocalStorageHelper {
     }
     try {
       final box = await _messagesBoxRef;
-
-      // Preserve any local pending messages that aren't in the server response
       final existing = await _getRawMessages(conversationId, box);
-      final pendingMessages = existing
-          .where((m) => m['sendStatus'] == 'pending')
-          .toList();
 
-      // Build server message ID set for dedup
-      final serverIds = <String>{};
+      // Index existing by id for O(1) dedup/replace.
+      final byId = <String, Map<String, dynamic>>{};
+      final pendingWithoutId = <Map<String, dynamic>>[];
+      for (final m in existing) {
+        final id = m['_id']?.toString() ?? '';
+        if (id.isEmpty) {
+          // Pending temp messages may land here if their temp id was ever empty;
+          // keep them as-is since we can't key them.
+          if (m['sendStatus'] == 'pending') pendingWithoutId.add(m);
+          continue;
+        }
+        // Drop pending rows that are currently being drained — a concurrent
+        // replacePendingWithServerMessage will write the authoritative server
+        // row, so re-introducing the temp id here would double the message.
+        if (m['sendStatus'] == 'pending' &&
+            _inFlightPendingIds.contains(id)) {
+          continue;
+        }
+        byId[id] = m;
+      }
+
+      // Merge in server messages — server data wins for any overlapping id.
       for (final m in messages) {
-        if (m.id != null && m.id!.isNotEmpty) serverIds.add(m.id!);
+        final id = m.id ?? '';
+        if (id.isEmpty) continue;
+        byId[id] = _messageToStorableJson(m);
       }
 
-      // Filter pending that aren't in server response (still truly pending)
-      final survivingPending = pendingMessages
-          .where((m) => !serverIds.contains(m['_id']?.toString()))
-          .toList();
+      // Combine + sort chronologically (oldest first) with date-divider
+      // rows placed ahead of their day's messages. Uses the shared
+      // comparator so every save site and load site agree on order.
+      final merged = <Map<String, dynamic>>[
+        ...byId.values,
+        ...pendingWithoutId,
+      ];
+      merged.sort(_compareMessageJson);
 
-      // Convert server messages to JSON (skip File objects that can't serialize)
-      final jsonList = messages.map((m) => _messageToStorableJson(m)).toList();
-
-      // Prepend surviving pending messages
-      if (survivingPending.isNotEmpty) {
-        jsonList.insertAll(0, survivingPending);
-        ChatStorageLogger.info('saveMessages',
-            'Preserved ${survivingPending.length} pending messages',
-            data: {'conversationId': conversationId});
-      }
-
-      await box.put(conversationId, jsonEncode(jsonList));
-      ChatStorageLogger.messagesSaved(conversationId, jsonList.length);
+      await box.put(conversationId, jsonEncode(merged));
+      ChatStorageLogger.messagesSaved(conversationId, merged.length);
     } catch (e, stack) {
       ChatStorageLogger.error('saveMessages', 'Failed to save messages',
           error: e, stack: stack, data: {'conversationId': conversationId});
@@ -352,6 +423,9 @@ class LocalStorageHelper {
       }
 
       existing.add(msgJson);
+      // Keep the cache chronologically sorted so reloads match the server
+      // snapshot instead of drifting by insertion order.
+      existing.sort(_compareMessageJson);
       await box.put(conversationId, jsonEncode(existing));
 
       ChatStorageLogger.singleMessageSaved(
@@ -417,6 +491,71 @@ class LocalStorageHelper {
     }
   }
 
+  /// Replace a local pending message (identified by temp id) with the server-side
+  /// authoritative message. Keeps chronological order stable by replacing in place.
+  Future<void> replacePendingWithServerMessage(
+      String conversationId, String tempId, Messages serverMessage) async {
+    if (conversationId.isEmpty || tempId.isEmpty) return;
+    try {
+      final box = await _messagesBoxRef;
+      final messages = await _getRawMessages(conversationId, box);
+
+      final serverJson = _messageToStorableJson(serverMessage);
+      final serverId = serverMessage.id ?? '';
+
+      // If the server message is already present (socket beat us), just remove the pending.
+      final serverAlreadyExists = serverId.isNotEmpty &&
+          messages.any((m) => m['_id']?.toString() == serverId);
+
+      int replacedAt = -1;
+      for (int i = 0; i < messages.length; i++) {
+        if (messages[i]['_id']?.toString() == tempId) {
+          replacedAt = i;
+          break;
+        }
+      }
+
+      if (replacedAt >= 0) {
+        if (serverAlreadyExists) {
+          messages.removeAt(replacedAt);
+        } else {
+          messages[replacedAt] = serverJson;
+        }
+        await box.put(conversationId, jsonEncode(messages));
+      } else if (!serverAlreadyExists) {
+        messages.add(serverJson);
+        await box.put(conversationId, jsonEncode(messages));
+      }
+    } catch (e, stack) {
+      ChatStorageLogger.error('replacePending',
+          'Failed to replace pending with server message',
+          error: e, stack: stack,
+          data: {'conversationId': conversationId, 'tempId': tempId});
+    }
+  }
+
+  /// List every conversationId that currently has at least one pending message.
+  /// Used by the drainer on app start / connectivity restore.
+  Future<List<String>> getConversationIdsWithPending() async {
+    try {
+      final box = await _messagesBoxRef;
+      final result = <String>[];
+      for (final k in box.keys) {
+        final convId = k.toString();
+        final raw = await _getRawMessages(convId, box);
+        if (raw.any((m) => m['sendStatus'] == 'pending')) {
+          result.add(convId);
+        }
+      }
+      return result;
+    } catch (e, stack) {
+      ChatStorageLogger.error('listPendingConvs',
+          'Failed to list conversations with pending messages',
+          error: e, stack: stack);
+      return [];
+    }
+  }
+
   /// Load all cached messages for a conversation as Messages objects.
   Future<List<Messages>> getMessagesByConversationId(String conversationId) async {
     if (conversationId.isEmpty) return [];
@@ -442,6 +581,10 @@ class LocalStorageHelper {
           })
           .whereType<Messages>()
           .toList();
+
+      // Stable chronological order regardless of insertion order, with
+      // date-divider rows pinned to the start of their calendar day.
+      messages.sort(_compareMessages);
 
       ChatStorageLogger.messagesLoaded(conversationId, messages.length);
       return messages;

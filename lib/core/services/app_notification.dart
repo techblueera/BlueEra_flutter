@@ -10,7 +10,9 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/core/services/local_strorage_helper.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
+import 'package:BlueEra/features/chat/auth/model/GetListOfMessageData.dart';
 import 'package:BlueEra/features/chat/auth/repo/chat_view_repo.dart';
 import 'package:BlueEra/features/common/feed/view/post_detail_screen.dart';
 import 'package:BlueEra/main.dart';
@@ -1733,6 +1735,10 @@ print("ORDER SCREEN NAME message.data ${message.data}");
       case 'tagged_in_message':
       case 'commented_on_message':
       case 'liked_message':
+        // Persist the incoming message to Hive BEFORE navigation so the
+        // chat screen's local-first load shows it immediately — even on
+        // cold-start from a killed app where the socket hasn't reconnected.
+        await _persistFcmMessageToLocal(data);
         _openChatWithUser(data['senderId'] ?? '');
         break;
 
@@ -1850,6 +1856,66 @@ print("ORDER SCREEN NAME message.data ${message.data}");
       );
     }
   }
+  /// Extract a chat message out of an FCM data payload and persist it to the
+  /// local Hive cache so the chat screen shows it immediately on open — even
+  /// when the socket hasn't reconnected yet (cold-start from killed state).
+  /// Accepts either a nested `message` map or flat `message_id`/`message`/etc.
+  /// fields. Silently no-ops if required identifiers are missing.
+  static Future<void> _persistFcmMessageToLocal(
+      Map<String, dynamic> data) async {
+    try {
+      final String conversationId =
+          (data['conversationId'] ?? data['conversation_id'] ?? '').toString();
+      if (conversationId.isEmpty) return;
+
+      Map<String, dynamic>? messageJson;
+
+      // Server sometimes nests a fully-formed message map under `message`.
+      final nested = data['message'];
+      if (nested is Map) {
+        messageJson = Map<String, dynamic>.from(nested);
+      } else if (nested is String && nested.isNotEmpty) {
+        try {
+          final decoded = jsonDecode(nested);
+          if (decoded is Map) {
+            messageJson = Map<String, dynamic>.from(decoded);
+          }
+        } catch (_) {
+          // Flat payload — fall through to the synthesized path.
+        }
+      }
+
+      // Fall back to synthesizing a minimal Messages JSON from flat fields
+      // the backend commonly ships (message_id, message_body, message_type).
+      messageJson ??= <String, dynamic>{
+        '_id': (data['message_id'] ?? data['messageId'] ?? '').toString(),
+        'message':
+            (data['message_body'] ?? data['body'] ?? data['message'] ?? '')
+                .toString(),
+        'message_type':
+            (data['message_type'] ?? data['messageType'] ?? 'text').toString(),
+        'sender_id':
+            (data['senderId'] ?? data['sender_id'] ?? '').toString(),
+        'conversation_id': conversationId,
+        'createdAt':
+            (data['createdAt'] ?? DateTime.now().toUtc().toIso8601String())
+                .toString(),
+      };
+
+      // Without an id we can't dedupe; skip to avoid polluting the cache.
+      final msgId = (messageJson['_id'] ?? messageJson['id'] ?? '').toString();
+      if (msgId.isEmpty) return;
+
+      final Messages message = Messages.fromJson(messageJson);
+      message.conversationId = conversationId;
+      await LocalStorageHelper().saveSingleMessageToConversationId(
+          conversationId, message);
+    } catch (e) {
+      // Best-effort — navigation must still proceed even if this fails.
+      logs('[_persistFcmMessageToLocal] failed: $e');
+    }
+  }
+
   /// Helper to open chat with a user by their ID
   static void _openChatWithUser(String userId) {
     if (userId.isEmpty) return;

@@ -55,7 +55,7 @@ class _PersonalChatScreenState extends State<PersonalChatScreen> {
     chatViewController.unreadNewMessageCount.value = 0;
     chatViewController.scrollController.addListener(_onScroll);
 
-    checkPendingMessages();
+    // checkPendingMessages();
     super.initState();
   }
 
@@ -69,12 +69,12 @@ class _PersonalChatScreenState extends State<PersonalChatScreen> {
     }
   }
 
-  Future<void> checkPendingMessages() async {
-    final connectivityResult = await NetworkUtils.isConnected();
-    if (!connectivityResult) {
-      chatViewController.sendOfflineMessage(widget.conversationId ?? "");
-    }
-  }
+  // Future<void> checkPendingMessages() async {
+  //   final connectivityResult = await NetworkUtils.isConnected();
+  //   if (!connectivityResult) {
+  //     chatViewController.sendOfflineMessage(widget.conversationId ?? "");
+  //   }
+  // }
 
   @override
   void dispose() {
@@ -133,8 +133,15 @@ class _PersonalChatScreenState extends State<PersonalChatScreen> {
                       children: [
                         // Message list
                         Obx(() {
-                          if (chatViewController.getListOfMessageResponse.value.status !=
-                              Status.COMPLETE) {
+                          final messages =
+                              chatViewController.getListOfMessageData ?? [];
+                          final status = chatViewController
+                              .getListOfMessageResponse.value.status;
+                          // Show cached history as soon as it's available.
+                          // Only block with a spinner when there is nothing to
+                          // paint yet AND the load hasn't settled — so offline
+                          // users keep seeing their Hive-cached history.
+                          if (messages.isEmpty && status != Status.COMPLETE) {
                             return const Center(
                               child: SizedBox(
                                 height: 22,
@@ -143,8 +150,6 @@ class _PersonalChatScreenState extends State<PersonalChatScreen> {
                               ),
                             );
                           }
-
-                          final messages = chatViewController.getListOfMessageData ?? [];
                           if (messages.isEmpty) {
                             return Center(
                               child: InkWell(
