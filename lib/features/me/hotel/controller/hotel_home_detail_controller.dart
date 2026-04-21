@@ -7,6 +7,7 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/me/hotel/repo/hotel_service_repo.dart';
 import 'package:BlueEra/features/me/school/repo/upload_file_to_s3.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:get/get.dart';
 
 // Import your model file here
@@ -52,10 +53,12 @@ class HotelDetailController extends GetxController {
     try {
       UploadResult? result = await S3UploadService.uploadFile(uploadFile);
       if (result.isSuccess) {
-        ResponseModel response = await HotelServiceRepo()
-            .updateHotelProfileRepo(reqBODY: {
+        ResponseModel response =
+            await HotelServiceRepo().updateHotelProfileRepo(reqBODY: {
           uploadVia: result.url,
-          "name": hotelData.value?.profile?.name
+          "name": (hotelData.value?.profile?.name?.isNotEmpty ?? false)
+              ? hotelData.value?.profile?.name
+              : businessNameGlobal
         });
         if (response.isSuccess) {
           commonSnackBar(message: response.response?.data['message']);

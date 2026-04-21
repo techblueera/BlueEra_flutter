@@ -29,14 +29,19 @@ class AddProductViaAiStep2 extends StatefulWidget {
   final String id;
   final ProviderType providerType;
 
-  AddProductViaAiStep2({super.key, required this.generateAiProductContent, required this.controller, required this.id, required this.providerType});
+  AddProductViaAiStep2(
+      {super.key,
+      required this.generateAiProductContent,
+      required this.controller,
+      required this.id,
+      required this.providerType});
 
   @override
   State<AddProductViaAiStep2> createState() => _AddProductViaAiStep2State();
 }
 
 class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
- ProductController controller = ProductController();
+  ProductController controller = ProductController();
 
   @override
   void initState() {
@@ -44,11 +49,11 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       controller.preloadStep1ImagesToStep2();
       setData();
-     });
+    });
     super.initState();
   }
 
-  void setData(){
+  void setData() {
     controller.productNameController.clear();
     controller.productDescriptionController.clear();
     controller.brandController.clear();
@@ -74,17 +79,21 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
     // controller.selectedExpiryValue = Rx<num>(1);
     // controller.selectedProductValue = Rx<num>(1);
 
-    controller.productNameController.text = widget.generateAiProductContent.productName??'';
-    controller.productDescriptionController.text = widget.generateAiProductContent.description??'';
-    controller.brandController.text = widget.generateAiProductContent.brand??'';
-    controller.tags.value = widget.generateAiProductContent.tags??[];
+    controller.productNameController.text =
+        widget.generateAiProductContent.productName ?? '';
+    controller.productDescriptionController.text =
+        widget.generateAiProductContent.description ?? '';
+    controller.brandController.text =
+        widget.generateAiProductContent.brand ?? '';
+    controller.tags.value = widget.generateAiProductContent.tags ?? [];
     List<String> features = widget.generateAiProductContent.features ?? [];
-    if(features.isNotEmpty){
+    if (features.isNotEmpty) {
       for (final feature in features) {
         controller.featureControllers.add(TextEditingController(text: feature));
       }
     }
-    List<Specification> addMoreDetails = widget.generateAiProductContent.specifications ?? [];
+    List<Specification> addMoreDetails =
+        widget.generateAiProductContent.specifications ?? [];
     widget.controller.detailsList.value = addMoreDetails.map((spec) {
       return ProductMoreDetails(
         title: spec.title,
@@ -92,18 +101,24 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
       );
     }).toList();
 
-   if(widget.generateAiProductContent.brandWebsite!=null) controller.linkController.text = widget.generateAiProductContent.brandWebsite??'';
+    if (widget.generateAiProductContent.brandWebsite != null)
+      controller.linkController.text =
+          widget.generateAiProductContent.brandWebsite ?? '';
 
-    controller.mrpController.text = widget.generateAiProductContent.mrp?.toInt().toString()??'';
+    controller.mrpController.text =
+        widget.generateAiProductContent.mrp?.toInt().toString() ?? '';
     List<String> userGuide = widget.generateAiProductContent.userGuide ?? [];
-    if(userGuide.isNotEmpty){
+    if (userGuide.isNotEmpty) {
       for (final guideLine in userGuide) {
-        controller.userGuideLineControllers.add(TextEditingController(text: guideLine));
+        controller.userGuideLineControllers
+            .add(TextEditingController(text: guideLine));
       }
     }
 
-    controller.productWarrantyController.text = widget.generateAiProductContent.warranty??'';
-    controller.productExpiryDurationController.text = widget.generateAiProductContent.durationOfExpiryFromManufacture??'';
+    controller.productWarrantyController.text =
+        widget.generateAiProductContent.warranty ?? '';
+    controller.productExpiryDurationController.text =
+        widget.generateAiProductContent.durationOfExpiryFromManufacture ?? '';
 
     final variantMap = widget.generateAiProductContent.variant ?? {};
 
@@ -144,7 +159,6 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
     // controller.performSearch(controller.selectedCategory.value);
 
     // setState(() {});
-
   }
 
   @override
@@ -161,12 +175,12 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
       ),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(SizeConfig.size16),
-        child: Obx(()=> Column(
-          children: [
-            CustomFormCard(
-                child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+        child: Obx(() => Column(
+              children: [
+                CustomFormCard(
+                    child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                       CustomText(
                         AppStrings.addProductWithin1Min,
                         fontSize: SizeConfig.large,
@@ -188,7 +202,8 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
 
                           return GridView.builder(
                             scrollDirection: Axis.horizontal,
-                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                            gridDelegate:
+                                const SliverGridDelegateWithFixedCrossAxisCount(
                               crossAxisCount: 1,
                               mainAxisSpacing: 8,
                               childAspectRatio: 1,
@@ -199,7 +214,8 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
 
                               return GestureDetector(
                                 onTap: () {
-                                  if (!hasImage) controller.pickImagesStep2(context);
+                                  if (!hasImage)
+                                    controller.pickImagesStep2(context);
                                 },
                                 child: Container(
                                   decoration: BoxDecoration(
@@ -218,14 +234,18 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
                                         )
                                       else
                                         const Center(
-                                          child: Icon(Icons.photo_outlined, color: Colors.grey, size: 28),
+                                          child: Icon(Icons.photo_outlined,
+                                              color: Colors.grey, size: 28),
                                         ),
-                                      if (hasImage && index >= controller.step1Images.length)
+                                      if (hasImage &&
+                                          index >=
+                                              controller.step1Images.length)
                                         Positioned(
                                           top: 4,
                                           right: 4,
                                           child: GestureDetector(
-                                            onTap: () => controller.removeImageStep2(index),
+                                            onTap: () => controller
+                                                .removeImageStep2(index),
                                             child: Container(
                                               width: 22,
                                               height: 22,
@@ -233,7 +253,9 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
                                                 color: Colors.black54,
                                                 shape: BoxShape.circle,
                                               ),
-                                              child: const Icon(Icons.close, size: 14, color: Colors.white),
+                                              child: const Icon(Icons.close,
+                                                  size: 14,
+                                                  color: Colors.white),
                                             ),
                                           ),
                                         ),
@@ -362,79 +384,69 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
                       //     ),
                       //   ),
                       // )),
+                    ])),
+                SizedBox(height: SizeConfig.size10),
+                CustomFormCard(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CustomText(
+                        AppStrings.hereIsYourProduct,
+                        fontSize: SizeConfig.large,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.mainTextColor,
+                      ),
+                      SizedBox(height: SizeConfig.size10),
 
-                    ]
-                )
-            ),
-            SizedBox(height: SizeConfig.size10),
-            CustomFormCard(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CustomText(
-                    AppStrings.hereIsYourProduct,
-                    fontSize: SizeConfig.large,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.mainTextColor,
+                      /// Product Details
+                      _buildProductDetails(),
+                      SizedBox(height: SizeConfig.size10),
+
+                      /// features
+                      _buildProductFeature(),
+                      SizedBox(height: SizeConfig.size10),
+
+                      /// pricing & warranty
+                      _buildPricingAndWarranty(),
+                      SizedBox(height: SizeConfig.size10),
+
+                      /// Product variant
+                      _buildProductVariant(),
+
+                      SizedBox(height: SizeConfig.size20),
+
+                      /// Submit
+                      CustomBtn(
+                          title: controller.isCreateProductLoading.value
+                              ? null // hide text
+                              : AppStrings.postProduct,
+                          onTap: () {
+                            //Get.to(()=> ProductPreviewScreen(controller: controller));
+                            controller.createProductViaAi(
+                                controller, widget.id, widget.providerType);
+                          },
+                          bgColor: AppColors.primaryColor,
+                          textColor: AppColors.white,
+                          height: SizeConfig.size40,
+                          radius: 10.0,
+                          isLoading: controller.isCreateProductLoading.value),
+                    ],
                   ),
-                  SizedBox(height: SizeConfig.size10),
-
-                  /// Product Details
-                  _buildProductDetails(),
-                  SizedBox(height: SizeConfig.size10),
-
-                  /// features
-                  _buildProductFeature(),
-                  SizedBox(height: SizeConfig.size10),
-
-                  /// pricing & warranty
-                  _buildPricingAndWarranty(),
-                  SizedBox(height: SizeConfig.size10),
-
-                  /// Product variant
-                  _buildProductVariant(),
-
-                  SizedBox(height: SizeConfig.size20),
-
-                  /// Submit
-                  CustomBtn(
-                      title: controller.isCreateProductLoading.value
-                          ? null // hide text
-                          : AppStrings.postProduct,
-                    onTap: (){
-                      //Get.to(()=> ProductPreviewScreen(controller: controller));
-                       controller.createProductViaAi(
-                           controller,
-                           widget.id,
-                           widget.providerType
-                       );
-                    },
-                    bgColor: AppColors.primaryColor,
-                    textColor: AppColors.white,
-                    height: SizeConfig.size40,
-                    radius: 10.0,
-                     isLoading: controller.isCreateProductLoading.value
-                  ),
-                ],
-              ),
-
-            ),
-            SizedBox(height: SizeConfig.size20),
-          ],
-         )
-        ),
+                ),
+                SizedBox(height: SizeConfig.size20),
+              ],
+            )),
       ),
     );
   }
 
-  Widget _buildProductDetails(){
+  Widget _buildProductDetails() {
     return Container(
       padding: EdgeInsets.all(SizeConfig.size8),
       decoration: BoxDecoration(
           color: AppColors.white,
           borderRadius: BorderRadius.circular(10.0),
-          border: Border.all(color: AppColors.whiteE0)
-      ),
+          border: Border.all(color: AppColors.whiteE0)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -449,7 +461,7 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
               ),
               InkWell(
                   onTap: () {
-                    Get.to(()=> Step1Section(controller: controller));
+                    Get.to(() => Step1Section(controller: controller));
                   },
                   child: LocalAssets(imagePath: AppIconAssets.pen_line))
             ],
@@ -468,7 +480,6 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
                 fontWeight: FontWeight.w600,
                 color: AppColors.secondaryTextColor,
               ),
-
               Expanded(
                 child: CustomText(
                   controller.productNameController.text,
@@ -480,7 +491,6 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
             ],
           ),
           SizedBox(height: SizeConfig.size10),
-
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -498,11 +508,9 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
                   color: AppColors.secondaryTextColor,
                 ),
               ),
-
             ],
           ),
           SizedBox(height: SizeConfig.size10),
-
           CustomText(
             '${AppStrings.productDescription}: ',
             fontSize: SizeConfig.medium,
@@ -522,41 +530,42 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
             expandMode: ExpandMode.dialog,
             dialogTitle: AppStrings.productDescription,
           ),
-
           SizedBox(height: SizeConfig.size10),
           (controller.tags.isNotEmpty)
               ? Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              CustomText(
-                '${AppStrings.tagsKeywords.tr}: ',
-                fontSize: SizeConfig.medium,
-                fontWeight: FontWeight.w600,
-                color: AppColors.secondaryTextColor,
-              ),
-              SizedBox(height: SizeConfig.size3),
-              CustomText(
-                '${ controller.tags.join(', ')}', /// Keyword/tegs
-                fontSize: SizeConfig.medium,
-                fontWeight: FontWeight.w400,
-                color: AppColors.secondaryTextColor,
-                height: 1.5,
-              ),
-            ],
-          ) : SizedBox(),
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CustomText(
+                      '${AppStrings.tagsKeywords.tr}: ',
+                      fontSize: SizeConfig.medium,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.secondaryTextColor,
+                    ),
+                    SizedBox(height: SizeConfig.size3),
+                    CustomText(
+                      '${controller.tags.join(', ')}',
+
+                      /// Keyword/tegs
+                      fontSize: SizeConfig.medium,
+                      fontWeight: FontWeight.w400,
+                      color: AppColors.secondaryTextColor,
+                      height: 1.5,
+                    ),
+                  ],
+                )
+              : SizedBox(),
         ],
       ),
     );
   }
 
-  Widget _buildProductFeature(){
-    return  Container(
+  Widget _buildProductFeature() {
+    return Container(
       padding: EdgeInsets.all(SizeConfig.size8),
       decoration: BoxDecoration(
           color: AppColors.white,
           borderRadius: BorderRadius.circular(10.0),
-          border: Border.all(color: AppColors.whiteE0)
-      ),
+          border: Border.all(color: AppColors.whiteE0)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -571,7 +580,7 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
               ),
               InkWell(
                   onTap: () {
-                    Get.to(()=> Step2Section(controller: controller));
+                    Get.to(() => Step2Section(controller: controller));
                   },
                   child: LocalAssets(imagePath: AppIconAssets.pen_line))
             ],
@@ -581,15 +590,13 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
             height: 1.0,
             color: AppColors.whiteE0,
           ),
-
           SizedBox(height: SizeConfig.size10),
-
-          if(controller.featureControllers.isNotEmpty)
+          if (controller.featureControllers.isNotEmpty)
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: List.generate(
                 controller.featureControllers.length,
-                    (index) => Padding(
+                (index) => Padding(
                   padding: const EdgeInsets.only(bottom: 4.0),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -617,8 +624,7 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
                 ),
               ),
             ),
-
-          if(controller.linkController.text.isNotEmpty)
+          if (controller.linkController.text.isNotEmpty)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 4.0),
               child: Row(
@@ -632,7 +638,7 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
                   ),
                   Expanded(
                     child: GestureDetector(
-                      onTap: ()=> launchURL(controller.linkController.text),
+                      onTap: () => launchURL(controller.linkController.text),
                       child: CustomText(
                         '${controller.linkController.text}',
                         fontSize: SizeConfig.medium,
@@ -641,76 +647,70 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
                       ),
                     ),
                   ),
-
                 ],
               ),
             ),
-
-          if(controller.detailsList.isNotEmpty)
-            ...[
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    CustomText(
-                      '${AppStrings.moreDetails}: ',
-                      fontSize: SizeConfig.medium,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.secondaryTextColor,
-                    ),
-                    SizedBox(height: SizeConfig.size3),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: List.generate(
-                        controller.detailsList.length, // number of items
-                            (index) => Padding(
-                          padding: const EdgeInsets.only(bottom: 4.0),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Container(
-                                margin: EdgeInsets.only(top: 6.0, right: 8.0),
-                                width: 4.0,
-                                height: 4.0,
-                                decoration: BoxDecoration(
-                                  color: AppColors.secondaryTextColor,
-                                  shape: BoxShape.circle,
-                                ),
+          if (controller.detailsList.isNotEmpty) ...[
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CustomText(
+                    '${AppStrings.moreDetails}: ',
+                    fontSize: SizeConfig.medium,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.secondaryTextColor,
+                  ),
+                  SizedBox(height: SizeConfig.size3),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: List.generate(
+                      controller.detailsList.length, // number of items
+                      (index) => Padding(
+                        padding: const EdgeInsets.only(bottom: 4.0),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              margin: EdgeInsets.only(top: 6.0, right: 8.0),
+                              width: 4.0,
+                              height: 4.0,
+                              decoration: BoxDecoration(
+                                color: AppColors.secondaryTextColor,
+                                shape: BoxShape.circle,
                               ),
-                              Expanded(
-                                child: CustomText(
-                                  '${controller.detailsList[index].title} - ${controller.detailsList[index].details}',
-                                  fontSize: SizeConfig.medium,
-                                  fontWeight: FontWeight.w400,
-                                  color: AppColors.secondaryTextColor,
-                                  // height: 1.2,
-                                ),
+                            ),
+                            Expanded(
+                              child: CustomText(
+                                '${controller.detailsList[index].title} - ${controller.detailsList[index].details}',
+                                fontSize: SizeConfig.medium,
+                                fontWeight: FontWeight.w400,
+                                color: AppColors.secondaryTextColor,
+                                // height: 1.2,
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ],
-
-
+            ),
+          ],
         ],
       ),
     );
   }
 
-  Widget _buildPricingAndWarranty(){
+  Widget _buildPricingAndWarranty() {
     return Container(
       padding: EdgeInsets.all(SizeConfig.size8),
       decoration: BoxDecoration(
           color: AppColors.white,
           borderRadius: BorderRadius.circular(10.0),
-          border: Border.all(color: AppColors.whiteE0)
-      ),
+          border: Border.all(color: AppColors.whiteE0)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -725,7 +725,7 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
               ),
               InkWell(
                   onTap: () {
-                    Get.to(()=> Step3Section(controller: controller));
+                    Get.to(() => Step3Section(controller: controller));
                   },
                   child: LocalAssets(imagePath: AppIconAssets.pen_line))
             ],
@@ -735,32 +735,30 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
             height: 1.0,
             color: AppColors.whiteE0,
           ),
-
-          (controller.mrpController.text.isNotEmpty) ?
-          Padding(
-            padding: EdgeInsets.only(top: 10.0),
-            child: Row(
-              children: [
-                CustomText(
-                  '${AppStrings.mrp.tr}: ',
-                  fontSize: SizeConfig.medium,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.secondaryTextColor,
-                ),
-                Expanded(
-                  child: CustomText(
-                    "${controller.mrpController.text}",
-                    fontSize: SizeConfig.large,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.secondaryTextColor,
+          (controller.mrpController.text.isNotEmpty)
+              ? Padding(
+                  padding: EdgeInsets.only(top: 10.0),
+                  child: Row(
+                    children: [
+                      CustomText(
+                        '${AppStrings.mrp.tr}: ',
+                        fontSize: SizeConfig.medium,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.secondaryTextColor,
+                      ),
+                      Expanded(
+                        child: CustomText(
+                          "${controller.mrpController.text}",
+                          fontSize: SizeConfig.large,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.secondaryTextColor,
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-
-              ],
-            ),
-          ) : SizedBox(),
-
-          if(controller.productWarrantyController.text.isNotEmpty)
+                )
+              : SizedBox(),
+          if (controller.productWarrantyController.text.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(top: 10.0),
               child: Row(
@@ -783,8 +781,7 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
                 ],
               ),
             ),
-
-          if(controller.productExpiryDurationController.text.isNotEmpty)
+          if (controller.productExpiryDurationController.text.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(top: 10.0),
               child: Row(
@@ -807,8 +804,7 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
                 ],
               ),
             ),
-
-          if(controller.userGuideLineControllers.isNotEmpty)
+          if (controller.userGuideLineControllers.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(top: 10.0),
               child: Column(
@@ -824,8 +820,9 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: List.generate(
-                      controller.userGuideLineControllers.length, // number of items
-                          (index) => Padding(
+                      controller
+                          .userGuideLineControllers.length, // number of items
+                      (index) => Padding(
                         padding: const EdgeInsets.only(bottom: 4.0),
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -853,11 +850,9 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
                       ),
                     ),
                   )
-
                 ],
               ),
             ),
-
         ],
       ),
     );
@@ -869,8 +864,7 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
       decoration: BoxDecoration(
           color: AppColors.white,
           borderRadius: BorderRadius.circular(10.0),
-          border: Border.all(color: AppColors.whiteE0)
-      ),
+          border: Border.all(color: AppColors.whiteE0)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -903,58 +897,57 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
           ),
           SizedBox(height: SizeConfig.size8),
 
-          if(controller.selectedColors.isNotEmpty)
-            ...[
-              CustomText(
-                '${AppStrings.color.tr}: ',
-                fontSize: SizeConfig.medium,
-                fontWeight: FontWeight.w600,
-                color: AppColors.secondaryTextColor,
-              ),
-              SizedBox(height: 5.0),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: List.generate(
-                  controller.selectedColors.length, // number of items
-                      (i) {
-                        final selected = controller.selectedColors[i];
-                        return Container(
-                          padding: EdgeInsets.all(6.0),
-                          margin: EdgeInsets.only(bottom: 6.0),
+          if (controller.selectedColors.isNotEmpty) ...[
+            CustomText(
+              '${AppStrings.color.tr}: ',
+              fontSize: SizeConfig.medium,
+              fontWeight: FontWeight.w600,
+              color: AppColors.secondaryTextColor,
+            ),
+            SizedBox(height: 5.0),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: List.generate(
+                controller.selectedColors.length, // number of items
+                (i) {
+                  final selected = controller.selectedColors[i];
+                  return Container(
+                    padding: EdgeInsets.all(6.0),
+                    margin: EdgeInsets.only(bottom: 6.0),
+                    decoration: BoxDecoration(
+                      color: AppColors.lightBlue,
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Container(
+                          width: 16,
+                          height: 16,
                           decoration: BoxDecoration(
-                            color: AppColors.lightBlue,
-                              borderRadius: BorderRadius.circular(8.0),
+                            color: selected.color,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white, width: 1),
                           ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Container(
-                                width: 16,
-                                height: 16,
-                                decoration: BoxDecoration(
-                                  color: selected.color,
-                                  shape: BoxShape.circle,
-                                  border: Border.all(color: Colors.white, width: 1),
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                '${selected.name}',
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: AppColors.secondaryTextColor,
-                                ),
-                              ),
-                            ],
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          '${selected.name}',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppColors.secondaryTextColor,
                           ),
-                        );
-                      },
-                ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
               ),
-              SizedBox(height: SizeConfig.size10),
-            ],
+            ),
+            SizedBox(height: SizeConfig.size10),
+          ],
 
           Obx(() {
             if (controller.dynamicAttributes.isEmpty) return SizedBox.shrink();
@@ -982,7 +975,7 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: List.generate(
                         values.length,
-                            (index) => Padding(
+                        (index) => Padding(
                           padding: const EdgeInsets.only(bottom: 4.0),
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1016,9 +1009,6 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
               }).toList(),
             );
           })
-
-
-
         ],
       ),
     );

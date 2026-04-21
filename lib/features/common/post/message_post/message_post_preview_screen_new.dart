@@ -253,7 +253,8 @@ class _MessagePostPreviewScreenNewState
                                   .postTitleController.value.text.isNotEmpty)
                                 Padding(
                                   padding: EdgeInsets.only(
-                                      left: SizeConfig.size50,
+                                      left: SizeConfig.size15,
+                                      right: SizeConfig.size15,
                                       top: SizeConfig.size5,
                                       bottom: SizeConfig.size5),
                                   child: CustomText(
@@ -265,41 +266,47 @@ class _MessagePostPreviewScreenNewState
                                   ),
                                 ),
                               Padding(
-                                padding: EdgeInsets.only(
-                                    left: SizeConfig.size50,
-                                    top: msgPostController.postTitleController
-                                            .value.text.isEmpty
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: SizeConfig.size15,
+                                    vertical: msgPostController
+                                            .postTitleController
+                                            .value
+                                            .text
+                                            .isEmpty
                                         ? SizeConfig.size10
-                                        : 0,
-                                    bottom: SizeConfig.size15),
-                                child: msgPostController.isMsgPostEdit
-                                    ? CommonTextField(
-                                        title: AppStrings.description,
-                                        hintText:
-                                            "Enter description (minimum 30 characters)",
-                                        maxLength: 2000,
-                                        isValidate: false,
-                                        readOnly: false,
-                                        maxLine: 3,
-                                        textEditController: msgPostController
-                                            .descriptionMessage.value,
-                                        onChange: (value) {
-                                          setState(() {
-                                            hasChanges =
-                                                value != originalCaption;
-                                          });
-                                        },
-                                      )
-                                    : HighlightText(
-                                        text: msgPostController
-                                            .descriptionMessage.value.text),
+                                        : 0),
+                                child: Padding(
+                                  padding: EdgeInsets.only(
+                                      bottom: SizeConfig.size15),
+                                  child: msgPostController.isMsgPostEdit
+                                      ? CommonTextField(
+                                          title: AppStrings.description,
+                                          hintText:
+                                              "Enter description (minimum 30 characters)",
+                                          maxLength: 2000,
+                                          isValidate: false,
+                                          readOnly: false,
+                                          maxLine: 3,
+                                          textEditController: msgPostController
+                                              .descriptionMessage.value,
+                                          onChange: (value) {
+                                            setState(() {
+                                              hasChanges =
+                                                  value != originalCaption;
+                                            });
+                                          },
+                                        )
+                                      : HighlightText(
+                                          text: msgPostController
+                                              .descriptionMessage.value.text),
+                                ),
                               ),
                               if (msgPostController.referenceLinkController
                                   .value.text.isNotEmpty)
                                 Padding(
                                   padding: EdgeInsets.only(
-                                      // top: SizeConfig.size5,
-                                      left: SizeConfig.size50,
+                                      left: SizeConfig.size15,
+                                      right: SizeConfig.size15,
                                       bottom: SizeConfig.size15),
                                   child: InkWell(
                                     onTap: () async {
@@ -324,34 +331,40 @@ class _MessagePostPreviewScreenNewState
 
                               if (msgPostController.imagesList.isNotEmpty &&
                                   !msgPostController.isMsgPostEdit)
-                                // InstaSlider(),
-                                LocalMediaGrid(
-                                  files: msgPostController.imagesList,
-                                  isVideo:
-                                      msgPostController.selectedType.value ==
-                                          MediaType.video,
-                                  videoThumbnails:
-                                      msgPostController.videoThumbnails,
-                                  onEditTap: (index) =>
-                                      Get.off(PhotoListingWidget()),
-                                  onTapMedia: (index) => openVideoPreview(
-                                      msgPostController.imagesList[index]),
+                                Padding(
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: SizeConfig.size15),
+                                  child: LocalMediaGrid(
+                                    files: msgPostController.imagesList,
+                                    isVideo:
+                                        msgPostController.selectedType.value ==
+                                            MediaType.video,
+                                    videoThumbnails:
+                                        msgPostController.videoThumbnails,
+                                    onEditTap: (index) =>
+                                        Get.off(PhotoListingWidget()),
+                                    onTapMedia: (index) => openVideoPreview(
+                                        msgPostController.imagesList[index]),
+                                  ),
                                 ),
                               if (msgPostController.isMsgPostEdit &&
                                   msgPostController.uploadImageList.isNotEmpty)
-                                InstaSliderNetwork(
-                                  post: widget.post,
+                                Padding(
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: SizeConfig.size15),
+                                  child: InstaSliderNetwork(
+                                    post: widget.post,
+                                  ),
                                 ),
-                              // Video validation status — only shown for new
-                              // video posts. Blocks submit until the trimmed
-                              // file is confirmed playable.
+                              // Video validation status
                               if (!msgPostController.isMsgPostEdit &&
                                   msgPostController.selectedType.value ==
                                       MediaType.video &&
                                   (_isVideoValidating || _videoError != null))
                                 Padding(
                                   padding: EdgeInsets.only(
-                                      left: SizeConfig.size50,
+                                      left: SizeConfig.size15,
+                                      right: SizeConfig.size15,
                                       top: SizeConfig.size10),
                                   child: _isVideoValidating
                                       ? Row(
@@ -359,12 +372,10 @@ class _MessagePostPreviewScreenNewState
                                             SizedBox(
                                               width: SizeConfig.size16,
                                               height: SizeConfig.size16,
-                                              child:
-                                                  CircularProgressIndicator(
-                                                      strokeWidth: 2),
+                                              child: CircularProgressIndicator(
+                                                  strokeWidth: 2),
                                             ),
-                                            SizedBox(
-                                                width: SizeConfig.size10),
+                                            SizedBox(width: SizeConfig.size10),
                                             Expanded(
                                               child: CustomText(
                                                 "Validating video, please wait...",
@@ -378,23 +389,20 @@ class _MessagePostPreviewScreenNewState
                                             Icon(Icons.error_outline,
                                                 color: AppColors.red,
                                                 size: SizeConfig.size20),
-                                            SizedBox(
-                                                width: SizeConfig.size10),
+                                            SizedBox(width: SizeConfig.size10),
                                             Expanded(
                                               child: CustomText(
                                                 _videoError ?? "",
                                                 color: AppColors.red,
                                               ),
                                             ),
-                                            SizedBox(
-                                                width: SizeConfig.size10),
+                                            SizedBox(width: SizeConfig.size10),
                                             GestureDetector(
                                               onTap:
                                                   _validateCurrentVideoIfNeeded,
                                               child: CustomText(
                                                 "Retry",
-                                                color:
-                                                    AppColors.primaryColor,
+                                                color: AppColors.primaryColor,
                                                 fontWeight: FontWeight.w700,
                                               ),
                                             ),
@@ -406,7 +414,9 @@ class _MessagePostPreviewScreenNewState
                                 () => tagUserController.selectedUsers.isNotEmpty
                                     ? Padding(
                                         padding: EdgeInsets.only(
-                                            top: SizeConfig.size16),
+                                            top: SizeConfig.size16,
+                                            left: SizeConfig.size15,
+                                            right: SizeConfig.size15),
                                         child: Row(
                                           children: [
                                             Expanded(
@@ -425,7 +435,6 @@ class _MessagePostPreviewScreenNewState
                                             ),
                                             GestureDetector(
                                               onTap: () async {
-                                                // Get.back();
                                                 await Get.to(
                                                     () => TagUserScreen());
                                               },
@@ -438,7 +447,9 @@ class _MessagePostPreviewScreenNewState
                                       )
                                     : Padding(
                                         padding: EdgeInsets.only(
-                                            top: SizeConfig.size15),
+                                            top: SizeConfig.size15,
+                                            left: SizeConfig.size15,
+                                            right: SizeConfig.size15),
                                         child: GestureDetector(
                                           onTap: () async {
                                             await Get.to(() => TagUserScreen());
