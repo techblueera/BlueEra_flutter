@@ -318,16 +318,9 @@ class ProfessionalsCertificatesScreen extends StatelessWidget {
                             onTap: certController.isSaving.value
                                 ? null
                                 : () async {
-                                    if (isEdit == false &&
-                                        certController.selectedFile.value ==
-                                            null) {
-                                      commonSnackBar(
-                                          message:
-                                              "Upload image file is required");
-                                      return;
+                                    if (await certController.save()) {
+                                      Get.back();
                                     }
-                                    await certController.save();
-                                    Get.back();
                                   },
                           )),
                       SizedBox(height: SizeConfig.size20),

@@ -60,7 +60,6 @@ class HotelDetailController extends GetxController {
         if (response.isSuccess) {
           commonSnackBar(message: response.response?.data['message']);
           loadHotelData();
-
         } else {
           commonSnackBar(message: AppStrings.somethingWentWrong);
         }
@@ -91,5 +90,4 @@ class HotelDetailController extends GetxController {
             .toList() ??
         [];
   }
-
 }

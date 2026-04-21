@@ -507,7 +507,7 @@ class _SocialMainScreenState extends State<SocialMainScreen>
                   child: ExpandableText(
                     text: bio,
                     trimLines: 2,
-                    expandMode: ExpandMode.dialog,
+                    expandMode: ExpandMode.expandable,
                     dialogTitle: AppStrings.bio.tr,
                     style: TextStyle(
                       fontSize: SizeConfig.medium,

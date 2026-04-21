@@ -127,12 +127,18 @@ class _ImageViewScreenState extends State<ImageViewScreen> {
                 top: SizeConfig.size25,
                 left: SizeConfig.size15,
                 child: SafeArea(
-                  child: IconButton(
-                    icon: Icon(Icons.chevron_left,
-                        color: Colors.white, size: SizeConfig.size40),
-                    onPressed: () {
-                      Get.back();
-                    },
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      color: Colors.black54,
+                      shape: BoxShape.circle,
+                    ),
+                    child: IconButton(
+                      icon: Icon(Icons.chevron_left,
+                          color: Colors.white, size: SizeConfig.size30),
+                      onPressed: () {
+                        Get.back();
+                      },
+                    ),
                   ),
                 ),
               ),
@@ -204,7 +210,7 @@ class _ImageViewScreenState extends State<ImageViewScreen> {
                       text: widget.subTitle ?? '',
                       trimLines: 4,
                       isReadMoreNewLine: true,
-                      expandMode: ExpandMode.dialog,
+                      expandMode: ExpandMode.expandable,
                       style: TextStyle(
                         color: AppColors.white,
                         fontSize: SizeConfig.large,

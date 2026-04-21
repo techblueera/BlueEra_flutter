@@ -65,7 +65,8 @@ class RoomDesignScreen extends StatelessWidget {
               onChange: (_) => controller.triggerValidation(),
             ),
             SizedBox(height: 12),
-            CustomText(AppStrings.hotelRoomSize.tr, fontWeight: FontWeight.w500),
+            CustomText(AppStrings.hotelRoomSize.tr,
+                fontWeight: FontWeight.w500),
             SizedBox(height: 8),
             Row(
               children: [
@@ -141,45 +142,52 @@ class RoomDesignScreen extends StatelessWidget {
               onChange: (_) => controller.triggerValidation(),
             ),
             SizedBox(height: 12),
-            Obx(() => ListView.separated(
-                  shrinkWrap: true,
-                  // Important for use inside SingleChildScrollView
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: controller.savedCoupons.length,
-                  separatorBuilder: (context, index) =>
-                      const SizedBox(height: 12),
-                  itemBuilder: (context, index) {
-                    final coupon = controller.savedCoupons[index];
-                    return _buildCouponItem(coupon, index);
-                  },
+            Obx(() => Column(
+                  children: [
+                    if (controller.savedCoupons.isNotEmpty)
+                      ListView.separated(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: controller.savedCoupons.length,
+                        separatorBuilder: (context, index) =>
+                            const SizedBox(height: 12),
+                        itemBuilder: (context, index) {
+                          final coupon = controller.savedCoupons[index];
+                          return _buildCouponItem(coupon, index);
+                        },
+                      ),
+                    if (controller.savedCoupons.isEmpty)
+                      InkWell(
+                        onTap: () => showCouponModal(context),
+                        child: Container(
+                          padding: const EdgeInsets.all(15),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey.shade300),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Row(
+                            children: [
+                              CustomText(
+                                AppStrings.hotelDiscountCoupon.tr,
+                                color: Colors.grey.shade600,
+                              ),
+                              const Spacer(),
+                              const Icon(Icons.arrow_forward_ios, size: 16),
+                            ],
+                          ),
+                        ),
+                      ),
+                    if (controller.savedCoupons.isNotEmpty)
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton.icon(
+                          onPressed: () => showCouponModal(context),
+                          icon: const Icon(Icons.add),
+                          label: CustomText(AppStrings.hotelAddMoreCoupon.tr),
+                        ),
+                      )
+                  ],
                 )),
-            Container(
-              padding: const EdgeInsets.all(15),
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey.shade300),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Row(
-                children: [
-                  Obx(() => CustomText(
-                        controller.savedCoupons.isEmpty
-                            ? AppStrings.hotelDiscountCoupon.tr
-                            : "${controller.savedCoupons.length} ${AppStrings.hotelCouponAdded.tr}",
-                        color: Colors.grey.shade600,
-                      )),
-                  const Spacer(),
-                  const Icon(Icons.arrow_forward_ios, size: 16),
-                ],
-              ),
-            ),
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton.icon(
-                onPressed: () => showCouponModal(context),
-                icon: Icon(Icons.add),
-                label: CustomText(AppStrings.hotelAddMoreCoupon.tr),
-              ),
-            )
           ],
         ),
       ),
@@ -257,11 +265,10 @@ class RoomDesignScreen extends StatelessWidget {
                   border: Border.all(color: Colors.blue.shade400, width: 1.5),
                 ),
               ),
-              CustomText(
-                isPercentage ? "%" : "₹",
-                    color: Colors.brown.shade700,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold),
+              CustomText(isPercentage ? "%" : "₹",
+                  color: Colors.brown.shade700,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold),
             ],
           ),
           // Optional: Delete Button
@@ -275,22 +282,22 @@ class RoomDesignScreen extends StatelessWidget {
   }
 
   Widget _buildSubmitButton() {
-      return Obx(() {
-        bool isValid = controller.isFormValidRx.value;
+    return Obx(() {
+      bool isValid = controller.isFormValidRx.value;
 
-        return CustomBtn(
-          isValidate: isValid,
-          title: AppStrings.next.tr,
-          onTap: isValid
-              ? () {
-                  Get.to(HotelImageUploadScreen(
-                    roomName: roomName,
-                    roomType: roomType,
-                  ));
-                }
-              : null,
-        );
-      });
+      return CustomBtn(
+        isValidate: isValid,
+        title: AppStrings.next.tr,
+        onTap: isValid
+            ? () {
+                Get.to(HotelImageUploadScreen(
+                  roomName: roomName,
+                  roomType: roomType,
+                ));
+              }
+            : null,
+      );
+    });
   }
 }
 
@@ -357,7 +364,8 @@ void showCouponModal(BuildContext context) {
               const SizedBox(height: 15),
               Row(
                 children: [
-                  CustomText(AppStrings.hotelTotalOff.tr, fontWeight: FontWeight.w500),
+                  CustomText(AppStrings.hotelTotalOff.tr,
+                      fontWeight: FontWeight.w500),
                   const Spacer(),
                   Obx(() => _radioOption(controller, "In Rupees")),
                   Obx(() => _radioOption(controller, "In Percentage")),

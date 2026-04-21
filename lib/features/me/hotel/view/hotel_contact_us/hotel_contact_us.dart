@@ -39,9 +39,7 @@ class _HotelContactUsState extends State<HotelContactUs> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        showRightTextButton: true,
-        isShowMoreInfoIcon: true,
-        title:  AppStrings.contactUs,
+        title: AppStrings.contactUs,
         isShadowShow: false,
       ),
       body: SafeArea(
@@ -100,23 +98,21 @@ class _HotelContactUsState extends State<HotelContactUs> {
                                       ),
                                       InkWell(
                                         onTap: () async {
-                                             if (dataHotel.data?.length == 1) {
+                                          if (dataHotel.data?.length == 1) {
                                             commonSnackBar(
-                                                message:
-                                                AppStrings.minOneBranchRequired);
-                                          }
-                                          else {
+                                                message: AppStrings
+                                                    .minOneBranchRequired);
+                                          } else {
                                             await showCommonDialog(
                                                 context: context,
-                                                text:
-                                                AppStrings.deleteBranchConfirm.tr,
+                                                text: AppStrings
+                                                    .deleteBranchConfirm.tr,
                                                 confirmCallback: () async {
                                                   await controller
                                                       .deleteHotelBranchDepartmentController(
-                                                          departmentId:
-                                                              contactData.id ??
-                                                                  "",
-                                                        );
+                                                    departmentId:
+                                                        contactData.id ?? "",
+                                                  );
                                                 },
                                                 cancelCallback: () {
                                                   Navigator.of(context)
@@ -191,7 +187,7 @@ class _HotelContactUsState extends State<HotelContactUs> {
               onTapEvent: () {
                 Get.to(HotelBranchDetailsFormScreen());
               },
-              buttonName:  AppStrings.addAnotherBranch.tr,
+              buttonName: AppStrings.addAnotherBranch.tr,
             ),
             SizedBox(
               height: SizeConfig.size25,
