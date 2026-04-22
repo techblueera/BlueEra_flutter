@@ -4879,6 +4879,7 @@ class AppStrings {
   static const String yesIHave = "yesIHave";
   static const String noIDont = "noIDont";
   static const String enterEmailLinkedToGst = "enterEmailLinkedToGst";
+  static const String onlyGmailAllowed = "onlyGmailAllowed";
   static const String enterEmailLabel = "enterEmailLabel";
   static const String enterGstNumberLabel = "enterGstNumberLabel";
   static const String pleaseEnterGstNumber = "pleaseEnterGstNumber";
