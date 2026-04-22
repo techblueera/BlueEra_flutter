@@ -141,12 +141,16 @@ class _GstNumberScreenState extends State<GstNumberScreen> {
                               autoFillType: AutoFillType.email,
                               isValidate: false,
                               autovalidateMode: AutovalidateMode.onUserInteraction,
+                              onChange: (_) => _validateAll(),
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
                                   return AppStrings.pleaseEnterEmail.tr;
                                 }
                                 if (!GetUtils.isEmail(value)) {
                                   return AppStrings.pleaseEnterValidEmail.tr;
+                                }
+                                if (!value.toLowerCase().endsWith('@gmail.com')) {
+                                  return AppStrings.onlyGmailAllowed.tr;
                                 }
                                 return null;
                               },
@@ -159,11 +163,9 @@ class _GstNumberScreenState extends State<GstNumberScreen> {
                               maxLength: 15,
                               isValidate: false,
                               autovalidateMode: AutovalidateMode.onUserInteraction,
+                              onChange: (_) => _validateAll(),
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
-                                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                                    authController.isValidate.value = false;
-                                  });
                                   return AppStrings.pleaseEnterGstNumber.tr;
                                 }
                                 final gstRegExp = RegExp(
@@ -171,15 +173,9 @@ class _GstNumberScreenState extends State<GstNumberScreen> {
                                 );
 
                                 if (!gstRegExp.hasMatch(value)) {
-                                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                                    authController.isValidate.value = false;
-                                  });
                                   return AppStrings.pleaseEnterValidGstNumber.tr;
                                 }
 
-                                WidgetsBinding.instance.addPostFrameCallback((_) {
-                                  authController.isValidate.value = true;
-                                });
                                 return null;
                               },
                             ),
@@ -470,5 +466,18 @@ class _GstNumberScreenState extends State<GstNumberScreen> {
       authController.hasGstNumber.value = false;
       Get.toNamed(RouteHelper.getCreateBusinessAccountNewStepOneRoute());
     }
+  }
+
+  void _validateAll() {
+    final email = _emailController.text.trim();
+    final gst = _gstController.text.trim();
+
+    final isEmailValid = GetUtils.isEmail(email) &&
+        email.toLowerCase().endsWith('@gmail.com');
+    final isGstValid = RegExp(
+            r'^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$')
+        .hasMatch(gst);
+
+    authController.isValidate.value = isEmailValid && isGstValid;
   }
 }

@@ -9,7 +9,6 @@ import 'package:get/get_state_manager/src/simple/get_controllers.dart';
 import 'package:http/http.dart' as http;
 
 class GstController extends GetxController {
-
   RxBool isLoading = false.obs;
   Rx<GstDetailsModel?> gstDetails = Rx<GstDetailsModel?>(null);
   Rx<ApiResponse> gstResponse = ApiResponse.initial('Initial').obs;
@@ -29,11 +28,9 @@ class GstController extends GetxController {
   }
 
   Future<void> getGstDetails(String email, String gstin) async {
-
     try {
       log("Fetching GST details: https://api.whitebooks.in/public/search?email=$email&gstin=$gstin");
       isLoading.value = true;
-
 
       final response = await http.get(
         Uri.parse(
@@ -43,24 +40,24 @@ class GstController extends GetxController {
           "client_secret": "GSTP70a28405-d61f-4720-b4bc-7297f25eecd2",
         },
       );
-      
+
       log("GST API Response: ${response.body}");
-      
+
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = jsonDecode(response.body);
         final model = GstDetailsModel.fromJson(data);
-        
+
         // Checking for status_cd "1" as per the provided response sample
         if (model.statusCd == "1" || data['completed'] == true) {
           gstDetails.value = model;
           gstResponse.value = ApiResponse.complete(model);
         } else {
-          gstResponse.value = ApiResponse.error(model.statusDesc ?? 'Gst Details Not Found');
+          gstResponse.value =
+              ApiResponse.error(model.statusDesc ?? 'Gst Details Not Found');
         }
       } else {
         gstResponse.value = ApiResponse.error("Error: ${response.statusCode}");
       }
-
     } catch (e) {
       log("GST Error: $e");
       gstResponse.value = ApiResponse.error(e.toString());
@@ -68,6 +65,7 @@ class GstController extends GetxController {
       isLoading.value = false;
     }
   }
+
   Future<String> _getIpAddress() async {
     try {
       final response = await http.get(Uri.parse("https://api.ipify.org"));
@@ -137,8 +135,7 @@ class GstController extends GetxController {
               ApiResponse.error(data["status_desc"] ?? "OTP Request Failed");
         }
       } else {
-        otpResponse.value =
-            ApiResponse.error("Error: ${response.statusCode}");
+        otpResponse.value = ApiResponse.error("Error: ${response.statusCode}");
       }
     } catch (e) {
       log("OTP API Error: $e");
@@ -147,6 +144,7 @@ class GstController extends GetxController {
       isLoading.value = false;
     }
   }
+
   Future<void> requestAuthToken(String email, String otp) async {
     try {
       isLoading.value = true;
@@ -237,5 +235,4 @@ class GstController extends GetxController {
     {"code": "38", "state": "Ladakh"},
     {"code": "97", "state": "Other Territory"},
   ];
-
 }
