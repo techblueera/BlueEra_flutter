@@ -158,7 +158,12 @@ class _ExpandableTextState extends State<ExpandableText> {
       builder: (_) => Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: Container(
-          padding: EdgeInsets.all(SizeConfig.size24),
+          padding: EdgeInsets.only(
+              top: SizeConfig.size12,
+              left: SizeConfig.size24,
+              right: SizeConfig.size24,
+              bottom: SizeConfig.size20,
+          ),
           constraints: BoxConstraints(
             maxHeight: MediaQuery.of(context).size.height * 0.6,
             maxWidth: MediaQuery.of(context).size.width * 0.85,
@@ -173,20 +178,20 @@ class _ExpandableTextState extends State<ExpandableText> {
                   Expanded(
                     child: CustomText(
                       widget.dialogTitle ?? AppStrings.description,
-                      fontSize: SizeConfig.large,
+                      fontSize: SizeConfig.extraLarge,
                       fontWeight: FontWeight.w700,
                       color: AppColors.mainTextColor,
                     ),
                   ),
-                  IconButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.close, size: 20),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
+                  CloseButton(
+                    // onPressed: () => Navigator.of(context).pop(),
+                    // icon: const Icon(Icons.close, size: 20),
+                    // padding: EdgeInsets.zero,
+                    // constraints: const BoxConstraints(),
                   ),
                 ],
               ),
-              const Divider(height: 24),
+              const Divider(height: 5),
               Flexible(
                 child: SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),

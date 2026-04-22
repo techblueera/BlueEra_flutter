@@ -37,7 +37,7 @@ class _SubscriptionDraggableSheetState
   // Header height in the two states. When expanded the title button is
   // hidden, so the header collapses to just the peak + a small bar strip.
   static const double _collapsedHeaderHeight = 110.0;
-  static const double _expandedHeaderHeight = 44.0;
+  static const double _expandedHeaderHeight = 35.0;
 
   bool _isExpanded = false;
 

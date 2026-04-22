@@ -47,17 +47,14 @@ class SelfProfessionScreenPreview extends StatelessWidget {
             ),
             child: Column(
               children: [
-                // ─── Cover + Profile Section ───
-                _buildCoverSection(context),
+                // ─── Cover + Profile Header (merged) ───
+                _buildHeaderSection(context),
 
                 Padding(
                   padding: const EdgeInsets.fromLTRB(8, 10, 8, 0),
                   child: Column(
                     children: _joinWithGap(
                       [
-                        // ─── Profile Info Card ───
-                        _buildProfileInfoCard(),
-
                         // ─── Quick Stats Row ───
                         CustomFormCard(
                           padding: EdgeInsets.all(15.0),
@@ -315,8 +312,8 @@ class SelfProfessionScreenPreview extends StatelessWidget {
     return result;
   }
 
-  // ─── Cover Section (banner + avatar + share) ───
-  Widget _buildCoverSection(BuildContext context) {
+  // ─── Merged Header (cover banner + avatar + name/profession/rating/bio) ───
+  Widget _buildHeaderSection(BuildContext context) {
     final profileImage = service.profileImage ?? '';
     final statusBarHeight = MediaQuery.of(context).padding.top;
 
@@ -331,66 +328,151 @@ class SelfProfessionScreenPreview extends StatelessWidget {
         );
 
     return Container(
-      color: AppColors.appBackgroundColor,
-      height: 230 + statusBarHeight,
-      child: Stack(
-        clipBehavior: Clip.none,
+      color: AppColors.white,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Banner (extends behind status bar)
+          // Cover banner + overlapping avatar + top action bar
           SizedBox(
-            height: 190 + statusBarHeight,
-            width: double.infinity,
-            child: profileImage.isEmpty
-                ? gradientFallback()
-                : CachedNetworkImage(
-                    imageUrl: profileImage,
-                    fit: BoxFit.cover,
-                    placeholder: (_, __) => gradientFallback(),
-                    errorWidget: (_, __, ___) => gradientFallback(),
-                  ),
-          ),
-
-          // Top bar: back + share (respects status bar)
-          Positioned(
-            top: statusBarHeight + 4,
-            left: 8,
-            right: 8,
-            child: Row(
+            height: 230 + statusBarHeight,
+            child: Stack(
+              clipBehavior: Clip.none,
               children: [
-                _coverIconButton(
-                  icon: Icons.arrow_back,
-                  onTap: () => Navigator.of(context).pop(),
+                // Banner (extends behind status bar)
+                SizedBox(
+                  height: 190 + statusBarHeight,
+                  width: double.infinity,
+                  child: profileImage.isEmpty
+                      ? gradientFallback()
+                      : CachedNetworkImage(
+                          imageUrl: profileImage,
+                          fit: BoxFit.cover,
+                          placeholder: (_, __) => gradientFallback(),
+                          errorWidget: (_, __, ___) => gradientFallback(),
+                        ),
                 ),
-                const Spacer(),
-                _coverShareButton(onTap: () {}),
+
+                // Top bar: back + share (respects status bar)
+                Positioned(
+                  top: statusBarHeight + 4,
+                  left: 8,
+                  right: 8,
+                  child: Row(
+                    children: [
+                      _coverIconButton(
+                        icon: Icons.arrow_back,
+                        onTap: () => Navigator.of(context).pop(),
+                      ),
+                      const Spacer(),
+                      _coverShareButton(onTap: () {}),
+                    ],
+                  ),
+                ),
+
+                // Profile avatar (transparent behind, thin white border)
+                Positioned(
+                  left: 16,
+                  bottom: 0,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 2),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.1),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: CachedAvatarWidget(
+                      imageUrl: profileImage,
+                      size: SizeConfig.size80,
+                      borderColor: Colors.transparent,
+                      borderRadius: SizeConfig.size40,
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
 
-          // Profile avatar (transparent behind, thin white border)
-          Positioned(
-            left: 16,
-            bottom: 0,
-            child: Container(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 2),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.1),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
+          // Name / profession / rating / bio — flush under cover, no gap
+          _buildProfileInfoContent(),
+        ],
+      ),
+    );
+  }
+
+  // Profile info content (no outer card — sits flush under the cover)
+  Widget _buildProfileInfoContent() {
+    final name = service.name ?? '';
+    final profession = service.profession ?? '';
+    final bio = service.bio ?? '';
+    final hasName = name.trim().isNotEmpty;
+    final hasProfession = profession.trim().isNotEmpty;
+    final hasBio = bio.trim().isNotEmpty;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              if (hasName)
+                Expanded(
+                  child: CustomText(
+                    name,
+                    fontSize: SizeConfig.extraLarge,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.mainTextColor,
                   ),
-                ],
-              ),
-              child: CachedAvatarWidget(
-                imageUrl: profileImage,
-                size: SizeConfig.size80,
-                borderColor: Colors.transparent,
-                borderRadius: SizeConfig.size40,
+                ),
+              if (hasName && hasProfession) SizedBox(width: SizeConfig.size8),
+              if (hasProfession)
+                Container(
+                  padding: EdgeInsets.symmetric(
+                      horizontal: SizeConfig.size8,
+                      vertical: SizeConfig.size3),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryColor.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                        color: AppColors.primaryColor.withValues(alpha: 0.3)),
+                  ),
+                  child: CustomText(
+                    profession,
+                    fontSize: SizeConfig.small,
+                    color: AppColors.primaryColor,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+            ],
+          ),
+          SizedBox(height: SizeConfig.size6),
+          CommonRatingRow(
+            rating: double.tryParse(service.rating.toString()) ?? 0.0,
+            reviews: service.reviewCount ?? 0,
+            distance: '${service.distance ?? 0} KM',
+          ),
+          if (hasBio) ...[
+            // SizedBox(height: SizeConfig.size12),
+            // Divider(color: AppColors.greyE5, height: 1),
+            SizedBox(height: SizeConfig.size8),
+            ExpandableText(
+              text: bio,
+              trimLines: 3,
+              expandMode: ExpandMode.dialog,
+              style: TextStyle(
+                color: AppColors.secondaryTextColor,
+                fontFamily: AppConstants.OpenSans,
+                fontWeight: FontWeight.w400,
+                fontSize: SizeConfig.medium,
+                height: 1.5,
               ),
             ),
-          ),
+          ],
         ],
       ),
     );
@@ -432,79 +514,4 @@ class SelfProfessionScreenPreview extends StatelessWidget {
     );
   }
 
-  // ─── Profile Info Card (name, profession, rating, bio) ───
-  Widget _buildProfileInfoCard() {
-    final name = service.name ?? '';
-    final profession = service.profession ?? '';
-    final bio = service.bio ?? '';
-    final hasName = name.trim().isNotEmpty;
-    final hasProfession = profession.trim().isNotEmpty;
-    final hasBio = bio.trim().isNotEmpty;
-
-    return CustomFormCard(
-      padding: EdgeInsets.all(15.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              if (hasName)
-                Expanded(
-                  child: CustomText(
-                    name,
-                    fontSize: SizeConfig.large,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.mainTextColor,
-                  ),
-                ),
-              if (hasName && hasProfession) SizedBox(width: SizeConfig.size8),
-              if (hasProfession)
-                Container(
-                  padding: EdgeInsets.symmetric(
-                      horizontal: SizeConfig.size8,
-                      vertical: SizeConfig.size3),
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryColor.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                        color: AppColors.primaryColor.withValues(alpha: 0.3)),
-                  ),
-                  child: CustomText(
-                    profession,
-                    fontSize: SizeConfig.small,
-                    color: AppColors.primaryColor,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-            ],
-          ),
-          SizedBox(height: SizeConfig.size6),
-          CommonRatingRow(
-            rating: double.tryParse(service.rating.toString()) ?? 0.0,
-            reviews: service.reviewCount ?? 0,
-            distance: '${service.distance ?? 0} KM',
-          ),
-
-          // Bio
-          if (hasBio) ...[
-            SizedBox(height: SizeConfig.size12),
-            Divider(color: AppColors.greyE5, height: 1),
-            SizedBox(height: SizeConfig.size12),
-            ExpandableText(
-              text: bio,
-              trimLines: 3,
-              expandMode: ExpandMode.dialog,
-              style: TextStyle(
-                color: AppColors.secondaryTextColor,
-                fontFamily: AppConstants.OpenSans,
-                fontWeight: FontWeight.w400,
-                fontSize: SizeConfig.medium,
-                height: 1.5,
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
 }
