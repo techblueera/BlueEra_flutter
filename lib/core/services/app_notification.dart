@@ -5,6 +5,8 @@ import 'dart:developer';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:BlueEra/core/api/apiService/api_base_helper.dart';
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
@@ -791,12 +793,135 @@ class AppNotificationHandler {
     ///Get FCM Token..
     await getFcmToken();
 
+    // Re-sync whatever token we have now with the backend. FCM's
+    // device_token is only POSTed inside verifyOTP at first login, so any
+    // token rotation since then leaves the server routing APNs/FCM pushes
+    // to a dead token — which is exactly why iOS bg/terminated chat
+    // notifications stopped arriving.
+    final cachedToken = await SharedPreferenceUtils.getSecureValue(
+        SharedPreferenceUtils.notificationDeviceToken);
+    if (cachedToken is String && cachedToken.isNotEmpty) {
+      await _registerDeviceTokenWithBackend(cachedToken);
+    }
+
     // Persist rotated FCM tokens so the backend always has the current one.
     FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
       print("===fcm-token-refresh=== $newToken");
       await SharedPreferenceUtils.setSecureValue(
           SharedPreferenceUtils.notificationDeviceToken, newToken);
+      await _registerDeviceTokenWithBackend(newToken);
     });
+
+    // iOS-only: register VoIP push token with the backend so calls can wake
+    // the app in terminated state via PushKit + CallKit. Without this the
+    // backend has no VoIP address, FCM pushes are all it has, and iOS
+    // terminated calls only ring for the one-shot banner sound without the
+    // persistent lock-screen CallKit UI. `AppDelegate.swift` already
+    // forwards the raw token to the plugin on launch; this just hands it to
+    // the server.
+    if (Platform.isIOS) {
+      // Fire-and-forget: token retrieval can take a moment after app launch
+      // (PushKit delegate is async), so we poll briefly rather than blocking
+      // the rest of setupFcmToken().
+      _syncVoipTokenToBackend();
+    }
+  }
+
+  /// Poll `flutter_callkit_incoming` for the VoIP token that iOS hands to
+  /// PushKit (forwarded in `AppDelegate.swift` via
+  /// `setDevicePushTokenVoIP`), then PUT it to the backend's user-update
+  /// endpoint. Safe to call multiple times — idempotent on the server side
+  /// because the payload is just `{voip_token: ...}`. Silent: no UI side
+  /// effects, non-fatal on any failure path.
+  static Future<void> _syncVoipTokenToBackend() async {
+    if (!Platform.isIOS) return;
+
+    const Duration timeout = Duration(seconds: 10);
+    const Duration interval = Duration(milliseconds: 500);
+    final deadline = DateTime.now().add(timeout);
+
+    String voipToken = '';
+    try {
+      while (DateTime.now().isBefore(deadline)) {
+        final token = await FlutterCallkitIncoming.getDevicePushTokenVoIP();
+        if (token.isNotEmpty) {
+          voipToken = token;
+          break;
+        }
+        await Future.delayed(interval);
+      }
+    } catch (e) {
+      print("===voip-token-poll=== error: $e");
+      return;
+    }
+
+    if (voipToken.isEmpty) {
+      print("===voip-token=== not available after ${timeout.inSeconds}s");
+      return;
+    }
+    print("===voip-token=== $voipToken");
+
+    if (authTokenGlobal == null || authTokenGlobal!.isEmpty) {
+      print("===voip-token-sync=== skipped (no auth token)");
+      return;
+    }
+
+    // Avoid pointless network calls if the token hasn't changed since last
+    // session. Stored under a separate key so it can't collide with the FCM
+    // token cache.
+    const String voipCacheKey = 'voipTokenCache';
+    try {
+      final cached =
+          await SharedPreferenceUtils.getSecureValue(voipCacheKey);
+      if (cached is String && cached == voipToken) {
+        print("===voip-token-sync=== skipped (unchanged)");
+        return;
+      }
+    } catch (_) {}
+
+    try {
+      await ApiBaseHelper().putHTTP(
+        'user-service/user/updateUser',
+        params: {'voip_token': voipToken},
+        showProgress: false,
+        onError: (e) {
+          print("===voip-token-sync=== error: $e");
+        },
+        onSuccess: (_) {
+          print("===voip-token-sync=== ok");
+        },
+      );
+      await SharedPreferenceUtils.setSecureValue(voipCacheKey, voipToken);
+    } catch (e) {
+      print("===voip-token-sync=== threw: $e");
+    }
+  }
+
+  /// PUT the current FCM device token to the backend's user-update endpoint
+  /// so APNs/FCM pushes target the live token. Silent: no progress dialog,
+  /// no snackbar. Skips when the user isn't authenticated yet (login flow
+  /// already sends the token via verifyOTP).
+  static Future<void> _registerDeviceTokenWithBackend(String token) async {
+    if (token.isEmpty) return;
+    if (authTokenGlobal == null || authTokenGlobal!.isEmpty) {
+      print("===fcm-token-sync=== skipped (no auth token)");
+      return;
+    }
+    try {
+      await ApiBaseHelper().putHTTP(
+        'user-service/user/updateUser',
+        params: {ApiKeys.device_token: token},
+        showProgress: false,
+        onError: (e) {
+          print("===fcm-token-sync=== error: $e");
+        },
+        onSuccess: (_) {
+          print("===fcm-token-sync=== ok");
+        },
+      );
+    } catch (e) {
+      print("===fcm-token-sync=== threw: $e");
+    }
   }
 
   /// Polls FirebaseMessaging.getAPNSToken() until it returns a non-null value
@@ -1680,11 +1805,29 @@ print("ORDER SCREEN NAME message.data ${message.data}");
       _onTapNotificationFromStatusBar(message.data);
     });
 
-    // NOTE: getInitialMessage() is NOT used here because our backend sends
-    // data-only FCM messages. We render notifications via flutter_local_notifications,
-    // so FCM's getInitialMessage() will always return null.
-    // Terminated-state tap is handled by getNotificationAppLaunchDetails()
-    // at the top of firebaseNotificationSetup().
+    // iOS-only: when the backend sends a notification-type FCM for a call
+    // (the only thing the OS can display in terminated state, since data-only
+    // pushes don't render a banner on iOS), tapping it from terminated state
+    // launches the app WITHOUT going through our local-notification path.
+    // `getNotificationAppLaunchDetails()` (Android path) returns null in this
+    // case — only `getInitialMessage()` carries the payload. Android keeps
+    // using local notifications and is unaffected.
+    if (Platform.isIOS) {
+      FirebaseMessaging.instance.getInitialMessage().then((initial) {
+        if (initial == null) return;
+        final operation =
+            (initial.data['operation'] ?? '').toString().toLowerCase();
+        if (operation == 'incoming_call') {
+          _openIncomingCallScreen(Map<String, dynamic>.from(initial.data));
+        } else {
+          _onTapNotificationFromStatusBar(
+              Map<String, dynamic>.from(initial.data),
+              fromColdStart: true);
+        }
+      }).catchError((e) {
+        print('[iOS-initial-message] error: $e');
+      });
+    }
   }
 
   static Future<void> _onTapNotificationFromStatusBar(
@@ -1950,6 +2093,16 @@ print("ORDER SCREEN NAME message.data ${message.data}");
     }
 
     ctrl.initStateFromCallKitExtra(data);
+
+    // Start the in-app ringtone as soon as the incoming screen opens.
+    // iOS terminated-state banners now play APNs `sound: default` when they
+    // arrive (backend change), so the user hears the initial ring. Tapping
+    // the banner dismisses it and stops that system sound — without this
+    // in-app ringtone, the IncomingCallScreen would be silent while the
+    // user decides whether to accept. Safe on Android: its local
+    // notification-channel sound stops the moment the notification is
+    // tapped/removed, so there's no double-playing.
+    ctrl.startRingtone();
 
     if (Get.currentRoute != '/IncomingCallScreen') {
       Get.toNamed('/IncomingCallScreen');

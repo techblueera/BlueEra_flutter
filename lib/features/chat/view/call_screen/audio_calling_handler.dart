@@ -124,15 +124,12 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
 
     final controller = Get.find<CallController>();
 
-    // Play ringback for outgoing calls only.
-    // Incoming ringtone is managed by CallController.startRingtone() so it
-    // can be reliably stopped even if this screen is disposed early.
-    if (controller.isCaller.value) {
-      if (controller.callStatus.value == CallStatus.outgoing ||
-          controller.callStatus.value == CallStatus.ringing) {
-        _playRingback();
-      }
-    } else {
+    // Caller stays silent — only the receiver plays the ringtone (via
+    // CallController.startRingtone() in _handleIncomingCall). Previously the
+    // caller played `hangouts_call.mp3` as a ringback, which is the same
+    // asset as the incoming ringtone and sounded like their own phone was
+    // ringing.
+    if (!controller.isCaller.value) {
       HapticFeedback.heavyImpact();
     }
 
@@ -185,14 +182,6 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
         }
       };
     }
-  }
-
-  Future<void> _playRingback() async {
-    try {
-      await _ringbackPlayer.setReleaseMode(ReleaseMode.loop);
-      await _ringbackPlayer.play(AssetSource('sound/hangouts_call.mp3'));
-      await _ringbackPlayer.setVolume(0.3);
-    } catch (_) {}
   }
 
   void _stopRingtone() {

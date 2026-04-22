@@ -100,11 +100,12 @@ class _CallRoomScreenState extends State<CallRoomScreen>
 
     final controller = Get.find<CallController>();
 
-    // Play ringback for outgoing calls
-    if (controller.callStatus.value == CallStatus.outgoing ||
-        controller.callStatus.value == CallStatus.ringing) {
-      _playRingback();
-    }
+    // Caller stays silent — only the receiver plays the ringtone (via
+    // CallController.startRingtone()). Previously this played
+    // `hangouts_call.mp3` as a ringback using the same asset as the incoming
+    // ringtone, which made the caller hear their own phone "ringing".
+    // Keep _ringbackPlayer allocated so .stop() calls scattered below stay
+    // harmless no-ops.
 
     // Watch call status changes
     _callStatusWorker = ever(controller.callStatus, (status) {
@@ -147,14 +148,6 @@ class _CallRoomScreenState extends State<CallRoomScreen>
         }
       };
     }
-  }
-
-  Future<void> _playRingback() async {
-    try {
-      await _ringbackPlayer.setReleaseMode(ReleaseMode.loop);
-      await _ringbackPlayer.play(AssetSource('sound/hangouts_call.mp3'));
-      await _ringbackPlayer.setVolume(0.3);
-    } catch (_) {}
   }
 
   @override
