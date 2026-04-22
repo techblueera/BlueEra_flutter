@@ -33,7 +33,6 @@ class CategoryData {
   String? imageUrl;
   String? tagId;
   List<SubCategories>? subCategories;
-
   BusinessType? businessType; // custom business type
 
   CategoryData(

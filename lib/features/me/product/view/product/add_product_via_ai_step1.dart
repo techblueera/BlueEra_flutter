@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
@@ -8,6 +9,8 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/me/product/controller/product_controller.dart';
 import 'package:BlueEra/features/me/product/model/product_nested_category_response.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
+import 'package:BlueEra/widgets/collapsible_grid_model.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_horizontal_divider.dart';
@@ -28,14 +31,21 @@ class AddProductViaAiStep1 extends StatefulWidget {
 class _AddProductViaAiStep1State extends State<AddProductViaAiStep1> {
   final ProductController controller = getOrPut(() => ProductController());
 
+  final List<CollapsibleGridModel> _homeMadeCategories =
+      homeMadeProductsCategories;
+
+  bool get _isBusiness => widget.providerType == ProviderType.business;
+
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (controller.productsNestedCategoryList.isEmpty) {
-        controller.fetchProductsNestedCategory();
-      }
-    });
+    if (_isBusiness) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (controller.productsNestedCategoryList.isEmpty) {
+          controller.fetchProductsNestedCategory();
+        }
+      });
+    }
   }
 
   @override
@@ -204,6 +214,47 @@ class _AddProductViaAiStep1State extends State<AddProductViaAiStep1> {
   }
 
   Widget _buildCategorySection() {
+    return _isBusiness
+        ? _buildNestedCategorySection()
+        : _buildUserCategoryGrid();
+  }
+
+  Widget _buildUserCategoryGrid() {
+    return Obx(() {
+      return GridView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        padding: EdgeInsets.zero,
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 3,
+          crossAxisSpacing: 8,
+          mainAxisSpacing: 8,
+          childAspectRatio: 0.9,
+        ),
+        itemCount: _homeMadeCategories.length,
+        itemBuilder: (_, i) {
+          final category = _homeMadeCategories[i];
+          final isSelected =
+              controller.selectedHomeMadeCategory.value?.slugId == category.slugId;
+          return CommonServiceCard<CollapsibleGridModel>(
+            service: category,
+            getName: (item) => item.name,
+            getIcon: (item) => item.icon ?? '',
+            isSelected: isSelected,
+            onTap: (item) {
+              if (isSelected) {
+                controller.selectedHomeMadeCategory.value = null;
+              } else {
+                controller.selectedHomeMadeCategory.value = item;
+              }
+            },
+          );
+        },
+      );
+    });
+  }
+
+  Widget _buildNestedCategorySection() {
     return GestureDetector(
       onTap: _showCategoryPicker,
       child: Container(
@@ -365,7 +416,6 @@ class _AddProductViaAiStep1State extends State<AddProductViaAiStep1> {
           runSpacing: 4,
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
-            // STEP 0: ALL
             _pathStep("All", () {
               controller.selectedProductLevel0.value = null;
               controller.selectedProductLevel1.value = null;
@@ -374,7 +424,6 @@ class _AddProductViaAiStep1State extends State<AddProductViaAiStep1> {
               currentList.assignAll(controller.productsNestedCategoryList);
             }, controller.selectedProductLevel0.value == null),
 
-            // STEP 1: Level 0
             if (controller.selectedProductLevel0.value != null) ...[
               const Icon(Icons.chevron_right, size: 14, color: AppColors.primaryColor),
               _pathStep(controller.selectedProductLevel0.value!.name!, () {
@@ -385,7 +434,6 @@ class _AddProductViaAiStep1State extends State<AddProductViaAiStep1> {
               }, controller.selectedProductLevel1.value == null),
             ],
 
-            // STEP 2: Level 1
             if (controller.selectedProductLevel1.value != null) ...[
               const Icon(Icons.chevron_right, size: 14, color: AppColors.primaryColor),
               _pathStep(controller.selectedProductLevel1.value!.name!, () {
@@ -395,7 +443,6 @@ class _AddProductViaAiStep1State extends State<AddProductViaAiStep1> {
               }, controller.selectedProductLevel2.value == null),
             ],
 
-            // STEP 3: Level 2
             if (controller.selectedProductLevel2.value != null) ...[
               const Icon(Icons.chevron_right, size: 14, color: AppColors.primaryColor),
               _pathStep(controller.selectedProductLevel2.value!.name!, () {
@@ -404,7 +451,6 @@ class _AddProductViaAiStep1State extends State<AddProductViaAiStep1> {
               }, controller.selectedProductLevel3.value == null),
             ],
 
-            // STEP 4: Level 3
             if (controller.selectedProductLevel3.value != null) ...[
               const Icon(Icons.chevron_right, size: 14, color: AppColors.primaryColor),
               _pathStep(controller.selectedProductLevel3.value!.name!, () {}, true),

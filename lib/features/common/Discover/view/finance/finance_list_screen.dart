@@ -85,6 +85,7 @@ class _FinanceListScreenState extends State<FinanceListScreen> {
             controller: _scrollController,
             itemCount: controller.profiles.length +
                 (controller.isLoadingMore.value ? 1 : 0),
+            physics: NeverScrollableScrollPhysics(),
             itemBuilder: (context, index) {
               if (index >= controller.profiles.length) {
                 return Padding(
@@ -120,7 +121,7 @@ class _FinanceCard extends StatelessWidget {
     final String category = item.category ?? item.type ?? '';
 
     return Padding(
-      padding: const EdgeInsets.only(right: 10.0, bottom: 15, left: 8),
+      padding: const EdgeInsets.only(right: 8.0, bottom: 10, left: 8),
       child: InkWell(
         onTap: () {
           final controller = Get.find<FinanceDiscoverController>();

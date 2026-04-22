@@ -1,25 +1,26 @@
-import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
-import 'package:BlueEra/features/common/Discover/widget/common_generic_left_side_category_list.dart';
+import 'package:BlueEra/features/common/Discover/widget/banner_carousel.dart';
+import 'package:BlueEra/features/common/Discover/widget/sticky_category_header_delegate.dart';
+import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
 import 'package:BlueEra/features/common/store/view/store_product_card.dart';
-import 'package:BlueEra/features/me/product/controller/product_controller.dart';
 import 'package:BlueEra/features/me/product/model/get_product_model.dart';
-import 'package:BlueEra/features/me/product/model/product_nested_category_response.dart';
-import 'package:BlueEra/widgets/common_back_app_bar.dart';
-import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/collapsible_grid_model.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 class HomeMadeProductScreen extends StatefulWidget {
   final bool isShowInGrid;
 
-  const HomeMadeProductScreen({super.key, this.isShowInGrid = true});
+  const HomeMadeProductScreen({super.key, this.isShowInGrid = false});
 
   @override
   State<HomeMadeProductScreen> createState() => _HomeMadeProductScreenState();
@@ -27,175 +28,193 @@ class HomeMadeProductScreen extends StatefulWidget {
 
 class _HomeMadeProductScreenState extends State<HomeMadeProductScreen> {
   final controller = getOrPut(() => DiscoverController());
-  final productController = getOrPut(() => ProductController());
-  final ScrollController _scrollController = ScrollController();
-  final ProviderType _providerType = ProviderType.user;
+  final List<CollapsibleGridModel> _homeMadeProductCategories =
+      homeMadeProductsCategories;
+  ProviderType _providerType = ProviderType.user;
 
-  /// Level-0 category selected in the left sidebar
-  final Rxn<ProductNestedCategoryResponse> _selectedCategory = Rxn();
-
-  /// Level-1 category selected in the top horizontal tabs
-  final Rxn<ProductNestedCategoryResponse> _selectedChild = Rxn();
+  final List<String> _bannerImages = const [
+    "https://img.freepik.com/free-photo/top-view-table-full-delicious-food-composition_23-2149141353.jpg?w=1380",
+    "https://img.freepik.com/free-photo/flat-lay-batch-cooking-composition_23-2148765597.jpg?w=1380",
+    "https://img.freepik.com/free-photo/home-made-food-concept-with-salad_23-2148580246.jpg?w=1380",
+  ];
 
   @override
-  void initState() {
+  initState() {
     super.initState();
-    _scrollController.addListener(_onLoadMore);
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      if (productController.productsNestedCategoryList.isEmpty) {
-        await productController.fetchProductsNestedCategory();
-      }
-      final list = productController.productsNestedCategoryList;
-      if (list.isNotEmpty) _selectCategory(list.first);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      clearSelectedCategory();
+      controller.getAllProductNearBy(
+        providerType: _providerType,
+      );
     });
   }
 
-  @override
-  void dispose() {
-    _scrollController.removeListener(_onLoadMore);
-    _scrollController.dispose();
-    super.dispose();
+  void clearSelectedCategory() {
+    controller.selectedEarnServiceData.value = null;
+    controller.selectedTabIndex.value = 0;
   }
 
-  /// Select a level-0 category, auto-select its first child, and fetch products.
-  void _selectCategory(ProductNestedCategoryResponse category) {
-    _selectedCategory.value = category;
-    final children = category.children ?? [];
-    if (children.isNotEmpty) {
-      _selectedChild.value = children.first;
-      _fetchProducts(children.first.sId ?? category.sId);
-    } else {
-      _selectedChild.value = null;
-      _fetchProducts(category.sId);
-    }
-  }
-
-  /// Select a level-1 child tab and fetch products.
-  void _selectChild(ProductNestedCategoryResponse child) {
-    _selectedChild.value = child;
-    _fetchProducts(child.sId);
-  }
-
-  void _fetchProducts(String? productCategory) {
-    controller.getAllProductNearBy(
-      providerType: _providerType,
-      productCategory: productCategory,
-    );
-  }
-
-  void _onLoadMore() {
-    if (_scrollController.position.pixels >=
-        _scrollController.position.maxScrollExtent - 200) {
-      final tagId =
-          _selectedChild.value?.sId ?? _selectedCategory.value?.sId;
+  bool _onScrollNotification(ScrollNotification notification) {
+    if (notification is ScrollUpdateNotification &&
+        notification.metrics.pixels >=
+            notification.metrics.maxScrollExtent - 200) {
       controller.getAllProductNearBy(
-        providerType: _providerType,
-        productCategory: tagId,
-        isLoadMore: true,
-      );
+          providerType: _providerType, isLoadMore: true);
     }
+    return false;
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: CommonBackAppBar(
-        isCustomTitleWidget: () => Obx(() {
-          final name = _selectedCategory.value?.name ?? 'Home Made Products';
-          return Text(
-            name,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: AppColors.mainTextColor,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          );
-        }),
+    final statusBarHeight = MediaQuery.of(context).padding.top;
+    final stickyCategories = _homeMadeProductCategories
+        .map((c) => StickyCategory(
+      id: c.slugId,
+      name: c.name,
+      imageUrl: c.icon,
+    ))
+        .toList();
+
+    OnboardingCategoryModel _asOnboardingCategory(CollapsibleGridModel c) =>
+        OnboardingCategoryModel(
+          name: c.name,
+          slugId: c.slugId,
+          accountType: AppConstants.individual,
+          icon: c.icon,
+        );
+
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light.copyWith(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+        statusBarBrightness: Brightness.dark,
       ),
-      body: SafeArea(
-        child: Obx(() {
-          final status =
-              productController.nestedProductCategoryResponse.value.status;
-          if (status == Status.INITIAL || status == Status.LOADING) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          return Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildCategoryList(),
-              SizedBox(width: SizeConfig.size6),
-              Expanded(
-                child: Column(
-                  children: [
-                    _buildChildTabs(),
-                    Expanded(child: _buildProductContent()),
-                  ],
+      child: Scaffold(
+        body: Stack(
+          children: [
+            NestedScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              headerSliverBuilder: (context, innerBoxIsScrolled) => [
+                SliverToBoxAdapter(
+                  child: BannerCarousel(
+                    images: _bannerImages,
+                    onBack: () => Navigator.pop(context),
+                    statusBarHeight: statusBarHeight,
+                    backgroundColor:
+                    AppColors.blue5CAF.withValues(alpha: 0.1),
+                    bottomBorderSide: const BorderSide(
+                      color: AppColors.white,
+                      width: 2,
+                    ),
+                  ),
                 ),
+                SliverPersistentHeader(
+                  pinned: true,
+                  delegate: StickyCategoryHeaderDelegate(
+                    topPadding: statusBarHeight,
+                    categories: stickyCategories,
+                    selectedId:
+                    controller.selectedEarnServiceData.value?.slugId ??
+                        stickyCategories.first.id,
+                    onCategoryTap: (item) {
+                      final index = stickyCategories
+                          .indexWhere((c) => c.id == item.id);
+                      controller.selectedTabIndex.value = index;
+                      controller.selectedEarnServiceData.value =
+                          _asOnboardingCategory(
+                        _homeMadeProductCategories
+                            .firstWhere((c) => c.slugId == item.id),
+                      );
+                      controller.getAllProductNearBy(
+                        providerType: _providerType,
+                      );
+                      setState(() {});
+                    },
+                    onBack: () => Navigator.pop(context),
+                    expandedLabelColor: AppColors.white,
+                    backgroundGradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        AppColors.blue5CAF.withValues(alpha: 0.1),
+                        AppColors.blue5CAF.withValues(alpha: 0.8),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+              body: NotificationListener<ScrollNotification>(
+                onNotification: _onScrollNotification,
+                child: rightContent(),
               ),
-            ],
-          );
-        }),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  /// Left sidebar: level-0 categories
-  Widget _buildCategoryList() {
-    return Obx(() {
-      final list = productController.productsNestedCategoryList;
-      if (list.isEmpty) return const SizedBox.shrink();
-      return CommonGenericLeftSideCategoryList<ProductNestedCategoryResponse>(
-        items: list,
-        getLabel: (item) => item.name ?? '',
-        getIcon: (item) => item.image ?? '',
-        isSelected: (item) => _selectedCategory.value?.sId == item.sId,
-        onTap: (item, index) => _selectCategory(item),
-      );
-    });
+  Widget rightContent() {
+    return Obx(() => Padding(
+      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // BookViaBlueEraPartnerBanner(onTap: () {}),
+          SizedBox(height: SizeConfig.size8),
+          HorizontalTabSelector<CategoryFilter>(
+            tabs: controller.filters,
+            selectedIndex:
+            controller.filters.indexOf(controller.selectedFilter.value),
+            horizontalMargin: 0.0,
+            verticalMargin: 2.0,
+            onTabSelected: (index, _) {
+              final selectedEnum = controller.filters[index];
+              if (controller.selectedFilter.value == selectedEnum) return;
+              controller.selectedFilter.value = selectedEnum;
+            },
+            labelBuilder: (r) => r.localizedLabel,
+            unSelectedBackgroundColor: AppColors.white,
+          ),
+          Expanded(
+            child: Obx(() {
+              if (controller.isProductDataFirstLoading.value) {
+                return const Center(child: CircularProgressIndicator());
+              }
+
+              // Drop entries that StoreProductCard would render as an
+              // empty SizedBox (product.details == null). Otherwise those
+              // slots appear as blank cards in the grid — the cause of
+              // the "nothing showing at index 0 / some indices" issue.
+              final productList = controller.productDataList
+                  .where((d) => d.product.details != null)
+                  .toList();
+
+              if (productList.isEmpty) {
+                return EmptyStateWidget(
+                    message: AppStrings.notFoundAnyProduct);
+              }
+
+              return _buildTwoColumnGrid(productList);
+            }),
+          )
+        ],
+      ),
+    ));
   }
 
-  /// Horizontal tabs: level-1 children of the selected level-0 category
-  Widget _buildChildTabs() {
-    return Obx(() {
-      final children = _selectedCategory.value?.children ?? [];
-      if (children.isEmpty) return const SizedBox.shrink();
-      final selected = _selectedChild.value;
-      final selectedIdx = selected == null
-          ? 0
-          : children.indexWhere((c) => c.sId == selected.sId);
-      return Padding(
-        padding: EdgeInsets.only(
-          top: SizeConfig.size8,
-          right: SizeConfig.size8,
-        ),
-        child: HorizontalTabSelector<ProductNestedCategoryResponse>(
-          tabs: children,
-          selectedIndex: selectedIdx < 0 ? 0 : selectedIdx,
-          labelBuilder: (item) => item.name ?? '',
-          horizontalPadding: 8,
-          verticalPadding: 6,
-          verticalMargin: 0,
-          horizontalMargin: 0,
-          unSelectedBackgroundColor: AppColors.white,
-          unSelectedBorderColor: AppColors.greyE5,
-          onTabSelected: (index, label) => _selectChild(children[index]),
-        ),
-      );
-    });
-  }
-
-  /// Two-column grid that pushes an odd-count last item to the right cell.
+  /// Two-column grid using the same pattern as all_business_products_screen:
+  /// IntrinsicHeight + CrossAxisAlignment.stretch so both cards in a row
+  /// share the taller card's height — one-line names render with
+  /// whitespace below while the row gap stays constant.
   Widget _buildTwoColumnGrid(List<GetProductData> products) {
     final rowCount = (products.length / 2).ceil();
     final hasLoadMore = controller.isProductDataLoadingMore.value;
     final totalItems = rowCount + (hasLoadMore ? 1 : 0);
 
     return ListView.builder(
-      controller: _scrollController,
       padding: EdgeInsets.only(
-        right: SizeConfig.paddingXS,
+        top: SizeConfig.size8,
         bottom: SizeConfig.paddingL,
       ),
       itemCount: totalItems,
@@ -220,105 +239,18 @@ class _HomeMadeProductScreenState extends State<HomeMadeProductScreen> {
             : const SizedBox.shrink();
         return Padding(
           padding: const EdgeInsets.only(bottom: 8),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(child: leftCell),
-              const SizedBox(width: 8),
-              Expanded(child: rightCell),
-            ],
+          child: IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(child: leftCell),
+                const SizedBox(width: 8),
+                Expanded(child: rightCell),
+              ],
+            ),
           ),
         );
       },
     );
-  }
-
-  Widget _buildProductContent() {
-    return Obx(() {
-      if (controller.isProductDataFirstLoading.value) {
-        return const Center(child: CircularProgressIndicator());
-      }
-
-      final productList =
-          List<GetProductData>.from(controller.productDataList);
-
-      if (productList.isEmpty) {
-        return Center(
-          child: EmptyStateWidget(
-            message:
-                'No ${_selectedChild.value?.name ?? _selectedCategory.value?.name ?? ''} products found',
-          ),
-        );
-      }
-
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Product count chip
-          Padding(
-            padding: EdgeInsets.only(
-              top: SizeConfig.paddingS,
-              right: SizeConfig.paddingXS,
-              bottom: SizeConfig.size6,
-            ),
-            child: Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: AppColors.white,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: AppColors.greyE5, width: 0.5),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.inventory_2_outlined,
-                      size: 14, color: AppColors.primaryColor),
-                  const SizedBox(width: 6),
-                  CustomText(
-                    "${productList.length}${controller.isProductDataLoadingMore.value ? '+' : ''} Products",
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.mainTextColor,
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          // Product grid/list
-          Expanded(
-            child: widget.isShowInGrid
-                ? _buildTwoColumnGrid(productList)
-                : ListView.builder(
-                    controller: _scrollController,
-                    padding: EdgeInsets.only(
-                      right: SizeConfig.paddingXS,
-                      bottom: SizeConfig.paddingL,
-                    ),
-                    itemCount: productList.length +
-                        (controller.isProductDataLoadingMore.value ? 1 : 0),
-                    itemBuilder: (context, index) {
-                      if (index >= productList.length) {
-                        return const Padding(
-                          padding: EdgeInsets.all(20),
-                          child: Center(
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          ),
-                        );
-                      }
-                      return Padding(
-                        padding: EdgeInsets.only(bottom: SizeConfig.size10),
-                        child: StoreProductCard(
-                          productStore: productList[index].product,
-                          isShowInGrid: widget.isShowInGrid,
-                        ),
-                      );
-                    },
-                  ),
-          ),
-        ],
-      );
-    });
   }
 }

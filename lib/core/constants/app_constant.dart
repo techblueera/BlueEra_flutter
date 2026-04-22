@@ -930,6 +930,13 @@ const PRODUCT = "PRODUCT";
 const SERVICE = "SERVICE";
 const SERVICE_OTHERS = "SERVICE_OTHERS";
 
+// Home Made Products
+const HANDICRAFTS = "HANDICRAFTS";
+const GIFT_ITEMS = "GIFT_ITEMS";
+const TEXTILE_FASHION = "TEXTILE_FASHION";
+const UTILITY_PRODUCTS = "UTILITY_PRODUCTS";
+const ART_CRAFT = "ART_CRAFT";
+
 // Bookings
 const PARCEL_COURIER = "PARCEL_COURIER";
 const TRANSPORT_VEHICLE = "TRANSPORT_VEHICLE";
@@ -2911,37 +2918,32 @@ final List<CollapsibleGridModel> rentalServiceCategories = [
   CollapsibleGridModel(name: 'Cabs', slugId: VEHICLE, icon: AppImageAssets.cab),
 ];
 
-final List<OnboardingCategoryModel> homeMadeProductCategories = [
-  OnboardingCategoryModel(
-      name: 'Home Made Product',
-      slugId: TIFFIN,
-      icon: AppImageAssets.tiffin,
-      accountType: AppConstants.individual),
-  OnboardingCategoryModel(
-      name: 'Handicrafts',
-      slugId: BAKERY,
-      icon: AppImageAssets.bakery,
-      accountType: AppConstants.individual),
-  OnboardingCategoryModel(
-      name: 'Gift Items',
-      slugId: SWEETS,
-      icon: AppImageAssets.sweets,
-      accountType: AppConstants.individual),
-  OnboardingCategoryModel(
-      name: 'Textile & Fashion',
-      slugId: OTHER,
-      icon: AppIconAssets.staggeredIcon,
-      accountType: AppConstants.individual),
-  OnboardingCategoryModel(
-      name: 'Utility Products',
-      slugId: OTHER,
-      icon: AppIconAssets.staggeredIcon,
-      accountType: AppConstants.individual),
-  OnboardingCategoryModel(
-      name: 'Other Products',
-      slugId: OTHER,
-      icon: AppIconAssets.staggeredIcon,
-      accountType: AppConstants.individual),
+final List<CollapsibleGridModel> homeMadeProductsCategories = [
+  CollapsibleGridModel(
+    name: 'Handicrafts',
+    slugId: HANDICRAFTS,
+    icon: AppImageAssets.handicraft,
+  ),
+  CollapsibleGridModel(
+    name: 'Gift Items',
+    slugId: GIFT_ITEMS,
+    icon: AppImageAssets.giftItems,
+  ),
+  CollapsibleGridModel(
+    name: 'Textile & Fashion',
+    slugId: TEXTILE_FASHION,
+    icon: AppImageAssets.fashionLifestyle,
+  ),
+  CollapsibleGridModel(
+    name: 'Utility Products',
+    slugId: UTILITY_PRODUCTS,
+    icon: AppImageAssets.utilityProducts,
+  ),
+  CollapsibleGridModel(
+    name: 'Art & Craft',
+    slugId: ART_CRAFT,
+    icon: AppImageAssets.artCrafts,
+  ),
 ];
 
 final List<CollapsibleGridModel> homeMadeItemsCategories = [

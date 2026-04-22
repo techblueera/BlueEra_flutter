@@ -42,7 +42,7 @@ class _ProductsStoreScreenState extends State<ProductsStoreScreen> {
       getOrPut<ProductSelfPickupController>(
           () => ProductSelfPickupController());
 
-  List<CategoryData> get _categories => _authController.businessOnboardingServicesCategories;
+  List<CategoryData> get _categories => _authController.businessOnboardingProductsCategories;
 
   final List<String> _bannerImages = const [
     "https://img.freepik.com/free-photo/shopping-cart-full-with-products_1232-920.jpg?w=1380",

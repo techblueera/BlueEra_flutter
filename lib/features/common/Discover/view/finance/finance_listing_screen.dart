@@ -52,58 +52,53 @@ class _FinanceListingScreenState extends State<FinanceListingScreen> {
         statusBarBrightness: Brightness.dark,
       ),
       child: Scaffold(
-        backgroundColor: AppColors.appBackgroundColor,
-        body: Stack(
-          children: [
-            NestedScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              headerSliverBuilder: (context, innerBoxIsScrolled) => [
-                SliverToBoxAdapter(
-                  child: BannerCarousel(
-                    images: _bannerImages,
-                    onBack: () => Navigator.pop(context),
-                    statusBarHeight: statusBarHeight,
-                    backgroundColor:
-                        AppColors.blue5CAF.withValues(alpha: 0.1),
-                    bottomBorderSide: const BorderSide(
-                      color: AppColors.white,
-                      width: 2,
-                    ),
-                  ),
+        body: NestedScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          headerSliverBuilder: (context, innerBoxIsScrolled) => [
+            SliverToBoxAdapter(
+              child: BannerCarousel(
+                images: _bannerImages,
+                onBack: () => Navigator.pop(context),
+                statusBarHeight: statusBarHeight,
+                backgroundColor:
+                    AppColors.blue5CAF.withValues(alpha: 0.1),
+                bottomBorderSide: const BorderSide(
+                  color: AppColors.white,
+                  width: 2,
                 ),
-                SliverPersistentHeader(
-                  pinned: true,
-                  delegate: StickyCategoryHeaderDelegate(
-                    topPadding: statusBarHeight,
-                    categories: stickyCategories,
-                    selectedId: _selectedCategory.value?.slugId,
-                    onCategoryTap: (item) {
-                      _selectedCategory.value = financeCategories
-                          .firstWhere((c) => c.slugId == item.id);
-                      setState(() {});
-                    },
-                    onBack: () => Navigator.pop(context),
-                    expandedLabelColor: AppColors.white,
-                    backgroundGradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        AppColors.blue5CAF.withValues(alpha: 0.1),
-                        AppColors.blue5CAF.withValues(alpha: 0.8),
-                      ],
-                    ),
-                  ),
+              ),
+            ),
+            SliverPersistentHeader(
+              pinned: true,
+              delegate: StickyCategoryHeaderDelegate(
+                topPadding: statusBarHeight,
+                categories: stickyCategories,
+                selectedId: _selectedCategory.value?.slugId,
+                onCategoryTap: (item) {
+                  _selectedCategory.value = financeCategories
+                      .firstWhere((c) => c.slugId == item.id);
+                  setState(() {});
+                },
+                onBack: () => Navigator.pop(context),
+                expandedLabelColor: AppColors.white,
+                backgroundGradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    AppColors.blue5CAF.withValues(alpha: 0.1),
+                    AppColors.blue5CAF.withValues(alpha: 0.8),
+                  ],
                 ),
-              ],
-              body: Obx(() => _rightContent()),
+              ),
             ),
           ],
+          body: Obx(() => _buildContent()),
         ),
       ),
     );
   }
 
-  Widget _rightContent() {
+  Widget _buildContent() {
     final selected = _selectedCategory.value;
     if (selected == null) {
       return const SizedBox.shrink();

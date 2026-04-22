@@ -1,4 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -85,6 +87,25 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
     super.dispose();
   }
 
+  String? _localCategoryIcon(String? tagId) {
+    switch (tagId) {
+      case KIRANA_STORE:
+        return AppImageAssets.kiranaStore;
+      case GENERAL_STORE:
+        return AppImageAssets.generalStore;
+      case VEGETABLE_FRUIT:
+        return AppImageAssets.vegFruitStore;
+      case DAIRY_BAKERY:
+        return AppImageAssets.dairyBakeryStore;
+      case HOME_ESSENTIALS:
+        return AppImageAssets.homeEssentialsStore;
+      case STATIONARY_SHOP:
+        return AppImageAssets.stationaryStore;
+      default:
+        return null;
+    }
+  }
+
   bool _onScrollNotification(ScrollNotification notification) {
     if (notification is ScrollUpdateNotification &&
         notification.metrics.pixels >=
@@ -156,7 +177,7 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
                       categories: _arrCategories.map((c) => StickyCategory(
                         id: c.tagId ?? '',
                         name: c.name ?? '',
-                        imageUrl: c.imageUrl,
+                        imageUrl: _localCategoryIcon(c.tagId),
                       )).toList(),
                       selectedId: controller.selectedGroceryCategoryData.value?.tagId,
                       onCategoryTap: (item) {

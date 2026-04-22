@@ -1,4 +1,7 @@
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../widgets/custom_text_cm.dart';
@@ -29,20 +32,40 @@ class StoreKmAwayTextWidget extends StatelessWidget {
     );
 
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: isPadding, vertical: isPadding / 2),
+      padding: EdgeInsets.symmetric(
+          horizontal: isPadding,
+          vertical: isPadding / 2
+      ),
       decoration: BoxDecoration(
-        color: AppColors.primaryColor.withValues(alpha: 0.1),
+        color: AppColors.white,
+        // color: AppColors.primaryColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(6.0),
         border: Border.all(
-          color: AppColors.primaryColor,
+          color: AppColors.greyE5,
+          // color: AppColors.primaryColor,
           width: 0.5,
         ),
       ),
-      child: CustomText(
-        "${distance.toInt()} Km Away",
-        fontSize: 10,
-        color: AppColors.primaryColor,
-        decoration: isUnderlineShow ? TextDecoration.underline : TextDecoration.none,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          LocalAssets(
+              imagePath: AppIconAssets.location_outline,
+              height: 14,
+              width: 14,
+              imgColor: AppColors.secondaryTextColor,
+          ),
+          SizedBox(
+            width: SizeConfig.size6,
+          ),
+          CustomText(
+            "${distance.toInt()} Km Away",
+            fontSize: 11,
+            fontWeight: FontWeight.w400,
+            color: AppColors.secondaryTextColor,
+            decoration: isUnderlineShow ? TextDecoration.underline : TextDecoration.none,
+          ),
+        ],
       ),
     );
   }
