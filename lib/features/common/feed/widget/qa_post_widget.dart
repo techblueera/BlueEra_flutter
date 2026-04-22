@@ -55,104 +55,107 @@ class QaPostWidget extends StatefulWidget {
 class _QaPostWidgetState extends State<QaPostWidget> {
   @override
   Widget build(BuildContext context) {
-    return FeedCardWidget(
-      horizontalPadding:widget.horizontalPaddingChannel?? 0,
-      bottomPadding: widget.bottomPadding,
-      childWidget: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: EdgeInsets.only(
-                top: SizeConfig.size8,
-                bottom: SizeConfig.size5,
-                right: SizeConfig.size10),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                widget.authorSection(),
-                SizedBox(
-                  height: SizeConfig.size5,
-                ),
-                _buildPollOptions(),
-                SizedBox(
-                  height: SizeConfig.size10,
-                ),
-                Padding(
-                  padding: EdgeInsets.only(
-                      top: SizeConfig.size10,
-                      bottom: SizeConfig.size5,
-                      left:widget.postFilteredType == PostType.otherChannelPosts? SizeConfig.size15: SizeConfig.size32,
-                      right: SizeConfig.size5),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    // mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      ViewFeedActionWidget(
-                          iconPath: AppIconAssets.clock_new,
-                          data: widget.postedAgo),
-                      SizedBox(width: SizeConfig.size12),
-                      ViewFeedActionWidget(
-                        iconPath: AppIconAssets.eye_new,
-                        data:
-                            formatNumberLikePost(widget.post?.viewsCount ?? 0),
-                      ),
-                      SizedBox(width: SizeConfig.size12),
-                      InkWell(
-                        onTap: () {
-                          if (isGuestUser()) {
-                            createProfileScreen();
-                          } else {
-                            widget.likeFeed();
-                          }
-                        },
-                        child: Padding(
-                          padding:
-                          EdgeInsets.only(right: SizeConfig.size10),
-                          child: Row(
-                            children: [
-                              LocalAssets(
-                                imagePath: AppIconAssets.like_new,
-                                width: SizeConfig.size24,
-                                height: SizeConfig.size24,
-                                imgColor: (widget.post?.isLiked ?? false)
-                                    ? AppColors.primaryColor
-                                    : AppColors.secondaryTextColor,
-                              ),
-                              SizedBox(
-                                width: SizeConfig.size5,
-                              ),
-                              CustomText(
-                                formatNumberLikePost(widget.post?.likesCount ?? 0),
-                                color: AppColors.secondaryTextColor,
-                                fontSize: SizeConfig.size12,
-                              ),
-                            ],
+    return Padding(
+      padding: const EdgeInsets.all(5.0),
+      child: FeedCardWidget(
+        horizontalPadding:widget.horizontalPaddingChannel?? 0,
+        bottomPadding: widget.bottomPadding,
+        childWidget: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: EdgeInsets.only(
+                  top: SizeConfig.size8,
+                  bottom: SizeConfig.size5,
+                  right: SizeConfig.size10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  widget.authorSection(),
+                  SizedBox(
+                    height: SizeConfig.size5,
+                  ),
+                  _buildPollOptions(),
+                  SizedBox(
+                    height: SizeConfig.size10,
+                  ),
+                  Padding(
+                    padding: EdgeInsets.only(
+                        top: SizeConfig.size10,
+                        bottom: SizeConfig.size5,
+                        left:widget.postFilteredType == PostType.otherChannelPosts? SizeConfig.size15: SizeConfig.size32,
+                        right: SizeConfig.size5),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        ViewFeedActionWidget(
+                            iconPath: AppIconAssets.clock_new,
+                            data: widget.postedAgo),
+                        SizedBox(width: SizeConfig.size12),
+                        ViewFeedActionWidget(
+                          iconPath: AppIconAssets.eye_new,
+                          data:
+                              formatNumberLikePost(widget.post?.viewsCount ?? 0),
+                        ),
+                        SizedBox(width: SizeConfig.size12),
+                        InkWell(
+                          onTap: () {
+                            if (isGuestUser()) {
+                              createProfileScreen();
+                            } else {
+                              widget.likeFeed();
+                            }
+                          },
+                          child: Padding(
+                            padding:
+                            EdgeInsets.only(right: SizeConfig.size10),
+                            child: Row(
+                              children: [
+                                LocalAssets(
+                                  imagePath: AppIconAssets.like_new,
+                                  width: SizeConfig.size24,
+                                  height: SizeConfig.size24,
+                                  imgColor: (widget.post?.isLiked ?? false)
+                                      ? AppColors.primaryColor
+                                      : AppColors.secondaryTextColor,
+                                ),
+                                SizedBox(
+                                  width: SizeConfig.size5,
+                                ),
+                                CustomText(
+                                  formatNumberLikePost(widget.post?.likesCount ?? 0),
+                                  color: AppColors.secondaryTextColor,
+                                  fontSize: SizeConfig.size12,
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                      ),
 
 
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-                // SizedBox(
-                //   height: SizeConfig.size10,
-                // ),
-                // Padding(
-                //   padding: EdgeInsets.only(
-                //       top: SizeConfig.size5,
-                //       bottom: SizeConfig.size5,
-                //       left: SizeConfig.size20,
-                //       right: SizeConfig.size5),
-                //   child: widget.buildActions(),
-                // ),
-                // SizedBox(
-                //   height: SizeConfig.size10,
-                // ),
-              ],
+                  // SizedBox(
+                  //   height: SizeConfig.size10,
+                  // ),
+                  // Padding(
+                  //   padding: EdgeInsets.only(
+                  //       top: SizeConfig.size5,
+                  //       bottom: SizeConfig.size5,
+                  //       left: SizeConfig.size20,
+                  //       right: SizeConfig.size5),
+                  //   child: widget.buildActions(),
+                  // ),
+                  // SizedBox(
+                  //   height: SizeConfig.size10,
+                  // ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
