@@ -262,7 +262,7 @@ class _SinglePlanSubscriptionViewState
                 SizeConfig.size16,
                 SizeConfig.size12,
                 SizeConfig.size16,
-                SizeConfig.size16,
+                SizeConfig.size4,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -487,7 +487,7 @@ class _SinglePlanSubscriptionViewState
         color: AppColors.whiteF5,
         borderRadius: BorderRadius.circular(10.0),
         border: Border.all(
-          color: AppColors.greyE5
+          color: AppColors.purpleE9
         )
       ),
       child: Row(

@@ -51,58 +51,58 @@ class _FinanceListScreenState extends State<FinanceListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: AppColors.appBackgroundColor,
-      child: Obx(() {
-        if (controller.isLoading.value && controller.profiles.isEmpty) {
-          return const Center(
-              child: CircularProgressIndicator(color: AppColors.primaryColor));
-        }
-        if (controller.error.value.isNotEmpty && controller.profiles.isEmpty) {
-          return Center(
-            child: CustomText(
-              "Failed to load data",
-              fontSize: SizeConfig.medium,
-              color: AppColors.red,
-            ),
-          );
-        }
-        if (controller.profiles.isEmpty) {
-          return Center(
-            child: CustomText(
-              "No services found",
-              fontSize: SizeConfig.medium,
-              color: AppColors.grey9B,
-            ),
-          );
-        }
-        return RefreshIndicator(
-          color: AppColors.primaryColor,
-          onRefresh: () async {
-            await controller.fetchInitial(widget.categorySlugId);
-          },
-          child: ListView.builder(
-            controller: _scrollController,
-            itemCount: controller.profiles.length +
-                (controller.isLoadingMore.value ? 1 : 0),
-            physics: NeverScrollableScrollPhysics(),
-            itemBuilder: (context, index) {
-              if (index >= controller.profiles.length) {
-                return Padding(
-                  padding: EdgeInsets.symmetric(
-                      vertical: SizeConfig.size12),
-                  child: const Center(
-                      child: CircularProgressIndicator(
-                          color: AppColors.primaryColor)),
-                );
-              }
-              final item = controller.profiles[index];
-              return _FinanceCard(item: item);
-            },
+    return Obx(() {
+      if (controller.isLoading.value && controller.profiles.isEmpty) {
+        return const Center(
+            child: CircularProgressIndicator(color: AppColors.primaryColor));
+      }
+      if (controller.error.value.isNotEmpty && controller.profiles.isEmpty) {
+        return Center(
+          child: CustomText(
+            "Failed to load data",
+            fontSize: SizeConfig.medium,
+            color: AppColors.red,
           ),
         );
-      }),
-    );
+      }
+      if (controller.profiles.isEmpty) {
+        return Center(
+          child: CustomText(
+            "No services found",
+            fontSize: SizeConfig.medium,
+            color: AppColors.grey9B,
+          ),
+        );
+      }
+      return RefreshIndicator(
+        color: AppColors.primaryColor,
+        onRefresh: () async {
+          await controller.fetchInitial(widget.categorySlugId);
+        },
+        child: ListView.builder(
+          controller: _scrollController,
+          itemCount: controller.profiles.length +
+              (controller.isLoadingMore.value ? 1 : 0),
+          padding: EdgeInsets.symmetric(
+            vertical: SizeConfig.size12
+          ),
+          physics: NeverScrollableScrollPhysics(),
+          itemBuilder: (context, index) {
+            if (index >= controller.profiles.length) {
+              return Padding(
+                padding: EdgeInsets.symmetric(
+                    vertical: SizeConfig.size12),
+                child: const Center(
+                    child: CircularProgressIndicator(
+                        color: AppColors.primaryColor)),
+              );
+            }
+            final item = controller.profiles[index];
+            return _FinanceCard(item: item);
+          },
+        ),
+      );
+    });
   }
 }
 

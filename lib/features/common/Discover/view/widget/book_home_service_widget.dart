@@ -5,9 +5,9 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/Discover/view/all_self_profession_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/discover_screen.dart';
+import 'package:BlueEra/features/common/Discover/view/widget/book_home_service_card.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/rounded_view_all_btn.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -40,34 +40,31 @@ class BookHomeServiceWidget extends StatelessWidget {
             ],
           ),
           SizedBox(height: SizeConfig.paddingXSL),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
-            child: LayoutBuilder(builder: (context, constraints) {
-              const double spacing = 8;
-              const int columns = 4;
-              final double itemWidth =
-                  (constraints.maxWidth - spacing * (columns - 1)) / columns;
-              return Wrap(
-                spacing: spacing,
-                runSpacing: spacing,
-                children: categories.take(8).map((categoryItem) {
-                  return SizedBox(
-                    width: itemWidth,
-                    child: CommonServiceCard(
-                      service: categoryItem,
-                      getName: (item) => item.name ?? '',
-                      getIcon: (item) => getIndividualProfessionIcon(item.tagId),
-                      onTap: (item) {
-                        Get.to(() => AllSelfProfessionScreen(
-                            selfEmployedCategories: categories,
-                            selectedSelfProfessionData: item));
-                      },
-                    ),
-                  );
-                }).toList(),
-              );
-            }),
-          )
+          LayoutBuilder(builder: (context, constraints) {
+            const double spacing = 8;
+            const int columns = 4;
+            final double itemWidth =
+                (constraints.maxWidth - spacing * (columns - 1)) / columns;
+            return Wrap(
+              spacing: spacing,
+              runSpacing: spacing,
+              children: categories.take(8).map((categoryItem) {
+                return SizedBox(
+                  width: itemWidth,
+                  child: BookHomeServiceCard(
+                    service: categoryItem,
+                    getName: (item) => item.name ?? '',
+                    getIcon: (item) => getIndividualProfessionIcon(item.tagId),
+                    onTap: (item) {
+                      Get.to(() => AllSelfProfessionScreen(
+                          selfEmployedCategories: categories,
+                          selectedSelfProfessionData: item));
+                    },
+                  ),
+                );
+              }).toList(),
+            );
+          })
         ],
       ),
     );
