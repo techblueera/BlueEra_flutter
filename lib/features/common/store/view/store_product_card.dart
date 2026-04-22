@@ -113,6 +113,7 @@ class StoreProductCard extends StatelessWidget {
               /// Product Image
               SizedBox(
                 height: SizeConfig.size150,
+                width: double.infinity,
                 child: Stack(
                   children: [
                     ClipRRect(
@@ -191,10 +192,12 @@ class StoreProductCard extends StatelessWidget {
                 ),
               ),
 
-              SizedBox(height: SizeConfig.size5),
-
               Padding(
-                padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
+                padding: EdgeInsets.only(
+                    left: SizeConfig.size8,
+                    right: SizeConfig.size8,
+                    top: SizeConfig.size8,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -204,13 +207,21 @@ class StoreProductCard extends StatelessWidget {
                       fontWeight: FontWeight.w600,
                       fontSize: SizeConfig.medium,
                       color: AppColors.mainTextColor,
-                      maxLines: 1,
+                      maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    SizedBox(height: SizeConfig.size5),
+                    SizedBox(height: SizeConfig.size6),
+
+                    StoreKmAwayTextWidget(
+                      lat: sellerClassification?.businessLocation?.latitude?.toDouble() ?? 0.0,
+                      long: sellerClassification?.businessLocation?.longitude?.toDouble() ?? 0.0,
+                      isUnderlineShow: false,
+                      isPadding: 4.0,
+                    ),
+
+                    SizedBox(height: SizeConfig.size6),
 
                     // Price Row — discount lives on the image now,
-                    // so we hide the in-row badge to avoid duplication.
                     PriceRow(
                       sellingPrice:
                           "₹${formatNumber(int.tryParse(variants[0].sellingPrice.toString()) ?? 0)}",
@@ -220,15 +231,6 @@ class StoreProductCard extends StatelessWidget {
                     ),
 
                     AttributeRows(attributeMap: uniqueAttributes),
-
-                    SizedBox(height: SizeConfig.size8),
-
-                    StoreKmAwayTextWidget(
-                      lat: sellerClassification?.businessLocation?.latitude?.toDouble() ?? 0.0,
-                      long: sellerClassification?.businessLocation?.longitude?.toDouble() ?? 0.0,
-                      isUnderlineShow: false,
-                      isPadding: 4.0,
-                    ),
 
                   ],
                 ),

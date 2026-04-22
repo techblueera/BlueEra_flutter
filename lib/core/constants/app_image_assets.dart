@@ -79,9 +79,6 @@ class AppImageAssets {
 
   /// Business products images
   static String pharmacyMedicalStore = "${imgPath}pharmacy_medical_store_icon.png";
-
-  static String fashionLifestyle = "${imgPath}fashion_lifestyle_icon.png";
-
   static String furnitureHomeDecor = "${imgPath}furniture_home_decor_icon.png";
   static String jewelleryLuxuryStore = "${imgPath}jewellery_luxury_store_icon.png";
   static String automotiveStore = "${imgPath}automotive_store_icon.png";
@@ -262,10 +259,10 @@ class AppImageAssets {
   /// Grocery
   static String kiranaStore = "${imgPath}kirana_store.png";
   static String generalStore = "${imgPath}general_store.png";
-  static String vegFruitStore = "${imgPath}veg_fruit_store.png";
-  static String dairyBakeryStore = "${imgPath}dairy_bakery_store.png";
-  static String homeEssentialsStore = "${imgPath}home_essentials_store.png";
-  static String stationaryStore = "${imgPath}stationary_store.png";
+  static String vegFruitStore = "${imgPath}veg_fruit.png";
+  static String dairyBakeryStore = "${imgPath}dairy_bakery.png";
+  static String homeEssentialsStore = "${imgPath}home_essentials.png";
+  static String stationaryStore = "${imgPath}stationary_shop.png";
   static String job_full_time = "${imgPath}job_full_time.png";
   static String job_near_by = "${imgPath}job_near_by.png";
   static String job_onsite = "${imgPath}job_onsite.png";
@@ -278,6 +275,12 @@ class AppImageAssets {
   static String billingCounterReceptionArea = "${imgPath}billing_counter_reception_area.png";
   static String productServiceDisplay = "${imgPath}product_service_display.png";
 
+  // Home Made Products
+  static String handicraft = "${imgPath}handicraft.png";
+  static String giftItems = "${imgPath}gift_items.png";
+  static String fashionLifestyle = "${imgPath}fashion_lifestyle.png";
+  static String artCrafts = "${imgPath}art_crafts.png";
+  static String utilityProducts = "${imgPath}utility_products.png";
 }
 
 class OnboardingIndividualAssets{

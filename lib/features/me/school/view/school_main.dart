@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/features/me/me_tab_registry.dart';
 import 'package:BlueEra/features/me/school/controller/school_about_us_controller.dart';
 import 'package:BlueEra/features/me/school/view/school_statics_screen.dart';
 import 'package:BlueEra/features/me/school/controller/school_controller.dart';
@@ -31,6 +32,7 @@ class _SchoolMainState extends State<SchoolMain>
   void initState() {
     apiCalling();
     _tabController = TabController(length: 2, vsync: this);
+    MeTabRegistry.register(_tabController);
     super.initState();
   }
 
@@ -60,6 +62,7 @@ class _SchoolMainState extends State<SchoolMain>
 
   @override
   void dispose() {
+    MeTabRegistry.unregister(_tabController);
     _tabController.dispose();
     super.dispose();
   }

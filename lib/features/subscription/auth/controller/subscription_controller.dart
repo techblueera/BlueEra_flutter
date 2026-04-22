@@ -116,12 +116,14 @@ class SubscriptionController extends GetxController {
 
     // ─── Individual profile types ─────────────────────────────────
     if (userProfileTypeGlobal == SELF_EMPLOYED) return 'SELF_EMPLOYED';
+    if (userProfileTypeGlobal == PROFESSIONAL) return 'PROFESSIONAL';
 
     // Gig worker is allowlisted only for the three rider professions —
     // other gig roles (delivery helpers, etc.) deliberately fall through.
     if (userProfileTypeGlobal == GIG_WORKER) {
       if (userProfessionGlobal == BIKE_RIDER) return 'BIKE_RIDER';
       if (userProfessionGlobal == AUTO_TAXI) return 'AUTO_TAXI';
+      if (userProfessionGlobal == GOODS_TAXI) return 'GOODS_TAXI';
       if (userProfessionGlobal == CAR_TAXI_DRIVER) return 'CAR_DRIVER_TAXI';
       return null;
     }
@@ -129,15 +131,22 @@ class SubscriptionController extends GetxController {
     // ─── Business types ───────────────────────────────────────────
     if (businessTypeGlobal.equalsIgnoreCase(BusinessType.Food.name)) {
       return 'FOOD';
-    }
-    if (businessTypeGlobal.equalsIgnoreCase(BusinessType.Grocery.name)) {
+    } if (businessTypeGlobal.equalsIgnoreCase(BusinessType.Grocery.name)) {
       return 'GROCERY';
-    }
-    if (businessTypeGlobal.equalsIgnoreCase(BusinessType.Product.name)) {
+    } if (businessTypeGlobal.equalsIgnoreCase(BusinessType.Product.name)) {
       return 'PRODUCT';
-    }
-    if (businessTypeGlobal.equalsIgnoreCase(BusinessType.Service.name)) {
+    } if (businessTypeGlobal.equalsIgnoreCase(BusinessType.Service.name)) {
       return 'SERVICE';
+    } if (businessTypeGlobal.equalsIgnoreCase(BusinessType.Manufacturing.name)) {
+      return 'MANUFACTURING';
+    } if (businessTypeGlobal.equalsIgnoreCase(BusinessType.Motel.name)) {
+      return 'MOTEL';
+    } if (businessTypeGlobal.equalsIgnoreCase(BusinessType.Siksha.name)) {
+      return 'SIKSHA';
+    } if (businessTypeGlobal.equalsIgnoreCase(BusinessType.Finance.name)) {
+      return 'FINANCE';
+    } if (businessTypeGlobal.equalsIgnoreCase(BusinessType.Healthcare.name)) {
+      return 'HEALTH_CARE';
     }
 
     // Automotive sub-sectors fold into PRODUCT (sales/parts) or SERVICE

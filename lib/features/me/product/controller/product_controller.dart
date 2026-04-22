@@ -24,6 +24,7 @@ import 'package:BlueEra/features/me/product/model/product_nested_category_respon
 import 'package:BlueEra/features/me/product/model/single_product_model.dart';
 import 'package:BlueEra/features/me/product/repo/inventory_repo.dart';
 import 'package:BlueEra/features/me/product/view/product/product_preview_screen.dart';
+import 'package:BlueEra/widgets/collapsible_grid_model.dart';
 import 'package:BlueEra/widgets/select_product_image_dialog.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:flutter/material.dart';
@@ -201,11 +202,21 @@ class ProductController extends GetxController{
   final Rxn<String> selectedCategory = Rxn<String>();
   final RxString selectedCategoryId = ''.obs;
 
-  // Nested category selection (like food category picker)
-  var selectedProductLevel0 = Rxn<ProductNestedCategoryResponse>(); // Base Category
-  var selectedProductLevel1 = Rxn<ProductNestedCategoryResponse>(); // Sub Category
-  var selectedProductLevel2 = Rxn<ProductNestedCategoryResponse>(); // Sub-Sub Category
-  var selectedProductLevel3 = Rxn<ProductNestedCategoryResponse>(); // Deepest Category
+  // Home-made product category (flat list, tagId via slugId) — used when
+  // providerType == user.
+  final Rxn<CollapsibleGridModel> selectedHomeMadeCategory = Rxn<CollapsibleGridModel>();
+
+  // Nested category selection — used when providerType == business.
+  var selectedProductLevel0 = Rxn<ProductNestedCategoryResponse>();
+  var selectedProductLevel1 = Rxn<ProductNestedCategoryResponse>();
+  var selectedProductLevel2 = Rxn<ProductNestedCategoryResponse>();
+  var selectedProductLevel3 = Rxn<ProductNestedCategoryResponse>();
+
+  ProductNestedCategoryResponse? get _deepestNestedCategory =>
+      selectedProductLevel3.value ??
+      selectedProductLevel2.value ??
+      selectedProductLevel1.value ??
+      selectedProductLevel0.value;
 
   final RxBool showLinkField = false.obs;
   RxInt selectedVariantIndex = (-1).obs;
@@ -400,16 +411,22 @@ class ProductController extends GetxController{
   bool canAddMoreStep2() => step2Images.length < maxStep2Images.value;
 
   void onGenerate(ProductController addProductViaAiController, String id, ProviderType providerType) async {
-    if (!_validate()) return;
+    if (!_validate(providerType)) return;
 
     isLoading.value = true;
 
-    final lastCategory = selectedProductLevel3.value ?? selectedProductLevel2.value ?? selectedProductLevel1.value ?? selectedProductLevel0.value;
+    final String? keyValue;
+    if (providerType == ProviderType.business) {
+      final nested = _deepestNestedCategory;
+      keyValue = nested?.key ?? nested?.sId;
+    } else {
+      keyValue = selectedHomeMadeCategory.value?.slugId;
+    }
 
     final request = AddProductViaAiRequest(
       productName: productNameStep1Controller.text.trim(),
       productDescription: productDescriptionStep1Controller.text.trim(),
-      key: lastCategory?.key ?? lastCategory?.sId,
+      key: keyValue,
       images: step1Images.toList(),
     );
 
@@ -419,17 +436,22 @@ class ProductController extends GetxController{
 
   }
 
-  bool _validate() {
+  bool _validate(ProviderType providerType) {
     if(step1Images.length < 1) {
       commonSnackBar(message: AppStrings.pleaseTakeMinimumOneProductImage.tr);
       return false;
     }
 
-    // Validate nested category selection
-    final lastCategory = selectedProductLevel3.value ?? selectedProductLevel2.value ?? selectedProductLevel1.value ?? selectedProductLevel0.value;
-    if(lastCategory == null){
-      commonSnackBar(message: 'Please select a product category');
-      return false;
+    if (providerType == ProviderType.business) {
+      if (_deepestNestedCategory == null) {
+        commonSnackBar(message: 'Please select a product category');
+        return false;
+      }
+    } else {
+      if (selectedHomeMadeCategory.value == null) {
+        commonSnackBar(message: 'Please select a product category');
+        return false;
+      }
     }
 
     if(!formKey.currentState!.validate()) return false;
@@ -583,9 +605,15 @@ class ProductController extends GetxController{
       Map<String, dynamic> params = {
         if(productNameController.text.trim().isNotEmpty) ApiKeys.name: productNameController.text.trim(),
         if(productDescriptionController.text.trim().isNotEmpty) ApiKeys.description: productDescriptionController.text.trim(),
-        if((selectedProductLevel3.value ?? selectedProductLevel2.value ?? selectedProductLevel1.value ?? selectedProductLevel0.value)?.key != null)
-        ApiKeys.category_key: (selectedProductLevel3.value ?? selectedProductLevel2.value ?? selectedProductLevel1.value ?? selectedProductLevel0.value)!.key,
-        ApiKeys.category_id: (selectedProductLevel3.value ?? selectedProductLevel2.value ?? selectedProductLevel1.value ?? selectedProductLevel0.value)?.sId ?? '',
+        if (providerType == ProviderType.business) ...{
+          if (_deepestNestedCategory?.key != null)
+            ApiKeys.category_key: _deepestNestedCategory!.key,
+          ApiKeys.category_id: _deepestNestedCategory?.sId ?? '',
+        } else ...{
+          if (selectedHomeMadeCategory.value?.slugId != null)
+            ApiKeys.category_key: selectedHomeMadeCategory.value!.slugId,
+            // ApiKeys.category_id: selectedHomeMadeCategory.value?.slugId ?? '',
+        },
         if(brandController.text.trim().isNotEmpty) ApiKeys.brand: brandController.text.trim(),
         if(productWarrantyController.text.trim().isNotEmpty) ApiKeys.productWarranty: productWarrantyController.text.trim(),
         if(mrpController.text.trim().isNotEmpty) ApiKeys.mrpPerUnit: mrpController.text.trim(),

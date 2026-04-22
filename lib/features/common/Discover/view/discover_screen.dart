@@ -518,27 +518,8 @@ class _StickySearchBarDelegate extends SliverPersistentHeaderDelegate {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Container(
-                          padding: const EdgeInsets.all(10.0),
-                          decoration: BoxDecoration(
-                            color: isActive ? null : AppColors.white,
-                            gradient: isActive
-                                ? const LinearGradient(
-                                    begin: Alignment.topCenter,
-                                    end: Alignment.bottomCenter,
-                                    colors: [
-                                      AppColors.white,
-                                      Color(0xFFA4D4FF),
-                                    ],
-                                  )
-                                : null,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: isActive
-                                  ? AppColors.primaryColor
-                                  : AppColors.greyE5,
-                            ),
-                          ),
+                        _DiscoverTabIconTile(
+                          isActive: isActive,
                           child: LocalAssets(
                             imagePath: item['icon']!,
                             width: 40,
@@ -552,7 +533,8 @@ class _StickySearchBarDelegate extends SliverPersistentHeaderDelegate {
                           child: CustomText(
                             item['title']!,
                             fontSize: SizeConfig.small,
-                            fontWeight: FontWeight.w500,
+                            fontWeight:
+                                isActive ? FontWeight.w700 : FontWeight.w500,
                             // White on both states — sticky is dark and
                             // the expanded gradient ends in saturated
                             // blue where the tabs sit, so white reads
@@ -582,4 +564,118 @@ class _StickySearchBarDelegate extends SliverPersistentHeaderDelegate {
       topPadding != oldDelegate.topPadding ||
           activeIndex != oldDelegate.activeIndex ||
           onTabSelected != oldDelegate.onTabSelected;
+}
+
+/// Animated tile behind the active discover tab icon. Inactive tiles stay
+/// flat white with a grey border; active tiles cross-fade through three
+/// brand gradients every three seconds with a white border + blue shadow.
+/// The [AnimationController] lives in a stateful widget (not the delegate)
+/// so it survives the shrink-on-scroll rebuilds.
+class _DiscoverTabIconTile extends StatefulWidget {
+  final bool isActive;
+  final Widget child;
+
+  const _DiscoverTabIconTile({
+    required this.isActive,
+    required this.child,
+  });
+
+  @override
+  State<_DiscoverTabIconTile> createState() => _DiscoverTabIconTileState();
+}
+
+class _DiscoverTabIconTileState extends State<_DiscoverTabIconTile>
+    with SingleTickerProviderStateMixin {
+  static const List<RadialGradient> _gradients = <RadialGradient>[
+    RadialGradient(
+      center: Alignment.center,
+      radius: 0.8,
+      colors: [Color(0xFFC9FFB7), Color(0xFF0DA217), Color(0xFF04650B)],
+    ),
+    RadialGradient(
+      center: Alignment.center,
+      radius: 0.8,
+      colors: [Color(0xFFC0FFF9), Color(0xFF12CEBB), Color(0xFF018D7F)],
+    ),
+    RadialGradient(
+      center: Alignment.center,
+      radius: 0.8,
+      colors: [Color(0xFFE1B6FF), Color(0xFF7D0CCD), Color(0xFF3D0366)],
+    ),
+  ];
+
+  late final AnimationController _ctl;
+  int _index = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctl = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 3),
+    )..addStatusListener((status) {
+        if (status == AnimationStatus.completed && mounted) {
+          setState(() => _index = (_index + 1) % _gradients.length);
+          _ctl.forward(from: 0);
+        }
+      });
+    if (widget.isActive) _ctl.forward();
+  }
+
+  @override
+  void didUpdateWidget(covariant _DiscoverTabIconTile old) {
+    super.didUpdateWidget(old);
+    if (widget.isActive && !_ctl.isAnimating) {
+      _ctl.forward();
+    } else if (!widget.isActive && _ctl.isAnimating) {
+      _ctl.stop();
+    }
+  }
+
+  @override
+  void dispose() {
+    _ctl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!widget.isActive) {
+      return Container(
+        padding: const EdgeInsets.all(10.0),
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.greyE5),
+        ),
+        child: widget.child,
+      );
+    }
+    final safeIndex = _index % _gradients.length;
+    final from = _gradients[safeIndex];
+    final to = _gradients[(safeIndex + 1) % _gradients.length];
+    return AnimatedBuilder(
+      animation: _ctl,
+      builder: (context, child) {
+        final g = RadialGradient.lerp(from, to, _ctl.value) ?? from;
+        return Container(
+          padding: const EdgeInsets.all(10.0),
+          decoration: BoxDecoration(
+            gradient: g,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.white, width: 1.5),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x4D00294E),
+                offset: Offset(0, 2),
+                blurRadius: 10,
+              ),
+            ],
+          ),
+          child: child,
+        );
+      },
+      child: widget.child,
+    );
+  }
 }

@@ -1,5 +1,4 @@
 import 'dart:ui';
-
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -50,6 +49,17 @@ class SinglePlanSubscriptionView extends StatefulWidget {
 class _SinglePlanSubscriptionViewState
     extends State<SinglePlanSubscriptionView> {
   final controller = getOrPut(() => SubscriptionController());
+
+  /// Scales a base font / icon size proportionally to the current phone
+  /// width so this view reads the same on a 320px iPhone SE and a 430px
+  /// Pro Max. Reference width 390 (iPhone 14 Pro), clamped 0.85×–1.15× on
+  /// phones so extreme devices don't blow out the layout. Tablets go
+  /// through a 1.25× step so they stay distinct from the phone scale.
+  double _scaled(double base) {
+    if (SizeConfig.isTablet) return base * 1.25;
+    final factor = (SizeConfig.screenWidth / 390.0).clamp(0.85, 1.15);
+    return base * factor;
+  }
 
   @override
   void initState() {
@@ -113,7 +123,7 @@ class _SinglePlanSubscriptionViewState
                   SizedBox(height: SizeConfig.paddingXSL),
                   CustomText(
                     "oops.. something went wrong.",
-                    fontSize: SizeConfig.extraLarge22,
+                    fontSize: _scaled(22),
                     fontWeight: FontWeight.w500,
                     color: AppColors.secondaryTextColor,
                   ),
@@ -205,14 +215,6 @@ class _SinglePlanSubscriptionViewState
   }
 
   // ──────────────────── Trial offer card (new design) ─────────────────────
-  // Matches the `free_trail_subscription.png` mock:
-  //   • ₹0 / 3 Days headline + "FREE Trial" pill
-  //   • Two static verification perks (₹5 refund note, cancel anytime)
-  //   • Dynamic "What's Included" box driven by `perk_value + perk_bonus`
-  //     with a computed bonus-percentage pill
-  //   • API perks (minus the two that duplicate the numeric box)
-  //   • After-trial billing line (₹ + GST if applicable)
-  //   • Primary CTA reading "Claim My N {perkType}"
   Widget _buildTrialOfferCard(SubscriptionPlanData plan) {
     final perkValue = plan.perkValue ?? 0;
     final perkBonus = plan.perkBonus ?? 0;
@@ -267,7 +269,7 @@ class _SinglePlanSubscriptionViewState
                 children: [
                   CustomText(
                     "WHAT'S INCLUDED",
-                    fontSize: SizeConfig.medium,
+                    fontSize: _scaled(12),
                     fontWeight: FontWeight.w600,
                     color: AppColors.grey50,
                   ),
@@ -326,33 +328,37 @@ class _SinglePlanSubscriptionViewState
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text.rich(
-                  TextSpan(
-                    children: [
-                      TextSpan(
-                        text: '${AppConstants.rupeeSymbol}0',
-                        style: TextStyle(
-                          fontSize: 40,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.mainTextColor,
-                          height: 1.0,
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text.rich(
+                    TextSpan(
+                      children: [
+                        TextSpan(
+                          text: '${AppConstants.rupeeSymbol}0',
+                          style: TextStyle(
+                            fontSize: _scaled(40),
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.mainTextColor,
+                            height: 1.0,
+                          ),
                         ),
-                      ),
-                      TextSpan(
-                        text: ' / 3 Days',
-                        style: TextStyle(
-                          fontSize: SizeConfig.extraLarge,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.grey50,
+                        TextSpan(
+                          text: ' / 3 Days',
+                          style: TextStyle(
+                            fontSize: _scaled(20),
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.grey50,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
                 SizedBox(height: SizeConfig.size6),
                 CustomText(
                   'Try Free — No Upfront Cost',
-                  fontSize: SizeConfig.medium,
+                  fontSize: _scaled(14),
                   fontWeight: FontWeight.w600,
                   color: AppColors.grey50,
                 ),
@@ -376,7 +382,7 @@ class _SinglePlanSubscriptionViewState
                 ),
                 child: CustomText(
                   'FREE Trial',
-                  fontSize: SizeConfig.medium,
+                  fontSize: _scaled(14),
                   fontWeight: FontWeight.w600,
                   color: AppColors.mainTextColor,
                 ),
@@ -410,7 +416,7 @@ class _SinglePlanSubscriptionViewState
                 child: Text.rich(
                   TextSpan(
                     style: TextStyle(
-                      fontSize: SizeConfig.large,
+                      fontSize: _scaled(16),
                       fontWeight: FontWeight.w400,
                       color: AppColors.grey50,
                     ),
@@ -418,7 +424,7 @@ class _SinglePlanSubscriptionViewState
                       TextSpan(
                         text: '${AppConstants.rupeeSymbol}5',
                         style: TextStyle(
-                          fontSize: SizeConfig.large,
+                          fontSize: _scaled(16),
                           fontWeight: FontWeight.w700,
                           color: AppColors.mainTextColor,
                         ),
@@ -430,14 +436,14 @@ class _SinglePlanSubscriptionViewState
                         alignment: PlaceholderAlignment.middle,
                         child: Icon(
                           Icons.arrow_forward_rounded,
-                          size: 16,
+                          size: _scaled(16),
                           color: AppColors.mainTextColor,
                         ),
                       ),
                       TextSpan(
                         text: '  Refunded Instantly',
                         style: TextStyle(
-                          fontSize: SizeConfig.large,
+                          fontSize: _scaled(16),
                           fontWeight: FontWeight.w700,
                           color: AppColors.green17,
                         ),
@@ -457,7 +463,7 @@ class _SinglePlanSubscriptionViewState
               Expanded(
                 child: CustomText(
                   'No Card Locked. Cancel Anytime.',
-                  fontSize: SizeConfig.large,
+                  fontSize: _scaled(16),
                   fontWeight: FontWeight.w400,
                   color: AppColors.grey50,
                 ),
@@ -493,14 +499,14 @@ class _SinglePlanSubscriptionViewState
               children: [
                 CustomText(
                   '$perkValue + $perkBonus',
-                  fontSize: SizeConfig.title,
+                  fontSize: _scaled(24),
                   fontWeight: FontWeight.w700,
                   color: AppColors.mainTextColor,
                 ),
                 // SizedBox(height: SizeConfig.size2),
                 CustomText(
                   '$perkLabel Total',
-                  fontSize: SizeConfig.large,
+                  fontSize: _scaled(16),
                   fontWeight: FontWeight.w400,
                   color: AppColors.grey50,
                 ),
@@ -523,14 +529,14 @@ class _SinglePlanSubscriptionViewState
                 children: [
                   CustomText(
                     '+$bonusPct%',
-                    fontSize: SizeConfig.large,
+                    fontSize: _scaled(16),
                     fontWeight: FontWeight.w700,
                     color: AppColors.green17,
                   ),
                   // SizedBox(height: SizeConfig.size1),
                   CustomText(
                     'Bonus $perkLabel',
-                    fontSize: SizeConfig.medium,
+                    fontSize: _scaled(12),
                     fontWeight: FontWeight.w400,
                     color: AppColors.green17,
                   ),
@@ -553,7 +559,7 @@ class _SinglePlanSubscriptionViewState
           Expanded(
             child: CustomText(
               text,
-              fontSize: SizeConfig.large,
+              fontSize: _scaled(16),
               fontWeight: FontWeight.w400,
               color: AppColors.grey50,
               maxLines: 3,
@@ -567,8 +573,8 @@ class _SinglePlanSubscriptionViewState
   Widget _checkIcon() {
     return LocalAssets(
       imagePath: AppIconAssets.greenCircleTickIcon,
-      width: 18,
-      height: 18,
+      width: _scaled(18),
+      height: _scaled(18),
       imgColor: AppColors.secondaryTextColor,
     );
   }
@@ -592,18 +598,24 @@ class _SinglePlanSubscriptionViewState
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            CustomText(
-              'Start Free  —  Claim My $totalUnits $perkLabel',
-              fontSize: SizeConfig.large,
-              fontWeight: FontWeight.w700,
-              color: AppColors.white,
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: CustomText(
+                'Start Free  —  Claim My $totalUnits $perkLabel',
+                fontSize: _scaled(16),
+                fontWeight: FontWeight.w700,
+                color: AppColors.white,
+              ),
             ),
             SizedBox(height: SizeConfig.size2),
-            CustomText(
-              'Verify identity with ${AppConstants.rupeeSymbol}5  —  refunded within seconds.',
-              fontSize: SizeConfig.medium,
-              fontWeight: FontWeight.w400,
-              color: AppColors.yellow6C,
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: CustomText(
+                'Verify identity with ${AppConstants.rupeeSymbol}5  —  refunded within seconds.',
+                fontSize: _scaled(12),
+                fontWeight: FontWeight.w400,
+                color: AppColors.yellow6C,
+              ),
             ),
           ],
         ),
@@ -806,7 +818,7 @@ class _SinglePlanSubscriptionViewState
     return Text.rich(
       TextSpan(
         style: TextStyle(
-          fontSize: 12,
+          fontSize: _scaled(12),
           fontWeight: FontWeight.w400,
           color: AppColors.secondaryTextColor,
         ),
@@ -815,7 +827,7 @@ class _SinglePlanSubscriptionViewState
           TextSpan(
             text: '$fullPriceText/year ',
             style: TextStyle(
-              fontSize: 12,
+              fontSize: _scaled(12),
               fontWeight: FontWeight.w600,
               color: AppColors.mainTextColor,
             ),
@@ -824,7 +836,7 @@ class _SinglePlanSubscriptionViewState
           TextSpan(
             text: 'Auto Pay',
             style: TextStyle(
-              fontSize: 12,
+              fontSize: _scaled(12),
               fontWeight: FontWeight.w600,
               color: AppColors.mainTextColor,
             ),
@@ -911,26 +923,30 @@ class _SinglePlanSubscriptionViewState
                 SizedBox(height: SizeConfig.size8),
 
                 // Price + period (or status word + label for non-offer states)
-                Text.rich(
-                  TextSpan(
-                    children: [
-                      TextSpan(
-                        text: '$priceText / ',
-                        style: TextStyle(
-                          fontSize: 44,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.mainTextColor,
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text.rich(
+                    TextSpan(
+                      children: [
+                        TextSpan(
+                          text: '$priceText / ',
+                          style: TextStyle(
+                            fontSize: _scaled(44),
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.mainTextColor,
+                          ),
                         ),
-                      ),
-                      TextSpan(
-                        text: periodText,
-                        style: TextStyle(
-                          fontSize: SizeConfig.extraLarge,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.secondaryTextColor,
+                        TextSpan(
+                          text: periodText,
+                          style: TextStyle(
+                            fontSize: _scaled(20),
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.secondaryTextColor,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
 
@@ -943,7 +959,7 @@ class _SinglePlanSubscriptionViewState
 
                 CustomText(
                   bodyText,
-                  fontSize: SizeConfig.medium,
+                  fontSize: _scaled(14),
                   fontWeight: FontWeight.w400,
                   color: AppColors.secondaryTextColor,
                   maxLines: 4,
@@ -989,8 +1005,8 @@ class _SinglePlanSubscriptionViewState
           ),
           child: LocalAssets(
             imagePath: AppImageAssets.planTagIcon,
-            height: 22,
-            width: 22,
+            height: _scaled(22),
+            width: _scaled(22),
             boxFix: BoxFit.cover,
           ),
         ),
@@ -1014,7 +1030,7 @@ class _SinglePlanSubscriptionViewState
       ),
       child: CustomText(
         'TEST',
-        fontSize: SizeConfig.small,
+        fontSize: _scaled(12),
         fontWeight: FontWeight.w700,
         color: AppColors.white,
       ),
@@ -1045,7 +1061,7 @@ class _SinglePlanSubscriptionViewState
               ],
               CustomText(
                 text,
-                fontSize: SizeConfig.medium,
+                fontSize: _scaled(14),
                 fontWeight: FontWeight.w400,
                 color: AppColors.mainTextColor,
               ),
@@ -1064,14 +1080,14 @@ class _SinglePlanSubscriptionViewState
         children: [
           Icon(
             Icons.check_circle_outline,
-            size: 16,
+            size: _scaled(16),
             color: AppColors.secondaryTextColor,
           ),
           SizedBox(width: SizeConfig.size8),
           Expanded(
             child: CustomText(
               text,
-              fontSize: SizeConfig.medium,
+              fontSize: _scaled(14),
               fontWeight: FontWeight.w400,
               color: AppColors.secondaryTextColor,
               maxLines: 2,
