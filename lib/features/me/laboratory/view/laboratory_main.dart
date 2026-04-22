@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/laboratory/controller/lab_full_details_controller.dart';
+import 'package:BlueEra/features/me/me_tab_registry.dart';
 import 'package:BlueEra/features/me/school/view/coming_soon.dart';
 import 'package:BlueEra/features/me/laboratory/controller/lab_service_ai_controller.dart';
 import 'package:BlueEra/features/me/laboratory/repo/lab_service_repo.dart';
@@ -47,6 +48,7 @@ class _LaboratoryMainState extends State<LaboratoryMain>
       length: _lastHasWebsite ? 3 : 2,
       vsync: this,
     );
+    MeTabRegistry.register(_tabController!);
 
     // Listen for details changes to rebuild tabs when website status changes
     _detailsWorker = ever(_labDetailsController.details, (_) {
@@ -70,6 +72,7 @@ class _LaboratoryMainState extends State<LaboratoryMain>
     if (current != _lastHasWebsite) {
       _lastHasWebsite = current;
       final oldIndex = _tabController?.index ?? 0;
+      if (_tabController != null) MeTabRegistry.unregister(_tabController!);
       _tabController?.dispose();
       final newLength = current ? 3 : 2;
       _tabController = TabController(
@@ -77,6 +80,7 @@ class _LaboratoryMainState extends State<LaboratoryMain>
         vsync: this,
         initialIndex: oldIndex.clamp(0, newLength - 1),
       );
+      MeTabRegistry.register(_tabController!);
       if (mounted) setState(() {});
     }
   }
@@ -110,6 +114,7 @@ class _LaboratoryMainState extends State<LaboratoryMain>
   @override
   void dispose() {
     _detailsWorker?.dispose();
+    if (_tabController != null) MeTabRegistry.unregister(_tabController!);
     _tabController?.dispose();
     super.dispose();
   }

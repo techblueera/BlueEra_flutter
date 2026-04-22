@@ -16,7 +16,7 @@ class CommonCardWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      color:bgColor?? AppColors.white,
+      color: bgColor?? AppColors.white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(borderRadius??10),
         side: BorderSide.none,

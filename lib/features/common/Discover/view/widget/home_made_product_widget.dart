@@ -47,39 +47,72 @@ class HomeMadeProductWidget extends StatelessWidget {
                           Get.to(() => HomeMadeProductScreen());
                         }
                       },
-                      child: CommonCardWidget(
-                        bgColor: Colors.white,
-                        borderColorColor: const Color(0xffDDE2EE),
-                        cardMargin: 3,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(10),
-                              child: LocalAssets(
-                                imagePath: categoryItem.icon ?? '',
-                                height: SizeConfig.size140,
-                                width: double.maxFinite,
-                                boxFix: BoxFit.cover,
-                              ),
+                      child: Stack(
+                        children: [
+                          CommonCardWidget(
+                            bgColor: Colors.white,
+                            borderColorColor: const Color(0xffDDE2EE),
+                            cardMargin: 3,
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(10),
+                                  child: LocalAssets(
+                                    imagePath: categoryItem.icon ?? '',
+                                    height: SizeConfig.size140,
+                                    width: double.maxFinite,
+                                    boxFix: BoxFit.cover,
+                                  ),
+                                ),
+                                SizedBox(height: SizeConfig.paddingXSL),
+                                Container(
+                                  height: SizeConfig.size30,
+                                  alignment: Alignment.center,
+                                  child: CustomText(
+                                    categoryItem.name,
+                                    fontSize: SizeConfig.small11,
+                                    color: AppColors.secondaryTextColor,
+                                    fontWeight: FontWeight.w600,
+                                    textAlign: TextAlign.center,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
                             ),
-                            SizedBox(height: SizeConfig.paddingXSL),
-                            Container(
-                              height: SizeConfig.size30,
-                              alignment: Alignment.center,
-                              child: CustomText(
-                                categoryItem.name,
-                                fontSize: SizeConfig.small11,
-                                color: AppColors.secondaryTextColor,
-                                fontWeight: FontWeight.w600,
-                                textAlign: TextAlign.center,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ),
+                          ),
+
+                          Positioned(
+                              top: 0,
+                              right: 0,
+                              child: Card(
+                                color: AppColors.greenF3,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.only(
+                                    bottomLeft: Radius.circular(10.0),
+                                    topRight: Radius.circular(10.0),
+                                  )
+                                ),
+                                child: Padding(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 10.0,
+                                    vertical: 4.0,
+                                  ),
+                                  child: CustomText(
+                                    categoryItem.slugId == SERVICE
+                                        ? 'Trusted'
+                                        : 'Local',
+                                      fontSize: 12.0,
+                                      fontWeight: FontWeight.w400,
+                                      color: AppColors.green7A,
+                                  ),
+                                ),
+                              )
+                          )
+
+                        ]
                       ),
                     ),
                   );

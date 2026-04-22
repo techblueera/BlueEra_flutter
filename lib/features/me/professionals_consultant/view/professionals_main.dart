@@ -14,6 +14,7 @@ import 'package:BlueEra/features/common/auth/controller/ai_suggestion_controller
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import 'package:BlueEra/features/common/reel/view/channel/follower_following_screen.dart';
 import 'package:BlueEra/features/common/visiting_card/view/all_personal_visiting_cards.dart';
+import 'package:BlueEra/features/me/me_tab_registry.dart';
 import 'package:BlueEra/features/me/professionals_consultant/controller/ai_professionals_controller.dart';
 import 'package:BlueEra/features/me/professionals_consultant/view/professionals_home_screen.dart';
 import 'package:BlueEra/features/me/school/view/coming_soon.dart';
@@ -62,6 +63,7 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen>
       length: _lastHasWebsite ? 3 : 2,
       vsync: this,
     );
+    MeTabRegistry.register(_tabController!);
     _viewCtrl.UserFollowersAndPostsCount(userId);
   }
 
@@ -79,6 +81,7 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen>
     if (current != _lastHasWebsite) {
       _lastHasWebsite = current;
       final oldIndex = _tabController?.index ?? 0;
+      if (_tabController != null) MeTabRegistry.unregister(_tabController!);
       _tabController?.dispose();
       final newLength = current ? 3 : 2;
       _tabController = TabController(
@@ -86,11 +89,13 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen>
         vsync: this,
         initialIndex: oldIndex.clamp(0, newLength - 1),
       );
+      MeTabRegistry.register(_tabController!);
     }
   }
 
   @override
   void dispose() {
+    if (_tabController != null) MeTabRegistry.unregister(_tabController!);
     _tabController?.dispose();
     super.dispose();
   }

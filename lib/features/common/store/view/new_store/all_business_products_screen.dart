@@ -1,11 +1,15 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/widget/common_generic_left_side_category_list.dart';
+import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
+import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
 import 'package:BlueEra/features/common/store/controller/new_store_controller.dart';
 import 'package:BlueEra/features/common/store/models/product_consumer_nested_category_response.dart';
 import 'package:BlueEra/features/common/store/view/store_product_card.dart';
@@ -16,6 +20,7 @@ import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -38,8 +43,14 @@ class AllBusinessProductsScreen extends StatefulWidget {
 class _AllBusinessProductsScreenState extends State<AllBusinessProductsScreen> {
   final controller = getOrPut(() => DiscoverController());
   final storeController = getOrPut(() => NewStoreController());
+  final AuthController _authController = Get.find<AuthController>();
   final ScrollController storesScrollController = ScrollController();
   final ProviderType _providerType = ProviderType.business;
+
+  /// The currently active top-level product category (tagId + name),
+  /// mutable so the header dropdown can switch it at runtime.
+  String? _currentCategoryTagId;
+  String? _currentCategoryName;
 
   /// Selected level-1 category (left sidebar)
   final Rxn<ProductNestedCategory> _selectedCategory = Rxn<ProductNestedCategory>();
@@ -47,21 +58,45 @@ class _AllBusinessProductsScreenState extends State<AllBusinessProductsScreen> {
   /// Selected level-2 child (horizontal tab)
   final Rxn<ProductNestedCategory> _selectedChild = Rxn<ProductNestedCategory>();
 
+  List<CategoryData> get _allProductCategories =>
+      _authController.businessOnboardingProductsCategories;
+
   @override
   void initState() {
     super.initState();
 
-    // Single API call to fetch category tree
-    if (widget.productCategory != null) {
-      storeController.fetchProductCategoryTree(group: widget.productCategory!).then((_) {
-        final list = storeController.productCategoryTreeList;
-        if (list.isNotEmpty) {
-          _selectCategory(list.first);
-        }
-      });
-    }
+    _currentCategoryTagId = widget.productCategory;
+    _currentCategoryName = widget.productCategoryName;
+    _loadTree();
 
     storesScrollController.addListener(_onLoadMore);
+  }
+
+  /// Fetch the category tree for the currently active top-level category
+  /// and auto-select the first sidebar entry when it arrives.
+  void _loadTree() {
+    final tagId = _currentCategoryTagId;
+    if (tagId == null || tagId.isEmpty) return;
+    storeController.fetchProductCategoryTree(group: tagId).then((_) {
+      if (!mounted) return;
+      final list = storeController.productCategoryTreeList;
+      if (list.isNotEmpty) {
+        _selectCategory(list.first);
+      }
+    });
+  }
+
+  /// Switch the top-level category from the header dropdown — resets the
+  /// sidebar/tab selection, refetches the tree, and re-loads products.
+  void _changeMainCategory(CategoryData category) {
+    if (category.tagId == null || category.tagId == _currentCategoryTagId) return;
+    setState(() {
+      _currentCategoryTagId = category.tagId;
+      _currentCategoryName = category.name;
+      _selectedCategory.value = null;
+      _selectedChild.value = null;
+    });
+    _loadTree();
   }
 
   @override
@@ -114,20 +149,7 @@ class _AllBusinessProductsScreenState extends State<AllBusinessProductsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        isCustomTitleWidget: () => Obx(() {
-          final name = _selectedCategory.value?.name ??
-              widget.productCategoryName ?? AppStrings.tab_product;
-          return Text(
-            name,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: AppColors.mainTextColor,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          );
-        }),
+        isCustomTitleWidget: () => _buildTitleDropdown(),
         buildCustomActionWidget: () {
           final chat = ChatViewController.inventoryAiChatListSearchModule;
           return IconButton(
@@ -176,6 +198,104 @@ class _AllBusinessProductsScreenState extends State<AllBusinessProductsScreen> {
         }),
       ),
     );
+  }
+
+  /// App-bar title rendered as a popup menu — tapping opens the full list
+  /// of top-level product categories (with icons) so the user can switch
+  /// without going back.
+  Widget _buildTitleDropdown() {
+    final name = _currentCategoryName ?? AppStrings.tab_product;
+    final categories = _allProductCategories;
+
+    final label = Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Flexible(
+          child: Text(
+            name,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: AppColors.mainTextColor,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        const SizedBox(width: 4),
+        Icon(
+          Icons.keyboard_arrow_down_rounded,
+          size: 22,
+          color: AppColors.mainTextColor,
+        ),
+      ],
+    );
+
+    if (categories.isEmpty) return label;
+
+    return PopupMenuButton<CategoryData>(
+      tooltip: '',
+      offset: const Offset(0, 40),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
+      onSelected: _changeMainCategory,
+      itemBuilder: (ctx) => categories.map((c) {
+        final isActive = c.tagId == _currentCategoryTagId;
+        return PopupMenuItem<CategoryData>(
+          value: c,
+          child: Row(
+            children: [
+              SizedBox(
+                width: 28,
+                height: 28,
+                child: _buildCategoryMenuIcon(c.imageUrl),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  c.name ?? '',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight:
+                        isActive ? FontWeight.w700 : FontWeight.w500,
+                    color: isActive
+                        ? AppColors.primaryColor
+                        : AppColors.mainTextColor,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              if (isActive)
+                Icon(Icons.check,
+                    size: 16, color: AppColors.primaryColor),
+            ],
+          ),
+        );
+      }).toList(),
+      child: label,
+    );
+  }
+
+  Widget _buildCategoryMenuIcon(String? url) {
+    if (url == null || url.isEmpty) {
+      return Image.asset(
+        AppIconAssets.place_holder_image,
+        fit: BoxFit.contain,
+      );
+    }
+    if (isNetworkImage(url)) {
+      return CachedNetworkImage(
+        imageUrl: url,
+        fit: BoxFit.contain,
+        errorWidget: (_, __, ___) => Image.asset(
+          AppIconAssets.place_holder_image,
+          fit: BoxFit.contain,
+        ),
+      );
+    }
+    return Image.asset(url, fit: BoxFit.contain);
   }
 
   /// Left sidebar: level-1 categories from API tree
@@ -258,15 +378,23 @@ class _AllBusinessProductsScreenState extends State<AllBusinessProductsScreen> {
                 isShowInGrid: true,
               )
             : const SizedBox.shrink();
+        // IntrinsicHeight + CrossAxisAlignment.stretch lets both cards in
+        // the row share the taller card's height. The taller card is
+        // whichever has the 2-line name, so a 1-line-name card next to a
+        // 2-line-name card expands its content area to match — the 8px
+        // row gap stays the same and the shorter card just shows
+        // whitespace below the name.
         return Padding(
           padding: const EdgeInsets.only(bottom: 8),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(child: leftCell),
-              const SizedBox(width: 8),
-              Expanded(child: rightCell),
-            ],
+          child: IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(child: leftCell),
+                const SizedBox(width: 8),
+                Expanded(child: rightCell),
+              ],
+            ),
           ),
         );
       },
@@ -279,7 +407,12 @@ class _AllBusinessProductsScreenState extends State<AllBusinessProductsScreen> {
         return const Center(child: CircularProgressIndicator());
       }
 
-      final productList = List<GetProductData>.from(controller.productDataList);
+      // Drop entries that StoreProductCard would render as an empty
+      // SizedBox (product.details == null) so those slots don't appear
+      // as blank cards in the grid.
+      final productList = controller.productDataList
+          .where((d) => d.product.details != null)
+          .toList();
 
       if (productList.isEmpty) {
         return Center(
@@ -293,37 +426,40 @@ class _AllBusinessProductsScreenState extends State<AllBusinessProductsScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Product count chip
-          Padding(
-            padding: EdgeInsets.only(
-              top: SizeConfig.paddingS,
-              right: SizeConfig.paddingXS,
-              bottom: SizeConfig.size6,
-            ),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: AppColors.white,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: AppColors.greyE5, width: 0.5),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.inventory_2_outlined,
-                      size: 14, color: AppColors.primaryColor),
-                  const SizedBox(width: 6),
-                  CustomText(
-                    "${productList.length}${controller.isProductDataLoadingMore.value ? '+' : ''} Products",
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.mainTextColor,
-                  ),
-                ],
-              ),
-            ),
-          ),
+          // Padding(
+          //   padding: EdgeInsets.only(
+          //     top: SizeConfig.paddingS,
+          //     right: SizeConfig.paddingXS,
+          //     bottom: SizeConfig.size6,
+          //   ),
+          //   child: Container(
+          //     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          //     decoration: BoxDecoration(
+          //       color: AppColors.white,
+          //       borderRadius: BorderRadius.circular(20),
+          //       border: Border.all(color: AppColors.greyE5, width: 0.5),
+          //     ),
+          //     child: Row(
+          //       mainAxisSize: MainAxisSize.min,
+          //       children: [
+          //         Icon(Icons.inventory_2_outlined,
+          //             size: 14, color: AppColors.primaryColor),
+          //         const SizedBox(width: 6),
+          //         CustomText(
+          //           "${productList.length}${controller.isProductDataLoadingMore.value ? '+' : ''} Products",
+          //           fontSize: 11,
+          //           fontWeight: FontWeight.w600,
+          //           color: AppColors.mainTextColor,
+          //         ),
+          //       ],
+          //     ),
+          //   ),
+          // ),
 
           // Product grid/list
+
+          SizedBox(height: SizeConfig.size8),
+
           Expanded(
             child: widget.isShowInGrid
                 ? _buildTwoColumnGrid(productList)

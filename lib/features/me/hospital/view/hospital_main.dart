@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_service_ai_controller.dart';
 import 'package:BlueEra/features/me/hospital/view/hospital_home_screen.dart';
+import 'package:BlueEra/features/me/me_tab_registry.dart';
 import 'package:BlueEra/features/me/school/view/coming_soon.dart';
 import 'package:BlueEra/widgets/webview_common.dart';
 import 'package:flutter/material.dart';
@@ -40,6 +41,7 @@ class _HospitalMainState extends State<HospitalMain>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    MeTabRegistry.register(_tabController);
     hospitalServiceAiController.getHospitalFullDetailsController();
 
     ever(hospitalServiceAiController.hospitalDataResModel!, (_) {
@@ -47,12 +49,14 @@ class _HospitalMainState extends State<HospitalMain>
       if (newHasWebsite != _hasWebsite) {
         _hasWebsite = newHasWebsite;
         final currentIndex = _tabController.index;
+        MeTabRegistry.unregister(_tabController);
         _tabController.dispose();
         _tabController = TabController(
           length: _hasWebsite ? 3 : 2,
           vsync: this,
           initialIndex: currentIndex.clamp(0, _hasWebsite ? 2 : 1),
         );
+        MeTabRegistry.register(_tabController);
         if (mounted) setState(() {});
       }
     });
@@ -60,6 +64,7 @@ class _HospitalMainState extends State<HospitalMain>
 
   @override
   void dispose() {
+    MeTabRegistry.unregister(_tabController);
     _tabController.dispose();
     super.dispose();
   }

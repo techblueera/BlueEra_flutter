@@ -7,6 +7,7 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/me/medical_new/controller/medical_controller.dart';
+import 'package:BlueEra/features/me/me_tab_registry.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/features/me/medical_new/controller/user_medical_controller.dart';
 import 'package:BlueEra/features/me/medical_new/view/medical_home_screen.dart';
@@ -39,10 +40,12 @@ class _MedicalScreenState extends State<MedicalScreen> with SingleTickerProvider
   void initState() {
     super.initState();
     _tabController = TabController(length: _tabs.length, vsync: this);
+    MeTabRegistry.register(_tabController!);
   }
 
   @override
   void dispose() {
+    if (_tabController != null) MeTabRegistry.unregister(_tabController!);
     _tabController?.dispose();
     deleteIfRegistered<MedicalController>();
     deleteIfRegistered<UserMedicalController>();

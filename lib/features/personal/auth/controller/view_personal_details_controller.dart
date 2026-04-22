@@ -291,12 +291,12 @@ class ViewPersonalDetailsController extends GetxController {
         );
         await getUserLoginData();
         userProfileType.value = userProfileTypeGlobal;
-        log("userProfileTypeGlobal after api: ${userProfileType.value}");
+        debugPrint("userProfileTypeGlobal after api: ${userProfileType.value}");
         // print("Hash 1: ${userProfileType.hashCode}");
 
         /// Check Earn services
         earnProfileType.value = personalProfileDetails.value.earnProfileType;
-        log('=== earnProfileType: "${earnProfileType.value}", raw: "${personalProfileDetails.value.earnProfileType}" ===');
+        debugPrint('=== earnProfileType: "${earnProfileType.value}", raw: "${personalProfileDetails.value.earnProfileType}" ===');
 
         /// need to verify (for checking is service exists or not)
         if (user?.profession?.toUpperCase() == SELF_EMPLOYED ||

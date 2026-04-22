@@ -1,10 +1,12 @@
 import 'dart:math' as math;
 
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/date_time_utils.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/subscription/auth/controller/subscription_controller.dart';
+import 'package:BlueEra/features/subscription/auth/model/subscription_list_details_model.dart';
 import 'package:BlueEra/features/subscription/auth/model/user_subscription_model.dart';
 import 'package:BlueEra/features/subscription/view/single_plan_subscription_view.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -34,7 +36,7 @@ class _SubscriptionDraggableSheetState
     extends State<SubscriptionDraggableSheet> {
   // Header height in the two states. When expanded the title button is
   // hidden, so the header collapses to just the peak + a small bar strip.
-  static const double _collapsedHeaderHeight = 100.0;
+  static const double _collapsedHeaderHeight = 110.0;
   static const double _expandedHeaderHeight = 44.0;
 
   bool _isExpanded = false;
@@ -62,7 +64,7 @@ class _SubscriptionDraggableSheetState
     final list = _subController.currentPlansList;
 
     if (list.isEmpty) {
-      return _ctaPill(title: 'Go Live Now @ Rs 5');
+      return _trialCtaPill();
     }
 
     final userSub = list.first;
@@ -86,24 +88,101 @@ class _SubscriptionDraggableSheetState
           //     : 'Resubscribe Now',
         );
       default:
-        return _ctaPill(title: 'Go Live Now @ Rs 5');
+        return _trialCtaPill();
     }
+  }
+
+  /// Phone-width scaling helper — mirrors `_scaled` in
+  /// [SinglePlanSubscriptionView] so the peek-header CTA and the expanded
+  /// body CTA render at the same sizes across devices.
+  double _scaled(double base) {
+    if (SizeConfig.isTablet) return base * 1.25;
+    final factor = (SizeConfig.screenWidth / 390.0).clamp(0.85, 1.15);
+    return base * factor;
+  }
+
+  /// Picks the plan to show numbers for. Prefers an `active: true` plan,
+  /// falls back to the first. Matches `_pickPlan` in
+  /// [SinglePlanSubscriptionView] so the header and body stay in sync.
+  SubscriptionPlanData? _pickPlan() {
+    final list = _subController.subscriptionPlanDetailsNewModel.value.data;
+    if (list == null || list.isEmpty) return null;
+    for (final plan in list) {
+      if (plan.active == true) return plan;
+    }
+    return list.first;
+  }
+
+  String _perkTypeLabel(String? type) {
+    if (type == null || type.isEmpty) return 'Items';
+    final lower = type.toLowerCase();
+    return lower[0].toUpperCase() + lower.substring(1);
+  }
+
+  /// Free-trial CTA pill shown in the collapsed peek header. Same two-line
+  /// copy + typography as [SinglePlanSubscriptionView._trialCtaButton] so
+  /// the pill and the expanded body CTA read as one continuous surface.
+  Widget _trialCtaPill() {
+    final plan = _pickPlan();
+    final perkValue = plan?.perkValue ?? 0;
+    final perkBonus = plan?.perkBonus ?? 0;
+    final totalUnits = perkValue + perkBonus;
+    final perkLabel = _perkTypeLabel(plan?.perkType);
+
+    return Container(
+      width: SizeConfig.screenWidth,
+      padding: EdgeInsets.symmetric(
+        horizontal: SizeConfig.size16,
+        vertical: SizeConfig.size10,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.primaryColor,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: CustomText(
+              'Start Free  —  Claim My $totalUnits $perkLabel',
+              fontSize: _scaled(16),
+              fontWeight: FontWeight.w700,
+              color: AppColors.white,
+            ),
+          ),
+          SizedBox(height: SizeConfig.size2),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: CustomText(
+              'Verify identity with ${AppConstants.rupeeSymbol}5  —  refunded within seconds.',
+              fontSize: _scaled(12),
+              fontWeight: FontWeight.w400,
+              color: AppColors.yellow6C,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   /// Solid primary pill used for "do something" states (offer / recharge).
   Widget _ctaPill({required String title}) {
     return Container(
-      padding: const EdgeInsets.all(14.0),
+      padding: EdgeInsets.all(_scaled(14)),
       decoration: BoxDecoration(
         color: AppColors.primaryColor,
         borderRadius: BorderRadius.circular(10.0),
       ),
       alignment: Alignment.center,
-      child: CustomText(
-        title,
-        fontSize: SizeConfig.large,
-        color: AppColors.white,
-        fontWeight: FontWeight.w600,
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: CustomText(
+          title,
+          fontSize: _scaled(16),
+          color: AppColors.white,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
   }
@@ -117,7 +196,7 @@ class _SubscriptionDraggableSheetState
             ? 'Trial ending today'
             : 'Trial active • $daysLeft day${daysLeft == 1 ? '' : 's'} left');
     return Container(
-      padding: const EdgeInsets.all(12.0),
+      padding: EdgeInsets.all(_scaled(12)),
       decoration: BoxDecoration(
         color: AppColors.green39.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(10.0),
@@ -127,12 +206,12 @@ class _SubscriptionDraggableSheetState
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(Icons.verified_rounded,
-              size: 20, color: AppColors.green39),
+              size: _scaled(20), color: AppColors.green39),
           SizedBox(width: SizeConfig.size8),
           Flexible(
             child: CustomText(
               daysText,
-              fontSize: SizeConfig.medium,
+              fontSize: _scaled(14),
               color: AppColors.green39,
               fontWeight: FontWeight.w600,
               maxLines: 1,
@@ -150,7 +229,7 @@ class _SubscriptionDraggableSheetState
         : 'Premium';
     final validDate = formatISO8601Date(userSub.validUpto);
     return Container(
-      padding: const EdgeInsets.all(12.0),
+      padding: EdgeInsets.all(_scaled(12)),
       decoration: BoxDecoration(
         color: AppColors.primaryColor.withValues(alpha: 0.10),
         borderRadius: BorderRadius.circular(10.0),
@@ -159,7 +238,7 @@ class _SubscriptionDraggableSheetState
       child: Row(
         children: [
           Icon(Icons.workspace_premium_rounded,
-              size: 22, color: AppColors.primaryColor),
+              size: _scaled(22), color: AppColors.primaryColor),
           SizedBox(width: SizeConfig.size8),
           Expanded(
             child: Column(
@@ -168,13 +247,13 @@ class _SubscriptionDraggableSheetState
               children: [
                 CustomText(
                   '$tier Active',
-                  fontSize: SizeConfig.medium,
+                  fontSize: _scaled(14),
                   color: AppColors.primaryColor,
                   fontWeight: FontWeight.w700,
                 ),
                 CustomText(
                   'Valid until $validDate',
-                  fontSize: SizeConfig.small,
+                  fontSize: _scaled(12),
                   color: AppColors.secondaryTextColor,
                   fontWeight: FontWeight.w500,
                 ),
@@ -317,7 +396,7 @@ class _SubscriptionDraggableSheetState
                       ? Icons.keyboard_arrow_down_rounded
                       : Icons.keyboard_arrow_up_rounded,
                   color: AppColors.mainTextColor,
-                  size: 26,
+                  size: _scaled(26),
                 ),
               ),
             ),

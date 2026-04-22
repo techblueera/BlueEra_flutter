@@ -214,34 +214,9 @@ class StickyCategoryHeaderDelegate extends SliverPersistentHeaderDelegate {
                                 child: Column(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    Container(
-                                      width: SizeConfig.size48,
-                                      height: SizeConfig.size48,
-                                      alignment: Alignment.center,
-                                      decoration: BoxDecoration(
-                                        color: isActive
-                                            ? null
-                                            : AppColors.white,
-                                        gradient: isActive
-                                            ? const LinearGradient(
-                                                begin: Alignment
-                                                    .topCenter,
-                                                end: Alignment
-                                                    .bottomCenter,
-                                                colors: [
-                                                  AppColors.white,
-                                                  Color(0xFFA4D4FF),
-                                                ],
-                                              )
-                                            : null,
-                                        borderRadius:
-                                            BorderRadius.circular(12),
-                                        border: Border.all(
-                                          color: isActive
-                                              ? AppColors.primaryColor
-                                              : AppColors.greyE5,
-                                        ),
-                                      ),
+                                    _CategoryIconTile(
+                                      size: SizeConfig.size48,
+                                      isActive: isActive,
                                       child: _buildCategoryIcon(
                                           item.imageUrl),
                                     ),
@@ -340,4 +315,128 @@ class StickyCategoryHeaderDelegate extends SliverPersistentHeaderDelegate {
       onBack != oldDelegate.onBack ||
       backgroundGradient != oldDelegate.backgroundGradient ||
       expandedLabelColor != oldDelegate.expandedLabelColor;
+}
+
+/// The rounded tile behind each category icon.
+///
+/// Inactive tiles paint a flat white surface with a grey hairline border —
+/// identical to the original static design.
+///
+/// Active tiles cycle through a rotating set of four gradients, cross-fading
+/// one into the next every three seconds. The animation lives in this
+/// stateful widget (not the delegate) so its [AnimationController] survives
+/// the repeated delegate rebuilds caused by header shrink-on-scroll.
+class _CategoryIconTile extends StatefulWidget {
+  final double size;
+  final bool isActive;
+  final Widget child;
+
+  const _CategoryIconTile({
+    required this.size,
+    required this.isActive,
+    required this.child,
+  });
+
+  @override
+  State<_CategoryIconTile> createState() => _CategoryIconTileState();
+}
+
+class _CategoryIconTileState extends State<_CategoryIconTile>
+    with SingleTickerProviderStateMixin {
+  static const List<RadialGradient> _gradients = <RadialGradient>[
+    RadialGradient(
+      center: Alignment.center,
+      radius: 0.8,
+      colors: [Color(0xFFC9FFB7), Color(0xFF0DA217), Color(0xFF04650B)],
+    ),
+    RadialGradient(
+      center: Alignment.center,
+      radius: 0.8,
+      colors: [Color(0xFFC0FFF9), Color(0xFF12CEBB), Color(0xFF018D7F)],
+    ),
+    RadialGradient(
+      center: Alignment.center,
+      radius: 0.8,
+      colors: [Color(0xFFE1B6FF), Color(0xFF7D0CCD), Color(0xFF3D0366)],
+    ),
+  ];
+
+  late final AnimationController _ctl;
+  int _index = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctl = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 3),
+    )..addStatusListener((status) {
+        if (status == AnimationStatus.completed && mounted) {
+          setState(() => _index = (_index + 1) % _gradients.length);
+          _ctl.forward(from: 0);
+        }
+      });
+    if (widget.isActive) _ctl.forward();
+  }
+
+  @override
+  void didUpdateWidget(covariant _CategoryIconTile old) {
+    super.didUpdateWidget(old);
+    if (widget.isActive && !_ctl.isAnimating) {
+      _ctl.forward();
+    } else if (!widget.isActive && _ctl.isAnimating) {
+      _ctl.stop();
+    }
+  }
+
+  @override
+  void dispose() {
+    _ctl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!widget.isActive) {
+      return Container(
+        width: widget.size,
+        height: widget.size,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.greyE5),
+        ),
+        child: widget.child,
+      );
+    }
+    final safeIndex = _index % _gradients.length;
+    final from = _gradients[safeIndex];
+    final to = _gradients[(safeIndex + 1) % _gradients.length];
+    return AnimatedBuilder(
+      animation: _ctl,
+      builder: (context, child) {
+        final g = RadialGradient.lerp(from, to, _ctl.value) ?? from;
+        return Container(
+          width: widget.size,
+          height: widget.size,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            gradient: g,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.white, width: 1.5),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x4D00294E),
+                offset: Offset(0, 2),
+                blurRadius: 10,
+              ),
+            ],
+          ),
+          child: child,
+        );
+      },
+      child: widget.child,
+    );
+  }
 }
