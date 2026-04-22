@@ -478,18 +478,11 @@ class _GroupContactTile extends StatelessWidget {
 
     return ListTile(
       onTap: () => onSelect(userId),
-      leading: CircleAvatar(
+      leading: _ContactAvatar(
+        profileImage: profileImage,
+        name: name,
         radius: 24,
-        backgroundImage: profileImage.isNotEmpty
-            ? CachedNetworkImageProvider(profileImage)
-            : null,
-        child: profileImage.isEmpty
-            ? CustomText(
-                name.isNotEmpty ? name[0].toUpperCase() : "?",
-                fontSize: 20,
-                color: theme.colorScheme.surface,
-              )
-            : null,
+        fontSize: 20,
       ),
       title: Text(name.isNotEmpty ? name : phone,
           style: const TextStyle(fontWeight: FontWeight.w600)),
@@ -556,18 +549,11 @@ class _ExistingContactTile extends StatelessWidget {
           }
         }
       },
-      leading: CircleAvatar(
+      leading: _ContactAvatar(
+        profileImage: profileImage,
+        name: name,
         radius: 20,
-        backgroundImage: profileImage.isNotEmpty
-            ? CachedNetworkImageProvider(profileImage)
-            : null,
-        child: profileImage.isEmpty
-            ? CustomText(
-                name.isNotEmpty ? name[0].toUpperCase() : "?",
-                fontSize: 20,
-                color: theme.colorScheme.surface,
-              )
-            : null,
+        fontSize: 20,
       ),
       title: CustomText(
         name.isNotEmpty ? name : phone,
@@ -593,6 +579,46 @@ class _ExistingContactTile extends StatelessWidget {
               onChanged: (_) => onSelect(userId),
             )
           : null,
+    );
+  }
+}
+
+class _ContactAvatar extends StatelessWidget {
+  final String profileImage;
+  final String name;
+  final double radius;
+  final double fontSize;
+
+  const _ContactAvatar({
+    required this.profileImage,
+    required this.name,
+    required this.radius,
+    required this.fontSize,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final initial = name.isNotEmpty ? name[0].toUpperCase() : '?';
+    final fallback = CircleAvatar(
+      radius: radius,
+      backgroundColor: theme.colorScheme.primary,
+      child: CustomText(
+        initial,
+        fontSize: fontSize,
+        color: theme.colorScheme.surface,
+      ),
+    );
+    if (profileImage.isEmpty) return fallback;
+    return ClipOval(
+      child: CachedNetworkImage(
+        imageUrl: profileImage,
+        width: radius * 2,
+        height: radius * 2,
+        fit: BoxFit.cover,
+        placeholder: (_, __) => fallback,
+        errorWidget: (_, __, ___) => fallback,
+      ),
     );
   }
 }

@@ -1307,40 +1307,49 @@ AppBar getChatTitleAppBar(BuildContext context, {
           : () {},
       child: Row(
         children: [
-          CircleAvatar(
-            radius: SizeConfig.size18,
-            backgroundImage: (profileImage != null &&
+          Builder(builder: (_) {
+            final hasImage = profileImage != null &&
                 profileImage != 'null' &&
-                profileImage.isNotEmpty)
-                ? ((profileImage.contains('http'))
-                ? NetworkImage(profileImage)
-                :(profileImage.startsWith('assets'))?AssetImage(profileImage): FileImage(File(profileImage)) as ImageProvider)
-                : null,
-
-            child: (profileImage == 'null')
-                ? CustomText(
-              "${name!.split('')[0]}",
-              color: Colors.white,
-              fontWeight: FontWeight.w800,
-              fontSize: SizeConfig.size18,
-            )
-                : (profileImage != null)
-                ? null
-                : (name != null)
-                ? Center(
+                profileImage.isNotEmpty;
+            final initial = (name != null && name.isNotEmpty)
+                ? name.substring(0, 1)
+                : 'U';
+            final placeholder = CircleAvatar(
+              radius: SizeConfig.size18,
+              backgroundColor: theme.colorScheme.primary,
+              child: Center(
                 child: CustomText(
-                  name.isNotEmpty ? "${name.split('')[0]}" : "U",
+                  initial,
                   color: Colors.white,
                   fontWeight: FontWeight.w800,
                   fontSize: SizeConfig.size18,
-                ))
-                : Center(
-              child: Icon(
-                Icons.person,
-                color: theme.colorScheme.surface,
+                ),
               ),
-            ),
-          ),
+            );
+            if (!hasImage) return placeholder;
+            if (profileImage.contains('http')) {
+              return ClipOval(
+                child: CachedNetworkImage(
+                  imageUrl: profileImage,
+                  width: SizeConfig.size36,
+                  height: SizeConfig.size36,
+                  fit: BoxFit.cover,
+                  placeholder: (_, __) => placeholder,
+                  errorWidget: (_, __, ___) => placeholder,
+                ),
+              );
+            }
+            if (profileImage.startsWith('assets')) {
+              return CircleAvatar(
+                radius: SizeConfig.size18,
+                backgroundImage: AssetImage(profileImage),
+              );
+            }
+            return CircleAvatar(
+              radius: SizeConfig.size18,
+              backgroundImage: FileImage(File(profileImage)),
+            );
+          }),
           SizedBox(width: SizeConfig.size6), // Slightly smaller spacing
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
