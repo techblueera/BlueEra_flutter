@@ -20,6 +20,12 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
   late AnimationController _ringController;
   late Worker _callStatusWorker;
   bool _isAccepting = false;
+  // Snapshotted at screen open so accept still has the state even if
+  // _cleanup() wipes the controller before the user taps accept.
+  late Map<String, dynamic> _capturedExtra;
+  late String _capturedCallId;
+  late String _capturedRoomId;
+  late bool _capturedIsVideo;
 
   @override
   void initState() {
@@ -41,14 +47,34 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
     // so it can be reliably stopped regardless of screen lifecycle.
     HapticFeedback.heavyImpact();
 
-    // Watch call status to auto-close when call is cancelled/ended/answered elsewhere
     final controller = Get.find<CallController>();
+    _capturedCallId = controller.callId.value;
+    _capturedRoomId = controller.roomId.value;
+    _capturedIsVideo = controller.callType.value == CallType.video;
+    _capturedExtra = {
+      'callId': _capturedCallId,
+      'roomId': _capturedRoomId,
+      'senderId': controller.remoteUserId ?? '',
+      'conversationId': controller.conversationId.value,
+      'callType': _capturedIsVideo ? 'video_call' : 'audio_call',
+      'callerName': controller.callerName.value,
+      'callerImage': controller.callerImage.value,
+      'operation': 'incoming_call',
+    };
+
+    // Watch call status to auto-close when call is cancelled/ended/answered elsewhere
     _callStatusWorker = ever(controller.callStatus, (status) {
       if (!mounted) return;
       if (status == CallStatus.idle ||
           status == CallStatus.connected ||
           status == CallStatus.ended) {
         controller.stopRingtone();
+      }
+      // If state was reset while this screen is still visible (e.g. remote
+      // hang-up or answered-elsewhere), close so the user can't tap accept
+      // on a dead call and hit a 400 from the server.
+      if (status == CallStatus.idle && !_isAccepting && Get.currentRoute == '/IncomingCallScreen') {
+        Get.back();
       }
     });
   }
@@ -313,9 +339,22 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
                   onTap: () async {
                     controller.stopRingtone();
                     setState(() => _isAccepting = true);
-                    // acceptCall() handles launching CallActivity on Android main engine,
-                    // or does full WebRTC setup in CallActivity engine / iOS.
-                    final accepted = await controller.acceptCall();
+                    // If _cleanup() wiped controller state mid-ringing, the
+                    // controller has empty callId/roomId AND a null
+                    // _remoteUserId — re-hydrate from the snapshot taken
+                    // when this screen opened before accepting, so WebRTC
+                    // has a target to answer to.
+                    if (controller.callStatus.value == CallStatus.idle &&
+                        (controller.remoteUserId ?? '').isEmpty) {
+                      controller.initStateFromCallKitExtra(_capturedExtra);
+                    }
+                    final liveCallId = controller.callId.value;
+                    final liveRoomId = controller.roomId.value;
+                    final accepted = await controller.acceptCall(
+                      callIdParams: liveCallId.isNotEmpty ? liveCallId : _capturedCallId,
+                      roomIdParams: liveRoomId.isNotEmpty ? liveRoomId : _capturedRoomId,
+                      isVideoCall: _capturedIsVideo,
+                    );
                     if (!accepted) {
                       setState(() => _isAccepting = false);
                     }

@@ -612,6 +612,18 @@ class CallController extends GetxController {
     final savedRoomId = (roomIdParams == null||roomIdParams.isEmpty) ? roomId.value : roomIdParams;
     final savedRemoteUserId = _remoteUserId;
     final savedPendingOffer = _pendingOffer;
+
+    // State could have been wiped by _cleanup() (remote hang-up / answered-
+    // elsewhere) between the screen opening and the user tapping accept.
+    // Sending empty IDs guarantees a 400 "call_id and room_id required" —
+    // bail cleanly instead with a user-facing message.
+    if (savedCallId.isEmpty || savedRoomId.isEmpty) {
+      debugPrint('[CALL_DEBUG] acceptCall → ABORT, empty IDs (callId=$savedCallId, roomId=$savedRoomId)');
+      commonSnackBar(message: AppStrings.callNoLongerAvailable.tr);
+      _cleanup();
+      return false;
+    }
+
     callStatus.value = CallStatus.accepting;
 
     // Request permissions (wrapped in try-catch to avoid PlatformException
@@ -762,10 +774,13 @@ class CallController extends GetxController {
 
     callStatus.value = CallStatus.connecting;
 
-    // // Navigate to CallRoomScreen after accepting
-    // if (Get.currentRoute == '/IncomingCallScreen') {
-    //   Get.offNamed('/CallRoomScreen');
-    // }
+    // Navigate off the IncomingCallScreen to the active call UI. Without this,
+    // iOS stays on IncomingCallScreen forever showing its "Connecting…" loader
+    // even after the peer connection reaches Connected — because the screen's
+    // _isAccepting flag only clears on accept failure.
+    if (!isFareCall.value && Get.currentRoute == '/IncomingCallScreen') {
+      Get.offNamed('/CallRoomScreen');
+    }
 
     // Ensure socket is connected and wait for it (killed-state accept may
     // start before socket is ready — without waiting, emitEvent is lost)

@@ -4,6 +4,7 @@ import FirebaseCore
 import GoogleMaps
 import PushKit
 import AVFoundation
+import UserNotifications
 import flutter_callkit_incoming
 
 @main
@@ -24,7 +25,32 @@ import flutter_callkit_incoming
         voipRegistry.delegate = self
         voipRegistry.desiredPushTypes = [.voIP]
 
+        // Eagerly kick off APNs remote-notification registration every launch.
+        // `FirebaseAppDelegateProxyEnabled=YES` already swizzles this, but
+        // calling it explicitly is idempotent and guarantees:
+        //   1. Re-registration after Apple rotates the APNs device token (a
+        //      silent rotation leaves the backend pushing to a dead token,
+        //      which is one of the common "terminated state pushes stopped
+        //      arriving on iOS" causes).
+        //   2. APNs token is ready before the Dart-side `_waitForApnsToken`
+        //      polls `FirebaseMessaging.getAPNSToken()`, avoiding the
+        //      10s timeout that previously dropped the first-launch token.
+        // Notification permission itself is still requested from Dart via
+        // `FirebaseMessaging.instance.requestPermission`, so the user is
+        // not prompted here — we only tell iOS "we want APNs".
+        application.registerForRemoteNotifications()
+
         return super.application(application, didFinishLaunchingWithOptions: launchOptions)
+    }
+
+    // Surface silent APNs registration failures. Without this, a misconfigured
+    // provisioning profile / aps-environment mismatch manifests as
+    // "terminated-state pushes just don't arrive" with no indication why.
+    // Chains to super so Firebase's swizzled handler still runs.
+    override func application(_ application: UIApplication,
+                              didFailToRegisterForRemoteNotificationsWithError error: Error) {
+        print("[APNs] registration failed: \(error.localizedDescription)")
+        super.application(application, didFailToRegisterForRemoteNotificationsWithError: error)
     }
 
     private func configureAudioSession() {
