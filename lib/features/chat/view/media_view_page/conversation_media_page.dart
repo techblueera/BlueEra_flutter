@@ -172,6 +172,8 @@ class _ConversationMediaPageState extends State<ConversationMediaPage>
       }
     }
 
+    final flatMediaList = items.map((e) => e.media).toList();
+
     return GridView.builder(
       padding: const EdgeInsets.all(2),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -183,7 +185,7 @@ class _ConversationMediaPageState extends State<ConversationMediaPage>
       itemBuilder: (context, index) {
         final item = items[index];
         final url = item.media.url ?? '';
-        final isVideo = _isVideoUrl(url);
+        final isVideo = item.message.messageType == 'video' || _isVideoUrl(url);
 
         return GestureDetector(
           onTap: () {
@@ -191,8 +193,8 @@ class _ConversationMediaPageState extends State<ConversationMediaPage>
               context,
               MaterialPageRoute(
                 builder: (_) => FullImagePreviewPage(
-                  images: item.message.url ?? [],
-                  initialIndex: item.indexInMessage,
+                  images: flatMediaList,
+                  initialIndex: index,
                 ),
               ),
             );
@@ -344,37 +346,72 @@ class _VideoThumbnailTileState extends State<_VideoThumbnailTile> {
   }
 
   Future<void> _generateThumbnail() async {
+    final path = widget.videoPath;
+
+    // VideoCompress only works on local files — for network URLs (or empty
+    // paths) fall straight through to the "Not playable" state.
+    if (path.isEmpty || path.contains('http')) {
+      if (mounted) setState(() => _loading = false);
+      return;
+    }
+
     try {
-      final path = widget.videoPath;
-      if (path.isNotEmpty && !path.contains('http')) {
-        final file = await VideoCompress.getFileThumbnail(
-          path,
-          quality: 30,
-          position: -1,
-        );
-        if (mounted) setState(() { _thumbnail = file; _loading = false; });
+      final source = File(path);
+      if (!await source.exists()) {
+        if (mounted) setState(() => _loading = false);
+        return;
+      }
+      final thumb = await VideoCompress.getFileThumbnail(
+        path,
+        quality: 30,
+        position: -1,
+      ).timeout(const Duration(seconds: 5));
+      if (await thumb.exists() && await thumb.length() > 0) {
+        if (mounted) setState(() { _thumbnail = thumb; _loading = false; });
         return;
       }
     } catch (_) {}
     if (mounted) setState(() => _loading = false);
   }
 
+  Widget _videoPlaceholder() {
+    return Container(
+      color: Colors.black87,
+      alignment: Alignment.center,
+      child: Icon(
+        Icons.videocam_rounded,
+        color: Colors.white.withValues(alpha: 0.35),
+        size: 32,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final hasThumb = _thumbnail != null;
     return Stack(
       fit: StackFit.expand,
       children: [
-        if (_thumbnail != null)
-          Image.file(_thumbnail!, fit: BoxFit.cover)
-        else
+        if (hasThumb)
+          Image.file(
+            _thumbnail!,
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => _videoPlaceholder(),
+          )
+        else if (_loading)
           Container(
             color: Colors.black87,
-            child: _loading
-                ? const Center(child: SizedBox(width: 18, height: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white38)))
-                : const Center(child: Icon(Icons.videocam_rounded, color: Colors.white30, size: 32)),
-          ),
-        // Play icon overlay
+            alignment: Alignment.center,
+            child: const SizedBox(
+              width: 18,
+              height: 18,
+              child: CircularProgressIndicator(
+                  strokeWidth: 2, color: Colors.white38),
+            ),
+          )
+        else
+          _videoPlaceholder(),
+        // Play icon overlay — always shown so the tile reads as a tappable video
         Center(
           child: Container(
             padding: const EdgeInsets.all(6),
@@ -382,7 +419,8 @@ class _VideoThumbnailTileState extends State<_VideoThumbnailTile> {
               color: Colors.black.withValues(alpha: 0.5),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 22),
+            child: const Icon(Icons.play_arrow_rounded,
+                color: Colors.white, size: 22),
           ),
         ),
       ],

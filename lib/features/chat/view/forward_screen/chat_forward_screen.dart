@@ -293,9 +293,29 @@ class _ChatForwardScreenState extends State<ChatForwardScreen> {
 
               // Navigate to symbol screen if symbol selected
               if(symbolSelected==true){
+                String? symbolText = widget.sharedText;
+                final symbolFiles = widget.sharedFiles;
+
+                // When forwarding messages from within chat (no share-intent),
+                // pull the text from the first selected text message so the
+                // symbol screen opens pre-filled.
+                if (symbolText == null && symbolFiles == null) {
+                  for (final m in chatThemeController.selectedMessages) {
+                    if (m.messageType == 'text' &&
+                        (m.message ?? '').isNotEmpty) {
+                      symbolText = m.message;
+                      break;
+                    }
+                  }
+                  // Clear selection so the chat screen exits selection mode
+                  chatThemeController.selectedMessageIds.clear();
+                  chatThemeController.selectedMessages.clear();
+                  chatThemeController.isMessageSelectionActive.value = false;
+                }
+
                 Get.off(()=>AddChatSymbolScreen(
-                  sharedText: widget.sharedText,
-                  sharedFiles: widget.sharedFiles,
+                  sharedText: symbolText,
+                  sharedFiles: symbolFiles,
                 ));
               }else{
                 if(widget.stopChatNav!=true){
