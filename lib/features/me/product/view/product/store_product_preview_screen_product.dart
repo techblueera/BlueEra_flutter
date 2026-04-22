@@ -15,6 +15,7 @@ import 'package:BlueEra/features/business/visit_business_profile/view/visit_busi
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/me/product/controller/product_controller.dart';
 import 'package:BlueEra/features/me/product/model/get_product_model.dart';
+import 'package:BlueEra/features/me/product/view/visit_product_store_details_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
@@ -164,9 +165,10 @@ class _StoreProductPreviewScreenProductState
       child: Scaffold(
         backgroundColor: AppColors.whiteF3,
         appBar: CommonBackAppBar(
-          title: controller.productNameController.text.isNotEmpty
-              ? controller.productNameController.text
-              : AppStrings.productDetails,
+          // title: controller.productNameController.text.isNotEmpty
+          //     ? controller.productNameController.text
+          //     : AppStrings.productDetails,
+          title: AppStrings.productDetails,
           onBackTap: () {
             if (widget.productStore != null) {
               Get.back();
@@ -461,8 +463,10 @@ class _StoreProductPreviewScreenProductState
           final ownerId = owner.id;
           final screen = AppConstants.storeFeedScreen;
           final isBusiness = owner.type == ProviderType.business.title;
+          debugPrint('owner type -- ${owner.type}');
+          debugPrint('id -- ${owner.id}');
           final destination = isBusiness
-              ? VisitBusinessProfileNew(businessId: ownerId, screenName: screen)
+              ? VisitProductStoreDetailsScreen(visitBusinessId: ownerId)
               : NewVisitProfileScreen(
                   authorId: ownerId, screenFromName: screen);
           Get.to(() => destination);

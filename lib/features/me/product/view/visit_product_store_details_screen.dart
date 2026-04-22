@@ -27,13 +27,6 @@ import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 import '../../../../core/constants/app_colors.dart';
 
-/// Customer-facing "Visit this product store" screen.
-///
-/// Structurally mirrors [VisitGroceryStoreScreen] but runs on the
-/// product inventory APIs: the same [InventoryController.fetchProducts]
-/// + [InventoryController.fetchProductCategoryWithInventory] calls used
-/// on [ProductHomeScreen] are parameterised with the visiting business
-/// id so they return the visited store's inventory.
 class VisitProductStoreDetailsScreen extends StatefulWidget {
   final String visitBusinessId;
 
