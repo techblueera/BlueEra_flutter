@@ -9,7 +9,6 @@ import 'package:BlueEra/features/me/food/controller/home_food_controller.dart';
 import 'package:BlueEra/features/me/others/controller/business_profile_full_controller.dart';
 import 'package:BlueEra/features/me/school/controller/school_about_us_controller.dart';
 import 'package:BlueEra/features/me/school/controller/school_controller.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get/get.dart';
@@ -232,8 +231,6 @@ class SharedPreferenceUtils {
   ///CLEAR DATA...
   static Future<void> clearPreference() async {
     try {
-      await FirebaseMessaging.instance.deleteToken();
-
       final workManagerBaseUrl =
           await SharedPreferenceUtils.getBaseUrlSecureValue();
       await _secureStorage.deleteAll();
@@ -277,7 +274,7 @@ class SharedPreferenceUtils {
       productBusinessProfileIDGlobal = '';
       Get.find<AuthController>().imgPath.value = "";
       await SharedPreferenceUtils.setBaseUrlSecureValue(workManagerBaseUrl);
-      AppNotificationHandler.getFcmToken();
+      await AppNotificationHandler.refreshFcmToken();
       await resetLanguageLocalization();
     } on Exception {
       await SharedPreferenceUtils.setBaseUrlSecureValue(baseUrl);

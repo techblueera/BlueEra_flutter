@@ -231,7 +231,7 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
         if (context.mounted) Navigator.of(context).pop();
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFF111B21),
+        backgroundColor: const Color(0xFF0B141A),
         body: Obx(() {
           final status = controller.callStatus.value;
           final isConnected = status == CallStatus.connected;
@@ -812,77 +812,63 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
                 ),
               ),
 
-              // Bottom controls
+              // Bottom controls (WhatsApp pill)
               Padding(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
+                padding: const EdgeInsets.fromLTRB(12, 0, 12, 20),
                 child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 18, horizontal: 10),
+                  padding: const EdgeInsets.symmetric(
+                      vertical: 10, horizontal: 10),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.07),
-                    borderRadius: BorderRadius.circular(28),
-                    border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.1),
-                    ),
+                    color: const Color(0xFF1C2733),
+                    borderRadius: BorderRadius.circular(40),
                   ),
                   child: Obx(() {
                     final isVideoCall =
                         controller.callType.value == CallType.video;
                     return Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
-                        _ControlButton(
-                          icon: controller.isSpeakerOn.value
-                              ? Icons.volume_up
-                              : Icons.volume_down_outlined,
-                          label: 'Speaker',
-                          isActive: controller.isSpeakerOn.value,
-                          onTap: () => controller.toggleSpeaker(),
-                        ),
                         if (isVideoCall)
                           _ControlButton(
                             icon: controller.isCameraOn.value
-                                ? Icons.videocam
-                                : Icons.videocam_off_outlined,
-                            label: 'Video',
+                                ? Icons.videocam_rounded
+                                : Icons.videocam_off_rounded,
+                            label: 'Camera',
                             isActive: !controller.isCameraOn.value,
                             onTap: () => controller.toggleCamera(),
                           ),
                         _ControlButton(
+                          icon: controller.isSpeakerOn.value
+                              ? Icons.volume_up_rounded
+                              : Icons.volume_up_outlined,
+                          label: 'Speaker',
+                          isActive: controller.isSpeakerOn.value,
+                          backgroundColor: controller.isSpeakerOn.value
+                              ? Colors.white
+                              : null,
+                          iconColor: controller.isSpeakerOn.value
+                              ? const Color(0xFF1F2C34)
+                              : Colors.white,
+                          onTap: () => controller.toggleSpeaker(),
+                        ),
+                        _ControlButton(
                           icon: controller.isMicOn.value
-                              ? Icons.mic
-                              : Icons.mic_off,
+                              ? Icons.mic_rounded
+                              : Icons.mic_off_rounded,
                           label: controller.isMicOn.value ? 'Mute' : 'Unmute',
                           isActive: !controller.isMicOn.value,
+                          activeColor: Colors.red,
+                          bold: !controller.isMicOn.value,
                           onTap: () => controller.toggleMic(),
                         ),
-                        // End call button
-                        GestureDetector(
+                        _ControlButton(
+                          icon: Icons.call_end_rounded,
+                          label: 'End',
+                          backgroundColor: const Color(0xFFEA4335),
                           onTap: () {
                             _ringbackPlayer.stop();
                             controller.cancelCall();
                           },
-                          child: Container(
-                            width: 62,
-                            height: 62,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFF0384A),
-                              shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: const Color(0xFFF0384A)
-                                      .withValues(alpha: 0.45),
-                                  blurRadius: 18,
-                                  spreadRadius: 2,
-                                ),
-                              ],
-                            ),
-                            child: const Icon(
-                              Icons.call_end,
-                              color: Colors.white,
-                              size: 28,
-                            ),
-                          ),
                         ),
                       ],
                     );
@@ -955,7 +941,7 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
                         ),
                       ],
                     ),
-                    Obx(() {
+                /*    Obx(() {
                       if (controller.callStatus.value == CallStatus.connected) {
                         return _CircleIconButton(
                           icon: Icons.person_add_alt_1_rounded,
@@ -964,7 +950,7 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
                         );
                       }
                       return const SizedBox(width: 44);
-                    }),
+                    }),*/
                   ],
                 ),
               ),
@@ -1031,77 +1017,69 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
                 ),
               ),
 
-              // Bottom controls
+              // Bottom controls (WhatsApp pill — 5 buttons)
               Padding(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
+                padding: const EdgeInsets.fromLTRB(12, 0, 12, 20),
                 child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 18, horizontal: 10),
+                  padding: const EdgeInsets.symmetric(
+                      vertical: 10, horizontal: 10),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.07),
-                    borderRadius: BorderRadius.circular(28),
-                    border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.1),
-                    ),
+                    color: const Color(0xFF1C2733),
+                    borderRadius: BorderRadius.circular(40),
                   ),
                   child: Obx(() {
+                    final isConnected =
+                        controller.callStatus.value == CallStatus.connected;
                     return Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
-                        // Switch to video
-                        if (controller.callStatus.value ==
-                            CallStatus.connected)
-                          _ControlButton(
-                            icon: Icons.videocam_outlined,
-                            label: 'Video',
-                            isActive: controller.isSwitchTypePending.value,
-                            onTap: controller.isSwitchTypePending.value
-                                ? () {}
-                                : () => controller.switchCallType(),
-                          ),
+                        _ControlButton(
+                          icon: Icons.more_horiz_rounded,
+                          label: 'More',
+                          onTap: () =>
+                              _showMoreOptions(context, controller),
+                        ),
+                        _ControlButton(
+                          icon: Icons.videocam_off_rounded,
+                          label: 'Switch to video',
+                          isActive: controller.isSwitchTypePending.value,
+                          onTap: (!isConnected ||
+                                  controller.isSwitchTypePending.value)
+                              ? () {}
+                              : () => controller.switchCallType(),
+                        ),
                         _ControlButton(
                           icon: controller.isSpeakerOn.value
-                              ? Icons.volume_up
-                              : Icons.volume_down_outlined,
+                              ? Icons.volume_up_rounded
+                              : Icons.volume_up_outlined,
                           label: 'Speaker',
                           isActive: controller.isSpeakerOn.value,
+                          backgroundColor: controller.isSpeakerOn.value
+                              ? Colors.white
+                              : null,
+                          iconColor: controller.isSpeakerOn.value
+                              ? const Color(0xFF1F2C34)
+                              : Colors.white,
                           onTap: () => controller.toggleSpeaker(),
                         ),
                         _ControlButton(
                           icon: controller.isMicOn.value
-                              ? Icons.mic
-                              : Icons.mic_off,
+                              ? Icons.mic_rounded
+                              : Icons.mic_off_rounded,
                           label: controller.isMicOn.value ? 'Mute' : 'Unmute',
                           isActive: !controller.isMicOn.value,
+                          activeColor: Colors.red,
+                          bold: !controller.isMicOn.value,
                           onTap: () => controller.toggleMic(),
                         ),
-                        // End call
-                        GestureDetector(
+                        _ControlButton(
+                          icon: Icons.call_end_rounded,
+                          label: 'End',
+                          backgroundColor: const Color(0xFFEA4335),
                           onTap: () {
                             _ringbackPlayer.stop();
                             controller.endCall();
                           },
-                          child: Container(
-                            width: 62,
-                            height: 62,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFF0384A),
-                              shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: const Color(0xFFF0384A)
-                                      .withValues(alpha: 0.45),
-                                  blurRadius: 18,
-                                  spreadRadius: 2,
-                                ),
-                              ],
-                            ),
-                            child: const Icon(
-                              Icons.call_end,
-                              color: Colors.white,
-                              size: 28,
-                            ),
-                          ),
                         ),
                       ],
                     );
@@ -1553,17 +1531,17 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Obx(() {
-                      if (controller.callStatus.value ==
-                          CallStatus.connected) {
-                        return _CircleIconButton(
-                          icon: Icons.person_add_alt_1_rounded,
-                          onTap: () =>
-                              _showAddUserBottomSheet(context, controller),
-                        );
-                      }
-                      return const SizedBox(width: 44);
-                    }),
+                    // Obx(() {
+                    //   if (controller.callStatus.value ==
+                    //       CallStatus.connected) {
+                    //     return _CircleIconButton(
+                    //       icon: Icons.person_add_alt_1_rounded,
+                    //       onTap: () =>
+                    //           _showAddUserBottomSheet(context, controller),
+                    //     );
+                    //   }
+                    //   return const SizedBox(width: 44);
+                    // }),
                     // Group participant count
                     Obx(() {
                       if (controller.isGroupCall.value) {
@@ -1613,82 +1591,146 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
       child: SafeArea(
         top: false,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
+          padding: const EdgeInsets.fromLTRB(12, 0, 12, 20),
           child: Container(
             padding:
-                const EdgeInsets.symmetric(vertical: 18, horizontal: 10),
+                const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
             decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.5),
-              borderRadius: BorderRadius.circular(28),
-              border: Border.all(
-                color: Colors.white.withValues(alpha: 0.1),
-              ),
+              color: const Color(0xFF1C2733),
+              borderRadius: BorderRadius.circular(40),
             ),
             child: Obx(() {
               final isVideo = controller.callType.value == CallType.video;
               return Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  if (isVideo)
-                    _ControlButton(
-                      icon: controller.isCameraOn.value
-                          ? Icons.videocam
-                          : Icons.videocam_off,
-                      label: 'Camera',
-                      isActive: !controller.isCameraOn.value,
-                      onTap: () => controller.toggleCamera(),
-                    ),
+                  _ControlButton(
+                    icon: Icons.more_horiz_rounded,
+                    label: 'More',
+                    onTap: () => _showMoreOptions(context, controller),
+                  ),
+                  _ControlButton(
+                    icon: isVideo && controller.isCameraOn.value
+                        ? Icons.videocam_rounded
+                        : Icons.videocam_off_rounded,
+                    label: 'Camera',
+                    isActive: isVideo && !controller.isCameraOn.value,
+                    onTap: () {
+                      if (isVideo) {
+                        controller.toggleCamera();
+                      } else if (!controller.isSwitchTypePending.value) {
+                        controller.switchCallType();
+                      }
+                    },
+                  ),
                   _ControlButton(
                     icon: controller.isSpeakerOn.value
-                        ? Icons.volume_up
-                        : Icons.volume_down_outlined,
+                        ? Icons.volume_up_rounded
+                        : Icons.volume_up_outlined,
                     label: 'Speaker',
                     isActive: controller.isSpeakerOn.value,
+                    backgroundColor:
+                        controller.isSpeakerOn.value ? Colors.white : null,
+                    iconColor: controller.isSpeakerOn.value
+                        ? const Color(0xFF1F2C34)
+                        : Colors.white,
                     onTap: () => controller.toggleSpeaker(),
                   ),
                   _ControlButton(
-                    icon: controller.isMicOn.value ? Icons.mic : Icons.mic_off,
+                    icon: controller.isMicOn.value
+                        ? Icons.mic_rounded
+                        : Icons.mic_off_rounded,
                     label: controller.isMicOn.value ? 'Mute' : 'Unmute',
                     isActive: !controller.isMicOn.value,
+                    activeColor: Colors.red,
+                    bold: !controller.isMicOn.value,
                     onTap: () => controller.toggleMic(),
                   ),
-                  if (isVideo)
-                    _ControlButton(
-                      icon: Icons.flip_camera_ios,
-                      label: 'Flip',
-                      onTap: () => controller.switchCamera(),
-                    ),
-                  // End call
-                  GestureDetector(
+                  _ControlButton(
+                    icon: Icons.call_end_rounded,
+                    label: 'End',
+                    backgroundColor: const Color(0xFFEA4335),
                     onTap: () {
                       _ringbackPlayer.stop();
                       controller.endCall();
                     },
-                    child: Container(
-                      width: 62,
-                      height: 62,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF0384A),
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0xFFF0384A)
-                                .withValues(alpha: 0.45),
-                            blurRadius: 18,
-                            spreadRadius: 2,
-                          ),
-                        ],
-                      ),
-                      child: const Icon(
-                        Icons.call_end,
-                        color: Colors.white,
-                        size: 28,
-                      ),
-                    ),
                   ),
                 ],
               );
             }),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ==================== MORE OPTIONS (Flip camera / Switch type) ====================
+
+  void _showMoreOptions(BuildContext context, CallController controller) {
+    final currentIsVideo = controller.callType.value == CallType.video;
+    final isConnected = controller.callStatus.value == CallStatus.connected;
+    Get.bottomSheet(
+      Container(
+        decoration: const BoxDecoration(
+          color: Color(0xFF1F2C34),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: SafeArea(
+          top: false,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                margin: const EdgeInsets.only(top: 10),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.white30,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 8),
+              if (isConnected)
+                ListTile(
+                  leading: Icon(
+                    currentIsVideo
+                        ? Icons.call_rounded
+                        : Icons.videocam_rounded,
+                    color: Colors.white,
+                  ),
+                  title: Text(
+                    currentIsVideo
+                        ? 'Switch to audio call'
+                        : 'Switch to video call',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                    ),
+                  ),
+                  enabled: !controller.isSwitchTypePending.value,
+                  onTap: () {
+                    Get.back();
+                    controller.switchCallType();
+                  },
+                ),
+              if (currentIsVideo)
+                ListTile(
+                  leading: const Icon(Icons.flip_camera_ios_rounded,
+                      color: Colors.white),
+                  title: const Text(
+                    'Flip camera',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                    ),
+                  ),
+                  onTap: () {
+                    Get.back();
+                    controller.switchCamera();
+                  },
+                ),
+              const SizedBox(height: 8),
+            ],
           ),
         ),
       ),
@@ -2062,9 +2104,9 @@ class _CircleIconButton extends StatelessWidget {
       child: Container(
         width: 44,
         height: 44,
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           shape: BoxShape.circle,
-          color: Colors.white.withValues(alpha: 0.12),
+          color: Color(0xFF2A3942),
         ),
         child: Icon(icon, color: Colors.white, size: 20),
       ),
@@ -2072,44 +2114,60 @@ class _CircleIconButton extends StatelessWidget {
   }
 }
 
+// WhatsApp-style circle button used inside the bottom pill.
+// `label` is kept only for accessibility (Semantics) — not rendered visually.
 class _ControlButton extends StatelessWidget {
+  static const double _size = 52;
+
   final IconData icon;
   final String label;
   final bool isActive;
   final VoidCallback onTap;
+  final Color? activeColor;
+  final bool bold;
+  final Color? backgroundColor;
+  final Color? iconColor;
 
   const _ControlButton({
     required this.icon,
     required this.label,
     required this.onTap,
     this.isActive = false,
+    this.activeColor,
+    this.bold = false,
+    this.backgroundColor,
+    this.iconColor,
   });
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        decoration: BoxDecoration(
-          color: isActive
-              ? Colors.white.withValues(alpha: 0.22)
-              : Colors.white.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(18),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, color: Colors.white, size: 22),
-            const SizedBox(height: 5),
-            Text(
-              label,
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.6),
-                fontSize: 11,
-              ),
-            ),
-          ],
+    final useTintedActive = isActive && activeColor != null;
+    final bg = backgroundColor ??
+        (useTintedActive
+            ? activeColor!.withValues(alpha: 0.22)
+            : isActive
+                ? const Color(0xFF3B4A54)
+                : const Color(0xFF2A3942));
+    final resolvedIconColor = iconColor ??
+        (useTintedActive ? activeColor! : Colors.white);
+    return Semantics(
+      label: label,
+      button: true,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          width: _size,
+          height: _size,
+          decoration: BoxDecoration(
+            color: bg,
+            shape: BoxShape.circle,
+          ),
+          child: Icon(
+            icon,
+            color: resolvedIconColor,
+            size: _size * (bold ? 0.5 : 0.44),
+            weight: bold ? 900 : 400,
+          ),
         ),
       ),
     );

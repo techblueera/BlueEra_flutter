@@ -1948,26 +1948,26 @@ class RouteHelper {
           builder: (_) => const CallListScreen(),
           settings: const RouteSettings(name: '/CallListScreen'),
         );
-      case RouteConstant.OutgoingCallScreen:
-        return MaterialPageRoute(
-          builder: (_) => const CallRoomScreen(),
-          settings: const RouteSettings(name: '/OutgoingCallScreen'),
-        );
+      // case RouteConstant.OutgoingCallScreen:
+      //   return MaterialPageRoute(
+      //     builder: (_) => const CallRoomScreen(),
+      //     settings: const RouteSettings(name: '/OutgoingCallScreen'),
+      //   );
       case RouteConstant.IncomingCallScreen:
         return MaterialPageRoute(
           builder: (_) => const IncomingCallScreen(),
           settings: const RouteSettings(name: '/IncomingCallScreen'),
         );
-      case RouteConstant.ActiveCallScreen:
-        return MaterialPageRoute(
-          builder: (_) => const CallRoomScreen(),
-          settings: const RouteSettings(name: '/ActiveCallScreen'),
-        );
-      case RouteConstant.CallRoomScreen:
-        return MaterialPageRoute(
-          builder: (_) => const CallRoomScreen(),
-          settings: const RouteSettings(name: '/CallRoomScreen'),
-        );
+      // case RouteConstant.ActiveCallScreen:
+      //   return MaterialPageRoute(
+      //     builder: (_) => const CallRoomScreen(),
+      //     settings: const RouteSettings(name: '/ActiveCallScreen'),
+      //   );
+      // case RouteConstant.CallRoomScreen:
+      //   return MaterialPageRoute(
+      //     builder: (_) => const CallRoomScreen(),
+      //     settings: const RouteSettings(name: '/CallRoomScreen'),
+      //   );
       case RouteConstant.IncomingRiderOrderScreen:
         return MaterialPageRoute(
           builder: (_) => const IncomingRiderOrderScreen(),
