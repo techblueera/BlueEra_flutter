@@ -126,18 +126,38 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
                 _buildEncryptionLabel(),
                 const SizedBox(height: 16),
                 // Caller info
-                Obx(() => Text(
-                      controller.callerName.value.isNotEmpty
-                          ? controller.callerName.value
-                          : 'Unknown',
-                      style: const TextStyle(
-                        fontSize: 28,
+                Obx(() {
+                  final screenWidth = MediaQuery.of(context).size.width;
+                  final rawName = controller.callerName.value.isNotEmpty
+                      ? controller.callerName.value
+                      : 'Unknown';
+                  // Pick a character budget that fits the current screen;
+                  // ellipsis handles anything still too wide at the chosen size.
+                  final maxChars = screenWidth < 340
+                      ? 14
+                      : screenWidth < 400
+                          ? 18
+                          : 24;
+                  final displayName = rawName.length > maxChars
+                      ? '${rawName.substring(0, maxChars).trimRight()}…'
+                      : rawName;
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Text(
+                      displayName,
+                      textAlign: TextAlign.center,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: screenWidth < 360 ? 24 : 28,
                         fontWeight: FontWeight.w500,
                         fontFamily: 'OpenSans',
                         color: Colors.white,
                         letterSpacing: 0.3,
                       ),
-                    )),
+                    ),
+                  );
+                }),
                 const SizedBox(height: 6),
                 Obx(() => Row(
                       mainAxisSize: MainAxisSize.min,

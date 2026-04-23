@@ -15,6 +15,7 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/core/services/app_notification.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/common/auth/model/business_category_response_model.dart';
 import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
@@ -146,6 +147,12 @@ class AuthController extends GetxController {
     try {
       token = await SharedPreferenceUtils.getSecureValue(
           SharedPreferenceUtils.notificationDeviceToken);
+      print("TOKEN 1 = $token");
+      if (token == null || token.isEmpty) {
+        token = await AppNotificationHandler.refreshFcmToken();
+      }
+      print("TOKEN 2 = $token");
+
       Map<String, dynamic> requestData = {
         ApiKeys.contact_no: mobileNumberEditController.text,
         ApiKeys.otp: otp,

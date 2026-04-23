@@ -971,6 +971,84 @@ class AppNotificationHandler {
     }
   }
 
+  /// Force a fresh FCM token. Use on logout so the device unbinds from
+  /// the previous user; Android GMS can briefly hand back the
+  /// just-deleted token from getToken(), so retry with short backoff
+  /// until we see a different value.
+  ///
+  /// Fault-tolerant: if GMS is unavailable (SERVICE_NOT_AVAILABLE,
+  /// common on emulators without Play Services or on offline devices),
+  /// keep the previous cached token rather than clearing it and
+  /// returning null. The onTokenRefresh listener in setupFcmToken()
+  /// will sync the real new token to the backend once GMS recovers.
+  static Future<String?> refreshFcmToken() async {
+    final rawOld = await SharedPreferenceUtils.getSecureValue(
+        SharedPreferenceUtils.notificationDeviceToken);
+    final String? oldToken =
+        (rawOld is String && rawOld.isNotEmpty) ? rawOld : null;
+
+    if (Platform.isIOS) {
+      final apns = await FirebaseMessaging.instance.getAPNSToken();
+      if (apns == null || apns.isEmpty) {
+        await _waitForApnsToken();
+      }
+    }
+
+    bool deleted = false;
+    try {
+      await FirebaseMessaging.instance.deleteToken();
+      deleted = true;
+    } catch (e) {
+      print("===fcm-refresh=== deleteToken error: $e");
+    }
+
+    // If deleteToken() failed, GMS is already in a bad state — calling
+    // getToken() will fail too. Keep the old token as fallback and let
+    // onTokenRefresh sync a real new one once GMS recovers.
+    if (!deleted) {
+      print("===fcm-refresh=== keeping old token (delete failed): $oldToken");
+      return oldToken;
+    }
+
+    String? newToken;
+    const int maxAttempts = 6;
+    // Exponential backoff: 1s, 2s, 4s, 8s, 16s, 32s — total ~63s
+    // worst-case. SERVICE_NOT_AVAILABLE on a real device usually
+    // resolves within 30s once GMS finishes re-registering the
+    // Firebase Installation after deleteToken().
+    for (int i = 0; i < maxAttempts; i++) {
+      try {
+        newToken = await FirebaseMessaging.instance.getToken();
+      } catch (e) {
+        print("===fcm-refresh=== getToken error (attempt ${i + 1}/$maxAttempts): $e");
+      }
+      final hasNewToken = newToken != null && newToken.isNotEmpty;
+      final isDifferent = hasNewToken && newToken != oldToken;
+      if (hasNewToken && (isDifferent || Platform.isIOS)) break;
+      if (i < maxAttempts - 1) {
+        final waitMs = 1000 * (1 << i);
+        await Future.delayed(Duration(milliseconds: waitMs));
+      }
+    }
+
+    if (newToken != null && newToken.isNotEmpty) {
+      await SharedPreferenceUtils.setSecureValue(
+          SharedPreferenceUtils.notificationDeviceToken, newToken);
+      print("===fcm-refresh=== new token $newToken");
+      return newToken;
+    }
+
+    // GMS never handed us a new token. Keep the old one in cache so
+    // verifyOTP still sends something addressable; onTokenRefresh will
+    // upgrade the server-side token when GMS comes back.
+    print("===fcm-refresh=== failed to obtain new token, keeping old: $oldToken");
+    if (oldToken != null) {
+      await SharedPreferenceUtils.setSecureValue(
+          SharedPreferenceUtils.notificationDeviceToken, oldToken);
+    }
+    return oldToken;
+  }
+
   /// handle notification when app in fore ground.. local notification......
   /// Now uses top-level `onForegroundNotificationResponse` so the same callback
   /// can be re-registered safely from the FCM bg-isolate's
@@ -2133,10 +2211,12 @@ print("ORDER SCREEN NAME message.data ${message.data}");
           operation == 'selfpickup_order_ready') {
         playNotificationSound = hello_delivery;
       } else {
-        playNotificationSound = notificationSound;
+        playNotificationSound = chatNotificationSound;
+        // playNotificationSound = notificationSound;
       }
     } on Exception {
-      playNotificationSound = notificationSound;
+      playNotificationSound = chatNotificationSound;
+      // playNotificationSound = notificationSound;
     }
 
     try {
