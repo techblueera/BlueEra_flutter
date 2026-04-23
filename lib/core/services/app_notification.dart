@@ -15,7 +15,9 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/services/local_strorage_helper.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/auth/model/GetListOfMessageData.dart';
+import 'package:BlueEra/features/chat/auth/model/symbol_details_model.dart';
 import 'package:BlueEra/features/chat/auth/repo/chat_view_repo.dart';
+import 'package:BlueEra/features/chat/view/symbol_view/symbol_view_images.dart';
 import 'package:BlueEra/features/common/feed/view/post_detail_screen.dart';
 import 'package:BlueEra/main.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -571,6 +573,12 @@ class AppNotificationHandler {
   static FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
 
+  /// Secure-storage key for the id of the last launch-notification we've
+  /// already routed from. Prevents cold-start re-routing on every launch
+  /// while Android keeps the tapped notification's extras in the intent.
+  static const String _lastHandledLaunchNotificationIdKey =
+      'last_handled_launch_notification_id';
+
   /// True when the app was launched by tapping a notification (from terminated state).
   /// SplashScreen checks this to hold its UI instead of navigating to home.
   static bool launchedFromNotification = false;
@@ -604,6 +612,27 @@ class AppNotificationHandler {
       if (payLoad != null && payLoad.isNotEmpty) {
         try {
           final data = jsonDecode(payLoad) as Map<String, dynamic>;
+
+          // Android's getNotificationAppLaunchDetails() keeps returning the
+          // same intent extras on every cold start until new extras arrive.
+          // Without this guard, the tapped notification would re-open on
+          // every launch. Skip if we've already handled this notificationId.
+          final currentId = data['notificationId']?.toString();
+          if (currentId != null && currentId.isNotEmpty) {
+            final lastHandled = await SharedPreferenceUtils.getSecureValue(
+                _lastHandledLaunchNotificationIdKey);
+            if (lastHandled == currentId) {
+              print(
+                  "[COLD_START] notification $currentId already handled — skipping re-open");
+              if (notificationNavigationCompleter != null &&
+                  !notificationNavigationCompleter!.isCompleted) {
+                notificationNavigationCompleter!.complete();
+              }
+              return;
+            }
+            await SharedPreferenceUtils.setSecureValue(
+                _lastHandledLaunchNotificationIdKey, currentId);
+          }
           // Skip incoming-call cold-start routing here — main()'s pre-runApp
           // check (readAndClearPendingIncomingCallAccept) already decided
           // whether to auto-accept. If the user tapped Accept we're already
@@ -1975,6 +2004,11 @@ print("ORDER SCREEN NAME message.data ${message.data}");
         }
         break;
 
+      // Symbol operations
+      case 'symbol_created':
+        _openSymbolFromNotification(data);
+        break;
+
       default:
         // Default: open notifications screen or home
         break;
@@ -1983,6 +2017,62 @@ print("ORDER SCREEN NAME message.data ${message.data}");
     /// Clear all local notifications
     flutterLocalNotificationsPlugin.cancelAll();
   }
+  /// Build a SymbolDetailsModel from a SYMBOL_CREATED FCM payload and open
+  /// the symbol viewer. Falls back to opening the sender's chat if the
+  /// payload is malformed (so the tap never becomes a dead-end).
+  static void _openSymbolFromNotification(Map<String, dynamic> data) {
+    try {
+      final rawPayload = data['payload'];
+      if (rawPayload == null) return;
+      final Map<String, dynamic> payload = rawPayload is String
+          ? Map<String, dynamic>.from(jsonDecode(rawPayload) as Map)
+          : Map<String, dynamic>.from(rawPayload as Map);
+
+      final symbolId = payload['symbol_id']?.toString();
+      if (symbolId == null || symbolId.isEmpty) return;
+
+      final senderId = data['senderId']?.toString();
+      final senderName = data['senderName']?.toString();
+      final senderImage = data['senderProfileImage']?.toString();
+
+      DateTime? _parseDate(dynamic v) {
+        if (v == null) return null;
+        return DateTime.tryParse(v.toString());
+      }
+
+      final symbol = SymbolDetailsModel(
+        id: symbolId,
+        userId: senderId,
+        type: payload['type']?.toString(),
+        content: payload['content']?.toString(),
+        caption: payload['caption']?.toString(),
+        backgroundColor: payload['backgroundColor']?.toString(),
+        fontFamily: payload['fontFamily']?.toString(),
+        fontSize: payload['fontSize'] is num
+            ? (payload['fontSize'] as num).toDouble()
+            : null,
+        fontWeight: payload['fontWeight']?.toString(),
+        visibility: payload['visibility']?.toString(),
+        expiresAt: _parseDate(payload['expires_at']),
+        createdAt: _parseDate(payload['created_at']),
+        user: UserModel(
+          id: senderId,
+          name: senderName,
+          profileImage: senderImage,
+        ),
+      );
+
+      Get.to(() => SymbolViewImages(
+            initialSymbol: symbol,
+            userId: senderId,
+            name: senderName,
+            profileImage: senderImage,
+          ));
+    } catch (e) {
+      logs('Failed to open symbol from notification: $e');
+    }
+  }
+
   static void _handlePostNavigation(Map<String, dynamic> data) {
     if (data['payload'] != null) {
       final payloadMap = jsonDecode(data['payload']);

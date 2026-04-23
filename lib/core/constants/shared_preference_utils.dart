@@ -81,6 +81,10 @@ class SharedPreferenceUtils {
   static const has_reel_profile = 'has_reel_profile';
   static const reel_profile_id = 'reel_profile_id';
   static const saved_contacts = 'saved_contacts';
+  /// Set to "true" after the first-install full chat export has been
+  /// pulled and hydrated into local storage. Guards re-running the
+  /// /chat/export-all API on every subsequent app open.
+  static const hasInitialChatExport = 'has_initial_chat_export';
   static const channel_Id = 'channel_id';
   static const alreadyRetried = 'alreadyRetried';
   static const lastVersion = 'last_version';

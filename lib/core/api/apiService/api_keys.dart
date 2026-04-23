@@ -230,6 +230,8 @@ class ApiKeys {
 
   static const locationAddress = 'location[addressString]';
   static const reply_id = 'reply_id';
+  static const symbol_id = 'symbol_id';
+  static const symbol_snapshot = 'symbol_snapshot';
   static const isFrom = 'isFrom';
   static const previouslySelectedItems = 'previouslySelectedItems';
   static const typeFilter = 'typeFilter';
