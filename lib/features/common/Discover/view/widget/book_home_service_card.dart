@@ -7,9 +7,6 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
-// Dedicated card for BookHomeServiceWidget's 4-column grid. The generic
-// CommonServiceCard pads the icon too heavily and the AspectRatio(0.9)
-// wastes vertical space, so this variant gives the icon more room.
 class BookHomeServiceCard<T> extends StatelessWidget {
   final T service;
   final String Function(T) getName;
@@ -30,35 +27,41 @@ class BookHomeServiceCard<T> extends StatelessWidget {
     final bool isUrl = isNetworkImage(iconPath);
 
     return InkWell(
-      borderRadius: BorderRadius.circular(10),
+      borderRadius: BorderRadius.circular(12),
       onTap: () => onTap(service),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          AspectRatio(
-            aspectRatio: 1,
-            child: Container(
-              padding: EdgeInsets.all(SizeConfig.size4),
-              decoration: BoxDecoration(
-                color: AppColors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xffDDE2EE), width: 1.0),
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xffDDE2EE), width: 1.0),
+        ),
+        padding: EdgeInsets.all(SizeConfig.size6),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            AspectRatio(
+              aspectRatio: 1.1,
+              child: Padding(
+                padding: EdgeInsets.all(SizeConfig.size4),
+                child: _buildImage(isUrl, iconPath),
               ),
-              child: _buildImage(isUrl, iconPath),
             ),
-          ),
-          SizedBox(height: SizeConfig.size6),
-          CustomText(
-            getName(service),
-            textAlign: TextAlign.center,
-            fontSize: SizeConfig.small,
-            color: AppColors.secondaryTextColor,
-            fontWeight: FontWeight.w500,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
+            SizedBox(height: SizeConfig.size6),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: CustomText(
+                getName(service),
+                textAlign: TextAlign.center,
+                fontSize: SizeConfig.small,
+                color: AppColors.secondaryTextColor,
+                fontWeight: FontWeight.w500,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

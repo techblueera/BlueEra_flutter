@@ -38,7 +38,6 @@ class _HomeServiceProfileScreenState extends State<HomeServiceProfileScreen> {
   bool _doorStepService = false;
   bool _acceptPrivacy = false;
 
-  String _selectedPlaceId = '';
   double _selectedLat = 0.0;
   double _selectedLng = 0.0;
 
@@ -105,6 +104,7 @@ class _HomeServiceProfileScreenState extends State<HomeServiceProfileScreen> {
 
     if (success) {
       Navigator.of(context).pop();
+      Navigator.of(context).pop();
     }
   }
 
@@ -143,7 +143,6 @@ class _HomeServiceProfileScreenState extends State<HomeServiceProfileScreen> {
                   isShowLeading: false,
                   onSelected: (placeId, lat, lng, address) {
                     _addressController.text = address;
-                    _selectedPlaceId = placeId;
                     _selectedLat = lat;
                     _selectedLng = lng;
                   },

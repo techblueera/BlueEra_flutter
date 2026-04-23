@@ -54,7 +54,6 @@ class _SubmitFoodProductPageState extends State<SubmitFoodProductPage> {
     if(controller.imageLocalPaths.isEmpty){
       controller.imageLocalPaths.add(widget.imagePath);
     }
-    // TODO: implement initState
     controller.foodNameCtrl.text =
         widget.foodDatas.productName?.join(",") ?? '';
     controller.descCtrl.text = widget.foodDatas.shortDescription.toString();
@@ -627,8 +626,7 @@ class _SubmitFoodProductPageState extends State<SubmitFoodProductPage> {
                                       AppStrings.nutritionalSummaryPer100g),
                                   const SizedBox(height: 4),
                                   Row(
-                                    mainAxisAlignment: MainAxisAlignment
-                                        .spaceAround,
+                                    mainAxisAlignment: MainAxisAlignment.spaceAround,
                                     children: [
                                       _nutritionCard(
                                           AppStrings.caloriesKcal,

@@ -63,7 +63,6 @@ class _AddSelfServiceScreenState extends State<AddSelfServiceScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.whiteF3,
       appBar: CommonBackAppBar(
         title: controller.designation,
         isLeading: !widget.fromBottomNavBar,
@@ -821,13 +820,18 @@ class _AddSelfServiceScreenState extends State<AddSelfServiceScreen> {
 
   void _navigateToSelection(String key, String title) {
     final selectedItems = controller.selectedCategoryMap[key] ?? <String>[].obs;
-    Get.to(() => ServiceSelectionScreen(
-          controller: controller,
-          designation: controller.designation ?? ELECTRICIAN,
-          selectedCategoryKey: key,
-          pageTitle: title,
-          preSelectedOptions: selectedItems,
-          isDataUpdate: false,
-        ));
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => ServiceSelectionScreen(
+        controller: controller,
+        designation: controller.designation ?? ELECTRICIAN,
+        selectedCategoryKey: key,
+        pageTitle: title,
+        preSelectedOptions: selectedItems,
+        isDataUpdate: false,
+      ),
+    );
   }
 }

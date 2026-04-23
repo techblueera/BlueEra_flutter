@@ -53,7 +53,7 @@ class _HomeServiceHomePageState extends State<HomeServiceHomePage> {
           EarnServiceTestimonialCard(testimonials: const []),
           EarnServiceContactMapCard(controller: earnProfileController),
           EarnServiceQrCodeWidget(controller: earnProfileController),
-          SizedBox(height: SizeConfig.size150),
+          SizedBox(height: 4 * kBottomNavigationBarHeight),
         ],
       ),
     );
@@ -163,7 +163,6 @@ class _HomeServiceHomePageState extends State<HomeServiceHomePage> {
   }
 
   void _onAddServiceTap() {
-    // TODO: wire to actual add-service route once service API is available.
     Get.toNamed(
       RouteHelper.getAddServicesScreenRoute(),
       arguments: {

@@ -278,6 +278,7 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
         padding: EdgeInsets.only(
           left: SizeConfig.size12,
           right: SizeConfig.size12,
+          top: SizeConfig.size12,
           bottom: SizeConfig.paddingL + 70,
         ),
         itemCount: storeController.allStore.length +

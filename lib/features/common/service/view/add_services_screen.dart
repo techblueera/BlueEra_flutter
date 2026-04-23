@@ -28,19 +28,7 @@ import '../../../../core/constants/app_icon_assets.dart';
 import '../../../../widgets/local_assets.dart';
 
 class AddServicesScreenNew extends StatefulWidget {
-  final String? channelId;
-  final ProviderType providerType;
-  final ServiceAiGenerateModel? service;
-  final String? serviceSubType;
-  final String category;
-
-  const AddServicesScreenNew({
-    Key? key,
-    this.channelId,
-    required this.providerType,
-    this.service,
-    this.serviceSubType,
-    required this.category}) : super(key: key);
+  const AddServicesScreenNew({Key? key}) : super(key: key);
 
   @override
   State<AddServicesScreenNew> createState() => _AddServicesScreenState();
@@ -56,7 +44,7 @@ class _AddServicesScreenState extends State<AddServicesScreenNew> {
   @override
   void initState() {
     super.initState();
-    serviceData = widget.service;
+    serviceData = serviceController.serviceAiResModel.value;
     Get.lazyPut<AddServiceController>(() => AddServiceController());
     addServiceController = Get.find<AddServiceController>();
 
@@ -69,7 +57,7 @@ class _AddServicesScreenState extends State<AddServicesScreenNew> {
     addServiceController.imageLocalPaths
         .add(serviceController.selectedImage.value?.path ?? "");
 
-    addServiceController.category = widget.category;
+    addServiceController.category = serviceController.pendingCategory;
   }
 
   @override
@@ -83,7 +71,7 @@ class _AddServicesScreenState extends State<AddServicesScreenNew> {
     return Scaffold(
       backgroundColor: AppColors.appBackgroundColor,
       appBar: CommonBackAppBar(
-        title: '${widget.service?.serviceName}',
+        title: '${serviceData?.serviceName}',
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -671,9 +659,8 @@ class _AddServicesScreenState extends State<AddServicesScreenNew> {
                       CustomBtn(
                         title: AppStrings.postService,
                         onTap: () => addServiceController.createServiceApi(
-                            channelId: widget.channelId,
-                            providerType: widget.providerType,
-                            serviceSubType: widget.serviceSubType,
+                            providerType: serviceController.pendingProviderType!,
+                            serviceSubType: serviceController.pendingServiceSubType,
                         ),
                         bgColor: AppColors.primaryColor,
                         textColor: AppColors.white,
@@ -1412,8 +1399,7 @@ void showDiscountCouponDialog(BuildContext context) {
                                     : DiscountType.inPercentage,
                               );
 
-                              Get.put(AddServiceController())
-                                  .addCoupon(coupon);
+                              Get.put(AddServiceController()).addCoupon(coupon);
 
                               Get.back();
                               Get.snackbar(AppStrings.success, AppStrings.couponSaved.tr);

@@ -245,38 +245,41 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
           key: ValueKey(controller.businessCategoryId),
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Padding(
-              padding: EdgeInsets.only(
-                left: SizeConfig.size12,
-                right: SizeConfig.size12,
-                bottom: SizeConfig.size6,
-                top: SizeConfig.size6,
-              ),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(
-                  color: AppColors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  border:
-                      Border.all(color: AppColors.greyE5, width: 0.5),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.storefront_rounded,
-                        size: 14, color: AppColors.primaryColor),
-                    const SizedBox(width: 6),
-                    CustomText(
-                      "${controller.allStore.length}${controller.isAllStoreLoadingMore.value ? '+' : ''} ${AppStrings.groceryStoresLabel}",
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.mainTextColor,
-                    ),
-                  ],
-                ),
-              ),
-            ),
+            // Padding(
+            //   padding: EdgeInsets.only(
+            //     left: SizeConfig.size12,
+            //     right: SizeConfig.size12,
+            //     bottom: SizeConfig.size6,
+            //     top: SizeConfig.size6,
+            //   ),
+            //   child: Container(
+            //     padding: const EdgeInsets.symmetric(
+            //         horizontal: 10, vertical: 6),
+            //     decoration: BoxDecoration(
+            //       color: AppColors.white,
+            //       borderRadius: BorderRadius.circular(20),
+            //       border:
+            //           Border.all(color: AppColors.greyE5, width: 0.5),
+            //     ),
+            //     child: Row(
+            //       mainAxisSize: MainAxisSize.min,
+            //       children: [
+            //         Icon(Icons.storefront_rounded,
+            //             size: 14, color: AppColors.primaryColor),
+            //         const SizedBox(width: 6),
+            //         CustomText(
+            //           "${controller.allStore.length}${controller.isAllStoreLoadingMore.value ? '+' : ''} ${AppStrings.groceryStoresLabel}",
+            //           fontSize: 11,
+            //           fontWeight: FontWeight.w600,
+            //           color: AppColors.mainTextColor,
+            //         ),
+            //       ],
+            //     ),
+            //   ),
+            // ),
+
+            SizedBox(height: SizeConfig.paddingXSL),
+
             Expanded(
               child: ListView.builder(
                 itemCount: controller.allStore.length +

@@ -236,7 +236,7 @@ class AddServiceController extends GetxController {
     return true;
   }
 
-  Future<void> createServiceApi({String? channelId, required ProviderType providerType, String? serviceSubType}) async {
+  Future<void> createServiceApi({required ProviderType providerType, String? serviceSubType}) async {
 
     /// Provider Type
     // Business --> userId
@@ -272,7 +272,6 @@ class AddServiceController extends GetxController {
       // }
       if(category!=null) params[ApiKeys.category] = category;
       if(serviceSubType!=null)  params[ApiKeys.subType] = serviceSubType;
-      if(channelId!=null) params[ApiKeys.channelId] = channelId;
 
       if (isRange.isTrue) {
         params[ApiKeys.priceType] = 'range';

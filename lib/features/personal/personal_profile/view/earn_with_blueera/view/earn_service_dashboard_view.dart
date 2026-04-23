@@ -35,8 +35,7 @@ class _EarnServiceDashboardViewState extends State<EarnServiceDashboardView>
   final controller = getOrPut(() => EarnServiceController());
   final selfWorkController = getOrPut(() => SelfWorkServiceController());
   final earnProfileController = getOrPut(() => EarnProfileController());
-  final viewPersonalDetailsController =
-      Get.find<ViewPersonalDetailsController>();
+  final viewPersonalDetailsController =   Get.find<ViewPersonalDetailsController>();
 
   late final TabController _tabController;
 

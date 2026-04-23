@@ -45,23 +45,13 @@ class _ShoppingCardWidgetState extends State<ShoppingCardWidget> {
                 SizedBox(
                   width: SizeConfig.size8,
                 ),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (showMoreButton)
-                      GestureDetector(
-                        onTap: () => setState(() => _showAll = !_showAll),
-                        child: CustomText(
-                          _showAll ? AppStrings.showLess.tr : AppStrings.more.tr,
-                          fontSize: SizeConfig.medium,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.primaryColor,
-                        ),
-                      ),
-                    SizedBox(width: SizeConfig.size20),
-
-                  ],
-                ),
+                if (showMoreButton)
+                  ViewAllButton(
+                    onTap: () => setState(() => _showAll = !_showAll),
+                    label: _showAll
+                        ? AppStrings.showLess.tr
+                        : AppStrings.showMore.tr,
+                  ),
               ],
             ),
             SizedBox(height: SizeConfig.paddingXSL),

@@ -155,7 +155,7 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
               ],
               body: NotificationListener<ScrollNotification>(
                 onNotification: _onScrollNotification,
-                child: rightContent(),
+                child: _buildContent(),
               ),
             ),
           ],
@@ -164,7 +164,7 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
     );
   }
 
-  Widget rightContent() {
+  Widget _buildContent() {
     return Obx(() => Padding(
           padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
           child: Column(

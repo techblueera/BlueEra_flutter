@@ -345,6 +345,11 @@ class SelfWorkServiceController extends GetxController{
         final controller = getOrPut(() => ViewPersonalDetailsController());
         await controller.viewPersonalProfile();
 
+        // Refresh profession data so any open SelfProfessionDetailsScreen
+        // rebuilds out of its empty state. Done here (single success path)
+        // instead of on every back-pop from the nested selection sheets.
+        fetchSelfProfessionData(isLoading: false);
+
         Get.toNamed(
           RouteHelper.getAvailabilityScreenRoute(),
           arguments: {
