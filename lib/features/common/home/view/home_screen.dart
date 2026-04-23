@@ -22,8 +22,10 @@ import 'package:get/get.dart';
 import 'package:flutter_upgrade_version/flutter_upgrade_version.dart';
 import 'package:share_handler/share_handler.dart';
 
+import '../../../chat/auth/controller/chat_view_controller.dart';
 import '../../../chat/view/forward_screen/chat_forward_screen.dart';
 import '../../../personal/personal_profile/controller/languge_list_controller.dart';
+import '../../../../core/constants/getx_utils.dart';
 
 enum SavedFeedTab {
   posts;
@@ -83,6 +85,9 @@ class _HomeScreenState extends State<HomeScreen> {
     _pageController = PageController(initialPage: selectedIndex);
     initPlatformState();
     getPackageData();
+    // Fire-and-forget: fetch the full chat export once on home entry.
+    // Response is only logged right now (see ChatViewController.getChatExportAll).
+    getOrPut(() => ChatViewController()).getChatExportAll();
     searchController.addListener(() {
       setState(() {});
     });

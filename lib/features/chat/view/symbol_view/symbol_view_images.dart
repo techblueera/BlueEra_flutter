@@ -1,7 +1,11 @@
+import 'dart:convert';
 import 'dart:io';
 
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -9,6 +13,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
 import 'package:any_link_preview/any_link_preview.dart';
 import '../../auth/controller/add_chat_symbol_controller.dart';
+import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/model/GetChatListModel.dart';
 import '../../auth/model/symbol_details_model.dart';
 import '../widget/custom_video_player.dart';
@@ -16,12 +21,14 @@ import '../widget/custom_video_player.dart';
 class SymbolViewImages extends StatefulWidget {
   final String? userId;
   final List<SymbolDetailsModel>? mySymbols;
+  final SymbolDetailsModel? initialSymbol;
   final String? profileImage;
   final String? name;
 
   const SymbolViewImages({
     super.key,
     this.mySymbols,
+    this.initialSymbol,
     this.userId,
     this.profileImage,
     this.name,
@@ -78,12 +85,12 @@ class _SymbolViewImagesState extends State<SymbolViewImages> with SingleTickerPr
     super.initState();
 
     _pageController = PageController();
-    if (widget.mySymbols == null) {
-      if (widget.userId != null) {
-        getSymbols();
-      }
-    } else {
+    if (widget.mySymbols != null) {
       allImages = widget.mySymbols;
+    } else if (widget.initialSymbol != null) {
+      allImages = [widget.initialSymbol!];
+    } else if (widget.userId != null) {
+      getSymbols();
     }
 
     _fadeController = AnimationController(
@@ -154,11 +161,64 @@ class _SymbolViewImagesState extends State<SymbolViewImages> with SingleTickerPr
     });
   }
 
-  void _sendReply() {
+  Map<String, dynamic> _buildSymbolSnapshot(SymbolDetailsModel symbol) {
+    return {
+      '_id': symbol.id,
+      'user_id': symbol.userId,
+      'type': symbol.type,
+      'content': symbol.content,
+      'caption': symbol.caption,
+      'backgroundColor': symbol.backgroundColor,
+      'fontFamily': symbol.fontFamily,
+      'fontSize': symbol.fontSize,
+      'fontWeight': symbol.fontWeight,
+      'visibility': symbol.visibility,
+      'expires_at': symbol.expiresAt?.toIso8601String(),
+      'created_at': symbol.createdAt?.toIso8601String(),
+      // Include author so the receiver's bubble and the reopened symbol view
+      // can render the creator without a separate fetch.
+      'user': symbol.user?.toJson() ??
+          {
+            'id': symbol.userId,
+            'name': widget.name,
+            'profile_image': widget.profileImage,
+          },
+    };
+  }
+
+  Future<void> _sendReply() async {
     final text = _replyController.text.trim();
-    if (text.isEmpty) return;
+    if (text.isEmpty || !_isValidIndex) return;
+
+    final symbol = allImages![currentIndex];
+    final symbolId = symbol.id;
+    final authorId = symbol.userId ?? widget.userId;
+    if (symbolId == null || symbolId.isEmpty || authorId == null || authorId.isEmpty) {
+      return;
+    }
+
     _replyController.clear();
     _replyFocusNode.unfocus();
+
+    final chatViewController =
+        getOrPut(() => ChatViewController());
+    final params = <String, dynamic>{
+      ApiKeys.message_type: 'reply_to_symbol',
+      ApiKeys.message: text,
+      ApiKeys.other_user_id: authorId,
+      ApiKeys.symbol_id: symbolId,
+      ApiKeys.symbol_snapshot: jsonEncode(_buildSymbolSnapshot(symbol)),
+    };
+    await chatViewController.sendMessage(params);
+
+    // Refresh personal + business chat lists so the new symbol-reply thread
+    // (which may be a brand-new conversation) shows up in both views.
+    chatViewController.emitEvent(ChatEmitEvents.ChatList,
+        {ApiKeys.type: AppConstants.personal_Chat_Type});
+    chatViewController.emitEvent(ChatEmitEvents.ChatList,
+        {ApiKeys.type: AppConstants.business_Chat_Type});
+
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(AppStrings.replySent.tr),

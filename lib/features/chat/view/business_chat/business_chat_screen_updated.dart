@@ -67,10 +67,23 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated> {
           conversationId: widget.conversationId ?? '');
       chatThemeController.resetSelection();
 
+      // Bump the message page size by 30 whenever the user scrolls to the top
+      // of the (reverse:true) list so older history streams in on demand.
+      chatViewController.scrollController.addListener(_onScroll);
+
       checkPendingMessages();
     });
 
     super.initState();
+  }
+
+  void _onScroll() {
+    final controller = chatViewController.scrollController;
+    if (!controller.hasClients) return;
+    if (controller.position.pixels >=
+        controller.position.maxScrollExtent - 80) {
+      chatViewController.loadMoreMessages();
+    }
   }
 
   Future<void> checkPendingMessages() async {
@@ -82,6 +95,7 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated> {
 
   @override
   void dispose() {
+    chatViewController.scrollController.removeListener(_onScroll);
     NetworkUtils.removeListener((connected) {});
     super.dispose();
   }

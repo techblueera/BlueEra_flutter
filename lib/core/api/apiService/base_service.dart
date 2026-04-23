@@ -199,6 +199,7 @@ abstract class BaseService {
   String checkTrackOrderStatus(String orderId) => 'rider-service/fare/orders/${orderId}/status';
   final String getChatRequest = 'chat-service/connections/requests';
   final String getLatestChat = 'chat-service/chat/latest-chat';
+  final String getChatExportAll = 'chat-service/chat/export-all';
   final String reactChatRequest = 'chat-service/connections/respond';
   final String connectionsSync = 'chat-service/connections/sync';
   final String findServiceByContact = 'chat-service/connections/filter-by-profileType';

@@ -6,6 +6,7 @@ import 'dart:developer';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:dio/dio.dart' as dio;
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
@@ -39,6 +40,7 @@ import '../../view/business_chat/business_chat_screen_updated.dart';
 import '../../view/personal_chat/personal_chat_screen.dart';
 import '../model/Generate_Upload_Ulr_Model.dart';
 import '../model/GetChatListModel.dart';
+import '../model/GetChatListModel.dart' as chatListModel;
 import '../model/GetChatRequestListModel.dart';
 import '../model/GetListOfMessageData.dart';
 import '../model/GetListOfMessageData.dart' as messageModel;
@@ -270,6 +272,17 @@ class ChatViewController extends GetxController {
   RxString userOpenConversationId = ''.obs;
   RxString userOpenUserId = ''.obs;
   RxString readMessageStatus = ''.obs;
+
+  /// Pagination state for the currently-open conversation. The initial
+  /// `messageReceived` emit asks the server for 30 messages; when the user
+  /// scrolls to the top of the list we bump this by 30 and re-emit.
+  RxInt currentMessagePageSize = 30.obs;
+  RxBool isLoadingMoreMessages = false.obs;
+  static const int _messagePageStep = 30;
+  // Cached params so loadMoreMessages can rebuild the exact emit payload.
+  String? _currentChatOtherUserId;
+  String? _currentChatName;
+  String? _currentChatUserIdForOnline;
 
   /// Cached set of online user IDs — survives chat list re-renders.
   RxSet<String> onlineUserIds = <String>{}.obs;
@@ -535,7 +548,6 @@ class ChatViewController extends GetxController {
     String? converId = await AiChatLocalStorage.getConversationId(
         type
     );
-    log('conversation id of $type is -- $converId');
 
     aiSocket.getHistory(converId ?? '');
     getListOfAiMessageResponse.value =
@@ -588,7 +600,6 @@ class ChatViewController extends GetxController {
     await aiSocket.connectSearchSocket();
 
     String? converId = await AiChatLocalStorage.getConversationId(type);
-    log('conversation id of $type is -- $converId');
 
     // --- HISTORY LISTENER ---
     aiSocket.onHistory((data) {
@@ -631,7 +642,6 @@ class ChatViewController extends GetxController {
       BaseAiChatModel welcomeMsg = _createInitialModel(type);
       currentChatMessages.add(welcomeMsg);
 
-      log('➕ Added Initial Message for $type');
       chatBotReading.value = false;
     }
   }
@@ -651,7 +661,6 @@ class ChatViewController extends GetxController {
     chatBotReading.value = true;
 
     String? converId = await AiChatLocalStorage.getConversationId(type);
-    log('conversation id of $type is -- $converId');
 
 
     if (converId == null &&
@@ -787,7 +796,6 @@ class ChatViewController extends GetxController {
     if (socketConnected.value == false) {
       socketConnected.value = true;
       chatSocket.listenEvent(ChatEmitEvents.ChatList, (data) async {
-        log("ksdjjknksdjcnsdc ${data}");
         //1200000039
         final parsedData = GetChatListModel.fromJson(data);
         loadChatListWithType(chatListModel: parsedData);
@@ -804,7 +812,6 @@ class ChatViewController extends GetxController {
             GetMediaMsgCommentsModel.fromJson(data);
       });
       chatSocket.listenEvent(ChatEmitEvents.messageReceived, (data) async {
-        log("sldcsdlkslk ${data}");
           final parsedData = GetListOfMessageData.fromJson(data);
 
           if (parsedData.messages != null) {
@@ -1128,7 +1135,6 @@ class ChatViewController extends GetxController {
 
       // Food Self-Pickup: Order marked as ready
       chatSocket.listenEvent(ChatEmitEvents.foodPickupOrderReady, (data) {
-        log("foodPickupOrderReady: $data");
         final messageId = data['messageId']?.toString() ?? '';
         if (messageId.isNotEmpty) {
           final currentMessages = getListOfMessageResponse.value.data as List<Messages>? ?? [];
@@ -1171,7 +1177,6 @@ class ChatViewController extends GetxController {
 
       // Product Self-Pickup: Order marked as ready
       chatSocket.listenEvent(ChatEmitEvents.productPickupOrderReady, (data) {
-        log("productPickupOrderReady: $data");
         final messageId = data['messageId']?.toString() ?? '';
         if (messageId.isNotEmpty) {
           final currentMessages = getListOfMessageResponse.value.data as List<Messages>? ?? [];
@@ -1274,28 +1279,57 @@ class ChatViewController extends GetxController {
     String? conversationId,
     String? lastMessage,
     String? lastMessageType,
-    String? updatedAt,
-  ) {
+    String? updatedAt, {
+    String? sendStatus,
+  }) {
     if (conversationId == null) return;
 
-    void _patchList(Rx<GetChatListModel>? model) {
+    void _patchList(Rx<GetChatListModel>? model, {String? persistAsType}) {
       final list = model?.value.chatList;
       if (list == null) return;
-      for (final chat in list) {
-        if (chat?.conversationId == conversationId) {
-          chat?.lastMessage = lastMessage;
-          chat?.lastMessageType = lastMessageType;
-          if (updatedAt != null) chat?.updatedAt = updatedAt;
-          break;
-        }
+      final idx = list.indexWhere((c) => c?.conversationId == conversationId);
+      if (idx == -1) {
+        model?.refresh();
+        return;
+      }
+      final chat = list[idx];
+      chat?.lastMessage = lastMessage;
+      chat?.lastMessageType = lastMessageType;
+      if (updatedAt != null) chat?.updatedAt = updatedAt;
+      // Pass `sendStatus: "pending"` to show a clock icon in the list while
+      // the message is queued offline; pass `""` (or anything non-null) from
+      // the online success branch to clear it once the server has accepted
+      // the message.
+      if (sendStatus != null) {
+        chat?.lastMessageSendStatus =
+            sendStatus.isEmpty ? null : sendStatus;
+      }
+      // Move this conversation to the top of the list so the most recent
+      // activity surfaces immediately — matches the native chat-list order
+      // the server returns on the next refresh.
+      if (idx > 0) {
+        list.removeAt(idx);
+        list.insert(0, chat);
       }
       model?.refresh();
+      // Persist the patched list to Hive. Back-navigation re-emits the
+      // ChatList event, which hydrates the Rx model from Hive first — if we
+      // skip this save, the in-memory patch (including the pending clock
+      // and the top-of-list reorder) gets blown away the instant the user
+      // leaves the chat screen.
+      if (persistAsType != null) {
+        unawaited(localStorageHelper.saveChatList(
+            list.toList(), persistAsType));
+      }
     }
 
-    _patchList(getPersonalChatListModel);
+    _patchList(getPersonalChatListModel,
+        persistAsType: AppConstants.personal_Chat_Type);
     _patchList(getPersonalFilteredChatListModel);
-    _patchList(getBusinessChatListModel);
-    _patchList(getGroupChatListModel);
+    _patchList(getBusinessChatListModel,
+        persistAsType: AppConstants.business_Chat_Type);
+    _patchList(getGroupChatListModel,
+        persistAsType: AppConstants.group_Chat_Type);
     _patchList(getOrderChatListModel);
   }
 
@@ -1721,37 +1755,16 @@ class ChatViewController extends GetxController {
     // state before the async socket emit runs — so we never strand the UI
     // on the loading spinner when the network is down.
     await loadOfflineMessages(conversationId);
-    // }
-    // else if (openedConversation.contains(conversationId)) {
-    //   loadOfflineMessages(conversationId);
-    // }
-    // else {
-    // if(chatList.isEmpty){
 
-    Map<String,dynamic> params={
-      if(conversationId.isEmpty)
-        ApiKeys.other_user_id: otherUserId
-      else
-        ApiKeys.conversation_id: conversationId,
-      ApiKeys.page: 1,
-      ApiKeys.is_online_user: userId,
-      ApiKeys.per_page_message: 30,
-      if (name != null && name == "BlueEra Orders")
-        ApiKeys.orders_conversation: true
-    };
-    //    Map<String,dynamic> params={
-    //       if(conversationId.isEmpty)
-    //         ApiKeys.other_user_id: otherUserId
-    //       else
-    //         ApiKeys.conversation_id: conversationId,
-    //       ApiKeys.page: 1,
-    //       ApiKeys.is_online_user: userId,
-    //       ApiKeys.per_page_message: 30,
-    //       if (name != null && name == "BlueEra Orders")
-    //         ApiKeys.orders_conversation: true
-    //     };
-    emitEvent(
-        ChatEmitEvents.messageReceived,params);
+    // Reset pagination for the newly-opened conversation and cache the
+    // params so loadMoreMessages can re-emit with the same identifiers.
+    currentMessagePageSize.value = _messagePageStep;
+    isLoadingMoreMessages.value = false;
+    _currentChatUserIdForOnline = userId?.toString();
+    _currentChatOtherUserId = otherUserId;
+    _currentChatName = name;
+
+    _emitFetchMessages(conversationId);
     // Drain any pending messages for this conversation in the background —
     // text-like ones will be retried via repo, media via generateUploadUrlsApi.
     // Fire and forget; errors are handled inside the drainer/offline methods.
@@ -1759,9 +1772,44 @@ class ChatViewController extends GetxController {
       unawaited(PendingMessageDrainer.instance.drainNow());
       unawaited(sendOfflineMessage(conversationId));
     }
-    // }
+    return;
+  }
 
-    // }
+  /// Builds and emits the `messageReceived` fetch payload for the currently
+  /// open conversation using the cached identifiers + current page size.
+  void _emitFetchMessages(String conversationId) {
+    final params = <String, dynamic>{
+      if (conversationId.isEmpty)
+        ApiKeys.other_user_id: _currentChatOtherUserId
+      else
+        ApiKeys.conversation_id: conversationId,
+      ApiKeys.page: 1,
+      ApiKeys.is_online_user: _currentChatUserIdForOnline,
+      ApiKeys.per_page_message: currentMessagePageSize.value,
+      if (_currentChatName != null && _currentChatName == "BlueEra Orders")
+        ApiKeys.orders_conversation: true,
+    };
+    emitEvent(ChatEmitEvents.messageReceived, params);
+  }
+
+  /// Bumps [currentMessagePageSize] by 30 and re-emits so the server returns
+  /// the extended window. Called from the chat screen's scroll listener when
+  /// the user reaches the top of the (reversed) list. Guarded so rapid
+  /// scrolls can't queue multiple in-flight fetches.
+  Future<void> loadMoreMessages() async {
+    if (isLoadingMoreMessages.value) return;
+    final conversationId = userOpenConversationId.value;
+    if (conversationId.isEmpty && (_currentChatOtherUserId ?? '').isEmpty) {
+      return;
+    }
+    isLoadingMoreMessages.value = true;
+    currentMessagePageSize.value += _messagePageStep;
+    _emitFetchMessages(conversationId);
+    // No success callback in the socket layer — release the guard after a
+    // short delay so the next top-reach can bump again.
+    Future.delayed(const Duration(seconds: 2), () {
+      isLoadingMoreMessages.value = false;
+    });
   }
 
   void emitEvent(String event, dynamic data,
@@ -2026,6 +2074,183 @@ class ChatViewController extends GetxController {
     }
   }
 
+  /// One-time hydration of every conversation + its message history into
+  /// local storage. Runs on the very first app open after install (guarded by
+  /// [SharedPreferenceUtils.hasInitialChatExport]) and never again. After it
+  /// completes, each chat screen's local-first load can render its full
+  /// history offline without hitting the per-conversation messages API.
+  Future<void> getChatExportAll() async {
+    try {
+      // One-time guard — flip to "true" on success, short-circuit next time.
+      final alreadyDone = await SharedPreferenceUtils.getSecureValue(
+          SharedPreferenceUtils.hasInitialChatExport);
+      if (alreadyDone == 'true') {
+        debugPrint('[CHAT_EXPORT_ALL] already synced — skipping');
+        return;
+      }
+
+      final responseModel = await ChatViewRepo().getChatExportAllApi();
+      if (!responseModel.isSuccess) {
+        debugPrint(
+            '[CHAT_EXPORT_ALL] failed: ${responseModel.message} | status: ${responseModel.response?.statusCode}');
+        return;
+      }
+
+      final data = responseModel.response?.data;
+      if (data is! Map) return;
+
+      final currentUserId = (data['user_id']?.toString().isNotEmpty ?? false)
+          ? data['user_id'].toString()
+          : userId;
+      final conversations = data['conversations'];
+      if (conversations is! List) return;
+
+      final personalList = <ChatList>[];
+      final businessList = <ChatList>[];
+      final groupList = <ChatList>[];
+
+      for (final convo in conversations) {
+        if (convo is! Map) continue;
+        final map = Map<String, dynamic>.from(convo);
+        final conversationId = map['conversation_id']?.toString() ?? '';
+        if (conversationId.isEmpty) continue;
+
+        // ── Messages: parse + save per conversation ────────────────────────
+        final rawMessages = map['messages'];
+        if (rawMessages is List) {
+          final parsed = <messageModel.Messages>[];
+          for (final m in rawMessages) {
+            if (m is Map) {
+              try {
+                parsed.add(messageModel.Messages.fromJson(
+                    Map<String, dynamic>.from(m)));
+              } catch (e) {
+                debugPrint('[CHAT_EXPORT_ALL] message parse skip: $e');
+              }
+            }
+          }
+          if (parsed.isNotEmpty) {
+            await localStorageHelper.saveMessagesByConversationId(
+                conversationId, parsed);
+          }
+        }
+
+        // ── Chat-list entry for this conversation ──────────────────────────
+        final type =
+            (map['type']?.toString() ?? AppConstants.personal_Chat_Type)
+                .toLowerCase();
+        final isGroup = type == AppConstants.group_Chat_Type;
+
+        chatListModel.Sender? sender;
+        if (!isGroup) {
+          // 1:1 chat → pick the "other" participant so the row shows their
+          // name and photo instead of the current user's.
+          final participants = map['participants'];
+          if (participants is List) {
+            for (final p in participants) {
+              if (p is! Map) continue;
+              final pid = p['user_id']?.toString() ?? '';
+              if (pid.isEmpty || pid == currentUserId) continue;
+              final user = p['user'];
+              if (user is Map) {
+                sender = chatListModel.Sender.fromJson(
+                    Map<String, dynamic>.from(user));
+              }
+              break;
+            }
+          }
+        }
+
+        final chat = ChatList(
+          conversationId: conversationId,
+          isGroup: isGroup,
+          lastMessage: map['last_message']?.toString(),
+          lastMessageType: map['last_message_type']?.toString(),
+          createdAt: map['created_at']?.toString(),
+          updatedAt: map['updated_at']?.toString(),
+          groupName: map['group_name']?.toString(),
+          groupProfileImage: map['group_profile_image']?.toString(),
+          publicGroup:
+              map['public_group'] is bool ? map['public_group'] as bool : false,
+          unreadCount: 0,
+          sender: sender,
+        );
+
+        switch (type) {
+          case AppConstants.business_Chat_Type:
+            businessList.add(chat);
+            break;
+          case AppConstants.group_Chat_Type:
+            groupList.add(chat);
+            break;
+          default:
+            personalList.add(chat);
+        }
+      }
+
+      // Merge with whatever the socket/prior sessions already cached so we
+      // don't clobber unrelated entries.
+      await _mergeAndSaveExportedChatList(
+          personalList, AppConstants.personal_Chat_Type);
+      await _mergeAndSaveExportedChatList(
+          businessList, AppConstants.business_Chat_Type);
+      await _mergeAndSaveExportedChatList(
+          groupList, AppConstants.group_Chat_Type);
+
+      await SharedPreferenceUtils.setSecureValue(
+          SharedPreferenceUtils.hasInitialChatExport, 'true');
+      debugPrint(
+          '[CHAT_EXPORT_ALL] stored personal=${personalList.length} business=${businessList.length} group=${groupList.length}');
+
+      // Pre-warm flutter_cache_manager with every chat-list avatar URL so
+      // CachedNetworkImage can serve them on later offline launches. Without
+      // this, the cache is empty until the user opens a chat while online
+      // and images render blank in the list.
+      final avatarUrls = <String>{};
+      for (final c in [...personalList, ...businessList]) {
+        final url = c.sender?.profileImage;
+        if (url != null && url.startsWith('http')) avatarUrls.add(url);
+      }
+      for (final c in groupList) {
+        final url = c.groupProfileImage;
+        if (url != null && url.startsWith('http')) avatarUrls.add(url);
+      }
+      // Fire-and-forget: this can run for a while on slow networks but
+      // shouldn't block the chat-list UI.
+      unawaited(_prefetchToImageCache(avatarUrls));
+    } catch (e, st) {
+      debugPrint('[CHAT_EXPORT_ALL] error: $e\n$st');
+    }
+  }
+
+  Future<void> _prefetchToImageCache(Iterable<String> urls) async {
+    final mgr = DefaultCacheManager();
+    for (final url in urls) {
+      try {
+        await mgr.downloadFile(url);
+      } catch (e) {
+        debugPrint('[CHAT_EXPORT_ALL] prefetch fail $url: $e');
+      }
+    }
+    debugPrint('[CHAT_EXPORT_ALL] prefetched ${urls.length} avatars');
+  }
+
+  Future<void> _mergeAndSaveExportedChatList(
+      List<ChatList> fresh, String type) async {
+    if (fresh.isEmpty) return;
+    final existing = await localStorageHelper.getChatListFromLocal(type);
+    final byId = <String, ChatList>{
+      for (final c in existing)
+        if ((c.conversationId ?? '').isNotEmpty) c.conversationId!: c,
+    };
+    for (final c in fresh) {
+      final id = c.conversationId;
+      if (id == null || id.isEmpty) continue;
+      byId[id] = c;
+    }
+    await localStorageHelper.saveChatList(byId.values.toList(), type);
+  }
+
   Future<void> getDetailsChatRequestPerson(Map<String, dynamic> params) async {
     try {
       ResponseModel responseModel =
@@ -2204,6 +2429,7 @@ class ChatViewController extends GetxController {
       message.message,
       message.messageType,
       message.createdAt,
+      sendStatus: "pending",
     );
     return message;
   }
@@ -2269,6 +2495,7 @@ class ChatViewController extends GetxController {
       caption,
       messageType,
       isoTime,
+      sendStatus: "pending",
     );
   }
 
@@ -2398,12 +2625,15 @@ class ChatViewController extends GetxController {
               ApiResponse.complete(getListOfMessageData);
           saveSingleMessageToLocal(
               params[ApiKeys.conversation_id], message);
-          // Update chat list locally so last message is visible immediately
+          // Update chat list locally so last message is visible immediately.
+          // Pass an empty sendStatus so any prior "pending" clock icon is
+          // cleared now that the server accepted the message.
           _updateChatListLastMessage(
             params[ApiKeys.conversation_id],
             message.message,
             message.messageType,
             message.updatedAt ?? message.createdAt,
+            sendStatus: "",
           );
         } else if (message.subType == 'comment') {
           getMediaMsgCommentsModel?.value.comments?.insert(

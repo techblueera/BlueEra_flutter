@@ -2,12 +2,14 @@ import 'dart:convert';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/auth/model/GetListOfMessageData.dart';
+import 'package:BlueEra/features/chat/auth/model/symbol_details_model.dart';
 import 'package:BlueEra/features/chat/view/widget/video_and_image_card_widget.dart';
 import 'package:BlueEra/features/common/food/view/food_details_view_screen.dart';
 import 'package:BlueEra/features/common/food/view/widget/km_away_text_widget.dart';
@@ -27,6 +29,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:any_link_preview/any_link_preview.dart';
 import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/constants/app_icon_assets.dart';
 import '../../../../widgets/common_box_shadow.dart';
@@ -42,6 +45,7 @@ import '../business_chat/widgets/self_pickup_msg_card.dart';
 import '../business_chat/widgets/food_self_pickup_msg_card.dart';
 import '../business_chat/widgets/product_self_pickup_msg_card.dart';
 import '../media_view_page/medias_slider_page.dart';
+import '../symbol_view/symbol_view_images.dart';
 import '../orders_chat/widget/order_common_widgets.dart';
 import 'audio_type_message_ui.dart';
 import 'component_widgets.dart';
@@ -302,6 +306,15 @@ class _MessageCardState extends State<MessageCard>
           otherUserImage: widget.profileImage,
         );
 
+      case "reply_to_symbol":
+        messageWidget = _buildReplyToSymbolMessage(
+          widget.message,
+          text,
+          time,
+          isReceive,
+        );
+        break;
+
       default:
 
         messageWidget = (widget.message.visible_to!=null&&widget.message.visible_to!='')?
@@ -363,6 +376,25 @@ class _MessageCardState extends State<MessageCard>
                   if(widget.message.messageType=="video"||widget.message.messageType=="image"){
                     if(widget.message.url?.length == 1){
                       Get.to(()=>MediaSliderPage(conversationId: widget.conversationId??'', conversationPersonName: widget.name??"", seletedUrl: widget.message.url?.first.url??'',));
+                    }
+                  } else if (widget.message.messageType == "reply_to_symbol") {
+                    final sym = widget.message.metadata?.symbol;
+                    if (sym != null) {
+                      // When I sent the reply, my conversation partner IS the
+                      // symbol author — use the screen's conversation name/image
+                      // as a fallback if the snapshot didn't carry the user.
+                      final isMine = widget.message.myMessage ?? false;
+                      final fallbackName =
+                          isMine ? widget.conversationName : null;
+                      final fallbackImage =
+                          isMine ? widget.conversationProfileImage : null;
+                      Get.to(() => SymbolViewImages(
+                            initialSymbol: sym,
+                            userId: sym.userId,
+                            name: sym.user?.name ?? fallbackName,
+                            profileImage:
+                                sym.user?.profileImage ?? fallbackImage,
+                          ));
                     }
                   } else if (widget.message.messageType == "text" && (widget.message.message?.contains("https://") ?? false)) {
                     final regExp = RegExp(r'(https?:\/\/[^\s]+)');
@@ -1049,6 +1081,373 @@ class _MessageCardState extends State<MessageCard>
       time: time,
       isReceiveMsg: isReceive,
     );
+  }
+
+  Color _hexToColor(String? hex) {
+    if (hex == null || hex.isEmpty) return Colors.black87;
+    var h = hex.trim();
+    if (h.startsWith('#')) h = h.substring(1);
+    if (h.length == 3) h = h.split('').map((c) => '$c$c').join();
+    if (h.length == 6) h = 'FF$h';
+    if (h.length != 8) return Colors.black87;
+    return Color(int.parse(h, radix: 16));
+  }
+
+  Widget _buildSymbolPreviewThumb(SymbolDetailsModel symbol) {
+    final type = symbol.type;
+    final content = symbol.content ?? '';
+    const double size = 52;
+
+    if (type == 'photo' ||
+        (type == 'video' && !content.toLowerCase().contains('.mp4'))) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(6),
+        child: Container(
+          width: size,
+          height: size,
+          color: Colors.black12,
+          child: content.isNotEmpty
+              ? Image.network(
+                  content,
+                  width: size,
+                  height: size,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) =>
+                      const Icon(Icons.image_outlined, color: Colors.white),
+                )
+              : const Icon(Icons.image_outlined, color: Colors.white),
+        ),
+      );
+    }
+    if (type == 'video') {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(6),
+        child: Container(
+          width: size,
+          height: size,
+          color: Colors.black54,
+          alignment: Alignment.center,
+          child: const Icon(Icons.play_circle_outline, color: Colors.white, size: 28),
+        ),
+      );
+    }
+    if (type == 'text') {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(6),
+        child: Container(
+          width: size,
+          height: size,
+          color: _hexToColor(symbol.backgroundColor),
+          alignment: Alignment.center,
+          padding: const EdgeInsets.all(4),
+          child: CustomText(
+            content,
+            color: Colors.white,
+            fontSize: 9,
+            fontWeight: FontWeight.w600,
+            maxLines: 3,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+          ),
+        ),
+      );
+    }
+    if (type == 'embeddedUrl') {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(6),
+        child: Container(
+          width: size,
+          height: size,
+          color: AppColors.primaryColor.withValues(alpha: 0.15),
+          alignment: Alignment.center,
+          child: const Icon(Icons.link, color: AppColors.primaryColor),
+        ),
+      );
+    }
+    return const SizedBox.shrink();
+  }
+
+  Widget _buildReplyToSymbolMessage(
+      Messages message, String text, String time, bool isReceive) {
+    final symbol = message.metadata?.symbol;
+    if (symbol == null) {
+      // Defensive fallback: no snapshot → render as plain text bubble.
+      return _buildReceivedMessage(message, text, time, isReceive);
+    }
+
+    final authorName = symbol.user?.name ??
+        (isReceive ? (widget.name ?? AppStrings.unknownLabel.tr) : 'You');
+    final subtitle = (symbol.caption?.isNotEmpty ?? false)
+        ? symbol.caption!
+        : (symbol.type == 'text' || symbol.type == 'embeddedUrl')
+            ? (symbol.content ?? '')
+            : (symbol.type ?? '');
+
+    return Container(
+      width: SizeConfig.screenWidth * 0.85,
+      color: Colors.transparent,
+      child: Container(
+        width: 254,
+        margin: EdgeInsets.only(
+            left: isReceive ? 0 : 50, right: isReceive ? 50 : 0),
+        child: Align(
+          alignment:
+              isReceive ? Alignment.centerLeft : Alignment.centerRight,
+          child: IntrinsicWidth(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
+              decoration: BoxDecoration(
+                color: isReceive
+                    ? chatThemeController.receiveMessageBgColor.value
+                    : chatThemeController.myMessageBgColor.value,
+                borderRadius: BorderRadius.only(
+                  topLeft: const Radius.circular(12),
+                  topRight: const Radius.circular(12),
+                  bottomRight: Radius.circular(isReceive ? 12 : 0),
+                  bottomLeft: Radius.circular(isReceive ? 0 : 12),
+                ),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Quoted symbol card
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 6),
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(0),
+                        topRight: Radius.circular(8),
+                        bottomRight: Radius.circular(8),
+                        bottomLeft: Radius.circular(0),
+                      ),
+                      color: isReceive
+                          ? AppColors.primaryColor.withValues(alpha: 0.08)
+                          : Colors.grey.withValues(alpha: 0.15),
+                      border: Border(
+                        left: BorderSide(
+                          color: isReceive
+                              ? AppColors.primaryColor
+                              : Colors.grey,
+                          width: 3,
+                        ),
+                      ),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        _buildSymbolPreviewThumb(symbol),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              CustomText(
+                                authorName,
+                                fontWeight: FontWeight.w600,
+                                color: isReceive
+                                    ? AppColors.primaryColor
+                                    : AppColors.grayText,
+                                fontSize: 13,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: 2),
+                              Row(
+                                children: [
+                                  Icon(
+                                    _iconForSymbolType(symbol.type),
+                                    size: 13,
+                                    color: AppColors.grayText,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Expanded(
+                                    child: CustomText(
+                                      subtitle,
+                                      color: AppColors.grayText,
+                                      fontSize: 12,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Link preview for the quoted symbol when it's a link
+                  // (embeddedUrl type, or any symbol whose content is a URL).
+                  if ((symbol.type == 'embeddedUrl' ||
+                          (symbol.content?.contains('http') ?? false)) &&
+                      (symbol.content?.isNotEmpty ?? false))
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 6),
+                      child: _buildReplyLinkPreview(symbol.content!),
+                    ),
+                  // Link preview if the reply text itself contains a URL
+                  if (text.contains("http"))
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 6),
+                      child: _buildReplyLinkPreview(text),
+                    ),
+                  // Reply text + time
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Expanded(
+                        child: CustomText(
+                          text,
+                          fontWeight: FontWeight.w500,
+                          fontSize: 14,
+                          color: chatThemeController.isDarkMode.value
+                              ? Colors.white
+                              : Colors.black,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Align(
+                        alignment: Alignment.bottomRight,
+                        child: timeAndReadInfoWidget(
+                          indicateColor: chatThemeController.isDarkMode.value
+                              ? const Color(0xFFE9EDEF)
+                              : Colors.black,
+                          message: message,
+                          isMyMessage: message.myMessage ?? false,
+                          time: time,
+                          timeColor:
+                              chatThemeController.chatTimeColor.value,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildReplyLinkPreview(String message) {
+    if (!message.contains("http")) return const SizedBox.shrink();
+    final match = RegExp(r'(https?:\/\/[^\s]+)').firstMatch(message);
+    if (match == null) return const SizedBox.shrink();
+    final link = match.group(0)!;
+    String domain = link;
+    try {
+      domain = Uri.parse(link).host;
+      if (domain.startsWith('www.')) domain = domain.substring(4);
+    } catch (_) {}
+
+    return GestureDetector(
+      onTap: () {
+        final isBlueEra = link.contains('blueera');
+        launchUrl(Uri.parse(link),
+            mode: isBlueEra
+                ? LaunchMode.inAppBrowserView
+                : LaunchMode.inAppWebView);
+      },
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(10),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: Colors.grey.shade200),
+          ),
+          child: AnyLinkPreview.builder(
+            link: link,
+            cache: const Duration(days: 7),
+            placeholderWidget: Container(
+              height: 180,
+              color: Colors.grey.shade100,
+              child: const Center(
+                child: CircularProgressIndicator(
+                    strokeWidth: 2, color: AppColors.primaryColor),
+              ),
+            ),
+            errorWidget: const SizedBox.shrink(),
+            itemBuilder: (context, metadata, imageProvider, svgImage) {
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (imageProvider != null)
+                    SizedBox(
+                      height: 180,
+                      width: double.infinity,
+                      child: Image(image: imageProvider, fit: BoxFit.cover),
+                    )
+                  else if (svgImage != null)
+                    SizedBox(
+                        height: 160, width: double.infinity, child: svgImage),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (metadata.title != null &&
+                            metadata.title!.isNotEmpty)
+                          CustomText(
+                            metadata.title!,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.black87,
+                            height: 1.3,
+                          ),
+                        if (metadata.desc != null &&
+                            metadata.desc!.isNotEmpty) ...[
+                          const SizedBox(height: 3),
+                          CustomText(
+                            metadata.desc!,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            fontSize: 11,
+                            color: Colors.black54,
+                            height: 1.3,
+                          ),
+                        ],
+                        const SizedBox(height: 4),
+                        CustomText(
+                          domain,
+                          fontSize: 11,
+                          color: Colors.grey,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  IconData _iconForSymbolType(String? type) {
+    switch (type) {
+      case 'photo':
+        return Icons.image_outlined;
+      case 'video':
+        return Icons.videocam_outlined;
+      case 'text':
+        return Icons.text_fields_outlined;
+      case 'embeddedUrl':
+        return Icons.link;
+      default:
+        return Icons.auto_awesome_outlined;
+    }
   }
 
   Widget _buildDateDivider(String text) {

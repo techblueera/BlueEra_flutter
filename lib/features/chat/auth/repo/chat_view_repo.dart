@@ -126,6 +126,17 @@ class ChatViewRepo extends BaseService {
         .getHTTP(getChatRequest, onError: (error) {}, onSuccess: (data) {});
     return response;
   }
+
+  Future<ResponseModel> getChatExportAllApi() async {
+    final response = await ApiBaseHelper().getHTTP(
+      getChatExportAll,
+      showProgress: false,
+      params: const {'message_limit': 30},
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
   Future<ResponseModel> getLatestChatRepo() async {
     final response = await ApiBaseHelper()
         .getHTTP(getLatestChat, onError: (error) {}, onSuccess: (data) {});
