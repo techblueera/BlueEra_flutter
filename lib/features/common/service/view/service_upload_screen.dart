@@ -15,6 +15,7 @@ import 'package:BlueEra/features/common/service/controller/service_controller.da
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
+import 'package:BlueEra/widgets/common_drop_down.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -23,18 +24,10 @@ import 'package:get/get.dart';
 
 class ServiceUploadScreen extends StatefulWidget {
   final ProviderType providerType;
-  final bool? isFromEarnWithBlueEraService;
-  final String? channelId;
-  final String? designation;
-  final String? serviceSubType;
 
   ServiceUploadScreen({
     Key? key,
-    required this.providerType,
-    this.isFromEarnWithBlueEraService,
-    this.designation,
-    this.channelId,
-    this.serviceSubType})
+    required this.providerType})
       : super(key: key);
 
   @override
@@ -43,20 +36,10 @@ class ServiceUploadScreen extends StatefulWidget {
 
 class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
   final ServiceController controller = Get.put(ServiceController());
-  final viewBusinessDetailsController =
-  Get.put(ViewBusinessDetailsController());
-  bool isFromEarnWithBlueEraService = false;
+  final viewBusinessDetailsController = Get.find<ViewBusinessDetailsController>();
 
   @override
   void initState() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      isFromEarnWithBlueEraService = widget.isFromEarnWithBlueEraService??false;
-      if(isFromEarnWithBlueEraService){
-        controller.serviceNameController.text = widget.designation ?? 'OTHER';
-        controller.serviceName.value = controller.serviceNameController.text;
-      }
-    });
-
     viewBusinessDetailsController.getAllCategories();
     super.initState();
   }
@@ -84,17 +67,17 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SizedBox(height: SizeConfig.size10),
+                    SizedBox(height: SizeConfig.paddingXSL),
 
                     Container(
                       margin: const EdgeInsets.symmetric(
-                          vertical: 4, horizontal: 8),
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 10, horizontal: 10),
+                          vertical: 4,
+                          horizontal: 8
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
                       decoration: BoxDecoration(
                         color: Colors.lightBlue.shade50,
-                        // light blue background
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(10.0),
                         border: Border.all(
                             color: Colors.lightBlue.shade200, width: 1),
                       ),
@@ -130,7 +113,6 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
                                     Flexible(
                                       child: CustomText(
                                         userProfessionGlobal,
-                                        // (isFromEarnWithBlueEraService) ? SELF_EMPLOYED : "$userProfessionGlobal",
                                         color: Colors.blue.shade700,
                                         overflow: TextOverflow.ellipsis,
                                         maxLines: 3,
@@ -144,13 +126,13 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     CustomText(
-                                      AppStrings.workType,
+                                      '${AppStrings.workType} : ',
                                       fontWeight: FontWeight.bold,
                                       color: Colors.blue.shade800,
                                     ),
                                     Flexible(
                                       child: CustomText(
-                                        (isFromEarnWithBlueEraService)? widget.designation : "$userDesignationGlobal ",
+                                        "$userDesignationGlobal",
                                         color: Colors.blue.shade700,
                                         overflow: TextOverflow.ellipsis,
                                         maxLines: 3,
@@ -236,15 +218,34 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
                             ),
                     ),
 
-                    SizedBox(height: SizeConfig.size20),
+                    SizedBox(height: SizeConfig.paddingM),
 
                     // Upload Images Section
                     _buildUploadImagesSection(context),
-                    SizedBox(height: SizeConfig.size20),
+                    SizedBox(height: SizeConfig.paddingM),
+
+                    // Service Category Dropdown (individual providers only)
+                    if (accountTypeGlobal == AppConstants.individual) ...[
+                      CustomText(
+                        AppStrings.category.tr,
+                        fontSize: SizeConfig.large,
+                      ),
+                      SizedBox(height: SizeConfig.size8),
+                      Obx(() => CommonDropdown<String>(
+                            items: ServiceController.serviceCategoryOptions,
+                            selectedValue:
+                                controller.selectedServiceCategory.value,
+                            hintText: 'Select a category',
+                            onChanged: (val) =>
+                                controller.selectedServiceCategory.value = val,
+                            displayValue: (val) => val,
+                          )),
+                      SizedBox(height: SizeConfig.paddingM),
+                    ],
+
                     // Service Name Field
                     CommonTextField(
-                      title:  AppStrings.serviceName,
-                      readOnly: isFromEarnWithBlueEraService,
+                      title: AppStrings.serviceName,
                       textEditController: controller.serviceNameController,
                       hintText: AppStrings.hintServiceName,
                       onChange: (value) {
@@ -252,7 +253,8 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
                       },
                     ),
 
-                    SizedBox(height: SizeConfig.size20),
+                    SizedBox(height: SizeConfig.paddingM),
+
                     // Short description Field (Optional)
                     CommonTextField(
                       title: AppStrings.shortDescription,
@@ -271,7 +273,7 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
 
                     // Generate Button
                     _buildGenerateButton(),
-                    SizedBox(height: SizeConfig.size10),
+                    SizedBox(height: SizeConfig.paddingXSL),
                   ],
                 ),
               )),
@@ -345,18 +347,17 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
             onTap: isPersonalServiceValidate()
                 ? () async {
                     if (isPersonalServiceValidate()) {
+                      final category =
+                          controller.selectedServiceCategory.value ?? '';
                       await controller.generateServiceAiController(
                         serviceDetailsReq: {
                           ApiKeys.service_name: controller.serviceName.value,
-                          ApiKeys.category: controller.serviceName.value,
-                          ApiKeys.sub_category: userDesignationGlobal,
-                          if (controller.shortDescriptionName.value.isNotEmpty)
-                            ApiKeys.short_description:
-                                controller.shortDescriptionName.value,
+                          ApiKeys.category: category,
+                          if (controller.shortDescriptionName.value.isNotEmpty) ApiKeys.short_description: controller.shortDescriptionName.value,
                         },
                         providerType: widget.providerType,
-                        serviceSubType: widget.serviceSubType,
-                        category: controller.serviceName.value
+                        serviceSubType: 'homeService',
+                        category: category,
                       );
                     }
                   }
@@ -369,23 +370,16 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
       else
         return CustomBtn(
             isValidate: isValidate(),
-
             onTap: isValidate()
                 ? () async {
                     if (isValidate()) {
                       await controller.generateServiceAiController(
-                          channelId: widget.channelId,
                           providerType: widget.providerType,
                           serviceDetailsReq: {
                             ApiKeys.service_name: controller.serviceName.value,
-                            if (isBusiness())
-                              ApiKeys.category: businessCategoryGlobal,
-                            if (isBusiness())
-                              ApiKeys.sub_category: businessSubCategoryGlobal,
-                            if (controller
-                                .shortDescriptionName.value.isNotEmpty)
-                              ApiKeys.short_description:
-                                  controller.shortDescriptionName.value,
+                            if (isBusiness()) ApiKeys.category: businessCategoryGlobal,
+                            if (isBusiness()) ApiKeys.sub_category: businessSubCategoryGlobal,
+                            if (controller.shortDescriptionName.value.isNotEmpty) ApiKeys.short_description: controller.shortDescriptionName.value,
                           },
                           category: businessCategoryGlobal,
                       );
@@ -413,7 +407,8 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
   isPersonalServiceValidate() {
     log('selectedImage-- ${controller.serviceName.value.isNotEmpty}');
     return (controller.selectedImage.value != null &&
-        controller.serviceName.value.isNotEmpty);
+        controller.serviceName.value.isNotEmpty &&
+        (controller.selectedServiceCategory.value?.isNotEmpty ?? false));
   }
 
   String? validateServiceDescription(String? value) {

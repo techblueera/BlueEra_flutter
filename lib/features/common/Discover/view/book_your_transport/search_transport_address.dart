@@ -696,189 +696,128 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
   }
 
   Widget _rideBookingBottomSheet() {
-    return SafeArea(
-      top: false,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(16),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(20),
-            topRight: Radius.circular(20),
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black12,
-              blurRadius: 10,
-              offset: Offset(0, -3),
-            ),
-          ],
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(20),
+          topRight: Radius.circular(20),
         ),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              /// Drag handle
-              Center(
-                child: Container(
-                  margin: const EdgeInsets.only(bottom: 12),
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: AppColors.whiteE5,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black12,
+            blurRadius: 10,
+            offset: Offset(0, -3),
+          ),
+        ],
+      ),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            /// Drag handle
+            Center(
+              child: Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.whiteE5,
+                  borderRadius: BorderRadius.circular(2),
                 ),
               ),
+            ),
 
-              if (discoverController.selectedHorizontalTab.value == 1)
-                Obx(() {
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const CustomText(AppStrings.rideType,
-                          fontSize: 14, fontWeight: FontWeight.w600),
-                      const SizedBox(height: 10),
+            if (discoverController.selectedHorizontalTab.value == 1)
+              Obx(() {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const CustomText(AppStrings.rideType,
+                        fontSize: 14, fontWeight: FontWeight.w600),
+                    const SizedBox(height: 10),
 
-                      /// Ride Type Buttons
-                      Row(
-                        children: [
-                          _selectableChip(
-                            text: AppStrings.oneWay.tr,
-                            isSelected:
-                                discoverController.selectedRideType.value ==
-                                    AppConstants.oneWay,
-                            onTap: () {
-                              discoverController.selectedRideType.value =
-                                  AppConstants.oneWay;
-                            },
-                          ),
-                          const SizedBox(width: 10),
-                          _selectableChip(
-                            text: AppStrings.roundTrip.tr,
-                            isSelected:
-                                discoverController.selectedRideType.value ==
-                                    AppConstants.roundTrip,
-                            onTap: () {
-                              discoverController.selectedRideType.value =
-                                  AppConstants.roundTrip;
-                            },
-                          ),
-                          const SizedBox(width: 10),
-                          _selectableChip(
-                            text: AppStrings.sharingLabel.tr,
-                            isSelected:
-                                discoverController.selectedRideType.value ==
-                                    AppConstants.sharing,
-                            onTap: () {
-                              discoverController.selectedRideType.value =
-                                  AppConstants.sharing;
-                            },
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 16),
-                      const CustomText(AppStrings.bookingFor,
-                          fontSize: 14, fontWeight: FontWeight.w600),
-                      const SizedBox(height: 10),
-
-                      /// Booking For Buttons
-                      Row(
-                        children: [
-                          _selectableChip(
-                            text: AppStrings.mySelfLabel.tr,
-                            isSelected:
-                                discoverController.selectedBookingFor.value ==
-                                    AppConstants.mySelf,
-                            onTap: () {
-                              discoverController.selectedBookingFor.value =
-                                  AppConstants.mySelf;
-                            },
-                          ),
-                          const SizedBox(width: 10),
-                          _selectableChip(
-                            text: AppStrings.myFriend.tr,
-                            isSelected:
-                                discoverController.selectedBookingFor.value ==
-                                    AppConstants.myFriend,
-                            onTap: () {
-                              discoverController.selectedBookingFor.value =
-                                  AppConstants.myFriend;
-                            },
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 16),
-                      if (discoverController.selectedBookingFor.value !=
-                          AppConstants.mySelf)
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const CustomText(AppStrings.friendsMobileNumber,
-                                fontSize: 14, fontWeight: FontWeight.w600),
-                            const SizedBox(height: 10),
-
-                            /// Phone Field
-                            Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 12),
-                                  height: 46,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(
-                                        color: Colors.grey.shade300),
-                                  ),
-                                  child: Center(
-                                    child: CustomText("+91",
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w500),
-                                  ),
-                                ),
-                                const SizedBox(width: 10),
-                                Expanded(
-                                  child: CommonTextField(
-                                    textEditController: discoverController
-                                        .myFriendPhoneController,
-                                    sIcon: IconButton(
-                                        onPressed: () {},
-                                        icon: LocalAssets(
-                                          imagePath: AppIconAssets
-                                              .get_contacts_person,
-                                          height: 20,
-                                          width: 20,
-                                        )),
-                                    hintText: AppStrings.phoneNumberHint.tr,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
+                    /// Ride Type Buttons
+                    Row(
+                      children: [
+                        _selectableChip(
+                          text: AppStrings.oneWay.tr,
+                          isSelected:
+                              discoverController.selectedRideType.value ==
+                                  AppConstants.oneWay,
+                          onTap: () {
+                            discoverController.selectedRideType.value =
+                                AppConstants.oneWay;
+                          },
                         ),
-                    ],
-                  );
-                }),
-              if (discoverController.selectedHorizontalTab.value == 3)
-                Obx(() {
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      CommonTextField(
-                          textEditController:
-                              discoverController.receiversNameController,
-                          title: AppStrings.receiversName.tr,
-                          hintText: AppStrings.receiversNameHint.tr),
-                      const SizedBox(height: 16),
+                        const SizedBox(width: 10),
+                        _selectableChip(
+                          text: AppStrings.roundTrip.tr,
+                          isSelected:
+                              discoverController.selectedRideType.value ==
+                                  AppConstants.roundTrip,
+                          onTap: () {
+                            discoverController.selectedRideType.value =
+                                AppConstants.roundTrip;
+                          },
+                        ),
+                        const SizedBox(width: 10),
+                        _selectableChip(
+                          text: AppStrings.sharingLabel.tr,
+                          isSelected:
+                              discoverController.selectedRideType.value ==
+                                  AppConstants.sharing,
+                          onTap: () {
+                            discoverController.selectedRideType.value =
+                                AppConstants.sharing;
+                          },
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 16),
+                    const CustomText(AppStrings.bookingFor,
+                        fontSize: 14, fontWeight: FontWeight.w600),
+                    const SizedBox(height: 10),
+
+                    /// Booking For Buttons
+                    Row(
+                      children: [
+                        _selectableChip(
+                          text: AppStrings.mySelfLabel.tr,
+                          isSelected:
+                              discoverController.selectedBookingFor.value ==
+                                  AppConstants.mySelf,
+                          onTap: () {
+                            discoverController.selectedBookingFor.value =
+                                AppConstants.mySelf;
+                          },
+                        ),
+                        const SizedBox(width: 10),
+                        _selectableChip(
+                          text: AppStrings.myFriend.tr,
+                          isSelected:
+                              discoverController.selectedBookingFor.value ==
+                                  AppConstants.myFriend,
+                          onTap: () {
+                            discoverController.selectedBookingFor.value =
+                                AppConstants.myFriend;
+                          },
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 16),
+                    if (discoverController.selectedBookingFor.value !=
+                        AppConstants.mySelf)
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const CustomText(AppStrings.receiversMobileNumber,
-                              fontSize: 14, fontWeight: FontWeight.w400),
+                          const CustomText(AppStrings.friendsMobileNumber,
+                              fontSize: 14, fontWeight: FontWeight.w600),
                           const SizedBox(height: 10),
 
                           /// Phone Field
@@ -895,7 +834,7 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
                                 ),
                                 child: Center(
                                   child: CustomText("+91",
-                                      fontSize: 14,
+                                      fontSize: 16,
                                       fontWeight: FontWeight.w500),
                                 ),
                               ),
@@ -903,12 +842,12 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
                               Expanded(
                                 child: CommonTextField(
                                   textEditController: discoverController
-                                      .receiversNumberController,
+                                      .myFriendPhoneController,
                                   sIcon: IconButton(
                                       onPressed: () {},
                                       icon: LocalAssets(
-                                        imagePath:
-                                            AppIconAssets.get_contacts_person,
+                                        imagePath: AppIconAssets
+                                            .get_contacts_person,
                                         height: 20,
                                         width: 20,
                                       )),
@@ -919,201 +858,261 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 16),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const CustomText(AppStrings.parcelDetails,
-                              fontSize: 16, fontWeight: FontWeight.w600),
-                          InkWell(
-                            onTap: () {
-                              discoverController.clearParcelField();
-                              Get.dialog(Dialog(
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 12.0, vertical: 18),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          const CustomText(AppStrings.parcelDetails,
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.w600),
-                                          InkWell(
-                                              onTap: () {
-                                                Get.back();
-                                              },
-                                              child: Icon(
-                                                Icons.cancel_outlined,
-                                                color: AppColors.red,
-                                              )),
-                                        ],
-                                      ),
-                                      SizedBox(
-                                        height: 16,
-                                      ),
-                                      const CustomText(AppStrings.parcelCategory,
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w400),
-                                      SizedBox(
-                                        height: 10,
-                                      ),
-                                      Obx(() {
-                                        return CommonDropdown(
-                                          items: [
-                                            AppStrings.documentParcel.tr,
-                                            AppStrings.productParcel.tr,
-                                            AppStrings.othersParcel.tr
-                                          ],
-                                          selectedValue: discoverController
-                                              .selectedParcelCategory.value,
-                                          hintText: AppStrings.chooseParcelCategory.tr,
-                                          onChanged: (value) {
-                                            discoverController
-                                                .selectedParcelCategory
-                                                .value = value ?? '';
-                                          },
-                                          displayValue: (value) => value,
-                                        );
-                                      }),
-                                      const SizedBox(height: 16),
-                                      CommonTextField(
-                                        textEditController: discoverController
-                                            .parcelWeightController,
-                                        title: AppStrings.weightInKgOptional.tr,
-                                        hintText: AppStrings.weightHint.tr,
-                                        validator: (value) {
-                                          return null;
-                                        },
-                                      ),
-                                      const SizedBox(height: 16),
-                                      CommonTextField(
-                                        maxLine: 3,
-                                        textEditController: discoverController
-                                            .parcelDescriptionController,
-                                        title: AppStrings.description.tr,
-                                        hintText:
-                                            AppStrings.parcelDescriptionHint.tr,
-                                        validator: (value) {
-                                          return null;
-                                        },
-                                      ),
-                                      SizedBox(
-                                        height: 26,
-                                      ),
-                                      CustomBtn(
-                                          isValidate: true,
-                                          onTap: () {
-                                            discoverController
-                                                .addParcelDetails();
-                                            Get.back();
-                                          },
-                                          title: AppStrings.save.tr),
-                                    ],
-                                  ),
-                                ),
-                              ));
-                            },
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.add,
-                                  color: AppColors.primaryColor,
-                                ),
-                                const CustomText(
-                                  AppStrings.addLabel,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.primaryColor,
-                                ),
-                              ],
+                  ],
+                );
+              }),
+            if (discoverController.selectedHorizontalTab.value == 3)
+              Obx(() {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CommonTextField(
+                        textEditController:
+                            discoverController.receiversNameController,
+                        title: AppStrings.receiversName.tr,
+                        hintText: AppStrings.receiversNameHint.tr),
+                    const SizedBox(height: 16),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const CustomText(AppStrings.receiversMobileNumber,
+                            fontSize: 14, fontWeight: FontWeight.w400),
+                        const SizedBox(height: 10),
+
+                        /// Phone Field
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12),
+                              height: 46,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                    color: Colors.grey.shade300),
+                              ),
+                              child: Center(
+                                child: CustomText("+91",
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500),
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                      SizedBox(
-                        height: 10,
-                      ),
-                      ...discoverController.parcelDetailsList
-                          .map((e) => Container(
-                                margin:
-                                    EdgeInsets.symmetric(vertical: 4),
-                                decoration: BoxDecoration(
-                                    borderRadius:
-                                        BorderRadius.circular(10),
-                                    border: Border.all(
-                                        color: AppColors.whiteE5)),
-                                padding: EdgeInsets.symmetric(
-                                    horizontal: 10, vertical: 10),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: CommonTextField(
+                                textEditController: discoverController
+                                    .receiversNumberController,
+                                sIcon: IconButton(
+                                    onPressed: () {},
+                                    icon: LocalAssets(
+                                      imagePath:
+                                          AppIconAssets.get_contacts_person,
+                                      height: 20,
+                                      width: 20,
+                                    )),
+                                hintText: AppStrings.phoneNumberHint.tr,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const CustomText(AppStrings.parcelDetails,
+                            fontSize: 16, fontWeight: FontWeight.w600),
+                        InkWell(
+                          onTap: () {
+                            discoverController.clearParcelField();
+                            Get.dialog(Dialog(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 12.0, vertical: 18),
                                 child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment
-                                                .spaceBetween,
-                                        children: [
-                                          CustomText(
-                                            e.category,
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                          Row(
-                                            children: [
-                                              SizedBox(
-                                                width: 8,
-                                              ),
-                                              InkWell(
-                                                  onTap: () {
-                                                    discoverController
-                                                        .removeParcelDetails(
-                                                            e);
-                                                  },
-                                                  child: Icon(
-                                                    Icons.delete,
-                                                    color: AppColors.red,
-                                                    size: 22,
-                                                  ))
-                                            ],
-                                          ),
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        const CustomText(AppStrings.parcelDetails,
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w600),
+                                        InkWell(
+                                            onTap: () {
+                                              Get.back();
+                                            },
+                                            child: Icon(
+                                              Icons.cancel_outlined,
+                                              color: AppColors.red,
+                                            )),
+                                      ],
+                                    ),
+                                    SizedBox(
+                                      height: 16,
+                                    ),
+                                    const CustomText(AppStrings.parcelCategory,
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w400),
+                                    SizedBox(
+                                      height: 10,
+                                    ),
+                                    Obx(() {
+                                      return CommonDropdown(
+                                        items: [
+                                          AppStrings.documentParcel.tr,
+                                          AppStrings.productParcel.tr,
+                                          AppStrings.othersParcel.tr
                                         ],
-                                      ),
-                                      SizedBox(
-                                        height: 4,
-                                      ),
-                                      CustomText(e.weightKg,
-                                          fontSize: 12,
-                                          color: AppColors
-                                              .secondaryTextColor),
-                                      SizedBox(
-                                        height: 6,
-                                      ),
-                                      CustomText(
-                                        e.description,
+                                        selectedValue: discoverController
+                                            .selectedParcelCategory.value,
+                                        hintText: AppStrings.chooseParcelCategory.tr,
+                                        onChanged: (value) {
+                                          discoverController
+                                              .selectedParcelCategory
+                                              .value = value ?? '';
+                                        },
+                                        displayValue: (value) => value,
+                                      );
+                                    }),
+                                    const SizedBox(height: 16),
+                                    CommonTextField(
+                                      textEditController: discoverController
+                                          .parcelWeightController,
+                                      title: AppStrings.weightInKgOptional.tr,
+                                      hintText: AppStrings.weightHint.tr,
+                                      validator: (value) {
+                                        return null;
+                                      },
+                                    ),
+                                    const SizedBox(height: 16),
+                                    CommonTextField(
+                                      maxLine: 3,
+                                      textEditController: discoverController
+                                          .parcelDescriptionController,
+                                      title: AppStrings.description.tr,
+                                      hintText:
+                                          AppStrings.parcelDescriptionHint.tr,
+                                      validator: (value) {
+                                        return null;
+                                      },
+                                    ),
+                                    SizedBox(
+                                      height: 26,
+                                    ),
+                                    CustomBtn(
+                                        isValidate: true,
+                                        onTap: () {
+                                          discoverController
+                                              .addParcelDetails();
+                                          Get.back();
+                                        },
+                                        title: AppStrings.save.tr),
+                                  ],
+                                ),
+                              ),
+                            ));
+                          },
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.add,
+                                color: AppColors.primaryColor,
+                              ),
+                              const CustomText(
+                                AppStrings.addLabel,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.primaryColor,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(
+                      height: 10,
+                    ),
+                    ...discoverController.parcelDetailsList
+                        .map((e) => Container(
+                              margin:
+                                  EdgeInsets.symmetric(vertical: 4),
+                              decoration: BoxDecoration(
+                                  borderRadius:
+                                      BorderRadius.circular(10),
+                                  border: Border.all(
+                                      color: AppColors.whiteE5)),
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 10),
+                              child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment
+                                              .spaceBetween,
+                                      children: [
+                                        CustomText(
+                                          e.category,
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                        Row(
+                                          children: [
+                                            SizedBox(
+                                              width: 8,
+                                            ),
+                                            InkWell(
+                                                onTap: () {
+                                                  discoverController
+                                                      .removeParcelDetails(
+                                                          e);
+                                                },
+                                                child: Icon(
+                                                  Icons.delete,
+                                                  color: AppColors.red,
+                                                  size: 22,
+                                                ))
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                    SizedBox(
+                                      height: 4,
+                                    ),
+                                    CustomText(e.weightKg,
                                         fontSize: 12,
                                         color: AppColors
-                                            .secondaryTextColor,
-                                      ),
-                                    ]),
-                              ))
-                          .toList()
-                    ],
-                  );
-                }),
+                                            .secondaryTextColor),
+                                    SizedBox(
+                                      height: 6,
+                                    ),
+                                    CustomText(
+                                      e.description,
+                                      fontSize: 12,
+                                      color: AppColors
+                                          .secondaryTextColor,
+                                    ),
+                                  ]),
+                            ))
+                        .toList()
+                  ],
+                );
+              }),
 
-              const SizedBox(height: 16),
+            const SizedBox(height: 8),
 
-              /// Submit Button
-              CustomBtn(
+            /// Sub0mit Button
+            SafeArea(
+              child: CustomBtn(
                   isValidate:
                       (discoverController.selectedFromLat?.value != 0.0 &&
                           discoverController.selectedToLat?.value != 0.0),
@@ -1124,9 +1123,9 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
                         ));
                   },
                   title: AppStrings.confirmLocation.tr),
-              const SizedBox(height: 8),
-            ],
-          ),
+            ),
+            const SizedBox(height: 8),
+          ],
         ),
       ),
     );

@@ -269,6 +269,7 @@ class AppStrings {
   static const servicesOffered = "servicesOffered";
   static const noServicesListed = "noServicesListed";
   static const showLess = "showLess";
+  static const showMore = "showMore";
   static const viewAllServicesCount = "viewAllServicesCount";
   static const whyChooseMe = "whyChooseMe";
   static const expertiseLabel = "expertiseLabel";

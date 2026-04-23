@@ -11,6 +11,7 @@ import 'package:get/get.dart';
 
 class SelfEmployeeScreen extends StatefulWidget {
   final bool fromBottomNavBar;
+
   const SelfEmployeeScreen({
     super.key,
     this.fromBottomNavBar = false,
@@ -20,8 +21,7 @@ class SelfEmployeeScreen extends StatefulWidget {
   State<SelfEmployeeScreen> createState() => _SelfEmployeeScreenState();
 }
 
-class _SelfEmployeeScreenState extends State<SelfEmployeeScreen>
-    with SingleTickerProviderStateMixin, RouteAware {
+class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
   final controller = Get.find<ViewPersonalDetailsController>();
 
   @override
@@ -29,41 +29,5 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen>
     return SelfEmployeeDashboardView(
       fromBottomNavBar: widget.fromBottomNavBar,
     );
-
-    // return Obx(() {
-    //
-    //   if(controller.isEarnServiceOpt.value.isEmpty){
-    //     return _buildLoadingScaffold();
-    //   }
-    //
-    //   if(controller.isEarnServiceOpt.value == 'false'){
-    //     return AddSelfServiceScreen(
-    //       fromBottomNavBar: widget.fromBottomNavBar,
-    //       designation: userProfessionGlobal,
-    //       serviceSubType: EarnServiceTypes.selfWork,
-    //     );
-    //   }
-    //
-    //   return SelfEmployeeDashboardView(
-    //       fromBottomNavBar: widget.fromBottomNavBar,
-    //       initialTabIndex: widget.initialTabIndex,
-    //       initialProductSubTab: widget.initialProductSubTab,
-    //   );
-    // });
-
   }
-
-  Widget _buildLoadingScaffold() {
-    return Scaffold(
-      appBar: CommonBackAppBar(
-        isLeading: !widget.fromBottomNavBar,
-      ),
-      body: const Center(
-        child: CircularProgressIndicator(),
-      ),
-    );
-  }
-
-
-
 }

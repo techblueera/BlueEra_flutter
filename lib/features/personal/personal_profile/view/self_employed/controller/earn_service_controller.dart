@@ -56,6 +56,7 @@ class EarnServiceController extends GetxController{
 
   void handleServiceTap(BuildContext context, CollapsibleGridModel service) async {
     switch (service.slugId) {
+
       case SELF_EMPLOYED:
           showModalBottomSheet(
             context: context,
@@ -95,6 +96,7 @@ class EarnServiceController extends GetxController{
           builder: (_) => RentalServiceGuideBottomSheet(),
         );
         break;
+
       case PROFESSIONAL:
         showModalBottomSheet(
           context: context,

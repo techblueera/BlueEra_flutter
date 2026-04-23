@@ -11,12 +11,23 @@ import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class BookHomeServiceWidget extends StatelessWidget {
+class BookHomeServiceWidget extends StatefulWidget {
   const BookHomeServiceWidget({super.key});
 
   @override
+  State<BookHomeServiceWidget> createState() => _BookHomeServiceWidgetState();
+}
+
+class _BookHomeServiceWidgetState extends State<BookHomeServiceWidget> {
+  bool _showAll = false;
+
+  @override
   Widget build(BuildContext context) {
-    final categories = Get.find<AuthController>().individualOnboardingSkillWorkList;
+    final categories =
+        Get.find<AuthController>().individualOnboardingSkillWorkList;
+    final showMoreButton = categories.length > 8;
+    final displayCategories =
+        _showAll ? categories : categories.take(8).toList();
 
     return CustomFormCard(
       color: AppColors.white,
@@ -27,44 +38,50 @@ class BookHomeServiceWidget extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               titleWidget(AppStrings.bookHomeServices),
-              SizedBox(
-                width: SizeConfig.size8,
-              ),
-              ViewAllButton(
-                onTap: () {
-                  Get.to(() => AllSelfProfessionScreen(
-                    selfEmployedCategories: categories,
-                  ));
-                },
-              ),
+              if (showMoreButton)
+                ViewAllButton(
+                  onTap: () => setState(() => _showAll = !_showAll),
+                  label: _showAll
+                      ? AppStrings.showLess.tr
+                      : AppStrings.showMore.tr,
+                ),
             ],
           ),
           SizedBox(height: SizeConfig.paddingXSL),
-          LayoutBuilder(builder: (context, constraints) {
-            const double spacing = 8;
-            const int columns = 4;
-            final double itemWidth =
-                (constraints.maxWidth - spacing * (columns - 1)) / columns;
-            return Wrap(
-              spacing: spacing,
-              runSpacing: spacing,
-              children: categories.take(8).map((categoryItem) {
-                return SizedBox(
-                  width: itemWidth,
-                  child: BookHomeServiceCard(
-                    service: categoryItem,
-                    getName: (item) => item.name ?? '',
-                    getIcon: (item) => getIndividualProfessionIcon(item.tagId),
-                    onTap: (item) {
-                      Get.to(() => AllSelfProfessionScreen(
-                          selfEmployedCategories: categories,
-                          selectedSelfProfessionData: item));
-                    },
-                  ),
-                );
-              }).toList(),
-            );
-          })
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            child: LayoutBuilder(builder: (context, constraints) {
+              const double spacing = 8;
+              const int columns = 4;
+              final double itemWidth =
+                  (constraints.maxWidth - spacing * (columns - 1)) / columns;
+              return Wrap(
+                spacing: spacing,
+                runSpacing: spacing,
+                children: displayCategories.map((categoryItem) {
+                  return SizedBox(
+                    width: itemWidth,
+                    child: BookHomeServiceCard(
+                      service: categoryItem,
+                      getName: (item) {
+                        final raw = item.name ?? '';
+                        if (raw.toLowerCase().startsWith('home ')) {
+                          return raw.substring(5).trim();
+                        }
+                        return raw;
+                      },
+                      getIcon: (item) => getIndividualProfessionIcon(item.tagId),
+                      onTap: (item) {
+                        Get.to(() => AllSelfProfessionScreen(
+                            selfEmployedCategories: categories,
+                            selectedSelfProfessionData: item));
+                      },
+                    ),
+                  );
+                }).toList(),
+              );
+            }),
+          )
         ],
       ),
     );

@@ -117,17 +117,7 @@ class AppImageAssets {
   static String hostel = "${imgPath}hostel_icon.png";
 
   // /// Self employed images
-  // static String electrician = "${imgPath}electrician.png";
-  // static String mechanic = "${imgPath}mechanic.png";
-  // static String technician = "${imgPath}technician.png";
   static String plumber = "${imgPath}plumber.png";
-  // static String painter = "${imgPath}painter.png";
-  // static String homeRenovator = "${imgPath}home_renovator.png";
-  // static String maid = "${imgPath}maid.png";
-  // static String cleaner = "${imgPath}cleaner.png";
-  // static String carpenter = "${imgPath}carpenter.png";
-  // static String gardener = "${imgPath}gardener.png";
-  // static String securityPerson = "${imgPath}security_person.png";
   static String taxiDriver = "${imgPath}taxi_driver.png";
   static String deliveryPartner = "${imgPath}delivery_partner.png";
   static String autoDriver = "${imgPath}auto_driver.png";

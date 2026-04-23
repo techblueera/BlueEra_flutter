@@ -1,5 +1,4 @@
 import 'dart:developer';
-
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -13,6 +12,7 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/add_self_work_service_screen.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/controller/booking_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/model/availability_model.dart';
@@ -21,11 +21,11 @@ import 'package:BlueEra/features/personal/personal_profile/view/self_employed/co
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/service_selection_screen.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
-import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/common_drop_down.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -35,16 +35,16 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
-class SelfProfessionDetailsScreen extends StatefulWidget {
-  const SelfProfessionDetailsScreen({Key? key}) : super(key: key);
+class SelfProfessionHomeScreen extends StatefulWidget {
+  const SelfProfessionHomeScreen({Key? key}) : super(key: key);
 
   @override
-  State<SelfProfessionDetailsScreen> createState() =>
-      _SelfProfessionDetailsScreenState();
+  State<SelfProfessionHomeScreen> createState() =>
+      _SelfProfessionHomeScreenState();
 }
 
-class _SelfProfessionDetailsScreenState
-    extends State<SelfProfessionDetailsScreen> {
+class _SelfProfessionHomeScreenState
+    extends State<SelfProfessionHomeScreen> {
   final controller = getOrPut(() => SelfWorkServiceController());
   final bookingController = getOrPut(() => BookingController());
 
@@ -70,8 +70,13 @@ class _SelfProfessionDetailsScreenState
               child: CircularProgressIndicator(color: AppColors.primaryColor));
         }
 
-        // 3. Success State (Your UI)
+        // 2. Empty / Not-yet-created State — show an empty profile
         final service = this.controller.professionData.value;
+        if (service.sId == null || service.sId!.isEmpty) {
+          return _buildEmptyProfile(service.category ?? OTHER);
+        }
+
+        // 3. Success State (Your UI)
         this.controller.serviceId = service.sId;
 
         return SingleChildScrollView(
@@ -816,7 +821,7 @@ class _SelfProfessionDetailsScreenState
                   ),
                 ),
 
-                SizedBox(height: SizeConfig.size100)
+                SizedBox(height: 4 * kBottomNavigationBarHeight)
               ],
             ),
           ),
@@ -843,6 +848,22 @@ class _SelfProfessionDetailsScreenState
   //     preSelectedOptions: _preSelectedOptions,
   //   ));
   // }
+
+  Widget _buildEmptyProfile(String designation) {
+    return SafeArea(
+      child: EmptyStateWidget(
+        message: 'No profession profile yet',
+        actionText: 'Create Earn Service',
+        actionTextFontSize: SizeConfig.large,
+        actionCallback: () {
+          Get.to(() => AddSelfServiceScreen(
+                designation: designation,
+                serviceSubType: 'selfWork',
+              ));
+        },
+      ),
+    );
+  }
 
   EdgeInsets _innerPadding() => EdgeInsets.only(
         left: SizeConfig.size10,

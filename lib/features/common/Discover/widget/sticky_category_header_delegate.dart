@@ -83,6 +83,17 @@ class StickyCategoryHeaderDelegate extends SliverPersistentHeaderDelegate {
     final searchOpacity = (1 - t * 1.5).clamp(0.0, 1.0);
     final currentTopPad = (1 - t) * _vPad + t * topPadding;
 
+    // Responsive scaling: compact devices (~<360 logical px) were clipping
+    // the tab labels. Scale tile width, icon size, and label font down
+    // gracefully on narrow screens while keeping the original feel on
+    // regular / large phones.
+    final screenWidth = MediaQuery.of(context).size.width;
+    final double scale = (screenWidth / 390).clamp(0.82, 1.0);
+    final double tileWidth = SizeConfig.size65 * scale;
+    final double iconTileSize = SizeConfig.size48 * scale;
+    final double labelFontSize = SizeConfig.small * scale;
+    final double labelLineHeight = labelFontSize * 1.25;
+
     return ClipRect(
       child: BackdropFilter(
         // iOS-style glass: blur whatever scroll content sits behind the
@@ -203,6 +214,16 @@ class StickyCategoryHeaderDelegate extends SliverPersistentHeaderDelegate {
                             categories.length, (index) {
                           final item = categories[index];
                           final isActive = selectedId == item.id;
+                          // Single-word labels can't be broken on a space,
+                          // so Flutter was fragmenting the word across two
+                          // lines. Treat space-less names as single-line and
+                          // scale them down with FittedBox so the whole word
+                          // fits inside the tile width.
+                          final hasSpace = item.name.trim().contains(' ');
+                          final isSingle = singleLineLabel || !hasSpace;
+                          final displayName = isSingle
+                              ? item.name
+                              : item.name.replaceFirst(' ', '\n');
                           return Padding(
                             padding: EdgeInsets.only(
                                 right: SizeConfig.size10),
@@ -210,12 +231,12 @@ class StickyCategoryHeaderDelegate extends SliverPersistentHeaderDelegate {
                               behavior: HitTestBehavior.opaque,
                               onTap: () => onCategoryTap(item),
                               child: SizedBox(
-                                width: SizeConfig.size65,
+                                width: tileWidth,
                                 child: Column(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     _CategoryIconTile(
-                                      size: SizeConfig.size48,
+                                      size: iconTileSize,
                                       isActive: isActive,
                                       child: _buildCategoryIcon(
                                           item.imageUrl),
@@ -223,29 +244,47 @@ class StickyCategoryHeaderDelegate extends SliverPersistentHeaderDelegate {
                                     SizedBox(height: SizeConfig.size4),
                                     Container(
                                       height: singleLineLabel
-                                          ? SizeConfig.small * 1.6
-                                          : SizeConfig.small * 3.4,
+                                          ? labelLineHeight * 1.3
+                                          : labelLineHeight * 2.7,
                                       alignment: Alignment.topCenter,
-                                      child: CustomText(
-                                        singleLineLabel
-                                            ? item.name
-                                            : (item.name).replaceFirst(
-                                                ' ', '\n'),
-                                        fontSize: SizeConfig.small,
-                                        fontWeight: isActive
-                                            ? FontWeight.w600
-                                            : FontWeight.w500,
-                                        color: expandedLabelColor ??
-                                            (isActive
-                                                ? AppColors.primaryColor
-                                                : AppColors
-                                                    .secondaryTextColor),
-                                        maxLines:
-                                            singleLineLabel ? 1 : 2,
-                                        overflow:
-                                            TextOverflow.ellipsis,
-                                        textAlign: TextAlign.center,
-                                      ),
+                                      child: isSingle
+                                          ? FittedBox(
+                                              fit: BoxFit.scaleDown,
+                                              alignment: Alignment.topCenter,
+                                              child: CustomText(
+                                                displayName,
+                                                fontSize: labelFontSize,
+                                                fontWeight: isActive
+                                                    ? FontWeight.w600
+                                                    : FontWeight.w500,
+                                                color: expandedLabelColor ??
+                                                    (isActive
+                                                        ? AppColors
+                                                            .primaryColor
+                                                        : AppColors
+                                                            .secondaryTextColor),
+                                                maxLines: 1,
+                                                overflow:
+                                                    TextOverflow.ellipsis,
+                                                textAlign: TextAlign.center,
+                                              ),
+                                            )
+                                          : CustomText(
+                                              displayName,
+                                              fontSize: labelFontSize,
+                                              fontWeight: isActive
+                                                  ? FontWeight.w600
+                                                  : FontWeight.w500,
+                                              color: expandedLabelColor ??
+                                                  (isActive
+                                                      ? AppColors.primaryColor
+                                                      : AppColors
+                                                          .secondaryTextColor),
+                                              maxLines: 2,
+                                              overflow:
+                                                  TextOverflow.ellipsis,
+                                              textAlign: TextAlign.center,
+                                            ),
                                     ),
                                   ],
                                 ),

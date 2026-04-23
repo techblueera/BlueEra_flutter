@@ -157,7 +157,7 @@ class _AllProfessionConsultantScreenState
               ],
               body: NotificationListener<ScrollNotification>(
                 onNotification: _onScrollNotification,
-                child: rightContent(),
+                child: _buildContent(),
               ),
             ),
           ],
@@ -166,7 +166,7 @@ class _AllProfessionConsultantScreenState
     );
   }
 
-  Widget rightContent() {
+  Widget _buildContent() {
     return Obx(() => Padding(
           padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
           child: Column(
@@ -178,7 +178,7 @@ class _AllProfessionConsultantScreenState
                 selectedIndex:
                     controller.filters.indexOf(controller.selectedFilter.value),
                 horizontalMargin: 0.0,
-                verticalMargin: 0.0,
+                verticalMargin: 8.0,
                 onTabSelected: (index, _) {
                   final selectedEnum = controller.filters[index];
                   if (controller.selectedFilter.value == selectedEnum) return;

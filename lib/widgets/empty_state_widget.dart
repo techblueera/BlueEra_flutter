@@ -13,6 +13,8 @@ class EmptyStateWidget extends StatelessWidget {
   final double? imageSize;
   final Color? textColor;
   final double? fontSize;
+  final double? actionTextFontSize;
+  final bool actionHighlight;
 
   const EmptyStateWidget({
     super.key,
@@ -23,6 +25,8 @@ class EmptyStateWidget extends StatelessWidget {
     this.imageSize,
     this.textColor,
     this.fontSize,
+    this.actionTextFontSize,
+    this.actionHighlight = false,
   });
 
   @override
@@ -43,20 +47,40 @@ class EmptyStateWidget extends StatelessWidget {
             color: textColor ?? AppColors.secondaryTextColor,
             textAlign: TextAlign.center,
           ),
-          if(actionText!=null && actionCallback!=null)
-          Padding(
-            padding: const EdgeInsets.only(top: 4.0),
-            child: InkWell(
-              onTap: ()=> actionCallback!(),
-              child: CustomText(
-                actionText,
-                fontSize: SizeConfig.medium,
-                fontWeight: FontWeight.w500,
-                color: AppColors.primaryColor,
-                textAlign: TextAlign.center,
+          if (actionText != null && actionCallback != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 8.0),
+              child: InkWell(
+                onTap: () => actionCallback!(),
+                borderRadius: BorderRadius.circular(30),
+                child: Container(
+                  padding: actionHighlight
+                      ? EdgeInsets.symmetric(
+                          horizontal: SizeConfig.size16,
+                          vertical: SizeConfig.size8,
+                        )
+                      : EdgeInsets.zero,
+                  decoration: actionHighlight
+                      ? BoxDecoration(
+                          color: AppColors.primaryColor.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(30),
+                          border: Border.all(
+                            color: AppColors.primaryColor
+                                .withValues(alpha: 0.35),
+                          ),
+                        )
+                      : null,
+                  child: CustomText(
+                    actionText,
+                    fontSize: actionTextFontSize ?? SizeConfig.medium,
+                    fontWeight:
+                        actionHighlight ? FontWeight.w700 : FontWeight.w500,
+                    color: AppColors.primaryColor,
+                    textAlign: TextAlign.center,
+                  ),
+                ),
               ),
             ),
-          ),
         ],
       ),
     );

@@ -3,10 +3,8 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/controller/self_work_service_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/widget/add_service_bottom_sheet.dart';
-import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/cupertino.dart';
@@ -248,25 +246,70 @@ class _ServiceSelectionScreenState extends State<ServiceSelectionScreen> {
     );
 
     if (!widget.isDataUpdate) {
-      return Scaffold(
-        backgroundColor: AppColors.whiteF3,
-        appBar: CommonBackAppBar(title: widget.pageTitle),
-        body: SingleChildScrollView(
-          padding: EdgeInsets.symmetric(
-              vertical: SizeConfig.size15,
-              horizontal: SizeConfig.size8
+      // Standalone bottom-sheet presentation. The widget paints its own
+      // sheet chrome (rounded top, drag handle, header) so callers can
+      // just drop it into showModalBottomSheet.
+      return Container(
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+        ),
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: SafeArea(
+          top: false,
+          left: false,
+          right: false,
+          child: SingleChildScrollView(
+          padding: EdgeInsets.only(
+            left: SizeConfig.size12,
+            right: SizeConfig.size12,
+            top: SizeConfig.size10,
+            bottom: SizeConfig.size20,
           ),
-          child: CustomFormCard(
-            padding: EdgeInsets.symmetric(vertical: SizeConfig.size15),
-            child: contentBody, // <--- Reusing content here
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 50,
+                  height: 5,
+                  margin: const EdgeInsets.only(bottom: 10),
+                  decoration: BoxDecoration(
+                    color: AppColors.secondaryTextColor,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
+              Row(
+                children: [
+                  Expanded(
+                    child: CustomText(
+                      widget.pageTitle,
+                      fontWeight: FontWeight.w600,
+                      fontSize: SizeConfig.large,
+                      color: AppColors.mainTextColor,
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => Get.back(),
+                    icon: const Icon(Icons.close),
+                  ),
+                ],
+              ),
+              contentBody,
+            ],
+          ),
           ),
         ),
       );
     } else {
-      // Bottom Sheet view
+      // Used as inline content inside an outer update sheet.
       return Padding(
         padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-        child: contentBody, // <--- Reusing content here
+        child: contentBody,
       );
     }
   }

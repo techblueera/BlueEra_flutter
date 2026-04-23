@@ -6,10 +6,12 @@ import 'package:flutter/material.dart';
 class ViewAllButton extends StatelessWidget {
   /// The function to call when the button is tapped.
   final VoidCallback onTap;
+  final String? label;
 
   const ViewAllButton({
     super.key,
     required this.onTap,
+    this.label,
   });
 
   @override
@@ -28,9 +30,9 @@ class ViewAllButton extends StatelessWidget {
             borderRadius: BorderRadius.circular(30),
           ),
           child: CustomText(
-            AppStrings.viewAll, // The vibrant blue text color from the image
+            label ?? AppStrings.viewAll,
             color: AppColors.primaryColor,
-            fontWeight: FontWeight.w600, // Medium weight fits the design
+            fontWeight: FontWeight.w600,
           ),
         ),
       ),

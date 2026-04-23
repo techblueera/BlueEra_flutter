@@ -8,6 +8,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/self_employed/co
 import 'package:BlueEra/widgets/collapsible_grid_model.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/dashed_border_container.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -42,8 +43,6 @@ class _chooseEarnServiceScreenState extends State<chooseEarnServiceScreen> {
   final controller = getOrPut(() => EarnServiceController());
   int _selectedIndex = 0;
 
-  // Not const because some `AppImageAssets` entries are declared as plain
-  // `static String` (non-const), so the list itself can't be const.
   final List<_EarnOption> _options = [
     _EarnOption(
       title: 'Home Made Food',
@@ -227,14 +226,7 @@ class _chooseEarnServiceScreenState extends State<chooseEarnServiceScreen> {
             ),
             Padding(
               padding: EdgeInsets.symmetric(vertical: SizeConfig.size10),
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  return CustomPaint(
-                    size: Size(constraints.maxWidth, 1),
-                    painter: _DashedLinePainter(color: AppColors.greyE5),
-                  );
-                },
-              ),
+              child: DashedHorizontalLine(color: AppColors.greyE5),
             ),
             Wrap(
               alignment: WrapAlignment.center,
@@ -315,32 +307,3 @@ class _chooseEarnServiceScreenState extends State<chooseEarnServiceScreen> {
   }
 }
 
-class _DashedLinePainter extends CustomPainter {
-  final Color color;
-
-  _DashedLinePainter({required this.color});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..strokeWidth = 1
-      ..style = PaintingStyle.stroke;
-
-    const dashWidth = 5.0;
-    const dashSpace = 3.0;
-    double startX = 0;
-
-    while (startX < size.width) {
-      canvas.drawLine(
-        Offset(startX, 0),
-        Offset(startX + dashWidth, 0),
-        paint,
-      );
-      startX += dashWidth + dashSpace;
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}

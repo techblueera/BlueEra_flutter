@@ -39,6 +39,24 @@ class ServiceController extends GetxController {
   // Image selection
   final Rx<File?> selectedImage = Rx<File?>(null);
 
+  // Service category dropdown (Tailor / Beautician / Interior Designer /
+  // Digital Marketing). Selection is used as the AI-generation category
+  // for individual providers.
+  static const List<String> serviceCategoryOptions = [
+    'Tailor',
+    'Beautician',
+    'Interior Designer',
+    'Digital Marketing',
+  ];
+  final RxnString selectedServiceCategory = RxnString();
+
+  // Context carried into AddServicesScreenNew so we don't have to pass it
+  // as constructor args. Populated right before the post-AI navigation.
+  String? pendingChannelId;
+  ProviderType? pendingProviderType;
+  String? pendingServiceSubType;
+  String pendingCategory = '';
+
   // Loading state
   final RxBool isLoading = false.obs;
 
@@ -77,14 +95,14 @@ class ServiceController extends GetxController {
       if (responseModel.isSuccess) {
         serviceAiResModel.value =
             ServiceAiGenerateModel.fromJson(responseModel.response?.data);
-        // commonSnackBar(message: "Service generated successfully");
-        Get.to(()=> AddServicesScreenNew(
-          channelId: channelId,
-          providerType: providerType,
-          service: serviceAiResModel.value,
-          serviceSubType: serviceSubType,
-          category: category
-        ));/*    Get.to(ServiceDetailScreen(
+        // Stash context on the controller so AddServicesScreenNew can read
+        // it without constructor args.
+        pendingChannelId = channelId;
+        pendingProviderType = providerType;
+        pendingServiceSubType = serviceSubType;
+        pendingCategory = category;
+        Get.to(() => const AddServicesScreenNew());
+        /*    Get.to(ServiceDetailScreen(
           service: serviceAiResModel.value,
         ));*/
 

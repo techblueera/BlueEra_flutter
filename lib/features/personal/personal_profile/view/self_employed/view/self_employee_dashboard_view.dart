@@ -23,7 +23,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueer
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/controller/earn_service_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/controller/self_work_service_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/self_employee_orders.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/self_profession_details_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/self_profession_home_screen.dart';
 import 'package:BlueEra/features/subscription/view/subscription_status_view.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/common_circular_profile_image.dart';
@@ -168,7 +168,7 @@ class _SelfEmployeeDashboardViewState extends State<SelfEmployeeDashboardView>
               controller: _tabController,
               children: [
                 SelfEmployeeOrders(),
-                SelfProfessionDetailsScreen(),
+                SelfProfessionHomeScreen(),
                 const SubscriptionStatusView(),
               ],
             ),
@@ -234,6 +234,7 @@ class _SelfEmployeeDashboardViewState extends State<SelfEmployeeDashboardView>
                   ),
                   const SizedBox(width: 8),
                 ],
+
                 // Profile selector overlay pill (top-left). Rendered without
                 // an outer Flexible: when the earn profile is absent the
                 // Obx returns SizedBox.shrink and reserves no flex share,
@@ -278,8 +279,7 @@ class _SelfEmployeeDashboardViewState extends State<SelfEmployeeDashboardView>
                     padding: const EdgeInsets.only(left: 8),
                     child: _coverIconButton(
                       icon: Icons.add,
-                      onTap: () =>
-                          Get.to(() => const chooseEarnServiceScreen()),
+                      onTap: () => Get.to(() => const chooseEarnServiceScreen()),
                     ),
                   );
                 }),

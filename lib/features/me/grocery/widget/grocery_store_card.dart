@@ -94,48 +94,51 @@ class GroceryStoreCard extends StatelessWidget {
                   SizedBox(height: SizeConfig.paddingXSL),
 
                   // --- Address & Distance Card (Tappable) ---
-                  GestureDetector(
-                    onTap: () => _showMapBottomSheet(context),
-                    child: Container(
-                      padding: const EdgeInsets.all(8.0),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(10.0),
-                        border: Border.all(color: AppColors.greyE5, width: 0.5),
-                        color: AppColors.white,
-                      ),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          _buildIconContainer(AppIconAssets.location_outline),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                CustomText(
-                                  '${calculateDistanceKm(
-                                    LocationService.lat,
-                                    LocationService.lng,
-                                    store.businessLocation?.lat?.toDouble() ?? 0.0,
-                                    store.businessLocation?.lon?.toDouble() ?? 0.0,
-                                  ).toStringAsFixed(2)} Km Away',
-                                  fontSize: 14.0,
-                                  color: AppColors.secondaryTextColor,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                                SizedBox(height: SizeConfig.size4),
-                                CustomText(
-                                  store.address ?? AppStrings.na,
-                                  fontSize: 12.0,
-                                  color: AppColors.secondaryTextColor,
-                                  fontWeight: FontWeight.w400,
-                                ),
-                              ],
+                  Padding(
+                    padding: const EdgeInsets.only(left: 20),
+                    child: GestureDetector(
+                      onTap: () => _showMapBottomSheet(context),
+                      child: Container(
+                        padding: const EdgeInsets.all(8.0),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10.0),
+                          border: Border.all(color: AppColors.greyE5, width: 0.5),
+                          color: AppColors.white,
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            _buildIconContainer(AppIconAssets.location_outline),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  CustomText(
+                                    '${calculateDistanceKm(
+                                      LocationService.lat,
+                                      LocationService.lng,
+                                      store.businessLocation?.lat?.toDouble() ?? 0.0,
+                                      store.businessLocation?.lon?.toDouble() ?? 0.0,
+                                    ).toStringAsFixed(2)} Km Away',
+                                    fontSize: 14.0,
+                                    color: AppColors.secondaryTextColor,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                  SizedBox(height: SizeConfig.size4),
+                                  CustomText(
+                                    store.address ?? AppStrings.na,
+                                    fontSize: 12.0,
+                                    color: AppColors.secondaryTextColor,
+                                    fontWeight: FontWeight.w400,
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: 6),
-                          Icon(Icons.directions_rounded, size: 20, color: Colors.blue.shade400),
-                        ],
+                            const SizedBox(width: 6),
+                            Icon(Icons.directions_rounded, size: 20, color: Colors.blue.shade400),
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -143,72 +146,81 @@ class GroceryStoreCard extends StatelessWidget {
                   SizedBox(height: SizeConfig.size6),
 
                   // --- Stats: Category & Product ---
-                  Row(
-                    children: [
-                      _buildStatBox(
-                        icon: AppIconAssets.staggeredIcon,
-                        count: '${store.totalCategoryCount}',
-                        label: 'Category',
-                        iconColor: const Color(0xFF9964F4),
-                        bgColor: AppColors.purpleFD,
-                      ),
-                      SizedBox(width: SizeConfig.size6),
-                      _buildStatBox(
-                        icon: AppIconAssets.productCartIcon,
-                        count: '${store.totalProductCount}',
-                        label: 'Product',
-                        iconColor: const Color(0xFF6179CD),
-                        bgColor: AppColors.purpleFF,
-                      ),
-                    ],
+                  Padding(
+                    padding: const EdgeInsets.only(left: 20),
+                    child: Row(
+                      children: [
+                        _buildStatBox(
+                          icon: AppIconAssets.staggeredIcon,
+                          count: '${store.totalCategoryCount}',
+                          label: 'Category',
+                          iconColor: const Color(0xFF9964F4),
+                          bgColor: AppColors.purpleFD,
+                        ),
+                        SizedBox(width: SizeConfig.size6),
+                        _buildStatBox(
+                          icon: AppIconAssets.productCartIcon,
+                          count: '${store.totalProductCount}',
+                          label: 'Product',
+                          iconColor: const Color(0xFF6179CD),
+                          bgColor: AppColors.purpleFF,
+                        ),
+                      ],
+                    ),
                   ),
 
                   SizedBox(height: SizeConfig.size6),
 
                   // --- Live Photos / Logo ---
                   if (store.livePhotos?.isNotEmpty ?? false) ...[
-                    StoreLivePhotoWidget(
-                      livePhotos: store.livePhotos ?? [],
-                      natureOfBusiness: store.categoryOfBusiness?.name ??
-                          store.natureOfBusiness ??
-                          'OTHER',
-                      onViewFullScreen: ({
-                        required int index,
-                        required List<String> storeImage,
-                        required String natureOfBusiness,
-                      }) {
-                        _viewImageOnFullScreen(
-                          index: index,
-                          storeImage: storeImage,
-                          natureOfBusiness: natureOfBusiness,
-                        );
-                      },
+                    Padding(
+                      padding: const EdgeInsets.only(left: 20),
+                      child: StoreLivePhotoWidget(
+                        livePhotos: store.livePhotos ?? [],
+                        natureOfBusiness: store.categoryOfBusiness?.name ??
+                            store.natureOfBusiness ??
+                            'OTHER',
+                        onViewFullScreen: ({
+                          required int index,
+                          required List<String> storeImage,
+                          required String natureOfBusiness,
+                        }) {
+                          _viewImageOnFullScreen(
+                            index: index,
+                            storeImage: storeImage,
+                            natureOfBusiness: natureOfBusiness,
+                          );
+                        },
+                      ),
                     ),
                   ] else if ((store.logo ?? '').isNotEmpty) ...[
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: GestureDetector(
-                        onTap: () => _viewImageOnFullScreen(
-                          index: 0,
-                          storeImage: [store.logo!],
-                          natureOfBusiness: store.categoryOfBusiness?.name ??
-                              store.natureOfBusiness ??
-                              'OTHER',
-                        ),
-                        child: CachedNetworkImage(
-                          imageUrl: store.logo!,
-                          height: 160,
-                          width: double.infinity,
-                          fit: BoxFit.cover,
-                          memCacheWidth: 600,
-                          memCacheHeight: 600,
-                          placeholder: (_, __) => LocalAssets(
-                            imagePath: AppIconAssets.place_holder_image,
-                            boxFix: BoxFit.fill,
+                    Padding(
+                      padding: const EdgeInsets.only(left: 20),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: GestureDetector(
+                          onTap: () => _viewImageOnFullScreen(
+                            index: 0,
+                            storeImage: [store.logo!],
+                            natureOfBusiness: store.categoryOfBusiness?.name ??
+                                store.natureOfBusiness ??
+                                'OTHER',
                           ),
-                          errorWidget: (_, __, ___) => LocalAssets(
-                            imagePath: AppIconAssets.place_holder_image,
-                            boxFix: BoxFit.fill,
+                          child: CachedNetworkImage(
+                            imageUrl: store.logo!,
+                            height: 160,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                            memCacheWidth: 600,
+                            memCacheHeight: 600,
+                            placeholder: (_, __) => LocalAssets(
+                              imagePath: AppIconAssets.place_holder_image,
+                              boxFix: BoxFit.fill,
+                            ),
+                            errorWidget: (_, __, ___) => LocalAssets(
+                              imagePath: AppIconAssets.place_holder_image,
+                              boxFix: BoxFit.fill,
+                            ),
                           ),
                         ),
                       ),
@@ -223,16 +235,59 @@ class GroceryStoreCard extends StatelessWidget {
             // --- Footer: Quirky Message ---
             if (store.quirkyMessage != null && store.quirkyMessage!.isNotEmpty) ...[
               const Divider(height: 0.5, color: AppColors.greyE5),
-              Align(
-                alignment: Alignment.center,
-                child: Padding(
-                  padding: const EdgeInsets.all(10.0),
-                  child: CustomText(
-                    store.quirkyMessage!,
-                    fontSize: SizeConfig.small,
-                    color: AppColors.secondaryTextColor,
-                    fontWeight: FontWeight.w400,
-                    textAlign: TextAlign.center,
+              InkWell(
+                onTap: () {
+                  Get.toNamed(RouteHelper.getVisitGroceryStoreScreenRoute(), arguments: {
+                    ApiKeys.userId: store.userId,
+                    ApiKeys.businessId: store.id,
+                  });
+                },
+                borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(10.0),
+                  bottomRight: Radius.circular(10.0),
+                ),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 12.0),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                      colors: [
+                        AppColors.primaryColor.withValues(alpha: 0.08),
+                        AppColors.primaryColor.withValues(alpha: 0.02),
+                      ],
+                    ),
+                    borderRadius: const BorderRadius.only(
+                      bottomLeft: Radius.circular(10.0),
+                      bottomRight: Radius.circular(10.0),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.shopping_bag_outlined,
+                        size: 14,
+                        color: AppColors.primaryColor,
+                      ),
+                      SizedBox(width: SizeConfig.size6),
+                      Flexible(
+                        child: CustomText(
+                          store.quirkyMessage!,
+                          fontSize: SizeConfig.small,
+                          color: AppColors.primaryColor,
+                          fontWeight: FontWeight.w600,
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      SizedBox(width: SizeConfig.size6),
+                      Icon(
+                        Icons.arrow_forward_ios_rounded,
+                        size: 10,
+                        color: AppColors.primaryColor,
+                      ),
+                    ],
                   ),
                 ),
               )

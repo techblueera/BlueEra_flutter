@@ -1185,20 +1185,11 @@ class RouteHelper {
             args[ApiKeys.providerType] as ProviderType;
         final String? serviceSubType =
             args[ApiKeys.serviceSubType] as String?;
-        final bool? isFromEarnWithBlueEraService =
-            args[ApiKeys.isFromEarnWithBlueEraService] as bool?;
-        final String? designation = args[ApiKeys.designation] as String?;
-        final String? channelId = args[ApiKeys.channelId] as String?;
 
         return MaterialPageRoute(
             builder: (_) => ServiceUploadScreen(
                   providerType: providerType,
-                  isFromEarnWithBlueEraService: isFromEarnWithBlueEraService,
-                  channelId: channelId,
-                  designation: designation,
-                  serviceSubType: serviceSubType,
                 ),
-            // builder: (_) => AddServicesScreen(),
             settings: RouteSettings(name: getAddServicesScreenRoute()));
       case RouteConstant.addProductViaAiStep1:
         final args = settings.arguments as Map<String, dynamic>;

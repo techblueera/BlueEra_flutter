@@ -184,13 +184,16 @@ class ProductStoreCard extends StatelessWidget {
 
           if(getAllStoreResData?.websiteUrl?.isNotEmpty??false) ...[
             SizedBox(height: ds(6)),
-            InkWell(
-              onTap: ()=> launchUrl(Uri.parse(getAllStoreResData?.websiteUrl??'')),
-              child: CustomText(
-                getAllStoreResData?.websiteUrl ?? AppStrings.na,
-                fontSize: 12.0,
-                color: AppColors.primaryColor,
-                fontWeight: FontWeight.w600,
+            Padding(
+              padding: const EdgeInsets.only(left: 20),
+              child: InkWell(
+                onTap: ()=> launchUrl(Uri.parse(getAllStoreResData?.websiteUrl??'')),
+                child: CustomText(
+                  getAllStoreResData?.websiteUrl ?? AppStrings.na,
+                  fontSize: 12.0,
+                  color: AppColors.primaryColor,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
             // ExpandableText(
@@ -208,48 +211,51 @@ class ProductStoreCard extends StatelessWidget {
           SizedBox(height: ds(8)),
 
           // --- Address & Distance Card (Tappable) ---
-          GestureDetector(
-            onTap: () => _showMapBottomSheet(context),
-            child: Container(
-              padding: const EdgeInsets.all(8.0),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10.0),
-                border: Border.all(color: AppColors.greyE5, width: 0.5),
-                color: AppColors.white,
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  _buildIconContainer(AppIconAssets.location_outline),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        CustomText(
-                          '${calculateDistanceKm(
-                            LocationService.lat,
-                            LocationService.lng,
-                            getAllStoreResData?.businessLocation?.lat?.toDouble() ?? 0.0,
-                            getAllStoreResData?.businessLocation?.lon?.toDouble() ?? 0.0,
-                          ).toStringAsFixed(2)} Km Away',
-                          fontSize: 14.0,
-                          color: AppColors.secondaryTextColor,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        SizedBox(height: SizeConfig.size4),
-                        CustomText(
-                          getAllStoreResData?.address ?? AppStrings.na,
-                          fontSize: 12.0,
-                          color: AppColors.secondaryTextColor,
-                          fontWeight: FontWeight.w400,
-                        ),
-                      ],
+          Padding(
+            padding: const EdgeInsets.only(left: 20),
+            child: GestureDetector(
+              onTap: () => _showMapBottomSheet(context),
+              child: Container(
+                padding: const EdgeInsets.all(8.0),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10.0),
+                  border: Border.all(color: AppColors.greyE5, width: 0.5),
+                  color: AppColors.white,
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    _buildIconContainer(AppIconAssets.location_outline),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          CustomText(
+                            '${calculateDistanceKm(
+                              LocationService.lat,
+                              LocationService.lng,
+                              getAllStoreResData?.businessLocation?.lat?.toDouble() ?? 0.0,
+                              getAllStoreResData?.businessLocation?.lon?.toDouble() ?? 0.0,
+                            ).toStringAsFixed(2)} Km Away',
+                            fontSize: 14.0,
+                            color: AppColors.secondaryTextColor,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          SizedBox(height: SizeConfig.size4),
+                          CustomText(
+                            getAllStoreResData?.address ?? AppStrings.na,
+                            fontSize: 12.0,
+                            color: AppColors.secondaryTextColor,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 6),
-                  Icon(Icons.directions_rounded, size: 20, color: Colors.blue.shade400),
-                ],
+                    const SizedBox(width: 6),
+                    Icon(Icons.directions_rounded, size: 20, color: Colors.blue.shade400),
+                  ],
+                ),
               ),
             ),
           ),
@@ -257,72 +263,81 @@ class ProductStoreCard extends StatelessWidget {
           SizedBox(height: ds(5)),
 
           // --- Stats: Category & Product ---
-          Row(
-            children: [
-              _buildStatBox(
-                icon: AppIconAssets.staggeredIcon,
-                count: '${getAllStoreResData?.totalCategoryCount ?? 0}',
-                label: 'Category',
-                iconColor: const Color(0xFF9964F4),
-                bgColor: AppColors.purpleFD,
-              ),
-              SizedBox(width: SizeConfig.size6),
-              _buildStatBox(
-                icon: AppIconAssets.productCartIcon,
-                count: '${getAllStoreResData?.totalProductCount ?? 0}',
-                label: 'Product',
-                iconColor: const Color(0xFF6179CD),
-                bgColor: AppColors.purpleFF,
-              ),
-            ],
+          Padding(
+            padding: const EdgeInsets.only(left: 20),
+            child: Row(
+              children: [
+                _buildStatBox(
+                  icon: AppIconAssets.staggeredIcon,
+                  count: '${getAllStoreResData?.totalCategoryCount ?? 0}',
+                  label: 'Category',
+                  iconColor: const Color(0xFF9964F4),
+                  bgColor: AppColors.purpleFD,
+                ),
+                SizedBox(width: SizeConfig.size6),
+                _buildStatBox(
+                  icon: AppIconAssets.productCartIcon,
+                  count: '${getAllStoreResData?.totalProductCount ?? 0}',
+                  label: 'Product',
+                  iconColor: const Color(0xFF6179CD),
+                  bgColor: AppColors.purpleFF,
+                ),
+              ],
+            ),
           ),
 
           SizedBox(height: ds(5)),
           if(getAllStoreResData !=null && (getAllStoreResData?.livePhotos?.isNotEmpty ?? false)) ...[
             /// Image grid
-            StoreLivePhotoWidget(
-              livePhotos: getAllStoreResData?.livePhotos ?? [],
-              natureOfBusiness: getAllStoreResData?.categoryOfBusiness?.name ??
-                  getAllStoreResData?.natureOfBusiness ??
-                  'OTHER',
-              onViewFullScreen: ({
-                required int index,
-                required List<String> storeImage,
-                required String natureOfBusiness,
-              }) {
-                viewImageOnFullScreen(
-                  index: index,
-                  storeImage: storeImage,
-                  natureOfBusiness: natureOfBusiness,
-                );
-              },
+            Padding(
+              padding: const EdgeInsets.only(left: 20),
+              child: StoreLivePhotoWidget(
+                livePhotos: getAllStoreResData?.livePhotos ?? [],
+                natureOfBusiness: getAllStoreResData?.categoryOfBusiness?.name ??
+                    getAllStoreResData?.natureOfBusiness ??
+                    'OTHER',
+                onViewFullScreen: ({
+                  required int index,
+                  required List<String> storeImage,
+                  required String natureOfBusiness,
+                }) {
+                  viewImageOnFullScreen(
+                    index: index,
+                    storeImage: storeImage,
+                    natureOfBusiness: natureOfBusiness,
+                  );
+                },
+              ),
             ),
           ] else if ((getAllStoreResData?.logo ?? '').isNotEmpty) ...[
             /// Single logo photo fallback
-            ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: GestureDetector(
-                onTap: () => viewImageOnFullScreen(
-                  index: 0,
-                  storeImage: [getAllStoreResData!.logo!],
-                  natureOfBusiness: getAllStoreResData?.categoryOfBusiness?.name ??
-                      getAllStoreResData?.natureOfBusiness ??
-                      'OTHER',
-                ),
-                child: CachedNetworkImage(
-                  imageUrl: getAllStoreResData!.logo!,
-                  height: 160,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                  memCacheWidth: 600,
-                  memCacheHeight: 600,
-                  placeholder: (_, __) => LocalAssets(
-                    imagePath: AppIconAssets.place_holder_image,
-                    boxFix: BoxFit.fill,
+            Padding(
+              padding: const EdgeInsets.only(left: 20),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: GestureDetector(
+                  onTap: () => viewImageOnFullScreen(
+                    index: 0,
+                    storeImage: [getAllStoreResData!.logo!],
+                    natureOfBusiness: getAllStoreResData?.categoryOfBusiness?.name ??
+                        getAllStoreResData?.natureOfBusiness ??
+                        'OTHER',
                   ),
-                  errorWidget: (_, __, ___) => LocalAssets(
-                    imagePath: AppIconAssets.place_holder_image,
-                    boxFix: BoxFit.fill,
+                  child: CachedNetworkImage(
+                    imageUrl: getAllStoreResData!.logo!,
+                    height: 160,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    memCacheWidth: 600,
+                    memCacheHeight: 600,
+                    placeholder: (_, __) => LocalAssets(
+                      imagePath: AppIconAssets.place_holder_image,
+                      boxFix: BoxFit.fill,
+                    ),
+                    errorWidget: (_, __, ___) => LocalAssets(
+                      imagePath: AppIconAssets.place_holder_image,
+                      boxFix: BoxFit.fill,
+                    ),
                   ),
                 ),
               ),
