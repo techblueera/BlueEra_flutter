@@ -1183,12 +1183,13 @@ class RouteHelper {
         final args = settings.arguments as Map<String, dynamic>;
         final ProviderType providerType =
             args[ApiKeys.providerType] as ProviderType;
-        final String? serviceSubType =
-            args[ApiKeys.serviceSubType] as String?;
+        final String? channelId = args[ApiKeys.channelId] as String?;
+
 
         return MaterialPageRoute(
             builder: (_) => ServiceUploadScreen(
                   providerType: providerType,
+                  channelId: channelId,
                 ),
             settings: RouteSettings(name: getAddServicesScreenRoute()));
       case RouteConstant.addProductViaAiStep1:

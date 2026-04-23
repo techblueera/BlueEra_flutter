@@ -57,7 +57,7 @@ class _AddServicesScreenState extends State<AddServicesScreenNew> {
     addServiceController.imageLocalPaths
         .add(serviceController.selectedImage.value?.path ?? "");
 
-    addServiceController.category = serviceController.pendingCategory;
+    addServiceController.category = serviceController.category;
   }
 
   @override
@@ -659,8 +659,10 @@ class _AddServicesScreenState extends State<AddServicesScreenNew> {
                       CustomBtn(
                         title: AppStrings.postService,
                         onTap: () => addServiceController.createServiceApi(
-                            providerType: serviceController.pendingProviderType!,
-                            serviceSubType: serviceController.pendingServiceSubType,
+                            providerType: serviceController.providerType!,
+                            category: serviceController.category!,
+                            serviceSubType: serviceController.serviceSubType,
+                            channelId: serviceController.channelId,
                         ),
                         bgColor: AppColors.primaryColor,
                         textColor: AppColors.white,

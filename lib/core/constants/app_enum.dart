@@ -797,7 +797,8 @@ extension StoreTypeExtension on StoreType {
 
 enum ProviderType {
   user,
-  business;
+  business,
+  channel;
 
   String get title => name[0].toUpperCase() + name.substring(1);
 }

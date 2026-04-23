@@ -41,7 +41,6 @@ class _AddOthersServicesState extends State<AddOthersServices> {
       title: "Services",
       icon: AppIconAssets.other_services,
       page: () => ServiceUploadScreen(providerType: ProviderType.business),
-      // page: () => InventoryScreen(fromBottomNavBar: false,isShowScreen: BusinessType.Service.name,), // Update to your actual page
     ),
     ServiceMenuItem(
       title: "Announcements",

@@ -236,12 +236,16 @@ class AddServiceController extends GetxController {
     return true;
   }
 
-  Future<void> createServiceApi({required ProviderType providerType, String? serviceSubType}) async {
+  Future<void> createServiceApi({
+    required ProviderType providerType,
+    required String category,
+    String? serviceSubType,
+    String? channelId,
+  }) async {
 
     /// Provider Type
     // Business --> userId
     // User    ---> userId
-    // Channel ---> channelId
 
     if (!isValidate()) return;
 
@@ -263,15 +267,10 @@ class AddServiceController extends GetxController {
         ApiKeys.perUnit: perUnitCtrl.text.trim(),
         if (coupons.isNotEmpty)
           ApiKeys.discounts: coupons.map((e) => e.toJson()).toList(),
-        // if (detailsList.isNotEmpty)
-        //   ApiKeys.extraDetails: detailsList.map((e) => e.toJson()).toList()
       };
-      // String? capitalizeFirst(String name) {
-      //   if (name.isEmpty) return null;
-      //   return this[0].toUpperCase() + substring(1).toLowerCase();
-      // }
-      if(category!=null) params[ApiKeys.category] = category;
+      params[ApiKeys.category] = category;
       if(serviceSubType!=null)  params[ApiKeys.subType] = serviceSubType;
+      if(channelId!=null) params[ApiKeys.channelId] = channelId;
 
       if (isRange.isTrue) {
         params[ApiKeys.priceType] = 'range';

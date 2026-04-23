@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/features/common/service/model/get_service_model.dart';
@@ -40,22 +41,20 @@ class ServiceController extends GetxController {
   final Rx<File?> selectedImage = Rx<File?>(null);
 
   // Service category dropdown (Tailor / Beautician / Interior Designer /
-  // Digital Marketing). Selection is used as the AI-generation category
-  // for individual providers.
-  static const List<String> serviceCategoryOptions = [
-    'Tailor',
-    'Beautician',
-    'Interior Designer',
-    'Digital Marketing',
+  // Digital Marketing). The UI shows `name`; the API call uses `tagId`.
+  static const List<ServiceCategoryOption> serviceCategoryOptions = [
+    ServiceCategoryOption(name: 'Tailor', tagId: TAILOR),
+    ServiceCategoryOption(name: 'Beautician', tagId: BEAUTICIAN),
+    ServiceCategoryOption(name: 'Interior Designer', tagId: INTERIOR_DESIGNER),
+    ServiceCategoryOption(name: 'Digital Marketing', tagId: DIGITAL_MARKETING),
   ];
-  final RxnString selectedServiceCategory = RxnString();
+  final Rxn<ServiceCategoryOption> selectedServiceCategory =
+      Rxn<ServiceCategoryOption>();
 
-  // Context carried into AddServicesScreenNew so we don't have to pass it
-  // as constructor args. Populated right before the post-AI navigation.
-  String? pendingChannelId;
-  ProviderType? pendingProviderType;
-  String? pendingServiceSubType;
-  String pendingCategory = '';
+  ProviderType? providerType;
+  String? category;
+  String? serviceSubType;
+  String? channelId;
 
   // Loading state
   final RxBool isLoading = false.obs;
@@ -69,15 +68,10 @@ class ServiceController extends GetxController {
 
   Future<void> generateServiceAiController(
       {
-        String? channelId,
-        required ProviderType providerType,
-        required Map<String, dynamic> serviceDetailsReq,
-        String? serviceSubType,
-        required String category
+        required Map<String, dynamic> serviceDetailsReq
       }) async {
     try {
       isGenerateAiServiceLoading.value = true;
-      log('provider type-- ${providerType.title}');
       String fileName = selectedImage.value?.path.split('/').last ?? "";
       dio.MultipartFile? imageByPart = await dio.MultipartFile.fromFile(
           selectedImage.value?.path ?? "",
@@ -85,7 +79,6 @@ class ServiceController extends GetxController {
       Map<String, dynamic> reqParam = {
         ApiKeys.service_details: jsonEncode(serviceDetailsReq),
         ApiKeys.images: imageByPart,
-        // ApiKeys.providerType: providerType.title,
       };
       // if(channelId!=null){
       //   reqParam[ApiKeys.channelId] = channelId;
@@ -93,19 +86,8 @@ class ServiceController extends GetxController {
       ResponseModel responseModel =
           await ServiceAiRepo().aiServiceGenerateRepo(queryParam: reqParam);
       if (responseModel.isSuccess) {
-        serviceAiResModel.value =
-            ServiceAiGenerateModel.fromJson(responseModel.response?.data);
-        // Stash context on the controller so AddServicesScreenNew can read
-        // it without constructor args.
-        pendingChannelId = channelId;
-        pendingProviderType = providerType;
-        pendingServiceSubType = serviceSubType;
-        pendingCategory = category;
+        serviceAiResModel.value = ServiceAiGenerateModel.fromJson(responseModel.response?.data);
         Get.to(() => const AddServicesScreenNew());
-        /*    Get.to(ServiceDetailScreen(
-          service: serviceAiResModel.value,
-        ));*/
-
         serviceAiResponse.value = ApiResponse.complete(serviceAiResModel);
       } else {
         serviceAiResponse.value = ApiResponse.error('Failed to load');
@@ -250,4 +232,10 @@ class ServiceController extends GetxController {
     }
   }
 
+}
+
+class ServiceCategoryOption {
+  final String name;
+  final String tagId;
+  const ServiceCategoryOption({required this.name, required this.tagId});
 }

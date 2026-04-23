@@ -24,10 +24,13 @@ import 'package:get/get.dart';
 
 class ServiceUploadScreen extends StatefulWidget {
   final ProviderType providerType;
+  final String? channelId;
 
   ServiceUploadScreen({
     Key? key,
-    required this.providerType})
+    required this.providerType,
+    this.channelId
+  })
       : super(key: key);
 
   @override
@@ -41,6 +44,8 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
   @override
   void initState() {
     viewBusinessDetailsController.getAllCategories();
+    controller.providerType = widget.providerType;
+    if(widget.channelId!=null) controller.channelId = widget.channelId;
     super.initState();
   }
 
@@ -231,14 +236,14 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
                         fontSize: SizeConfig.large,
                       ),
                       SizedBox(height: SizeConfig.size8),
-                      Obx(() => CommonDropdown<String>(
+                      Obx(() => CommonDropdown<ServiceCategoryOption>(
                             items: ServiceController.serviceCategoryOptions,
                             selectedValue:
                                 controller.selectedServiceCategory.value,
                             hintText: 'Select a category',
                             onChanged: (val) =>
                                 controller.selectedServiceCategory.value = val,
-                            displayValue: (val) => val,
+                            displayValue: (val) => val.name,
                           )),
                       SizedBox(height: SizeConfig.paddingM),
                     ],
@@ -347,17 +352,16 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
             onTap: isPersonalServiceValidate()
                 ? () async {
                     if (isPersonalServiceValidate()) {
-                      final category =
-                          controller.selectedServiceCategory.value ?? '';
+                      controller.serviceSubType = 'homeService';
+                      controller.category =
+                          controller.selectedServiceCategory.value?.tagId ?? '';
+
                       await controller.generateServiceAiController(
                         serviceDetailsReq: {
                           ApiKeys.service_name: controller.serviceName.value,
-                          ApiKeys.category: category,
+                          ApiKeys.category: controller.category,
                           if (controller.shortDescriptionName.value.isNotEmpty) ApiKeys.short_description: controller.shortDescriptionName.value,
                         },
-                        providerType: widget.providerType,
-                        serviceSubType: 'homeService',
-                        category: category,
                       );
                     }
                   }
@@ -373,15 +377,14 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
             onTap: isValidate()
                 ? () async {
                     if (isValidate()) {
+                      controller.category = businessCategoryGlobal;
                       await controller.generateServiceAiController(
-                          providerType: widget.providerType,
                           serviceDetailsReq: {
                             ApiKeys.service_name: controller.serviceName.value,
                             if (isBusiness()) ApiKeys.category: businessCategoryGlobal,
                             if (isBusiness()) ApiKeys.sub_category: businessSubCategoryGlobal,
                             if (controller.shortDescriptionName.value.isNotEmpty) ApiKeys.short_description: controller.shortDescriptionName.value,
                           },
-                          category: businessCategoryGlobal,
                       );
                     }
                   }
@@ -408,7 +411,7 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
     log('selectedImage-- ${controller.serviceName.value.isNotEmpty}');
     return (controller.selectedImage.value != null &&
         controller.serviceName.value.isNotEmpty &&
-        (controller.selectedServiceCategory.value?.isNotEmpty ?? false));
+        controller.selectedServiceCategory.value != null);
   }
 
   String? validateServiceDescription(String? value) {
