@@ -72,6 +72,7 @@ class ChatList {
     this.sender,
     this.symbolData,
     this.isEnded,
+    this.lastMessageSendStatus,
   });
 
   ChatList.fromJson(dynamic json) {
@@ -89,6 +90,7 @@ class ChatList {
 
     sender = json['sender'] != null ? Sender.fromJson(json['sender']) : null;
     isEnded = json['isEnded'];
+    lastMessageSendStatus = json['last_message_send_status']?.toString();
 
     /// NEW: symbolData parsing
     if (json['symbolData'] != null) {
@@ -113,6 +115,12 @@ class ChatList {
 
   bool? isEnded;
 
+  /// Non-persisted (in-session) status of the row's last message: "pending"
+  /// while an offline-queued send hasn't reached the server, null once the
+  /// server echoes the message back. Used by ChatListTile to show a clock
+  /// glyph beside the time.
+  String? lastMessageSendStatus;
+
   /// NEW FIELD
   List<SymbolDataModel>? symbolData;
 
@@ -130,6 +138,7 @@ class ChatList {
     map['tagged'] = tagged;
     map['public_group'] = publicGroup;
     map['isEnded'] = isEnded;
+    map['last_message_send_status'] = lastMessageSendStatus;
 
     if (sender != null) {
       map['sender'] = sender?.toJson();

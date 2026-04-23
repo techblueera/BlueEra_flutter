@@ -60,12 +60,22 @@ class _PersonalChatScreenState extends State<PersonalChatScreen> {
   }
 
   void _onScroll() {
-    final isUp = chatViewController.scrollController.offset > 150;
+    final controller = chatViewController.scrollController;
+    final isUp = controller.offset > 150;
     if (isUp != chatViewController.isUserScrolledUp.value) {
       chatViewController.isUserScrolledUp.value = isUp;
       if (!isUp) {
         chatViewController.unreadNewMessageCount.value = 0;
       }
+    }
+    // The ListView is reverse:true, so the TOP of the chat is at the end of
+    // the scroll range. When the user is within 80px of the top, ask the
+    // server for the next 30-message window. loadMoreMessages is guarded so
+    // repeated triggers don't pile up.
+    if (controller.hasClients &&
+        controller.position.pixels >=
+            controller.position.maxScrollExtent - 80) {
+      chatViewController.loadMoreMessages();
     }
   }
 

@@ -12,8 +12,12 @@ import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
+import 'package:permission_handler/permission_handler.dart';
+
+import '../../../core/constants/check_internet_connectivity.dart';
 
 import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/constants/app_icon_assets.dart';
@@ -122,6 +126,46 @@ class _NewChatMainScreenState extends State<NewChatMainScreen>
       });
     }
     _loadContactsFromStorage();
+    // First-time-only contacts sync. On entry to the chat tab we ask for
+    // contacts permission, upload the phone book, and persist the response.
+    // Subsequent entries short-circuit on the Hive cache and never hit the
+    // network again. Offline entries skip the sync entirely.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _syncContactsIfNeeded();
+    });
+  }
+
+  Future<void> _syncContactsIfNeeded() async {
+    // Already synced (memory or Hive)? Nothing to do.
+    final hydrated = await chatViewController.hydrateContactsFromCache();
+    if (hydrated) return;
+
+    // First-time sync needs internet. Offline → skip; ContactsPage will
+    // render from cache (empty if none yet).
+    final online = await checkInternetStatus();
+    if (!online) return;
+
+    // Ask for contacts permission.
+    PermissionStatus status = await Permission.contacts.status;
+    if (!status.isGranted) {
+      status = await Permission.contacts.request();
+      if (!status.isGranted) return;
+    }
+
+    // Read the device phone book and upload once.
+    final contacts = await FlutterContacts.getContacts(
+      withProperties: true,
+      withAccounts: true,
+    );
+    final formatted = contacts
+        .where((c) => c.phones.isNotEmpty)
+        .map<Map<String, dynamic>>((c) => {
+              ApiKeys.contact_no: c.phones.first.number,
+              ApiKeys.name: c.displayName,
+            })
+        .toList();
+    if (formatted.isEmpty) return;
+    await chatViewController.uploadContacts(formatted);
   }
 
   List<Map<String, dynamic>> getFormattedContacts(

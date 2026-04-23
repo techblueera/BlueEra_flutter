@@ -15,7 +15,9 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/services/local_strorage_helper.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/auth/model/GetListOfMessageData.dart';
+import 'package:BlueEra/features/chat/auth/model/symbol_details_model.dart';
 import 'package:BlueEra/features/chat/auth/repo/chat_view_repo.dart';
+import 'package:BlueEra/features/chat/view/symbol_view/symbol_view_images.dart';
 import 'package:BlueEra/features/common/feed/view/post_detail_screen.dart';
 import 'package:BlueEra/main.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -571,6 +573,12 @@ class AppNotificationHandler {
   static FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
 
+  /// Secure-storage key for the id of the last launch-notification we've
+  /// already routed from. Prevents cold-start re-routing on every launch
+  /// while Android keeps the tapped notification's extras in the intent.
+  static const String _lastHandledLaunchNotificationIdKey =
+      'last_handled_launch_notification_id';
+
   /// True when the app was launched by tapping a notification (from terminated state).
   /// SplashScreen checks this to hold its UI instead of navigating to home.
   static bool launchedFromNotification = false;
@@ -604,6 +612,27 @@ class AppNotificationHandler {
       if (payLoad != null && payLoad.isNotEmpty) {
         try {
           final data = jsonDecode(payLoad) as Map<String, dynamic>;
+
+          // Android's getNotificationAppLaunchDetails() keeps returning the
+          // same intent extras on every cold start until new extras arrive.
+          // Without this guard, the tapped notification would re-open on
+          // every launch. Skip if we've already handled this notificationId.
+          final currentId = data['notificationId']?.toString();
+          if (currentId != null && currentId.isNotEmpty) {
+            final lastHandled = await SharedPreferenceUtils.getSecureValue(
+                _lastHandledLaunchNotificationIdKey);
+            if (lastHandled == currentId) {
+              print(
+                  "[COLD_START] notification $currentId already handled — skipping re-open");
+              if (notificationNavigationCompleter != null &&
+                  !notificationNavigationCompleter!.isCompleted) {
+                notificationNavigationCompleter!.complete();
+              }
+              return;
+            }
+            await SharedPreferenceUtils.setSecureValue(
+                _lastHandledLaunchNotificationIdKey, currentId);
+          }
           // Skip incoming-call cold-start routing here — main()'s pre-runApp
           // check (readAndClearPendingIncomingCallAccept) already decided
           // whether to auto-accept. If the user tapped Accept we're already
@@ -969,6 +998,84 @@ class AppNotificationHandler {
         return;
       }
     }
+  }
+
+  /// Force a fresh FCM token. Use on logout so the device unbinds from
+  /// the previous user; Android GMS can briefly hand back the
+  /// just-deleted token from getToken(), so retry with short backoff
+  /// until we see a different value.
+  ///
+  /// Fault-tolerant: if GMS is unavailable (SERVICE_NOT_AVAILABLE,
+  /// common on emulators without Play Services or on offline devices),
+  /// keep the previous cached token rather than clearing it and
+  /// returning null. The onTokenRefresh listener in setupFcmToken()
+  /// will sync the real new token to the backend once GMS recovers.
+  static Future<String?> refreshFcmToken() async {
+    final rawOld = await SharedPreferenceUtils.getSecureValue(
+        SharedPreferenceUtils.notificationDeviceToken);
+    final String? oldToken =
+        (rawOld is String && rawOld.isNotEmpty) ? rawOld : null;
+
+    if (Platform.isIOS) {
+      final apns = await FirebaseMessaging.instance.getAPNSToken();
+      if (apns == null || apns.isEmpty) {
+        await _waitForApnsToken();
+      }
+    }
+
+    bool deleted = false;
+    try {
+      await FirebaseMessaging.instance.deleteToken();
+      deleted = true;
+    } catch (e) {
+      print("===fcm-refresh=== deleteToken error: $e");
+    }
+
+    // If deleteToken() failed, GMS is already in a bad state — calling
+    // getToken() will fail too. Keep the old token as fallback and let
+    // onTokenRefresh sync a real new one once GMS recovers.
+    if (!deleted) {
+      print("===fcm-refresh=== keeping old token (delete failed): $oldToken");
+      return oldToken;
+    }
+
+    String? newToken;
+    const int maxAttempts = 6;
+    // Exponential backoff: 1s, 2s, 4s, 8s, 16s, 32s — total ~63s
+    // worst-case. SERVICE_NOT_AVAILABLE on a real device usually
+    // resolves within 30s once GMS finishes re-registering the
+    // Firebase Installation after deleteToken().
+    for (int i = 0; i < maxAttempts; i++) {
+      try {
+        newToken = await FirebaseMessaging.instance.getToken();
+      } catch (e) {
+        print("===fcm-refresh=== getToken error (attempt ${i + 1}/$maxAttempts): $e");
+      }
+      final hasNewToken = newToken != null && newToken.isNotEmpty;
+      final isDifferent = hasNewToken && newToken != oldToken;
+      if (hasNewToken && (isDifferent || Platform.isIOS)) break;
+      if (i < maxAttempts - 1) {
+        final waitMs = 1000 * (1 << i);
+        await Future.delayed(Duration(milliseconds: waitMs));
+      }
+    }
+
+    if (newToken != null && newToken.isNotEmpty) {
+      await SharedPreferenceUtils.setSecureValue(
+          SharedPreferenceUtils.notificationDeviceToken, newToken);
+      print("===fcm-refresh=== new token $newToken");
+      return newToken;
+    }
+
+    // GMS never handed us a new token. Keep the old one in cache so
+    // verifyOTP still sends something addressable; onTokenRefresh will
+    // upgrade the server-side token when GMS comes back.
+    print("===fcm-refresh=== failed to obtain new token, keeping old: $oldToken");
+    if (oldToken != null) {
+      await SharedPreferenceUtils.setSecureValue(
+          SharedPreferenceUtils.notificationDeviceToken, oldToken);
+    }
+    return oldToken;
   }
 
   /// handle notification when app in fore ground.. local notification......
@@ -1975,6 +2082,11 @@ print("ORDER SCREEN NAME message.data ${message.data}");
         }
         break;
 
+      // Symbol operations
+      case 'symbol_created':
+        _openSymbolFromNotification(data);
+        break;
+
       default:
         // Default: open notifications screen or home
         break;
@@ -1983,6 +2095,62 @@ print("ORDER SCREEN NAME message.data ${message.data}");
     /// Clear all local notifications
     flutterLocalNotificationsPlugin.cancelAll();
   }
+  /// Build a SymbolDetailsModel from a SYMBOL_CREATED FCM payload and open
+  /// the symbol viewer. Falls back to opening the sender's chat if the
+  /// payload is malformed (so the tap never becomes a dead-end).
+  static void _openSymbolFromNotification(Map<String, dynamic> data) {
+    try {
+      final rawPayload = data['payload'];
+      if (rawPayload == null) return;
+      final Map<String, dynamic> payload = rawPayload is String
+          ? Map<String, dynamic>.from(jsonDecode(rawPayload) as Map)
+          : Map<String, dynamic>.from(rawPayload as Map);
+
+      final symbolId = payload['symbol_id']?.toString();
+      if (symbolId == null || symbolId.isEmpty) return;
+
+      final senderId = data['senderId']?.toString();
+      final senderName = data['senderName']?.toString();
+      final senderImage = data['senderProfileImage']?.toString();
+
+      DateTime? _parseDate(dynamic v) {
+        if (v == null) return null;
+        return DateTime.tryParse(v.toString());
+      }
+
+      final symbol = SymbolDetailsModel(
+        id: symbolId,
+        userId: senderId,
+        type: payload['type']?.toString(),
+        content: payload['content']?.toString(),
+        caption: payload['caption']?.toString(),
+        backgroundColor: payload['backgroundColor']?.toString(),
+        fontFamily: payload['fontFamily']?.toString(),
+        fontSize: payload['fontSize'] is num
+            ? (payload['fontSize'] as num).toDouble()
+            : null,
+        fontWeight: payload['fontWeight']?.toString(),
+        visibility: payload['visibility']?.toString(),
+        expiresAt: _parseDate(payload['expires_at']),
+        createdAt: _parseDate(payload['created_at']),
+        user: UserModel(
+          id: senderId,
+          name: senderName,
+          profileImage: senderImage,
+        ),
+      );
+
+      Get.to(() => SymbolViewImages(
+            initialSymbol: symbol,
+            userId: senderId,
+            name: senderName,
+            profileImage: senderImage,
+          ));
+    } catch (e) {
+      logs('Failed to open symbol from notification: $e');
+    }
+  }
+
   static void _handlePostNavigation(Map<String, dynamic> data) {
     if (data['payload'] != null) {
       final payloadMap = jsonDecode(data['payload']);
@@ -2133,10 +2301,12 @@ print("ORDER SCREEN NAME message.data ${message.data}");
           operation == 'selfpickup_order_ready') {
         playNotificationSound = hello_delivery;
       } else {
-        playNotificationSound = notificationSound;
+        playNotificationSound = chatNotificationSound;
+        // playNotificationSound = notificationSound;
       }
     } on Exception {
-      playNotificationSound = notificationSound;
+      playNotificationSound = chatNotificationSound;
+      // playNotificationSound = notificationSound;
     }
 
     try {

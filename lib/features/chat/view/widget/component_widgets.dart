@@ -265,6 +265,7 @@ Widget  ChatListTile({
   final lastMessage = chat?.lastMessage;
   final unreadCount = chat?.unreadCount ?? 0;
   final updatedAt = chat?.updatedAt ?? '';
+  final isPendingLastMessage = chat?.lastMessageSendStatus == "pending";
 
   bool isSelected = false;
 
@@ -611,10 +612,24 @@ Widget  ChatListTile({
               : Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              CustomText(
-                "${formatTimeFromUtc(updatedAt)}",
-                fontSize: SizeConfig.size11,
-                color: AppColors.grey9A,
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (isPendingLastMessage)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 4),
+                      child: Icon(
+                        Icons.access_time,
+                        size: SizeConfig.size12,
+                        color: AppColors.grey9A,
+                      ),
+                    ),
+                  CustomText(
+                    "${formatTimeFromUtc(updatedAt)}",
+                    fontSize: SizeConfig.size11,
+                    color: AppColors.grey9A,
+                  ),
+                ],
               ),
               SizedBox(height: SizeConfig.size6),
               Row(

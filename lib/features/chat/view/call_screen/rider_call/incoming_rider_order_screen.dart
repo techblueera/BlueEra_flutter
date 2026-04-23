@@ -1155,7 +1155,7 @@ class _IncomingRiderOrderScreenState extends State<IncomingRiderOrderScreen>
               icon: isSpeakerOn
                   ? Icons.volume_up_rounded
                   : Icons.volume_down_rounded,
-              label: 'Speaker',
+              label: 'Speaker 7',
               isActive: isSpeakerOn,
               onTap: _toggleSpeaker,
               enabled: isConnected,

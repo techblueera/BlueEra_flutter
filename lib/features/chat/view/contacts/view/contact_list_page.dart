@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/check_internet_connectivity.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_theme_controller.dart';
 import 'package:BlueEra/features/chat/view/group_chat/add_new_group_page.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -44,20 +45,20 @@ class _ContactsPageState extends State<ContactsPage> {
   @override
   void initState() {
     super.initState();
-    chatViewController.loadGroupConnections();
-    // uploadContacts handles: memory check → Hive cache → API (in that order)
-    _loadContacts();
+    // chatViewController.loadGroupConnections();
+
+    _loadContactsFromCache();
     _searchController.addListener(_onSearchChanged);
   }
 
-  Future<void> _loadContacts() async {
-    // Memory → Hive short-circuit: if we've ever successfully synced before,
-    // render from cache and don't ask for the contacts permission or hit the
-    // network. Fresh data only comes in via the refresh button.
+  Future<void> _loadContactsFromCache() async {
     final hydrated = await chatViewController.hydrateContactsFromCache();
     if (hydrated) return;
-    // No cache yet — fall through to the permission-gated fetch + sync.
-    await _fetchAndUploadContacts();
+    // Nothing cached yet — mark the response complete with whatever the
+    // controller holds (possibly null) so the UI drops the spinner and
+    // shows an empty state instead of hanging.
+    chatViewController.viewContactsListResponse.value =
+        ApiResponse.complete(chatViewController.contactsListModel?.value);
   }
 
   @override
@@ -222,12 +223,19 @@ class _ContactsPageState extends State<ContactsPage> {
           title: AppStrings.myContacts,
           isLeading: true,
           isReloadContactButton: true,
-          onRefreshContact: () {
+          onRefreshContact: () async {
             if (isGroupMode) {
               chatViewController.loadGroupConnections();
-            } else {
-              _fetchAndUploadContacts(forceRefresh: true);
+              return;
             }
+            // Refresh pulls from the API; if we're offline we stay on the
+            // cached list instead of triggering a failed request.
+            final online = await checkInternetStatus();
+            if (!online) {
+              commonSnackBar(message: AppStrings.offline.tr);
+              return;
+            }
+            _fetchAndUploadContacts(forceRefresh: true);
           },
         ),
         body: Column(

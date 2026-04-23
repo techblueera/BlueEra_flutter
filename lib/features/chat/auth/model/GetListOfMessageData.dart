@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:BlueEra/features/chat/auth/model/payment_success_model.dart';
 import 'package:BlueEra/features/chat/auth/model/replyParantMessage.dart';
 import 'package:BlueEra/features/chat/auth/model/self_pickup_order_model.dart';
+import 'package:BlueEra/features/chat/auth/model/symbol_details_model.dart';
 
 import 'Conversation.dart';
 import 'messageMediaUrl.dart';
@@ -426,6 +427,10 @@ class MessageMetadata {
   String? callStatus;
   String? callTime;
 
+  // reply_to_symbol fields
+  String? symbolId;
+  SymbolDetailsModel? symbol;
+
   MessageMetadata({
     this.foodId,
     this.productId,
@@ -459,6 +464,8 @@ class MessageMetadata {
     this.otherUserId,
     this.callStatus,
     this.callTime,
+    this.symbolId,
+    this.symbol,
   });
 
   factory MessageMetadata.fromJson(Map<String, dynamic> json) {
@@ -508,6 +515,11 @@ class MessageMetadata {
       otherUserId: json['other_user_id']?.toString(),
       callStatus: json['call_status']?.toString(),
       callTime: json['call_time']?.toString(),
+      symbolId: json['symbol_id']?.toString(),
+      symbol: json['symbol'] is Map
+          ? SymbolDetailsModel.fromJson(
+              Map<String, dynamic>.from(json['symbol']))
+          : null,
     );
   }
 
@@ -542,6 +554,8 @@ class MessageMetadata {
       'other_user_id': otherUserId,
       'call_status': callStatus,
       'call_time': callTime,
+      'symbol_id': symbolId,
+      'symbol': symbol?.toJson(),
     };
   }
 }
