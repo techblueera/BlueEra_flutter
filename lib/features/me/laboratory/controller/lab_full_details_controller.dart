@@ -44,7 +44,7 @@ class LabFullDetailsController extends GetxController {
         ResponseModel response =
             await _repoProfile.postDescription({uploadVia: result.url});
         if (response.isSuccess) {
-          commonSnackBar(message: response.response?.data['message']);
+          commonSnackBar(message: response.message);
           fetchFullDetails();
         } else {
           commonSnackBar(message: AppStrings.somethingWentWrong);

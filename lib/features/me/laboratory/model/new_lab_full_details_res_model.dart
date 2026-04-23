@@ -640,6 +640,7 @@ class Profile {
       this.coverUrl, 
       this.name, 
       this.description, 
+      this.logoUrl, 
       this.userId, 
       this.createdAt, 
       this.updatedAt, 
@@ -648,6 +649,7 @@ class Profile {
   Profile.fromJson(dynamic json) {
     id = json['_id'];
     coverUrl = json['coverUrl'];
+    logoUrl = json['logoUrl'];
     name = json['name'];
     description = json['description'];
     userId = json['userId'];
@@ -657,6 +659,7 @@ class Profile {
   }
   String? id;
   String? coverUrl;
+  String? logoUrl;
   String? name;
   String? description;
   String? userId;
@@ -668,6 +671,7 @@ class Profile {
     final map = <String, dynamic>{};
     map['_id'] = id;
     map['coverUrl'] = coverUrl;
+    map['logoUrl'] = logoUrl;
     map['name'] = name;
     map['description'] = description;
     map['userId'] = userId;

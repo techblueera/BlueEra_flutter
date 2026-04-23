@@ -20,7 +20,7 @@ class S3ImageUploader {
       ApiResponse<ResponseModel>.loading().obs;
 
   final RxDouble overallProgress = 0.0.obs;
-  final RxBool   isUploading     = false.obs;
+  final RxBool isUploading = false.obs;
   final RxString currentFileName = ''.obs;
 
   bool assignPreSignedUrls({
@@ -52,7 +52,8 @@ class S3ImageUploader {
 
     void updateOverall() {
       final total = progressMap.values.fold(0.0, (a, b) => a + b);
-      overallProgress.value = (0.2 + (total / totalImages) * 0.8).clamp(0.0, 1.0);
+      overallProgress.value =
+          (0.2 + (total / totalImages) * 0.8).clamp(0.0, 1.0);
     }
 
     try {
@@ -92,9 +93,9 @@ class S3ImageUploader {
   }) async {
     try {
       final response = await ChannelRepo().uploadVideoToS3(
-        onProgress:   onProgress,
-        file:         file,
-        fileType:     fileType,
+        onProgress: onProgress,
+        file: file,
+        fileType: fileType,
         preSignedUrl: preSignedUrl,
       );
 
@@ -103,7 +104,8 @@ class S3ImageUploader {
         return true;
       } else {
         uploadResponse.value = ApiResponse.error('error');
-        commonSnackBar(message: response?.message ?? AppStrings.somethingWentWrong.tr);
+        commonSnackBar(
+            message: response?.message ?? AppStrings.somethingWentWrong.tr);
         return false;
       }
     } catch (e) {
@@ -116,9 +118,9 @@ class S3ImageUploader {
 
   // ✅ Reset state
   void reset() {
-    uploadResponse.value   = ApiResponse.loading();
-    overallProgress.value  = 0.0;
-    isUploading.value      = false;
-    currentFileName.value  = '';
+    uploadResponse.value = ApiResponse.loading();
+    overallProgress.value = 0.0;
+    isUploading.value = false;
+    currentFileName.value = '';
   }
 }

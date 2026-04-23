@@ -630,8 +630,6 @@ class _LabFullDetailsScreenState extends State<LabFullDetailsScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Logo and Hotel Name
-                if (controller.details.value?.profile?.coverUrl?.isNotEmpty ??
-                    false)
                   Container(
                     width: 100,
                     height: 100,
@@ -640,10 +638,13 @@ class _LabFullDetailsScreenState extends State<LabFullDetailsScreen> {
                       boxShadow: [
                         BoxShadow(color: Colors.black12, blurRadius: 10)
                       ],
-                      image: DecorationImage(
-                          image: NetworkImage(
-                              controller.details.value?.profile?.coverUrl ?? ''),
-                          fit: BoxFit.cover),
+                      image: (controller.details.value?.profile?.logoUrl?.isNotEmpty ?? false)
+                          ? DecorationImage(
+                              image: NetworkImage(controller.details.value!.profile!.logoUrl!),
+                              fit: BoxFit.cover)
+                          : DecorationImage(
+                              image: AssetImage(AppIconAssets.place_holder_image),
+                              fit: BoxFit.cover),
                     ),
                   ),
                 const SizedBox(height: 10),

@@ -60,18 +60,24 @@ class LabServicePhotosPhotoScreen extends StatelessWidget {
                         children: [
                           ClipRRect(
                             borderRadius: BorderRadius.circular(8),
-                            child: Image.network(
-                              firstImage,
-                              width: 100,
-                              height: 100,
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) =>
-                                  Container(
-                                      color: Colors.grey,
-                                      width: 100,
-                                      height: 100,
-                                      child: Icon(Icons.image)),
-                            ),
+                            child: firstImage.isNotEmpty
+                                ? Image.network(
+                                    firstImage,
+                                    width: 100,
+                                    height: 100,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) =>
+                                        Container(
+                                            color: Colors.grey,
+                                            width: 100,
+                                            height: 100,
+                                            child: const Icon(Icons.image)),
+                                  )
+                                : Container(
+                                    color: Colors.grey,
+                                    width: 100,
+                                    height: 100,
+                                    child: const Icon(Icons.image)),
                           ),
                           Positioned(
                             bottom: 8,

@@ -126,7 +126,8 @@ class HealthCampController extends GetxController {
   void addImages(List<String> paths) {
     final remaining = maxImages - selectedImages.length;
     if (remaining <= 0) {
-      commonSnackBar(message: "${AppStrings.labMaxImagesAllowed.tr} ($maxImages)");
+      commonSnackBar(
+          message: "${AppStrings.labMaxImagesAllowed.tr} ($maxImages)");
       return;
     }
     final newFiles = paths.take(remaining).map((e) => File(e)).toList();
@@ -157,7 +158,8 @@ class HealthCampController extends GetxController {
       if (result.isSuccess) {
         urls.add(result.url);
       } else {
-        commonSnackBar(message: "${AppStrings.labImageUploadFailed.tr} ${result.message}");
+        commonSnackBar(
+            message: "${AppStrings.labImageUploadFailed.tr} ${result.message}");
       }
     }
     return urls;
@@ -200,7 +202,8 @@ class HealthCampController extends GetxController {
   }
 
   void toggleTestDiscount(PathologyTest item) {
-    final index = selectedTestDiscounts.indexWhere((d) => d.test?.id == item.id);
+    final index =
+        selectedTestDiscounts.indexWhere((d) => d.test?.id == item.id);
     if (index >= 0) {
       selectedTestDiscounts.removeAt(index);
     } else {
@@ -244,15 +247,22 @@ class HealthCampController extends GetxController {
   Future<void> fetchCamps() async {
     isLoading.value = true;
     try {
-    ResponseModel res = await _repo.getHealthCamps();
-    if (res.isSuccess) {
-      List data = res.response?.data['data'] ?? [];
-      camps.value = data.map((e) => HealthCamp.fromJson(e)).toList();
-    }
+      ResponseModel res = await _repo.getHealthCamps();
+      if (res.isSuccess) {
+        List data = res.response?.data['data'] ?? [];
+        camps.value = data.map((e) => HealthCamp.fromJson(e)).toList();
+      }
     } catch (e) {
     } finally {
       isLoading.value = false;
     }
+  }
+
+  /// Filter selectedTestDiscounts to only include entries with valid test IDs
+  List<TestDiscount> _getValidTestDiscounts() {
+    return selectedTestDiscounts
+        .where((d) => d.test?.id != null && d.test!.id!.isNotEmpty)
+        .toList();
   }
 
   Future<bool> createCamp() async {
@@ -265,6 +275,7 @@ class HealthCampController extends GetxController {
           .toIso8601String();
       final end = DateTime(endYear.value, endMonth.value, endDay.value)
           .toIso8601String();
+      final validDiscounts = _getValidTestDiscounts();
       final payload = HealthCamp(
         sqFoot: int.tryParse(sqFootController.text.trim()) ?? 0,
         title: typeController.text.trim(),
@@ -276,9 +287,6 @@ class HealthCampController extends GetxController {
         startTime: selectedTime.value,
         laboratoryId: labIDGlobal,
         images: imageUrls.isNotEmpty ? imageUrls : null,
-        // testCategories: selectedTestCategories.isNotEmpty
-        //     ? selectedTestCategories.toList()
-        //     : null,
         location: (lat.value != 0.0 || lng.value != 0.0)
             ? HealthCampLocation(
                 name: searchController.text.trim(),
@@ -286,10 +294,10 @@ class HealthCampController extends GetxController {
                 coordinates: [lng.value, lat.value],
               )
             : null,
-        testDiscounts: selectedTestDiscounts.isNotEmpty
-            ? selectedTestDiscounts.toList()
-            : null,
+        testDiscounts: validDiscounts.isNotEmpty ? validDiscounts : null,
       ).toJson();
+
+      print("[HealthCamp] CREATE payload: $payload");
 
       ResponseModel res = await _repo.createHealthCamp(payload);
       if (res.isSuccess) {
@@ -297,11 +305,15 @@ class HealthCampController extends GetxController {
         await fetchCamps();
         return true;
       } else {
-        commonSnackBar(
-            message: res.response?.data['message'] ?? AppStrings.labFailedToCreate.tr);
+        final errorMsg = res.response?.data['message'] ??
+            res.response?.data['error'] ??
+            AppStrings.labFailedToCreate.tr;
+        print("[HealthCamp] CREATE failed: ${res.response?.data}");
+        commonSnackBar(message: errorMsg.toString());
         return false;
       }
     } catch (e) {
+      print("[HealthCamp] CREATE exception: $e");
       commonSnackBar(message: "${AppStrings.hotelErrorPrefix.tr} $e");
       return false;
     } finally {
@@ -319,6 +331,12 @@ class HealthCampController extends GetxController {
           .toIso8601String();
       final end = DateTime(endYear.value, endMonth.value, endDay.value)
           .toIso8601String();
+
+      // Keep existing images if no new images were uploaded
+      final List<String>? finalImages =
+          imageUrls.isNotEmpty ? imageUrls : existing.images;
+
+      final validDiscounts = _getValidTestDiscounts();
       final payload = HealthCamp(
         id: existing.id,
         sqFoot: int.tryParse(sqFootController.text.trim()) ?? existing.sqFoot,
@@ -331,10 +349,7 @@ class HealthCampController extends GetxController {
         endDate: end,
         startTime: selectedTime.value,
         laboratoryId: labIDGlobal,
-        images: imageUrls.isNotEmpty ? imageUrls : null,
-        // testCategories: selectedTestCategories.isNotEmpty
-        //     ? selectedTestCategories.toList()
-        //     : null,
+        images: finalImages,
         location: (lat.value != 0.0 || lng.value != 0.0)
             ? HealthCampLocation(
                 name: searchController.text.trim(),
@@ -342,10 +357,10 @@ class HealthCampController extends GetxController {
                 coordinates: [lng.value, lat.value],
               )
             : null,
-        testDiscounts: selectedTestDiscounts.isNotEmpty
-            ? selectedTestDiscounts.toList()
-            : null,
+        testDiscounts: validDiscounts.isNotEmpty ? validDiscounts : null,
       ).toJson();
+
+      print("[HealthCamp] UPDATE payload: $payload");
 
       ResponseModel res = await _repo.updateHealthCamp(existing.id!, payload);
       if (res.isSuccess) {
@@ -353,11 +368,15 @@ class HealthCampController extends GetxController {
         await fetchCamps();
         return true;
       } else {
-        commonSnackBar(
-            message: res.response?.data['message'] ?? AppStrings.labFailedToUpdate.tr);
+        final errorMsg = res.response?.data['message'] ??
+            res.response?.data['error'] ??
+            AppStrings.labFailedToUpdate.tr;
+        print("[HealthCamp] UPDATE failed: ${res.response?.data}");
+        commonSnackBar(message: errorMsg.toString());
         return false;
       }
     } catch (e) {
+      print("[HealthCamp] UPDATE exception: $e");
       commonSnackBar(message: "${AppStrings.hotelErrorPrefix.tr} $e");
       return false;
     } finally {
@@ -375,7 +394,8 @@ class HealthCampController extends GetxController {
         await fetchCamps();
       } else {
         commonSnackBar(
-            message: res.response?.data['message'] ?? AppStrings.labFailedToDelete.tr);
+            message: res.response?.data['message'] ??
+                AppStrings.labFailedToDelete.tr);
       }
     } catch (e) {
       commonSnackBar(message: "${AppStrings.hotelErrorPrefix.tr} $e");
@@ -406,6 +426,7 @@ class HealthCampController extends GetxController {
       isDetailLoading.value = false;
     }
   }
+
   void preloadForm(HealthCamp? camp) {
     if (camp == null) {
       typeController.clear();
@@ -438,7 +459,10 @@ class HealthCampController extends GetxController {
       selectedImages.clear();
       // selectedTestCategories.value =
       //     camp.testCategories?.toList() ?? [];
-      selectedTestDiscounts.value = camp.testDiscounts?.toList() ?? [];
+      selectedTestDiscounts.value = (camp.testDiscounts ?? [])
+          .where(
+              (d) => d.test?.testName != null && d.test!.testName!.isNotEmpty)
+          .toList();
       if (camp.location != null) {
         searchController.text = camp.location?.name ?? "";
         lat.value = (camp.location?.coordinates != null &&
@@ -455,7 +479,7 @@ class HealthCampController extends GetxController {
         lng.value = 0.0;
       }
       labTestsMap.clear();
-      addDiscountTestEnabled.value = camp.testDiscounts?.isNotEmpty ?? false;
+      addDiscountTestEnabled.value = selectedTestDiscounts.isNotEmpty;
       try {
         final s = DateTime.tryParse(camp.startDate ?? "");
         final e = DateTime.tryParse(camp.endDate ?? "");

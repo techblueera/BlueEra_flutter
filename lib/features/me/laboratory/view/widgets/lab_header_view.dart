@@ -9,9 +9,11 @@ import 'package:BlueEra/features/me/laboratory/model/new_lab_full_details_res_mo
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:croppy/croppy.dart';
 
 class LabHeaderView extends StatefulWidget {
   final LabFullDetailsController schoolAboutUsController;
@@ -33,28 +35,36 @@ class _LabHeaderViewState extends State<LabHeaderView> {
   final ImagePicker _picker = ImagePicker();
 
   Future<void> _pickImage(bool isBanner) async {
-    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
-    if (image != null) {
+    final String? imagePath = await SelectProfilePictureDialog.showLogoDialog(
+      context,
+      isBanner
+          ? AppStrings.editCoverPicture.tr
+          : AppStrings.uploadProfilePicture.tr,
+      cropAspectRatio: isBanner
+          ? const CropAspectRatio(width: 16, height: 9)
+          : const CropAspectRatio(width: 1, height: 1),
+    );
+
+    if (imagePath != null && imagePath.isNotEmpty) {
       setState(() {
         if (isBanner) {
-          _bannerImage = File(image.path);
+          _bannerImage = File(imagePath);
         } else {
-          _logoImage = File(image.path);
+          _logoImage = File(imagePath);
         }
       });
       if (isBanner) {
         await widget.schoolAboutUsController.uploadSchoolLogoOrBannerImage(
-            uploadFile: File(image.path), uploadVia: 'coverUrl');
+            uploadFile: File(imagePath), uploadVia: 'coverUrl');
       } else {
         await widget.schoolAboutUsController.uploadSchoolLogoOrBannerImage(
-            uploadFile: File(image.path), uploadVia: 'logoUrl');
+            uploadFile: File(imagePath), uploadVia: 'logoUrl');
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-
     final size = MediaQuery.of(context).size;
     return CommonCardWidget(
       padding: 0,
@@ -69,12 +79,6 @@ class _LabHeaderViewState extends State<LabHeaderView> {
               clipBehavior: Clip.none,
               children: [
                 // Banner Image
-                if(widget
-                    .schoolAboutUsController
-                    .details
-                    .value
-                    ?.profile
-                    ?.coverUrl?.isNotEmpty??false)
                 GestureDetector(
                   onTap: () => null,
                   // onTap: () => _pickImage(true),
@@ -83,51 +87,42 @@ class _LabHeaderViewState extends State<LabHeaderView> {
                     height: size.height * 0.17,
                     decoration: BoxDecoration(
                       color: Colors.blueGrey[100],
-                      borderRadius: BorderRadius.only(
+                      borderRadius: const BorderRadius.only(
                           topLeft: Radius.circular(10),
                           topRight: Radius.circular(10)),
                       image: _bannerImage != null
                           ? DecorationImage(
-                              image: FileImage(_bannerImage ?? File("")),
+                              image: FileImage(_bannerImage!),
                               fit: BoxFit.cover)
-                          : DecorationImage(
-                              image: NetworkImage((widget
-                                          .schoolAboutUsController
-                                          .details
-                                          .value
-                                          ?.profile
-                                          ?.coverUrl
-                                          ?.isNotEmpty ??
-                                      false)
-                                  ? (widget.schoolAboutUsController.details
-                                          .value?.profile?.coverUrl ??
-                                      "")
-                                  : widget
-                                          .schoolAboutUsController
-                                          .details
-                                          .value
-                                          ?.profile
-                                          ?.coverUrl
-                                           ??
-                                      ""),
-                              fit: BoxFit.cover),
+                          : (widget.schoolAboutUsController.details.value
+                                      ?.profile?.coverUrl?.isNotEmpty ??
+                                  false)
+                              ? DecorationImage(
+                                  image: NetworkImage(widget
+                                      .schoolAboutUsController
+                                      .details
+                                      .value!
+                                      .profile!
+                                      .coverUrl!),
+                                  fit: BoxFit.cover)
+                              : null,
                     ),
                   ),
                 ),
                 if (widget.isOwnProfile)
-                Positioned(
-                  right: 20,
-                  top: 10,
-                  child: InkWell(
-                    onTap: () => _pickImage(true),
-                    child: Container(
-                        width: 30,
-                        height: 30,
-                        child: LocalAssets(
-                          imagePath: AppIconAssets.edit_banner_icon,
-                        )),
+                  Positioned(
+                    right: 20,
+                    top: 10,
+                    child: InkWell(
+                      onTap: () => _pickImage(true),
+                      child: Container(
+                          width: 30,
+                          height: 30,
+                          child: LocalAssets(
+                            imagePath: AppIconAssets.edit_banner_icon,
+                          )),
+                    ),
                   ),
-                ),
 
                 // Logo Image
                 Positioned(
@@ -147,53 +142,47 @@ class _LabHeaderViewState extends State<LabHeaderView> {
                         ],
                         image: _logoImage != null
                             ? DecorationImage(
-                                image: FileImage(_logoImage ?? File("")),
+                                image: FileImage(_logoImage!),
                                 fit: BoxFit.cover)
-                            : DecorationImage(
-                                image: NetworkImage((widget
-                                            .schoolAboutUsController
-                                            .details
-                                            .value
-                                            ?.profile
-                                            ?.coverUrl
-                                            ?.isNotEmpty ??
-                                        false)
-                                    ? (widget.schoolAboutUsController.details
-                                            .value?.profile?.coverUrl ??
-                                        "")
-                                    : widget
-                                            .schoolAboutUsController
-                                            .details
-                                            .value
-                                            ?.profile
-                                            ?.coverUrl
-                                             ??
-                                        ""),
-                                fit: BoxFit.cover),
+                            : (widget.schoolAboutUsController.details.value
+                                        ?.profile?.logoUrl?.isNotEmpty ??
+                                    false)
+                                ? DecorationImage(
+                                    image: NetworkImage(widget
+                                        .schoolAboutUsController
+                                        .details
+                                        .value!
+                                        .profile!
+                                        .logoUrl!),
+                                    fit: BoxFit.cover)
+                                : DecorationImage(
+                                    image: AssetImage(
+                                        AppIconAssets.place_holder_image),
+                                    fit: BoxFit.cover),
                       ),
                     ),
                   ),
                 ),
                 if (widget.isOwnProfile)
-                Positioned(
-                    bottom: 10,
-                    left: 90,
-                    child: InkWell(
-                      onTap: () => _pickImage(false),
-                      child: Container(
-                          width: 25,
-                          height: 25,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: AppColors.secondaryTextColor
-                                .withValues(alpha: 0.3),
-                          ),
-                          child: const Icon(
-                            Icons.camera_alt,
-                            color: Colors.white,
-                            size: 15,
-                          )),
-                    ))
+                  Positioned(
+                      bottom: 10,
+                      left: 90,
+                      child: InkWell(
+                        onTap: () => _pickImage(false),
+                        child: Container(
+                            width: 25,
+                            height: 25,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: AppColors.secondaryTextColor
+                                  .withValues(alpha: 0.3),
+                            ),
+                            child: const Icon(
+                              Icons.camera_alt,
+                              color: Colors.white,
+                              size: 15,
+                            )),
+                      ))
               ],
             ),
           ),
@@ -208,14 +197,15 @@ class _LabHeaderViewState extends State<LabHeaderView> {
               children: [
                 const SizedBox(height: 10),
                 CustomText(
-                    widget
-                        .schoolAboutUsController.details.value?.profile?.name,
+                    widget.schoolAboutUsController.details.value?.profile?.name,
                     fontSize: 18,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     fontWeight: FontWeight.bold),
                 const SizedBox(height: 10),
-                allServices(widget.schoolAboutUsController.details.value?.facility, context),
+                allServices(
+                    widget.schoolAboutUsController.details.value?.facility,
+                    context),
                 const SizedBox(height: 10),
               ],
             ),
@@ -224,9 +214,8 @@ class _LabHeaderViewState extends State<LabHeaderView> {
       ),
     );
   }
-
-
 }
+
 Widget allServices(Facility? facility, BuildContext context) {
   final chips = <String>[];
   if (facility?.wheelchairAssistance == true)
@@ -237,8 +226,7 @@ Widget allServices(Facility? facility, BuildContext context) {
     chips.add(AppStrings.insuranceCashlessSupport.tr);
   if (facility?.homeSampleCollection == true)
     chips.add(AppStrings.homeSampleCollection.tr);
-  if (facility?.digitalReport == true)
-    chips.add(AppStrings.digitalReport.tr);
+  if (facility?.digitalReport == true) chips.add(AppStrings.digitalReport.tr);
   final other = (facility?.other ?? [])
       .map((e) => e.label ?? '')
       .where((e) => e.isNotEmpty)
@@ -277,18 +265,21 @@ Widget allServices(Facility? facility, BuildContext context) {
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.of(ctx).pop(),
-                        child: CustomText(AppStrings.labClose.tr, color: AppColors.primaryColor),
+                        child: CustomText(AppStrings.labClose.tr,
+                            color: AppColors.primaryColor),
                       ),
                     ],
                   ),
                 );
               },
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
                   color: const Color(0xffEAF2FF),
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppColors.primaryColor.withValues(alpha: 0.1)),
+                  border: Border.all(
+                      color: AppColors.primaryColor.withValues(alpha: 0.1)),
                 ),
                 child: CustomText(
                   '+${allChips.length - 2} ${AppStrings.labViewMore.tr}',

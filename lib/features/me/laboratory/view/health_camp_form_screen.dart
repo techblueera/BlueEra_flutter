@@ -332,12 +332,17 @@ class _HealthCampFormScreenState extends State<HealthCampFormScreen> {
             ),
             Obx(() => Switch(
                   value: controller.addDiscountTestEnabled.value,
-                  onChanged: (val) {
-                    controller.addDiscountTestEnabled.value = val;
-                    if (val && controller.selectedTestCategories.isEmpty) {
+                onChanged: (val) {
+                  controller.addDiscountTestEnabled.value = val;
+                  if (val) {
+                    if (controller.selectedTestCategories.isEmpty) {
                       _showAddDiscountTestBottomSheet();
                     }
-                  },
+                  } else {
+                    controller.selectedTestCategories.clear();
+                    controller.selectedTestDiscounts.clear();
+                  }
+                },
                   activeTrackColor: AppColors.primaryColor,
                 )),
           ],
@@ -350,27 +355,6 @@ class _HealthCampFormScreenState extends State<HealthCampFormScreen> {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (controller.selectedTestCategories.isNotEmpty) ...[
-                Wrap(
-                  spacing: SizeConfig.size8,
-                  runSpacing: SizeConfig.size4,
-                  children: controller.selectedTestCategories
-                      .map((cat) => Chip(
-                            label: CustomText(cat, fontSize: 11),
-                            deleteIcon: const Icon(Icons.close, size: 14),
-                            onDeleted: () =>
-                                controller.toggleTestCategory(cat),
-                            backgroundColor:
-                                AppColors.primaryColor.withValues(alpha: 0.1),
-                            side: BorderSide.none,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                          ))
-                      .toList(),
-                ),
-                SizedBox(height: SizeConfig.size8),
-              ],
               // Selected test discounts display
               if (controller.selectedTestDiscounts.isNotEmpty) ...[
                 ...controller.selectedTestDiscounts.map((discount) {
