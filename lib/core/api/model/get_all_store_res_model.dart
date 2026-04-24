@@ -29,6 +29,7 @@ class GetAllStoreResModel {
   int? totalProductCount;
   int? totalCategoryCount;
   String? quirkyMessage;
+  List<StoreCategoryBrief>? categories;
 
   GetAllStoreResModel({
     this.livePhotos,
@@ -53,6 +54,7 @@ class GetAllStoreResModel {
     this.totalProductCount,
     this.totalCategoryCount,
     this.quirkyMessage,
+    this.categories,
   });
 
   factory GetAllStoreResModel.fromJson(Map<String, dynamic> json) {
@@ -89,7 +91,13 @@ class GetAllStoreResModel {
       totalProductCount: json['total_product_count'],
       totalCategoryCount: json['total_category_count'],
       quirkyMessage: json['quirky_message'],
-
+      categories: json['categories'] is List
+          ? (json['categories'] as List)
+              .whereType<Map>()
+              .map((e) => StoreCategoryBrief.fromJson(
+                  Map<String, dynamic>.from(e)))
+              .toList()
+          : null,
     );
   }
 
@@ -117,6 +125,7 @@ class GetAllStoreResModel {
     map['total_product_count'] = totalProductCount;
     map['total_category_count'] = totalCategoryCount;
     map['quirky_message'] = quirkyMessage;
+    map['categories'] = categories?.map((c) => c.toJson()).toList();
     return map;
   }
 
@@ -149,7 +158,8 @@ class GetAllStoreResModel {
     SubCategoryOfBusiness? subCategoryOfBusiness,
     int? totalProductCount,
     int? totalCategoryCount,
-    String? quirkyMessage
+    String? quirkyMessage,
+    List<StoreCategoryBrief>? categories,
   }) {
     return GetAllStoreResModel(
       livePhotos: livePhotos ?? this.livePhotos,
@@ -174,8 +184,34 @@ class GetAllStoreResModel {
       totalProductCount: totalProductCount ?? this.totalProductCount,
       totalCategoryCount: totalCategoryCount ?? this.totalCategoryCount,
       quirkyMessage: quirkyMessage ?? this.quirkyMessage,
+      categories: categories ?? this.categories,
     );
   }
+}
+
+class StoreCategoryBrief {
+  final String? id;
+  final String? name;
+  final String? key;
+  final String? image;
+
+  StoreCategoryBrief({this.id, this.name, this.key, this.image});
+
+  factory StoreCategoryBrief.fromJson(Map<String, dynamic> json) {
+    return StoreCategoryBrief(
+      id: json['id']?.toString(),
+      name: json['name']?.toString(),
+      key: json['key']?.toString(),
+      image: json['image']?.toString(),
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'key': key,
+        'image': image,
+      };
 }
 
 

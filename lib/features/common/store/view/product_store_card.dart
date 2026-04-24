@@ -6,8 +6,8 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/product/view/visit_product_store_details_screen.dart';
-import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/business/widgets/business_common_subcategory_widget.dart';
+import 'package:BlueEra/features/common/Discover/widget/discover_address_pill.dart';
 import 'package:BlueEra/features/common/store/controller/new_store_controller.dart';
 import 'package:BlueEra/features/common/store/widget/store_live_photo_widget.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
@@ -210,83 +210,53 @@ class ProductStoreCard extends StatelessWidget {
 
           SizedBox(height: ds(8)),
 
-          // --- Address & Distance Card (Tappable) ---
+          // --- Address & Distance Pill (Tappable) ---
           Padding(
             padding: const EdgeInsets.only(left: 20),
-            child: GestureDetector(
+            child: DiscoverAddressPill(
+              destLat: getAllStoreResData?.businessLocation?.lat?.toDouble() ?? 0.0,
+              destLng: getAllStoreResData?.businessLocation?.lon?.toDouble() ?? 0.0,
+              address: getAllStoreResData?.address,
               onTap: () => _showMapBottomSheet(context),
-              child: Container(
-                padding: const EdgeInsets.all(8.0),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10.0),
-                  border: Border.all(color: AppColors.greyE5, width: 0.5),
-                  color: AppColors.white,
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    _buildIconContainer(AppIconAssets.location_outline),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          CustomText(
-                            '${calculateDistanceKm(
-                              LocationService.lat,
-                              LocationService.lng,
-                              getAllStoreResData?.businessLocation?.lat?.toDouble() ?? 0.0,
-                              getAllStoreResData?.businessLocation?.lon?.toDouble() ?? 0.0,
-                            ).toStringAsFixed(2)} Km Away',
-                            fontSize: 14.0,
-                            color: AppColors.secondaryTextColor,
-                            fontWeight: FontWeight.w600,
-                          ),
-                          SizedBox(height: SizeConfig.size4),
-                          CustomText(
-                            getAllStoreResData?.address ?? AppStrings.na,
-                            fontSize: 12.0,
-                            color: AppColors.secondaryTextColor,
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Icon(Icons.directions_rounded, size: 20, color: Colors.blue.shade400),
-                  ],
-                ),
-              ),
             ),
           ),
 
-          SizedBox(height: ds(5)),
+          SizedBox(height: ds(10)),
 
-          // --- Stats: Category & Product ---
+          // --- Categories — names from response, accent-rail "info section"
+          // styling that matches hospital / grocery / restaurant cards.
           Padding(
             padding: const EdgeInsets.only(left: 20),
-            child: Row(
-              children: [
-                _buildStatBox(
-                  icon: AppIconAssets.staggeredIcon,
-                  count: '${getAllStoreResData?.totalCategoryCount ?? 0}',
-                  label: 'Category',
-                  iconColor: const Color(0xFF9964F4),
-                  bgColor: AppColors.purpleFD,
-                ),
-                SizedBox(width: SizeConfig.size6),
-                _buildStatBox(
-                  icon: AppIconAssets.productCartIcon,
-                  count: '${getAllStoreResData?.totalProductCount ?? 0}',
-                  label: 'Product',
-                  iconColor: const Color(0xFF6179CD),
-                  bgColor: AppColors.purpleFF,
-                ),
-              ],
+            child: _infoSection(
+              icon: Icons.category_outlined,
+              title: 'Category',
+              count: getAllStoreResData?.totalCategoryCount ??
+                  (getAllStoreResData?.categories?.length ?? 0),
+              pills: (getAllStoreResData?.categories ?? [])
+                  .map((c) => c.name ?? '')
+                  .where((s) => s.trim().isNotEmpty)
+                  .toList(),
+              emptyLabel: 'No categories listed',
             ),
           ),
 
-          SizedBox(height: ds(5)),
+          SizedBox(height: ds(8)),
+
+          // --- Products — count chip; pills wire in once the listing API
+          // surfaces a top-products array.
+          Padding(
+            padding: const EdgeInsets.only(left: 20),
+            child: _infoSection(
+              icon: Icons.shopping_bag_outlined,
+              title: 'Product',
+              count: getAllStoreResData?.totalProductCount ?? 0,
+              pills: const [],
+              emptyLabel:
+                  '${getAllStoreResData?.totalProductCount ?? 0} products in store',
+            ),
+          ),
+
+          SizedBox(height: ds(8)),
           if(getAllStoreResData !=null && (getAllStoreResData?.livePhotos?.isNotEmpty ?? false)) ...[
             /// Image grid
             Padding(
@@ -349,58 +319,202 @@ class ProductStoreCard extends StatelessWidget {
     );
   }
 
-  Widget _buildStatBox({
-    required String icon,
-    required String count,
-    required String label,
-    required Color iconColor,
-    required Color bgColor,
+  void _openStore() {
+    Get.to(() => VisitProductStoreDetailsScreen(
+          visitBusinessId: getAllStoreResData?.id ?? "",
+        ));
+  }
+
+  /// Section block — left accent rail, icon-in-disc header with inline
+  /// count, and a wrap of soft-gradient pills below. Mirrors the hospital
+  /// list / grocery store / restaurant card layout for one shared
+  /// discover-card visual language.
+  Widget _infoSection({
+    required IconData icon,
+    required String title,
+    required int count,
+    required List<String> pills,
+    required String emptyLabel,
   }) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(8.0),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(10.0),
-          border: Border.all(color: AppColors.greyE5, width: 0.5),
-          color: AppColors.white,
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(6.0),
-              decoration: BoxDecoration(
-                color: bgColor,
-                borderRadius: BorderRadius.circular(6.0),
-              ),
-              child: LocalAssets(
-                imagePath: icon,
-                imgColor: iconColor,
-                height: 18,
-                width: 18,
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CustomText(
-                    count,
-                    fontSize: SizeConfig.medium,
-                    color: AppColors.secondaryTextColor,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  CustomText(
-                    label,
-                    fontSize: SizeConfig.extraSmall,
-                    color: AppColors.secondaryTextColor,
-                    fontWeight: FontWeight.w400,
-                  ),
+    final accent = AppColors.primaryColor;
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Container(
+            width: 3,
+            margin: EdgeInsets.only(
+                top: 4, bottom: 4, right: SizeConfig.size10),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  accent,
+                  accent.withValues(alpha: 0.15),
                 ],
               ),
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: 26,
+                      height: 26,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: accent.withValues(alpha: 0.08),
+                        border: Border.all(
+                          color: accent.withValues(alpha: 0.18),
+                          width: 1,
+                        ),
+                      ),
+                      child: Icon(icon,
+                          size: SizeConfig.size14, color: accent),
+                    ),
+                    SizedBox(width: SizeConfig.size8),
+                    CustomText(
+                      title,
+                      fontSize: SizeConfig.small,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.mainTextColor,
+                    ),
+                    SizedBox(width: SizeConfig.size6),
+                    CustomText(
+                      '·',
+                      fontSize: SizeConfig.small,
+                      color: AppColors.secondaryTextColor,
+                      fontWeight: FontWeight.w700,
+                    ),
+                    SizedBox(width: SizeConfig.size6),
+                    CustomText(
+                      '$count',
+                      fontSize: SizeConfig.small,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.secondaryTextColor,
+                    ),
+                  ],
+                ),
+                SizedBox(height: SizeConfig.size8),
+                if (pills.isEmpty)
+                  _sectionEmpty(emptyLabel)
+                else
+                  Wrap(
+                    spacing: SizeConfig.size6,
+                    runSpacing: SizeConfig.size6,
+                    children: [
+                      ...pills.take(4).map(_gradientChip),
+                      if (pills.length > 4) _overflowChip(pills.length - 4),
+                    ],
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _gradientChip(String label) {
+    final accent = AppColors.primaryColor;
+    return GestureDetector(
+      onTap: _openStore,
+      child: Container(
+        padding: EdgeInsets.symmetric(
+            horizontal: SizeConfig.size10, vertical: SizeConfig.size4),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Colors.white,
+              accent.withValues(alpha: 0.09),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(
+            color: accent.withValues(alpha: 0.18),
+            width: 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: accent.withValues(alpha: 0.05),
+              blurRadius: 4,
+              offset: const Offset(0, 1),
             ),
           ],
         ),
+        child: CustomText(
+          label,
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+          color: AppColors.mainTextColor,
+        ),
+      ),
+    );
+  }
+
+  Widget _overflowChip(int extra) {
+    final accent = AppColors.primaryColor;
+    return GestureDetector(
+      onTap: _openStore,
+      child: Container(
+        padding: EdgeInsets.symmetric(
+            horizontal: SizeConfig.size10, vertical: SizeConfig.size4),
+        decoration: BoxDecoration(
+          color: accent.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(
+            color: accent.withValues(alpha: 0.32),
+            width: 1,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CustomText(
+              '+$extra more',
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: accent,
+            ),
+            const SizedBox(width: 3),
+            Icon(Icons.arrow_forward_rounded, size: 11, color: accent),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _sectionEmpty(String label) {
+    return Container(
+      padding: EdgeInsets.symmetric(
+          horizontal: SizeConfig.size10, vertical: SizeConfig.size6),
+      decoration: BoxDecoration(
+        color: AppColors.greyE5.withValues(alpha: 0.4),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppColors.greyE5, width: 1),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.info_outline_rounded,
+              size: 12, color: AppColors.grey9B),
+          SizedBox(width: SizeConfig.size6),
+          CustomText(
+            label,
+            fontSize: 11,
+            color: AppColors.grey9B,
+            fontWeight: FontWeight.w500,
+          ),
+        ],
       ),
     );
   }

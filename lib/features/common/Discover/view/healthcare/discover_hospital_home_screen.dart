@@ -1,8 +1,10 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/features/common/store/controller/new_store_controller.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_service_ai_controller.dart';
@@ -19,7 +21,8 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
-import 'package:BlueEra/widgets/profile_impression_stats.dart';
+import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
+import 'package:BlueEra/widgets/visit_business_stats_card.dart';
 import 'package:BlueEra/widgets/service_home_title_widget.dart';
 import 'package:BlueEra/widgets/website_preview_card.dart';
 import 'package:flutter/material.dart';
@@ -37,6 +40,19 @@ class DiscoverHospitalHomeScreen extends StatefulWidget {
 class _DiscoverHospitalHomeScreenState
     extends State<DiscoverHospitalHomeScreen> {
   final controller = Get.find<HospitalServiceAiController>();
+  final viewBusinessDetailsController =
+      Get.find<ViewBusinessDetailsController>();
+  final storeController = getOrPut(() => NewStoreController());
+
+  @override
+  void initState() {
+    super.initState();
+    final id = controller.hospitalDataResModel?.value.data?.id ?? '';
+    if (id.isNotEmpty) {
+      viewBusinessDetailsController.viewBusinessProfileById(id);
+      storeController.trackStoreDetailView(id);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -67,7 +83,14 @@ class _DiscoverHospitalHomeScreenState
                 HospitalHeaderView(isReadOnly: true),
 
                 SizedBox(height: SizeConfig.paddingXS),
-                ProfileImpressionStats(),
+                Obx(() {
+                  viewBusinessDetailsController.profileVersion.value;
+                  return VisitBusinessStatsCard(
+                    details: viewBusinessDetailsController
+                        .visitedBusinessProfileDetails
+                        ?.data,
+                  );
+                }),
                 SizedBox(height: SizeConfig.paddingXS),
 
                 /// EMERGENCY ACTION CARDS

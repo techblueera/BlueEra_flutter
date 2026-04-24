@@ -1,7 +1,7 @@
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
-import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
+import 'package:BlueEra/features/common/Discover/widget/discover_address_pill.dart';
+import 'package:BlueEra/features/common/Discover/widget/discover_chat_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/core/api/model/get_all_store_res_model.dart';
@@ -10,7 +10,6 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
-import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/common/store/widget/store_live_photo_widget.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -87,85 +86,56 @@ class GroceryStoreCard extends StatelessWidget {
                           ],
                         ),
                       ),
-                      _buildChatIcon(),
+                      DiscoverChatIcon(userId: store.userId ?? ''),
                     ],
                   ),
 
                   SizedBox(height: SizeConfig.paddingXSL),
 
-                  // --- Address & Distance Card (Tappable) ---
+                  // --- Address & Distance Pill (Tappable) ---
                   Padding(
                     padding: const EdgeInsets.only(left: 20),
-                    child: GestureDetector(
+                    child: DiscoverAddressPill(
+                      destLat:
+                          store.businessLocation?.lat?.toDouble() ?? 0.0,
+                      destLng:
+                          store.businessLocation?.lon?.toDouble() ?? 0.0,
+                      address: store.address,
                       onTap: () => _showMapBottomSheet(context),
-                      child: Container(
-                        padding: const EdgeInsets.all(8.0),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10.0),
-                          border: Border.all(color: AppColors.greyE5, width: 0.5),
-                          color: AppColors.white,
-                        ),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            _buildIconContainer(AppIconAssets.location_outline),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  CustomText(
-                                    '${calculateDistanceKm(
-                                      LocationService.lat,
-                                      LocationService.lng,
-                                      store.businessLocation?.lat?.toDouble() ?? 0.0,
-                                      store.businessLocation?.lon?.toDouble() ?? 0.0,
-                                    ).toStringAsFixed(2)} Km Away',
-                                    fontSize: 14.0,
-                                    color: AppColors.secondaryTextColor,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                  SizedBox(height: SizeConfig.size4),
-                                  CustomText(
-                                    store.address ?? AppStrings.na,
-                                    fontSize: 12.0,
-                                    color: AppColors.secondaryTextColor,
-                                    fontWeight: FontWeight.w400,
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(width: 6),
-                            Icon(Icons.directions_rounded, size: 20, color: Colors.blue.shade400),
-                          ],
-                        ),
-                      ),
                     ),
                   ),
 
-                  SizedBox(height: SizeConfig.size6),
+                  SizedBox(height: SizeConfig.size12),
 
-                  // --- Stats: Category & Product ---
+                  // --- Categories — real names from response, in the same
+                  // accent-rail "info section" style used on the hospital
+                  // list card so the visual language stays consistent.
                   Padding(
                     padding: const EdgeInsets.only(left: 20),
-                    child: Row(
-                      children: [
-                        _buildStatBox(
-                          icon: AppIconAssets.staggeredIcon,
-                          count: '${store.totalCategoryCount}',
-                          label: 'Category',
-                          iconColor: const Color(0xFF9964F4),
-                          bgColor: AppColors.purpleFD,
-                        ),
-                        SizedBox(width: SizeConfig.size6),
-                        _buildStatBox(
-                          icon: AppIconAssets.productCartIcon,
-                          count: '${store.totalProductCount}',
-                          label: 'Product',
-                          iconColor: const Color(0xFF6179CD),
-                          bgColor: AppColors.purpleFF,
-                        ),
-                      ],
+                    child: _infoSection(
+                      icon: Icons.category_outlined,
+                      title: 'Categories',
+                      count: store.totalCategoryCount ??
+                          (store.categories?.length ?? 0),
+                      pills: (store.categories ?? [])
+                          .map((c) => c.name ?? '')
+                          .where((s) => s.trim().isNotEmpty)
+                          .toList(),
+                      emptyLabel: 'No categories listed',
+                    ),
+                  ),
+
+                  // --- Products — count chip only for now; pills can be
+                  // wired in once the listing API surfaces top products.
+                  SizedBox(height: SizeConfig.size10),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 20),
+                    child: _infoSection(
+                      icon: Icons.shopping_bag_outlined,
+                      title: 'Products',
+                      count: store.totalProductCount ?? 0,
+                      pills: const [],
+                      emptyLabel: '${store.totalProductCount ?? 0} products in store',
                     ),
                   ),
 
@@ -298,123 +268,95 @@ class GroceryStoreCard extends StatelessWidget {
     );
   }
 
+  /// Rating badge — gradient gold pill, bold rating numeral, soft amber
+  /// glow. Reads as a badge of quality rather than a tag.
   Widget _buildRatingBadge(String rating) {
+    const goldFg = Color(0xFFB8860B);
+    const goldBg = Color(0xFFFFF3D1);
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 6),
+      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10.0),
-        color: AppColors.lightYellowShade,
-        border: Border.all(color: AppColors.lightYellowShade, width: 0.5),
+        borderRadius: BorderRadius.circular(999),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Colors.white, goldBg],
+        ),
+        border: Border.all(
+          color: goldFg.withValues(alpha: 0.28),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: goldFg.withValues(alpha: 0.15),
+            blurRadius: 5,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           LocalAssets(imagePath: AppIconAssets.star, height: 12, width: 12),
           const SizedBox(width: 4),
-          CustomText(rating, fontSize: 10, color: AppColors.blue2D, fontWeight: FontWeight.w600),
+          CustomText(
+            rating,
+            fontSize: 11,
+            color: AppColors.mainTextColor,
+            fontWeight: FontWeight.w800,
+          ),
         ],
       ),
     );
   }
 
+  /// Subcategory badge — gradient mint pill with a leading color dot,
+  /// visually paired with the rating badge beside it.
   Widget _buildCategoryBadge(String text) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 6),
+      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10.0),
-        color: AppColors.greenCB,
-        border: Border.all(color: AppColors.greenCB, width: 0.5),
-      ),
-      child: CustomText(text, fontSize: 12, color: AppColors.green2C, fontWeight: FontWeight.w400),
-    );
-  }
-
-  Widget _buildStatBox({
-    required String icon,
-    required String count,
-    required String label,
-    required Color iconColor,
-    required Color bgColor,
-  }) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(8.0),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(10.0),
-          border: Border.all(color: AppColors.greyE5, width: 0.5),
-          color: AppColors.white,
+        borderRadius: BorderRadius.circular(999),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Colors.white, AppColors.greenCB],
         ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(6.0),
-              decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(6.0)),
-              child: LocalAssets(imagePath: icon, imgColor: iconColor, height: 18, width: 18),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CustomText(count, fontSize: SizeConfig.medium, color: AppColors.secondaryTextColor, fontWeight: FontWeight.w600),
-                  CustomText(label, fontSize: SizeConfig.small, color: AppColors.secondaryTextColor, fontWeight: FontWeight.w400),
-                ],
-              ),
-            ),
-          ],
+        border: Border.all(
+          color: AppColors.green2C.withValues(alpha: 0.3),
+          width: 1,
         ),
-      ),
-    );
-  }
-
-  Widget _buildChatIcon() {
-    return GestureDetector(
-      onTap: () {
-        if (isGuestUser()) {
-          createProfileScreen();
-          return;
-        }
-        final chatViewController = getOrPut(() => ChatViewController());
-        chatViewController.checkChatConnectionAndOpenChat(
-          userId: store.userId ?? '',
-        );
-      },
-      child: Container(
-        padding: const EdgeInsets.all(8.0),
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: AppColors.primaryColor.withValues(alpha: 0.1),
-          border: Border.all(color: AppColors.primaryColor, width: 0.5),
-        ),
-        child: LocalAssets(
-          imagePath: AppIconAssets.chat,
-          height: 18,
-          width: 18,
-          imgColor: AppColors.primaryColor,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildIconContainer(String iconPath) {
-    return Container(
-      padding: const EdgeInsets.all(6.0),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(6.0),
-        color: AppColors.white,
         boxShadow: [
           BoxShadow(
-            color: AppColors.black.withValues(alpha: 0.08),
-            offset: const Offset(0, 1),
-            blurRadius: 2.0,
-          )
+            color: AppColors.green2C.withValues(alpha: 0.08),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
         ],
       ),
-      child: LocalAssets(
-        imagePath: iconPath,
-        imgColor: AppColors.secondaryTextColor,
-        height: 24,
-        width: 20,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 5,
+            height: 5,
+            decoration: BoxDecoration(
+              color: AppColors.green2C,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 5),
+          Flexible(
+            child: CustomText(
+              text,
+              fontSize: 11,
+              color: AppColors.green2C,
+              fontWeight: FontWeight.w700,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -431,6 +373,210 @@ class GroceryStoreCard extends StatelessWidget {
         appBarTitle: AppStrings.imageViewer,
         imageUrls: storeImage,
         initialIndex: index,
+      ),
+    );
+  }
+
+  void _openStore() {
+    Get.toNamed(
+      RouteHelper.getVisitGroceryStoreScreenRoute(),
+      arguments: {
+        ApiKeys.userId: store.userId,
+        ApiKeys.businessId: store.id,
+      },
+    );
+  }
+
+  /// Section block — left accent rail, icon-in-disc header with inline
+  /// count, and a wrap of soft-gradient pills below. Mirrors the hospital
+  /// list card layout so business cards across discover share one visual
+  /// language.
+  Widget _infoSection({
+    required IconData icon,
+    required String title,
+    required int count,
+    required List<String> pills,
+    required String emptyLabel,
+  }) {
+    final accent = AppColors.primaryColor;
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Container(
+            width: 3,
+            margin: EdgeInsets.only(
+                top: 4, bottom: 4, right: SizeConfig.size10),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  accent,
+                  accent.withValues(alpha: 0.15),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: 26,
+                      height: 26,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: accent.withValues(alpha: 0.08),
+                        border: Border.all(
+                          color: accent.withValues(alpha: 0.18),
+                          width: 1,
+                        ),
+                      ),
+                      child:
+                          Icon(icon, size: SizeConfig.size14, color: accent),
+                    ),
+                    SizedBox(width: SizeConfig.size8),
+                    CustomText(
+                      title,
+                      fontSize: SizeConfig.small,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.mainTextColor,
+                    ),
+                    SizedBox(width: SizeConfig.size6),
+                    CustomText(
+                      '·',
+                      fontSize: SizeConfig.small,
+                      color: AppColors.secondaryTextColor,
+                      fontWeight: FontWeight.w700,
+                    ),
+                    SizedBox(width: SizeConfig.size6),
+                    CustomText(
+                      '$count',
+                      fontSize: SizeConfig.small,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.secondaryTextColor,
+                    ),
+                  ],
+                ),
+                SizedBox(height: SizeConfig.size8),
+                if (pills.isEmpty)
+                  _sectionEmpty(emptyLabel)
+                else
+                  Wrap(
+                    spacing: SizeConfig.size6,
+                    runSpacing: SizeConfig.size6,
+                    children: [
+                      ...pills.take(4).map(_gradientChip),
+                      if (pills.length > 4) _overflowChip(pills.length - 4),
+                    ],
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _gradientChip(String label) {
+    final accent = AppColors.primaryColor;
+    return GestureDetector(
+      onTap: _openStore,
+      child: Container(
+        padding: EdgeInsets.symmetric(
+            horizontal: SizeConfig.size10, vertical: SizeConfig.size4),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Colors.white,
+              accent.withValues(alpha: 0.09),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(
+            color: accent.withValues(alpha: 0.18),
+            width: 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: accent.withValues(alpha: 0.05),
+              blurRadius: 4,
+              offset: const Offset(0, 1),
+            ),
+          ],
+        ),
+        child: CustomText(
+          label,
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+          color: AppColors.mainTextColor,
+        ),
+      ),
+    );
+  }
+
+  Widget _overflowChip(int extra) {
+    final accent = AppColors.primaryColor;
+    return GestureDetector(
+      onTap: _openStore,
+      child: Container(
+        padding: EdgeInsets.symmetric(
+            horizontal: SizeConfig.size10, vertical: SizeConfig.size4),
+        decoration: BoxDecoration(
+          color: accent.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(
+            color: accent.withValues(alpha: 0.32),
+            width: 1,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CustomText(
+              '+$extra more',
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: accent,
+            ),
+            const SizedBox(width: 3),
+            Icon(Icons.arrow_forward_rounded, size: 11, color: accent),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _sectionEmpty(String label) {
+    return Container(
+      padding: EdgeInsets.symmetric(
+          horizontal: SizeConfig.size10, vertical: SizeConfig.size6),
+      decoration: BoxDecoration(
+        color: AppColors.greyE5.withValues(alpha: 0.4),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppColors.greyE5, width: 1),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.info_outline_rounded,
+              size: 12, color: AppColors.grey9B),
+          SizedBox(width: SizeConfig.size6),
+          CustomText(
+            label,
+            fontSize: 11,
+            color: AppColors.grey9B,
+            fontWeight: FontWeight.w500,
+          ),
+        ],
       ),
     );
   }

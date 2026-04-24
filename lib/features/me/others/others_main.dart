@@ -87,7 +87,7 @@ class _OthersMainState extends State<OthersMain>
                 indicatorSize: TabBarIndicatorSize.tab,
                 labelStyle: const TextStyle(fontWeight: FontWeight.w400),
                 tabs: const [
-                  Tab(text: 'Others'),
+                  Tab(text: 'Home'),
                   Tab(text: 'Website'),
                   Tab(text: 'Statistics'),
                 ],

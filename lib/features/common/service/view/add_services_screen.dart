@@ -10,8 +10,6 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_constant.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/common/service/controller/add_service_controller.dart';
-import 'package:BlueEra/features/common/service/controller/service_controller.dart';
-import 'package:BlueEra/features/common/service/model/service_ai_generate_model.dart';
 import 'package:BlueEra/features/me/product/widget/add_more_details_dialog.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -36,29 +34,18 @@ class AddServicesScreenNew extends StatefulWidget {
 
 class _AddServicesScreenState extends State<AddServicesScreenNew> {
   late AddServiceController addServiceController;
-  final serviceController = Get.find<ServiceController>();
   final viewBusinessDetailsController =
       Get.find<ViewBusinessDetailsController>();
-  ServiceAiGenerateModel? serviceData;
 
   @override
   void initState() {
     super.initState();
-    serviceData = serviceController.serviceAiResModel.value;
-    Get.lazyPut<AddServiceController>(() => AddServiceController());
-    addServiceController = Get.find<AddServiceController>();
-
-    ///SERVICE NAME...
-    addServiceController.serviceNameCtrl.text = serviceData?.serviceName ?? "";
-    addServiceController.descriptionCtrl.text =
-        serviceData?.serviceDescription ?? "";
-    addServiceController.facilities
-        .addAll(serviceData?.serviceFacilities ?? []);
-    addServiceController.imageLocalPaths
-        .add(serviceController.selectedImage.value?.path ?? "");
-
-    addServiceController.category = serviceController.category;
+    final addServiceController = getOrPut(() => AddServiceController());
+    addServiceController.consumePendingEdit();
   }
+
+  bool get _isEditMode =>
+      (addServiceController.serviceId ?? '').isNotEmpty;
 
   @override
   void dispose() {
@@ -71,7 +58,9 @@ class _AddServicesScreenState extends State<AddServicesScreenNew> {
     return Scaffold(
       backgroundColor: AppColors.appBackgroundColor,
       appBar: CommonBackAppBar(
-        title: '${serviceData?.serviceName}',
+        title: addServiceController.serviceNameCtrl.text.isEmpty
+            ? AppStrings.service
+            : addServiceController.serviceNameCtrl.text,
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -253,22 +242,16 @@ class _AddServicesScreenState extends State<AddServicesScreenNew> {
                             return GestureDetector(
                               key: ValueKey('img_$imgIdx'),
                               onTap: () {
-                                if (addServiceController
-                                        .imageLocalPaths.length >=
-                                    5) {
+                                final total = addServiceController
+                                        .existingPhotoUrls.length +
+                                    addServiceController.imageLocalPaths.length;
+                                if (total >= 5) {
                                   commonSnackBar(
                                     message:
                                         AppStrings.limitReachedImages.tr,
                                   );
                                 } else {
                                   addServiceController.pickImages(context);
-                                }
-                              },
-                              onLongPress: () {
-                                final hasImage = imgIdx <
-                                    addServiceController.imageLocalPaths.length;
-                                if (hasImage) {
-                                  addServiceController.removeImageAt(imgIdx);
                                 }
                               },
                               child: Container(
@@ -280,16 +263,32 @@ class _AddServicesScreenState extends State<AddServicesScreenNew> {
                                 ),
                                 clipBehavior: Clip.antiAlias,
                                 child: Obx(() {
-                                  final hasImage = imgIdx <
-                                      addServiceController
-                                          .imageLocalPaths.length;
+                                  final urls = addServiceController
+                                      .existingPhotoUrls;
+                                  final locals = addServiceController
+                                      .imageLocalPaths;
+                                  final isRemote = imgIdx < urls.length;
+                                  final localIdx = imgIdx - urls.length;
+                                  final hasLocal = !isRemote &&
+                                      localIdx < locals.length;
+                                  final hasImage = isRemote || hasLocal;
                                   return Stack(
                                     fit: StackFit.expand,
                                     children: [
-                                      if (hasImage)
+                                      if (isRemote)
+                                        Image.network(
+                                          urls[imgIdx],
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (_, __, ___) => Center(
+                                            child: Icon(
+                                              Icons.broken_image_outlined,
+                                              color: AppColors.grey9B,
+                                            ),
+                                          ),
+                                        )
+                                      else if (hasLocal)
                                         Image.file(
-                                          File(addServiceController
-                                              .imageLocalPaths[imgIdx]),
+                                          File(locals[localIdx]),
                                           fit: BoxFit.cover,
                                         )
                                       else
@@ -305,8 +304,14 @@ class _AddServicesScreenState extends State<AddServicesScreenNew> {
                                           top: 4,
                                           right: 4,
                                           child: GestureDetector(
-                                            onTap: () => addServiceController
-                                                .removeImageAt(imgIdx),
+                                            onTap: () {
+                                              if (isRemote) {
+                                                urls.removeAt(imgIdx);
+                                              } else {
+                                                addServiceController
+                                                    .removeImageAt(localIdx);
+                                              }
+                                            },
                                             child: Container(
                                               width: 22,
                                               height: 22,
@@ -657,13 +662,16 @@ class _AddServicesScreenState extends State<AddServicesScreenNew> {
                       ),
                       SizedBox(height: SizeConfig.size30),
                       CustomBtn(
-                        title: AppStrings.postService,
-                        onTap: () => addServiceController.createServiceApi(
-                            providerType: serviceController.providerType!,
-                            category: serviceController.category!,
-                            serviceSubType: serviceController.serviceSubType,
-                            channelId: serviceController.channelId,
-                        ),
+                        title: _isEditMode
+                            ? AppStrings.update
+                            : AppStrings.postService,
+                        onTap: () {
+                          if (_isEditMode) {
+                            addServiceController.updateServiceApi();
+                          } else {
+                            addServiceController.createServiceApi();
+                          }
+                        },
                         bgColor: AppColors.primaryColor,
                         textColor: AppColors.white,
                         height: SizeConfig.size40,

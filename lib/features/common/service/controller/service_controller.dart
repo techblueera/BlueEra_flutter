@@ -8,6 +8,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/features/common/service/model/get_service_model.dart';
+import 'package:BlueEra/features/common/service/controller/add_service_controller.dart';
 import 'package:BlueEra/features/common/service/model/service_ai_generate_model.dart';
 import 'package:BlueEra/features/common/service/repo/service_ai_repo.dart';
 import 'package:BlueEra/features/common/service/view/add_services_screen.dart';
@@ -51,6 +52,9 @@ class ServiceController extends GetxController {
   final Rxn<ServiceCategoryOption> selectedServiceCategory =
       Rxn<ServiceCategoryOption>();
 
+  // The user's selections on ServiceUploadScreen. Read once in
+  // [generateServiceAiController] to forward to AddServiceController after
+  // AI generation, and to build the AI request itself.
   ProviderType? providerType;
   String? category;
   String? serviceSubType;
@@ -86,7 +90,23 @@ class ServiceController extends GetxController {
       ResponseModel responseModel =
           await ServiceAiRepo().aiServiceGenerateRepo(queryParam: reqParam);
       if (responseModel.isSuccess) {
-        serviceAiResModel.value = ServiceAiGenerateModel.fromJson(responseModel.response?.data);
+        serviceAiResModel.value =
+            ServiceAiGenerateModel.fromJson(responseModel.response?.data);
+
+        // Prime AddServiceController so AddServicesScreenNew has everything
+        // it needs without us threading args through the widget tree.
+        final addCtrl = Get.isRegistered<AddServiceController>()
+            ? Get.find<AddServiceController>()
+            : Get.put(AddServiceController());
+        addCtrl.populateFromAi(
+          ai: serviceAiResModel.value,
+          selectedImagePath: selectedImage.value?.path ?? '',
+          providerType: providerType ?? ProviderType.user,
+          category: category ?? '',
+          serviceSubType: serviceSubType,
+          channelId: channelId,
+        );
+
         Get.to(() => const AddServicesScreenNew());
         serviceAiResponse.value = ApiResponse.complete(serviceAiResModel);
       } else {
@@ -99,6 +119,7 @@ class ServiceController extends GetxController {
       isGenerateAiServiceLoading.value = false;
     }
   }
+
   RxList<GetServiceModel> serviceDataList = <GetServiceModel>[].obs;
   RxBool isServiceDataLoadingMore = false.obs;
   RxBool isServiceDataFirstLoading = false.obs;
@@ -130,13 +151,19 @@ class ServiceController extends GetxController {
         final responseData = response.response?.data;
         List<GetServiceModel> newServices = [];
 
-        // Handle both array or map API structures
+        // EarnService returns a single service object (not wrapped in a
+        // list), so handle: bare array, {data: [...]}, {data: {...}}, and
+        // bare single-object responses.
         if (responseData is List) {
           newServices = responseData.map((e) => GetServiceModel.fromJson(e)).toList();
         } else if (responseData is Map && responseData['data'] is List) {
           newServices = (responseData['data'] as List)
               .map((e) => GetServiceModel.fromJson(e))
               .toList();
+        } else if (responseData is Map && responseData['data'] is Map) {
+          newServices = [GetServiceModel.fromJson(responseData['data'])];
+        } else if (responseData is Map && responseData['_id'] != null) {
+          newServices = [GetServiceModel.fromJson(responseData)];
         } else {
           print(" Unexpected API structure: $responseData");
         }

@@ -50,3 +50,28 @@ DateTime? parseTime(String time) {
   }
 }
 
+/// Formats the gap between [iso] and now as a human string:
+/// "Just now", "5 minutes ago", "2 hours ago", "3 days ago", "2 months ago",
+/// "1 year ago". Returns an empty string if [iso] is null/empty/invalid.
+String timeAgo(String? iso) {
+  if (iso == null || iso.trim().isEmpty) return '';
+  final t = DateTime.tryParse(iso);
+  if (t == null) return '';
+  final diff = DateTime.now().difference(t);
+  if (diff.isNegative) return 'Just now';
+  if (diff.inSeconds < 60) return 'Just now';
+  if (diff.inMinutes < 60) {
+    return '${diff.inMinutes} ${diff.inMinutes == 1 ? "minute" : "minutes"} ago';
+  }
+  if (diff.inHours < 24) {
+    return '${diff.inHours} ${diff.inHours == 1 ? "hour" : "hours"} ago';
+  }
+  if (diff.inDays < 30) {
+    return '${diff.inDays} ${diff.inDays == 1 ? "day" : "days"} ago';
+  }
+  final months = (diff.inDays / 30).floor();
+  if (months < 12) return '$months ${months == 1 ? "month" : "months"} ago';
+  final years = (diff.inDays / 365).floor();
+  return '$years ${years == 1 ? "year" : "years"} ago';
+}
+

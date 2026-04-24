@@ -12,6 +12,7 @@ import 'package:BlueEra/features/business/widgets/business_contact_map_card.dart
 import 'package:BlueEra/features/business/widgets/business_description_card.dart';
 import 'package:BlueEra/features/business/widgets/business_profile_header_view.dart';
 import 'package:BlueEra/features/business/widgets/business_qrcode_widget.dart';
+import 'package:BlueEra/features/business/widgets/business_share_banner.dart';
 import 'package:BlueEra/features/business/widgets/business_stats.dart';
 import 'package:BlueEra/features/me/grocery/widget/price_row.dart';
 import 'package:BlueEra/widgets/common_business_live_photo.dart';
@@ -138,6 +139,8 @@ class _ProductHomeScreenState extends State<ProductHomeScreen> {
                   data: details,
                 );
               }),
+
+              const BusinessShareBanner(),
 
               SizedBox(
                 height: SizeConfig.size100,

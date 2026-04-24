@@ -2,6 +2,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
@@ -10,6 +11,7 @@ import 'package:BlueEra/features/business/visiting_card/view/widget/business_loc
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/hotel_search_model.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_cart_icon.dart';
+import 'package:BlueEra/features/common/store/controller/new_store_controller.dart';
 import 'package:BlueEra/features/me/hotel/view/widget/hotel_home_gallery_widget.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
@@ -19,7 +21,8 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
-import 'package:BlueEra/widgets/profile_impression_stats.dart';
+import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
+import 'package:BlueEra/widgets/visit_business_stats_card.dart';
 import 'package:BlueEra/widgets/service_home_title_widget.dart';
 import 'package:BlueEra/widgets/website_preview_card.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -38,6 +41,9 @@ class HotelDiscoverHomeScreen extends StatefulWidget {
 }
 
 class _HotelDiscoverHomeScreenState extends State<HotelDiscoverHomeScreen> {
+  final viewBusinessDetailsController =
+      Get.find<ViewBusinessDetailsController>();
+  final storeController = getOrPut(() => NewStoreController());
   var selectedRoomType = "";
 
   String _formatTypeName(String type) {
@@ -72,6 +78,11 @@ class _HotelDiscoverHomeScreenState extends State<HotelDiscoverHomeScreen> {
     types = dynamicRoomTypes;
     selectedRoomType = types.isNotEmpty ? types.first : '';
     super.initState();
+    final id = profile?.businessId ?? '';
+    if (id.isNotEmpty) {
+      viewBusinessDetailsController.viewBusinessProfileById(id);
+      storeController.trackStoreDetailView(id);
+    }
   }
 
   @override
@@ -127,9 +138,14 @@ class _HotelDiscoverHomeScreenState extends State<HotelDiscoverHomeScreen> {
             _buildHeader(),
             SizedBox(height: SizeConfig.size16),
 
-            ProfileImpressionStats(
-              cardMargin: 0,
-            ),
+            Obx(() {
+              viewBusinessDetailsController.profileVersion.value;
+              return VisitBusinessStatsCard(
+                details: viewBusinessDetailsController
+                    .visitedBusinessProfileDetails
+                    ?.data,
+              );
+            }),
 
             // --- Choose Room ---
             SizedBox(height: SizeConfig.size16),

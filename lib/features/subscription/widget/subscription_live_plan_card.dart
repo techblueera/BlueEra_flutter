@@ -219,17 +219,24 @@ class _SubscriptionLivePlanCardState extends State<SubscriptionLivePlanCard>
 
   /// Stretches a card + optional CTA into a vertical column with the same
   /// spacing as the standalone subscription page.
+  ///
+  /// Wrapped in a [SingleChildScrollView] because the card is often hosted
+  /// inside a fixed-height parent (e.g. a dashboard slot) — without this
+  /// an expanded trial card can overflow on small devices.
   Widget _verticalBlock({required Widget card, Widget? cta}) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        card,
-        if (cta != null) ...[
-          SizedBox(height: SizeConfig.paddingL),
-          cta,
+    return SingleChildScrollView(
+      physics: const ClampingScrollPhysics(),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          card,
+          if (cta != null) ...[
+            SizedBox(height: SizeConfig.paddingL),
+            cta,
+          ],
         ],
-      ],
+      ),
     );
   }
 

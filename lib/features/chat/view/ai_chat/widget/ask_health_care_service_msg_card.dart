@@ -80,7 +80,7 @@ class AskHealthCareServiceMsgCard extends StatelessWidget {
               return InkWell(
                 onTap: (){
                   Get.toNamed(
-                    RouteHelper.getStoreProductPreviewScreenProductRoute(),
+                    RouteHelper.getProductsStoreDetailsScreenRoute(),
                     arguments: {
                       ApiKeys.argProductData: business,
                       // "isShowBusinessInfo": widget.isShowBusinessInfo,

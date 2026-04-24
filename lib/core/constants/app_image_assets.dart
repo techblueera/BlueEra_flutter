@@ -3,6 +3,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 class AppImageAssets {
   static const imgPath = AppConstants.baseImageAssetsPath;
   static const String noImageFound = '${imgPath}noImageFound.png';
+  static const String shopBanner = '${imgPath}shop_banner.png';
   static const String businessVerification = '${imgPath}business_verification.svg';
   static const String refer_earn_bg = '${imgPath}refer_earn_bg.png';
   static const String tearDrop = '${imgPath}tear_drop.png';

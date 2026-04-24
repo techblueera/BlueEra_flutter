@@ -61,7 +61,7 @@ class _ProductCardState extends State<ProductCardBusiness> {
     return InkWell(
       onTap: () {
         Get.toNamed(
-          RouteHelper.getStoreProductPreviewScreenProductRoute(),
+          RouteHelper.getProductsStoreDetailsScreenRoute(),
           arguments: {
             ApiKeys.argProductData: widget.productData,
             // "isShowBusinessInfo": widget.isShowBusinessInfo,

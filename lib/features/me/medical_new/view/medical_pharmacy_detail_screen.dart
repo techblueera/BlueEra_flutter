@@ -13,7 +13,10 @@ import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
-import 'package:BlueEra/widgets/profile_impression_stats.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
+import 'package:BlueEra/features/common/store/controller/new_store_controller.dart';
+import 'package:BlueEra/widgets/visit_business_stats_card.dart';
 import 'package:BlueEra/widgets/service_home_title_widget.dart';
 import 'package:BlueEra/widgets/social_gallery_grid.dart';
 import 'package:BlueEra/widgets/webview_common.dart';
@@ -34,12 +37,20 @@ class MedicalPharmacyDetailScreen extends StatefulWidget {
 
 class _MedicalPharmacyDetailScreenState
     extends State<MedicalPharmacyDetailScreen> {
+  final viewBusinessDetailsController =
+      Get.find<ViewBusinessDetailsController>();
+  final storeController = getOrPut(() => NewStoreController());
   MedicalHomeResponseModel? _data;
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
+    final id = widget.businessId;
+    if (id.isNotEmpty) {
+      viewBusinessDetailsController.viewBusinessProfileById(id);
+      storeController.trackStoreDetailView(id);
+    }
     _fetchData();
   }
 
@@ -104,7 +115,14 @@ class _MedicalPharmacyDetailScreenState
             SizedBox(height: SizeConfig.size10),
             _buildUploadPrescriptionCard(),
             SizedBox(height: SizeConfig.size10),
-            ProfileImpressionStats(),
+            Obx(() {
+              viewBusinessDetailsController.profileVersion.value;
+              return VisitBusinessStatsCard(
+                details: viewBusinessDetailsController
+                    .visitedBusinessProfileDetails
+                    ?.data,
+              );
+            }),
             SizedBox(height: SizeConfig.size10),
 
             // Website preview

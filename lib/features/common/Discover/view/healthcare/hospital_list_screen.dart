@@ -2,9 +2,13 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/core/constants/shimmer_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
+import 'package:BlueEra/core/services/location/location_service.dart';
+import 'package:BlueEra/widgets/route_map_bottom_sheet.dart';
 import 'package:BlueEra/features/common/Discover/view/healthcare/discover_hospital_home_screen.dart';
+import 'package:BlueEra/features/common/Discover/widget/discover_address_pill.dart';
+import 'package:BlueEra/features/common/Discover/widget/discover_chat_icon.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_service_ai_controller.dart';
 import 'package:BlueEra/features/me/hospital/model/hospital_full_details_res_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -12,6 +16,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/common/store/widget/store_live_photo_widget.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -34,7 +39,6 @@ class _HospitalListScreenState extends State<HospitalListScreen> {
     super.initState();
     controller = getOrPut(() => HospitalServiceAiController());
     controller.fetchInitial(widget.serviceType);
-
     _scrollController.addListener(_onScroll);
   }
 
@@ -58,8 +62,17 @@ class _HospitalListScreenState extends State<HospitalListScreen> {
       color: AppColors.appBackgroundColor,
       child: Obx(() {
         if (controller.isLoading.value && controller.profiles.isEmpty) {
-          return const Center(
-              child: CircularProgressIndicator(color: AppColors.primaryColor));
+          // One Shimmer drives all skeleton cards. Per-card shimmers flooded
+          // BLASTBufferQueue with redraws (visible as the "Already acquired
+          // max frames" spam in logcat).
+          return buildLoadingShimmer(
+            child: ListView.builder(
+              padding: EdgeInsets.symmetric(vertical: SizeConfig.size8),
+              itemCount: 3,
+              physics: const NeverScrollableScrollPhysics(),
+              itemBuilder: (_, __) => const _HospitalCardSkeletonBody(),
+            ),
+          );
         }
         if (controller.error.value.isNotEmpty && controller.profiles.isEmpty) {
           return Center(
@@ -91,11 +104,9 @@ class _HospitalListScreenState extends State<HospitalListScreen> {
                 (controller.isLoadingMore.value ? 1 : 0),
             itemBuilder: (context, index) {
               if (index >= controller.profiles.length) {
-                return Padding(
-                  padding: EdgeInsets.symmetric(vertical: SizeConfig.size12),
-                  child: const Center(
-                      child: CircularProgressIndicator(
-                          color: AppColors.primaryColor)),
+                // Load-more footer: wrap a single body in one shimmer.
+                return buildLoadingShimmer(
+                  child: const _HospitalCardSkeletonBody(),
                 );
               }
               final item = controller.profiles[index];
@@ -151,17 +162,6 @@ class _HospitalCard extends StatelessWidget {
     return list;
   }
 
-  void _openChat() {
-    final ownerId = item.userId;
-    if (_isEmpty(ownerId)) return;
-    final chatCtrl = getOrPut(() => ChatViewController());
-    chatCtrl.checkChatConnectionAndOpenChat(
-      userId: ownerId!,
-      name: item.name,
-      profile: item.logoUrl,
-    );
-  }
-
   String? _primaryPhone() {
     final contacts = item.contacts;
     if (contacts == null || contacts.isEmpty) return null;
@@ -192,7 +192,7 @@ class _HospitalCard extends StatelessWidget {
             final controller = Get.find<HospitalServiceAiController>();
             controller.hospitalDataResModel?.value =
                 HospitalFullDetailsResModel(success: true, data: item);
-            Get.to(DiscoverHospitalHomeScreen());
+            Get.to(()=> DiscoverHospitalHomeScreen());
           } on Exception catch (e) {
             logs("ERROR $e");
           }
@@ -208,10 +208,10 @@ class _HospitalCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   ClipRRect(
-                    borderRadius: BorderRadius.circular(SizeConfig.size10),
+                    borderRadius: BorderRadius.circular(SizeConfig.size30),
                     child: Container(
-                      width: SizeConfig.size70,
-                      height: SizeConfig.size70,
+                      width: SizeConfig.size60,
+                      height: SizeConfig.size60,
                       color: AppColors.liteWhite,
                       child: hasLogo
                           ? Image.network(
@@ -238,26 +238,10 @@ class _HospitalCard extends StatelessWidget {
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        SizedBox(height: SizeConfig.size4),
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Icon(Icons.location_on_outlined,
-                                size: SizeConfig.size14,
-                                color: AppColors.grey9B),
-                            SizedBox(width: SizeConfig.size4),
-                            Expanded(
-                              child: CustomText(
-                                _valueOr(item.location?.name,
-                                    fallback: "Address not available"),
-                                fontSize: SizeConfig.small,
-                                color: AppColors.secondaryTextColor,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ),
+                        if (_subCategoryLabel() != null) ...[
+                          SizedBox(height: SizeConfig.size6),
+                          _subCategoryBadge(_subCategoryLabel()!),
+                        ],
                         if (!_isEmpty(phone)) ...[
                           SizedBox(height: SizeConfig.size4),
                           Row(
@@ -283,19 +267,37 @@ class _HospitalCard extends StatelessWidget {
                     ),
                   ),
                   SizedBox(width: SizeConfig.size8),
-                  _chatIconButton(),
+                  DiscoverChatIcon(
+                    userId: item.userId ?? '',
+                    name: item.name,
+                    profile: item.logoUrl,
+                  ),
                 ],
               ),
 
-              // Description
+              // Address & Distance Card (tappable → opens map)
+              SizedBox(height: SizeConfig.size10),
+              Padding(
+                padding: const EdgeInsets.only(left: 20),
+                child: _buildAddressCard(context),
+              ),
+
+              // Description — 2-line trim with "Read more" opening a dialog.
               if (!_isEmpty(item.description)) ...[
                 SizedBox(height: SizeConfig.size10),
-                CustomText(
-                  item.description!.trim(),
-                  fontSize: SizeConfig.small,
-                  color: AppColors.secondaryTextColor,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+                Padding(
+                  padding: const EdgeInsets.only(left: 20),
+                  child: ExpandableText(
+                    text: item.description!.trim(),
+                    trimLines: 2,
+                    expandMode: ExpandMode.dialog,
+                    dialogTitle: item.name ?? 'Hospital',
+                    style: TextStyle(
+                      fontSize: SizeConfig.small,
+                      color: AppColors.secondaryTextColor,
+                      height: 1.35,
+                    ),
+                  ),
                 ),
               ],
 
@@ -306,7 +308,7 @@ class _HospitalCard extends StatelessWidget {
 
                 if (galleryPhotos.isNotEmpty) {
                   return Padding(
-                    padding: EdgeInsets.only(top: SizeConfig.size10),
+                    padding: EdgeInsets.only(top: SizeConfig.size10, left: 20),
                     child: StoreLivePhotoWidget(
                       livePhotos: galleryPhotos,
                       natureOfBusiness: item.name ?? 'Hospital',
@@ -330,7 +332,7 @@ class _HospitalCard extends StatelessWidget {
                   );
                 } else if (hasCover) {
                   return Padding(
-                    padding: EdgeInsets.only(top: SizeConfig.size10),
+                    padding: EdgeInsets.only(top: SizeConfig.size10, left: 20),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(12),
                       child: GestureDetector(
@@ -364,7 +366,7 @@ class _HospitalCard extends StatelessWidget {
                   );
                 } else if (hasLogo) {
                   return Padding(
-                    padding: EdgeInsets.only(top: SizeConfig.size10),
+                    padding: EdgeInsets.only(top: SizeConfig.size10, left: 20),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(12),
                       child: GestureDetector(
@@ -400,57 +402,33 @@ class _HospitalCard extends StatelessWidget {
                 return const SizedBox.shrink();
               }),
 
-              // Quick stats row
-              SizedBox(height: SizeConfig.size10),
-              Row(
-                children: [
-                  _statChip(
-                    icon: Icons.local_hospital_outlined,
-                    label: departmentsCount > 0
-                        ? "$departmentsCount Departments"
-                        : "No departments",
-                  ),
-                  SizedBox(width: SizeConfig.size8),
-                  _statChip(
-                    icon: Icons.medical_services_outlined,
-                    label: facilities.isNotEmpty
-                        ? "${facilities.length} Facilities"
-                        : "No facilities",
-                  ),
-                ],
+              // Departments — icon + label + count chip, pills underneath.
+              SizedBox(height: SizeConfig.size12),
+              Padding(
+                padding: const EdgeInsets.only(left: 20),
+                child: _infoSection(
+                  icon: Icons.local_hospital_outlined,
+                  title: 'Departments',
+                  count: departmentsCount,
+                  pills: (item.departments ?? [])
+                      .map((d) => d.name ?? '')
+                      .where((s) => s.trim().isNotEmpty)
+                      .toList(),
+                  emptyLabel: 'No departments listed',
+                ),
               ),
 
-              // Facilities
+              // Facilities — same pattern.
               SizedBox(height: SizeConfig.size10),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CustomText(
-                    "Facilities : ",
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.mainTextColor,
-                  ),
-                  Expanded(
-                    child: facilities.isEmpty
-                        ? CustomText(
-                            "Not available",
-                            fontSize: 12,
-                            color: AppColors.grey9B,
-                          )
-                        : Wrap(
-                            spacing: SizeConfig.size6,
-                            runSpacing: SizeConfig.size6,
-                            children: facilities
-                                .take(4)
-                                .map((t) => _facilityPill(t))
-                                .toList()
-                              ..addAll(facilities.length > 4
-                                  ? [_facilityPill("+${facilities.length - 4}")]
-                                  : []),
-                          ),
-                  ),
-                ],
+              Padding(
+                padding: const EdgeInsets.only(left: 20),
+                child: _infoSection(
+                  icon: Icons.medical_services_outlined,
+                  title: 'Facilities',
+                  count: facilities.length,
+                  pills: facilities,
+                  emptyLabel: 'No facilities listed',
+                ),
               ),
             ],
           ),
@@ -459,50 +437,194 @@ class _HospitalCard extends StatelessWidget {
     );
   }
 
-  Widget _chatIconButton() {
-    final enabled = !_isEmpty(item.userId);
-    return InkWell(
-      onTap: enabled ? _openChat : null,
-      borderRadius: BorderRadius.circular(SizeConfig.size20),
-      child: Container(
-        padding: EdgeInsets.all(SizeConfig.size8),
-        decoration: BoxDecoration(
-          color: enabled
-              ? AppColors.primaryColor.withOpacity(0.1)
-              : AppColors.liteWhite,
-          shape: BoxShape.circle,
-          border: Border.all(
-            color: enabled
-                ? AppColors.primaryColor.withOpacity(0.3)
-                : AppColors.grey9B.withOpacity(0.2),
+  /// Section block — left accent rail, icon-in-disc header with inline
+  /// count, and a wrap of soft-gradient pills below. Built to read like a
+  /// medical data panel rather than a generic "chips list".
+  Widget _infoSection({
+    required IconData icon,
+    required String title,
+    required int count,
+    required List<String> pills,
+    required String emptyLabel,
+  }) {
+    final accent = AppColors.primaryColor;
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Vertical accent rail — fades from solid primary at the top to
+          // translucent at the bottom, anchoring the section on the left.
+          Container(
+            width: 3,
+            margin: EdgeInsets.only(
+                top: 4, bottom: 4, right: SizeConfig.size10),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  accent,
+                  accent.withValues(alpha: 0.15),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(2),
+            ),
           ),
-        ),
-        child: Icon(
-          Icons.chat_bubble_outline,
-          size: SizeConfig.size18,
-          color: enabled ? AppColors.primaryColor : AppColors.grey9B,
-        ),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header row: icon-disc + title + inline count.
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: 26,
+                      height: 26,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: accent.withValues(alpha: 0.08),
+                        border: Border.all(
+                          color: accent.withValues(alpha: 0.18),
+                          width: 1,
+                        ),
+                      ),
+                      child: Icon(icon, size: SizeConfig.size14, color: accent),
+                    ),
+                    SizedBox(width: SizeConfig.size8),
+                    CustomText(
+                      title,
+                      fontSize: SizeConfig.small,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.mainTextColor,
+                    ),
+                    SizedBox(width: SizeConfig.size6),
+                    CustomText(
+                      '·',
+                      fontSize: SizeConfig.small,
+                      color: AppColors.secondaryTextColor,
+                      fontWeight: FontWeight.w700,
+                    ),
+                    SizedBox(width: SizeConfig.size6),
+                    CustomText(
+                      '$count',
+                      fontSize: SizeConfig.small,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.secondaryTextColor,
+                    ),
+                  ],
+                ),
+                SizedBox(height: SizeConfig.size8),
+                // Pills / empty state.
+                if (pills.isEmpty)
+                  _sectionEmpty(emptyLabel)
+                else
+                  Wrap(
+                    spacing: SizeConfig.size6,
+                    runSpacing: SizeConfig.size6,
+                    children: [
+                      ...pills.take(4).map(_gradientChip),
+                      if (pills.length > 4) _overflowChip(pills.length - 4),
+                    ],
+                  ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _statChip({required IconData icon, required String label}) {
+  /// Soft gradient pill used for real items. Subtle white → primary-tint
+  /// diagonal gives the chip depth without looking like a button.
+  Widget _gradientChip(String label) {
+    final accent = AppColors.primaryColor;
     return Container(
       padding: EdgeInsets.symmetric(
-          horizontal: SizeConfig.size8, vertical: SizeConfig.size4),
+          horizontal: SizeConfig.size10, vertical: SizeConfig.size4),
       decoration: BoxDecoration(
-        color: AppColors.liteWhite,
-        borderRadius: BorderRadius.circular(SizeConfig.size6),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.white,
+            accent.withValues(alpha: 0.09),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(
+          color: accent.withValues(alpha: 0.18),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: accent.withValues(alpha: 0.05),
+            blurRadius: 4,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
+      child: CustomText(
+        label,
+        fontSize: 11,
+        fontWeight: FontWeight.w600,
+        color: AppColors.mainTextColor,
+      ),
+    );
+  }
+
+  /// Distinct overflow chip — solid primary tint + bold label + trailing
+  /// arrow, so users read it as "tap to see more" instead of another item.
+  Widget _overflowChip(int extra) {
+    final accent = AppColors.primaryColor;
+    return Container(
+      padding: EdgeInsets.symmetric(
+          horizontal: SizeConfig.size10, vertical: SizeConfig.size4),
+      decoration: BoxDecoration(
+        color: accent.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(
+          color: accent.withValues(alpha: 0.32),
+          width: 1,
+        ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: SizeConfig.size14, color: AppColors.primaryColor),
-          SizedBox(width: SizeConfig.size4),
+          CustomText(
+            '+$extra more',
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+            color: accent,
+          ),
+          const SizedBox(width: 3),
+          Icon(Icons.arrow_forward_rounded, size: 11, color: accent),
+        ],
+      ),
+    );
+  }
+
+  /// Empty-state row — a muted chip with an info icon + hint copy.
+  Widget _sectionEmpty(String label) {
+    return Container(
+      padding: EdgeInsets.symmetric(
+          horizontal: SizeConfig.size10, vertical: SizeConfig.size6),
+      decoration: BoxDecoration(
+        color: AppColors.greyE5.withValues(alpha: 0.4),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppColors.greyE5, width: 1),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.info_outline_rounded,
+              size: 12, color: AppColors.grey9B),
+          SizedBox(width: SizeConfig.size6),
           CustomText(
             label,
             fontSize: 11,
-            color: AppColors.mainTextColor,
+            color: AppColors.grey9B,
             fontWeight: FontWeight.w500,
           ),
         ],
@@ -510,21 +632,137 @@ class _HospitalCard extends StatelessWidget {
     );
   }
 
-  Widget _facilityPill(String text) {
+  String? _subCategoryLabel() {
+    final depts = item.departments;
+    if (depts == null || depts.isEmpty) return null;
+    final first = depts.first.name;
+    if (first == null || first.trim().isEmpty) return null;
+    return first.trim();
+  }
+
+  Widget _subCategoryBadge(String text) {
     return Container(
       padding: EdgeInsets.symmetric(
-          horizontal: SizeConfig.size8, vertical: SizeConfig.size4),
+          vertical: SizeConfig.size3, horizontal: SizeConfig.size8),
       decoration: BoxDecoration(
-        color: AppColors.primaryColor.withOpacity(0.08),
-        borderRadius: BorderRadius.circular(SizeConfig.size20),
+        borderRadius: BorderRadius.circular(10.0),
+        color: AppColors.primaryColor.withValues(alpha: 0.08),
         border:
-            Border.all(color: AppColors.primaryColor.withOpacity(0.25)),
+            Border.all(color: AppColors.primaryColor.withValues(alpha: 0.3), width: 0.5),
       ),
       child: CustomText(
         text,
-        fontSize: 11,
+        fontSize: SizeConfig.small,
         color: AppColors.primaryColor,
         fontWeight: FontWeight.w500,
+      ),
+    );
+  }
+
+  double _destLat() {
+    final coords = item.location?.coordinates;
+    // GeoJSON stores [lng, lat].
+    if (coords != null && coords.length >= 2) return coords[1];
+    return 0.0;
+  }
+
+  double _destLng() {
+    final coords = item.location?.coordinates;
+    if (coords != null && coords.length >= 2) return coords[0];
+    return 0.0;
+  }
+
+  void _openMapBottomSheet(BuildContext context) {
+    RouteMapBottomSheet.show(
+      context: context,
+      destinationName: item.name ?? 'Hospital',
+      destinationAddress: item.location?.name ?? '',
+      destinationLat: _destLat(),
+      destinationLng: _destLng(),
+      storeBusinessID: item.id ?? '',
+      storeUserID: item.userId ?? '',
+    );
+  }
+
+  Widget _buildAddressCard(BuildContext context) {
+    return DiscoverAddressPill(
+      destLat: _destLat(),
+      destLng: _destLng(),
+      address: item.location?.name,
+      onTap: () => _openMapBottomSheet(context),
+    );
+  }
+
+}
+
+/// Placeholders only — wrap in a single [buildLoadingShimmer] at the list
+/// level so all cards share one animation controller. Rendering N shimmers
+/// at once saturates Android's BLASTBufferQueue ("Already acquired max
+/// frames") on mid-range devices.
+class _HospitalCardSkeletonBody extends StatelessWidget {
+  const _HospitalCardSkeletonBody();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.symmetric(
+          horizontal: SizeConfig.size10, vertical: SizeConfig.size6),
+      child: CommonCardWidget(
+        cardMargin: 0,
+        padding: SizeConfig.size12,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                shimmerContainer(
+                    width: SizeConfig.size70,
+                    height: SizeConfig.size70,
+                    radius: SizeConfig.size10
+                ),
+                SizedBox(width: SizeConfig.size12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      shimmerContainer(height: SizeConfig.size16),
+                      SizedBox(height: SizeConfig.size8),
+                      shimmerContainer(
+                          height: SizeConfig.size12, width: 180),
+                      SizedBox(height: SizeConfig.size6),
+                      shimmerContainer(
+                          height: SizeConfig.size12, width: 120),
+                    ],
+                  ),
+                ),
+                SizedBox(width: SizeConfig.size8),
+                shimmerContainer(
+                    width: SizeConfig.size34,
+                    height: SizeConfig.size34,
+                    radius: SizeConfig.size20),
+              ],
+            ),
+            SizedBox(height: SizeConfig.size10),
+            shimmerContainer(height: SizeConfig.size12),
+            SizedBox(height: SizeConfig.size6),
+            shimmerContainer(height: SizeConfig.size12, width: 220),
+            SizedBox(height: SizeConfig.size10),
+            shimmerContainer(height: 140, radius: 12),
+            SizedBox(height: SizeConfig.size10),
+            Row(
+              children: [
+                Expanded(
+                    child: shimmerContainer(
+                        height: SizeConfig.size24, radius: 6)),
+                SizedBox(width: SizeConfig.size8),
+                Expanded(
+                    child: shimmerContainer(
+                        height: SizeConfig.size24, radius: 6)),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
