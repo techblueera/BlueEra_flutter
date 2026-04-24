@@ -18,7 +18,6 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:pinput/pinput.dart';
 
-import 'package:BlueEra/widgets/common_drop_down.dart';
 
 import '../../../../personal/personal_profile/controller/languge_list_controller.dart';
 import '../../controller/gst_controller.dart';
