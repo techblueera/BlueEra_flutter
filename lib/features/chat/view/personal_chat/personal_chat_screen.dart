@@ -35,7 +35,8 @@ class PersonalChatScreen extends StatefulWidget {
   State<PersonalChatScreen> createState() => _PersonalChatScreenState();
 }
 
-class _PersonalChatScreenState extends State<PersonalChatScreen> {
+class _PersonalChatScreenState extends State<PersonalChatScreen>
+    with WidgetsBindingObserver {
 
   final chatViewController = Get.find<ChatViewController>();
   final chatThemeController = Get.find<ChatThemeController>();
@@ -55,8 +56,29 @@ class _PersonalChatScreenState extends State<PersonalChatScreen> {
     chatViewController.unreadNewMessageCount.value = 0;
     chatViewController.scrollController.addListener(_onScroll);
 
+    // On Android, CallActivity runs in a separate task and pauses the chat's
+    // Flutter engine. Once the user returns, pull the latest messages so the
+    // just-created call record shows up without the user having to leave and
+    // re-open the chat.
+    WidgetsBinding.instance.addObserver(this);
+
     // checkPendingMessages();
     super.initState();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.resumed) {
+      final id = widget.conversationId ?? '';
+      if (id.isEmpty) return;
+      chatViewController.emitEvent(ChatEmitEvents.messageReceived, {
+        ApiKeys.conversation_id: id,
+        ApiKeys.page: 1,
+        ApiKeys.is_online_user: chatViewController.userOpenUserId.value,
+        ApiKeys.per_page_message: 30,
+      });
+    }
   }
 
   void _onScroll() {
@@ -88,6 +110,7 @@ class _PersonalChatScreenState extends State<PersonalChatScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     chatViewController.scrollController.removeListener(_onScroll);
     NetworkUtils.removeListener((connected) {});
     super.dispose();
