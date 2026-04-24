@@ -20,7 +20,12 @@ class ViewServiceList extends StatefulWidget {
   final String? channelId;
   final bool isShowGrid;
 
-  const ViewServiceList({super.key, required this.providerType, this.serviceSubType, this.channelId, this.isShowGrid = true});
+  const ViewServiceList({
+    super.key,
+    required this.providerType,
+    this.serviceSubType,
+    this.channelId,
+    this.isShowGrid = true});
 
   @override
   State<ViewServiceList> createState() => _ViewServiceListState();
@@ -48,6 +53,7 @@ class _ViewServiceListState extends State<ViewServiceList> {
       ApiKeys.all: false,
       ApiKeys.type: AppConstants.service,
       ApiKeys.providerType: widget.providerType.title,
+      ApiKeys.subType: 'homeService',
     };
 
     if (isFromEarnWithBlueEra) {

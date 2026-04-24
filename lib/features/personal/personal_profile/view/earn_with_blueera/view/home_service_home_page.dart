@@ -3,6 +3,7 @@ import 'dart:ui';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
@@ -11,6 +12,8 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/delivery_partner/widget/common_image_upload_section.dart';
+import 'package:BlueEra/features/common/service/controller/service_controller.dart';
+import 'package:BlueEra/features/common/service/model/get_service_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/controller/earn_profile_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/earn_service_contact_map_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/earn_service_gallery_card.dart';
@@ -18,6 +21,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueer
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/earn_service_testimonial_card.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -30,11 +34,26 @@ class HomeServiceHomePage extends StatefulWidget {
 
 class _HomeServiceHomePageState extends State<HomeServiceHomePage> {
   late final EarnProfileController earnProfileController;
+  late final ServiceController serviceController;
 
   @override
   void initState() {
     super.initState();
     earnProfileController = getOrPut(() => EarnProfileController());
+    serviceController = getOrPut(() => ServiceController());
+    _fetchHomeServices();
+  }
+
+  void _fetchHomeServices() {
+    serviceController.getServices(
+      {
+        ApiKeys.all: false,
+        ApiKeys.type: AppConstants.service,
+        ApiKeys.providerType: ProviderType.user.title,
+        ApiKeys.subType: 'homeService',
+      },
+      isFromEarnWithBlueEra: true,
+    );
   }
 
   @override
@@ -59,7 +78,7 @@ class _HomeServiceHomePageState extends State<HomeServiceHomePage> {
     );
   }
 
-  // ─── Service Section (empty placeholder until API is wired) ───
+  // ─── Service Section ───
   Widget _buildServiceSection() {
     return CustomFormCard(
       padding: EdgeInsets.all(SizeConfig.size10),
@@ -80,10 +99,166 @@ class _HomeServiceHomePageState extends State<HomeServiceHomePage> {
             ],
           ),
           SizedBox(height: SizeConfig.size10),
-          _buildEmptyServiceState(),
+          Obx(() {
+            if (serviceController.isServiceDataFirstLoading.value) {
+              return const Padding(
+                padding: EdgeInsets.symmetric(vertical: 24),
+                child: Center(child: CircularProgressIndicator()),
+              );
+            }
+            final services = serviceController.serviceDataList;
+            if (services.isEmpty) {
+              return _buildEmptyServiceState();
+            }
+            return ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              padding: EdgeInsets.zero,
+              itemCount: services.length,
+              separatorBuilder: (_, __) =>
+                  SizedBox(height: SizeConfig.size10),
+              itemBuilder: (_, i) => _buildServiceCard(services[i]),
+            );
+          }),
         ],
       ),
     );
+  }
+
+  Widget _buildServiceCard(GetServiceModel service) {
+    final photo =
+        (service.photos != null && service.photos!.isNotEmpty)
+            ? service.photos!.first
+            : null;
+    final min = service.priceRange?.min;
+    final max = service.priceRange?.max;
+    final priceLabel = (min == null && max == null)
+        ? null
+        : '₹${_formatPrice(min)}-${_formatPrice(max)}';
+
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(12.0),
+        border: Border.all(color: AppColors.greyE5, width: 0.5),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (photo != null)
+            ClipRRect(
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(12.0),
+              ),
+              child: CachedNetworkImage(
+                imageUrl: photo,
+                height: SizeConfig.size180,
+                width: double.infinity,
+                fit: BoxFit.cover,
+                placeholder: (_, __) => Container(
+                  height: SizeConfig.size180,
+                  color: AppColors.greyE5,
+                ),
+                errorWidget: (_, __, ___) => Container(
+                  height: SizeConfig.size180,
+                  color: AppColors.greyE5,
+                  alignment: Alignment.center,
+                  child: Icon(Icons.image_not_supported_outlined,
+                      color: AppColors.secondaryTextColor),
+                ),
+              ),
+            ),
+          Padding(
+            padding: EdgeInsets.all(SizeConfig.size12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CustomText(
+                  service.title ?? '',
+                  fontSize: SizeConfig.large,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.mainTextColor,
+                ),
+                if ((service.description ?? '').isNotEmpty) ...[
+                  SizedBox(height: SizeConfig.size6),
+                  CustomText(
+                    service.description!,
+                    fontSize: SizeConfig.small,
+                    color: AppColors.secondaryTextColor,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+                SizedBox(height: SizeConfig.size10),
+                Row(
+                  children: [
+                    if (priceLabel != null) ...[
+                      CustomText(
+                        priceLabel,
+                        fontSize: SizeConfig.medium,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.mainTextColor,
+                      ),
+                      SizedBox(width: SizeConfig.size6),
+                      CustomText(
+                        'Range',
+                        fontSize: SizeConfig.small,
+                        color: AppColors.secondaryTextColor,
+                      ),
+                    ],
+                    const Spacer(),
+                    InkWell(
+                      onTap: () => _onEditService(service),
+                      borderRadius: BorderRadius.circular(8.0),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12.0, vertical: 6.0),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8.0),
+                          border: Border.all(
+                              color: AppColors.primaryColor, width: 1),
+                          color: AppColors.primaryColor.withValues(alpha: 0.06),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.edit_outlined,
+                                size: 14, color: AppColors.primaryColor),
+                            SizedBox(width: SizeConfig.size4),
+                            CustomText(
+                              'Edit',
+                              fontSize: SizeConfig.small,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.primaryColor,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatPrice(int? value) {
+    if (value == null) return '';
+    if (value >= 1000) {
+      final k = value / 1000;
+      final fixed = k == k.truncateToDouble()
+          ? k.toStringAsFixed(0)
+          : k.toStringAsFixed(1);
+      return '${fixed}K';
+    }
+    return value.toString();
+  }
+
+  void _onEditService(GetServiceModel service) {
+    // Hook up to edit flow when available.
   }
 
   Widget _buildEmptyServiceState() {
