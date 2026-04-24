@@ -618,12 +618,21 @@ class _ContactAvatar extends StatelessWidget {
       ),
     );
     if (profileImage.isEmpty) return fallback;
+    // Decode cached bytes at ~thumbnail size (3x DPR headroom over logical
+    // diameter). Skipping the fade animation lets the on-disk cache paint
+    // on the first frame instead of after a placeholder → fade-in tick,
+    // which is what made the offline list feel slow.
+    final decodeSize = (radius * 2 * 3).round();
     return ClipOval(
       child: CachedNetworkImage(
         imageUrl: profileImage,
         width: radius * 2,
         height: radius * 2,
         fit: BoxFit.cover,
+        memCacheWidth: decodeSize,
+        memCacheHeight: decodeSize,
+        fadeInDuration: Duration.zero,
+        fadeOutDuration: Duration.zero,
         placeholder: (_, __) => fallback,
         errorWidget: (_, __, ___) => fallback,
       ),

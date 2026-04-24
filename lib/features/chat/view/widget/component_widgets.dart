@@ -484,12 +484,35 @@ Widget  ChatListTile({
                         fit: BoxFit.cover,
                         width: SizeConfig.size44,
                         height: SizeConfig.size44,
+                        // Decode at ~thumbnail size instead of the full
+                        // source resolution. Avatars in the list are ~44dp,
+                        // so a 132px memory cache covers up to 3x DPR and
+                        // cuts decode time dramatically on offline reloads.
+                        memCacheWidth: 132,
+                        memCacheHeight: 132,
+                        fadeInDuration: Duration.zero,
+                        fadeOutDuration: Duration.zero,
+                        placeholder: (_, __) => Container(
+                          width: SizeConfig.size44,
+                          height: SizeConfig.size44,
+                          color: AppColors.white,
+                        ),
+                        errorWidget: (_, __, ___) => Center(
+                          child: CustomText(
+                            senderName?.substring(0, 1) ?? '',
+                            color: Colors.white,
+                            fontWeight: FontWeight.w800,
+                            fontSize: SizeConfig.size18,
+                          ),
+                        ),
                       )
                           : (senderProfileImage.startsWith('assets'))?Image.asset(senderProfileImage): Image.file(
                         File(senderProfileImage),
                         width: SizeConfig.size44,
                         height: SizeConfig.size44,
                         fit: BoxFit.cover,
+                        cacheWidth: 132,
+                        cacheHeight: 132,
                       ),
                     )
                         : Center(
