@@ -14,20 +14,20 @@ enum ValidationTypeEnum {
 
 enum IndividualProfileType {
   SOCIAL_PROFILE(
-      tagId: "SOCIAL_PROFILE",
-      name: "Social Profile",
+    tagId: "SOCIAL_PROFILE",
+    name: "Social Profile",
   ),
   SELF_EMPLOYED(
-      tagId: "SELF_EMPLOYED",
-      name: "Skill Work / Self Employee",
+    tagId: "SELF_EMPLOYED",
+    name: "Skill Work / Self Employee",
   ),
   GIG_WORKER(
-      tagId: "GIG_WORKER",
-      name: "Gig Worker / Transport",
+    tagId: "GIG_WORKER",
+    name: "Gig Worker / Transport",
   ),
   PROFESSIONAL(
-      tagId: "PROFESSIONAL",
-      name: "Professional / Consultant",
+    tagId: "PROFESSIONAL",
+    name: "Professional / Consultant",
   );
 
   final String tagId;
@@ -41,14 +41,25 @@ enum IndividualProfileType {
   /// Helper to convert a String from API back to this Enum
   static IndividualProfileType fromString(String value) {
     return IndividualProfileType.values.firstWhere(
-          (e) => e.tagId == value,
+      (e) => e.tagId == value,
       orElse: () => IndividualProfileType.SOCIAL_PROFILE, // Default fallback
     );
   }
-
 }
 
-enum BusinessType { Food, Product, Service, Grocery, Manufacturing, Healthcare, Motel, Siksha, Automotive, Finance, Both}
+enum BusinessType {
+  Food,
+  Product,
+  Service,
+  Grocery,
+  Manufacturing,
+  Healthcare,
+  Motel,
+  Siksha,
+  Automotive,
+  Finance,
+  Both
+}
 // enum BusinessType { Food, Product, Service, Grocery, Health, HotelStay, Both }
 
 /// Modes of Communication
@@ -181,12 +192,12 @@ extension GenderTypeExtension on GenderType {
 
   // Get enum from string
   static GenderType fromString(String value) {
-    switch (value) {
+    switch (value.trim().toLowerCase()) {
       case 'male':
         return GenderType.Male;
       case 'female':
         return GenderType.Female;
-      case 'Others':
+      case 'others':
         return GenderType.Others;
       default:
         return GenderType.Male;
@@ -308,7 +319,6 @@ enum OwnChannelMenuAction {
   addService,
 }
 
-
 enum EditDeleteMenuAction {
   noticeEdit,
   noticeDelete,
@@ -331,9 +341,10 @@ enum MapServiceCategory {
 
   const MapServiceCategory(this.label);
 
-  static (MapServiceCategory category, int index) fromStringWithIndex(String value) {
+  static (MapServiceCategory category, int index) fromStringWithIndex(
+      String value) {
     final idx = MapServiceCategory.values.indexWhere(
-          (e) => e.label.toLowerCase() == value.toLowerCase(),
+      (e) => e.label.toLowerCase() == value.toLowerCase(),
     );
 
     if (idx == -1) {
@@ -342,7 +353,6 @@ enum MapServiceCategory {
 
     return (MapServiceCategory.values[idx], idx);
   }
-
 }
 
 extension MapCategoryExtension on String {
@@ -1071,11 +1081,7 @@ extension RentalServiceTypeParser on String {
   }
 }
 
-enum RiderVerificationState {
-  completed,
-  rejected,
-  pending
-}
+enum RiderVerificationState { completed, rejected, pending }
 
 enum EarnServiceOrdersStatus {
   newAndOnGoingOrder('New'),
@@ -1099,7 +1105,6 @@ enum BankAccountType {
   final String displayName;
 
   const BankAccountType(this.displayName);
-
 }
 
 extension BankAccountTypeExtension on BankAccountType {
@@ -1109,15 +1114,15 @@ extension BankAccountTypeExtension on BankAccountType {
 
     // Normalizing the string to lowercase and removing spaces/underscores
     // to match enum values robustly
-    final normalizedValue = value.toLowerCase().replaceAll('_', '').replaceAll(' ', '');
+    final normalizedValue =
+        value.toLowerCase().replaceAll('_', '').replaceAll(' ', '');
 
     return BankAccountType.values.firstWhere(
-          (type) => type.name.toLowerCase() == normalizedValue,
+      (type) => type.name.toLowerCase() == normalizedValue,
       orElse: () => BankAccountType.savings, // Fallback if no match found
     );
   }
 }
-
 
 enum BedType {
   singleBed("Single Bed"),
@@ -1180,7 +1185,7 @@ enum ServiceType {
   emergency('Emergency Service', 'emergency');
 
   // Properties
-  final String label;    // What the user sees (e.g., "Residential")
+  final String label; // What the user sees (e.g., "Residential")
   final String apiValue; // What you send to the server (e.g., "residential")
 
   // Constructor
@@ -1211,10 +1216,14 @@ enum MealType {
 
   static MealType fromKey(String? key) {
     switch (key) {
-      case 'morningTiffin': return MealType.morningTiffin;
-      case 'breakfast':     return MealType.breakfast;
-      case 'eveningDinner': return MealType.eveningDinner;
-      default:              return MealType.morningTiffin;
+      case 'morningTiffin':
+        return MealType.morningTiffin;
+      case 'breakfast':
+        return MealType.breakfast;
+      case 'eveningDinner':
+        return MealType.eveningDinner;
+      default:
+        return MealType.morningTiffin;
     }
   }
 }
@@ -1227,11 +1236,16 @@ enum FoodCategoryType {
 
   static FoodCategoryType fromKey(String? key) {
     switch (key) {
-      case 'bakery':   return FoodCategoryType.bakery;
-      case 'namkeens': return FoodCategoryType.namkeens;
-      case 'sweets':   return FoodCategoryType.sweets;
-      case 'pickles':  return FoodCategoryType.pickles;
-      default:         return FoodCategoryType.bakery;
+      case 'bakery':
+        return FoodCategoryType.bakery;
+      case 'namkeens':
+        return FoodCategoryType.namkeens;
+      case 'sweets':
+        return FoodCategoryType.sweets;
+      case 'pickles':
+        return FoodCategoryType.pickles;
+      default:
+        return FoodCategoryType.bakery;
     }
   }
 }
@@ -1258,19 +1272,32 @@ enum AutoFillType {
 extension AutoFillTypeExtension on AutoFillType {
   Iterable<String>? get hints {
     switch (this) {
-      case AutoFillType.email:       return [AutofillHints.email];
-      case AutoFillType.username:    return [AutofillHints.username];
-      case AutoFillType.password:    return [AutofillHints.password];
-      case AutoFillType.newPassword: return [AutofillHints.newPassword];
-      case AutoFillType.phone:       return [AutofillHints.telephoneNumber];
-      case AutoFillType.name:        return [AutofillHints.name];
-      case AutoFillType.firstName:   return [AutofillHints.givenName];
-      case AutoFillType.lastName:    return [AutofillHints.familyName];
-      case AutoFillType.address:     return [AutofillHints.fullStreetAddress];
-      case AutoFillType.postalCode:  return [AutofillHints.postalCode];
-      case AutoFillType.creditCard:  return [AutofillHints.creditCardNumber];
-      case AutoFillType.oneTimeCode: return [AutofillHints.oneTimeCode];
-      case AutoFillType.none:        return null;
+      case AutoFillType.email:
+        return [AutofillHints.email];
+      case AutoFillType.username:
+        return [AutofillHints.username];
+      case AutoFillType.password:
+        return [AutofillHints.password];
+      case AutoFillType.newPassword:
+        return [AutofillHints.newPassword];
+      case AutoFillType.phone:
+        return [AutofillHints.telephoneNumber];
+      case AutoFillType.name:
+        return [AutofillHints.name];
+      case AutoFillType.firstName:
+        return [AutofillHints.givenName];
+      case AutoFillType.lastName:
+        return [AutofillHints.familyName];
+      case AutoFillType.address:
+        return [AutofillHints.fullStreetAddress];
+      case AutoFillType.postalCode:
+        return [AutofillHints.postalCode];
+      case AutoFillType.creditCard:
+        return [AutofillHints.creditCardNumber];
+      case AutoFillType.oneTimeCode:
+        return [AutofillHints.oneTimeCode];
+      case AutoFillType.none:
+        return null;
     }
   }
 }

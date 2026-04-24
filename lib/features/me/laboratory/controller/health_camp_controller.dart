@@ -245,14 +245,16 @@ class HealthCampController extends GetxController {
   }
 
   Future<void> fetchCamps() async {
+    if (labIDGlobal.isEmpty) return;
     isLoading.value = true;
     try {
-      ResponseModel res = await _repo.getHealthCamps();
+      ResponseModel res = await _repo.getHealthCampsByLab(labIDGlobal);
       if (res.isSuccess) {
         List data = res.response?.data['data'] ?? [];
         camps.value = data.map((e) => HealthCamp.fromJson(e)).toList();
       }
     } catch (e) {
+      print("Error fetching camps: $e");
     } finally {
       isLoading.value = false;
     }
@@ -348,7 +350,7 @@ class HealthCampController extends GetxController {
         startDate: start,
         endDate: end,
         startTime: selectedTime.value,
-        laboratoryId: labIDGlobal,
+        laboratoryId: existing.laboratoryId ?? labIDGlobal,
         images: finalImages,
         location: (lat.value != 0.0 || lng.value != 0.0)
             ? HealthCampLocation(
@@ -405,14 +407,15 @@ class HealthCampController extends GetxController {
   }
 
   Future<void> fetchCampFullDetails() async {
+    if (labIDGlobal.isEmpty) return;
     isDetailLoading.value = true;
     try {
-      ResponseModel res = await _repo.getHealthCampFullDetails();
+      ResponseModel res = await _repo.getHealthCampsByLab(labIDGlobal);
       if (res.isSuccess) {
         final data = res.response?.data['data'];
 
         if (data != null && data is List && data.isNotEmpty) {
-          // CHANGED: Using .last instead of [0]
+          // Get the camp for this specific laboratory
           campDetail.value = HealthCamp.fromJson(data.last);
         } else if (data != null && data is Map<String, dynamic>) {
           campDetail.value = HealthCamp.fromJson(data);

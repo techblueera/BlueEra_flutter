@@ -95,4 +95,4 @@ class HotelDetailController extends GetxController {
   }
 }
 
-///test
+

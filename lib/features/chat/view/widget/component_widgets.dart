@@ -594,13 +594,25 @@ Widget  ChatListTile({
                       color: AppColors.grey9A,
                       overflow: TextOverflow.ellipsis,
                     )
-                        : CustomText(
-                      maxLines: 1,
-                      "$lastMessage",
-                      fontSize: SizeConfig.size14,
-                      color: AppColors.grey9A,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                        : Builder(builder: (_) {
+                      final msg = lastMessage ?? '';
+                      final lowerMsg = msg.toLowerCase();
+                      Color msgColor = AppColors.grey9A;
+                      if (lowerMsg.contains('missed call')) {
+                        msgColor = Colors.red;
+                      } else if (lowerMsg.contains('ongoing')) {
+                        msgColor = AppColors.primaryColor;
+                      } else if (lowerMsg.contains('calling')) {
+                        msgColor = Colors.green;
+                      }
+                      return CustomText(
+                        maxLines: 1,
+                        msg,
+                        fontSize: SizeConfig.size14,
+                        color: msgColor,
+                        overflow: TextOverflow.ellipsis,
+                      );
+                    }),
                   );
                 }),
               ],
@@ -1030,6 +1042,28 @@ void _navigateToProfile({required String authorId, required String type}) {
   }
 }
 
+void _refreshChatAfterOutgoingCall(String? conversationId) {
+  final id = conversationId ?? '';
+  if (id.isEmpty) return;
+  if (!Get.isRegistered<ChatViewController>()) return;
+  final cvc = Get.find<ChatViewController>();
+  // The backend persists the outgoing call record asynchronously, so a single
+  // fixed delay sometimes races and returns the pre-call message list. Fire
+  // the fetch a few times with increasing backoff so we pick it up as soon as
+  // it lands.
+  void _fetch() {
+    cvc.emitEvent(ChatEmitEvents.messageReceived, {
+      ApiKeys.conversation_id: id,
+      ApiKeys.page: 1,
+      ApiKeys.is_online_user: cvc.userOpenUserId.value,
+      ApiKeys.per_page_message: 30,
+    });
+  }
+  Future.delayed(const Duration(milliseconds: 500), _fetch);
+  Future.delayed(const Duration(milliseconds: 1500), _fetch);
+  Future.delayed(const Duration(milliseconds: 3000), _fetch);
+}
+
 void _initiateCallFromChat({
   required CallType callType,
   String? otherUserId,
@@ -1053,7 +1087,9 @@ void _initiateCallFromChat({
       isCaller: true,
     );
     print("launched: $launched");
-    if (!launched) {
+    if (launched) {
+      _refreshChatAfterOutgoingCall(conversationId);
+    } else {
       // Fallback to in-app call if CallActivity launch fails
       CallController.isCallActivityActive = false;
       _initiateCallInApp(
@@ -1099,6 +1135,7 @@ void _initiateCallInApp({
   );
 
   if (success) {
+    _refreshChatAfterOutgoingCall(conversationId);
     Get.toNamed('/CallRoomScreen');
   }
 }
@@ -1139,6 +1176,7 @@ void _showCallOptionsBottomSheet({
                 title: 'Voice Call',
                 subtitle: 'Call encrypted no contact share',
                 onTap: () {
+                  print("ljkcnsdlkjcslkdcsdc ${conversationId}");
                   Navigator.pop(ctx);
                   _initiateCallFromChat(
                     callType: CallType.audio,

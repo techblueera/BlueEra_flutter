@@ -82,7 +82,6 @@ class ViewPersonalDetailsController extends GetxController {
 
   void getServiceProviderStatus() async {
     try {
-
       ResponseModel responseModel =
           await PersonalProfileRepo().getServiceStatusRepo();
 
@@ -259,22 +258,29 @@ class ViewPersonalDetailsController extends GetxController {
 
         if (user?.emailVerified ?? false) {
           verifiedEmail.value = user?.email ?? "";
+        } else {
+          verifiedEmail.value = "";
         }
 
         ///SET SOCIAL DATA LINK...
         setSocialLink(data);
-        personalController.imagePath?.value =
-            user?.profileImage ?? "";
-        personalController.coverImagePath?.value =
-            user?.coverPicture ?? "";
+        personalController.imagePath?.value = user?.profileImage ?? "";
+        personalController.coverImagePath?.value = user?.coverPicture ?? "";
 
         ///SET SKILL...
         personalController.skillsList.clear();
-        personalController.skillsList
-            .addAll(user?.skills ?? []);
+        personalController.skillsList.addAll(user?.skills ?? []);
 
         ///SET OVERVIEW
         overView.value = user?.objective ?? "";
+
+        /// SYNC GENDER, DOB AND PROFESSION TO CONTROLLER
+        personalController.selectedGender.value =
+            GenderTypeExtension.fromString(user?.gender ?? "male");
+        personalController.selectedDay?.value = user?.dateOfBirth?.date ?? 0;
+        personalController.selectedMonth?.value = user?.dateOfBirth?.month ?? 0;
+        personalController.selectedYear?.value = user?.dateOfBirth?.year ?? 0;
+        personalController.selectedProfession.value = user?.profession ?? "";
 
         Get.find<AuthController>().imgPath.value = user?.profileImage ?? "";
         // await SharedPreferenceUtils.setSecureValue(SharedPreferenceUtils.userProfile, user?.profileImage??"");
@@ -296,12 +302,12 @@ class ViewPersonalDetailsController extends GetxController {
 
         /// Check Earn services
         earnProfileType.value = personalProfileDetails.value.earnProfileType;
-        debugPrint('=== earnProfileType: "${earnProfileType.value}", raw: "${personalProfileDetails.value.earnProfileType}" ===');
+        debugPrint(
+            '=== earnProfileType: "${earnProfileType.value}", raw: "${personalProfileDetails.value.earnProfileType}" ===');
 
         /// need to verify (for checking is service exists or not)
         if (user?.profession?.toUpperCase() == SELF_EMPLOYED ||
-            user?.profession?.toUpperCase() == GIG_WORKER
-        ) {
+            user?.profession?.toUpperCase() == GIG_WORKER) {
           await getServiceProviderStatusUtils();
           if (serviceProviderStatusGlobal.isNotEmpty) {
             if (serviceProviderStatusGlobal.toUpperCase() ==
@@ -482,23 +488,22 @@ class ViewPersonalDetailsController extends GetxController {
   // }
 
   void partiallyForceToCreateService() {
-    final viewProfileController = getOrPut(() => ViewPersonalDetailsController(), permanent: true);
+    final viewProfileController =
+        getOrPut(() => ViewPersonalDetailsController(), permanent: true);
 
     Get.find<AuthController>().individualOnboardingSkillWorkList.any(
-      (service) => service.tagId == userProfessionGlobal,
-    );
+          (service) => service.tagId == userProfessionGlobal,
+        );
 
     if (viewProfileController.personalProfileDetails.value.isProfileCreated ==
         false) {
       Navigator.push(Get.context!,
           MaterialPageRoute(builder: (context) => CreateProfileScreen()));
     } else {
-
       if (userProfessionGlobal == BIKE_RIDER) {
         Get.toNamed(RouteHelper.getGigWorkerOptionsScreenRoute());
       } else {
-        Get.toNamed(
-            RouteHelper.getSelfEmployeeScreenRoute());
+        Get.toNamed(RouteHelper.getSelfEmployeeScreenRoute());
       }
 
       // Get.toNamed(
@@ -558,7 +563,7 @@ class ViewPersonalDetailsController extends GetxController {
         }
         break;
       default:
-        commonSnackBar(message:'Action Tapped on ${item.title}');
+        commonSnackBar(message: 'Action Tapped on ${item.title}');
     }
   }
 
@@ -895,3 +900,5 @@ class ViewPersonalDetailsController extends GetxController {
     );
   }
 }
+
+//
