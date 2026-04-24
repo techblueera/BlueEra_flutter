@@ -900,3 +900,5 @@ class ViewPersonalDetailsController extends GetxController {
     );
   }
 }
+
+//
