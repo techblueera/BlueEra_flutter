@@ -60,6 +60,10 @@
 		<string>This app uses the local network to discover and communicate with nearby devices.</string>
 		<key>io.flutter.embedded_views_preview</key>
 		<true/>
+		<!-- Keep FALSE: we use the `app_links` Flutter plugin (splash_screen.dart),
+		     which handles NSUserActivity via its own method channel. Setting
+		     this to true makes Flutter's built-in router consume the URL before
+		     the plugin sees it, so the Dart deep-link handler never fires. -->
 		<key>FlutterDeepLinkingEnabled</key>
 		<false/>
 		<key>UIRequiredDeviceCapabilities</key>

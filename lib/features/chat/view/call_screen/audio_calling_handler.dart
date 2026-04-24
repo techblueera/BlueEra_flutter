@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -321,18 +323,24 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
             _buildIncomingEncryptionLabel(),
             const SizedBox(height: 16),
             // Caller info
-            Obx(() => Text(
-                  controller.callerName.value.isNotEmpty
-                      ? controller.callerName.value
-                      : 'Unknown',
-                  style: const TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.w500,
-                    fontFamily: 'OpenSans',
-                    color: Colors.white,
-                    letterSpacing: 0.3,
-                  ),
-                )),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Obx(() => Text(
+                    controller.callerName.value.isNotEmpty
+                        ? controller.callerName.value
+                        : 'Unknown',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.w500,
+                      fontFamily: 'OpenSans',
+                      color: Colors.white,
+                      letterSpacing: 0.3,
+                    ),
+                  )),
+            ),
             const SizedBox(height: 6),
             Obx(() => Row(
                   mainAxisSize: MainAxisSize.min,
@@ -665,41 +673,49 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
                         Get.back();
                       },
                     ),
-                    Column(
-                      children: [
-                        Obx(() => Text(
-                              controller.remoteUserName.value.isNotEmpty
-                                  ? controller.remoteUserName.value
-                                  : 'Calling...',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w700,
-                                fontSize: 17,
-                                letterSpacing: 0.2,
-                              ),
-                            )),
-                        const SizedBox(height: 3),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
+                    Flexible(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 15.0),
+                        child: Column(
                           children: [
-                            Icon(Icons.lock_outline,
-                                size: 12,
-                                color: Colors.white.withValues(alpha: 0.55)),
-                            const SizedBox(width: 4),
-                            Text(
-                              'End-to-end encrypted',
-                              style: TextStyle(
-                                color: Colors.white.withValues(alpha: 0.55),
-                                fontSize: 12,
-                              ),
+                            Obx(() => CustomText(
+                                  controller.remoteUserName.value.isNotEmpty
+                                      ? controller.remoteUserName.value
+                                      : 'Calling...',
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 17,
+                                  letterSpacing: 0.2,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                )),
+                            const SizedBox(height: 3),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.lock_outline,
+                                    size: 12,
+                                    color:
+                                        Colors.white.withValues(alpha: 0.55)),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'End-to-end encrypted',
+                                  style: TextStyle(
+                                    color: Colors.white.withValues(alpha: 0.55),
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
-                      ],
+                      ),
                     ),
                     _CircleIconButton(
                       icon: Icons.person_add_alt_1_rounded,
-                      onTap: () {},
+                      onTap: () {
+                        commonSnackBar(message: "Coming soon...");
+                      },
                     ),
                   ],
                 ),
@@ -728,10 +744,8 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
                                     border: Border.all(
-                                      color: const Color(0xFF25D366)
-                                          .withValues(
-                                              alpha:
-                                                  _ripple1Opacity.value * 0.4),
+                                      color: const Color(0xFF25D366).withValues(
+                                          alpha: _ripple1Opacity.value * 0.4),
                                       width: 1.5,
                                     ),
                                   ),
@@ -749,10 +763,8 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
                                     border: Border.all(
-                                      color: const Color(0xFF25D366)
-                                          .withValues(
-                                              alpha:
-                                                  _ripple2Opacity.value * 0.3),
+                                      color: const Color(0xFF25D366).withValues(
+                                          alpha: _ripple2Opacity.value * 0.3),
                                       width: 1.5,
                                     ),
                                   ),
@@ -770,10 +782,8 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
                                     border: Border.all(
-                                      color: const Color(0xFF25D366)
-                                          .withValues(
-                                              alpha:
-                                                  _ripple3Opacity.value * 0.2),
+                                      color: const Color(0xFF25D366).withValues(
+                                          alpha: _ripple3Opacity.value * 0.2),
                                       width: 1.5,
                                     ),
                                   ),
@@ -816,8 +826,8 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
               Padding(
                 padding: const EdgeInsets.fromLTRB(12, 0, 12, 20),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(
-                      vertical: 10, horizontal: 10),
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
                   decoration: BoxDecoration(
                     color: const Color(0xFF1C2733),
                     borderRadius: BorderRadius.circular(40),
@@ -911,37 +921,42 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
                         Get.back();
                       },
                     ),
-                    Column(
-                      children: [
-                        Obx(() => Text(
-                              controller.remoteUserName.value,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w700,
-                                fontSize: 17,
-                                letterSpacing: 0.2,
+                    Flexible(
+                      child: Column(
+                        children: [
+                          Obx(() => Text(
+                                controller.remoteUserName.value,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 17,
+                                  letterSpacing: 0.2,
+                                ),
+                              )),
+                          const SizedBox(height: 3),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.lock_outline,
+                                  size: 12,
+                                  color: Colors.white.withValues(alpha: 0.55)),
+                              const SizedBox(width: 4),
+                              Text(
+                                'End-to-end encrypted',
+                                style: TextStyle(
+                                  color: Colors.white.withValues(alpha: 0.55),
+                                  fontSize: 12,
+                                ),
                               ),
-                            )),
-                        const SizedBox(height: 3),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.lock_outline,
-                                size: 12,
-                                color: Colors.white.withValues(alpha: 0.55)),
-                            const SizedBox(width: 4),
-                            Text(
-                              'End-to-end encrypted',
-                              style: TextStyle(
-                                color: Colors.white.withValues(alpha: 0.55),
-                                fontSize: 12,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
-                /*    Obx(() {
+                    SizedBox(),
+                    /*    Obx(() {
                       if (controller.callStatus.value == CallStatus.connected) {
                         return _CircleIconButton(
                           icon: Icons.person_add_alt_1_rounded,
@@ -1002,7 +1017,8 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
                                 Text(
                                   'Muted',
                                   style: TextStyle(
-                                    color: Colors.redAccent.withValues(alpha: 0.8),
+                                    color:
+                                        Colors.redAccent.withValues(alpha: 0.8),
                                     fontSize: 12,
                                   ),
                                 ),
@@ -1021,8 +1037,8 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
               Padding(
                 padding: const EdgeInsets.fromLTRB(12, 0, 12, 20),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(
-                      vertical: 10, horizontal: 10),
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
                   decoration: BoxDecoration(
                     color: const Color(0xFF1C2733),
                     borderRadius: BorderRadius.circular(40),
@@ -1036,8 +1052,7 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
                         _ControlButton(
                           icon: Icons.more_horiz_rounded,
                           label: 'More',
-                          onTap: () =>
-                              _showMoreOptions(context, controller),
+                          onTap: () => _showMoreOptions(context, controller),
                         ),
                         _ControlButton(
                           icon: Icons.videocam_off_rounded,
@@ -1213,8 +1228,7 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
                 if (remoteRenderer != null) {
                   return RTCVideoView(
                     remoteRenderer,
-                    objectFit:
-                        RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
+                    objectFit: RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
                   );
                 }
               }
@@ -1451,8 +1465,7 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
         ),
         child: SafeArea(
           child: Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -1466,67 +1479,71 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
                     Get.back();
                   },
                 ),
-                Column(
-                  children: [
-                    Obx(() {
-                      final isGroup = controller.isGroupCall.value;
-                      return Text(
-                        isGroup
-                            ? 'Group Call'
-                            : controller.remoteUserName.value,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 17,
-                          letterSpacing: 0.2,
-                        ),
-                      );
-                    }),
-                    const SizedBox(height: 3),
-                    Obx(() {
-                      if (controller.callStatus.value ==
-                          CallStatus.connected) {
-                        return Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(
-                              width: 7,
-                              height: 7,
-                              decoration: const BoxDecoration(
-                                color: Color(0xFF25D366),
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                            const SizedBox(width: 5),
-                            Text(
-                              controller.formattedCallDuration,
-                              style: TextStyle(
-                                color: Colors.white.withValues(alpha: 0.55),
-                                fontSize: 12,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              controller.callType.value == CallType.video
-                                  ? 'Video'
-                                  : 'Audio',
-                              style: TextStyle(
-                                color: Colors.white.withValues(alpha: 0.35),
-                                fontSize: 11,
-                              ),
-                            ),
-                          ],
+                Flexible(
+                  child: Column(
+                    children: [
+                      Obx(() {
+                        final isGroup = controller.isGroupCall.value;
+                        return Text(
+                          isGroup
+                              ? 'Group Call'
+                              : controller.remoteUserName.value,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 17,
+                            letterSpacing: 0.2,
+                          ),
                         );
-                      }
-                      return Text(
-                        'Connecting...',
-                        style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.55),
-                          fontSize: 12,
-                        ),
-                      );
-                    }),
-                  ],
+                      }),
+                      const SizedBox(height: 3),
+                      Obx(() {
+                        if (controller.callStatus.value ==
+                            CallStatus.connected) {
+                          return Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                width: 7,
+                                height: 7,
+                                decoration: const BoxDecoration(
+                                  color: Color(0xFF25D366),
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              const SizedBox(width: 5),
+                              Text(
+                                controller.formattedCallDuration,
+                                style: TextStyle(
+                                  color: Colors.white.withValues(alpha: 0.55),
+                                  fontSize: 12,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                controller.callType.value == CallType.video
+                                    ? 'Video'
+                                    : 'Audio',
+                                style: TextStyle(
+                                  color: Colors.white.withValues(alpha: 0.35),
+                                  fontSize: 11,
+                                ),
+                              ),
+                            ],
+                          );
+                        }
+                        return Text(
+                          'Connecting...',
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.55),
+                            fontSize: 12,
+                          ),
+                        );
+                      }),
+                    ],
+                  ),
                 ),
                 Row(
                   mainAxisSize: MainAxisSize.min,
@@ -1593,8 +1610,7 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
         child: Padding(
           padding: const EdgeInsets.fromLTRB(12, 0, 12, 20),
           child: Container(
-            padding:
-                const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
             decoration: BoxDecoration(
               color: const Color(0xFF1C2733),
               borderRadius: BorderRadius.circular(40),
@@ -2148,8 +2164,8 @@ class _ControlButton extends StatelessWidget {
             : isActive
                 ? const Color(0xFF3B4A54)
                 : const Color(0xFF2A3942));
-    final resolvedIconColor = iconColor ??
-        (useTintedActive ? activeColor! : Colors.white);
+    final resolvedIconColor =
+        iconColor ?? (useTintedActive ? activeColor! : Colors.white);
     return Semantics(
       label: label,
       button: true,
