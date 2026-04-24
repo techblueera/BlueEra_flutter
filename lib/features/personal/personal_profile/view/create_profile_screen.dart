@@ -72,9 +72,9 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
         viewPersonalDetailsController.personalProfileDetails.value.user;
     bioController.clear();
     super.initState();
-    emailController.text=user?.email??"";
-    educationController.text=user?.highestEducation??"";
-    bioController.text=user?.bio??"";
+    emailController.text = user?.email ?? "";
+    educationController.text = user?.highestEducation ?? "";
+    bioController.text = user?.bio ?? "";
     personalCreateProfileController.selectedGender.value =
         GenderTypeExtension.fromString((user?.gender?.isNotEmpty ?? false)
             ? user?.gender ?? "male"
@@ -260,7 +260,6 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                       }
                       return null;
                     },
-
                   ),
                   SizedBox(height: SizeConfig.size18),
                   AiSuggestionField(
@@ -269,8 +268,10 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                     textController: bioController,
 
                     bodyRequest: {
-                      ApiKeys.profession:  viewPersonalDetailsController.personalProfileDetails.value.user?.profession,
-                      ApiKeys.designation: viewPersonalDetailsController.personalProfileDetails.value.user?.designation,
+                      ApiKeys.profession: viewPersonalDetailsController
+                          .personalProfileDetails.value.user?.profession,
+                      ApiKeys.designation: viewPersonalDetailsController
+                          .personalProfileDetails.value.user?.designation,
                       ApiKeys.date_of_birth_Obj: {
                         ApiKeys.year:
                             personalCreateProfileController.selectedYear?.value,
@@ -282,7 +283,6 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                       ApiKeys.gender: personalCreateProfileController
                           .selectedGender.value?.name
                     },
-
 
                     // onSaved: filedValidation,
                     // call your validation here
@@ -325,7 +325,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                           onTap: () {
                             if (_formKey.currentState!.validate()) {
                               // Save profile data
-                                 personalCreateProfileController
+                              personalCreateProfileController
                                   .updateUserProfileDetails(
                                 params: {
                                   ApiKeys.location:

@@ -33,7 +33,8 @@ class UpdateProfileScreen extends StatefulWidget {
   State<UpdateProfileScreen> createState() => _UpdateProfileScreenState();
 }
 
-class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
+class _UpdateProfileScreenState extends State<UpdateProfileScreen>
+    with WidgetsBindingObserver {
   final nameController = TextEditingController();
   final locationController = TextEditingController();
   final emailController = TextEditingController();
@@ -92,8 +93,8 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
 
   @override
   void initState() {
-
     apiCalling();
+    WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       isProfileCreateStatus =
           viewProfileController.personalProfileDetails.value.isProfileCreated ??
@@ -147,7 +148,8 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
       personalCreateProfileController.selectedProfession.value =
           viewProfileController.personalProfileDetails.value.user?.profession ??
               OTHERS;
-      selectedProfession = personalCreateProfileController.selectedProfession.value;
+      selectedProfession =
+          personalCreateProfileController.selectedProfession.value;
 
       /// OTHERS
       if (selectedProfession == OTHERS) {
@@ -249,6 +251,19 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
       setState(() {});
     });
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      viewProfileController.viewPersonalProfile();
+    }
   }
 
   bool onChangedEmail = false;
@@ -464,28 +479,14 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                 textEditController: emailController,
                                 validationType: ValidationTypeEnum.email,
                                 onChange: (val) {
-                                  if(viewProfileController.verifiedEmail.value==val){
-                                    viewProfileController
-                                        .personalProfileDetails
-                                        .value
-                                        .user
-                                        ?.emailVerified=true;
-                                  }else{
-                                    viewProfileController
-                                        .personalProfileDetails
-                                        .value
-                                        .user
-                                        ?.emailVerified=false;
-                                  }
-
+                                  emailVerificationController.isVerified.value =
+                                      false;
+                                  viewProfileController.personalProfileDetails
+                                      .refresh();
                                   filedValidation();
                                 },
-                                sIcon: (viewProfileController
-                                            .personalProfileDetails
-                                            .value
-                                            .user
-                                            ?.emailVerified ==
-                                        true)
+                                sIcon: (viewProfileController.verifiedEmail.value ==
+                                        emailController.text)
                                     ? Icon(
                                         Icons.verified_user_outlined,
                                         color: AppColors.green39,
@@ -493,39 +494,36 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                     : null,
                               ),
 
-                              if(viewProfileController
-                                  .personalProfileDetails
-                                  .value
-                                  .user
-                                  ?.emailVerified ==
-                                  false)
-                              Padding(
-                                padding: EdgeInsets.only(
-                                    right: SizeConfig.size10,
-                                    top: SizeConfig.size10),
-                                child: Align(
-                                  alignment: Alignment.centerRight,
-                                  child: GestureDetector(
-                                    onTap: () {
-                                      // Validate just the email field
-                                      if (emailController.text.isNotEmpty &&
-                                          validateEmail(emailController.text)) {
-                                        emailVerificationController
-                                            .verifyEmail(emailController.text);
-                                      } else {
-                                        commonSnackBar(
-                                            message:
-                                            AppStrings.invalidEmail);
-                                      }
-                                    },
-                                    child: CustomText(
-                                      AppStrings.getVerify,
-                                      fontWeight: FontWeight.bold,
-                                      color: AppColors.primaryColor,
+                              if (viewProfileController.verifiedEmail.value !=
+                                  emailController.text)
+                                Padding(
+                                  padding: EdgeInsets.only(
+                                      right: SizeConfig.size10,
+                                      top: SizeConfig.size10),
+                                  child: Align(
+                                    alignment: Alignment.centerRight,
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        // Validate just the email field
+                                        if (emailController.text.isNotEmpty &&
+                                            validateEmail(
+                                                emailController.text)) {
+                                          emailVerificationController
+                                              .verifyEmail(
+                                                  emailController.text);
+                                        } else {
+                                          commonSnackBar(
+                                              message: AppStrings.invalidEmail);
+                                        }
+                                      },
+                                      child: CustomText(
+                                        AppStrings.getVerify,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.primaryColor,
+                                      ),
                                     ),
                                   ),
                                 ),
-                              ),
 
                               // CustomText("title")
                               SizedBox(height: SizeConfig.size18),
@@ -547,7 +545,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                 },
                               ),
                               SizedBox(height: SizeConfig.size18),
-                         /*     Row(
+                              /*     Row(
                                 children: [
                                   CustomText(
                                     AppStrings.selectYourProfession,
@@ -615,7 +613,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
 
                               // SizedBox(height: SizeConfig.size18),
 
-                          /*    if (selectedProfession == OTHERS) ...[
+                              /*    if (selectedProfession == OTHERS) ...[
                                 CommonTextField(
                                   hintText: AppStrings.enterProfessionIfOthers,
                                   title: AppStrings.specifyProfession,
@@ -1067,8 +1065,8 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                                         ?.isEmpty ??
                                                     true) {
                                                   commonSnackBar(
-                                                      message:
-                                                      AppStrings.selectArtSkillLower);
+                                                      message: AppStrings
+                                                          .selectArtSkillLower);
 
                                                   return;
                                                 }
@@ -1078,8 +1076,8 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                                 if (_ngoNameTextController
                                                     .text.isEmpty) {
                                                   commonSnackBar(
-                                                      message:
-                                                      AppStrings.enterNGOName);
+                                                      message: AppStrings
+                                                          .enterNGOName);
 
                                                   return;
                                                 }
@@ -1090,8 +1088,8 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                                 if (professionOthersController
                                                     .text.isEmpty) {
                                                   commonSnackBar(
-                                                      message:
-                                                      AppStrings.enterSkillExpertise);
+                                                      message: AppStrings
+                                                          .enterSkillExpertise);
                                                   return;
                                                 }
                                               }
@@ -1157,21 +1155,25 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                                 ApiKeys.designation:
                                                     designation,
 
-                                                if (selectedProfession == SELF_EMPLOYED)
+                                                if (selectedProfession ==
+                                                    SELF_EMPLOYED)
                                                   ApiKeys.specilization:
                                                       specializationController
                                                           .text,
-                                                if (selectedProfession == OTHERS)
+                                                if (selectedProfession ==
+                                                    OTHERS)
                                                   ApiKeys.specilization:
                                                       professionOthersController
                                                           .text,
 
-                                                if ((selectedProfession == POLITICIAN))
+                                                if ((selectedProfession ==
+                                                    POLITICIAN))
                                                   'political_party':
                                                       politicalPartyController
                                                           .text
                                                           .trim(),
-                                                if (selectedProfession == PRIVATE_JOB)
+                                                if (selectedProfession ==
+                                                    PRIVATE_JOB)
                                                   ApiKeys.sector:
                                                       sectorTextController.text,
 
@@ -1179,49 +1181,59 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                                     personalCreateProfileController
                                                         .selectedGender
                                                         .value
-                                                        ?.name,
+                                                        ?.name
+                                                        .toLowerCase(),
                                                 if (addBio.text.isNotEmpty)
                                                   ApiKeys.bio: addBio.text,
 
-                                                ApiKeys.dob_date:
-                                                    personalCreateProfileController
-                                                        .selectedDay,
-                                                ApiKeys.dob_month:
-                                                    personalCreateProfileController
-                                                        .selectedMonth,
-                                                ApiKeys.dob_year:
-                                                    personalCreateProfileController
-                                                        .selectedYear,
+                                                ApiKeys.date_of_birth_Obj:
+                                                    jsonEncode({
+                                                  ApiKeys.date:
+                                                      personalCreateProfileController
+                                                          .selectedDay?.value,
+                                                  ApiKeys.month:
+                                                      personalCreateProfileController
+                                                          .selectedMonth?.value,
+                                                  ApiKeys.year:
+                                                      personalCreateProfileController
+                                                          .selectedYear?.value,
+                                                }),
 
                                                 ///SKILL WORKER..
-                                                if (selectedProfession == SKILLED_WORKER)
+                                                if (selectedProfession ==
+                                                    SKILLED_WORKER)
                                                   ApiKeys.specilization:
                                                       _skillWorkerSpecificationTextController
                                                           .text,
 
                                                 ///CONTENT_CREATOR
-                                                if (selectedProfession == CONTENT_CREATOR)
+                                                if (selectedProfession ==
+                                                    CONTENT_CREATOR)
                                                   ApiKeys.specilization:
                                                       _contentCraterTextController
                                                           .text,
 
                                                 ///GOVT PSU
-                                                if (selectedProfession == GOVTPSU)
+                                                if (selectedProfession ==
+                                                    GOVTPSU)
                                                   ApiKeys.department:
                                                       departmentNameController
                                                           .text,
-                                                if (selectedProfession == GOVTPSU)
+                                                if (selectedProfession ==
+                                                    GOVTPSU)
                                                   ApiKeys.subDivision:
                                                       subDivision.text,
 
                                                 ///NGO
-                                                if (selectedProfession == REG_UNION)
+                                                if (selectedProfession ==
+                                                    REG_UNION)
                                                   ApiKeys.department:
                                                       _ngoNameTextController
                                                           .text,
 
                                                 ///Artist...
-                                                if (selectedProfession == ARTIST)
+                                                if (selectedProfession ==
+                                                    ARTIST)
                                                   ApiKeys.art: jsonEncode({
                                                     ApiKeys.artName:
                                                         personalCreateProfileController
@@ -1272,7 +1284,8 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                                               textAlign:
                                                                   TextAlign
                                                                       .center,
-                                                              AppStrings.emailVerificationRequired,
+                                                              AppStrings
+                                                                  .emailVerificationRequired,
                                                               fontWeight:
                                                                   FontWeight
                                                                       .w600,
@@ -1288,7 +1301,8 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                                               textAlign:
                                                                   TextAlign
                                                                       .center,
-                                                              AppStrings.emailVerificationMessage,
+                                                              AppStrings
+                                                                  .emailVerificationMessage,
                                                               fontSize: 14,
                                                               fontWeight:
                                                                   FontWeight
@@ -1333,20 +1347,24 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
 
   filedValidation() {
     bool isValid = true;
-    if (nameController.text.isEmpty||nameController.text.trim().length < 6||nameController.text.trim().length > 30) isValid = false;
-
+    if (nameController.text.isEmpty ||
+        nameController.text.trim().length < 6 ||
+        nameController.text.trim().length > 30) isValid = false;
 
     if (personalCreateProfileController.isImageUpdated.value) isValid = true;
     if (locationController.text.isEmpty) isValid = false;
-    if (ValidationMethod.validateEmail(emailController.text)!=null) isValid = false;
+    if (ValidationMethod.validateEmail(emailController.text) != null)
+      isValid = false;
     if (emailController.text.isEmpty) isValid = false;
-    if (educationController.text.isEmpty||educationController.text.trim().length < 2||educationController.text.trim().length > 16) isValid = false;
+    if (educationController.text.isEmpty ||
+        educationController.text.trim().length < 2 ||
+        educationController.text.trim().length > 16) isValid = false;
 
-    if (selectedProfession == OTHERS &&
-        professionOthersController.text.isEmpty) isValid = false;
+    if (selectedProfession == OTHERS && professionOthersController.text.isEmpty)
+      isValid = false;
     if ((selectedProfession == PRIVATE_JOB) &&
         sectorTextController.text.isEmpty) isValid = false;
-    if (addBio.text.isEmpty||addBio.text.length<50) isValid = false;
+    if (addBio.text.isEmpty || addBio.text.length < 50) isValid = false;
 
     setState(() {});
     return isValid;
