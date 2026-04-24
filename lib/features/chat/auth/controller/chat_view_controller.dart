@@ -1485,28 +1485,48 @@ class ChatViewController extends GetxController {
 
         Messages? message = Messages.fromJson(data['data']);
         if (message.subType != "comment") {
-          Messages? msg = getListOfMessageData
-              ?.firstWhereOrNull((element) => element.id == messageId);
-          if (msg != null) {
-            getListOfMessageData?.remove(msg);
+          final drainConvId =
+              params[ApiKeys.conversation_id]?.toString() ?? '';
+          // Only touch the in-memory message list when the drained message
+          // belongs to the conversation the user currently has open. If the
+          // user queued this offline in chat A and is now viewing chat B,
+          // mutating `getListOfMessageData` would inject A's message into
+          // B's screen (and leave A with a pending row that never gets
+          // replaced in-memory).
+          final isForOpenConv = drainConvId.isNotEmpty &&
+              drainConvId == userOpenConversationId.value;
+
+          if (isForOpenConv) {
+            Messages? msg = getListOfMessageData
+                ?.firstWhereOrNull((element) => element.id == messageId);
+            if (msg != null) {
+              getListOfMessageData?.remove(msg);
+            }
+            // Dedup: the newMessageReceived socket echo may have already
+            // inserted this server message while the HTTP ack was in flight.
+            final alreadyExists = message.id != null &&
+                (getListOfMessageData
+                        ?.any((m) => m.id == message.id) ??
+                    false);
+            if (!alreadyExists) {
+              getListOfMessageData?.add(message);
+            }
+            getListOfMessageResponse.value =
+                ApiResponse.complete(getListOfMessageData);
           }
-          // Dedup: the newMessageReceived socket echo may have already
-          // inserted this server message while the HTTP ack was in flight.
-          final alreadyExists = message.id != null &&
-              (getListOfMessageData?.any((m) => m.id == message.id) ?? false);
-          if (!alreadyExists) {
-            getListOfMessageData?.add(message);
-          }
-          getListOfMessageResponse.value =
-              ApiResponse.complete(getListOfMessageData);
-          // Replace the local pending entry with the server-authoritative
-          // message so next local-first load shows the right id/status.
+
+          // Always persist to Hive keyed by the drain's own conversation id
+          // so the original conversation shows the server-authoritative
+          // message next time it is opened — independent of which chat is
+          // currently on screen.
           await localStorageHelper.replacePendingWithServerMessage(
-              params[ApiKeys.conversation_id]?.toString() ?? '',
-              messageId,
-              message);
+              drainConvId, messageId, message);
         }
-        scrollDown();
+        if (message.subType != "comment" &&
+            (params[ApiKeys.conversation_id]?.toString() ?? '') ==
+                userOpenConversationId.value) {
+          scrollDown();
+        }
         clearMessageControllerCommon();
         return true;
       } else {

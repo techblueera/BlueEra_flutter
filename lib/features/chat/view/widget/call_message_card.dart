@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/features/chat/auth/controller/call_controller.dart';
 import 'package:BlueEra/features/chat/auth/model/GetListOfMessageData.dart';
 import 'package:BlueEra/features/chat/auth/service/call_activity_service.dart';
@@ -56,6 +57,9 @@ class CallMessageCard extends StatelessWidget {
   bool get _isRinging => message.metadata?.callStatus == 'ringing';
 
   String get _statusText {
+    if (_isOngoingCall) {
+      return 'Ongoing call';
+    }
     if (_isRinging) {
       return 'Calling...';
     }
@@ -66,7 +70,10 @@ class CallMessageCard extends StatelessWidget {
       return 'Call declined';
     }
     if (_isCompleted && _callTime.isNotEmpty) {
-      return 'Call ended - $_callTime';
+      return 'Call ended • $_callTime';
+    }
+    if (_isCompleted) {
+      return 'Call ended';
     }
     return message.message ?? 'Call';
   }
@@ -81,19 +88,63 @@ class CallMessageCard extends StatelessWidget {
     return Icons.call;
   }
 
+  Color get _statusColor {
+    if (_isMissedCall || _isDeclined) {
+      return Colors.red;
+    }
+    return AppColors.primaryColor;
+  }
+
   Color _iconColor(BuildContext context) {
     if (_isMissedCall || _isDeclined) {
       return Colors.red;
     }
-    return Colors.green;
+    return AppColors.primaryColor;
   }
 
-  /// Open the active call screen (Android CallActivity or in-app CallRoomScreen)
-  void _openCallScreen() {
-    if (Platform.isAndroid && CallController.isCallActivityActive) {
-      CallActivityService.bringCallActivityToFront();
-      return;
+  /// Open the active call screen. On Android the call runs inside a separate
+  /// task (CallActivity, often in PiP) — bring that task back to front, or
+  /// relaunch it using the current CallController state if the task was
+  /// dismissed. On iOS / when there is no native task, fall back to the
+  /// in-app CallRoomScreen.
+  Future<void> _openCallScreen() async {
+    if (Platform.isAndroid) {
+      final brought = await CallActivityService.bringCallActivityToFront();
+      if (brought) return;
+
+      if (Get.isRegistered<CallController>()) {
+        final cc = Get.find<CallController>();
+        final ctStr =
+            cc.callType.value == CallType.video ? 'video' : 'audio';
+        final relaunched = await CallActivityService.launchCallActivity(
+          callId: cc.callId.value,
+          roomId: cc.roomId.value,
+          conversationId: cc.conversationId.value.isNotEmpty
+              ? cc.conversationId.value
+              : (conversationId ?? ''),
+          callType: ctStr,
+          callerName: cc.callerName.value,
+          callerImage: cc.callerImage.value,
+          remoteUserId: cc.remoteUserName.value.isNotEmpty
+              ? (message.metadata?.otherUserId ?? otherUserId ?? '')
+              : (message.metadata?.otherUserId ?? otherUserId ?? ''),
+          remoteUserName:
+              cc.remoteUserName.value.isNotEmpty
+                  ? cc.remoteUserName.value
+                  : (otherUserName ?? ''),
+          remoteUserImage: cc.remoteUserImage.value.isNotEmpty
+              ? cc.remoteUserImage.value
+              : (otherUserImage ?? ''),
+          isCaller: cc.isCaller.value,
+          isGroupCall: cc.isGroupCall.value,
+        );
+        if (relaunched) {
+          CallController.isCallActivityActive = true;
+          return;
+        }
+      }
     }
+
     if (Get.currentRoute != '/CallRoomScreen') {
       Get.toNamed('/CallRoomScreen');
     }
@@ -157,13 +208,9 @@ class CallMessageCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final chatThemeController = Get.find<ChatThemeController>();
-    final isMyMessage = !isReceive;
-
-    final bgColor = isMyMessage
-        ? chatThemeController.myMessageBgColor.value
-        : chatThemeController.receiveMessageBgColor.value;
-
     final textColor = chatThemeController.chatTextColor.value;
+    final accent = _statusColor;
+    final isNegative = _isMissedCall || _isDeclined;
 
     return GestureDetector(
       onTap: () {
@@ -174,110 +221,161 @@ class CallMessageCard extends StatelessWidget {
         }
       },
       child: Align(
-      alignment: isReceive ? Alignment.centerLeft : Alignment.centerRight,
-      child: Container(
-        margin: EdgeInsets.only(
-          left: isReceive ? 10 : 60,
-          right: isReceive ? 60 : 10,
-          top: 2,
-          bottom: 2,
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: bgColor,
-          borderRadius: BorderRadius.only(
-            topLeft: const Radius.circular(12),
-            topRight: const Radius.circular(12),
-            bottomLeft: Radius.circular(isReceive ? 0 : 12),
-            bottomRight: Radius.circular(isReceive ? 12 : 0),
-          ),
-        ),
-        child: IntrinsicWidth(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: _iconColor(context).withOpacity(0.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      _callIcon,
-                      size: 18,
-                      color: _iconColor(context),
-                    ),
+        alignment: isReceive ? Alignment.centerLeft : Alignment.centerRight,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final screenW = MediaQuery.of(context).size.width;
+            final maxCardW = (screenW - 70).clamp(180.0, 320.0);
+            return ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: maxCardW),
+              child: Container(
+                margin: EdgeInsets.only(
+                  left: isReceive ? 10 : 60,
+                  right: isReceive ? 60 : 10,
+                  top: 4,
+                  bottom: 4,
+                ),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      accent.withOpacity(0.12),
+                      accent.withOpacity(0.03),
+                    ],
                   ),
-                  const SizedBox(width: 10),
-                  Flexible(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          _isVideoCall ? 'Video Call' : 'Audio Call',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: textColor,
-                            fontFamily: "Poppins",
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          _statusText,
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w400,
-                            color: _isMissedCall || _isDeclined
-                                ? Colors.red
-                                : textColor.withOpacity(0.7),
-                            fontFamily: "Poppins",
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  if (_isMissedCall || _isCompleted || _isDeclined) ...[
-                    const SizedBox(width: 8),
-                    GestureDetector(
-                      onTap: _onCallBack,
-                      child: Container(
-                        padding: const EdgeInsets.all(6),
+                  borderRadius: BorderRadius.circular(16),
+                  border:
+                      Border.all(color: accent.withOpacity(0.30), width: 1),
+                ),
+                child: IntrinsicHeight(
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Container(
+                        width: 4,
                         decoration: BoxDecoration(
-                          color: Colors.green.withOpacity(0.1),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          _isVideoCall ? Icons.videocam : Icons.call,
-                          size: 18,
-                          color: Colors.green,
+                          color: accent,
+                          borderRadius: const BorderRadius.only(
+                            topLeft: Radius.circular(16),
+                            bottomLeft: Radius.circular(16),
+                          ),
                         ),
                       ),
-                    ),
-                  ],
-                ],
-              ),
-              const SizedBox(height: 4),
-              Align(
-                alignment: Alignment.bottomRight,
-                child: Text(
-                  time,
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: textColor.withOpacity(0.5),
-                    fontFamily: "Poppins",
+                      Flexible(
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(12, 10, 8, 10),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Flexible(
+                                    child: Text(
+                                      _isVideoCall
+                                          ? 'Video Call'
+                                          : 'Audio Call',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w700,
+                                        color: textColor,
+                                        fontFamily: "Poppins",
+                                      ),
+                                    ),
+                                  ),
+                                  if (_isOngoingCall) ...[
+                                    const SizedBox(width: 6),
+                                    Container(
+                                      width: 6,
+                                      height: 6,
+                                      decoration: const BoxDecoration(
+                                        color: Colors.green,
+                                        shape: BoxShape.circle,
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                              const SizedBox(height: 4),
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    _callIcon,
+                                    size: 14,
+                                    color:
+                                        isNegative ? Colors.red : accent,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Flexible(
+                                    child: Text(
+                                      _statusText,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        fontSize: 11.5,
+                                        fontWeight: FontWeight.w500,
+                                        color:
+                                            isNegative ? Colors.red : accent,
+                                        fontFamily: "Poppins",
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                time,
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: textColor.withOpacity(0.5),
+                                  fontFamily: "Poppins",
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(4, 10, 10, 10),
+                        child: GestureDetector(
+                          onTap:
+                              _isOngoingCall ? _openCallScreen : _onCallBack,
+                          child: Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: accent,
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: accent.withOpacity(0.35),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Icon(
+                              _isVideoCall ? Icons.videocam : Icons.call,
+                              size: 20,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
-            ],
-          ),
+            );
+          },
         ),
       ),
-    ),
     );
   }
 }
