@@ -4,8 +4,8 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
-import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
+import 'package:BlueEra/features/business/widgets/business_share_banner.dart';
 import 'package:BlueEra/features/me/laboratory/view/widgets/me_menu_card_design.dart';
 import 'package:BlueEra/features/me/others/controller/business_profile_full_controller.dart';
 import 'package:BlueEra/features/me/others/controller/other_branch_contact_controller.dart';
@@ -15,10 +15,8 @@ import 'package:BlueEra/features/me/others/view/other_blog/other_blogs_screen.da
 import 'package:BlueEra/features/me/others/view/other_contact_us/other_branch_details_form_screen.dart';
 import 'package:BlueEra/features/me/others/view/other_contact_us/other_branch_only_screen.dart';
 import 'package:BlueEra/features/me/others/view/other_contact_us/other_contact_us.dart';
-import 'package:BlueEra/features/me/others/view/other_header_view.dart';
 import 'package:BlueEra/features/me/others/view/other_service_gallery/other_service_photos_screen.dart';
 import 'package:BlueEra/features/me/others/view/staff/staff_screen.dart';
-import 'package:BlueEra/features/me/others/widget/other_product_widget.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
@@ -61,15 +59,15 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
 
         return CustomScrollView(
           slivers: [
-            SliverAppBar(
-              expandedHeight:(controller.businessProfile.value?.profile?.description?.isNotEmpty??false)? Get.height * 0.35: Get.height * 0.30,
-              flexibleSpace: FlexibleSpaceBar(
-                background: OtherHeaderView(
-                  schoolAboutUsController: controller,
-                ),
-                collapseMode: CollapseMode.parallax,
-              ),
-            ),
+            // SliverAppBar(
+            //   expandedHeight:(controller.businessProfile.value?.profile?.description?.isNotEmpty??false)? Get.height * 0.35: Get.height * 0.30,
+            //   flexibleSpace: FlexibleSpaceBar(
+            //     background: OtherHeaderView(
+            //       schoolAboutUsController: controller,
+            //     ),
+            //     collapseMode: CollapseMode.parallax,
+            //   ),
+            // ),
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12.0,vertical: 10),
@@ -248,6 +246,16 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
                             padding: 10,
                             isTitleShow: true),
                       ),
+
+                    const SizedBox(height: 20),
+
+                    /// Promo share banner — shop photo, name, subcategory
+                    /// Reusable share banner — reads from
+                    /// ViewBusinessDetailsController, so every business
+                    /// home screen gets the same card by dropping
+                    /// `const BusinessShareBanner()` at the end.
+                    const BusinessShareBanner(),
+
                     const SizedBox(height: 4 * kBottomNavigationBarHeight),
 
                   ],
@@ -789,3 +797,4 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
     );
   }
 }
+

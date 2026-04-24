@@ -139,7 +139,7 @@ import 'package:BlueEra/features/me/product/view/product/create_varient_screen.d
 import 'package:BlueEra/features/me/product/view/product/inventory_screen.dart';
 import 'package:BlueEra/features/me/product/model/generate_ai_product_content.dart';
 import 'package:BlueEra/features/me/product/view/product/product_preview_screen.dart';
-import 'package:BlueEra/features/me/product/view/product/store_product_preview_screen_product.dart';
+import 'package:BlueEra/features/me/product/view/product/products_store_details_screen.dart';
 import 'package:BlueEra/features/me/product/view/product/inventory_business_cards_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/my_documents/view/add_document_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/payment/view/add_bank_account_screen.dart';
@@ -386,8 +386,8 @@ class RouteHelper {
   static String getCreateVariantScreenRoute() =>
       RouteConstant.createVariantScreen;
 
-  static String getStoreProductPreviewScreenProductRoute() =>
-      RouteConstant.storeProductPreviewScreenProduct;
+  static String getProductsStoreDetailsScreenRoute() =>
+      RouteConstant.productsStoreDetailsScreen;
 
   static String getProductSuperCategoryScreenRoute() =>
       RouteConstant.productSuperCategoryScreen;
@@ -1248,7 +1248,7 @@ class RouteHelper {
                   isUserCanCreateVariants: isUserCanCreateVariants ?? true,
                 ),
             settings: RouteSettings(name: getProductPreviewScreenRoute()));
-      case RouteConstant.storeProductPreviewScreenProduct:
+      case RouteConstant.productsStoreDetailsScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final ProductStore? productStore =
             args[ApiKeys.argProductData] as ProductStore?;
@@ -1258,13 +1258,13 @@ class RouteHelper {
             args[ApiKeys.providerType] as ProviderType;
 
         return MaterialPageRoute(
-            builder: (_) => StoreProductPreviewScreenProduct(
+            builder: (_) => ProductsStoreDetailsScreen(
                 productStore: productStore,
                 // isShowBusinessInfo: productDataBool,
                 id: id,
                 providerType: providerType),
             settings: RouteSettings(
-                name: getStoreProductPreviewScreenProductRoute()));
+                name: getProductsStoreDetailsScreenRoute()));
       case RouteConstant.createVariantScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final ProductController controller =

@@ -30,12 +30,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 
-class StoreProductPreviewScreenProduct extends StatefulWidget {
+class ProductsStoreDetailsScreen extends StatefulWidget {
   final ProductStore? productStore;
   final String? id;
   final ProviderType? providerType;
 
-  const StoreProductPreviewScreenProduct({
+  const ProductsStoreDetailsScreen({
     super.key,
     required this.productStore,
     this.id,
@@ -43,12 +43,12 @@ class StoreProductPreviewScreenProduct extends StatefulWidget {
   });
 
   @override
-  State<StoreProductPreviewScreenProduct> createState() =>
-      _StoreProductPreviewScreenProductState();
+  State<ProductsStoreDetailsScreen> createState() =>
+      _ProductsStoreDetailsScreenState();
 }
 
-class _StoreProductPreviewScreenProductState
-    extends State<StoreProductPreviewScreenProduct> {
+class _ProductsStoreDetailsScreenState
+    extends State<ProductsStoreDetailsScreen> {
   final CarouselSliderController _carouselController =
       CarouselSliderController();
   final ProductController controller = Get.put(ProductController());

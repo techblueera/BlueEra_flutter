@@ -1,10 +1,8 @@
 import 'package:BlueEra/core/api/model/get_all_store_res_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shimmer_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -12,6 +10,7 @@ import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/me/food/view/food_self_pickup_cart_screen.dart';
 import 'package:BlueEra/features/me/food/view/visit_food_store_details_screen.dart';
 import 'package:BlueEra/features/common/Discover/widget/banner_carousel.dart';
+import 'package:BlueEra/features/common/Discover/widget/discover_address_pill.dart';
 import 'package:BlueEra/features/common/Discover/widget/sticky_category_header_delegate.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
@@ -22,7 +21,6 @@ import 'package:BlueEra/widgets/RatingBadge.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
-import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/network_assets.dart';
 import 'package:BlueEra/widgets/route_map_bottom_sheet.dart';
 import 'package:flutter/material.dart';
@@ -661,168 +659,46 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
                   const SizedBox(height: 10),
                   _buildDottedLine(),
                   const SizedBox(height: 10),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 8),
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                AppColors.primaryColor
-                                    .withValues(alpha: 0.08),
-                                AppColors.greenCB.withValues(alpha: 0.3),
-                              ],
-                              begin: Alignment.centerLeft,
-                              end: Alignment.centerRight,
-                            ),
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: AppColors.primaryColor
-                                  .withValues(alpha: 0.1),
-                              width: 0.5,
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(Icons.near_me_rounded,
-                                  size: 14,
-                                  color: AppColors.primaryColor),
-                              const SizedBox(width: 5),
-                              CustomText(
-                                '${calculateDistance(
-                                    store.businessLocation?.lat?.toDouble() ?? 0.0,
-                                    store.businessLocation?.lon?.toDouble() ?? 0.0)?.toStringAsFixed(2)} KM',
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.primaryColor,
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 4),
-                                child: CustomText(
-                                  '|',
-                                  fontSize: 11,
-                                  color: AppColors.secondaryTextColor
-                                      .withValues(alpha: 0.4),
-                                ),
-                              ),
-                              Expanded(
-                                child: CustomText(
-                                  getLocalityAddress(store.address),
-                                  fontSize: 11,
-                                  color: AppColors.secondaryTextColor,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Material(
-                        color: AppColors.primaryColor,
-                        borderRadius: BorderRadius.circular(22),
-                        elevation: 2,
-                        shadowColor:
-                            AppColors.primaryColor.withValues(alpha: 0.3),
-                        child: InkWell(
-                          onTap: () => RouteMapBottomSheet.show(
-                            context: context,
-                            destinationName: store.businessName ?? AppStrings.restaurant.tr,
-                            destinationAddress: store.address ?? '',
-                            destinationLat: store.businessLocation?.lat?.toDouble() ?? 0.0,
-                            destinationLng: store.businessLocation?.lon?.toDouble() ?? 0.0,
-                            livePhotos: store.livePhotos,
-                              storeBusinessID:store.id??"" ,storeUserID: store.userId??""
-                          ),
-                          borderRadius: BorderRadius.circular(22),
-                          child: Container(
-                            padding: const EdgeInsets.all(10),
-                            child: const Icon(Icons.directions_rounded,
-                                size: 18, color: Colors.white),
-                          ),
-                        ),
-                      ),
-                    ],
+                  DiscoverAddressPill(
+                    destLat: store.businessLocation?.lat?.toDouble() ?? 0.0,
+                    destLng: store.businessLocation?.lon?.toDouble() ?? 0.0,
+                    address: getLocalityAddress(store.address),
+                    onTap: () => RouteMapBottomSheet.show(
+                      context: context,
+                      destinationName:
+                          store.businessName ?? AppStrings.restaurant.tr,
+                      destinationAddress: store.address ?? '',
+                      destinationLat:
+                          store.businessLocation?.lat?.toDouble() ?? 0.0,
+                      destinationLng:
+                          store.businessLocation?.lon?.toDouble() ?? 0.0,
+                      livePhotos: store.livePhotos,
+                      storeBusinessID: store.id ?? '',
+                      storeUserID: store.userId ?? '',
+                    ),
+                  ),
+                  SizedBox(height: SizeConfig.size12),
+                  _infoSection(
+                    icon: Icons.category_outlined,
+                    title: AppStrings.foodCategoryLabel.tr,
+                    count: store.totalCategoryCount ??
+                        (store.categories?.length ?? 0),
+                    pills: (store.categories ?? [])
+                        .map((c) => c.name ?? '')
+                        .where((s) => s.trim().isNotEmpty)
+                        .toList(),
+                    emptyLabel: 'No categories listed',
+                    onTap: () => _navigateToDetail(store),
                   ),
                   SizedBox(height: SizeConfig.size10),
-                  Row(
-                    children: [
-                      _buildStatBox(
-                        icon: AppIconAssets.staggeredIcon,
-                        count: '${store.totalCategoryCount ?? 0}',
-                        label: AppStrings.foodCategoryLabel.tr,
-                        iconColor: const Color(0xFF9964F4),
-                        bgColor: AppColors.purpleFD,
-                      ),
-                      SizedBox(width: SizeConfig.size6),
-                      _buildStatBox(
-                        icon: AppIconAssets.productCartIcon,
-                        count: '${store.totalProductCount ?? 0}',
-                        label: AppStrings.foodProductLabel.tr,
-                        iconColor: const Color(0xFF6179CD),
-                        bgColor: AppColors.purpleFF,
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStatBox({
-    required String icon,
-    required String count,
-    required String label,
-    required Color iconColor,
-    required Color bgColor,
-  }) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(8.0),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(10.0),
-          border: Border.all(color: AppColors.greyE5, width: 0.5),
-          color: AppColors.white,
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(6.0),
-              decoration: BoxDecoration(
-                color: bgColor,
-                borderRadius: BorderRadius.circular(6.0),
-              ),
-              child: LocalAssets(
-                imagePath: icon,
-                imgColor: iconColor,
-                height: 18,
-                width: 18,
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CustomText(
-                    count,
-                    fontSize: SizeConfig.medium,
-                    color: AppColors.secondaryTextColor,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  CustomText(
-                    label,
-                    fontSize: SizeConfig.extraSmall,
-                    color: AppColors.secondaryTextColor,
-                    fontWeight: FontWeight.w400,
+                  _infoSection(
+                    icon: Icons.shopping_bag_outlined,
+                    title: AppStrings.foodProductLabel.tr,
+                    count: store.totalProductCount ?? 0,
+                    pills: const [],
+                    emptyLabel:
+                        '${store.totalProductCount ?? 0} products in store',
+                    onTap: () => _navigateToDetail(store),
                   ),
                 ],
               ),
@@ -836,5 +712,200 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
   void _navigateToDetail(GetAllStoreResModel store) {
     if (store.id == null) return;
     Get.to(() => VisitFoodStoreDetailsScreen(visitBusinessId: store.id!));
+  }
+
+  /// Section block — left accent rail, icon-in-disc header with inline
+  /// count, and a wrap of soft-gradient pills below. Mirrors the hospital
+  /// list / grocery store card layout for a consistent discover-card feel.
+  Widget _infoSection({
+    required IconData icon,
+    required String title,
+    required int count,
+    required List<String> pills,
+    required String emptyLabel,
+    required VoidCallback onTap,
+  }) {
+    final accent = AppColors.primaryColor;
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Container(
+            width: 3,
+            margin: EdgeInsets.only(
+                top: 4, bottom: 4, right: SizeConfig.size10),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  accent,
+                  accent.withValues(alpha: 0.15),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: 26,
+                      height: 26,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: accent.withValues(alpha: 0.08),
+                        border: Border.all(
+                          color: accent.withValues(alpha: 0.18),
+                          width: 1,
+                        ),
+                      ),
+                      child:
+                          Icon(icon, size: SizeConfig.size14, color: accent),
+                    ),
+                    SizedBox(width: SizeConfig.size8),
+                    CustomText(
+                      title,
+                      fontSize: SizeConfig.small,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.mainTextColor,
+                    ),
+                    SizedBox(width: SizeConfig.size6),
+                    CustomText(
+                      '·',
+                      fontSize: SizeConfig.small,
+                      color: AppColors.secondaryTextColor,
+                      fontWeight: FontWeight.w700,
+                    ),
+                    SizedBox(width: SizeConfig.size6),
+                    CustomText(
+                      '$count',
+                      fontSize: SizeConfig.small,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.secondaryTextColor,
+                    ),
+                  ],
+                ),
+                SizedBox(height: SizeConfig.size8),
+                if (pills.isEmpty)
+                  _sectionEmpty(emptyLabel)
+                else
+                  Wrap(
+                    spacing: SizeConfig.size6,
+                    runSpacing: SizeConfig.size6,
+                    children: [
+                      ...pills.take(4).map((l) => _gradientChip(l, onTap)),
+                      if (pills.length > 4)
+                        _overflowChip(pills.length - 4, onTap),
+                    ],
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _gradientChip(String label, VoidCallback onTap) {
+    final accent = AppColors.primaryColor;
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.symmetric(
+            horizontal: SizeConfig.size10, vertical: SizeConfig.size4),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Colors.white,
+              accent.withValues(alpha: 0.09),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(
+            color: accent.withValues(alpha: 0.18),
+            width: 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: accent.withValues(alpha: 0.05),
+              blurRadius: 4,
+              offset: const Offset(0, 1),
+            ),
+          ],
+        ),
+        child: CustomText(
+          label,
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+          color: AppColors.mainTextColor,
+        ),
+      ),
+    );
+  }
+
+  Widget _overflowChip(int extra, VoidCallback onTap) {
+    final accent = AppColors.primaryColor;
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.symmetric(
+            horizontal: SizeConfig.size10, vertical: SizeConfig.size4),
+        decoration: BoxDecoration(
+          color: accent.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(
+            color: accent.withValues(alpha: 0.32),
+            width: 1,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CustomText(
+              '+$extra more',
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: accent,
+            ),
+            const SizedBox(width: 3),
+            Icon(Icons.arrow_forward_rounded, size: 11, color: accent),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _sectionEmpty(String label) {
+    return Container(
+      padding: EdgeInsets.symmetric(
+          horizontal: SizeConfig.size10, vertical: SizeConfig.size6),
+      decoration: BoxDecoration(
+        color: AppColors.greyE5.withValues(alpha: 0.4),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppColors.greyE5, width: 1),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.info_outline_rounded,
+              size: 12, color: AppColors.grey9B),
+          SizedBox(width: SizeConfig.size6),
+          CustomText(
+            label,
+            fontSize: 11,
+            color: AppColors.grey9B,
+            fontWeight: FontWeight.w500,
+          ),
+        ],
+      ),
+    );
   }
 }

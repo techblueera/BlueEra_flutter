@@ -36,6 +36,7 @@ class HospitalRepo extends BaseService {
   }) async {
     final response = await ApiBaseHelper().getHTTP(
       "hospital-service/hospitals?page=$page&limit=$limit&category=$type",
+      showProgress: false,
       onError: (error) {},
       onSuccess: (data) {},
     );

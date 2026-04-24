@@ -14,6 +14,7 @@ import 'package:BlueEra/features/business/widgets/business_contact_map_card.dart
 import 'package:BlueEra/features/business/widgets/business_description_card.dart';
 import 'package:BlueEra/features/business/widgets/business_profile_header_view.dart';
 import 'package:BlueEra/features/business/widgets/business_qrcode_widget.dart';
+import 'package:BlueEra/features/business/widgets/business_share_banner.dart';
 import 'package:BlueEra/features/business/widgets/business_stats.dart';
 import 'package:BlueEra/features/me/food/controller/home_food_controller.dart';
 import 'package:BlueEra/features/me/food/model/food_home_res_model.dart';
@@ -67,163 +68,162 @@ class _RestaurantHomeScreenState extends State<RestaurantHomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: AppColors.white,
-      child: SafeArea(
-        child: Obx(() {
-        if (controller.foodHomeDataResponse.value.status == Status.INITIAL) {
-          return const Center(child: CircularProgressIndicator());
-        }
+    return SafeArea(
+      child: Obx(() {
+      if (controller.foodHomeDataResponse.value.status == Status.INITIAL) {
+        return const Center(child: CircularProgressIndicator());
+      }
 
-        final data = controller.restaurantData.value;
-        if (data == null)
-          return Center(child: CustomText(AppStrings.noDataFound.tr));
-        return RefreshIndicator(
-          onRefresh: () async {
-            controller.fetchHomeData(businessId: businessId);
-            await controller.fetchDiscountFoodProducts(businessId: businessId);
-          },
-          child: SingleChildScrollView(
-            padding: EdgeInsets.only(
-              bottom: 40,
-              top: 15,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-
-                ///FOOD HOTEL....
-                Obx(() {
-                  final details = viewBusinessDetailsController
-                      .businessProfileDetails.value?.data;
-                  return BusinessProfileHeaderView(
-                    details: details,
-                    controller: viewBusinessDetailsController,
-                    isRestaurantProfile: true,
-                  );
-                }),
-
-                // ── 4. Business Stats ──
-                Obx(() {
-                  final details = viewBusinessDetailsController
-                      .businessProfileDetails.value?.data;
-                  return BusinessStats(details: details);
-                }),
-
-                ///Offer Dish (Discount) — paginated via discountProducts API
-                Obx(() {
-                  final isInitialLoading =
-                      controller.isDiscountProductsLoading.value &&
-                          controller.discountFoodItems.isEmpty;
-                  final hasItems = controller.discountFoodItems.isNotEmpty;
-
-                  if (!isInitialLoading && !hasItems) {
-                    return const SizedBox.shrink();
-                  }
-
-                  return CustomFormCard(
-                    padding: EdgeInsets.symmetric(vertical: 10.0),
-                    margin: const EdgeInsets.only(top: 10),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 10),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              CustomText(
-                                AppStrings.foodOfferDishDiscount.tr,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w700,
-                              ),
-                              InkWell(
-                                onTap: () => Get.to(() =>
-                                    DiscountFoodProductsScreen(
-                                        businessId: businessId)),
-                                child: CustomText(
-                                  AppStrings.viewAll.tr,
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.primaryColor,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        if (isInitialLoading)
-                          const SizedBox(
-                            height: 250,
-                            child: Center(
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            ),
-                          )
-                        else
-                          _buildDiscountFoodList(),
-                      ],
-                    ),
-                  );
-                }),
-
-                /// Restaurant Specials
-                _buildRestaurantSpecials(),
-
-                ///FOOD MENU...
-                _buildMenuCategories(controller.foodMenuNestedCategory),
-
-                /// Business Live Photos
-                CommonBusinessLivePhoto(
-                  controller: viewBusinessDetailsController,
-                ),
-
-                /// --- Business Description ---
-                const BusinessDescriptionCard(),
-
-                /// Gallery
-                BusinessCommonGalleryCard(
-                  gallery: data.gallery
-                      ?.expand((g) => g.imageUrls ?? [])
-                      .cast<String>()
-                      .toList(),
-                  onEditTap: () => Get.to(() => FoodServicePhotosPhotoScreen()),
-                  onAddTap: () => Get.to(() => FoodServicePhotosPhotoScreen()),
-                  emptyTitle: AppStrings.foodNoPhotosPosted.tr,
-                  addButtonLabel: AppStrings.foodAddPhotoLabel.tr,
-                  isRestaurantGallery: true
-                ),
-
-                // ── 11. Contact & Map ──
-                Obx(() {
-                  final details = viewBusinessDetailsController
-                      .businessProfileDetails.value?.data;
-                  return BusinessContactMapCard(
-                    businessProfileDetails: details,
-                  );
-                }),
-
-                // ── 11. QR Code ──
-                Obx(() {
-                  final details = viewBusinessDetailsController
-                      .businessProfileDetails.value?.data;
-                  return BusinessQrCodeWidget(
-                    data: details,
-                    onDownload: () {
-                      // downloadQrCode();
-                    },
-                    onShare: () {
-                      // shareQrCode();
-                    },
-                  );
-                }),
-                const SizedBox(height: 100),
-
-              ],
-            ),
+      final data = controller.restaurantData.value;
+      if (data == null)
+        return Center(child: CustomText(AppStrings.noDataFound.tr));
+      return RefreshIndicator(
+        onRefresh: () async {
+          controller.fetchHomeData(businessId: businessId);
+          await controller.fetchDiscountFoodProducts(businessId: businessId);
+        },
+        child: SingleChildScrollView(
+          padding: EdgeInsets.only(
+            bottom: 40,
+            top: 15,
           ),
-        );
-      }),
-      ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+
+              ///FOOD HOTEL....
+              Obx(() {
+                final details = viewBusinessDetailsController
+                    .businessProfileDetails.value?.data;
+                return BusinessProfileHeaderView(
+                  details: details,
+                  controller: viewBusinessDetailsController,
+                  isRestaurantProfile: true,
+                );
+              }),
+
+              // ── 4. Business Stats ──
+              Obx(() {
+                final details = viewBusinessDetailsController
+                    .businessProfileDetails.value?.data;
+                return BusinessStats(details: details);
+              }),
+
+              ///Offer Dish (Discount) — paginated via discountProducts API
+              Obx(() {
+                final isInitialLoading =
+                    controller.isDiscountProductsLoading.value &&
+                        controller.discountFoodItems.isEmpty;
+                final hasItems = controller.discountFoodItems.isNotEmpty;
+
+                if (!isInitialLoading && !hasItems) {
+                  return const SizedBox.shrink();
+                }
+
+                return CustomFormCard(
+                  padding: EdgeInsets.symmetric(vertical: 10.0),
+                  margin: const EdgeInsets.only(top: 10),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            CustomText(
+                              AppStrings.foodOfferDishDiscount.tr,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                            ),
+                            InkWell(
+                              onTap: () => Get.to(() =>
+                                  DiscountFoodProductsScreen(
+                                      businessId: businessId)),
+                              child: CustomText(
+                                AppStrings.viewAll.tr,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.primaryColor,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      if (isInitialLoading)
+                        const SizedBox(
+                          height: 250,
+                          child: Center(
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        )
+                      else
+                        _buildDiscountFoodList(),
+                    ],
+                  ),
+                );
+              }),
+
+              /// Restaurant Specials
+              _buildRestaurantSpecials(),
+
+              ///FOOD MENU...
+              _buildMenuCategories(controller.foodMenuNestedCategory),
+
+              /// Business Live Photos
+              CommonBusinessLivePhoto(
+                controller: viewBusinessDetailsController,
+              ),
+
+              /// --- Business Description ---
+              const BusinessDescriptionCard(),
+
+              /// Gallery
+              BusinessCommonGalleryCard(
+                gallery: data.gallery
+                    ?.expand((g) => g.imageUrls ?? [])
+                    .cast<String>()
+                    .toList(),
+                onEditTap: () => Get.to(() => FoodServicePhotosPhotoScreen()),
+                onAddTap: () => Get.to(() => FoodServicePhotosPhotoScreen()),
+                emptyTitle: AppStrings.foodNoPhotosPosted.tr,
+                addButtonLabel: AppStrings.foodAddPhotoLabel.tr,
+                isRestaurantGallery: true
+              ),
+
+              // ── 11. Contact & Map ──
+              Obx(() {
+                final details = viewBusinessDetailsController
+                    .businessProfileDetails.value?.data;
+                return BusinessContactMapCard(
+                  businessProfileDetails: details,
+                );
+              }),
+
+              // ── 11. QR Code ──
+              Obx(() {
+                final details = viewBusinessDetailsController
+                    .businessProfileDetails.value?.data;
+                return BusinessQrCodeWidget(
+                  data: details,
+                  onDownload: () {
+                    // downloadQrCode();
+                  },
+                  onShare: () {
+                    // shareQrCode();
+                  },
+                );
+              }),
+              const BusinessShareBanner(),
+
+              const SizedBox(height: 4 * kBottomNavigationBarHeight),
+
+            ],
+          ),
+        ),
+      );
+    }),
     );
   }
 

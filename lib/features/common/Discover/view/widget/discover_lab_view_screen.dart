@@ -1,9 +1,11 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/features/common/store/controller/new_store_controller.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/discover_lab_gallery_widget.dart';
@@ -20,7 +22,8 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
-import 'package:BlueEra/widgets/profile_impression_stats.dart';
+import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
+import 'package:BlueEra/widgets/visit_business_stats_card.dart';
 import 'package:BlueEra/widgets/service_home_header_title_widget.dart';
 import 'package:BlueEra/widgets/service_home_title_widget.dart';
 import 'package:BlueEra/widgets/common_rating_row.dart';
@@ -40,6 +43,20 @@ class DiscoverLabViewScreen extends StatefulWidget {
 }
 
 class _DiscoverLabViewScreenState extends State<DiscoverLabViewScreen> {
+  final viewBusinessDetailsController =
+      Get.find<ViewBusinessDetailsController>();
+  final storeController = getOrPut(() => NewStoreController());
+
+  @override
+  void initState() {
+    super.initState();
+    final id = widget.detailsData.id;
+    if (id.isNotEmpty) {
+      viewBusinessDetailsController.viewBusinessProfileById(id);
+      storeController.trackStoreDetailView(id);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final d = widget.detailsData;
@@ -97,34 +114,43 @@ class _DiscoverLabViewScreenState extends State<DiscoverLabViewScreen> {
           children: [
             // --- Header Section ---
             _buildHeader(d),
-            SizedBox(height: SizeConfig.size16),
+            SizedBox(height: SizeConfig.paddingXSL),
 
-            ProfileImpressionStats(cardMargin: 0,),
+            Obx(() {
+              // Touch profileVersion so the card rebuilds when the
+              // visited profile is refreshed silently.
+              viewBusinessDetailsController.profileVersion.value;
+              return VisitBusinessStatsCard(
+                details: viewBusinessDetailsController
+                    .visitedBusinessProfileDetails
+                    ?.data,
+              );
+            }),
             // SizedBox(height: SizeConfig.paddingXS),
 
-            SizedBox(height: SizeConfig.size16),
+            SizedBox(height: SizeConfig.paddingXSL),
             CategorySelector(labID: d.id),
 
-            SizedBox(height: SizeConfig.size16),
+            SizedBox(height: SizeConfig.paddingXSL),
             EmptyHealthCampWidget(
               isOwnProfile: false,
               labId: d.id,
             ),
 
             // --- Popular Services ---
-            SizedBox(height: SizeConfig.size16),
+            SizedBox(height: SizeConfig.paddingXSL),
             _buildPopularServices(tests),
 
             // --- Our All Services / Facilities ---
-            SizedBox(height: SizeConfig.size16),
+            SizedBox(height: SizeConfig.paddingXSL),
             _buildAllServices(facility),
 
             // --- Gallery ---
-            SizedBox(height: SizeConfig.size16),
+            SizedBox(height: SizeConfig.paddingXSL),
             DiscoverLabGalleryWidget(galleries: galleries),
 
             // --- Contact Us ---
-            SizedBox(height: SizeConfig.size16),
+            SizedBox(height: SizeConfig.paddingXSL),
             _buildContactCard(contact, profile),
             SizedBox(height: SizeConfig.paddingXS),
 
@@ -216,9 +242,9 @@ class _DiscoverLabViewScreenState extends State<DiscoverLabViewScreen> {
                       ],
                     ),
                     child: ClipOval(
-                      child: (profile?.coverUrl?.isNotEmpty ?? false)
+                      child: (profile?.logoUrl?.isNotEmpty ?? false)
                           ? CachedNetworkImage(
-                              imageUrl: profile?.coverUrl ?? "",
+                              imageUrl: profile?.logoUrl ?? "",
                               fit: BoxFit.cover,
                               placeholder: (ctx, _) => LocalAssets(
                                 imagePath: AppIconAssets.place_holder_image,

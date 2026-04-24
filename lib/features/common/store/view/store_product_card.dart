@@ -92,7 +92,7 @@ class StoreProductCard extends StatelessWidget {
        );
 
        Get.toNamed(
-         RouteHelper.getStoreProductPreviewScreenProductRoute(),
+         RouteHelper.getProductsStoreDetailsScreenRoute(),
          arguments: {
            ApiKeys.argProductData: product,
            ApiKeys.id: owner?.id ?? '',

@@ -73,8 +73,10 @@ class _LabProfilesListScreenState extends State<LabProfilesListScreen> {
           child: NotificationListener<ScrollNotification>(
             onNotification: _onScroll,
             child: ListView.builder(
-              // No controller — inherit the NestedScrollView's primary
-              // controller so drag gestures collapse the outer header.
+              padding: EdgeInsets.symmetric(
+                vertical: SizeConfig.size10,
+                horizontal: SizeConfig.size8
+              ),
               itemCount: controller.profiles.length +
                   (controller.isLoadingMore.value ? 1 : 0),
               itemBuilder: (context, index) {
@@ -105,10 +107,10 @@ class _LabCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(right: 8.0, bottom: 10),
+      padding: const EdgeInsets.only(bottom: 10),
       child: InkWell(
         onTap: () {
-          Get.to(DiscoverLabViewScreen(
+          Get.to(()=> DiscoverLabViewScreen(
             detailsData: item,
           ));
         },

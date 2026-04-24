@@ -534,6 +534,17 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     // resolvable entity type, there is no subscription flow at all.
     if (SubscriptionController.resolveEntityType() == null) return false;
 
+    // Don't decide visibility while the first /user-subscriptions call
+    // is still in flight. Before the response lands we don't know if
+    // the user is subscribed or not — rendering the sheet here is what
+    // causes the "subscribe pill flashes then disappears" flicker for
+    // already-subscribed users. Wait until we have a real answer.
+    final planResp = _subController.userSubscriptionResponse.value;
+    if (planResp.status == Status.INITIAL ||
+        planResp.status == Status.LOADING) {
+      return false;
+    }
+
     // Once the user is on an active paid plan or an authenticated trial,
     // there is nothing left to upsell — hide the peek.
     final plans = _subController.currentPlansList;

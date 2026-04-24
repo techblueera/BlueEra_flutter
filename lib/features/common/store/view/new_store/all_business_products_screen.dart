@@ -407,9 +407,6 @@ class _AllBusinessProductsScreenState extends State<AllBusinessProductsScreen> {
         return const Center(child: CircularProgressIndicator());
       }
 
-      // Drop entries that StoreProductCard would render as an empty
-      // SizedBox (product.details == null) so those slots don't appear
-      // as blank cards in the grid.
       final productList = controller.productDataList
           .where((d) => d.product.details != null)
           .toList();

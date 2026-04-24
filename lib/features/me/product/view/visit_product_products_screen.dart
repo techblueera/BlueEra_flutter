@@ -197,12 +197,6 @@ class _VisitProductProductsScreenState
 
   Widget _buildSidebar() {
     final level2 = widget.parentCategory.children ?? [];
-    // No outer Obx — CommonGenericLeftSideCategoryList wraps each item
-    // in its own Obx internally, so its selected state already reacts
-    // to `_selectedCategory.value` changes without a wrapper here.
-    // Wrapping it in Obx also trips GetX's "improper use" warning
-    // because the observable reads happen inside callbacks passed to
-    // the child, not during this builder's build.
     return CommonGenericLeftSideCategoryList<ProductNestedCategoryResponse>(
       items: level2,
       getIcon: (item) => item.image ?? '',
@@ -223,8 +217,6 @@ class _VisitProductProductsScreenState
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Level-3 tabs (if any) — reads reactively so a sidebar switch
-          // updates the visible tabs immediately.
           Obx(() {
             final category = _selectedCategory.value;
             final children = category?.children ?? [];
@@ -274,12 +266,6 @@ class _VisitProductProductsScreenState
       final isLoadingMore =
           controller.isProductByCategoryLoadingMore.value;
 
-      // Using SliverMasonryGrid in a CustomScrollView is the same
-      // pattern used by AllTopSellingGroceryProductsScreen and
-      // DiscountFoodProductsScreen — both render inside Expanded
-      // without layout errors. `MasonryGridView.count` hit a
-      // "null check used on null" during performLayout here, which
-      // this Sliver-based setup avoids.
       return CustomScrollView(
         controller: _scrollController,
         physics: const AlwaysScrollableScrollPhysics(),

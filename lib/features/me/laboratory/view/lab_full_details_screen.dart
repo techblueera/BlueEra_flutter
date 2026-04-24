@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
+import 'package:BlueEra/features/business/widgets/business_share_banner.dart';
 import 'package:BlueEra/features/me/laboratory/controller/lab_full_details_controller.dart';
 import 'package:BlueEra/features/me/laboratory/model/new_lab_full_details_res_model.dart';
 import 'package:BlueEra/features/me/laboratory/view/widgets/category_selector_widget.dart';
@@ -164,6 +165,8 @@ class _LabFullDetailsScreenState extends State<LabFullDetailsScreen> {
                   )
                 else
                   _contact(contact, isWide),
+
+                const BusinessShareBanner(),
 
                 SizedBox(height: kBottomNavigationBarHeight + 30),
               ],

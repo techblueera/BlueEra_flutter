@@ -33,6 +33,7 @@ class WalletReferralHistoryData {
   String? rawStatus;
   num? planCost;
   num? referralIncome;
+  String? createdAt;
 
   WalletReferralHistoryData(
       {this.userId,
@@ -42,7 +43,8 @@ class WalletReferralHistoryData {
         this.subscriptionStatus,
         this.rawStatus,
         this.planCost,
-        this.referralIncome});
+        this.referralIncome,
+        this.createdAt});
 
   WalletReferralHistoryData.fromJson(Map<String, dynamic> json) {
     userId = json['userId'];
@@ -53,6 +55,7 @@ class WalletReferralHistoryData {
     rawStatus = json['rawStatus'];
     planCost = json['planCost'];
     referralIncome = json['referralIncome'];
+    createdAt = json['createdAt'] ?? json['subscribedAt'] ?? json['date'];
   }
 
   Map<String, dynamic> toJson() {
@@ -65,6 +68,7 @@ class WalletReferralHistoryData {
     data['rawStatus'] = this.rawStatus;
     data['planCost'] = this.planCost;
     data['referralIncome'] = this.referralIncome;
+    data['createdAt'] = this.createdAt;
     return data;
   }
 }
