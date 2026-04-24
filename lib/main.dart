@@ -48,7 +48,6 @@ import 'features/chat/auth/controller/call_controller.dart';
 // already imported via the `app_notification.dart` import above.
 import 'features/chat/view/call_screen/audio_calling_handler.dart';
 import 'features/chat/view/call_screen/call_activity_main.dart' as call_entry;
-import 'features/chat/view/call_screen/widget/ongoing_call_overlay.dart';
 import 'features/chat/view/call_screen/rider_call/ride_navigation_floating_overlay.dart';
 import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 import 'features/personal/personal_profile/controller/languge_list_controller.dart';
@@ -542,7 +541,11 @@ Future<void> main() async {
   if (kDebugMode) debugPrintKeys();
 
   if (Platform.isIOS) {
-    clearSecureStorageIfFreshInstall();
+    // Must await: the function wipes the Keychain on a fresh install;
+    // if it's fire-and-forget, getUserLoginStatus/getUserLoginData below
+    // can read from the Keychain before the wipe completes, or the wipe
+    // can race with a subsequent login save on the same launch.
+    await clearSecureStorageIfFreshInstall();
   }
 
   /// Localization (needs Hive, so runs after Hive.initFlutter)

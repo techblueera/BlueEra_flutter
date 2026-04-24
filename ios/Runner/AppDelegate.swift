@@ -43,6 +43,16 @@ import flutter_callkit_incoming
         return super.application(application, didFinishLaunchingWithOptions: launchOptions)
     }
 
+    // Universal Links: forward the incoming web URL to the Flutter engine so
+    // app_links / go_router / the Navigator can route it. Without this override,
+    // taps on https://blueera.ai/... open Safari even though Associated Domains
+    // is configured.
+    override func application(_ application: UIApplication,
+                              continue userActivity: NSUserActivity,
+                              restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void) -> Bool {
+        return super.application(application, continue: userActivity, restorationHandler: restorationHandler)
+    }
+
     // Surface silent APNs registration failures. Without this, a misconfigured
     // provisioning profile / aps-environment mismatch manifests as
     // "terminated-state pushes just don't arrive" with no indication why.

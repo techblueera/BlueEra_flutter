@@ -228,6 +228,13 @@ class SharedPreferenceUtils {
         SharedPreferenceUtils.availabilityDetails);
   }
 
+  /// Wipe ONLY the Keychain (flutter_secure_storage) without touching
+  /// GetX controllers, FCM state, or localization. Safe to call during
+  /// early boot when AuthController hasn't been registered yet.
+  static Future<void> wipeSecureStorageOnly() async {
+    await _secureStorage.deleteAll();
+  }
+
   ///CLEAR DATA...
   static Future<void> clearPreference() async {
     try {
@@ -463,15 +470,23 @@ getChannelData() async {
 
 Future<void> clearSecureStorageIfFreshInstall() async {
   final prefs = await SharedPreferences.getInstance();
-
   final hasInstalledBefore = prefs.getBool('hasInstalledBefore') ?? false;
+  if (hasInstalledBefore) return;
 
-  if (!hasInstalledBefore) {
-    // Fresh install detected
-    await SharedPreferenceUtils.clearPreference();
+  // Persist the flag FIRST. If the keychain wipe below throws for any
+  // reason, we must not re-enter this branch on every launch and clobber
+  // a freshly-saved auth token.
+  await prefs.setBool('hasInstalledBefore', true);
 
-    // await _storage.deleteAll(); // Clears Keychain entries
-    await prefs.setBool('hasInstalledBefore', true);
+  try {
+    // Only wipe the Keychain — that's the sole thing that survives an
+    // iOS app-delete/reinstall. Do NOT call clearPreference() here: it
+    // calls Get.find<AuthController>() which isn't registered yet at
+    // this point in main()'s boot sequence, causing a silent throw that
+    // would have prevented the flag write above in the old code.
+    await SharedPreferenceUtils.wipeSecureStorageOnly();
+  } catch (e) {
+    debugPrint('clearSecureStorageIfFreshInstall: $e');
   }
 }
 

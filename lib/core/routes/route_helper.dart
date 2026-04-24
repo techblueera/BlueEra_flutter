@@ -1,9 +1,7 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/routes/route_constant.dart';
-import 'package:BlueEra/features/chat/view/call_screen/call_list_screen.dart';
-import 'package:BlueEra/features/chat/view/call_screen/outgoing_call_screen.dart';
-import 'package:BlueEra/features/chat/view/call_screen/incoming_call_screen.dart';
+import 'package:BlueEra/features/chat/view/call_screen/audio_calling_handler.dart';
 import 'package:BlueEra/features/chat/view/call_screen/rider_call/incoming_rider_order_screen.dart';
 import 'package:BlueEra/features/common/delivery_partner/widget/near_by_rider_screen.dart';
 import 'package:BlueEra/features/me/food/controller/food_service_controller.dart';
@@ -1944,21 +1942,29 @@ class RouteHelper {
         );
 
 
-      case RouteConstant.CallListScreen:
+      case '/CallRoomScreen':
+      case RouteConstant.OutgoingCallScreen:
+      case RouteConstant.IncomingCallScreen:
         return MaterialPageRoute(
-          builder: (_) => const CallListScreen(),
-          settings: const RouteSettings(name: '/CallListScreen'),
+          builder: (_) => const CallActivityRoomScreen(),
+          settings: RouteSettings(name: settings.name),
         );
+
+      // case RouteConstant.CallListScreen:
+      //   return MaterialPageRoute(
+      //     builder: (_) => const CallListScreen(),
+      //     settings: const RouteSettings(name: '/CallListScreen'),
+      //   );
       // case RouteConstant.OutgoingCallScreen:
       //   return MaterialPageRoute(
       //     builder: (_) => const CallRoomScreen(),
       //     settings: const RouteSettings(name: '/OutgoingCallScreen'),
       //   );
-      case RouteConstant.IncomingCallScreen:
-        return MaterialPageRoute(
-          builder: (_) => const IncomingCallScreen(),
-          settings: const RouteSettings(name: '/IncomingCallScreen'),
-        );
+      // case RouteConstant.IncomingCallScreen:
+      //   return MaterialPageRoute(
+      //     builder: (_) => const IncomingCallScreen(),
+      //     settings: const RouteSettings(name: '/IncomingCallScreen'),
+      //   );
       // case RouteConstant.ActiveCallScreen:
       //   return MaterialPageRoute(
       //     builder: (_) => const CallRoomScreen(),
@@ -1969,11 +1975,11 @@ class RouteHelper {
       //     builder: (_) => const CallRoomScreen(),
       //     settings: const RouteSettings(name: '/CallRoomScreen'),
       //   );
-      case RouteConstant.IncomingRiderOrderScreen:
-        return MaterialPageRoute(
-          builder: (_) => const IncomingRiderOrderScreen(),
-          settings: const RouteSettings(name: '/IncomingRiderOrderScreen'),
-        );
+      // case RouteConstant.IncomingRiderOrderScreen:
+      //   return MaterialPageRoute(
+      //     builder: (_) => const IncomingRiderOrderScreen(),
+      //     settings: const RouteSettings(name: '/IncomingRiderOrderScreen'),
+      //   );
       // case RouteConstant.yourCartScreen:
       //   return MaterialPageRoute(
       //     builder: (_) => const YourCartScreen(),
