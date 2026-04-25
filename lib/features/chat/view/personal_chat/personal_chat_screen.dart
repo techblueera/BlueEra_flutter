@@ -248,6 +248,7 @@ class _PersonalChatScreenState extends State<PersonalChatScreen>
                                   name: message.sender?.name,
                                   contactNo: message.sender?.contactNo,
                                   profileImage: message.sender?.profileImage,
+                                  conversationUserId: widget.userId,
                                   conversationName: widget.name,
                                   conversationProfileImage: widget.profileImage,
                                 ),
