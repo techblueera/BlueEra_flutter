@@ -67,7 +67,8 @@ class MessageCard extends StatefulWidget {
       this.name,
       required this.isInitialMessage,
       this.contactNo, this.isFromAiMessage,
-      this.conversationName, this.conversationProfileImage});
+      this.conversationName, this.conversationProfileImage,
+      this.conversationUserId});
 
   final Messages message;
   final String? conversationId;
@@ -80,6 +81,7 @@ class MessageCard extends StatefulWidget {
   final String? contactNo;
   final String? conversationName;
   final String? conversationProfileImage;
+  final String? conversationUserId;
 
   @override
   State<MessageCard> createState() => _MessageCardState();
@@ -296,14 +298,22 @@ class _MessageCardState extends State<MessageCard>
 
       case "audio_call":
       case "video_call":
+        // For outgoing call messages, sender == me, so widget.userId/name/image
+        // would point back at the current user. Use the conversation-level
+        // partner details (same source as the appbar call button) instead.
+        final isMineCall = widget.message.myMessage ?? false;
         return CallMessageCard(
           message: widget.message,
           isReceive: isReceive,
           time: time,
           conversationId: widget.conversationId,
-          otherUserId: widget.userId,
-          otherUserName: widget.name,
-          otherUserImage: widget.profileImage,
+          otherUserId:
+              isMineCall ? widget.conversationUserId : widget.userId,
+          otherUserName:
+              isMineCall ? widget.conversationName : widget.name,
+          otherUserImage: isMineCall
+              ? widget.conversationProfileImage
+              : widget.profileImage,
         );
 
       case "reply_to_symbol":

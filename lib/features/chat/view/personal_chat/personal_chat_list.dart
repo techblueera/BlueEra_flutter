@@ -17,7 +17,6 @@ import '../archive_chat/archive_chat_list.dart';
 import '../flag_chat/flag_chat_list.dart';
 import '../group_chat/group_chat_list.dart';
 import '../pin_chat/pin_chat_list.dart';
-import '../reminder_chat/reminder_chat_list.dart';
 import '../widget/component_widgets.dart';
 
 class PersonalChatsList extends StatefulWidget {

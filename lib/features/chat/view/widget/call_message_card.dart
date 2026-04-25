@@ -151,7 +151,12 @@ class CallMessageCard extends StatelessWidget {
   }
 
   void _onCallBack() {
-    final targetUserId = message.metadata?.otherUserId ?? otherUserId ?? '';
+    // Always call the conversation partner (widget.otherUserId), not
+    // metadata.otherUserId — the latter is stored from the sender's
+    // perspective and would point back at the current user when tapping
+    // an outgoing call message.
+    final targetUserId =
+        (otherUserId?.isNotEmpty ?? false) ? otherUserId! : (message.metadata?.otherUserId ?? '');
     final targetConversationId = conversationId ?? '';
     final targetUserName = otherUserName ?? '';
     final targetUserImage = otherUserImage ?? '';
