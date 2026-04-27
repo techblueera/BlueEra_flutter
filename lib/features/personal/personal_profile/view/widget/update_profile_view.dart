@@ -474,18 +474,21 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen>
                               SizedBox(height: SizeConfig.size18),
 
                               CommonTextField(
+                                key: const ValueKey('edit_profile_email_field'),
                                 title: AppStrings.email,
                                 hintText: AppStrings.enterEmailAddress,
                                 textEditController: emailController,
                                 validationType: ValidationTypeEnum.email,
+                                readOnly: (viewProfileController
+                                        .verifiedEmail.value ==
+                                    emailController.text),
                                 onChange: (val) {
                                   emailVerificationController.isVerified.value =
                                       false;
-                                  viewProfileController.personalProfileDetails
-                                      .refresh();
                                   filedValidation();
                                 },
-                                sIcon: (viewProfileController.verifiedEmail.value ==
+                                sIcon: (viewProfileController
+                                            .verifiedEmail.value ==
                                         emailController.text)
                                     ? Icon(
                                         Icons.verified_user_outlined,
