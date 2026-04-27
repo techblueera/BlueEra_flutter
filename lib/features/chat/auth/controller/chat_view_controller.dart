@@ -2824,6 +2824,7 @@ class ChatViewController extends GetxController {
     String? contactNo,
     String? profileImage,
   }) async {
+    log("ksdjcsjcnsdc ${type}");
     businessTabIndexSelected.value = 0;
     await getLocalConversation(
         conversationId, userId, userId, contactName ?? '');
@@ -2973,7 +2974,7 @@ class ChatViewController extends GetxController {
     required String contactNo,
     bool? isFromContactList,
   }) {
-    if (type == AppConstants.business_Chat_Type) {
+    if (type.toLowerCase() == AppConstants.business_Chat_Type) {
       if (isFromContactList != null && isFromContactList) {
         Get.off(
               () => BusinessChatScreenUpdated(

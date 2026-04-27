@@ -12,6 +12,7 @@ import '../../../../../core/constants/snackbar_helper.dart';
 import '../../../../../widgets/custom_text_cm.dart';
 import '../../../auth/controller/chat_view_controller.dart';
 import '../../../auth/model/GetListOfMessageData.dart';
+import '../../widget/component_widgets.dart';
 
 class RiderLiveLocationMsgCard extends StatefulWidget {
   final Messages message;
@@ -66,6 +67,9 @@ class _RiderLiveLocationMsgCardState extends State<RiderLiveLocationMsgCard> {
   @override
   Widget build(BuildContext context) {
     Rider? rider = widget.message.metadata?.rider;
+    final bool isExpired = isMessageOlderThan24Hours(widget.message.createdAt);
+    final Color actionColor =
+        isExpired ? AppColors.grayText : AppColors.primaryColor;
 
     return InkWell(
       onTap: () {},
@@ -190,38 +194,44 @@ class _RiderLiveLocationMsgCardState extends State<RiderLiveLocationMsgCard> {
                 children: [
                   Expanded(
                     child: TextButton.icon(
-                      onPressed: ()async {
-                       bool value= await chatViewController.checkTrackOrderStatusApi("${widget.message.metadata?.order?.id}");
-                      if(value){
-                        Get.to(() => TrackRiderLiveLocationPage(
-                          riderId: rider?.userId ?? '',
-                          dropLat: widget
-                              .message
-                              .metadata
-                              ?.order
-                              ?.dropLocation
-                              ?.location
-                              ?.coordinates?[1] ??
-                              26.7836,
-                          dropLng: widget
-                              .message
-                              .metadata
-                              ?.order
-                              ?.dropLocation
-                              ?.location
-                              ?.coordinates?[0] ??
-                              80.9013,
-                        ));
-                      }else{
-                        commonSnackBar(
-                            message: "Ride has been Completed");
-                      }
-
-                      },
-                      icon: SvgPicture.asset(AppIconAssets.location_new,color: AppColors.primaryColor,),
+                      onPressed: isExpired
+                          ? null
+                          : () async {
+                              bool value = await chatViewController
+                                  .checkTrackOrderStatusApi(
+                                      "${widget.message.metadata?.order?.id}");
+                              if (value) {
+                                Get.to(() => TrackRiderLiveLocationPage(
+                                      riderId: rider?.userId ?? '',
+                                      dropLat: widget
+                                              .message
+                                              .metadata
+                                              ?.order
+                                              ?.dropLocation
+                                              ?.location
+                                              ?.coordinates?[1] ??
+                                          26.7836,
+                                      dropLng: widget
+                                              .message
+                                              .metadata
+                                              ?.order
+                                              ?.dropLocation
+                                              ?.location
+                                              ?.coordinates?[0] ??
+                                          80.9013,
+                                    ));
+                              } else {
+                                commonSnackBar(
+                                    message: "Ride has been Completed");
+                              }
+                            },
+                      icon: SvgPicture.asset(
+                        AppIconAssets.location_new,
+                        color: actionColor,
+                      ),
                       label: CustomText(
                         AppStrings.trackOrder,
-                        color: AppColors.primaryColor,
+                        color: actionColor,
                         fontWeight: FontWeight.w900,
                       ),
                     ),
