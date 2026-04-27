@@ -9,6 +9,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/my_documents/con
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:croppy/croppy.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -22,6 +23,7 @@ class GenericDocumentWidget extends StatelessWidget {
   final int? maxLength;
   final TextInputType keyboardType;
   final bool isCapitalize;
+  final CropAspectRatio? cropAspectRatio;
 
   GenericDocumentWidget({
     required this.documentType,
@@ -33,6 +35,7 @@ class GenericDocumentWidget extends StatelessWidget {
     this.maxLength,
     this.keyboardType = TextInputType.text,
     this.isCapitalize = false,
+    this.cropAspectRatio,
     super.key,
   });
 
@@ -87,7 +90,8 @@ class GenericDocumentWidget extends StatelessWidget {
                         onImageSelected: () async {
                           final selectedPath =
                           await CommonImageUploadTile.pickImage(
-                              context: context
+                              context: context,
+                              cropAspectRatio: cropAspectRatio
                           );
                           if (selectedPath != null) {
                             controller.genericDocumentsFrontImage.value = File(selectedPath);
@@ -106,7 +110,9 @@ class GenericDocumentWidget extends StatelessWidget {
                             onImageSelected: () async {
                               final selectedPath =
                               await CommonImageUploadTile.pickImage(
-                                  context: context);
+                                  context: context,
+                                  cropAspectRatio: cropAspectRatio
+                              );
                               if (selectedPath != null) {
                                 controller.genericDocumentsBackImage.value = File(selectedPath);
                               }

@@ -38,13 +38,38 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
   final AuthController _authController = Get.find<AuthController>();
   AnimationController? _shimmerController;
 
-  List<CategoryData> get _arrCategories =>
-      _authController.businessOnboardingGroceriesCategories;
+  static const List<String> _categoryOrderKeywords = [
+    'kirana',
+    'dairy',
+    'vegetable',
+    'general',
+    'home',
+    'stationer',
+  ];
+
+  int _categoryOrderIndex(String? name) {
+    final n = (name ?? '').toLowerCase();
+    for (var i = 0; i < _categoryOrderKeywords.length; i++) {
+      if (n.contains(_categoryOrderKeywords[i])) return i;
+    }
+    return _categoryOrderKeywords.length;
+  }
+
+  List<CategoryData> get _arrCategories {
+    final list = List<CategoryData>.from(
+        _authController.businessOnboardingGroceriesCategories);
+    list.sort((a, b) {
+      final ai = _categoryOrderIndex(a.name);
+      final bi = _categoryOrderIndex(b.name);
+      if (ai != bi) return ai.compareTo(bi);
+      return (a.name ?? '').compareTo(b.name ?? '');
+    });
+    return list;
+  }
 
   final List<Color> cardColors = [
-    const Color(0xFFFFFEF7),
-    const Color(0xFFFFF9F3),
-    const Color(0xFFFFF5F5),
+    const Color(0xFFEDFDFF),
+    const Color(0xFFFCF5FF),
   ];
 
   int _locationVersion = 0;

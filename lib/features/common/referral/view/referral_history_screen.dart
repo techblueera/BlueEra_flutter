@@ -633,12 +633,20 @@ class _ReferralHistoryScreenState extends State<ReferralHistoryScreen> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         CustomText(
-          (controller.selectedFilter.value == 'All' ||
-                  controller.selectedFilter.value == 'Subscribe')
-              ? "Subscribe User"
-              : controller.selectedFilter.value == 'Un-Subscribe'
-                  ? "Un-Subscribe User"
-                  : "Expired",
+          () {
+            switch (controller.selectedFilter.value) {
+              case 'Pending':
+                return 'Pending User';
+              case 'Un-Subscribe':
+                return 'Un-Subscribe User';
+              case 'Expired':
+                return 'Expired';
+              case 'All':
+              case 'Subscribe':
+              default:
+                return 'Subscribe User';
+            }
+          }(),
           fontSize: SizeConfig.large,
           fontWeight: FontWeight.w600,
           color: AppColors.mainTextColor,

@@ -692,5 +692,6 @@ class AppIconAssets {
   static const String sweetsIcon = "${iconPath}sweets_icon.svg";
   static const String namkeenIcon = "${iconPath}namkeen_icon.svg";
   static const String picklesIcon = "${iconPath}pickles_icon.svg";
+  static const String locationWithTime = "${iconPath}location_with_time.svg";
 
 }

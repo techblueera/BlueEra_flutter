@@ -8,6 +8,7 @@ import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/widgets/route_map_bottom_sheet.dart';
 import 'package:BlueEra/features/common/Discover/view/healthcare/discover_hospital_home_screen.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_address_pill.dart';
+import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_chat_icon.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_service_ai_controller.dart';
 import 'package:BlueEra/features/me/hospital/model/hospital_full_details_res_model.dart';
@@ -271,6 +272,8 @@ class _HospitalCard extends StatelessWidget {
                     userId: item.userId ?? '',
                     name: item.name,
                     profile: item.logoUrl,
+                    businessId: item.id,
+                    trackingSource: ChatClickSource.searchResult,
                   ),
                 ],
               ),

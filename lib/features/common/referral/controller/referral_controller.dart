@@ -53,7 +53,13 @@ Rx<WalletRefferalStatsData> referralStatsData = WalletRefferalStatsData().obs;
 RxList<WalletReferralHistoryData> referralHistoryData = <WalletReferralHistoryData>[].obs;
 
   RxString selectedFilter = 'All'.obs;
-  final List<String> filters = ['All', 'Subscribe', 'Un-Subscribe', 'Expired'];
+  final List<String> filters = [
+    'All',
+    'Pending',
+    'Subscribe',
+    'Un-Subscribe',
+    'Expired',
+  ];
   RxList<String> referralSuggestions = <String>[].obs;
   RxString selectedSuggestion = ''.obs;
 
@@ -108,6 +114,9 @@ submitLoading.value = false;
       Map<String, dynamic> _queryParms = {};
       switch(filter){
         case 'All':
+          break;
+        case 'Pending':
+          _queryParms['pending'] = true;
           break;
         case 'Subscribe':
           _queryParms['subscribed'] = true;
@@ -308,7 +317,15 @@ submitLoading.value = false;
       final res = await UserRepo().referralSuggestionsRepo();
 
       if (res.isSuccess) {
-        referralSuggestions.value = res.response?.data['data'];
+        // The API returns `data` as a List<dynamic>; assigning it
+        // directly to RxList<String> throws a TypeError that gets
+        // swallowed by the outer try/catch, leaving the suggestion
+        // chips empty. Cast each element explicitly so the list is
+        // populated and the Obx sees the new state.
+        final raw = res.response?.data['data'];
+        referralSuggestions.value = raw is List
+            ? raw.map((e) => e?.toString() ?? '').where((s) => s.isNotEmpty).toList()
+            : <String>[];
         referralSuggestionsResponse.value =
             ApiResponse.complete(res.response?.data);
 

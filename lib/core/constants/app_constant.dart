@@ -2527,8 +2527,14 @@ final List<OnboardingCategoryModel> individualOnboardingProfilesCategory = [
     accountType: AppConstants.individual,
   ),
   OnboardingCategoryModel(
-    name: 'Skill Work/\nSelf Employee',
-    slugId: SELF_EMPLOYED,
+    name: 'Skill Work',
+    slugId: SKILL_WORKER,
+    icon: OnboardingIndividualAssets.plumber,
+    accountType: AppConstants.individual,
+  ),
+  OnboardingCategoryModel(
+    name: 'Self Employed',
+    slugId: GIG_WORKER,
     icon: OnboardingIndividualAssets.selfEmployee,
     accountType: AppConstants.individual,
   ),

@@ -360,7 +360,7 @@ class UserRepo extends BaseService {
   Future<ResponseModel> checkReferralRepo(String refCode) async {
     final response = await ApiBaseHelper().getHTTP(
         checkReferral(refCode),
-        // showProgress: false,
+        showProgress: false,
         onError: (error) {}, onSuccess: (data) {});
     return response;
   }

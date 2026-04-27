@@ -11,6 +11,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/network_assets.dart';
+import 'package:croppy/croppy.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -114,6 +115,7 @@ class CommonImageUploadTile extends StatelessWidget {
 
   static Future<String?> pickImage({
     required BuildContext context,
+    CropAspectRatio? cropAspectRatio,
     String title = AppStrings.selectPhoto,
   }) async {
     try {
@@ -123,6 +125,7 @@ class CommonImageUploadTile extends StatelessWidget {
         quality: 60,
         minWidth: 1024,
         minHeight: 1024,   // Documents / ID Cards: 1024 x 1024 (Text remains readable, ultra-fast upload)
+       cropAspectRatio: cropAspectRatio,
       );
 
       if (selected != null && selected.isNotEmpty) {

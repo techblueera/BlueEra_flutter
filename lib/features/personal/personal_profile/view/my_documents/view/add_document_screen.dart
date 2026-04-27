@@ -20,6 +20,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:croppy/croppy.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -226,6 +227,7 @@ class _AddDocumentScreenState extends State<AddDocumentScreen>  {
                                           ValidationMethod.validateAadhaar,
                                       maxLength: 12,
                                       keyboardType: TextInputType.number,
+                                        cropAspectRatio: const CropAspectRatio(width: 4, height: 3)
                                     ),
                                   ),
                                   isScrollControlled: true,
@@ -252,6 +254,7 @@ class _AddDocumentScreenState extends State<AddDocumentScreen>  {
                                           ValidationMethod.validatePAN,
                                       maxLength: 10,
                                       keyboardType: TextInputType.text,
+                                        cropAspectRatio: const CropAspectRatio(width: 4, height: 3)
                                     ),
                                   ),
                                   isScrollControlled: true,
