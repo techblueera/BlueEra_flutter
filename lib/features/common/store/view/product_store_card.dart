@@ -3,518 +3,293 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/services/location/location_service.dart';
+import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
+import 'package:BlueEra/features/common/Discover/widget/discover_chat_icon.dart';
 import 'package:BlueEra/features/me/product/view/visit_product_store_details_screen.dart';
-import 'package:BlueEra/features/business/widgets/business_common_subcategory_widget.dart';
-import 'package:BlueEra/features/common/Discover/widget/discover_address_pill.dart';
-import 'package:BlueEra/features/common/store/controller/new_store_controller.dart';
-import 'package:BlueEra/features/common/store/widget/store_live_photo_widget.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/route_map_bottom_sheet.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:url_launcher/url_launcher.dart';
+
+class _ProductCardPalette {
+  final Color cardBorder;
+  final Color tileBorder;
+  final Color dividerLine;
+
+  const _ProductCardPalette({
+    required this.cardBorder,
+    required this.tileBorder,
+    required this.dividerLine,
+  });
+}
+
+const _palettes = <_ProductCardPalette>[
+  _ProductCardPalette(
+    cardBorder: Color(0xFFC0DDE1),
+    tileBorder: Color(0xFFD0EEF2),
+    dividerLine: Color(0xFFBBE3E8),
+  ),
+  _ProductCardPalette(
+    cardBorder: Color(0xFFECD3F6),
+    tileBorder: Color(0xFFF7E3FF),
+    dividerLine: Color(0xFFE3D4E9),
+  ),
+];
 
 class ProductStoreCard extends StatelessWidget {
   final GetAllStoreResModel? getAllStoreResData;
   final double Function(double) ds;
-  const ProductStoreCard({Key? key, required this.ds, this.getAllStoreResData}) : super(key: key);
+
+  const ProductStoreCard({
+    super.key,
+    required this.ds,
+    this.getAllStoreResData,
+  });
+
+  GetAllStoreResModel get _store =>
+      getAllStoreResData ?? GetAllStoreResModel();
+
+  _ProductCardPalette get _palette {
+    final key = (_store.id ?? _store.userId ?? '').hashCode;
+    return _palettes[key.abs() % _palettes.length];
+  }
 
   @override
   Widget build(BuildContext context) {
+    final store = _store;
+    final livePhotos = (store.livePhotos ?? const <String>[])
+        .where((p) => p.trim().isNotEmpty)
+        .toList();
+    final logo = store.logo ?? '';
+    final hasLogo = logo.isNotEmpty;
+    final heroImage = livePhotos.isNotEmpty
+        ? livePhotos.first
+        : (hasLogo ? logo : '');
+    final extraPhotos = livePhotos.length > 1 ? livePhotos.length - 1 : 0;
+    final palette = _palette;
 
-    return Container(
-      padding: EdgeInsets.all(ds(10)),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.greyE5),
-        // boxShadow: [
-        //   BoxShadow(
-        //     color: AppColors.shadowColor,
-        //     blurRadius: ds(1.4),
-        //     offset: const Offset(0, 0.7),
-        //   ),
-        // ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          /// Store info row
-          InkWell(
-            onTap: (){
-              Get.to(() => VisitProductStoreDetailsScreen(
-                visitBusinessId: getAllStoreResData?.id ?? "",
-              ));
-            },
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CachedAvatarWidget(
-                  imageUrl: getAllStoreResData?.logo,
-                  size: ds(50),
-                  borderRadius: ds(25),
-                ),
-                SizedBox(width: ds(10)),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Store name and follow
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Row(
-                              children: [
-                                Flexible(
-                                  child: CustomText(
-                                    getAllStoreResData?.businessName??'',
-                                    fontSize: ds(14),
-                                    fontWeight: FontWeight.w700,
-                                    color: AppColors.secondaryTextColor,
-                                    overflow: TextOverflow.ellipsis,
-                                    maxLines: 1,
-                                  ),
-                                ),
-                                Container(
-                                  margin: EdgeInsets.only(left: ds(8)),
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    border: Border.all(color: AppColors.whiteF1),
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: Center(
-                                    child: CustomText(
-                                      getAllStoreResData?.dateOfIncorporation == null
-                                          ? ""
-                                          : "Since ${getAllStoreResData?.dateOfIncorporation?.year ?? ""}",
-                                      fontSize: 10,
-                                      color: AppColors.secondaryTextColor,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-
-                          InkWell(
-                            onTap: () async {
-                              if (isGuestUser()) {
-                                createProfileScreen();
-                              } else {
-                                final controller = getOrPut(() => NewStoreController());
-                                if (getAllStoreResData?.isFollowed ?? false) {
-                                  await controller.unFollowBusinessUser(
-                                      businessId: getAllStoreResData?.userId,
-                                      store: getAllStoreResData ?? GetAllStoreResModel()
-                                  );
-                                } else {
-                                  await controller.followBusinessUser(
-                                      businessId: getAllStoreResData?.userId,
-                                      store: getAllStoreResData ?? GetAllStoreResModel()
-                                  );
-                                }
-                              }
-                            },
-                            child: Container(
-                              margin: EdgeInsets.only(left: ds(4)),
-                              padding: EdgeInsets.symmetric(horizontal: ds(8), vertical: ds(4)),
-                              decoration: BoxDecoration(
-                                color: Colors.blue,
-                                borderRadius: BorderRadius.circular(ds(20)),
-                              ),
-                              child: CustomText(
-                                (getAllStoreResData?.isFollowed ?? false) ? AppStrings.unfollow : AppStrings.follow,
-                                color: Colors.white,
-                                fontSize: ds(11),
-                                fontWeight: FontWeight.w400,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: ds(4)),
-                      FittedBox(
-                        child: Row(
-                          children: [
-                            BusinessCommonSubCategoryWidget(
-                              label: '${
-                                  getAllStoreResData?.subCategoryOfBusiness?.name ??
-                                      getAllStoreResData?.natureOfBusiness ??
-                                      'OTHER'
-                              } ',
-                            ),
-                            SizedBox(width: ds(4)),
-                            Row(
-                              children: [
-                                LocalAssets(
-                                  imagePath: AppIconAssets.star,
-                                  height: 12,
-                                  width: 12,
-                                ),
-                                CustomText(
-                                  ' ${
-                                      (getAllStoreResData?.avgRating ?? 0) > 0
-                                        ? "(${getAllStoreResData?.avgRating})"
-                                        : "${AppStrings.no.tr} "
-                                  }',
-                                  color: AppColors.orangelite, fontSize: ds(12)
-                                ),
-                              ],
-                            ),
-                            CustomText(
-                              AppStrings.ratings,
-                                color: Colors.grey, fontSize: ds(12)
-                            ),
-                          ],
-                        ),
-                      ),
-                      SizedBox(height: ds(4)),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          if(getAllStoreResData?.websiteUrl?.isNotEmpty??false) ...[
-            SizedBox(height: ds(6)),
-            Padding(
-              padding: const EdgeInsets.only(left: 20),
-              child: InkWell(
-                onTap: ()=> launchUrl(Uri.parse(getAllStoreResData?.websiteUrl??'')),
-                child: CustomText(
-                  getAllStoreResData?.websiteUrl ?? AppStrings.na,
-                  fontSize: 12.0,
-                  color: AppColors.primaryColor,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-            // ExpandableText(
-            //   text: "${getAllStoreResData?.businessDescription ?? ''}",
-            //   trimLines: 2,
-            //   expandMode: ExpandMode.dialog,
-            //   style: TextStyle(
-            //     color: AppColors.secondaryTextColor,
-            //     fontFamily: AppConstants.OpenSans,
-            //     fontWeight: FontWeight.w400,
-            //   ),
-            // ),
-          ],
-
-          SizedBox(height: ds(8)),
-
-          // --- Address & Distance Pill (Tappable) ---
-          Padding(
-            padding: const EdgeInsets.only(left: 20),
-            child: DiscoverAddressPill(
-              destLat: getAllStoreResData?.businessLocation?.lat?.toDouble() ?? 0.0,
-              destLng: getAllStoreResData?.businessLocation?.lon?.toDouble() ?? 0.0,
-              address: getAllStoreResData?.address,
-              onTap: () => _showMapBottomSheet(context),
-            ),
-          ),
-
-          SizedBox(height: ds(10)),
-
-          // --- Categories — names from response, accent-rail "info section"
-          // styling that matches hospital / grocery / restaurant cards.
-          Padding(
-            padding: const EdgeInsets.only(left: 20),
-            child: _infoSection(
-              icon: Icons.category_outlined,
-              title: 'Category',
-              count: getAllStoreResData?.totalCategoryCount ??
-                  (getAllStoreResData?.categories?.length ?? 0),
-              pills: (getAllStoreResData?.categories ?? [])
-                  .map((c) => c.name ?? '')
-                  .where((s) => s.trim().isNotEmpty)
-                  .toList(),
-              emptyLabel: 'No categories listed',
-            ),
-          ),
-
-          SizedBox(height: ds(8)),
-
-          // --- Products — count chip; pills wire in once the listing API
-          // surfaces a top-products array.
-          Padding(
-            padding: const EdgeInsets.only(left: 20),
-            child: _infoSection(
-              icon: Icons.shopping_bag_outlined,
-              title: 'Product',
-              count: getAllStoreResData?.totalProductCount ?? 0,
-              pills: const [],
-              emptyLabel:
-                  '${getAllStoreResData?.totalProductCount ?? 0} products in store',
-            ),
-          ),
-
-          SizedBox(height: ds(8)),
-          if(getAllStoreResData !=null && (getAllStoreResData?.livePhotos?.isNotEmpty ?? false)) ...[
-            /// Image grid
-            Padding(
-              padding: const EdgeInsets.only(left: 20),
-              child: StoreLivePhotoWidget(
-                livePhotos: getAllStoreResData?.livePhotos ?? [],
-                natureOfBusiness: getAllStoreResData?.categoryOfBusiness?.name ??
-                    getAllStoreResData?.natureOfBusiness ??
-                    'OTHER',
-                onViewFullScreen: ({
-                  required int index,
-                  required List<String> storeImage,
-                  required String natureOfBusiness,
-                }) {
-                  viewImageOnFullScreen(
-                    index: index,
-                    storeImage: storeImage,
-                    natureOfBusiness: natureOfBusiness,
-                  );
-                },
-              ),
-            ),
-          ] else if ((getAllStoreResData?.logo ?? '').isNotEmpty) ...[
-            /// Single logo photo fallback
-            Padding(
-              padding: const EdgeInsets.only(left: 20),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: GestureDetector(
-                  onTap: () => viewImageOnFullScreen(
-                    index: 0,
-                    storeImage: [getAllStoreResData!.logo!],
-                    natureOfBusiness: getAllStoreResData?.categoryOfBusiness?.name ??
-                        getAllStoreResData?.natureOfBusiness ??
-                        'OTHER',
-                  ),
-                  child: CachedNetworkImage(
-                    imageUrl: getAllStoreResData!.logo!,
-                    height: 160,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                    memCacheWidth: 600,
-                    memCacheHeight: 600,
-                    placeholder: (_, __) => LocalAssets(
-                      imagePath: AppIconAssets.place_holder_image,
-                      boxFix: BoxFit.fill,
-                    ),
-                    errorWidget: (_, __, ___) => LocalAssets(
-                      imagePath: AppIconAssets.place_holder_image,
-                      boxFix: BoxFit.fill,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
-
-        ],
-      ),
-    );
-  }
-
-  void _openStore() {
-    Get.to(() => VisitProductStoreDetailsScreen(
-          visitBusinessId: getAllStoreResData?.id ?? "",
-        ));
-  }
-
-  /// Section block — left accent rail, icon-in-disc header with inline
-  /// count, and a wrap of soft-gradient pills below. Mirrors the hospital
-  /// list / grocery store / restaurant card layout for one shared
-  /// discover-card visual language.
-  Widget _infoSection({
-    required IconData icon,
-    required String title,
-    required int count,
-    required List<String> pills,
-    required String emptyLabel,
-  }) {
-    final accent = AppColors.primaryColor;
-    return IntrinsicHeight(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Container(
-            width: 3,
-            margin: EdgeInsets.only(
-                top: 4, bottom: 4, right: SizeConfig.size10),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  accent,
-                  accent.withValues(alpha: 0.15),
-                ],
-              ),
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Container(
-                      width: 26,
-                      height: 26,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: accent.withValues(alpha: 0.08),
-                        border: Border.all(
-                          color: accent.withValues(alpha: 0.18),
-                          width: 1,
-                        ),
-                      ),
-                      child: Icon(icon,
-                          size: SizeConfig.size14, color: accent),
-                    ),
-                    SizedBox(width: SizeConfig.size8),
-                    CustomText(
-                      title,
-                      fontSize: SizeConfig.small,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.mainTextColor,
-                    ),
-                    SizedBox(width: SizeConfig.size6),
-                    CustomText(
-                      '·',
-                      fontSize: SizeConfig.small,
-                      color: AppColors.secondaryTextColor,
-                      fontWeight: FontWeight.w700,
-                    ),
-                    SizedBox(width: SizeConfig.size6),
-                    CustomText(
-                      '$count',
-                      fontSize: SizeConfig.small,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.secondaryTextColor,
-                    ),
-                  ],
-                ),
-                SizedBox(height: SizeConfig.size8),
-                if (pills.isEmpty)
-                  _sectionEmpty(emptyLabel)
-                else
-                  Wrap(
-                    spacing: SizeConfig.size6,
-                    runSpacing: SizeConfig.size6,
-                    children: [
-                      ...pills.take(4).map(_gradientChip),
-                      if (pills.length > 4) _overflowChip(pills.length - 4),
-                    ],
-                  ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _gradientChip(String label) {
-    final accent = AppColors.primaryColor;
-    return GestureDetector(
+    return InkWell(
       onTap: _openStore,
+      borderRadius: BorderRadius.circular(12),
       child: Container(
-        padding: EdgeInsets.symmetric(
-            horizontal: SizeConfig.size10, vertical: SizeConfig.size4),
+        margin: EdgeInsets.only(bottom: SizeConfig.size10),
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Colors.white,
-              accent.withValues(alpha: 0.09),
-            ],
-          ),
-          borderRadius: BorderRadius.circular(999),
-          border: Border.all(
-            color: accent.withValues(alpha: 0.18),
-            width: 1,
-          ),
+          borderRadius: BorderRadius.circular(12.0),
+          color: AppColors.white,
+          border: Border.all(color: palette.cardBorder, width: 1),
           boxShadow: [
             BoxShadow(
-              color: accent.withValues(alpha: 0.05),
-              blurRadius: 4,
-              offset: const Offset(0, 1),
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
             ),
           ],
         ),
-        child: CustomText(
-          label,
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
-          color: AppColors.mainTextColor,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: EdgeInsets.all(SizeConfig.size12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildHeader(),
+                  SizedBox(height: SizeConfig.size10),
+                  _buildDottedLine(palette.dividerLine),
+                  SizedBox(height: SizeConfig.size10),
+                  _buildBodyRow(
+                    context: context,
+                    heroImage: heroImage,
+                    livePhotos: livePhotos,
+                    extraPhotos: extraPhotos,
+                    palette: palette,
+                  ),
+                ],
+              ),
+            ),
+            _buildLastVisitFooter(palette),
+          ],
         ),
       ),
     );
   }
 
-  Widget _overflowChip(int extra) {
-    final accent = AppColors.primaryColor;
-    return GestureDetector(
-      onTap: _openStore,
-      child: Container(
-        padding: EdgeInsets.symmetric(
-            horizontal: SizeConfig.size10, vertical: SizeConfig.size4),
-        decoration: BoxDecoration(
-          color: accent.withValues(alpha: 0.12),
-          borderRadius: BorderRadius.circular(999),
-          border: Border.all(
-            color: accent.withValues(alpha: 0.32),
-            width: 1,
+  // --- Header: Logo + Name + Rating/Subcategory badges + Chat icon + Follow.
+  Widget _buildHeader() {
+    final store = _store;
+    final ratingValue = (store.avgRating ?? 0) > 0
+        ? store.avgRating.toString()
+        : AppStrings.no.tr;
+    final subCategory =
+        store.subCategoryOfBusiness?.name ?? store.natureOfBusiness ?? 'OTHER';
+    final sinceYear = store.dateOfIncorporation?.year;
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CachedAvatarWidget(
+          imageUrl: store.logo ?? '',
+          size: SizeConfig.size50,
+          borderColor: Colors.white,
+          borderRadius: SizeConfig.size25,
+        ),
+        SizedBox(width: SizeConfig.size10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CustomText(
+                store.businessName ?? 'Unknown Business',
+                fontSize: SizeConfig.large18,
+                color: AppColors.mainTextColor,
+                fontWeight: FontWeight.w800,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              SizedBox(height: SizeConfig.size6),
+              Wrap(
+                spacing: 6,
+                runSpacing: 6,
+                children: [
+                  _buildRatingBadge(ratingValue),
+                  _buildCategoryBadge(subCategory),
+                  if (sinceYear != null) _buildSinceBadge(sinceYear),
+                ],
+              ),
+            ],
           ),
+        ),
+        SizedBox(width: SizeConfig.size6),
+        DiscoverChatIcon(
+          userId: store.userId ?? '',
+          name: store.businessName,
+          profile: store.logo,
+          businessId: store.id,
+          trackingSource: ChatClickSource.searchResult,
+        ),
+      ],
+    );
+  }
+
+  // --- Body: 2 stat cards + address card on the left, hero image on right.
+  Widget _buildBodyRow({
+    required BuildContext context,
+    required String heroImage,
+    required List<String> livePhotos,
+    required int extraPhotos,
+    required _ProductCardPalette palette,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 15.0),
+      child: SizedBox(
+        height: 100,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              flex: 7,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      _buildStatBox(
+                        icon: AppIconAssets.staggeredIcon,
+                        count: _formatCount(_store.totalCategoryCount ??
+                            (_store.categories?.length ?? 0)),
+                        label: 'Category',
+                        iconColor: const Color(0xFF9964F4),
+                        borderColor: palette.tileBorder,
+                      ),
+                      SizedBox(width: SizeConfig.size6),
+                      _buildStatBox(
+                        icon: AppIconAssets.productCartIcon,
+                        count: _formatCount(_store.totalProductCount ?? 0),
+                        label: 'Product',
+                        iconColor: const Color(0xFF6179CD),
+                        borderColor: palette.tileBorder,
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: SizeConfig.size8),
+                  Expanded(child: _buildAddressCard(context, palette)),
+                ],
+              ),
+            ),
+            SizedBox(width: SizeConfig.size8),
+            Expanded(
+              flex: 3,
+              child: _buildHeroImage(
+                heroImage: heroImage,
+                livePhotos: livePhotos,
+                extraPhotos: extraPhotos,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // --- Address card: white tile with shadowed location icon, distance + address.
+  Widget _buildAddressCard(BuildContext context, _ProductCardPalette palette) {
+    final store = _store;
+    final lat = store.businessLocation?.lat?.toDouble() ?? 0.0;
+    final lng = store.businessLocation?.lon?.toDouble() ?? 0.0;
+    final km = calculateDistanceKm(
+      LocationService.lat,
+      LocationService.lng,
+      lat,
+      lng,
+    );
+
+    return GestureDetector(
+      onTap: () => _showMapBottomSheet(context),
+      child: Container(
+        padding: const EdgeInsets.all(8.0),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(10.0),
+          border: Border.all(color: palette.tileBorder, width: 1),
+          color: AppColors.white,
         ),
         child: Row(
-          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            CustomText(
-              '+$extra more',
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-              color: accent,
+            _buildIconContainer(AppIconAssets.location_outline),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CustomText(
+                    '${km.toStringAsFixed(2)} Km Away',
+                    fontSize: 12.0,
+                    color: AppColors.secondaryTextColor,
+                    fontWeight: FontWeight.w600,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  SizedBox(height: SizeConfig.size4),
+                  CustomText(
+                    store.address ?? AppStrings.na,
+                    fontSize: 10.0,
+                    color: AppColors.secondaryTextColor,
+                    fontWeight: FontWeight.w400,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(width: 3),
-            Icon(Icons.arrow_forward_rounded, size: 11, color: accent),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _sectionEmpty(String label) {
-    return Container(
-      padding: EdgeInsets.symmetric(
-          horizontal: SizeConfig.size10, vertical: SizeConfig.size6),
-      decoration: BoxDecoration(
-        color: AppColors.greyE5.withValues(alpha: 0.4),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppColors.greyE5, width: 1),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.info_outline_rounded,
-              size: 12, color: AppColors.grey9B),
-          SizedBox(width: SizeConfig.size6),
-          CustomText(
-            label,
-            fontSize: 11,
-            color: AppColors.grey9B,
-            fontWeight: FontWeight.w500,
-          ),
-        ],
       ),
     );
   }
@@ -530,7 +305,7 @@ class ProductStoreCard extends StatelessWidget {
             color: AppColors.black.withValues(alpha: 0.08),
             offset: const Offset(0, 1),
             blurRadius: 2.0,
-          )
+          ),
         ],
       ),
       child: LocalAssets(
@@ -542,28 +317,501 @@ class ProductStoreCard extends StatelessWidget {
     );
   }
 
-  void _showMapBottomSheet(BuildContext context) {
-    RouteMapBottomSheet.show(
-      context: context,
-      destinationName: getAllStoreResData?.businessName ?? 'Store',
-      destinationAddress: getAllStoreResData?.address ?? '',
-      destinationLat: getAllStoreResData?.businessLocation?.lat?.toDouble() ?? 0.0,
-      destinationLng: getAllStoreResData?.businessLocation?.lon?.toDouble() ?? 0.0,
-      livePhotos: getAllStoreResData?.livePhotos,
-      storeBusinessID: getAllStoreResData?.id??"" ,storeUserID: getAllStoreResData?.userId??""
+  // --- Stat box: SVG icon + count + label.
+  Widget _buildStatBox({
+    required String icon,
+    required String count,
+    required String label,
+    required Color iconColor,
+    required Color borderColor,
+  }) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.all(8.0),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(6.0),
+          border: Border.all(color: borderColor, width: 1),
+          color: AppColors.white,
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            LocalAssets(
+              imagePath: icon,
+              imgColor: iconColor,
+              height: 12,
+              width: 12,
+            ),
+            SizedBox(width: SizeConfig.size6),
+            CustomText(
+              count,
+              fontSize: SizeConfig.extraSmall,
+              color: AppColors.secondaryTextColor,
+              fontWeight: FontWeight.w600,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            SizedBox(width: SizeConfig.size6),
+            CustomText(
+              label,
+              fontSize: SizeConfig.extraSmall,
+              color: AppColors.secondaryTextColor,
+              fontWeight: FontWeight.w400,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
+      ),
     );
   }
 
-  void viewImageOnFullScreen(
-      {required int index, required List<String> storeImage, required String natureOfBusiness}) {
-    navigatePushTo(
-      Get.context!,
-      ImageViewScreen(
-        subTitle: natureOfBusiness,
-        appBarTitle:
-        AppStrings.imageViewer,
-        imageUrls: storeImage,
-        initialIndex: index,
+  // --- Hero image with optional "+N" overlay for additional live photos.
+  Widget _buildHeroImage({
+    required String heroImage,
+    required List<String> livePhotos,
+    required int extraPhotos,
+  }) {
+    final natureOfBusiness = _store.categoryOfBusiness?.name ??
+        _store.natureOfBusiness ??
+        'OTHER';
+    final fullList = livePhotos.isNotEmpty
+        ? livePhotos
+        : (heroImage.isNotEmpty ? [heroImage] : <String>[]);
+
+    return GestureDetector(
+      onTap: fullList.isEmpty
+          ? null
+          : () => _showPhotoDialog(
+                images: fullList,
+                initialIndex: 0,
+                title: natureOfBusiness,
+              ),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(10),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x33000000),
+              blurRadius: 10,
+              offset: Offset(0, 1),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(10),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              if (heroImage.isNotEmpty)
+                CachedNetworkImage(
+                  imageUrl: heroImage,
+                  fit: BoxFit.cover,
+                  memCacheWidth: 600,
+                  memCacheHeight: 600,
+                  placeholder: (_, __) => LocalAssets(
+                    imagePath: AppIconAssets.place_holder_image,
+                    boxFix: BoxFit.cover,
+                  ),
+                  errorWidget: (_, __, ___) => LocalAssets(
+                    imagePath: AppIconAssets.place_holder_image,
+                    boxFix: BoxFit.cover,
+                  ),
+                )
+              else
+                LocalAssets(
+                  imagePath: AppIconAssets.place_holder_image,
+                  boxFix: BoxFit.cover,
+                ),
+              if (extraPhotos > 0)
+                Positioned(
+                  right: 6,
+                  bottom: 6,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.65),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: CustomText(
+                      '+$extraPhotos',
+                      fontSize: SizeConfig.small,
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // --- Footer: top-bordered banner with eye icon + total view count.
+  Widget _buildLastVisitFooter(_ProductCardPalette palette) {
+    final views = int.tryParse(_store.views ?? '') ?? 0;
+    final viewLabel = views == 1 ? 'view' : 'views';
+    final countText = _formatCount(views);
+    final clicks = _store.chatClickCount ?? 0;
+    final clickLabel = clicks == 1 ? 'order' : 'orders';
+    final clickCountText = _formatCount(clicks);
+    final quirky = (_store.quirkyMessage ?? '').trim();
+    return InkWell(
+      onTap: _openStore,
+      borderRadius: const BorderRadius.only(
+        bottomLeft: Radius.circular(12.0),
+        bottomRight: Radius.circular(12.0),
+      ),
+      child: Container(
+        width: double.infinity,
+        padding: EdgeInsets.symmetric(
+            vertical: SizeConfig.size10, horizontal: SizeConfig.size12),
+        decoration: BoxDecoration(
+          color: Colors.transparent,
+          border: Border(
+            top: BorderSide(color: palette.cardBorder, width: 1),
+          ),
+          borderRadius: const BorderRadius.only(
+            bottomLeft: Radius.circular(12.0),
+            bottomRight: Radius.circular(12.0),
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            LocalAssets(
+              imagePath: AppIconAssets.eye_view,
+              height: SizeConfig.size12,
+              width: SizeConfig.size12,
+              imgColor: AppColors.secondaryTextColor,
+            ),
+            SizedBox(width: SizeConfig.size8),
+            Flexible(
+              child: RichText(
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                text: TextSpan(
+                  style: TextStyle(
+                    fontSize: SizeConfig.small,
+                    color: AppColors.secondaryTextColor,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  children: [
+                    TextSpan(
+                      text: countText,
+                      style: const TextStyle(fontWeight: FontWeight.w800),
+                    ),
+                    TextSpan(text: ' Total $viewLabel on this store, '),
+                    WidgetSpan(
+                      alignment: PlaceholderAlignment.middle,
+                      child: Padding(
+                        padding: EdgeInsets.only(right: SizeConfig.size4),
+                        child: LocalAssets(
+                          imagePath: AppIconAssets.cartIcon,
+                          height: SizeConfig.size12,
+                          width: SizeConfig.size12,
+                          imgColor: AppColors.secondaryTextColor,
+                        ),
+                      ),
+                    ),
+                    TextSpan(
+                      text: clickCountText,
+                      style: const TextStyle(fontWeight: FontWeight.w800),
+                    ),
+                    TextSpan(text: ' $clickLabel'),
+                    if (quirky.isNotEmpty) TextSpan(text: ', $quirky'),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Rating badge — gradient gold pill, bold rating numeral, soft amber glow.
+  Widget _buildRatingBadge(String rating) {
+    const goldFg = Color(0xFFB8860B);
+    const goldBg = Color(0xFFFFF3D1);
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(999),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Colors.white, goldBg],
+        ),
+        border: Border.all(
+          color: goldFg.withValues(alpha: 0.28),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: goldFg.withValues(alpha: 0.15),
+            blurRadius: 5,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          LocalAssets(imagePath: AppIconAssets.star, height: 12, width: 12),
+          const SizedBox(width: 4),
+          CustomText(
+            rating,
+            fontSize: 11,
+            color: AppColors.mainTextColor,
+            fontWeight: FontWeight.w800,
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Subcategory badge — soft mint pill paired with the rating badge.
+  Widget _buildCategoryBadge(String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 10),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(999),
+        color: AppColors.greenCB.withValues(alpha: 0.55),
+        border: Border.all(
+          color: AppColors.green2C.withValues(alpha: 0.25),
+          width: 1,
+        ),
+      ),
+      child: CustomText(
+        text,
+        fontSize: 11,
+        color: AppColors.green2C,
+        fontWeight: FontWeight.w700,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+    );
+  }
+
+  /// "Since YYYY" badge — neutral pill marking date of incorporation.
+  Widget _buildSinceBadge(int year) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 10),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(999),
+        color: AppColors.greyE5.withValues(alpha: 0.4),
+        border: Border.all(color: AppColors.greyE5, width: 1),
+      ),
+      child: CustomText(
+        'Since $year',
+        fontSize: 11,
+        color: AppColors.secondaryTextColor,
+        fontWeight: FontWeight.w600,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+    );
+  }
+
+  Widget _buildDottedLine(Color color) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const dashWidth = 4.0;
+        const dashSpace = 3.0;
+        final dashCount =
+            (constraints.maxWidth / (dashWidth + dashSpace)).floor();
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: List.generate(dashCount, (_) {
+            return SizedBox(
+              width: dashWidth,
+              height: 1,
+              child: DecoratedBox(
+                decoration: BoxDecoration(color: color),
+              ),
+            );
+          }),
+        );
+      },
+    );
+  }
+
+  String _formatCount(int n) {
+    if (n >= 1000000) {
+      final v = n / 1000000;
+      return '${v.toStringAsFixed(v >= 10 ? 0 : 1)}M';
+    }
+    if (n >= 1000) {
+      final v = n / 1000;
+      return '${v.toStringAsFixed(v >= 10 ? 0 : 1)}K';
+    }
+    return '$n';
+  }
+
+  void _showPhotoDialog({
+    required List<String> images,
+    required int initialIndex,
+    required String title,
+  }) {
+    final ctx = Get.context;
+    if (ctx == null || images.isEmpty) return;
+    showDialog<void>(
+      context: ctx,
+      barrierColor: Colors.black.withValues(alpha: 0.75),
+      builder: (_) => _ProductPhotoDialog(
+        images: images,
+        initialIndex: initialIndex,
+        title: title,
+      ),
+    );
+  }
+
+  void _openStore() {
+    Get.to(() => VisitProductStoreDetailsScreen(
+          visitBusinessId: _store.id ?? "",
+        ));
+  }
+
+  void _showMapBottomSheet(BuildContext context) {
+    final store = _store;
+    RouteMapBottomSheet.show(
+      context: context,
+      destinationName: store.businessName ?? 'Store',
+      destinationAddress: store.address ?? '',
+      destinationLat: store.businessLocation?.lat?.toDouble() ?? 0.0,
+      destinationLng: store.businessLocation?.lon?.toDouble() ?? 0.0,
+      livePhotos: store.livePhotos,
+      storeBusinessID: store.id ?? "",
+      storeUserID: store.userId ?? "",
+    );
+  }
+}
+
+class _ProductPhotoDialog extends StatefulWidget {
+  final List<String> images;
+  final int initialIndex;
+  final String title;
+
+  const _ProductPhotoDialog({
+    required this.images,
+    required this.initialIndex,
+    required this.title,
+  });
+
+  @override
+  State<_ProductPhotoDialog> createState() => _ProductPhotoDialogState();
+}
+
+class _ProductPhotoDialogState extends State<_ProductPhotoDialog> {
+  late final PageController _controller;
+  late int _index;
+
+  @override
+  void initState() {
+    super.initState();
+    _index = widget.initialIndex.clamp(0, widget.images.length - 1);
+    _controller = PageController(initialPage: _index);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          color: Colors.black,
+          width: size.width,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 8, 4, 8),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: CustomText(
+                        widget.title,
+                        fontSize: SizeConfig.medium,
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close_rounded,
+                          color: Colors.white, size: 22),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(
+                height: size.height * 0.5,
+                child: PageView.builder(
+                  controller: _controller,
+                  itemCount: widget.images.length,
+                  onPageChanged: (i) => setState(() => _index = i),
+                  itemBuilder: (_, i) {
+                    return InteractiveViewer(
+                      minScale: 1,
+                      maxScale: 4,
+                      child: Center(
+                        child: CachedNetworkImage(
+                          imageUrl: widget.images[i],
+                          fit: BoxFit.contain,
+                          placeholder: (_, __) => const Center(
+                            child: CircularProgressIndicator(
+                                strokeWidth: 2, color: Colors.white),
+                          ),
+                          errorWidget: (_, __, ___) => LocalAssets(
+                            imagePath: AppIconAssets.place_holder_image,
+                            boxFix: BoxFit.contain,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(widget.images.length, (i) {
+                    final active = i == _index;
+                    return AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      margin: const EdgeInsets.symmetric(horizontal: 3),
+                      width: active ? 18 : 6,
+                      height: 6,
+                      decoration: BoxDecoration(
+                        color: active
+                            ? Colors.white
+                            : Colors.white.withValues(alpha: 0.45),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                    );
+                  }),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

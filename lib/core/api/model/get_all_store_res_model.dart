@@ -29,6 +29,7 @@ class GetAllStoreResModel {
   int? totalProductCount;
   int? totalCategoryCount;
   String? quirkyMessage;
+  int? chatClickCount;
   List<StoreCategoryBrief>? categories;
 
   GetAllStoreResModel({
@@ -54,6 +55,7 @@ class GetAllStoreResModel {
     this.totalProductCount,
     this.totalCategoryCount,
     this.quirkyMessage,
+    this.chatClickCount,
     this.categories,
   });
 
@@ -91,6 +93,11 @@ class GetAllStoreResModel {
       totalProductCount: json['total_product_count'],
       totalCategoryCount: json['total_category_count'],
       quirkyMessage: json['quirky_message'],
+      chatClickCount: json['chat_click_count'] is int
+          ? json['chat_click_count'] as int
+          : (json['chat_click_count'] is num
+              ? (json['chat_click_count'] as num).toInt()
+              : int.tryParse(json['chat_click_count']?.toString() ?? '')),
       categories: json['categories'] is List
           ? (json['categories'] as List)
               .whereType<Map>()
@@ -125,6 +132,7 @@ class GetAllStoreResModel {
     map['total_product_count'] = totalProductCount;
     map['total_category_count'] = totalCategoryCount;
     map['quirky_message'] = quirkyMessage;
+    map['chat_click_count'] = chatClickCount;
     map['categories'] = categories?.map((c) => c.toJson()).toList();
     return map;
   }
@@ -159,6 +167,7 @@ class GetAllStoreResModel {
     int? totalProductCount,
     int? totalCategoryCount,
     String? quirkyMessage,
+    int? chatClickCount,
     List<StoreCategoryBrief>? categories,
   }) {
     return GetAllStoreResModel(
@@ -184,6 +193,7 @@ class GetAllStoreResModel {
       totalProductCount: totalProductCount ?? this.totalProductCount,
       totalCategoryCount: totalCategoryCount ?? this.totalCategoryCount,
       quirkyMessage: quirkyMessage ?? this.quirkyMessage,
+      chatClickCount: chatClickCount ?? this.chatClickCount,
       categories: categories ?? this.categories,
     );
   }

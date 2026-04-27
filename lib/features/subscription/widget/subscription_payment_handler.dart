@@ -47,11 +47,7 @@ class SubscriptionPaymentHandler {
 
     Get.dialog(
       PromoCodeDialog(
-        onBtnPressed: (refCode) async {
-          if (refCode.isNotEmpty) {
-            await subscriptionController.checkReferralApi(refCode);
-            if (subscriptionController.checkReferralResponse.value.status != Status.COMPLETE) return;
-          }
+        onBtnPressed: (refCode) {
           Get.back();
           processSubscription(refCode);
         },

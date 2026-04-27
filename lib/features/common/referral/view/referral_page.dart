@@ -13,6 +13,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/widget/horizonat
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_divider.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:croppy/croppy.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get_core/src/get_main.dart';
@@ -237,6 +238,7 @@ class _ReferralPageState extends State<ReferralPage> {
                                       ValidationMethod.validateAadhaar,
                                       maxLength: 12,
                                       keyboardType: TextInputType.number,
+                                        cropAspectRatio: const CropAspectRatio(width: 4, height: 3)
                                     ),
                                   ),
                                   isScrollControlled: true,
@@ -265,62 +267,65 @@ class _ReferralPageState extends State<ReferralPage> {
                                       ValidationMethod.validatePAN,
                                       maxLength: 10,
                                       keyboardType: TextInputType.text,
+                                        cropAspectRatio: const CropAspectRatio(width: 4, height: 3)
                                     ),
                                   ),
                                   isScrollControlled: true,
                                   backgroundColor: Colors.transparent,
+
                                 );
                               },
                             ),
 
                             // Address Proof
-                            _buildDocumentButton(
-                              title: AppStrings.uploadAddressProof,
-                              document: DocumentKeys.addressProof,
-                              status: myDocumentsController.getStatus(DocumentKeys.addressProof),
-                              onTap: () {
-                                Get.bottomSheet(
-                                  CommonDocumentBottomSheet(
-                                    title: AppStrings.addressProof,
-                                    child: GenericDocumentWidget(
-                                      documentType: DocumentKeys.addressProof,
-                                      uploadSectionLabel:
-                                      'Upload Front and Back Images',
-                                      backImage: true,
-                                      textFieldLabel: 'Name of ID',
-                                      textFieldHint:
-                                      'E.g. Voter ID, Gas Bill...',
-                                      textFieldValidation:
-                                      ValidationMethod.validateName,
-                                      maxLength: 24,
-                                      keyboardType: TextInputType.text,
-                                    ),
-                                  ),
-                                  isScrollControlled: true,
-                                  backgroundColor: Colors.transparent,
-                                );
-                              },
-                            ),
+                            // _buildDocumentButton(
+                            //   title: AppStrings.uploadAddressProof,
+                            //   document: DocumentKeys.addressProof,
+                            //   status: myDocumentsController.getStatus(DocumentKeys.addressProof),
+                            //   onTap: () {
+                            //     Get.bottomSheet(
+                            //       CommonDocumentBottomSheet(
+                            //         title: AppStrings.addressProof,
+                            //         child: GenericDocumentWidget(
+                            //           documentType: DocumentKeys.addressProof,
+                            //           uploadSectionLabel:
+                            //           'Upload Front and Back Images',
+                            //           backImage: true,
+                            //           textFieldLabel: 'Name of ID',
+                            //           textFieldHint:
+                            //           'E.g. Voter ID, Gas Bill...',
+                            //           textFieldValidation:
+                            //           ValidationMethod.validateName,
+                            //           maxLength: 24,
+                            //           keyboardType: TextInputType.text,
+                            //         ),
+                            //       ),
+                            //       isScrollControlled: true,
+                            //       backgroundColor: Colors.transparent,
+                            //     );
+                            //   },
+                            // ),
 
                             // Bank Cancel Cheque
-                            _buildDocumentButton(
-                              title: AppStrings.uploadBankerCancelCheck,
-                              document: DocumentKeys.bankersCancelledCheque,
-                              status: myDocumentsController.getStatus(
-                                  DocumentKeys.bankersCancelledCheque),
-                              onTap: () {
-                                Get.bottomSheet(
-                                  CommonDocumentBottomSheet(
-                                    title: "Cancelled Cheque",
-                                    child: CancelChequeDocumentWidget(
-                                        documentType: DocumentKeys
-                                            .bankersCancelledCheque),
-                                  ),
-                                  isScrollControlled: true,
-                                  backgroundColor: Colors.transparent,
-                                );
-                              },
-                            ),
+
+                            // _buildDocumentButton(
+                            //   title: AppStrings.uploadBankerCancelCheck,
+                            //   document: DocumentKeys.bankersCancelledCheque,
+                            //   status: myDocumentsController.getStatus(
+                            //       DocumentKeys.bankersCancelledCheque),
+                            //   onTap: () {
+                            //     Get.bottomSheet(
+                            //       CommonDocumentBottomSheet(
+                            //         title: "Cancelled Cheque",
+                            //         child: CancelChequeDocumentWidget(
+                            //             documentType: DocumentKeys
+                            //                 .bankersCancelledCheque),
+                            //       ),
+                            //       isScrollControlled: true,
+                            //       backgroundColor: Colors.transparent,
+                            //     );
+                            //   },
+                            // ),
 
                             SizedBox(height: SizeConfig.size8),
 
@@ -338,12 +343,33 @@ class _ReferralPageState extends State<ReferralPage> {
                   children: [
                     SizedBox(height: SizeConfig.paddingXSL),
 
-                    GenerateReferralSection(
-                      controller: controller,
-                      // isEligible: areRequiredDocumentsProvided,
-                      isEligible: (status == 'PENDING') && areRequiredDocumentsProvided,
-                      initialText: ((status == 'PENDING') && areRequiredDocumentsProvided) ? '' : '* * * * * *',
-                    ),
+                    // While the user hasn't started the BDM application,
+                    // any tap on the referral section should funnel them
+                    // back to the JoinAsBDM screen — IgnorePointer disables
+                    // the inner controls and the outer GestureDetector
+                    // catches the tap as a single CTA.
+                    if (status == 'NOT_STARTED')
+                      GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () => Get.to(() => JoinAsBDMScreen()),
+                        child: IgnorePointer(
+                          child: GenerateReferralSection(
+                            controller: controller,
+                            isEligible: false,
+                            initialText: '* * * * * *',
+                          ),
+                        ),
+                      )
+                    else
+                      GenerateReferralSection(
+                        controller: controller,
+                        isEligible:
+                            (status == 'PENDING') && areRequiredDocumentsProvided,
+                        initialText:
+                            ((status == 'PENDING') && areRequiredDocumentsProvided)
+                                ? ''
+                                : '* * * * * *',
+                      ),
 
 
                     //   GenerateReferralCodeCard(
@@ -519,7 +545,7 @@ class _ReferralPageState extends State<ReferralPage> {
     final requiredKeys = [
       DocumentKeys.aadhar,
       DocumentKeys.pan,
-      DocumentKeys.addressProof
+      // DocumentKeys.addressProof
     ];
 
     // If even one is 'notUploaded', it returns false.

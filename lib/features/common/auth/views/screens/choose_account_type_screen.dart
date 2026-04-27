@@ -73,9 +73,8 @@ class _ChooseAccountTypeScreenState extends State<ChooseAccountTypeScreen> {
       accountType: AppConstants.individual,
       chipBg: const Color(0xFFE6F1FB),
       chipText: const Color(0xFF0C447C),
-      // Professional → Skill Work / Self Employee (2nd entry in the
-      // individual sidebar of CreateAccountTypeScreen).
-      individualPreselectIndex: 1,
+      // Professional
+      individualPreselectIndex: 3,
     ),
     _AccountCardData(
       titleKey: AppStrings.personalAccount,

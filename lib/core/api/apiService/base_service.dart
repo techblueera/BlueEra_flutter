@@ -65,6 +65,11 @@ abstract class BaseService {
   final String songsSearch = 'video-service/songs/search';
   final String favouriteSearch = 'video-service/favorites/search';
 
+  String chatClickRecord(String businessId) =>
+      'user-service/business/$businessId/chat-click';
+  String chatClickStats(String businessId) =>
+      'user-service/business/$businessId/chat-clicks';
+
   final String updateBusinessDescription =
       'user-service/business/updateBusinessDescription';
   final String businessLivePhotos = 'user-service/business/live-photosOne';

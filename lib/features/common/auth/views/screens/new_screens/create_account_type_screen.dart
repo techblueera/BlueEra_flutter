@@ -66,24 +66,31 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
     super.initState();
     authController.getAllIndividualProfession();
     authController.getAllBusinessCategories();
+    // Defer the Rx writes to a microtask after the first frame so the
+    // back-to-back .value assignments here can never land mid-build of
+    // a sibling Obx (which throws "setState() called during build").
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (widget.accountType == AppConstants.business) {
-        authController.selectedIndividualOnboardingProfile.value = null;
-        authController.selectedBusinessOnboardingProfile.value =
-            businessOnboardingProfilesCategory.first;
-        authController.selectedParentSlug.value = AppConstants.business;
-      } else {
-        authController.selectedBusinessOnboardingProfile.value = null;
-        // Clamp the incoming index so an out-of-bounds value still
-        // falls back to the first item safely.
-        final idx = widget.initialIndividualIndex.clamp(
-          0,
-          individualOnboardingProfilesCategory.length - 1,
-        );
-        authController.selectedIndividualOnboardingProfile.value =
-            individualOnboardingProfilesCategory[idx];
-        authController.selectedParentSlug.value = AppConstants.individual;
-      }
+      if (!mounted) return;
+      Future.microtask(() {
+        if (!mounted) return;
+        if (widget.accountType == AppConstants.business) {
+          authController.selectedIndividualOnboardingProfile.value = null;
+          authController.selectedBusinessOnboardingProfile.value =
+              businessOnboardingProfilesCategory.first;
+          authController.selectedParentSlug.value = AppConstants.business;
+        } else {
+          authController.selectedBusinessOnboardingProfile.value = null;
+          // Clamp the incoming index so an out-of-bounds value still
+          // falls back to the first item safely.
+          final idx = widget.initialIndividualIndex.clamp(
+            0,
+            individualOnboardingProfilesCategory.length - 1,
+          );
+          authController.selectedIndividualOnboardingProfile.value =
+              individualOnboardingProfilesCategory[idx];
+          authController.selectedParentSlug.value = AppConstants.individual;
+        }
+      });
     });
   }
 
@@ -164,12 +171,14 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
                               return _socialProfilesContent(
                                   key: ValueKey(SOCIAL_PROFILE),
                                   arrIndividualCategory: authController.individualOnboardingSocialProfileList);
-                            case SELF_EMPLOYED:
-                              return _selfWorkContent(
-                                  key: ValueKey(SELF_EMPLOYED),
-                                  arrSelfWorkTransportCategory: authController.individualOnboardingGigWorkList,
-                                  arrSelfWorkSkilledCategory: authController.individualOnboardingSkillWorkList
-                              );
+                            case SKILL_WORKER:
+                              return _socialProfilesContent(
+                                  key: ValueKey(SKILL_WORKER),
+                                  arrIndividualCategory: authController.individualOnboardingSkillWorkList);
+                            case GIG_WORKER:
+                              return _socialProfilesContent(
+                                  key: ValueKey(GIG_WORKER),
+                                  arrIndividualCategory: authController.individualOnboardingGigWorkList);
                             case CONSULTANT:
                               return _consultationContent(
                                   key: ValueKey(CONSULTANT),
