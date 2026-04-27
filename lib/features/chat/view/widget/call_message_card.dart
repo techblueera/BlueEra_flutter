@@ -165,6 +165,7 @@ class CallMessageCard extends StatelessWidget {
 
     final callType = _isVideoCall ? CallType.video : CallType.audio;
 
+
     if (Platform.isAndroid) {
       CallController.isCallActivityActive = true;
       CallActivityService.launchCallActivity(
