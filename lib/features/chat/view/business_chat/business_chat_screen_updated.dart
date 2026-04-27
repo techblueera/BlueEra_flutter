@@ -13,7 +13,6 @@ import '../../../../core/constants/app_constant.dart';
 import '../../../../core/constants/app_enum.dart';
 import '../../../../core/constants/getx_utils.dart';
 import '../../../../core/constants/size_config.dart';
-import '../../../../core/routes/route_helper.dart';
 import '../../../../core/services/notification_utils.dart';
 import '../../../common/bottomNavigationBar/controller/bottom_bar_controller.dart';
 import '../../../common/feed/view/feed_screen.dart';

@@ -14,6 +14,7 @@ import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/services.dart';
 import 'package:pinput/pinput.dart';
+import '../../../me/food/view/visit_food_store_details_screen.dart';
 import '../../auth/controller/call_controller.dart';
 import '../../auth/service/call_activity_service.dart';
 import '../../auth/controller/chat_flag_controller.dart';
@@ -25,6 +26,7 @@ import '../../../../core/constants/shared_preference_utils.dart';
 import '../../../../core/routes/route_helper.dart';
 import '../../../../widgets/custom_text_cm.dart';
 import '../../../business/visit_business_profile/view/visit_business_profile_new.dart';
+import '../../../me/product/view/visit_product_store_details_screen.dart';
 import '../../../common/bottomNavigationBar/controller/bottom_bar_controller.dart';
 import '../../../personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
 import '../../auth/controller/chat_theme_controller.dart';
@@ -1375,6 +1377,11 @@ AppBar getChatTitleAppBar(BuildContext context, {
               },
             ),
           );
+        } else if (socketType == "business") {
+          Get.to(() => VisitFoodStoreDetailsScreen(visitBusinessId:  userId ?? ""));
+          // Get.to(() => VisitProductStoreDetailsScreen(
+          //       visitBusinessId: userId ?? "",
+          //     ));
         } else {
           _navigateToProfile(authorId: userId ?? '', type: type ?? "");
         }
