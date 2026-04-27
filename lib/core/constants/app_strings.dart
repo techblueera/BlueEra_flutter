@@ -5527,6 +5527,9 @@ class AppStrings {
   static const String otherManagementTitle = "otherManagementTitle";
   static const String otherNoManagementFound = "otherNoManagementFound";
   static const String otherConfirmDeleteMember = "otherConfirmDeleteMember";
+  static const String otherTeamManagementEmpty = "otherTeamManagementEmpty";
+  static const String otherAddNow = "otherAddNow";
+  static const String otherViewAll = "otherViewAll";
 
   static const String otherAnnouncements = "otherAnnouncements";
   static const String otherJobsTitle = "otherJobsTitle";

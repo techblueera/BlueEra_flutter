@@ -72,7 +72,6 @@ class _CreateBusinessAccountNewStepThreeState
     setState(() {
       isFormValid = nameTextController.text.trim().isNotEmpty &&
           yourRoleController.text.trim().isNotEmpty &&
-          emailTextController.text.trim().isNotEmpty &&
           viewBusinessDetailsController.listingDescriptionController.value.text
               .trim()
               .isNotEmpty;
@@ -229,9 +228,9 @@ class _CreateBusinessAccountNewStepThreeState
                       inputLength: AppConstants.inputCharterLimit50,
                       keyBoardType: TextInputType.emailAddress,
                       regularExpression: RegularExpressionUtils.emailPattern,
-                      title: AppStrings.email,
+                      title: "${AppStrings.email} (Optional)",
                       hintText: AppStrings.emailHint,
-                      isValidate: true,
+                      isValidate: false,
                       validationType: ValidationTypeEnum.email,
                       autoFillType: AutoFillType.email,
                     ),
@@ -283,13 +282,17 @@ class _CreateBusinessAccountNewStepThreeState
                                                   "Role must be at least 4 characters.");
                                           return;
                                         }
-                                        String? emailError =
-                                            ValidationMethod.validateEmail(
-                                                emailTextController.text
-                                                    .trim());
-                                        if (emailError != null) {
-                                          commonSnackBar(message: emailError);
-                                          return;
+                                        if (emailTextController.text
+                                            .trim()
+                                            .isNotEmpty) {
+                                          String? emailError =
+                                              ValidationMethod.validateEmail(
+                                                  emailTextController.text
+                                                      .trim());
+                                          if (emailError != null) {
+                                            commonSnackBar(message: emailError);
+                                            return;
+                                          }
                                         }
 
                                         /// Submit action

@@ -11,7 +11,9 @@ import 'package:BlueEra/features/me/others/controller/business_profile_full_cont
 import 'package:BlueEra/features/me/others/controller/other_branch_contact_controller.dart';
 import 'package:BlueEra/features/me/others/model/business_profile_full_model.dart' hide Location;
 import 'package:BlueEra/features/me/others/view/about_us/about_us.dart';
+import 'package:BlueEra/features/me/others/view/management/management_screen.dart';
 import 'package:BlueEra/features/me/others/view/other_blog/other_blogs_screen.dart';
+import 'package:BlueEra/features/me/others/view/other_career_jobs/other_job_listing_screen.dart';
 import 'package:BlueEra/features/me/others/view/other_contact_us/other_branch_details_form_screen.dart';
 import 'package:BlueEra/features/me/others/view/other_contact_us/other_branch_only_screen.dart';
 import 'package:BlueEra/features/me/others/view/other_contact_us/other_contact_us.dart';
@@ -74,7 +76,7 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    /// "Our Staffs"
+               /*     /// "Our Staffs"
                     CommonCardWidget(
                       cardMargin: 0,
                       padding: 10,
@@ -97,9 +99,28 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
                         ],
                       ),
                     ),
+                    const SizedBox(height: 10),*/
+
+                    /// "Management"
+                    CommonCardWidget(
+                      cardMargin: 0,
+                      padding: 10,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildManagementHeader(),
+                          const SizedBox(height: 10),
+                          if (data.management != null && data.management!.isNotEmpty)
+                            _buildManagementList(data.management!)
+                          else
+                            _buildManagementEmptyCard(),
+                        ],
+                      ),
+                    ),
                     const SizedBox(height: 10),
 
-                    /// "Our Organisation"
+                  /*  /// "Our Organisation"
                     CommonCardWidget(
                       cardMargin: 0,
                       padding: 10,
@@ -116,9 +137,9 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 10),*/
 
-                    /// "Our Blogs"
+             /*       /// "Our Blogs"
                     CommonCardWidget(
                       cardMargin: 0,
                       padding: 10,
@@ -136,6 +157,22 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
                               icon: AppIconAssets.other_announcements,
                               onTap: () => Get.to(OtherBlogsScreen()),
                             ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 10),*/
+
+                    /// "Career / Jobs"
+                    CommonCardWidget(
+                      cardMargin: 0,
+                      padding: 10,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildCareerJobsHeader(),
+                          const SizedBox(height: 10),
+                          _buildCareerJobsEmptyCard(),
                         ],
                       ),
                     ),
@@ -176,17 +213,13 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
                           if (data.gallery != null && data.gallery!.isNotEmpty)
                             _buildGallery(data.gallery!, context)
                           else
-                            _buildEmptySectionCard(
-                              title: AppStrings.otherAddGalleryPhotos.tr,
-                              icon: AppIconAssets.other_gallery,
-                              onTap: () => Get.to(OtherServicePhotosPhotoScreen()),
-                            ),
+                            _buildGalleryEmptyCard(),
                         ],
                       ),
                     ),
                     const SizedBox(height: 10),
 
-                    /// Website Section
+                /*    /// Website Section
                     Obx(() {
                       final website = contactController.website.isNotEmpty
                           ? contactController.website
@@ -215,7 +248,7 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
                         ],
                       );
                     }),
-
+*/
                     /// Contact Us
                     CommonCardWidget(
                       cardMargin: 0,
@@ -230,6 +263,7 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
                         ],
                       ),
                     ),
+                    const SizedBox(height: 10),
 
                     /// Map Section
                     if ((data.contactUs?.firstOrNull?.branch?.location?.coordinates != null &&
@@ -406,6 +440,300 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
             ),
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildManagementHeader() {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        ServiceHomeTitleWidget(title: AppStrings.otherManagementTitle.tr),
+        InkWell(
+          onTap: () => Get.to(() => const ManagementScreen()),
+          child: CustomText(
+            AppStrings.viewAll,
+            color: AppColors.primaryColor,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildManagementList(List<Management> managementList) {
+    return SizedBox(
+      height: 220,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: managementList.length,
+        itemBuilder: (context, index) {
+          final member = managementList[index];
+          return Container(
+            width: 180,
+            margin: const EdgeInsets.only(right: 12),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              color: Colors.white,
+              border: Border.all(color: AppColors.whiteE5),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Stack(
+                children: [
+                  Positioned.fill(
+                    child: CachedNetworkImage(
+                      imageUrl: member.imageUrl ?? "",
+                      fit: BoxFit.cover,
+                      errorWidget: (context, url, error) => Container(
+                        color: Colors.grey[300],
+                        child: const Center(
+                          child: Icon(Icons.person, size: 50, color: Colors.white),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    child: Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.transparent,
+                            Colors.black.withValues(alpha: 0.75),
+                          ],
+                        ),
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          CustomText(
+                            member.name ?? "",
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          if ((member.position ?? "").isNotEmpty)
+                            CustomText(
+                              member.position ?? "",
+                              color: AppColors.whiteE5,
+                              fontSize: 12,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildManagementEmptyCard() {
+    return GestureDetector(
+      onTap: () => Get.to(() => const ManagementScreen()),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Stack(
+          children: [
+            Image.asset(
+              'assets/images/other_management.png',
+              height: 200,
+              width: double.infinity,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) => Container(
+                height: 200,
+                width: double.infinity,
+                color: Colors.grey[300],
+              ),
+            ),
+            Positioned.fill(
+              child: Container(
+                color: Colors.black.withValues(alpha: 0.45),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.add_a_photo_outlined,
+                        size: 40, color: Colors.white),
+                    const SizedBox(height: 10),
+                    CustomText(
+                     "You Have Not Update Your Team Management",
+                      color: Colors.white,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 22, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryColor,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: CustomText(
+                       "Add Now",
+                        color: Colors.white,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCareerJobsHeader() {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        ServiceHomeTitleWidget(title: AppStrings.otherJobsTitle.tr),
+        InkWell(
+          onTap: () => Get.to(() => const OtherJobListingScreen()),
+          child: CustomText(
+            "View All",
+            color: AppColors.primaryColor,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCareerJobsEmptyCard() {
+    return GestureDetector(
+      onTap: () => Get.to(() => const OtherJobListingScreen()),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Stack(
+          children: [
+            Image.asset(
+              'assets/images/other_job.png',
+              height: 200,
+              width: double.infinity,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) => Container(
+                height: 200,
+                width: double.infinity,
+                color: Colors.grey[300],
+              ),
+            ),
+            Positioned.fill(
+              child: Container(
+                color: Colors.black.withValues(alpha: 0.45),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.add_a_photo_outlined,
+                        size: 40, color: Colors.white),
+                    const SizedBox(height: 10),
+                    CustomText(
+                      "You Have Not Post Any Job",
+                      color: Colors.white,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 22, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryColor,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: CustomText(
+                        "Post Now",
+                        color: Colors.white,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGalleryEmptyCard() {
+    return GestureDetector(
+      onTap: () => Get.to(OtherServicePhotosPhotoScreen()),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Stack(
+          children: [
+            Image.asset(
+              'assets/images/other_gallery.png',
+              height: 200,
+              width: double.infinity,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) => Container(
+                height: 200,
+                width: double.infinity,
+                color: Colors.grey[300],
+              ),
+            ),
+            Positioned.fill(
+              child: Container(
+                color: Colors.black.withValues(alpha: 0.45),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.add_a_photo_outlined,
+                        size: 40, color: Colors.white),
+                    const SizedBox(height: 10),
+                    CustomText(
+                      "You Have Not Post Photo In Your Gallery",
+                      color: Colors.white,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 22, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryColor,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: CustomText(
+                        "Upload Photo",
+                        color: Colors.white,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -466,8 +466,19 @@ class _GstNumberScreenState extends State<GstNumberScreen> {
       Get.toNamed(RouteHelper.getCreateBusinessAccountNewStepOneRoute());
     }
   }
-
   void _validateAll() {
+    final email = _emailController.text.trim();
+    final gst = _gstController.text.trim();
+
+    final isEmailValid = GetUtils.isEmail(email);
+
+    final isGstValid = RegExp(
+        r'^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$')
+        .hasMatch(gst);
+
+    authController.isValidate.value = isEmailValid && isGstValid;
+  }
+  void _validateAll_() {
     final email = _emailController.text.trim();
     final gst = _gstController.text.trim();
 
@@ -479,4 +490,5 @@ class _GstNumberScreenState extends State<GstNumberScreen> {
 
     authController.isValidate.value = isEmailValid && isGstValid;
   }
+
 }

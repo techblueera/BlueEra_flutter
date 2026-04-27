@@ -147,6 +147,7 @@ flutter:
     - assets/video/
     - assets/store/
     - assets/sound/
+    - assets/dummy/
     - assets/category/grocery/menu/
     - assets/category/medical/
     - assets/category/hotel_service/
