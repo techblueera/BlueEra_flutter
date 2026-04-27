@@ -83,17 +83,9 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen>
     setState(() {});
   }
 
-  ///API CALLING...
-  apiCalling() {
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      ///GETTING PROFESSION DATA LIST...
-      await authController.getAllProfessionController();
-    });
-  }
 
   @override
   void initState() {
-    apiCalling();
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       isProfileCreateStatus =

@@ -336,9 +336,10 @@ class _BdmDocumentVerifiedPageState extends State<BdmDocumentVerifiedPage> {
               child: Column(
                 children: [
                   ReferralPointsChart(
-                    subscribe: _stats.breakdown?.subscribed??00,
-                    unSubscribe: _stats.breakdown?.nonSubscribed??00,
-                    expired: _stats.breakdown?.expired??00
+                    subscribe: _stats.breakdown?.subscribed ?? 0,
+                    unSubscribe: _stats.breakdown?.nonSubscribed ?? 0,
+                    expired: _stats.breakdown?.expired ?? 0,
+                    pending: _stats.breakdown?.pending ?? 0,
                   )
                 ],
               ),

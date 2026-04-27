@@ -8,20 +8,23 @@ class ReferralPointsChart extends StatelessWidget {
   final int subscribe;
   final int unSubscribe;
   final int expired;
+  final int pending;
 
   const ReferralPointsChart({
     Key? key,
     required this.subscribe,
     required this.unSubscribe,
     required this.expired,
+    this.pending = 0,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final int total = subscribe + unSubscribe + expired;
+    final int total = subscribe + unSubscribe + expired + pending;
 
     final double subPercent = total == 0 ? 0 : subscribe / total;
     final double unSubPercent = total == 0 ? 0 : unSubscribe / total;
+    final double pendingPercent = total == 0 ? 0 : pending / total;
 
     const double graphStartAngle = 180.0;
 
@@ -57,39 +60,47 @@ class ReferralPointsChart extends StatelessWidget {
                     circularStrokeCap: CircularStrokeCap.round,
                   )
                 else...[
-                  /// 1. BOTTOM LAYER: Expired (Red)
-                  /// This draws a full circle (100%). The other colors will sit on top of it.
-                  /// If total is 0, we set percent to 0 so it doesn't show a full red circle.
+                  /// 1. BOTTOM LAYER: Expired (Red) — full circle.
                   CircularPercentIndicator(
                     radius: 100,
                     lineWidth: 14,
                     percent: total == 0 ? 0.0 : 1.0,
-                    backgroundColor: Colors.grey.withValues(alpha: 0.2), // Base empty color if total is 0
-                    progressColor: const Color(0xFFD64A3A), // Red color
+                    backgroundColor: Colors.grey.withValues(alpha: 0.2),
+                    progressColor: const Color(0xFFD64A3A),
                     circularStrokeCap: CircularStrokeCap.round,
                     startAngle: graphStartAngle,
                   ),
 
-                  /// 2. MIDDLE LAYER: Unsubscribe (Yellow)
-                  /// This takes up the Subscribed + Unsubscribed space
+                  /// 2. Pending (Blue) — sub + unSub + pending portion.
+                  CircularPercentIndicator(
+                    radius: 100,
+                    lineWidth: 14,
+                    percent:
+                        (subPercent + unSubPercent + pendingPercent).clamp(0.0, 1.0),
+                    backgroundColor: Colors.transparent,
+                    progressColor: const Color(0xFF1E88E5),
+                    circularStrokeCap: CircularStrokeCap.round,
+                    startAngle: graphStartAngle,
+                  ),
+
+                  /// 3. MIDDLE LAYER: Unsubscribe (Yellow) — sub + unSub portion.
                   CircularPercentIndicator(
                     radius: 100,
                     lineWidth: 14,
                     percent: (subPercent + unSubPercent).clamp(0.0, 1.0),
                     backgroundColor: Colors.transparent,
-                    progressColor: const Color(0xFFF4B400), // Yellow color
+                    progressColor: const Color(0xFFF4B400),
                     circularStrokeCap: CircularStrokeCap.round,
                     startAngle: graphStartAngle,
                   ),
 
-                  /// 3. TOP LAYER: Subscribe (Green)
-                  /// This is the smallest layer and sits on the very top.
+                  /// 4. TOP LAYER: Subscribe (Green).
                   CircularPercentIndicator(
                     radius: 100,
                     lineWidth: 14,
                     percent: subPercent.clamp(0.0, 1.0),
                     backgroundColor: Colors.transparent,
-                    progressColor: const Color(0xFF43A047), // Green color
+                    progressColor: const Color(0xFF43A047),
                     circularStrokeCap: CircularStrokeCap.round,
                     startAngle: graphStartAngle,
                   ),
@@ -133,6 +144,12 @@ class ReferralPointsChart extends StatelessWidget {
             color: const Color(0xFFF4B400),
             title: "Un-Subscribe",
             value: unSubscribe,
+          ),
+          const SizedBox(height: 12),
+          _legendItem(
+            color: const Color(0xFF1E88E5),
+            title: "Pending",
+            value: pending,
           ),
           const SizedBox(height: 12),
           _legendItem(

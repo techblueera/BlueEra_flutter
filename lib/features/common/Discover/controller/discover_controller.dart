@@ -103,6 +103,13 @@ class DiscoverController extends GetxController {
 
   /// Self Profession Services
   RxList<ServiceData> earnServiceList = <ServiceData>[].obs;
+
+  /// Full unpaginated service list used by the map view. Populated by
+  /// [fetchAllEarnServicesForMap]; kept separate from the paginated
+  /// [earnServiceList] so list-screen pagination state isn't disturbed.
+  RxList<ServiceData> earnServiceMapList = <ServiceData>[].obs;
+  Rx<ApiResponse> earnServiceMapResponse =
+      ApiResponse.initial('Initial').obs;
   RxList<ProfessionalConsData> professionalConsDataList =
       <ProfessionalConsData>[].obs;
   RxList<SchoolDetailsData> schoolDetailsDataDataList =
@@ -148,6 +155,13 @@ class DiscoverController extends GetxController {
   /// Rental Services && Hotel Services
   RxList<RentalServiceData> rentalServices = <RentalServiceData>[].obs;
   RxList<HotelServiceData> hotelServices = <HotelServiceData>[].obs;
+
+  /// Unpaginated stay lists for the map view. Same separation rationale as
+  /// [earnServiceMapList] — list pagination state is left untouched.
+  RxList<RentalServiceData> rentalServicesMapList =
+      <RentalServiceData>[].obs;
+  RxList<HotelServiceData> hotelServicesMapList = <HotelServiceData>[].obs;
+  Rx<ApiResponse> staysMapResponse = ApiResponse.initial('Initial').obs;
   RxBool isRentalServiceLoading = false.obs;
   int rentalServicePage = 1;
   var isRentalServiceLoadingMore = false.obs;
@@ -500,6 +514,52 @@ class DiscoverController extends GetxController {
       } else {
         isEarnServiceLoading.value = false;
       }
+    }
+  }
+
+  /// Loads ALL earn services (unpaginated) for the map view. Uses the same
+  /// `fetchSelfWorkServices` endpoint as the list, but with a high limit
+  /// and no pagination so every provider with valid lat/lng can be
+  /// rendered as a map marker. Distance is intentionally not recomputed
+  /// here — it's only useful in the list view and would slow this call
+  /// down significantly when there are hundreds of providers.
+  Future<void> fetchAllEarnServicesForMap({
+    required String earnServiceType,
+    required String subType,
+  }) async {
+    earnServiceMapResponse.value = ApiResponse.initial('Initial');
+
+    final queryParams = <String, dynamic>{
+      ApiKeys.type: earnServiceType,
+      ApiKeys.subType: subType,
+      ApiKeys.page: 1,
+      ApiKeys.limit: 1000,
+    };
+    if (selectedEarnServiceData.value != null) {
+      queryParams[ApiKeys.category] =
+          selectedEarnServiceData.value?.slugId;
+    }
+
+    try {
+      final response = await DiscoverRepo()
+          .fetchSelfWorkServices(queryParams: queryParams);
+      if (!response.isSuccess) {
+        earnServiceMapResponse.value =
+            ApiResponse.error(response.message ?? 'error');
+        return;
+      }
+      final responseModel =
+          ServiceModelResponse.fromJson(response.response?.data);
+      final all = <ServiceData>[];
+      for (final service in responseModel.services ?? []) {
+        if (service.data != null) {
+          all.addAll(service.data!);
+        }
+      }
+      earnServiceMapList.assignAll(all);
+      earnServiceMapResponse.value = ApiResponse.complete(response);
+    } catch (e) {
+      earnServiceMapResponse.value = ApiResponse.error(e.toString());
     }
   }
 
@@ -1011,6 +1071,60 @@ class DiscoverController extends GetxController {
     // Clean up ride overlay if registered
     if (Get.isRegistered<RideNavigationOverlayController>()) {
       Get.find<RideNavigationOverlayController>().clearRideData();
+    }
+  }
+
+  /// Loads ALL rentals (unpaginated) for the map view.
+  Future<void> fetchAllRentalsForMap({
+    required RentalServiceType rentalServiceType,
+  }) async {
+    staysMapResponse.value = ApiResponse.initial('Initial');
+    final queryParams = <String, dynamic>{
+      ApiKeys.type: rentalServiceType.apiValue,
+      ApiKeys.radius: kmRadius1500,
+      ApiKeys.page: 1,
+      ApiKeys.limit: 1000,
+    };
+    try {
+      final response =
+          await DiscoverRepo().getRentalService(queryParams: queryParams);
+      if (!response.isSuccess) {
+        staysMapResponse.value =
+            ApiResponse.error(response.message ?? 'error');
+        return;
+      }
+      final model = RentalServiceResponse.fromJson(response.response!.data);
+      rentalServicesMapList.assignAll(model.data ?? []);
+      hotelServicesMapList.clear();
+      staysMapResponse.value = ApiResponse.complete(response);
+    } catch (e) {
+      staysMapResponse.value = ApiResponse.error(e.toString());
+    }
+  }
+
+  /// Loads ALL hotels (unpaginated) for the map view.
+  Future<void> fetchAllHotelsForMap({required String category}) async {
+    staysMapResponse.value = ApiResponse.initial('Initial');
+    final queryParams = <String, dynamic>{
+      ApiKeys.category: category,
+      ApiKeys.page: 1,
+      ApiKeys.limit: 1000,
+    };
+    try {
+      final response =
+          await DiscoverRepo().fetchHotelSearchRepo(queryParams: queryParams);
+      if (!response.isSuccess) {
+        staysMapResponse.value =
+            ApiResponse.error(response.message ?? 'error');
+        return;
+      }
+      final model =
+          HotelSearchModelResponse.fromJson(response.response!.data);
+      hotelServicesMapList.assignAll(model.data ?? []);
+      rentalServicesMapList.clear();
+      staysMapResponse.value = ApiResponse.complete(response);
+    } catch (e) {
+      staysMapResponse.value = ApiResponse.error(e.toString());
     }
   }
 

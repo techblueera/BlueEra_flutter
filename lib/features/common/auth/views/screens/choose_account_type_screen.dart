@@ -13,11 +13,6 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-/// Landing screen where the user picks one of three account flavors
-/// (Business Listing, Professional Account, Personal Account) before
-/// entering the detailed [CreateAccountTypeScreen]. The two individual
-/// cards (Professional + Personal) both map to `accountType = individual`;
-/// the business card maps to `accountType = business`.
 class ChooseAccountTypeScreen extends StatefulWidget {
   const ChooseAccountTypeScreen({super.key});
 

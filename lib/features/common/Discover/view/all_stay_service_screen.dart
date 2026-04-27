@@ -10,8 +10,11 @@ import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/Discover/model/hotel_search_model.dart';
 import 'package:BlueEra/features/common/Discover/view/hotel_discover_home_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/book_via_blueera_partner_banner.dart';
-import 'package:BlueEra/features/common/Discover/widget/banner_carousel.dart';
+import 'package:BlueEra/features/common/Discover/widget/discover_map_widgets.dart';
 import 'package:BlueEra/features/common/Discover/widget/sticky_category_header_delegate.dart';
+import 'package:BlueEra/core/services/location/location_service.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/widget/home_stay_details_widget.dart';
 import 'package:BlueEra/features/common/Discover/widget/hotel_stay_details_widget.dart';
@@ -87,11 +90,26 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
     }
   }
 
-  final List<String> _bannerImages = const [
-    "https://img.freepik.com/free-photo/beautiful-luxury-outdoor-swimming-pool-hotel-resort_74190-7433.jpg?w=1380",
-    "https://img.freepik.com/free-photo/luxury-classic-modern-bedroom-suite-hotel_105762-1787.jpg?w=1380",
-    "https://img.freepik.com/free-photo/beautiful-shot-modern-house-with-pool-sunset_181624-4587.jpg?w=1380",
-  ];
+  /// Opens the dedicated full-screen cluster map for the active stay
+  /// category. Routes to the rental fetch for individual hosts and to
+  /// the hotel fetch for businesses, then hands the resulting list to
+  /// [_StayMapScreen].
+  void _openStayMapScreen() {
+    final cat = controller.selectedStayCategory.value;
+    if (cat == null) return;
+    final isIndividual =
+        cat.accountType.toUpperCase() == AppConstants.individual;
+
+    if (isIndividual) {
+      final serviceType = _category.toRentalServiceType();
+      controller.fetchAllRentalsForMap(rentalServiceType: serviceType);
+    } else {
+      controller.fetchAllHotelsForMap(category: _category);
+    }
+    Get.to(
+      () => _StayMapScreen(isIndividual: isIndividual),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -111,16 +129,9 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
               physics: const AlwaysScrollableScrollPhysics(),
               slivers: [
                 SliverToBoxAdapter(
-                  child: BannerCarousel(
-                    images: _bannerImages,
-                    onBack: () => Navigator.pop(context),
+                  child: DiscoverMapPreview(
                     statusBarHeight: statusBarHeight,
-                    backgroundColor:
-                        AppColors.blue5CAF.withValues(alpha: 0.1),
-                    bottomBorderSide: const BorderSide(
-                      color: AppColors.white,
-                      width: 2,
-                    ),
+                    onTap: _openStayMapScreen,
                   ),
                 ),
                 SliverPersistentHeader(
@@ -1391,6 +1402,254 @@ class _NoHotelsFound extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+/// Full-screen cluster map for the stay categories. Mirrors the design
+/// of the self-profession map but pulls from `rentalServicesMapList` /
+/// `hotelServicesMapList` depending on whether the active category is
+/// individual or business. Marker tap opens the same details flow used
+/// by the list cards.
+class _StayMapScreen extends StatefulWidget {
+  final bool isIndividual;
+
+  const _StayMapScreen({required this.isIndividual});
+
+  @override
+  State<_StayMapScreen> createState() => _StayMapScreenState();
+}
+
+class _StayMapScreenState extends State<_StayMapScreen> {
+  GoogleMapController? _mapController;
+  BitmapDescriptor? _stayIcon;
+
+  final DiscoverController _ctrl = Get.find<DiscoverController>();
+  static const ClusterManagerId _clusterManagerId =
+      ClusterManagerId('stay_services');
+
+  @override
+  void initState() {
+    super.initState();
+    DiscoverMarkerIcons.circle(
+      icon: widget.isIndividual
+          ? Icons.home_work_outlined
+          : Icons.hotel_outlined,
+    ).then((d) {
+      if (mounted) setState(() => _stayIcon = d);
+    });
+  }
+
+  @override
+  void dispose() {
+    _mapController?.dispose();
+    super.dispose();
+  }
+
+  Set<Marker> _buildMarkers() {
+    final markers = <Marker>{};
+    if (widget.isIndividual) {
+      for (final s in _ctrl.rentalServicesMapList) {
+        final coords = s.location?.coordinates;
+        if (coords == null || coords.length < 2) continue;
+        final lng = coords[0].toDouble();
+        final lat = coords[1].toDouble();
+        if (lat == 0 && lng == 0) continue;
+        markers.add(
+          Marker(
+            markerId: MarkerId(s.sId ?? '${s.name}_$lat,$lng'),
+            position: LatLng(lat, lng),
+            clusterManagerId: _clusterManagerId,
+            icon: _stayIcon ?? BitmapDescriptor.defaultMarker,
+            infoWindow: InfoWindow(
+              title: s.name ?? AppStrings.unknownUser.tr,
+              snippet: s.type ?? '',
+              onTap: () => _openRentalDetails(s),
+            ),
+            onTap: () => _openRentalDetails(s),
+          ),
+        );
+      }
+    } else {
+      for (final s in _ctrl.hotelServicesMapList) {
+        final coords = s.profile?.location?.coordinates;
+        if (coords == null || coords.length < 2) continue;
+        // Hotel API returns coordinates as [lat, lng] (NOT GeoJSON
+        // [lng, lat]) — sample payload: [12.9149899, 77.6058263] for
+        // Bangalore. Read index 0 as latitude.
+        final lat = coords[0].toDouble();
+        final lng = coords[1].toDouble();
+        if (lat == 0 && lng == 0) continue;
+        markers.add(
+          Marker(
+            markerId: MarkerId(
+                s.profile?.businessId ?? '${s.profile?.name}_$lat,$lng'),
+            position: LatLng(lat, lng),
+            clusterManagerId: _clusterManagerId,
+            icon: _stayIcon ?? BitmapDescriptor.defaultMarker,
+            infoWindow: InfoWindow(
+              title: s.profile?.name ?? AppStrings.na,
+              snippet: s.rooms?.firstOrNull?.bedType ?? 'Hotel',
+              onTap: () => _openHotelDetails(s),
+            ),
+            onTap: () => _openHotelDetails(s),
+          ),
+        );
+      }
+    }
+    return markers;
+  }
+
+  void _openRentalDetails(RentalServiceData service) {
+    if (service.type == AppConstants.property ||
+        service.type == AppConstants.flat) {
+      Get.to(HomeStayDetailsWidget(service: service));
+    } else {
+      Get.to(VehicleDetailsWidget(service: service));
+    }
+  }
+
+  void _openHotelDetails(HotelServiceData service) {
+    Get.to(() => HotelDiscoverHomeScreen(data: service));
+  }
+
+  Future<void> _zoomToCluster(Cluster cluster) async {
+    if (_mapController == null) return;
+    if (cluster.markerIds.length <= 1) {
+      _mapController!.animateCamera(
+        CameraUpdate.newLatLngZoom(cluster.position, 15),
+      );
+      return;
+    }
+    _mapController!.animateCamera(
+      CameraUpdate.newLatLngBounds(cluster.bounds, 80),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final initialLat =
+        LocationService.lat != 0.0 ? LocationService.lat : 28.6139;
+    final initialLng =
+        LocationService.lng != 0.0 ? LocationService.lng : 77.2090;
+    final statusBarHeight = MediaQuery.of(context).padding.top;
+
+    return Scaffold(
+      body: Stack(
+        children: [
+          Obx(() {
+            // Rebuild markers reactively as the unpaginated lists arrive.
+            final _ = widget.isIndividual
+                ? _ctrl.rentalServicesMapList.length
+                : _ctrl.hotelServicesMapList.length;
+            final markers = _buildMarkers();
+            return GoogleMap(
+              initialCameraPosition: CameraPosition(
+                target: LatLng(initialLat, initialLng),
+                zoom: 12,
+              ),
+              markers: markers,
+              clusterManagers: {
+                ClusterManager(
+                  clusterManagerId: _clusterManagerId,
+                  onClusterTap: _zoomToCluster,
+                ),
+              },
+              myLocationEnabled: true,
+              myLocationButtonEnabled: false,
+              zoomControlsEnabled: false,
+              compassEnabled: true,
+              mapToolbarEnabled: false,
+              onMapCreated: (c) => _mapController = c,
+            );
+          }),
+          Obx(() {
+            final isLoading =
+                _ctrl.staysMapResponse.value.status == Status.INITIAL;
+            if (!isLoading) return const SizedBox.shrink();
+            return const Center(
+              child: SizedBox(
+                width: 32,
+                height: 32,
+                child: CircularProgressIndicator(strokeWidth: 2.5),
+              ),
+            );
+          }),
+          Positioned(
+            top: statusBarHeight + SizeConfig.size4,
+            left: SizeConfig.size12,
+            right: SizeConfig.size12,
+            child: Row(
+              children: [
+                bannerMapCircleIconButton(
+                  icon: Icons.arrow_back_ios_new,
+                  onTap: () => Navigator.pop(context),
+                ),
+                SizedBox(width: SizeConfig.size8),
+                Expanded(child: bannerMapLocationPill()),
+                SizedBox(width: SizeConfig.size8),
+                bannerMapCircleIconButton(
+                  icon: Icons.my_location,
+                  onTap: () {
+                    _mapController?.animateCamera(
+                      CameraUpdate.newLatLngZoom(
+                        LatLng(initialLat, initialLng),
+                        13,
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+          Positioned(
+            bottom: 16,
+            left: 16,
+            right: 16,
+            child: Obx(() {
+              final count = widget.isIndividual
+                  ? _ctrl.rentalServicesMapList.where((s) {
+                      final c = s.location?.coordinates;
+                      return c != null &&
+                          c.length >= 2 &&
+                          !(c[0] == 0 && c[1] == 0);
+                    }).length
+                  : _ctrl.hotelServicesMapList.where((s) {
+                      final c = s.profile?.location?.coordinates;
+                      return c != null &&
+                          c.length >= 2 &&
+                          !(c[0] == 0 && c[1] == 0);
+                    }).length;
+              return Material(
+                color: AppColors.white,
+                borderRadius: BorderRadius.circular(12),
+                elevation: 4,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 12, vertical: 10),
+                  child: Row(
+                    children: [
+                      Icon(Icons.location_on_rounded,
+                          size: 18, color: AppColors.primaryColor),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: CustomText(
+                          '$count ${widget.isIndividual ? "stays" : "hotels"} on the map',
+                          fontSize: SizeConfig.small,
+                          color: AppColors.mainTextColor,
+                          fontWeight: FontWeight.w600,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }),
+          ),
+        ],
+      ),
     );
   }
 }

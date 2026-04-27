@@ -68,13 +68,15 @@ class Breakdown {
   int? subscribed;
   int? nonSubscribed;
   int? expired;
+  int? pending;
 
-  Breakdown({this.subscribed, this.nonSubscribed, this.expired});
+  Breakdown({this.subscribed, this.nonSubscribed, this.expired, this.pending});
 
   Breakdown.fromJson(Map<String, dynamic> json) {
     subscribed = json['subscribed'];
     nonSubscribed = json['nonSubscribed'];
     expired = json['expired'];
+    pending = json['pending'];
   }
 
   Map<String, dynamic> toJson() {
@@ -82,6 +84,7 @@ class Breakdown {
     data['subscribed'] = this.subscribed;
     data['nonSubscribed'] = this.nonSubscribed;
     data['expired'] = this.expired;
+    data['pending'] = this.pending;
     return data;
   }
 }
