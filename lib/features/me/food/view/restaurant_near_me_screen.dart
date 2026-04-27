@@ -1,31 +1,61 @@
 import 'package:BlueEra/core/api/model/get_all_store_res_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shimmer_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
+import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
 import 'package:BlueEra/features/me/food/view/food_self_pickup_cart_screen.dart';
 import 'package:BlueEra/features/me/food/view/visit_food_store_details_screen.dart';
 import 'package:BlueEra/features/common/Discover/widget/banner_carousel.dart';
-import 'package:BlueEra/features/common/Discover/widget/discover_address_pill.dart';
+import 'package:BlueEra/features/common/Discover/widget/discover_chat_icon.dart';
 import 'package:BlueEra/features/common/Discover/widget/sticky_category_header_delegate.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
 import 'package:BlueEra/features/common/store/controller/new_store_controller.dart';
 import 'package:BlueEra/features/me/food/controller/food_selfpickup_controller.dart';
 import 'package:BlueEra/features/me/food/view/widget/food_self_pickup_cart.dart';
-import 'package:BlueEra/widgets/RatingBadge.dart';
+import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/network_assets.dart';
 import 'package:BlueEra/widgets/route_map_bottom_sheet.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+
+class _RestaurantCardPalette {
+  final Color cardBorder;
+  final Color tileBorder;
+  final Color dividerLine;
+
+  const _RestaurantCardPalette({
+    required this.cardBorder,
+    required this.tileBorder,
+    required this.dividerLine,
+  });
+}
+
+const _restaurantPalettes = <_RestaurantCardPalette>[
+  _RestaurantCardPalette(
+    cardBorder: Color(0xFFC0DDE1),
+    tileBorder: Color(0xFFD0EEF2),
+    dividerLine: Color(0xFFBBE3E8),
+  ),
+  _RestaurantCardPalette(
+    cardBorder: Color(0xFFECD3F6),
+    tileBorder: Color(0xFFF7E3FF),
+    dividerLine: Color(0xFFE3D4E9),
+  ),
+];
 
 class RestaurantNearMeScreen extends StatefulWidget {
   const RestaurantNearMeScreen({super.key});
@@ -381,11 +411,11 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
     );
   }
 
-  Widget _buildDottedLine() {
+  Widget _buildDottedLine(Color color) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final dashWidth = 4.0;
-        final dashSpace = 3.0;
+        const dashWidth = 4.0;
+        const dashSpace = 3.0;
         final dashCount =
             (constraints.maxWidth / (dashWidth + dashSpace)).floor();
         return Row(
@@ -395,7 +425,7 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
               width: dashWidth,
               height: 1,
               child: DecoratedBox(
-                decoration: BoxDecoration(color: AppColors.greyE5),
+                decoration: BoxDecoration(color: color),
               ),
             );
           }),
@@ -404,301 +434,274 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
     );
   }
 
+  _RestaurantCardPalette _paletteFor(GetAllStoreResModel store) {
+    final key = (store.id ?? store.userId ?? '').hashCode;
+    return _restaurantPalettes[key.abs() % _restaurantPalettes.length];
+  }
+
+  String _formatCount(int n) {
+    if (n >= 1000000) {
+      final v = n / 1000000;
+      return '${v.toStringAsFixed(v >= 10 ? 0 : 1)}M';
+    }
+    if (n >= 1000) {
+      final v = n / 1000;
+      return '${v.toStringAsFixed(v >= 10 ? 0 : 1)}K';
+    }
+    return '$n';
+  }
+
   // ── Restaurant Card ─────────────────────────────────────────────────────
 
   Widget _buildRestaurantCard(GetAllStoreResModel store) {
-    final categoryName = store.categoryOfBusiness?.name ?? '';
-    final subCategoryName =
-        store.subCategoryOfBusiness?.name ?? AppStrings.foodVegRestaurantLabel.tr;
-    final livePhotos = (store.livePhotos ?? [])
+    final livePhotos = (store.livePhotos ?? const <String>[])
         .where((p) => p.trim().isNotEmpty)
         .toList();
-    final hasLivePhoto = livePhotos.isNotEmpty;
-    final hasLogo = store.logo?.isNotEmpty ?? false;
-    final totalOrders = store.views ?? '10k+';
-    final isVeg = _isVeg(subCategoryName);
-    final rating = (store.avgRating ?? 0) > 0 ? '${store.avgRating}' : '4.5';
+    final logo = store.logo ?? '';
+    final hasLogo = logo.isNotEmpty;
+    final heroImage =
+        livePhotos.isNotEmpty ? livePhotos.first : (hasLogo ? logo : '');
+    final extraPhotos = livePhotos.length > 1 ? livePhotos.length - 1 : 0;
+    final palette = _paletteFor(store);
 
-    return GestureDetector(
+    return InkWell(
       onTap: () => _navigateToDetail(store),
+      borderRadius: BorderRadius.circular(12),
       child: Container(
-        margin: EdgeInsets.only(bottom: SizeConfig.size12),
+        margin: EdgeInsets.only(bottom: SizeConfig.size10),
         decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12.0),
           color: AppColors.white,
-          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: palette.cardBorder, width: 1),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 3),
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
             ),
           ],
         ),
-        clipBehavior: Clip.antiAlias,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── Cover Image ──
-            Stack(
-              children: [
-                SizedBox(
-                  height: 160,
-                  width: double.infinity,
-                  child: hasLivePhoto
-                      ? NetWorkOcToAssets(
-                          imgUrl: livePhotos.first,
-                          boxFit: BoxFit.cover,
-                        )
-                      : hasLogo
-                          ? NetWorkOcToAssets(
-                              imgUrl: store.logo!,
-                              boxFit: BoxFit.cover,
-                            )
-                          : Container(
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  colors: [
-                                    AppColors.fillColor,
-                                    AppColors.greyE5,
-                                  ],
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                ),
-                              ),
-                              child: Center(
-                                child: Icon(Icons.restaurant_menu,
-                                    size: 48,
-                                    color: AppColors.secondaryTextColor
-                                        .withValues(alpha: 0.5)),
-                              ),
-                            ),
-                ),
-                Positioned(
-                  top: 10,
-                  right: 10,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 5),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.55),
-                      borderRadius: BorderRadius.circular(6),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.15),
-                          blurRadius: 6,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.shopping_bag_outlined,
-                            size: 12, color: Colors.white),
-                        const SizedBox(width: 4),
-                        CustomText(
-                          '$totalOrders ${AppStrings.foodOrdersLabel.tr}',
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.white,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                Positioned(
-                  top: 10,
-                  left: 10,
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: AppColors.white,
-                      borderRadius: BorderRadius.circular(6),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.1),
-                          blurRadius: 4,
-                          offset: const Offset(0, 1),
-                        ),
-                      ],
-                    ),
-                    child: _buildVegNonVegIcon(isVeg, size: 14),
-                  ),
-                ),
-                Positioned(
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  height: 50,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.transparent,
-                          Colors.black.withValues(alpha: 0.35),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                if (livePhotos.length > 1)
-                  Positioned(
-                    bottom: 8,
-                    right: 10,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.5),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.photo_library,
-                              size: 12, color: Colors.white),
-                          const SizedBox(width: 4),
-                          CustomText(
-                            '${livePhotos.length}',
-                            fontSize: 10,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.white,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-
-            // ── Info Section ──
             Padding(
-              padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+              padding: EdgeInsets.all(SizeConfig.size12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildHeader(store),
+                  SizedBox(height: SizeConfig.size10),
+                  _buildDottedLine(palette.dividerLine),
+                  SizedBox(height: SizeConfig.size10),
+                  _buildBodyRow(
+                    store: store,
+                    heroImage: heroImage,
+                    livePhotos: livePhotos,
+                    extraPhotos: extraPhotos,
+                    palette: palette,
+                  ),
+                ],
+              ),
+            ),
+            _buildLastVisitFooter(store, palette),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ── Header: avatar + name + rating/veg-or-nonveg badges + chat icon ──
+  Widget _buildHeader(GetAllStoreResModel store) {
+    final ratingValue = (store.avgRating ?? 0) > 0
+        ? store.avgRating.toString()
+        : AppStrings.no.tr;
+    final subCategoryName = store.subCategoryOfBusiness?.name ??
+        AppStrings.foodVegRestaurantLabel.tr;
+    final isVeg = _isVeg(subCategoryName);
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CachedAvatarWidget(
+          imageUrl: store.logo ?? '',
+          size: SizeConfig.size50,
+          borderColor: Colors.white,
+          borderRadius: SizeConfig.size25,
+        ),
+        SizedBox(width: SizeConfig.size10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CustomText(
+                store.businessName ?? AppStrings.restaurant.tr,
+                fontSize: SizeConfig.large18,
+                color: AppColors.mainTextColor,
+                fontWeight: FontWeight.w800,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              SizedBox(height: SizeConfig.size6),
+              Wrap(
+                spacing: 6,
+                runSpacing: 6,
+                children: [
+                  _buildRatingBadge(ratingValue),
+                  _buildVegBadge(isVeg, subCategoryName),
+                ],
+              ),
+            ],
+          ),
+        ),
+        SizedBox(width: SizeConfig.size6),
+        DiscoverChatIcon(
+          userId: store.userId ?? '',
+          name: store.businessName,
+          profile: store.logo,
+          businessId: store.id,
+          trackingSource: ChatClickSource.searchResult,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildVegBadge(bool isVeg, String text) {
+    final fg = isVeg ? Colors.green.shade700 : Colors.red.shade700;
+    final bg = (isVeg ? Colors.green : Colors.red).withValues(alpha: 0.08);
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 10),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(999),
+        color: bg,
+        border: Border.all(color: fg.withValues(alpha: 0.25), width: 1),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildVegNonVegIcon(isVeg, size: 10),
+          const SizedBox(width: 6),
+          Flexible(
+            child: CustomText(
+              text,
+              fontSize: 11,
+              color: fg,
+              fontWeight: FontWeight.w700,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── Body: 2 stat cards + address card on the left, hero image right ──
+  Widget _buildBodyRow({
+    required GetAllStoreResModel store,
+    required String heroImage,
+    required List<String> livePhotos,
+    required int extraPhotos,
+    required _RestaurantCardPalette palette,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 15.0),
+      child: SizedBox(
+        height: 100,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              flex: 7,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
-                      Container(
-                        width: 36,
-                        height: 36,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: AppColors.fillColor,
-                          border:
-                              Border.all(color: AppColors.greyE5, width: 1),
-                        ),
-                        clipBehavior: Clip.antiAlias,
-                        child: hasLogo
-                            ? NetWorkOcToAssets(
-                                imgUrl: store.logo!,
-                                boxFit: BoxFit.cover,
-                              )
-                            : Icon(Icons.store_rounded,
-                                size: 18,
-                                color: AppColors.secondaryTextColor),
+                      _buildStatBox(
+                        icon: AppIconAssets.staggeredIcon,
+                        count: _formatCount(store.totalCategoryCount ??
+                            (store.categories?.length ?? 0)),
+                        label: AppStrings.foodCategoryLabel.tr,
+                        iconColor: const Color(0xFF9964F4),
+                        borderColor: palette.tileBorder,
                       ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            CustomText(
-                              store.businessName ?? AppStrings.restaurant.tr,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            const SizedBox(height: 3),
-                            Row(
-                              children: [
-                                CustomText(
-                                  subCategoryName,
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w500,
-                                  color: AppColors.secondaryTextColor,
-                                ),
-                                if (categoryName.isNotEmpty) ...[
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 5),
-                                    child: Container(
-                                      width: 4,
-                                      height: 4,
-                                      decoration: BoxDecoration(
-                                        color: AppColors.secondaryTextColor
-                                            .withValues(alpha: 0.5),
-                                        shape: BoxShape.circle,
-                                      ),
-                                    ),
-                                  ),
-                                  Flexible(
-                                    child: CustomText(
-                                      categoryName,
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w500,
-                                      color: AppColors.secondaryTextColor,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
-                              ],
-                            ),
-                          ],
-                        ),
+                      SizedBox(width: SizeConfig.size6),
+                      _buildStatBox(
+                        icon: AppIconAssets.productCartIcon,
+                        count: _formatCount(store.totalProductCount ?? 0),
+                        label: AppStrings.foodProductLabel.tr,
+                        iconColor: const Color(0xFF6179CD),
+                        borderColor: palette.tileBorder,
                       ),
-                      const SizedBox(width: 8),
-                      RatingBadge(rating: rating)
                     ],
                   ),
-                  const SizedBox(height: 10),
-                  _buildDottedLine(),
-                  const SizedBox(height: 10),
-                  DiscoverAddressPill(
-                    destLat: store.businessLocation?.lat?.toDouble() ?? 0.0,
-                    destLng: store.businessLocation?.lon?.toDouble() ?? 0.0,
-                    address: getLocalityAddress(store.address),
-                    onTap: () => RouteMapBottomSheet.show(
-                      context: context,
-                      destinationName:
-                          store.businessName ?? AppStrings.restaurant.tr,
-                      destinationAddress: store.address ?? '',
-                      destinationLat:
-                          store.businessLocation?.lat?.toDouble() ?? 0.0,
-                      destinationLng:
-                          store.businessLocation?.lon?.toDouble() ?? 0.0,
-                      livePhotos: store.livePhotos,
-                      storeBusinessID: store.id ?? '',
-                      storeUserID: store.userId ?? '',
-                    ),
+                  SizedBox(height: SizeConfig.size8),
+                  Expanded(child: _buildAddressCard(store, palette)),
+                ],
+              ),
+            ),
+            SizedBox(width: SizeConfig.size8),
+            Expanded(
+              flex: 3,
+              child: _buildHeroImage(
+                store: store,
+                heroImage: heroImage,
+                livePhotos: livePhotos,
+                extraPhotos: extraPhotos,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAddressCard(
+      GetAllStoreResModel store, _RestaurantCardPalette palette) {
+    final lat = store.businessLocation?.lat?.toDouble() ?? 0.0;
+    final lng = store.businessLocation?.lon?.toDouble() ?? 0.0;
+    final km = calculateDistanceKm(
+      LocationService.lat,
+      LocationService.lng,
+      lat,
+      lng,
+    );
+
+    return GestureDetector(
+      onTap: () => _showMapBottomSheet(store),
+      child: Container(
+        padding: const EdgeInsets.all(8.0),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(10.0),
+          border: Border.all(color: palette.tileBorder, width: 1),
+          color: AppColors.white,
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            _buildIconContainer(AppIconAssets.location_outline),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CustomText(
+                    '${km.toStringAsFixed(2)} Km Away',
+                    fontSize: 12.0,
+                    color: AppColors.secondaryTextColor,
+                    fontWeight: FontWeight.w600,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  SizedBox(height: SizeConfig.size12),
-                  _infoSection(
-                    icon: Icons.category_outlined,
-                    title: AppStrings.foodCategoryLabel.tr,
-                    count: store.totalCategoryCount ??
-                        (store.categories?.length ?? 0),
-                    pills: (store.categories ?? [])
-                        .map((c) => c.name ?? '')
-                        .where((s) => s.trim().isNotEmpty)
-                        .toList(),
-                    emptyLabel: 'No categories listed',
-                    onTap: () => _navigateToDetail(store),
-                  ),
-                  SizedBox(height: SizeConfig.size10),
-                  _infoSection(
-                    icon: Icons.shopping_bag_outlined,
-                    title: AppStrings.foodProductLabel.tr,
-                    count: store.totalProductCount ?? 0,
-                    pills: const [],
-                    emptyLabel:
-                        '${store.totalProductCount ?? 0} products in store',
-                    onTap: () => _navigateToDetail(store),
+                  SizedBox(height: SizeConfig.size4),
+                  CustomText(
+                    store.address ?? AppStrings.na,
+                    fontSize: 10.0,
+                    color: AppColors.secondaryTextColor,
+                    fontWeight: FontWeight.w400,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
@@ -709,14 +712,322 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
     );
   }
 
+  void _showMapBottomSheet(GetAllStoreResModel store) {
+    RouteMapBottomSheet.show(
+      context: context,
+      destinationName: store.businessName ?? AppStrings.restaurant.tr,
+      destinationAddress: store.address ?? '',
+      destinationLat: store.businessLocation?.lat?.toDouble() ?? 0.0,
+      destinationLng: store.businessLocation?.lon?.toDouble() ?? 0.0,
+      livePhotos: store.livePhotos,
+      storeBusinessID: store.id ?? '',
+      storeUserID: store.userId ?? '',
+    );
+  }
+
+  Widget _buildIconContainer(String iconPath) {
+    return Container(
+      padding: const EdgeInsets.all(6.0),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(6.0),
+        color: AppColors.white,
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.black.withValues(alpha: 0.08),
+            offset: const Offset(0, 1),
+            blurRadius: 2.0,
+          ),
+        ],
+      ),
+      child: LocalAssets(
+        imagePath: iconPath,
+        imgColor: AppColors.secondaryTextColor,
+        height: 24,
+        width: 20,
+      ),
+    );
+  }
+
+  Widget _buildStatBox({
+    required String icon,
+    required String count,
+    required String label,
+    required Color iconColor,
+    required Color borderColor,
+  }) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.all(8.0),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(6.0),
+          border: Border.all(color: borderColor, width: 1),
+          color: AppColors.white,
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            LocalAssets(
+              imagePath: icon,
+              imgColor: iconColor,
+              height: 12,
+              width: 12,
+            ),
+            SizedBox(width: SizeConfig.size6),
+            CustomText(
+              count,
+              fontSize: SizeConfig.extraSmall,
+              color: AppColors.secondaryTextColor,
+              fontWeight: FontWeight.w600,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            SizedBox(width: SizeConfig.size6),
+            CustomText(
+              label,
+              fontSize: SizeConfig.extraSmall,
+              color: AppColors.secondaryTextColor,
+              fontWeight: FontWeight.w400,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeroImage({
+    required GetAllStoreResModel store,
+    required String heroImage,
+    required List<String> livePhotos,
+    required int extraPhotos,
+  }) {
+    final natureOfBusiness = store.categoryOfBusiness?.name ??
+        store.natureOfBusiness ??
+        'OTHER';
+    final fullList = livePhotos.isNotEmpty
+        ? livePhotos
+        : (heroImage.isNotEmpty ? [heroImage] : <String>[]);
+
+    return GestureDetector(
+      onTap: fullList.isEmpty
+          ? null
+          : () => _showPhotoDialog(
+                images: fullList,
+                initialIndex: 0,
+                title: natureOfBusiness,
+              ),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(10),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x33000000),
+              blurRadius: 10,
+              offset: Offset(0, 1),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(10),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              if (heroImage.isNotEmpty)
+                CachedNetworkImage(
+                  imageUrl: heroImage,
+                  fit: BoxFit.cover,
+                  memCacheWidth: 600,
+                  memCacheHeight: 600,
+                  placeholder: (_, __) => LocalAssets(
+                    imagePath: AppIconAssets.place_holder_image,
+                    boxFix: BoxFit.cover,
+                  ),
+                  errorWidget: (_, __, ___) => LocalAssets(
+                    imagePath: AppIconAssets.place_holder_image,
+                    boxFix: BoxFit.cover,
+                  ),
+                )
+              else
+                LocalAssets(
+                  imagePath: AppIconAssets.place_holder_image,
+                  boxFix: BoxFit.cover,
+                ),
+              if (extraPhotos > 0)
+                Positioned(
+                  right: 6,
+                  bottom: 6,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.65),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: CustomText(
+                      '+$extraPhotos',
+                      fontSize: SizeConfig.small,
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ── Footer: top-bordered banner with views + orders + quirky message ──
+  Widget _buildLastVisitFooter(
+      GetAllStoreResModel store, _RestaurantCardPalette palette) {
+    final views = int.tryParse(store.views ?? '') ?? 0;
+    final viewLabel = views == 1 ? 'view' : 'views';
+    final countText = _formatCount(views);
+    final clicks = store.chatClickCount ?? 0;
+    final clickLabel = clicks == 1 ? 'order' : 'orders';
+    final clickCountText = _formatCount(clicks);
+    final quirky = (store.quirkyMessage ?? '').trim();
+    return InkWell(
+      onTap: () => _navigateToDetail(store),
+      borderRadius: const BorderRadius.only(
+        bottomLeft: Radius.circular(12.0),
+        bottomRight: Radius.circular(12.0),
+      ),
+      child: Container(
+        width: double.infinity,
+        padding: EdgeInsets.symmetric(
+            vertical: SizeConfig.size10, horizontal: SizeConfig.size12),
+        decoration: BoxDecoration(
+          color: Colors.transparent,
+          border: Border(
+            top: BorderSide(color: palette.cardBorder, width: 1),
+          ),
+          borderRadius: const BorderRadius.only(
+            bottomLeft: Radius.circular(12.0),
+            bottomRight: Radius.circular(12.0),
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            LocalAssets(
+              imagePath: AppIconAssets.eye_view,
+              height: SizeConfig.size12,
+              width: SizeConfig.size12,
+              imgColor: AppColors.secondaryTextColor,
+            ),
+            SizedBox(width: SizeConfig.size8),
+            Flexible(
+              child: RichText(
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                text: TextSpan(
+                  style: TextStyle(
+                    fontSize: SizeConfig.small,
+                    color: AppColors.secondaryTextColor,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  children: [
+                    TextSpan(
+                      text: countText,
+                      style: const TextStyle(fontWeight: FontWeight.w800),
+                    ),
+                    TextSpan(text: ' Total $viewLabel on this store, '),
+                    WidgetSpan(
+                      alignment: PlaceholderAlignment.middle,
+                      child: Padding(
+                        padding: EdgeInsets.only(right: SizeConfig.size4),
+                        child: LocalAssets(
+                          imagePath: AppIconAssets.cartIcon,
+                          height: SizeConfig.size12,
+                          width: SizeConfig.size12,
+                          imgColor: AppColors.secondaryTextColor,
+                        ),
+                      ),
+                    ),
+                    TextSpan(
+                      text: clickCountText,
+                      style: const TextStyle(fontWeight: FontWeight.w800),
+                    ),
+                    TextSpan(text: ' $clickLabel'),
+                    if (quirky.isNotEmpty) TextSpan(text: ', $quirky'),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRatingBadge(String rating) {
+    const goldFg = Color(0xFFB8860B);
+    const goldBg = Color(0xFFFFF3D1);
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(999),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Colors.white, goldBg],
+        ),
+        border: Border.all(
+          color: goldFg.withValues(alpha: 0.28),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: goldFg.withValues(alpha: 0.15),
+            blurRadius: 5,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          LocalAssets(imagePath: AppIconAssets.star, height: 12, width: 12),
+          const SizedBox(width: 4),
+          CustomText(
+            rating,
+            fontSize: 11,
+            color: AppColors.mainTextColor,
+            fontWeight: FontWeight.w800,
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showPhotoDialog({
+    required List<String> images,
+    required int initialIndex,
+    required String title,
+  }) {
+    if (images.isEmpty) return;
+    showDialog<void>(
+      context: context,
+      barrierColor: Colors.black.withValues(alpha: 0.75),
+      builder: (_) => _RestaurantPhotoDialog(
+        images: images,
+        initialIndex: initialIndex,
+        title: title,
+      ),
+    );
+  }
+
   void _navigateToDetail(GetAllStoreResModel store) {
     if (store.id == null) return;
     Get.to(() => VisitFoodStoreDetailsScreen(visitBusinessId: store.id!));
   }
 
-  /// Section block — left accent rail, icon-in-disc header with inline
-  /// count, and a wrap of soft-gradient pills below. Mirrors the hospital
-  /// list / grocery store card layout for a consistent discover-card feel.
+  // ignore: unused_element
   Widget _infoSection({
     required IconData icon,
     required String title,
@@ -905,6 +1216,131 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
             fontWeight: FontWeight.w500,
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _RestaurantPhotoDialog extends StatefulWidget {
+  final List<String> images;
+  final int initialIndex;
+  final String title;
+
+  const _RestaurantPhotoDialog({
+    required this.images,
+    required this.initialIndex,
+    required this.title,
+  });
+
+  @override
+  State<_RestaurantPhotoDialog> createState() => _RestaurantPhotoDialogState();
+}
+
+class _RestaurantPhotoDialogState extends State<_RestaurantPhotoDialog> {
+  late final PageController _controller;
+  late int _index;
+
+  @override
+  void initState() {
+    super.initState();
+    _index = widget.initialIndex.clamp(0, widget.images.length - 1);
+    _controller = PageController(initialPage: _index);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          color: Colors.black,
+          width: size.width,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 8, 4, 8),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: CustomText(
+                        widget.title,
+                        fontSize: SizeConfig.medium,
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close_rounded,
+                          color: Colors.white, size: 22),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(
+                height: size.height * 0.5,
+                child: PageView.builder(
+                  controller: _controller,
+                  itemCount: widget.images.length,
+                  onPageChanged: (i) => setState(() => _index = i),
+                  itemBuilder: (_, i) {
+                    return InteractiveViewer(
+                      minScale: 1,
+                      maxScale: 4,
+                      child: Center(
+                        child: CachedNetworkImage(
+                          imageUrl: widget.images[i],
+                          fit: BoxFit.contain,
+                          placeholder: (_, __) => const Center(
+                            child: CircularProgressIndicator(
+                                strokeWidth: 2, color: Colors.white),
+                          ),
+                          errorWidget: (_, __, ___) => LocalAssets(
+                            imagePath: AppIconAssets.place_holder_image,
+                            boxFix: BoxFit.contain,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(widget.images.length, (i) {
+                    final active = i == _index;
+                    return AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      margin: const EdgeInsets.symmetric(horizontal: 3),
+                      width: active ? 18 : 6,
+                      height: 6,
+                      decoration: BoxDecoration(
+                        color: active
+                            ? Colors.white
+                            : Colors.white.withValues(alpha: 0.45),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                    );
+                  }),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

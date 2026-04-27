@@ -26,6 +26,8 @@ import 'package:BlueEra/features/common/visiting_card/view/all_personal_visiting
 import 'package:BlueEra/features/me/me_tab_registry.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/widget/edit_profile_bottom_sheet.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/widget/profile_designation_bottom_sheet.dart';
 import 'package:BlueEra/features/subscription/view/subscription_status_view.dart';
 import 'package:BlueEra/permissionCentralize/go_live_permission_service.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
@@ -460,13 +462,22 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if (name.isNotEmpty)
-                  CustomText(
-                    name,
-                    fontSize: SizeConfig.extraLarge22,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.mainTextColor,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: CustomText(
+                          name,
+                          fontSize: SizeConfig.extraLarge22,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.mainTextColor,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      _buildEditProfileChip(),
+                    ],
                   ),
                 if (username.isNotEmpty || createdAt.isNotEmpty) ...[
                   const SizedBox(height: 2),
@@ -498,29 +509,8 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
                     ],
                   ),
                 ],
-                if (designation.isNotEmpty) ...[
-                  const SizedBox(height: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 5),
-                    decoration: BoxDecoration(
-                      color:
-                          AppColors.primaryColor.withValues(alpha: 0.08),
-                      border: Border.all(
-                        color:
-                            AppColors.primaryColor.withValues(alpha: 0.3),
-                        width: 0.5,
-                      ),
-                      borderRadius: BorderRadius.circular(100),
-                    ),
-                    child: CustomText(
-                      designation,
-                      fontSize: SizeConfig.small,
-                      color: AppColors.primaryColor,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
+                const SizedBox(height: 8),
+                _buildDesignationChip(designation),
                 if (location.isNotEmpty || email.isNotEmpty) ...[
                   const SizedBox(height: 10),
                   if (location.isNotEmpty) ...[
@@ -691,6 +681,83 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
               fontSize: SizeConfig.medium,
               color: AppColors.white,
               fontWeight: FontWeight.w600,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEditProfileChip() {
+    return InkWell(
+      onTap: _openEditProfile,
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: AppColors.primaryColor.withValues(alpha: 0.08),
+          border: Border.all(
+            color: AppColors.primaryColor.withValues(alpha: 0.3),
+            width: 0.6,
+          ),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.edit_outlined,
+                size: 14, color: AppColors.primaryColor),
+            const SizedBox(width: 4),
+            CustomText(
+              'Edit',
+              fontSize: SizeConfig.extraSmall,
+              color: AppColors.primaryColor,
+              fontWeight: FontWeight.w600,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _openEditProfile() {
+    EditProfileBottomSheet.show(Get.context!);
+  }
+
+  Widget _buildDesignationChip(String designation) {
+    final hasDesignation = designation.trim().isNotEmpty;
+    return InkWell(
+      onTap: () => showProfileDesignationSheet(Get.context!),
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+        decoration: BoxDecoration(
+          color: AppColors.primaryColor.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: AppColors.primaryColor.withValues(alpha: 0.3),
+            width: 0.5,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Flexible(
+              child: CustomText(
+                hasDesignation ? designation : 'Add designation',
+                color: AppColors.primaryColor,
+                fontSize: SizeConfig.small,
+                fontWeight: FontWeight.w500,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            SizedBox(width: SizeConfig.size10),
+            LocalAssets(
+              imagePath: AppIconAssets.editIcon,
+              height: SizeConfig.size12,
+              width: SizeConfig.size12,
+              imgColor: AppColors.primaryColor,
             ),
           ],
         ),

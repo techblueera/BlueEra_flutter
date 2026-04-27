@@ -43,7 +43,10 @@ import 'package:BlueEra/features/me/product/view/product/inventory_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_new_screen.dart';
 import 'package:BlueEra/features/subscription/auth/controller/subscription_controller.dart';
 import 'package:BlueEra/features/subscription/view/subscription_bottom_sheet.dart';
+import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/widgets/common_dialog.dart';
+import 'package:BlueEra/widgets/custom_btn.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/service_provider_dialoge.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_callkit_incoming/entities/call_event.dart';
@@ -127,8 +130,100 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     checkByRiderCall();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _handlePostFrameInitialization();
+      _maybePromptGuestToCreateProfile();
       // _setupCallKitEventListener();
     });
+  }
+
+  /// One-shot per-session prompt: when the user lands on the home and
+  /// their session is in guest mode, surface a friendly dialog asking
+  /// them to create a profile so chat / bookings / orders unlock. The
+  /// "Create Profile" CTA reuses the shared [createProfileScreen] helper
+  /// which pushes [ChooseAccountTypeScreen]. A static flag prevents the
+  /// dialog from re-firing on tab swaps inside the same launch.
+  static bool _guestPromptShown = false;
+
+  void _maybePromptGuestToCreateProfile() {
+    if (_guestPromptShown) return;
+    if (!isGuestUser()) return;
+    if (!mounted) return;
+    _guestPromptShown = true;
+    showDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      builder: (ctx) => Dialog(
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        insetPadding:
+            const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.primaryColor.withValues(alpha: 0.10),
+                ),
+                child: Icon(
+                  Icons.account_circle_outlined,
+                  size: 36,
+                  color: AppColors.primaryColor,
+                ),
+              ),
+              SizedBox(height: SizeConfig.size12),
+              CustomText(
+                'Create your profile',
+                fontSize: SizeConfig.large18,
+                fontWeight: FontWeight.w800,
+                color: AppColors.mainTextColor,
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: SizeConfig.size8),
+              CustomText(
+                "You're browsing as a guest. Create your profile to chat, book services and unlock everything BlueEra has to offer.",
+                fontSize: SizeConfig.small,
+                color: AppColors.secondaryTextColor,
+                fontWeight: FontWeight.w500,
+                textAlign: TextAlign.center,
+                maxLines: 4,
+              ),
+              SizedBox(height: SizeConfig.size16),
+              Row(
+                children: [
+                  Expanded(
+                    child: CustomBtn(
+                      onTap: () => Navigator.of(ctx).pop(),
+                      title: 'Maybe Later',
+                      bgColor: AppColors.transparent,
+                      textColor: AppColors.primaryColor,
+                      borderColor: AppColors.primaryColor,
+                      radius: 10,
+                    ),
+                  ),
+                  SizedBox(width: SizeConfig.size8),
+                  Expanded(
+                    child: CustomBtn(
+                      onTap: () {
+                        Navigator.of(ctx).pop();
+                        createProfileScreen();
+                      },
+                      title: 'Create Profile',
+                      bgColor: AppColors.primaryColor,
+                      textColor: AppColors.white,
+                      radius: 10,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   Future<void> checkByRiderCall() async {
