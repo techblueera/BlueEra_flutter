@@ -45,6 +45,19 @@ import 'chat_shortcut_service.dart';
 import 'common_delete_message.dart';
 import '../media_view_page/conversation_media_page.dart';
 
+/// Returns true when [createdAt] (ISO-8601 from server) is older than 24 hours.
+/// Used to expire rider action buttons, the order chat input, and the appbar
+/// call button on order conversations once the delivery window has elapsed.
+bool isMessageOlderThan24Hours(String? createdAt) {
+  if (createdAt == null || createdAt.isEmpty) return false;
+  try {
+    final created = DateTime.parse(createdAt).toLocal();
+    return DateTime.now().difference(created) > const Duration(hours: 24);
+  } catch (_) {
+    return false;
+  }
+}
+
 Widget timeAndReadInfoWidget({required Messages message,
   required bool isMyMessage,
   required String time,
@@ -1305,9 +1318,11 @@ AppBar getChatTitleAppBar(BuildContext context, {
   String? contactNo,
   VoidCallback? onBackCallback,
   String? profileImage,
+  String? designation,
   bool? isGroupAppBar,
   bool? isGroupPrivate,
   bool? isFromAiChat,
+  bool disableCallButton = false,
 }) {
   final theme = Theme.of(context);
   final chatViewController = Get.find<ChatViewController>();
@@ -1351,6 +1366,7 @@ AppBar getChatTitleAppBar(BuildContext context, {
     title: InkWell(
       onTap: (type != AppStrings.Admin||type != AppStrings.PersonalChatAi||type != AppStrings.BusinessChatAi)
           ? () {
+
         if (isGroupAppBar != null) {
           Navigator.push(
             context,
@@ -1378,10 +1394,10 @@ AppBar getChatTitleAppBar(BuildContext context, {
             ),
           );
         } else if (socketType == "business") {
-          Get.to(() => VisitFoodStoreDetailsScreen(visitBusinessId:  userId ?? ""));
-          // Get.to(() => VisitProductStoreDetailsScreen(
-          //       visitBusinessId: userId ?? "",
-          //     ));
+          // Get.to(() => VisitFoodStoreDetailsScreen(visitBusinessId:  userId ?? ""));
+          Get.to(() => VisitProductStoreDetailsScreen(
+                visitBusinessId: userId ?? "",
+              ));
         } else {
           _navigateToProfile(authorId: userId ?? '', type: type ?? "");
         }
@@ -1459,12 +1475,13 @@ AppBar getChatTitleAppBar(BuildContext context, {
                           fontSize: SizeConfig.size12,
                         );
                       }
+                
                       return CustomText(
                         '${(name == "BlueEra Orders") ? "BlueCs Ltd" : (type !=
                             AppStrings.Admin) ? (type == "business") ? chatViewController
                             .userOnlineStatus.value == "Online"
                             ? "Shop Open"
-                            : "Shop Closed" : chatViewController
+                            : "Shop Closed" :socketType=="order"?"${designation}": chatViewController
                             .userOnlineStatus.value : "Offline"}',
                         color: AppColors.grayText,
                         fontSize: SizeConfig.size12,
@@ -1539,7 +1556,9 @@ AppBar getChatTitleAppBar(BuildContext context, {
         ),
       if(isFromAiChat!=true)
         InkWell(
-            onTap: () {
+            onTap: disableCallButton
+                ? null
+                : () {
               _showCallOptionsBottomSheet(
                 context: context,
                 otherUserId: isGroupAppBar == null ? userId : null,
@@ -1556,7 +1575,9 @@ AppBar getChatTitleAppBar(BuildContext context, {
                 width: 20,
                 height: 20,
                 colorFilter: ColorFilter.mode(
-                  AppColors.chat_input_icon_color,
+                  disableCallButton
+                      ? AppColors.grayText.withOpacity(0.6)
+                      : AppColors.chat_input_icon_color,
                   BlendMode.srcIn,
                 ),
               ),

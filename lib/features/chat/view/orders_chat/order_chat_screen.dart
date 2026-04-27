@@ -16,6 +16,7 @@ import '../../../../core/services/notification_utils.dart';
 import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/controller/chat_view_controller.dart';
 import '../chat_screen_new.dart';
+import '../widget/chat_input_box.dart';
 import '../widget/component_widgets.dart';
 import '../widget/message_card.dart';
 class OrderChatScreen extends StatefulWidget {
@@ -25,6 +26,7 @@ class OrderChatScreen extends StatefulWidget {
   final String? type;
   final String? name;
   final String? contactNo;
+  final String? designation;
   OrderChatScreen(
       {
         required this.conversationId,
@@ -32,7 +34,7 @@ class OrderChatScreen extends StatefulWidget {
         required this.userId,
         required this.profileImage,
         this.name,
-        this.contactNo,
+        this.contactNo, this.designation,
       });
   @override
   State<OrderChatScreen> createState() => _OrderChatScreenState();
@@ -89,6 +91,28 @@ class _OrderChatScreenState extends State<OrderChatScreen> {
             ChatEmitEvents.ChatList, {ApiKeys.type: AppConstants.personal_Chat_Type}, );
       },
       child: Obx(() {
+        // Determine the order-conversation expiry once, so the appbar call
+        // button and the chat input below stay in sync. A conversation is
+        // considered expired 24h after the most recent rider / rider_map
+        // message snapshot. Pick by parsed time so we don't depend on list
+        // order (which is sorted later, inside the body Obx).
+        DateTime? latestRiderTime;
+        for (final m in (chatViewController.getListOfMessageData ?? [])) {
+          if (m.messageType != 'rider' && m.messageType != 'rider_map') {
+            continue;
+          }
+          final raw = m.createdAt;
+          if (raw == null || raw.isEmpty) continue;
+          try {
+            final t = DateTime.parse(raw).toLocal();
+            if (latestRiderTime == null || t.isAfter(latestRiderTime)) {
+              latestRiderTime = t;
+            }
+          } catch (_) {}
+        }
+        final bool isOrderExpired = latestRiderTime != null &&
+            DateTime.now().difference(latestRiderTime) >
+                const Duration(hours: 24);
         return Scaffold(
           backgroundColor: backgroundColor,
           appBar: (chatThemeController.isMessageSelectionActive.value &&
@@ -99,14 +123,17 @@ class _OrderChatScreenState extends State<OrderChatScreen> {
               conversationId: widget.conversationId,
               userId: widget.userId,
              )
-              : getChatTitleAppBar(socketType: "personal",
+              : getChatTitleAppBar(
+              socketType: "order",
               context,
-
+              designation: widget.designation,
               userId: widget.userId,
               type: widget.type,
               name: widget.name,
               profileImage: widget.profileImage,
-              contactNo: widget.contactNo, conversationId: widget.conversationId),
+              contactNo: widget.contactNo,
+              conversationId: widget.conversationId,
+              disableCallButton: isOrderExpired),
           body: Obx(() {
             final _status =
                 chatViewController.getListOfMessageResponse.value.status;
@@ -226,7 +253,44 @@ class _OrderChatScreenState extends State<OrderChatScreen> {
                         const SizedBox(
                           height: 6,
                         ),
+                        if (isOrderExpired)
+                          // Container(
+                          //   width: double.infinity,
+                          //   padding: const EdgeInsets.symmetric(
+                          //       horizontal: 16, vertical: 14),
+                          //   margin: const EdgeInsets.symmetric(
+                          //       horizontal: 12, vertical: 4),
+                          //   decoration: BoxDecoration(
+                          //     color: Colors.grey.shade200,
+                          //     borderRadius: BorderRadius.circular(10),
+                          //     border: Border.all(color: Colors.grey.shade300),
+                          //   ),
+                          //   child: Row(
+                          //     mainAxisAlignment: MainAxisAlignment.center,
+                          //     children: [
+                          //       Icon(Icons.lock_clock,
+                          //           size: 18, color: AppColors.grayText),
+                          //       const SizedBox(width: 8),
+                          //       Flexible(
+                          //         child: CustomText(
+                          //           "This order chat is closed after 24 hours",
+                          //           color: AppColors.grayText,
+                          //           fontSize: 13,
+                          //           fontWeight: FontWeight.w500,
+                          //           textAlign: TextAlign.center,
+                          //         ),
+                          //       ),
+                          //     ],
+                          //   ),
+                          // )
+                          SizedBox()
 
+                        else
+                          ChatInputBar(
+                            isInitialMessage: false,
+                            userId: widget.userId ?? '',
+                            conversationId: widget.conversationId ?? '',
+                          ),
                         const SizedBox(height: 14),
                       ],
                     ),

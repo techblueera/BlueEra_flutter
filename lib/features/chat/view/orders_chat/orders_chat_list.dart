@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -108,6 +110,7 @@ class _OrdersTabViewState extends State<OrdersTabView> {
                       itemCount: data?.chatList?.length,
                       shrinkWrap: true,
                       itemBuilder: (context, index) {
+
                         return ChatListTile(
                           onTab: () {
                             Navigator.push(
@@ -125,6 +128,8 @@ class _OrdersTabViewState extends State<OrdersTabView> {
                                   ,
                                   profileImage: data?.chatList?[index]?.sender
                                       ?.profileImage ?? '',
+                                  designation: data?.chatList?[index]?.sender
+                                      ?.designation ?? '',
                                 )));
                           },
                           onSelect: () {

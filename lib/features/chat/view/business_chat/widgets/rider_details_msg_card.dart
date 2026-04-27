@@ -35,6 +35,9 @@ class _RiderDetailsMsgCardState extends State<RiderDetailsMsgCard> {
   @override
   Widget build(BuildContext context) {
     Rider? rider = widget.message.metadata?.rider;
+    final bool isExpired = isMessageOlderThan24Hours(widget.message.createdAt);
+    final Color actionColor =
+        isExpired ? AppColors.grayText : AppColors.primaryColor;
 
     return InkWell(
       onTap: () {},
@@ -149,14 +152,18 @@ class _RiderDetailsMsgCardState extends State<RiderDetailsMsgCard> {
                       children: [
                         Expanded(
                           child: TextButton.icon(
-                            onPressed: () {
-                              openDialer(rider?.contactNo ?? '');
-                            },
-                            icon:
-                                SvgPicture.asset(AppIconAssets.rider_call_icon),
+                            onPressed: isExpired
+                                ? null
+                                : () {
+                                    openDialer(rider?.contactNo ?? '');
+                                  },
+                            icon: SvgPicture.asset(
+                              AppIconAssets.rider_call_icon,
+                              color: actionColor,
+                            ),
                             label: CustomText(
                               AppStrings.callNow,
-                              color: AppColors.primaryColor,
+                              color: actionColor,
                               fontWeight: FontWeight.w900,
                             ),
                           ),
@@ -168,13 +175,19 @@ class _RiderDetailsMsgCardState extends State<RiderDetailsMsgCard> {
                         ),
                         Expanded(
                           child: TextButton.icon(
-                            onPressed: () {
-                              _openBusinessToRiderOTP(context, widget.message);
-                            },
-                            icon: SvgPicture.asset(AppIconAssets.rider_otp),
+                            onPressed: isExpired
+                                ? null
+                                : () {
+                                    _openBusinessToRiderOTP(
+                                        context, widget.message);
+                                  },
+                            icon: SvgPicture.asset(
+                              AppIconAssets.rider_otp,
+                              color: actionColor,
+                            ),
                             label: CustomText(
                               AppStrings.otp,
-                              color: AppColors.primaryColor,
+                              color: actionColor,
                               fontWeight: FontWeight.w900,
                             ),
                           ),
@@ -186,14 +199,18 @@ class _RiderDetailsMsgCardState extends State<RiderDetailsMsgCard> {
                       children: [
                         Expanded(
                           child: TextButton.icon(
-                            onPressed: () {
-                              openDialer(rider?.contactNo ?? '');
-                            },
-                            icon:
-                                SvgPicture.asset(AppIconAssets.rider_call_icon),
+                            onPressed: isExpired
+                                ? null
+                                : () {
+                                    openDialer(rider?.contactNo ?? '');
+                                  },
+                            icon: SvgPicture.asset(
+                              AppIconAssets.rider_call_icon,
+                              color: actionColor,
+                            ),
                             label: CustomText(
                               AppStrings.callNow,
-                              color: AppColors.primaryColor,
+                              color: actionColor,
                               fontWeight: FontWeight.w900,
                             ),
                           ),
@@ -205,14 +222,14 @@ class _RiderDetailsMsgCardState extends State<RiderDetailsMsgCard> {
                         ),
                         Expanded(
                           child: TextButton.icon(
-                            onPressed: () {},
+                            onPressed: isExpired ? null : () {},
                             icon: SvgPicture.asset(
                               AppIconAssets.quillChatIcon,
-                              color: AppColors.primaryColor,
+                              color: actionColor,
                             ),
                             label: CustomText(
                               AppStrings.chatNow,
-                              color: AppColors.primaryColor,
+                              color: actionColor,
                               fontWeight: FontWeight.w900,
                             ),
                           ),
