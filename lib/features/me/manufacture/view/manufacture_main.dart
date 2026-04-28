@@ -2,7 +2,9 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/visit_business_profile/view/visit_business_profile_new.dart';
+import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/features/me/me_tab_registry.dart';
 import 'package:BlueEra/features/me/medical/view/widget/add_medical_service.dart';
 import 'package:BlueEra/features/subscription/view/subscription_status_view.dart';
@@ -36,6 +38,22 @@ class _ManufactureMainState extends State<ManufactureMain>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+        appBar: CommonBackAppBar(
+          showElevation: 0,
+          isDrawerMenu: true,
+          isLeading: false,
+          isMore: true,
+          isProfile: false,
+          isNotification: !isGuestUser(),
+          bellIconNotEmpty: true,
+          isGuestLogout: isGuestUser(),
+          onNotificationTap: () {
+            Navigator.pushNamed(
+              context,
+              RouteHelper.getNotificationScreenRoute(),
+            );
+          },
+        ),
         body:SafeArea(
           child: Column(
             children: [

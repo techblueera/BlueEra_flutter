@@ -1,10 +1,13 @@
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/me/laboratory/controller/lab_full_details_controller.dart';
+import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/features/me/me_tab_registry.dart';
 import 'package:BlueEra/features/me/school/view/coming_soon.dart';
 import 'package:BlueEra/features/me/laboratory/controller/lab_service_ai_controller.dart';
@@ -122,6 +125,22 @@ class _LaboratoryMainState extends State<LaboratoryMain>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+        appBar: CommonBackAppBar(
+          showElevation: 0,
+          isDrawerMenu: true,
+          isLeading: false,
+          isMore: true,
+          isProfile: false,
+          isNotification: !isGuestUser(),
+          bellIconNotEmpty: true,
+          isGuestLogout: isGuestUser(),
+          onNotificationTap: () {
+            Navigator.pushNamed(
+              context,
+              RouteHelper.getNotificationScreenRoute(),
+            );
+          },
+        ),
         backgroundColor: AppColors.white,
         body: Obx(() {
           labServiceAiController.hasLabCreated.value;

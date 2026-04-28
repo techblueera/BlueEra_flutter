@@ -67,22 +67,35 @@ class _GigWorkOptionsScreenState extends State<GigWorkOptionsScreen>
 
   @override
   Widget build(BuildContext context) {
-      if(userProfessionGlobal == BIKE_RIDER ||
-         userProfessionGlobal == GOODS_TAXI ||
-         userProfessionGlobal == AUTO_TAXI||
-         userProfessionGlobal == CAR_TAXI_DRIVER
-      ){
-        return RiderServiceScreen(
-            fromBottomNavBar: widget.fromBottomNavBar
-        );
-     }  else {
-        return CabAndTransportPartner(
-            fromBottomNavBar: widget.fromBottomNavBar
-        );
-      }
+    final Widget body;
+    if (userProfessionGlobal == BIKE_RIDER ||
+        userProfessionGlobal == GOODS_TAXI ||
+        userProfessionGlobal == AUTO_TAXI ||
+        userProfessionGlobal == CAR_TAXI_DRIVER) {
+      body = RiderServiceScreen(fromBottomNavBar: widget.fromBottomNavBar);
+    } else {
+      body = CabAndTransportPartner(fromBottomNavBar: widget.fromBottomNavBar);
+    }
 
-      // return _buildEarnDisabledScaffold(context);
-
+    return Scaffold(
+      appBar: CommonBackAppBar(
+        showElevation: 0,
+        isDrawerMenu: true,
+        isLeading: false,
+        isMore: true,
+        isProfile: false,
+        isNotification: !isGuestUser(),
+        bellIconNotEmpty: true,
+        isGuestLogout: isGuestUser(),
+        onNotificationTap: () {
+          Navigator.pushNamed(
+            context,
+            RouteHelper.getNotificationScreenRoute(),
+          );
+        },
+      ),
+      body: body,
+    );
   }
 
 

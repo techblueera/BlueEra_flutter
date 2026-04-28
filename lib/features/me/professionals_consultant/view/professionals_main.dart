@@ -8,7 +8,9 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/multipart_image_service.dart';
+import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/features/business/widgets/business_card_ui.dart';
 import 'package:BlueEra/features/common/auth/controller/ai_suggestion_controller.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
@@ -110,6 +112,22 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: CommonBackAppBar(
+        showElevation: 0,
+        isDrawerMenu: true,
+        isLeading: false,
+        isMore: true,
+        isProfile: false,
+        isNotification: !isGuestUser(),
+        bellIconNotEmpty: true,
+        isGuestLogout: isGuestUser(),
+        onNotificationTap: () {
+          Navigator.pushNamed(
+            context,
+            RouteHelper.getNotificationScreenRoute(),
+          );
+        },
+      ),
       body: Obx(() {
         _ctrl.getProfessionalServiceRes?.value;
         _rebuildTabsIfNeeded();
