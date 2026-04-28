@@ -602,18 +602,13 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
               bottomBarController.onChangeIndex(0);
             }
           },
-          child: ConnectMainPage(
-            isHeaderVisible: isVisible,
-            onHeaderVisibilityChanged: _toggleAppBar,
-          ),
+          child: const ConnectMainPage(),
         );
       case 3:
       default:
         return isGuestUser()
             ? GuestDashBoardScreen()
-            : OrderMainChatScreen(
-                onHeaderVisibilityChanged: _toggleAppBar,
-              );
+            : const OrderMainChatScreen();
     }
   }
 

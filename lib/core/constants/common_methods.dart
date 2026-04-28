@@ -163,7 +163,8 @@ String jobDeepLink({String? jobId}) {
 
 /// Generate deep link for a Profile
 String profileDeepLink({String? userId,required String accountType}) {
-  return 'https://blueera.ai/app/profile/${(userId ?? "")}/${accountType}';
+  return 'https://blueera.ai/app/profile/${(userId ?? "")}';
+  // return 'https://blueera.ai/app/profile/${(userId ?? "")}/${accountType}';
 }
 
 /// Generate deep link for a Product item

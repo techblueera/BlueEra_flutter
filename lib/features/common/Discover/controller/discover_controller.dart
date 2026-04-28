@@ -83,11 +83,6 @@ class DiscoverController extends GetxController {
   Set<Marker> markers = {};
   final ScrollController scrollController = ScrollController();
   Rx<LatLng>? currentAddress = LatLng(0.0, 0.0).obs;
-  final GlobalKey headerKey = GlobalKey();
-  Function(bool isVisible)? onHeaderVisibilityChanged;
-  final RxBool isHeaderVisible = true.obs;
-  final RxDouble headerOffset = 0.0.obs;
-  double headerHeight = 0;
 
   final List<DiscoverFilter> discoverFilters = DiscoverFilter.values;
   Rx<DiscoverFilter> selectedDiscoverFilter = DiscoverFilter.home.obs;

@@ -49,14 +49,14 @@ class _GroceryScreenState extends State<GroceryScreen> with SingleTickerProvider
 
   void _initializeTabs() {
     _tabs = [
-      Tab(text: AppStrings.myOrder.tr),
+      // Tab(text: AppStrings.myOrder.tr),
       Tab(text: AppStrings.myStore.tr),
       Tab(text: AppStrings.website.tr),
       Tab(text: AppStrings.statistics.tr),
     ];
 
     _tabViews = [
-      MyGroceryOrders(),
+      // MyGroceryOrders(),
       MyGroceryStoreScreen(),
       const WebsiteTab(),
       const SubscriptionStatusView(),
@@ -83,10 +83,6 @@ class _GroceryScreenState extends State<GroceryScreen> with SingleTickerProvider
         child: BottomNavHideOnScroll(
           child: NestedScrollView(
             headerSliverBuilder: (context, _) => [
-            // Custom AppBar — placed in the sliver header so it scrolls
-            // away with the profile/stats content. The TabBar below stays
-            // pinned. When the user pulls back up, this comes back at the
-            // top of the scroll naturally.
             SliverToBoxAdapter(
               child: SizedBox(
                 height: kToolbarHeight,

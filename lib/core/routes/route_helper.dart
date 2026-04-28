@@ -655,14 +655,7 @@ class RouteHelper {
       // case RouteConstant.SelectAccountScreen:
       //   return MaterialPageRoute(builder: (_) => CreateAccountScreen());
       case RouteConstant.HomeScreen:
-        final args = settings.arguments as Map<String, dynamic>;
-        final onHeaderVisibilityChanged =
-            args[ApiKeys.onHeaderVisibilityChanged] as Function(bool);
-        final isHeaderVisible = args[ApiKeys.isHeaderVisible] as bool;
-        return MaterialPageRoute(
-            builder: (_) => ConnectMainPage(
-                isHeaderVisible: isHeaderVisible,
-                onHeaderVisibilityChanged: onHeaderVisibilityChanged));
+        return MaterialPageRoute(builder: (_) => const ConnectMainPage());
       case RouteConstant.BottomNavigationBarScreen:
         final args = settings.arguments as Map<dynamic, dynamic>?;
         int? initialIndex = args?[ApiKeys.initialIndex];

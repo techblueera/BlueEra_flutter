@@ -9,6 +9,7 @@ import 'package:BlueEra/features/chat/view/orders_chat/orders_chat_list.dart';
 import 'package:BlueEra/features/chat/view/personal_chat/personal_chat_list.dart';
 import 'package:BlueEra/features/chat/auth/controller/call_controller.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
+import 'package:BlueEra/widgets/bottom_nav_hide_on_scroll.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -44,14 +45,13 @@ import '../../../features/personal/personal_profile/view/manage_notification/not
 import 'reminder_chat/reminder_todo_screen.dart';
 
 class OrderMainChatScreen extends StatefulWidget {
-  const OrderMainChatScreen({super.key,
+  const OrderMainChatScreen({
+    super.key,
     this.isNewGroupUI,
-    this.isForwardUI=false,
-    this.onHeaderVisibilityChanged});
+    this.isForwardUI = false,
+  });
   final bool? isForwardUI;
   final bool? isNewGroupUI;
-  final Function(bool)? onHeaderVisibilityChanged;
-
 
   @override
   _OrderMainChatScreenState createState() => _OrderMainChatScreenState();
@@ -210,10 +210,6 @@ class _OrderMainChatScreenState extends State<OrderMainChatScreen>
   }
 
   Widget build(BuildContext context) {
-    Future.delayed(Duration.zero, () {
-      widget.onHeaderVisibilityChanged?.call(true);
-    });
-
     return Obx(() {
       final isSelectionMode = chatViewController.isChatListSelectionMode.value;
       final selectedCount = chatViewController.selectedConversationIds.length;
@@ -251,7 +247,8 @@ class _OrderMainChatScreenState extends State<OrderMainChatScreen>
         //       )),
         // ),
         body: SafeArea(
-          child: NestedScrollView(
+          child: BottomNavHideOnScroll(
+            child: NestedScrollView(
             headerSliverBuilder: (context, innerBoxIsScrolled) {
               return [
                 if (isSelectionMode)
@@ -503,6 +500,7 @@ class _OrderMainChatScreenState extends State<OrderMainChatScreen>
                 ],
               ),
             ),
+          ),
           ),
         ),
       ),

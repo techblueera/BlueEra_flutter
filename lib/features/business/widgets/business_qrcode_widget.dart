@@ -52,9 +52,7 @@ class _BusinessQrCodeWidgetState extends State<BusinessQrCodeWidget> {
 
   @override
   Widget build(BuildContext context) {
-    // Encode the same deep link the share flow uses
-    // (visit_business_common_header → profileDeepLink) so scanning
-    // routes into the BlueEra app / web profile, not a bare id string.
+
     final ownerUserId = widget.data?.userId ?? '';
     if (ownerUserId.isEmpty) return const SizedBox.shrink();
     final qrData = profileDeepLink(

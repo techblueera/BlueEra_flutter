@@ -28,11 +28,11 @@ import 'package:BlueEra/features/common/feed/view/home_feed_screen_new.dart';
 import 'package:BlueEra/features/common/home/controller/home_screen_controller.dart';
 import 'package:BlueEra/features/common/home/controller/symbol_feed_controller.dart';
 import 'package:BlueEra/features/common/ott/view/ott_screen.dart';
+import 'package:BlueEra/widgets/bottom_nav_hide_on_scroll.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:get/get.dart';
 import 'package:flutter_upgrade_version/flutter_upgrade_version.dart';
 import 'package:share_handler/share_handler.dart';
@@ -50,14 +50,7 @@ enum SavedFeedTab {
 }
 
 class ConnectMainPage extends StatefulWidget {
-  final bool isHeaderVisible;
-  final Function(bool isVisible) onHeaderVisibilityChanged;
-
-  ConnectMainPage({
-    super.key,
-    required this.isHeaderVisible,
-    required this.onHeaderVisibilityChanged,
-  });
+  const ConnectMainPage({super.key});
 
   @override
   State<ConnectMainPage> createState() => _ConnectMainPageState();
@@ -213,8 +206,10 @@ class _ConnectMainPageState extends State<ConnectMainPage>
 
   void _toggleAppBarAndBottomNav(bool visible) {
     if (!mounted) return;
+    // Bottom-nav visibility is now handled by `BottomNavHideOnScroll`
+    // wrapping the page; this only updates the local header offset
+    // controller used by feed children.
     homeScreenController.isVisible.value = visible;
-    widget.onHeaderVisibilityChanged.call(visible);
   }
 
   Widget _buildCustomAppBar() {
@@ -368,17 +363,7 @@ class _ConnectMainPageState extends State<ConnectMainPage>
                 ),
               )
             : null,
-        body: NotificationListener<UserScrollNotification>(
-          onNotification: (notification) {
-            if (notification.metrics.axis == Axis.vertical) {
-              if (notification.direction == ScrollDirection.reverse) {
-                _toggleAppBarAndBottomNav(false);
-              } else if (notification.direction == ScrollDirection.forward) {
-                _toggleAppBarAndBottomNav(true);
-              }
-            }
-            return false;
-          },
+        body: BottomNavHideOnScroll(
           child: NestedScrollView(
             headerSliverBuilder: (context, innerBoxIsScrolled) {
               return [
@@ -452,7 +437,6 @@ class _ConnectMainPageState extends State<ConnectMainPage>
 
   void resetScrollingOnTabChanged() {
     homeScreenController.isVisible.value = true;
-    widget.onHeaderVisibilityChanged.call(homeScreenController.isVisible.value);
     homeScreenController.headerOffset.value = 0.0;
   }
 

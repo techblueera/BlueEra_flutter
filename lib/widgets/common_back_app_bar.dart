@@ -340,6 +340,21 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                   ),
                 ),
 
+              // Custom title widget renders here (left, before the Spacer)
+              // so it sits next to the back button like a normal title —
+              // the older slot at the end of the Row pushed it to the right.
+              if (isCustomTitleWidget != null)
+                Flexible(
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                      left: (isLeading == true) ? 0 : SizeConfig.size20,
+                    ),
+                    child: Builder(
+                      builder: (context) => isCustomTitleWidget!(),
+                    ),
+                  ),
+                ),
+
               if (isSearch == true &&
                   Get.find<AuthController>().isSearchOpen.value)
                 Expanded(
@@ -459,10 +474,6 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                   itemBuilder: (context) => PopupMenuBuilders.inventoryPopupMenuItems(),
                 ),
 
-              if (isCustomTitleWidget != null)
-                Builder(
-                  builder: (context) => isCustomTitleWidget!(),
-                ),
             ],
           );
         }),
