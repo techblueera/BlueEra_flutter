@@ -1,8 +1,11 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/widgets/business_profile_header_view.dart';
 import 'package:BlueEra/features/business/widgets/business_stats.dart';
@@ -57,6 +60,22 @@ class _FoodMainScreenState extends State<FoodMainScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: CommonBackAppBar(
+        showElevation: 0,
+        isDrawerMenu: true,
+        isLeading: false,
+        isMore: true,
+        isProfile: false,
+        isNotification: !isGuestUser(),
+        bellIconNotEmpty: true,
+        isGuestLogout: isGuestUser(),
+        onNotificationTap: () {
+          Navigator.pushNamed(
+            context,
+            RouteHelper.getNotificationScreenRoute(),
+          );
+        },
+      ),
       backgroundColor: AppColors.white,
       body: SafeArea(
         child: NestedScrollView(

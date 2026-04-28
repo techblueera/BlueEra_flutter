@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -15,6 +16,7 @@ import 'package:BlueEra/features/me/product/controller/product_business_profile_
 import 'package:BlueEra/features/subscription/view/subscription_status_view.dart';
 import 'package:BlueEra/features/me/product/view/product_home_screen.dart';
 import 'package:BlueEra/features/business/widgets/empty_website_tab.dart';
+import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -189,6 +191,22 @@ class _InventoryScreenState extends State<InventoryScreen>
     }
 
     return Scaffold(
+      appBar: CommonBackAppBar(
+        showElevation: 0,
+        isDrawerMenu: true,
+        isLeading: false,
+        isMore: true,
+        isProfile: false,
+        isNotification: !isGuestUser(),
+        bellIconNotEmpty: true,
+        isGuestLogout: isGuestUser(),
+        onNotificationTap: () {
+          Navigator.pushNamed(
+            context,
+            RouteHelper.getNotificationScreenRoute(),
+          );
+        },
+      ),
       backgroundColor: AppColors.white,
       // appBar: PreferredSize(
       //   preferredSize: Size.fromHeight(kToolbarHeight + 50),
