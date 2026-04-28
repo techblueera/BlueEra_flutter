@@ -27,6 +27,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/self_employed/vi
 import 'package:BlueEra/features/personal/personal_profile/view/widget/edit_profile_bottom_sheet.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/profile_designation_bottom_sheet.dart';
 import 'package:BlueEra/features/subscription/view/subscription_status_view.dart';
+import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/common_circular_profile_image.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -128,6 +129,22 @@ class _SelfEmployeeDashboardViewState extends State<SelfEmployeeDashboardView>
       }
 
       return Scaffold(
+        appBar: CommonBackAppBar(
+          showElevation: 0,
+          isDrawerMenu: true,
+          isLeading: false,
+          isMore: true,
+          isProfile: false,
+          isNotification: !isGuestUser(),
+          bellIconNotEmpty: true,
+          isGuestLogout: isGuestUser(),
+          onNotificationTap: () {
+            Navigator.pushNamed(
+              context,
+              RouteHelper.getNotificationScreenRoute(),
+            );
+          },
+        ),
         body: SafeArea(
           child: NestedScrollView(
             headerSliverBuilder: (context, innerBoxIsScrolled) => [
@@ -265,30 +282,37 @@ class _SelfEmployeeDashboardViewState extends State<SelfEmployeeDashboardView>
                   );
                 }),
                 const Spacer(),
-                _coverAssetIconButton(
-                  assetPath: AppIconAssets.clockIcon,
-                  onTap: () async => await Get.toNamed(
-                    RouteHelper.getAvailabilityScreenRoute(),
-                    arguments: {ApiKeys.argId: userId},
-                  ),
-                ),
-                Obx(() {
-                  final earnType = _viewCtrl.earnProfileType.value;
-                  final hasEarnProfile =
-                      earnType != null && earnType.isNotEmpty;
-                  if (hasEarnProfile) return const SizedBox.shrink();
-                  return Padding(
-                    padding: const EdgeInsets.only(left: 8),
-                    child: _coverIconButton(
-                      icon: Icons.add,
-                      onTap: () => Get.to(() => const chooseEarnServiceScreen()),
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    _coverAssetIconButton(
+                      assetPath: AppIconAssets.clockIcon,
+                      onTap: () async => await Get.toNamed(
+                        RouteHelper.getAvailabilityScreenRoute(),
+                        arguments: {ApiKeys.argId: userId},
+                      ),
                     ),
-                  );
-                }),
-                const SizedBox(width: 8),
-                _coverIconButton(
-                  icon: Icons.camera_alt_outlined,
-                  onTap: () => _onCoverImageEdit(context),
+                    Obx(() {
+                      final earnType = _viewCtrl.earnProfileType.value;
+                      final hasEarnProfile =
+                          earnType != null && earnType.isNotEmpty;
+                      if (hasEarnProfile) return const SizedBox.shrink();
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: _coverIconButton(
+                          icon: Icons.add,
+                          onTap: () =>
+                              Get.to(() => const chooseEarnServiceScreen()),
+                        ),
+                      );
+                    }),
+                    const SizedBox(height: 8),
+                    _coverIconButton(
+                      icon: Icons.camera_alt_outlined,
+                      onTap: () => _onCoverImageEdit(context),
+                    ),
+                  ],
                 ),
               ],
             ),

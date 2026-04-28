@@ -728,6 +728,8 @@ enum PostType {
   // visitingChannelPosts
 }
 
+enum SymbolPostType { image, video, text, link }
+
 enum PaymentMethod { upi, card }
 
 enum SortBy {

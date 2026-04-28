@@ -6,8 +6,14 @@ import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 
+import 'package:BlueEra/features/chat/auth/controller/add_chat_symbol_controller.dart';
+import 'package:BlueEra/features/chat/view/add_symbol/add_symbol_screen.dart';
+import 'package:BlueEra/features/chat/view/personal_chat/personal_chat_list.dart';
+import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
+import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/features/common/channel_feed_view/channel_feed_controllar.dart';
 import 'package:BlueEra/features/common/channel_feed_view/channel_feed_screen.dart';
 import 'package:BlueEra/features/common/feed/view/home_feed_screen_new.dart';
@@ -55,20 +61,24 @@ class _HomeScreenState extends State<HomeScreen> {
   double _appBarHeight = 0;
   double _tabsHeight = 0;
   final List<String> iconTab = [
-    AppIconAssets.message_post,
+    AppIconAssets.chat,
     AppIconAssets.community_tab,
+    AppIconAssets.message_post,
     // AppIconAssets.ott_tab,
     // AppIconAssets.save_tab,
   ];
   final List<String> postTab = [
-    AppStrings.lekha,
+    AppStrings.chat,
     AppStrings.community,
+    AppStrings.lekha,
   ];
   int selectedIndex = 0;
   final TextEditingController searchController = TextEditingController();
   final homeScreenController = Get.put(HomeScreenController());
   final symbolFeedController = Get.put(SymbolFeedController());
-  final LanguageListController langController = Get.find<LanguageListController>();
+  final addSymbolController = getOrPut(() => AddChatSymbolController());
+  final LanguageListController langController =
+      getOrPut(() => LanguageListController());
 
   late PageController _pageController;
 
@@ -206,7 +216,6 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildCustomAppBar() {
     return CommonBackAppBar(
       showElevation: 0,
-      isDrawerMenu: true,
       isLeading: false,
       isMore: true,
       isSearch: true,
@@ -216,6 +225,7 @@ class _HomeScreenState extends State<HomeScreen> {
       isGuestLogout: isGuestUser(),
       controller: searchController,
       onClearCallback: () => searchController.clear(),
+      leadingWidget: _buildSymbolAvatar(),
       onNotificationTap: () {
         Navigator.pushNamed(
           context,
@@ -224,6 +234,70 @@ class _HomeScreenState extends State<HomeScreen> {
       },
       // onProfileTap: widget.onProfileTap,
     );
+  }
+
+  Widget _buildSymbolAvatar() {
+    return Obx(() {
+      final hasSymbols = addSymbolController.mySymbols.isNotEmpty;
+      return Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(2.4),
+            decoration: hasSymbols
+                ? const BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: SweepGradient(
+                      startAngle: 0.0,
+                      endAngle: 6.28319,
+                      colors: [
+                        AppColors.symbolBorderRed,
+                        AppColors.symbolBorderBlue,
+                        AppColors.symbolBorderYellow,
+                        AppColors.symbolBorderGreen,
+                        AppColors.symbolBorderRed,
+                      ],
+                    ),
+                  )
+                : null,
+            child: Container(
+              padding: const EdgeInsets.all(2),
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white,
+              ),
+              child: CachedAvatarWidget(
+                imageUrl: Get.find<AuthController>().imgPath.value,
+                size: SizeConfig.size36,
+                borderRadius: SizeConfig.size34 / 2,
+                showProfileOnFullScreen: false,
+              ),
+            ),
+          ),
+          Positioned(
+            top: 0,
+            right: 0,
+            child: InkWell(
+              onTap: () {
+                Get.to(() => AddChatSymbolScreen());
+              },
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(4),
+                  color: AppColors.primaryColor,
+                ),
+                padding: const EdgeInsets.all(1.4),
+                child: const Icon(
+                  Icons.add,
+                  color: AppColors.white,
+                  size: 15,
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
+    });
   }
 
   @override
@@ -258,6 +332,14 @@ class _HomeScreenState extends State<HomeScreen> {
                       });
                     },
                     children: [
+                      Padding(
+                        padding: EdgeInsets.only(top: _tabsHeight),
+                        child: PersonalChatsList(),
+                      ),
+                      ChannelFeedScreen(
+                        headerHeight: _headerHeight,
+                        onHeaderVisibilityChanged: _toggleAppBarAndBottomNav,
+                      ),
                       HomeFeedScreenNew(
                         key: const ValueKey('feedScreen_all'),
                         onHeaderVisibilityChanged: _toggleAppBarAndBottomNav,
@@ -267,10 +349,6 @@ class _HomeScreenState extends State<HomeScreen> {
                             : searchController.text,
                         headerHeight: _headerHeight,
                         isInParentScroll: false,
-                      ),
-                      ChannelFeedScreen(
-                        headerHeight: _headerHeight,
-                        onHeaderVisibilityChanged: _toggleAppBarAndBottomNav,
                       ),
                     ],
                   ),
@@ -339,6 +417,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 imagePath: iconTab[index],
                                                 width: 16,
                                                 height: 16,
+                                                imgColor: isSelected
+                                                    ? AppColors.black28
+                                                    : AppColors
+                                                        .secondaryTextColor,
                                               ),
                                               SizedBox(
                                                 width: 3,

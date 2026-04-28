@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/features/common/post/controller/message_post_controller.dart';
@@ -96,13 +97,13 @@ class _CreateMessagePostScreenState extends State<CreateMessagePostScreen> {
                 width: double.infinity,
                 alignment: Alignment.center,
                 padding: const EdgeInsets.all(20),
-                child: controller.selectedPostType.value == PostType.link
+                child: controller.selectedSymbolPostType.value == SymbolPostType.link
                     ? _buildLinkStickerPreview()
                     : _buildTextMessageEditor(),
               ),
             )),
 
-        if (controller.selectedPostType.value == PostType.link) ...[
+        if (controller.selectedSymbolPostType.value == SymbolPostType.link) ...[
           const SizedBox(height: 16),
           _buildLinkInputRow(),
         ],
@@ -166,7 +167,7 @@ class _CreateMessagePostScreenState extends State<CreateMessagePostScreen> {
         ),
 
         // Font customization (only for text posts)
-        if (controller.selectedPostType.value != PostType.link) ...[
+        if (controller.selectedSymbolPostType.value != SymbolPostType.link) ...[
           const SizedBox(height: 24),
           _buildDivider(),
           const SizedBox(height: 20),

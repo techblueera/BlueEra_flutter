@@ -88,6 +88,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
       this.onProfileTap,
       this.isPDFExport,
       this.isDrawerMenu = false,
+      this.leadingWidget,
       this.onPDFExportTap,
       this.jobID,
       this.jobStatus,
@@ -178,6 +179,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
   final bool? isSettingButton;
   final bool? isAddPlace;
   final bool? isDrawerMenu;
+  final Widget? leadingWidget;
   final bool? isEndJourney;
   final OnTab? onEndJourneyTap;
   final OnTab? onAddPlaceTap;
@@ -261,6 +263,11 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                     )),
 
               // if (isLeading ?? false) SizedBox(width: SizeConfig.paddingXSL),
+              if (leadingWidget != null)
+                Padding(
+                  padding: const EdgeInsets.only(left: 15.0, top: 6),
+                  child: leadingWidget!,
+                ),
               if (isDrawerMenu ?? false)
                 Padding(
                   padding: const EdgeInsets.only(left: 15.0, top: 10),
@@ -335,57 +342,24 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                 ),
 
               if (isSearch == true &&
-                  Get.find<AuthController>().isSearchOpen.value == false)
-                Spacer(),
-              if (isSearch ?? false)
-                if (controller == null)
-                  SizedBox()
-                else
-                  (Get.find<AuthController>().isSearchOpen.value)
-                      ? Expanded(
-                          child: Padding(
-                            padding: EdgeInsets.only(
-                                left: (isLeading ?? false)
-                                    ? 0.0
-                                    : SizeConfig.size15,
-                                top: 10),
-                            child: CommonSearchBar(
-                                controller: controller!,
-                                isShowCursor: isShowCursor,
-                                onSearchTap: onSearchTap ?? () {},
-                                onClearCallback: onClearCallback,
-                                hintText: searchHintText),
-                          ),
-                        )
-                      : SizedBox(),
-
-              if (isSearch == true && isSearchOn == false)
-                InkWell(
-                    onTap: () {
-                      Get.find<AuthController>().isSearchOpen.value =
-                          !Get.find<AuthController>().isSearchOpen.value;
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: 10.0),
-                      child: LocalAssets(
-                        imagePath: AppIconAssets.search,
-                        height: 28,
-                        width: 28,
-                      ),
-                    )),
-              if (isSearch == true && isSearchOn)
-                Padding(
-                  padding: EdgeInsetsGeometry.only(left: 12),
-                  child: InkWell(
-                      onTap: () {
-                        Get.find<AuthController>().isSearchOpen.value =
-                            !Get.find<AuthController>().isSearchOpen.value;
-                      },
-                      child: Icon(
-                        Icons.search_off,
-                        size: 25,
-                      )),
+                  Get.find<AuthController>().isSearchOpen.value)
+                Expanded(
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                        left:
+                            (isLeading ?? false) ? 0.0 : SizeConfig.size15,
+                        top: 10),
+                    child: CommonSearchBar(
+                        controller: controller!,
+                        isShowCursor: isShowCursor,
+                        onSearchTap: onSearchTap ?? () {},
+                        onClearCallback: onClearCallback,
+                        hintText: searchHintText),
+                  ),
                 ),
+              if (!(isSearch == true &&
+                  Get.find<AuthController>().isSearchOpen.value))
+                Spacer(),
               if (isGoLive ?? false)
                 Builder(
                   builder: (context) => Row(
@@ -410,18 +384,6 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                     ),
                   ),
                 ),
-
-              if (isNotification == true &&
-                  Get.find<AuthController>().isSearchOpen.value == false)
-                Builder(builder: (context) {
-                  return Padding(
-                    padding: EdgeInsets.only(left: SizeConfig.size15, top: 10),
-                    child: InkWell(
-                        onTap: () => onNotificationTap?.call(),
-                        child: LocalAssets(
-                            imagePath: AppIconAssets.notificationOutlineIcon)),
-                  );
-                }),
 
               if (iClearButton ?? false)
                 Builder(
@@ -453,41 +415,6 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                       ),
                     ),
                   ),
-                ),
-
-              if (isMore ?? false)
-                PopupMenuButton<PostCreationMenu>(
-                  padding: EdgeInsets.zero,
-                  offset: const Offset(-6, 36),
-                  color: AppColors.white,
-                  elevation: 8,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10)),
-                  onSelected: (value) async {
-                    if (isGuestUser()) {
-                      createProfileScreen();
-                    } else if (value == PostCreationMenu.message ||
-                        value == PostCreationMenu.poll) {
-                      postVia(context, value);
-                    } else if (value == PostCreationMenu.jobPost) {
-                      Get.toNamed(RouteHelper.getCreateJobPostScreenRoute(),
-                          arguments: {
-                            'isEditMode': false,
-                            'jobId': '',
-                            'createJobVia': 'business',
-                          });
-                    } else if (value == PostCreationMenu.symbol) {
-                      Get.to(() => AddChatSymbolScreen());
-                    }
-                  },
-                  icon: Padding(
-                    padding: const EdgeInsets.only(top: 10.0),
-                    child: LocalAssets(
-                      imagePath: AppIconAssets.addOutlinedIcon,
-                      imgColor: AppColors.primaryColor,
-                    ),
-                  ),
-                  itemBuilder: (context) => PopupMenuBuilders.popupMenuItems(),
                 ),
 
               if (isResumeCardButton ?? false)
@@ -543,6 +470,80 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
         }),
       ),
       actions: [
+        if (isSearch == true &&
+            Get.find<AuthController>().isSearchOpen.value == false)
+          Padding(
+            padding: const EdgeInsets.only(right: 14.0, top: 10.0),
+            child: InkWell(
+              onTap: () {
+                Get.find<AuthController>().isSearchOpen.value =
+                    !Get.find<AuthController>().isSearchOpen.value;
+              },
+              child: LocalAssets(
+                imagePath: AppIconAssets.search,
+                height: 28,
+                width: 28,
+              ),
+            ),
+          ),
+        if (isSearch == true &&
+            Get.find<AuthController>().isSearchOpen.value)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            child: InkWell(
+              onTap: () {
+                Get.find<AuthController>().isSearchOpen.value =
+                    !Get.find<AuthController>().isSearchOpen.value;
+              },
+              child: const Icon(
+                Icons.search_off,
+                size: 25,
+              ),
+            ),
+          ),
+        if (isNotification == true &&
+            Get.find<AuthController>().isSearchOpen.value == false)
+          Padding(
+            padding: const EdgeInsets.only(top: 10, right: 14.0),
+            child: InkWell(
+                onTap: () => onNotificationTap?.call(),
+                child: LocalAssets(
+                    imagePath: AppIconAssets.notificationOutlineIcon)),
+          ),
+        if (isMore ?? false)
+          PopupMenuButton<PostCreationMenu>(
+            padding: EdgeInsets.zero,
+            offset: const Offset(0, 36),
+            color: AppColors.white,
+            elevation: 8,
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10)),
+            onSelected: (value) async {
+              if (isGuestUser()) {
+                createProfileScreen();
+              } else if (value == PostCreationMenu.message ||
+                  value == PostCreationMenu.poll) {
+                postVia(context, value);
+              } else if (value == PostCreationMenu.jobPost) {
+                Get.toNamed(RouteHelper.getCreateJobPostScreenRoute(),
+                    arguments: {
+                      'isEditMode': false,
+                      'jobId': '',
+                      'createJobVia': 'business',
+                    });
+              } else if (value == PostCreationMenu.symbol) {
+                Get.to(() => AddChatSymbolScreen());
+              }
+            },
+            itemBuilder: (context) => PopupMenuBuilders.popupMenuItems(),
+            child: Padding(
+              padding: const EdgeInsets.only(top: 10.0, right: 14.0),
+              child: LocalAssets(
+                imagePath: AppIconAssets.addOutlinedIcon,
+                imgColor: AppColors.primaryColor,
+              ),
+            ),
+          ),
         if (buildCustomActionWidget != null)
           Builder(
             builder: (context) => buildCustomActionWidget!(),

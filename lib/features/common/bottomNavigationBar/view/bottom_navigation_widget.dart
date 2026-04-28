@@ -90,10 +90,11 @@ class BottomNavigationBarWidget extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               _buildNavItem(
-                index: 0,
-                iconPath: AppIconAssets.home,
-                isSelected: currentIndex == 0,
-                label: AppStrings.home,
+                index: 2,
+                iconPath: AppIconAssets.menIcon,
+                isSelected: currentIndex == 2,
+                label: AppStrings.me,
+                // isCenter: true, // 👈 center icon
               ),
               _buildNavItem(
                 index: 1,
@@ -102,11 +103,10 @@ class BottomNavigationBarWidget extends StatelessWidget {
                 label: AppStrings.discover,
               ),
               _buildNavItem(
-                index: 2,
-                iconPath: AppIconAssets.menIcon,
-                isSelected: currentIndex == 2,
-                label: AppStrings.me,
-                // isCenter: true, // 👈 center icon
+                index: 0,
+                iconPath: AppIconAssets.home,
+                isSelected: currentIndex == 0,
+                label: 'Connect',
               ),
               // _buildNavItem(
               //   index: 3,
@@ -118,7 +118,7 @@ class BottomNavigationBarWidget extends StatelessWidget {
                 index: 3,
                 iconPath: AppIconAssets.chat,
                 isSelected: currentIndex == 3,
-                label: AppStrings.chat,
+                label: 'Order',
                 showBadge: chatNotificationCount > 0,
                 badgeText: "$chatNotificationCount",
               ),

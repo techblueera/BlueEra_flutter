@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
+import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
@@ -23,8 +24,6 @@ import '../model/symbol_details_model.dart';
 import '../repo/chat_view_repo.dart';
 import '../repo/symbol_repo.dart';
 
-enum PostType { image, video, text, link }
-
 enum PostVisibility { public, private, custom }
 
 class AddChatSymbolController extends GetxController {
@@ -33,7 +32,7 @@ class AddChatSymbolController extends GetxController {
   RxList<File> imagesList = <File>[].obs;
   RxList<SymbolDetailsModel> mySymbols = <SymbolDetailsModel>[].obs;
   final SymbolRepo symbolRepo = SymbolRepo();
-  Rx<PostType?> selectedPostType = Rx<PostType?>(null);
+  Rx<SymbolPostType?> selectedSymbolPostType = Rx<SymbolPostType?>(null);
   RxMap<String, File> videoThumbnails = <String, File>{}.obs;
   RxString selectedBgImage = ''.obs,
       selectedFontFamily = 'OpenSans'.obs,
@@ -141,10 +140,10 @@ class AddChatSymbolController extends GetxController {
     showDurationSelector.toggle();
   }
 
-  void choosePostType(PostType? type) {
+  void choosePostType(SymbolPostType? type) {
     imagesList.clear();
     linkTextSymbolController.clear();
-    selectedPostType.value = type;
+    selectedSymbolPostType.value = type;
   }
 
   void setVisibility(PostVisibility v) {
@@ -191,7 +190,7 @@ class AddChatSymbolController extends GetxController {
       final List<XFile> images = await picker.pickMultiImage();
       if (images.isEmpty) return;
       final files = images.map((e) => File(e.path)).toList();
-      choosePostType(PostType.image);
+      choosePostType(SymbolPostType.image);
       imagesList.addAll(files);
       logs("imagesList    ${imagesList}");
     } else {
@@ -214,7 +213,7 @@ class AddChatSymbolController extends GetxController {
       print("✅ Trimmed Video Path: $trimmedPath");
       // final files = result.paths.map((e) => File(e!)).toList();
       final videoTriFile = File(trimmedPath);
-      choosePostType(PostType.video);
+      choosePostType(SymbolPostType.video);
 
       imagesList.value = [videoTriFile];
       _generateThumbnail(videoTriFile);
@@ -290,13 +289,13 @@ class AddChatSymbolController extends GetxController {
   }
 
   bool itTextOrLinkPost() {
-    return selectedPostType.value == PostType.text ||
-        selectedPostType.value == PostType.link;
+    return selectedSymbolPostType.value == SymbolPostType.text ||
+        selectedSymbolPostType.value == SymbolPostType.link;
   }
 
   bool itMediaPost() {
-    return selectedPostType.value == PostType.image ||
-        selectedPostType.value == PostType.video;
+    return selectedSymbolPostType.value == SymbolPostType.image ||
+        selectedSymbolPostType.value == SymbolPostType.video;
   }
 
   Future<bool> createSymbol() async {
@@ -327,25 +326,25 @@ class AddChatSymbolController extends GetxController {
       exceptContactList.value =
           onExceptContactSelectedList.map((e) => e.id).toList();
       Map<String, dynamic> params = {
-        ApiKeys.type: selectedPostType.value == PostType.image
+        ApiKeys.type: selectedSymbolPostType.value == SymbolPostType.image
             ? "photo"
-            : selectedPostType.value == PostType.video
+            : selectedSymbolPostType.value == SymbolPostType.video
                 ? "video"
-                : selectedPostType.value == PostType.text
+                : selectedSymbolPostType.value == SymbolPostType.text
                     ? "text"
                     : "embeddedUrl",
         ApiKeys.content: itTextOrLinkPost()
             ? linkTextSymbolController.text
             : MediaUploadRes?.files?.first.publicUrl,
-        if (selectedPostType.value == PostType.text ||
-            selectedPostType.value == PostType.link)
+        if (selectedSymbolPostType.value == SymbolPostType.text ||
+            selectedSymbolPostType.value == SymbolPostType.link)
           ApiKeys.backgroundColor:
               "#${selectedBgColor.value.value.toRadixString(16).padLeft(8, '0').substring(2).toUpperCase()}",
-        if (selectedPostType.value == PostType.text)
+        if (selectedSymbolPostType.value == SymbolPostType.text)
           ApiKeys.fontFamily: selectedFontFamily.value,
-        if (selectedPostType.value == PostType.text)
+        if (selectedSymbolPostType.value == SymbolPostType.text)
           ApiKeys.fontSize: selectedFontSize.value,
-        if (selectedPostType.value == PostType.text)
+        if (selectedSymbolPostType.value == SymbolPostType.text)
           ApiKeys.fontWeight: "${selectedFontWeight.value}",
         ApiKeys.caption: "${captionController.text}",
         ApiKeys.duration_days: selectedDays.value,
@@ -416,7 +415,7 @@ class AddChatSymbolController extends GetxController {
   }
 
   void clearData() {
-    selectedPostType.value = null;
+    selectedSymbolPostType.value = null;
     isPosting.value = false;
     captionController.clear();
     linkTextSymbolController.clear();

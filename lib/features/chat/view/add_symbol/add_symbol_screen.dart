@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/chat/view/add_symbol/widgets/add_message_symbol.dart';
 import 'package:BlueEra/features/chat/view/add_symbol/widgets/bottom_caption_field.dart';
@@ -56,9 +57,9 @@ class _AddChatSymbolScreenState extends State<AddChatSymbolScreen>
       final text = widget.sharedText!;
       final isLink = Uri.tryParse(text)?.hasScheme ?? false;
       if (isLink) {
-        controller.choosePostType(PostType.link);
+        controller.choosePostType(SymbolPostType.link);
       } else {
-        controller.choosePostType(PostType.text);
+        controller.choosePostType(SymbolPostType.text);
       }
       controller.linkTextSymbolController.text = text;
     }
@@ -68,7 +69,7 @@ class _AddChatSymbolScreenState extends State<AddChatSymbolScreen>
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async {
-        if (controller.selectedPostType.value != null) {
+        if (controller.selectedSymbolPostType.value != null) {
           controller.clearData();
           return false;
         }
@@ -97,7 +98,7 @@ class _AddChatSymbolScreenState extends State<AddChatSymbolScreen>
                   size: 18, color: Color(0xFF2D3142)),
             ),
             onPressed: () {
-              if (controller.selectedPostType.value != null) {
+              if (controller.selectedSymbolPostType.value != null) {
                 controller.clearData();
               } else {
                 Get.back();
@@ -198,7 +199,7 @@ class _AddChatSymbolScreenState extends State<AddChatSymbolScreen>
                     ),
 
                     // Text/Link editor
-                    if (controller.selectedPostType.value != null &&
+                    if (controller.selectedSymbolPostType.value != null &&
                         controller.itTextOrLinkPost()) ...[
                       const SizedBox(height: 16),
                       _buildSection(
@@ -207,7 +208,7 @@ class _AddChatSymbolScreenState extends State<AddChatSymbolScreen>
                     ],
 
                     // Caption + Options
-                    if (controller.selectedPostType.value != null) ...[
+                    if (controller.selectedSymbolPostType.value != null) ...[
                       const SizedBox(height: 16),
                       _buildSection(
                         child: Column(
@@ -269,19 +270,19 @@ class _AddChatSymbolScreenState extends State<AddChatSymbolScreen>
   }
 
   Widget _buildStepIndicator() {
-    final type = controller.selectedPostType.value;
-    final String label = type == PostType.image
+    final type = controller.selectedSymbolPostType.value;
+    final String label = type == SymbolPostType.image
         ? AppStrings.photoSymbol.tr
-        : type == PostType.video
+        : type == SymbolPostType.video
             ? AppStrings.videoSymbol.tr
-            : type == PostType.text
+            : type == SymbolPostType.text
                 ? AppStrings.textSymbol.tr
                 : AppStrings.linkSymbol.tr;
-    final icon = type == PostType.image
+    final icon = type == SymbolPostType.image
         ? Icons.photo_rounded
-        : type == PostType.video
+        : type == SymbolPostType.video
             ? Icons.videocam_rounded
-            : type == PostType.text
+            : type == SymbolPostType.text
                 ? Icons.text_fields_rounded
                 : Icons.link_rounded;
 

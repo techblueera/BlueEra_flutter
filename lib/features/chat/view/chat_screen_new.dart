@@ -397,8 +397,8 @@ class _NewChatMainScreenState extends State<NewChatMainScreen>
                       unselectedLabelColor: Colors.black54,
                       indicatorColor: Colors.lightBlue,
                       tabs:  [
-                        Tab(text: "Personal"),
-                        Tab(text: "Business"),
+                        Tab(text: "Leads"),
+                        Tab(text: "Inquiry"),
                         // Tab(text: "Finder"),
                         Tab(text: "Orders"),
                       ],

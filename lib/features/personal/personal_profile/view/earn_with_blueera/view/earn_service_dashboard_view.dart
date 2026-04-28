@@ -1,7 +1,10 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/controller/earn_service_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/controller/self_work_service_controller.dart';
@@ -13,6 +16,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueer
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/earn_service_profile_selector.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/earn_service_website_card.dart';
 import 'package:BlueEra/features/subscription/view/subscription_status_view.dart';
+import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -57,6 +61,22 @@ class _EarnServiceDashboardViewState extends State<EarnServiceDashboardView>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: CommonBackAppBar(
+        showElevation: 0,
+        isDrawerMenu: true,
+        isLeading: false,
+        isMore: true,
+        isProfile: false,
+        isNotification: !isGuestUser(),
+        bellIconNotEmpty: true,
+        isGuestLogout: isGuestUser(),
+        onNotificationTap: () {
+          Navigator.pushNamed(
+            context,
+            RouteHelper.getNotificationScreenRoute(),
+          );
+        },
+      ),
       body: SafeArea(
         child: NestedScrollView(
         headerSliverBuilder: (context, _) => [

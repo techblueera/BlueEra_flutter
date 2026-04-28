@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui';
 
+import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
@@ -31,28 +32,28 @@ class _SymbolUploadWidgetState extends State<SymbolUploadWidget> {
       subtitle: AppStrings.upToFourImages.tr,
       icon: Icons.photo_rounded,
       gradient: const [Color(0xFF667EEA), Color(0xFF764BA2)],
-      type: PostType.image,
+      type: SymbolPostType.image,
     ),
     _SymbolTypeOption(
       label: AppStrings.video.tr,
       subtitle: AppStrings.recordOrPick.tr,
       icon: Icons.videocam_rounded,
       gradient: const [Color(0xFFFF6B6B), Color(0xFFEE5A24)],
-      type: PostType.video,
+      type: SymbolPostType.video,
     ),
     _SymbolTypeOption(
       label: AppStrings.textLabel.tr,
       subtitle: AppStrings.shareThoughts.tr,
       icon: Icons.text_fields_rounded,
       gradient: const [Color(0xFF11998E), Color(0xFF38EF7D)],
-      type: PostType.text,
+      type: SymbolPostType.text,
     ),
     _SymbolTypeOption(
       label: AppStrings.linkLabel.tr,
       subtitle: AppStrings.shareAUrl.tr,
       icon: Icons.link_rounded,
       gradient: const [Color(0xFFF7971E), Color(0xFFFFD200)],
-      type: PostType.link,
+      type: SymbolPostType.link,
     ),
   ];
 
@@ -60,14 +61,14 @@ class _SymbolUploadWidgetState extends State<SymbolUploadWidget> {
   Widget build(BuildContext context) {
     return Obx(() {
       final hasMedia = controller.imagesList.isNotEmpty;
-      final isPhoto = controller.selectedPostType.value == PostType.image;
-      final isVideo = controller.selectedPostType.value == PostType.video;
+      final isPhoto = controller.selectedSymbolPostType.value == SymbolPostType.image;
+      final isVideo = controller.selectedSymbolPostType.value == SymbolPostType.video;
 
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // --- INITIAL TYPE SELECTOR ---
-          if (controller.selectedPostType.value == null) ...[
+          if (controller.selectedSymbolPostType.value == null) ...[
             CustomText(
               AppStrings.whatWouldYouLikeToShare.tr,
               color: const Color(0xFF2D3142),
@@ -127,9 +128,9 @@ class _SymbolUploadWidgetState extends State<SymbolUploadWidget> {
   Widget _buildTypeCard(_SymbolTypeOption option) {
     return GestureDetector(
       onTap: () {
-        if (option.type == PostType.image) {
+        if (option.type == SymbolPostType.image) {
           if (controller.imagesList.length < 4) controller.pickMedia();
-        } else if (option.type == PostType.video) {
+        } else if (option.type == SymbolPostType.video) {
           controller.pickVideoMedia();
         } else {
           controller.choosePostType(option.type);
@@ -210,7 +211,7 @@ class _SymbolUploadWidgetState extends State<SymbolUploadWidget> {
   // ─── MEDIA HEADER (count + add more) ───────────────────────────────
 
   Widget _buildMediaHeader() {
-    final isPhoto = controller.selectedPostType.value == PostType.image;
+    final isPhoto = controller.selectedSymbolPostType.value == SymbolPostType.image;
     final count = controller.imagesList.length;
 
     return Row(
@@ -687,7 +688,7 @@ class _SymbolUploadWidgetState extends State<SymbolUploadWidget> {
   // ─── EMPTY STATE PLACEHOLDER ───────────────────────────────────────
 
   Widget _buildEmptyMediaPlaceholder() {
-    final isPhoto = controller.selectedPostType.value == PostType.image;
+    final isPhoto = controller.selectedSymbolPostType.value == SymbolPostType.image;
     final option = isPhoto ? _options[0] : _options[1];
 
     return GestureDetector(
@@ -971,7 +972,7 @@ class _SymbolTypeOption {
   final String subtitle;
   final IconData icon;
   final List<Color> gradient;
-  final PostType type;
+  final SymbolPostType type;
 
   _SymbolTypeOption({
     required this.label,
