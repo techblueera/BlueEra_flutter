@@ -352,7 +352,6 @@ class _ConnectMainPageState extends State<ConnectMainPage>
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        backgroundColor: AppColors.lightBlueE9,
         floatingActionButton: selectedIndex == 0
             ? SafeArea(
                 child: Padding(

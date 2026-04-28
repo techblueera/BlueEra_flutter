@@ -301,7 +301,6 @@ class _CallHistoryScreenState extends State<CallHistoryScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.lightBlueE9,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0.5,
