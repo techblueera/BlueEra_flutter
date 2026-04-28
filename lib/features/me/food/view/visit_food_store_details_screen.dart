@@ -283,7 +283,14 @@ class _VisitFoodStoreDetailsScreenState
                 ),
 
                 /// QR Code
-                BusinessQrCodeWidget(data: details),
+                // Obx(() {
+                //   if (viewBusinessDetailsController.isProfileLoading.value) {
+                //     return const SizedBox.shrink();
+                //   }
+                //   final details = viewBusinessDetailsController.visitedBusinessProfileDetails?.data;
+                //   return BusinessQrCodeWidget(data: details);
+                // }),
+
 
                 const SizedBox(height: 100),
               ],

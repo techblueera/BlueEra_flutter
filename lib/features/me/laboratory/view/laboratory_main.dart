@@ -7,6 +7,7 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/me/laboratory/controller/lab_full_details_controller.dart';
+import 'package:BlueEra/widgets/bottom_nav_hide_on_scroll.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/features/me/me_tab_registry.dart';
 import 'package:BlueEra/features/me/school/view/coming_soon.dart';
@@ -125,22 +126,6 @@ class _LaboratoryMainState extends State<LaboratoryMain>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: CommonBackAppBar(
-          showElevation: 0,
-          isDrawerMenu: true,
-          isLeading: false,
-          isMore: true,
-          isProfile: false,
-          isNotification: !isGuestUser(),
-          bellIconNotEmpty: true,
-          isGuestLogout: isGuestUser(),
-          onNotificationTap: () {
-            Navigator.pushNamed(
-              context,
-              RouteHelper.getNotificationScreenRoute(),
-            );
-          },
-        ),
         backgroundColor: AppColors.white,
         body: Obx(() {
           labServiceAiController.hasLabCreated.value;
@@ -150,43 +135,76 @@ class _LaboratoryMainState extends State<LaboratoryMain>
           if (tabCtrl == null) return const SizedBox.shrink();
 
           return SafeArea(
-            child:Column(
-              children: [
-                SizedBox(
-                  height: SizeConfig.size12,
-                ),
-                TabBar(
+            child: BottomNavHideOnScroll(
+              child: NestedScrollView(
+                headerSliverBuilder: (context, _) => [
+                  SliverToBoxAdapter(
+                    child: SizedBox(
+                      height: kToolbarHeight,
+                      child: CommonBackAppBar(
+                        showElevation: 0,
+                        isDrawerMenu: true,
+                        isLeading: false,
+                        isMore: true,
+                        isProfile: false,
+                        isNotification: !isGuestUser(),
+                        bellIconNotEmpty: true,
+                        isGuestLogout: isGuestUser(),
+                        onNotificationTap: () {
+                          Navigator.pushNamed(
+                            context,
+                            RouteHelper.getNotificationScreenRoute(),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                  SliverToBoxAdapter(
+                    child: SizedBox(height: SizeConfig.size12),
+                  ),
+                  SliverAppBar(
+                    pinned: true,
+                    floating: false,
+                    primary: false,
+                    automaticallyImplyLeading: false,
+                    toolbarHeight: 0,
+                    collapsedHeight: 0,
+                    expandedHeight: 0,
+                    backgroundColor: AppColors.white,
+                    surfaceTintColor: AppColors.white,
+                    bottom: TabBar(
+                      controller: tabCtrl,
+                      labelColor: AppColors.primaryColor,
+                      unselectedLabelColor: Colors.grey[600],
+                      indicatorColor: AppColors.primaryColor,
+                      indicatorWeight: 4,
+                      tabAlignment: TabAlignment.fill,
+                      indicatorSize: TabBarIndicatorSize.tab,
+                      labelStyle:
+                      const TextStyle(fontWeight: FontWeight.w600),
+                      tabs: [
+                        Tab(text: AppStrings.home.tr),
+                        if (hasWebsite)
+                          Tab(text: AppStrings.website.tr),
+                        Tab(text: AppStrings.statistics.tr),
+                      ],
+                    ),
+                  ),
+                ],
+                body: TabBarView(
                   controller: tabCtrl,
-                  labelColor: AppColors.primaryColor,
-                  unselectedLabelColor: Colors.grey[600],
-                  indicatorColor: AppColors.primaryColor,
-                  indicatorWeight: 4,
-                  tabAlignment: TabAlignment.fill,
-                  indicatorSize: TabBarIndicatorSize.tab,
-                  labelStyle:
-                  const TextStyle(fontWeight: FontWeight.w600),
-                  tabs: [
-                    Tab(text: AppStrings.home.tr),
+                  children: [
+                    LabFullDetailsScreen(),
                     if (hasWebsite)
-                      Tab(text: AppStrings.website.tr),
-                    Tab(text: AppStrings.statistics.tr),
+                      CommonWebView(
+                        urlLink: _websiteUrl,
+                        urlTitle: '',
+                        hideAppBar: true,
+                      ),
+                    ComingSoon(),
                   ],
                 ),
-                Expanded(
-                    child: TabBarView(
-                      controller: tabCtrl,
-                      children: [
-                        LabFullDetailsScreen(),
-                        if (hasWebsite)
-                          CommonWebView(
-                            urlLink: _websiteUrl,
-                            urlTitle: '',
-                            hideAppBar: true,
-                          ),
-                        ComingSoon(),
-                      ],
-                    ))
-              ],
+              ),
             ),
           );
         }));

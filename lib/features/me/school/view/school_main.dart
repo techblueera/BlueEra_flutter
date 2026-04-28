@@ -6,6 +6,7 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/me/me_tab_registry.dart';
+import 'package:BlueEra/widgets/bottom_nav_hide_on_scroll.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/features/me/school/controller/school_about_us_controller.dart';
 import 'package:BlueEra/features/me/school/view/school_statics_screen.dart';
@@ -72,55 +73,72 @@ class _SchoolMainState extends State<SchoolMain>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: CommonBackAppBar(
-          showElevation: 0,
-          isDrawerMenu: true,
-          isLeading: false,
-          isMore: true,
-          isProfile: false,
-          isNotification: !isGuestUser(),
-          bellIconNotEmpty: true,
-          isGuestLogout: isGuestUser(),
-          onNotificationTap: () {
-            Navigator.pushNamed(
-              context,
-              RouteHelper.getNotificationScreenRoute(),
-            );
-          },
-        ),
         backgroundColor: AppColors.white,
         body: SafeArea(
-            child:Column(
-              children: [
-                SizedBox(
-                  height: SizeConfig.size12,
-                ),
-                TabBar(
+            child: BottomNavHideOnScroll(
+              child: NestedScrollView(
+                headerSliverBuilder: (context, _) => [
+                  SliverToBoxAdapter(
+                    child: SizedBox(
+                      height: kToolbarHeight,
+                      child: CommonBackAppBar(
+                        showElevation: 0,
+                        isDrawerMenu: true,
+                        isLeading: false,
+                        isMore: true,
+                        isProfile: false,
+                        isNotification: !isGuestUser(),
+                        bellIconNotEmpty: true,
+                        isGuestLogout: isGuestUser(),
+                        onNotificationTap: () {
+                          Navigator.pushNamed(
+                            context,
+                            RouteHelper.getNotificationScreenRoute(),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                  SliverToBoxAdapter(
+                    child: SizedBox(height: SizeConfig.size12),
+                  ),
+                  SliverAppBar(
+                    pinned: true,
+                    floating: false,
+                    primary: false,
+                    automaticallyImplyLeading: false,
+                    toolbarHeight: 0,
+                    collapsedHeight: 0,
+                    expandedHeight: 0,
+                    backgroundColor: AppColors.white,
+                    surfaceTintColor: AppColors.white,
+                    bottom: TabBar(
+                      controller: _tabController,
+                      labelColor: AppColors.mainTextColor,
+                      unselectedLabelColor: AppColors.secondaryTextColor,
+                      indicatorColor: AppColors.primaryColor,
+                      indicatorWeight: 4,
+                      tabAlignment: TabAlignment.fill,
+                      indicatorSize: TabBarIndicatorSize.tab,
+                      labelStyle: const TextStyle(
+                          fontWeight: FontWeight.w500,
+                          fontFamily: AppConstants.OpenSans),
+                      tabs: [
+                        Tab(text: AppStrings.home.tr),
+                        // Tab(text: AppStrings.update.tr),
+                        Tab(text: AppStrings.statistics.tr),
+                      ],
+                    ),
+                  ),
+                ],
+                body: TabBarView(
                   controller: _tabController,
-                  labelColor: AppColors.mainTextColor,
-                  unselectedLabelColor: AppColors.secondaryTextColor,
-                  indicatorColor: AppColors.primaryColor,
-                  indicatorWeight: 4,
-                  tabAlignment: TabAlignment.fill,
-                  indicatorSize: TabBarIndicatorSize.tab,
-                  labelStyle: const TextStyle(
-                      fontWeight: FontWeight.w500,
-                      fontFamily: AppConstants.OpenSans),
-                  tabs: [
-                    Tab(text: AppStrings.home.tr),
-                    // Tab(text: AppStrings.update.tr),
-                    Tab(text: AppStrings.statistics.tr),
+                  children: [
+                    SchoolHomeScreen(),
+                    SchoolStaticsScreen(),
                   ],
                 ),
-                Expanded(
-                    child: TabBarView(
-                      controller: _tabController,
-                      children: [
-                        SchoolHomeScreen(),
-                        SchoolStaticsScreen(),
-                      ],
-                    ))
-              ],
+              ),
             ),
           ));
   }

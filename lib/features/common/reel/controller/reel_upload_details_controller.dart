@@ -17,7 +17,7 @@ import 'package:BlueEra/features/common/reel/models/video_category_response.dart
 import 'package:BlueEra/features/common/reel/models/video_meta_data_response.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
 import 'package:BlueEra/features/common/reel/view/channel/reel_upload_details_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_new_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/personal_profile_setup_new_screen.dart';
 import 'package:BlueEra/widgets/uploading_progressing_dialog.dart';
 import 'package:get/get.dart';
 import '../../../../core/api/apiService/api_keys.dart';

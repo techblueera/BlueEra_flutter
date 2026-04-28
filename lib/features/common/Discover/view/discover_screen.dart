@@ -27,29 +27,21 @@ import 'package:BlueEra/features/common/Discover/view/widget/transport_service_w
 import 'package:BlueEra/features/common/qr_code/view/emergency_qr_screen.dart';
 import 'package:BlueEra/features/common/qr_code/view/qr_design_options_widget.dart';
 import 'package:BlueEra/features/personal/emergency/controller/emergency_profile_controller.dart';
+import 'package:BlueEra/widgets/bottom_nav_hide_on_scroll.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:flutter/rendering.dart';
-import '../../bottomNavigationBar/controller/bottom_bar_controller.dart';
 
 class DiscoverScreen extends StatefulWidget {
-  final bool isHeaderVisible;
-  final Function(bool isVisible)? onHeaderVisibilityChanged;
-
-  const DiscoverScreen(
-      {super.key,
-        required this.isHeaderVisible,
-        this.onHeaderVisibilityChanged});
+  const DiscoverScreen({super.key});
 
   @override
   State<DiscoverScreen> createState() => _DiscoverScreenState();
 }
 
 class _DiscoverScreenState extends State<DiscoverScreen> {
-  final bottomBarController = getOrPut(() => BottomBarController());
   final controller = getOrPut(() => DiscoverController());
 
   late final double userLat;
@@ -134,17 +126,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
           backgroundColor: AppColors.appBackgroundColor,
           body: SafeArea(
             top: false,
-            child: NotificationListener<UserScrollNotification>(
-              onNotification: (notification) {
-                if(notification.metrics.axis == Axis.vertical){
-                  if (notification.direction == ScrollDirection.reverse) {
-                    widget.onHeaderVisibilityChanged?.call(false);
-                  } else if (notification.direction == ScrollDirection.forward) {
-                    widget.onHeaderVisibilityChanged?.call(true);
-                  }
-                }
-                return true;
-              },
+            child: BottomNavHideOnScroll(
               child: CustomScrollView(
                 controller: _scrollController,
                 physics: const AlwaysScrollableScrollPhysics(),

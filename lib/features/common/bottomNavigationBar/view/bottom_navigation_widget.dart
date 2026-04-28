@@ -96,12 +96,14 @@ class BottomNavigationBarWidget extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
+              // Tab mapping: Me=0, Discover=1, Connect=2, Order=3.
+              // Me sits at index 0 so default-launch (initialIndex ?? 0)
+              // and "back to first tab" both land on the Me screen.
               _buildNavItem(
-                index: 2,
+                index: 0,
                 iconPath: AppIconAssets.menIcon,
-                isSelected: currentIndex == 2,
+                isSelected: currentIndex == 0,
                 label: AppStrings.me,
-                // isCenter: true, // 👈 center icon
               ),
               _buildNavItem(
                 index: 1,
@@ -110,17 +112,11 @@ class BottomNavigationBarWidget extends StatelessWidget {
                 label: AppStrings.discover,
               ),
               _buildNavItem(
-                index: 0,
-                iconPath:  AppIconAssets.chat,
-                isSelected: currentIndex == 0,
+                index: 2,
+                iconPath: AppIconAssets.chat,
+                isSelected: currentIndex == 2,
                 label: 'Connect',
               ),
-              // _buildNavItem(
-              //   index: 3,
-              //   iconPath: AppIconAssets.job,
-              //   isSelected: currentIndex == 3,
-              //   label: AppStrings.jobs,
-              // ),
               _buildNavItem(
                 index: 3,
                 iconPath: AppIconAssets.cartIcon,

@@ -14,6 +14,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/self_employed/vi
 import 'package:BlueEra/features/common/delivery_partner/view/rider_service_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/horizonatal_video_player.dart';
+import 'package:BlueEra/widgets/bottom_nav_hide_on_scroll.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -94,7 +95,13 @@ class _GigWorkOptionsScreenState extends State<GigWorkOptionsScreen>
           );
         },
       ),
-      body: body,
+      // BottomNavHideOnScroll listens to scroll notifications bubbling
+      // up from the inner Scaffolds (RiderServiceScreen /
+      // CabAndTransportPartner) and toggles the bottom nav visibility
+      // accordingly. The outer AppBar stays fixed because it lives
+      // outside the inner screens' NestedScrollView headers — moving it
+      // into those headers would require editing those child screens.
+      body: BottomNavHideOnScroll(child: body),
     );
   }
 

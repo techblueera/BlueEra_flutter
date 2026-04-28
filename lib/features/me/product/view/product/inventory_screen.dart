@@ -2,11 +2,9 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
-import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
-import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/widgets/business_profile_header_view.dart';
@@ -16,8 +14,8 @@ import 'package:BlueEra/features/me/product/controller/product_business_profile_
 import 'package:BlueEra/features/subscription/view/subscription_status_view.dart';
 import 'package:BlueEra/features/me/product/view/product_home_screen.dart';
 import 'package:BlueEra/features/business/widgets/empty_website_tab.dart';
+import 'package:BlueEra/widgets/bottom_nav_hide_on_scroll.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
-import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../controller/inventory_controller.dart';
@@ -191,22 +189,6 @@ class _InventoryScreenState extends State<InventoryScreen>
     }
 
     return Scaffold(
-      appBar: CommonBackAppBar(
-        showElevation: 0,
-        isDrawerMenu: true,
-        isLeading: false,
-        isMore: true,
-        isProfile: false,
-        isNotification: !isGuestUser(),
-        bellIconNotEmpty: true,
-        isGuestLogout: isGuestUser(),
-        onNotificationTap: () {
-          Navigator.pushNamed(
-            context,
-            RouteHelper.getNotificationScreenRoute(),
-          );
-        },
-      ),
       backgroundColor: AppColors.white,
       // appBar: PreferredSize(
       //   preferredSize: Size.fromHeight(kToolbarHeight + 50),
@@ -264,24 +246,50 @@ class _InventoryScreenState extends State<InventoryScreen>
       //   ),
       // ),
       body: SafeArea(
-        child: NestedScrollView(
+        child: BottomNavHideOnScroll(
+          child: NestedScrollView(
           headerSliverBuilder: (context, _) => [
+            SliverToBoxAdapter(
+              child: SizedBox(
+                height: kToolbarHeight,
+                child: CommonBackAppBar(
+                  showElevation: 0,
+                  isDrawerMenu: true,
+                  isLeading: false,
+                  isMore: true,
+                  isProfile: false,
+                  isNotification: !isGuestUser(),
+                  bellIconNotEmpty: true,
+                  isGuestLogout: isGuestUser(),
+                  onNotificationTap: () {
+                    Navigator.pushNamed(
+                      context,
+                      RouteHelper.getNotificationScreenRoute(),
+                    );
+                  },
+                  onMoreTap: () async {
+                    await Get.toNamed(
+                      RouteHelper.getProductSuperCategoryScreenRoute(),
+                      arguments: {
+                        ApiKeys.id: businessId,
+                        ApiKeys.providerType: ProviderType.business,
+                      },
+                    );
+                    if (inventoryController.productDataNeedsRefresh) {
+                      inventoryController.productDataNeedsRefresh = false;
+                      inventoryController.fetchAllProductData();
+                    }
+                  },
+                ),
+              ),
+            ),
             SliverToBoxAdapter(
               child: Obx(() {
                 final details = viewBusinessDetailsController
                     .businessProfileDetails.value?.data;
-                return Stack(
-                  children: [
-                    BusinessProfileHeaderView(
-                      details: details,
-                      controller: viewBusinessDetailsController,
-                    ),
-                    Positioned(
-                      left: SizeConfig.size10,
-                      top: SizeConfig.size10,
-                      child: _buildAddProductButton(),
-                    ),
-                  ],
+                return BusinessProfileHeaderView(
+                  details: details,
+                  controller: viewBusinessDetailsController,
                 );
               }),
             ),
@@ -320,35 +328,7 @@ class _InventoryScreenState extends State<InventoryScreen>
             children: _tabViews,
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildAddProductButton() {
-    return InkWell(
-      onTap: () async {
-        await Get.toNamed(
-          RouteHelper.getProductSuperCategoryScreenRoute(),
-          arguments: {
-            ApiKeys.id: businessId,
-            ApiKeys.providerType: ProviderType.business,
-          },
-        );
-        if (inventoryController.productDataNeedsRefresh) {
-          inventoryController.productDataNeedsRefresh = false;
-          inventoryController.fetchAllProductData();
-        }
-      },
-      child: Container(
-        height: SizeConfig.size40,
-        width: SizeConfig.size40,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(SizeConfig.size8),
-          color: AppColors.primaryColor,
         ),
-        alignment: Alignment.center,
-        padding: EdgeInsets.all(6.0),
-        child: LocalAssets(imagePath: AppIconAssets.add),
       ),
     );
   }

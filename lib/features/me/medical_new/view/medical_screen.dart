@@ -12,6 +12,7 @@ import 'package:BlueEra/features/me/me_tab_registry.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/features/me/medical_new/controller/user_medical_controller.dart';
 import 'package:BlueEra/features/me/medical_new/view/medical_home_screen.dart';
+import 'package:BlueEra/widgets/bottom_nav_hide_on_scroll.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/common_search_bar.dart';
@@ -58,27 +59,33 @@ class _MedicalScreenState extends State<MedicalScreen> with SingleTickerProvider
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(
-        showElevation: 0,
-        isDrawerMenu: true,
-        isLeading: false,
-        isMore: true,
-        isProfile: false,
-        isNotification: !isGuestUser(),
-        bellIconNotEmpty: true,
-        isGuestLogout: isGuestUser(),
-        onNotificationTap: () {
-          Navigator.pushNamed(
-            context,
-            RouteHelper.getNotificationScreenRoute(),
-          );
-        },
-      ),
       backgroundColor: AppColors.whiteF3,
       body: SafeArea(
-          child: NestedScrollView(
+          child: BottomNavHideOnScroll(
+            child: NestedScrollView(
             headerSliverBuilder: (context, innerBoxIsScrolled) {
               return [
+                SliverToBoxAdapter(
+                  child: SizedBox(
+                    height: kToolbarHeight,
+                    child: CommonBackAppBar(
+                      showElevation: 0,
+                      isDrawerMenu: true,
+                      isLeading: false,
+                      isMore: true,
+                      isProfile: false,
+                      isNotification: !isGuestUser(),
+                      bellIconNotEmpty: true,
+                      isGuestLogout: isGuestUser(),
+                      onNotificationTap: () {
+                        Navigator.pushNamed(
+                          context,
+                          RouteHelper.getNotificationScreenRoute(),
+                        );
+                      },
+                    ),
+                  ),
+                ),
                 SliverAppBar(
                   backgroundColor: Colors.white,
                   elevation: 0,
@@ -116,6 +123,7 @@ class _MedicalScreenState extends State<MedicalScreen> with SingleTickerProvider
                 Center(child: CustomText(AppStrings.comingSoon))
               ]
             ),
+          )
           )
       ),
     );

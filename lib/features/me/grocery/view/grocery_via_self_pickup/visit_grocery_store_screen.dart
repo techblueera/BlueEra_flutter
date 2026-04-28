@@ -207,13 +207,13 @@ class _VisitGroceryStoreScreenState extends State<VisitGroceryStoreScreen> {
                 }),
 
                 // --- 6. QR Code ---
-                Obx(() {
-                  if (viewBusinessDetailsController.isProfileLoading.value) {
-                    return const SizedBox.shrink();
-                  }
-                  final details = viewBusinessDetailsController.visitedBusinessProfileDetails?.data;
-                  return BusinessQrCodeWidget(data: details);
-                }),
+                // Obx(() {
+                //   if (viewBusinessDetailsController.isProfileLoading.value) {
+                //     return const SizedBox.shrink();
+                //   }
+                //   final details = viewBusinessDetailsController.visitedBusinessProfileDetails?.data;
+                //   return BusinessQrCodeWidget(data: details);
+                // }),
 
                 SizedBox(height: SizeConfig.size100),
               ],

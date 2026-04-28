@@ -10,6 +10,7 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/multipart_image_service.dart';
+import 'package:BlueEra/widgets/bottom_nav_hide_on_scroll.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/features/business/widgets/business_card_ui.dart';
 import 'package:BlueEra/features/common/auth/controller/ai_suggestion_controller.dart';
@@ -112,31 +113,40 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(
-        showElevation: 0,
-        isDrawerMenu: true,
-        isLeading: false,
-        isMore: true,
-        isProfile: false,
-        isNotification: !isGuestUser(),
-        bellIconNotEmpty: true,
-        isGuestLogout: isGuestUser(),
-        onNotificationTap: () {
-          Navigator.pushNamed(
-            context,
-            RouteHelper.getNotificationScreenRoute(),
-          );
-        },
-      ),
       body: Obx(() {
         _ctrl.getProfessionalServiceRes?.value;
         _rebuildTabsIfNeeded();
         final tabCtrl = _tabController;
         if (tabCtrl == null) return const SizedBox.shrink();
 
-        return NestedScrollView(
+        return BottomNavHideOnScroll(
+          child: NestedScrollView(
           headerSliverBuilder: (context, innerBoxIsScrolled) {
             return [
+              // Custom AppBar — placed in the sliver header so it scrolls
+              // away with the cover/profile/stats content. The TabBar
+              // below stays pinned.
+              SliverToBoxAdapter(
+                child: SizedBox(
+                  height: kToolbarHeight,
+                  child: CommonBackAppBar(
+                    showElevation: 0,
+                    isDrawerMenu: true,
+                    isLeading: false,
+                    isMore: true,
+                    isProfile: false,
+                    isNotification: !isGuestUser(),
+                    bellIconNotEmpty: true,
+                    isGuestLogout: isGuestUser(),
+                    onNotificationTap: () {
+                      Navigator.pushNamed(
+                        context,
+                        RouteHelper.getNotificationScreenRoute(),
+                      );
+                    },
+                  ),
+                ),
+              ),
               SliverToBoxAdapter(child: _buildCoverSection(context)),
               SliverToBoxAdapter(child: _buildProfileInfoSection()),
               SliverToBoxAdapter(child: _buildStatsRow()),
@@ -185,6 +195,7 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen>
               ComingSoon(),
             ],
           ),
+        ),
         );
       }),
     );
@@ -618,7 +629,7 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen>
   }
 
   /// Designation chip — outlined pill that mirrors the one in
-  /// `profile_setup_new_screen.dart`. Tap → opens the category bottom
+  /// `personal_profile_setup_new_screen.dart`. Tap → opens the category bottom
   /// sheet so the user can edit profession/designation in one place.
   Widget _buildDesignationChip(String designation) {
     final hasDesignation = designation.trim().isNotEmpty;

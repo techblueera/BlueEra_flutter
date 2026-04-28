@@ -40,7 +40,7 @@ import 'package:BlueEra/features/common/delivery_partner/view/gig_work_options_s
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/self_employee_screen.dart';
 import 'package:BlueEra/features/me/product/controller/inventory_controller.dart';
 import 'package:BlueEra/features/me/product/view/product/inventory_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_new_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/personal_profile_setup_new_screen.dart';
 import 'package:BlueEra/features/subscription/auth/controller/subscription_controller.dart';
 import 'package:BlueEra/features/subscription/view/subscription_bottom_sheet.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -109,9 +109,17 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     );
   }
 
+  /// nav bar + subscription peek by flipping
+  /// `BottomBarController.isBottomNavVisible` — no callback prop-drilling.
+  Worker? _bottomNavVisibilityWorker;
+
   @override
   void initState() {
     super.initState();
+    _bottomNavVisibilityWorker =
+        ever<bool>(bottomBarController.isBottomNavVisible, (visible) {
+      _toggleAppBar(visible);
+    });
     _checkAndFetchLocationData();
     if (Platform.isAndroid) {
       final pipController = getOrPut(() => PipFloatingPageController());
@@ -348,8 +356,10 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
         viewProfileController.viewBusinessProfile();
       }
     } else {
+      // Default landing tab is Me (index 0) for every user type, including
+      // bike riders. Callers can still pass `initialIndex` to override.
       if (userProfessionGlobal == BIKE_RIDER) {
-        bottomBarController.currentIndex.value = 2;
+        bottomBarController.currentIndex.value = 0;
       } else {
         bottomBarController.currentIndex.value = widget.initialIndex ?? 0;
       }
@@ -403,6 +413,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
 
   @override
   void dispose() {
+    _bottomNavVisibilityWorker?.dispose();
     bottomBarVisibleNotifier.dispose(); // Clean up
     // Only fully dispose socket if no active call — otherwise the socket
     // gets killed when the widget tree rebuilds after returning from CallActivity
@@ -485,8 +496,17 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
                       bottomBarController.currentIndex.value);
                   return Positioned.fill(
                     child: showSheet
-                        ? SubscriptionDraggableSheet(
-                            bottomPadding: navBarHeight,
+                        ? AnimatedSlide(
+                            offset:
+                                isVisible ? Offset.zero : const Offset(0, 1),
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeInOut,
+                            child: IgnorePointer(
+                              ignoring: !isVisible,
+                              child: SubscriptionDraggableSheet(
+                                bottomPadding: navBarHeight,
+                              ),
+                            ),
                           )
                         : const SizedBox.shrink(),
                   );
@@ -513,22 +533,13 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
                         currentIndex: bottomBarController.currentIndex.value,
                         showShadow: !showSubscriptionSheet,
                         onTap: (index) async {
-                        
-                          // Refresh the user's subscription state every
-                          // time the Me tab is tapped. The peek bottom
-                          // sheet is hidden for active/authenticated users
-                          // so it can't be the refresh hook here — without
-                          // this call, subscribed users would never see a
-                          // fresh /user-subscriptions response after the
-                          // app-start fetch. Controller-level in-flight
-                          // dedupe collapses rapid taps into one HTTP hit.
-                          if (index == 2 && !isGuestUser()) {
+                          // Tabs: 0=Me, 1=Discover, 2=Connect, 3=Order.
+                          if (index == 0 && !isGuestUser()) {
                             _subController.userCurrentPlanApi();
                           }
 
-                          /// for store need location permission
-
-                          if (index == 1 || index == 2) {
+                          /// Me (0) and Discover (1) need location permission.
+                          if (index == 0 || index == 1) {
                             if (LocationService.lat == 0.0 ||
                                 LocationService.lng == 0.0) {
                               await LocationService.askLocationPermission();
@@ -537,7 +548,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
                             }
                           }
 
-                          /// for chat need notification permission
+                          /// Order/Chat (3) needs notification permission.
                           else if (index == 3) {
                             await AppNotificationHandler()
                                 .checkNotificationPermission();
@@ -572,15 +583,8 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   Widget _getScreen(int index, bool isVisible) {
     switch (index) {
       case 0:
-        return ConnectMainPage(
-          isHeaderVisible: isVisible,
-          onHeaderVisibilityChanged: _toggleAppBar,
-        );
+        return meScreens();
       case 1:
-        // return DiscoverScreen(
-        //   isHeaderVisible: isVisible,
-        //   onHeaderVisibilityChanged: _toggleAppBar,
-        // );
         return PopScope(
           canPop: false,
           onPopInvokedWithResult: (didPop, _) {
@@ -588,21 +592,21 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
               bottomBarController.onChangeIndex(0);
             }
           },
-          child: DiscoverScreen(
+          child: const DiscoverScreen(),
+        );
+      case 2:
+        return PopScope(
+          canPop: false,
+          onPopInvokedWithResult: (didPop, _) {
+            if (!didPop) {
+              bottomBarController.onChangeIndex(0);
+            }
+          },
+          child: ConnectMainPage(
             isHeaderVisible: isVisible,
             onHeaderVisibilityChanged: _toggleAppBar,
           ),
         );
-      case 2:
-        return PopScope(
-            canPop: false,
-            onPopInvokedWithResult: (didPop, _) {
-              if (!didPop) {
-                bottomBarController.onChangeIndex(0);
-              }
-            },
-            child: meScreens());
-
       case 3:
       default:
         return isGuestUser()
@@ -621,7 +625,8 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   }
 
   bool _shouldShowSubscriptionSheet(int index) {
-    if (index != 2) return false;
+    // Subscription peek belongs to the Me tab — now at index 0.
+    if (index != 0) return false;
     if (isGuestUser()) return false;
 
     // Single source of truth — same allowlist used by the controller to
@@ -757,8 +762,8 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
         return const ProfessionalsMainScreen();
 
       default:
-        // This acts as your fallback (PersonalProfileSetupNewScreen)
-        return const PersonalProfileSetupNewScreen();
+        return const SizedBox();
+        // return const PersonalProfileSetupNewScreen();
     }
   }
 

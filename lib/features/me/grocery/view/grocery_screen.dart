@@ -17,6 +17,7 @@ import 'package:BlueEra/features/subscription/view/subscription_status_view.dart
 import 'package:BlueEra/features/me/grocery/controller/grocery_selfpickup_consumer_controller.dart';
 import 'package:BlueEra/features/me/grocery/view/my_grocery_listing/my_grocery_store_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/my_grocery_orders/my_grocery_orders.dart';
+import 'package:BlueEra/widgets/bottom_nav_hide_on_scroll.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -77,26 +78,47 @@ class _GroceryScreenState extends State<GroceryScreen> with SingleTickerProvider
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(
-        showElevation: 0,
-        isDrawerMenu: true,
-        isLeading: false,
-        isMore: true,
-        isProfile: false,
-        isNotification: !isGuestUser(),
-        bellIconNotEmpty: true,
-        isGuestLogout: isGuestUser(),
-        onNotificationTap: () {
-          Navigator.pushNamed(
-            context,
-            RouteHelper.getNotificationScreenRoute(),
-          );
-        },
-      ),
       backgroundColor: AppColors.white,
       body: SafeArea(
-        child: NestedScrollView(
-          headerSliverBuilder: (context, _) => [
+        child: BottomNavHideOnScroll(
+          child: NestedScrollView(
+            headerSliverBuilder: (context, _) => [
+            // Custom AppBar — placed in the sliver header so it scrolls
+            // away with the profile/stats content. The TabBar below stays
+            // pinned. When the user pulls back up, this comes back at the
+            // top of the scroll naturally.
+            SliverToBoxAdapter(
+              child: SizedBox(
+                height: kToolbarHeight,
+                child: CommonBackAppBar(
+                  showElevation: 0,
+                  isDrawerMenu: true,
+                  isLeading: false,
+                  isMore: true,
+                  isProfile: false,
+                  isNotification: !isGuestUser(),
+                  bellIconNotEmpty: true,
+                  isGuestLogout: isGuestUser(),
+                  onNotificationTap: () {
+                    Navigator.pushNamed(
+                      context,
+                      RouteHelper.getNotificationScreenRoute(),
+                    );
+                  },
+                  onMoreTap: () async {
+                    final groceryController = getOrPut(() => GroceryController());
+                    await Get.toNamed(
+                      RouteHelper.getGrocerySuperCategoryScreenRoute(),
+                      arguments: {ApiKeys.argBulkUpload: true},
+                    );
+                    if (groceryController.groceryDataNeedsRefresh) {
+                      groceryController.groceryDataNeedsRefresh = false;
+                      groceryController.fetchAllGroceryData(userId, otherStore: false);
+                    }
+                  },
+                ),
+              ),
+            ),
             SliverToBoxAdapter(
               child: Obx(() {
                 final details = viewBusinessDetailsController
@@ -110,14 +132,7 @@ class _GroceryScreenState extends State<GroceryScreen> with SingleTickerProvider
                     Positioned(
                       left: SizeConfig.size10,
                       top: SizeConfig.size10,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          _buildRiderButton(),
-                          SizedBox(width: SizeConfig.size10),
-                          _buildAddGroceryButton(),
-                        ],
-                      ),
+                      child: _buildRiderButton(),
                     ),
                   ],
                 );
@@ -158,6 +173,7 @@ class _GroceryScreenState extends State<GroceryScreen> with SingleTickerProvider
             children: _tabViews,
           ),
         ),
+        ),
       ),
     );
   }
@@ -176,32 +192,6 @@ class _GroceryScreenState extends State<GroceryScreen> with SingleTickerProvider
     );
   }
 
-  Widget _buildAddGroceryButton() {
-    return _headerChip(
-      onTap: () async {
-        final groceryController = getOrPut(() => GroceryController());
-        await Get.toNamed(
-          RouteHelper.getGrocerySuperCategoryScreenRoute(),
-          arguments: {ApiKeys.argBulkUpload: true},
-        );
-        if (groceryController.groceryDataNeedsRefresh) {
-          groceryController.groceryDataNeedsRefresh = false;
-          groceryController.fetchAllGroceryData(userId, otherStore: false);
-        }
-      },
-      leading: Icon(Icons.add_rounded,
-          color: AppColors.white, size: SizeConfig.size18),
-      label: AppStrings.addProduct.tr,
-      isPrimary: true,
-    );
-  }
-
-  /// Pill-shaped header action used for the two cover overlays. Labels +
-  /// icon make the intent scannable at a glance (the old square icon-only
-  /// buttons required guessing, especially for the rider one). The primary
-  /// variant is solid primary-colour for the main "Add Product" CTA; the
-  /// secondary variant is white-on-white-border for softer actions that
-  /// need to remain readable on any cover image.
   Widget _headerChip({
     required VoidCallback onTap,
     required Widget leading,

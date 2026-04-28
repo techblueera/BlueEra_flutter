@@ -10,6 +10,13 @@ import '../../auth/model/adminvideo_model.dart';
 
 class BottomBarController extends GetxController {
   RxInt currentIndex = 0.obs;
+
+  /// Drives bottom-nav + subscription-peek visibility from any descendant
+  /// screen without prop-drilling. Default = visible. Screens flip this
+  /// to false on reverse scroll (user reading further down) and back to
+  /// true on forward scroll (user pulled back up).
+  final RxBool isBottomNavVisible = true.obs;
+
   void onChangeIndex(int index) {
     // Pause and release feed video when leaving Home tab to free GPU buffers
     if (currentIndex.value == 0 && index != 0) {
