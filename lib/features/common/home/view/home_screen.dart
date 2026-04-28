@@ -332,7 +332,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       });
                     },
                     children: [
-                      Padding(
+                      Container(
+                        color: Colors.white,
                         padding: EdgeInsets.only(top: _tabsHeight),
                         child: PersonalChatsList(),
                       ),
