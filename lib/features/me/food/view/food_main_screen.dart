@@ -14,6 +14,7 @@ import 'package:BlueEra/features/me/food/view/food_home_screen.dart';
 import 'package:BlueEra/features/business/widgets/empty_website_tab.dart';
 import 'package:BlueEra/features/me/me_tab_registry.dart';
 import 'package:BlueEra/features/subscription/view/subscription_status_view.dart';
+import 'package:BlueEra/widgets/bottom_nav_hide_on_scroll.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
@@ -60,26 +61,33 @@ class _FoodMainScreenState extends State<FoodMainScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(
-        showElevation: 0,
-        isDrawerMenu: true,
-        isLeading: false,
-        isMore: true,
-        isProfile: false,
-        isNotification: !isGuestUser(),
-        bellIconNotEmpty: true,
-        isGuestLogout: isGuestUser(),
-        onNotificationTap: () {
-          Navigator.pushNamed(
-            context,
-            RouteHelper.getNotificationScreenRoute(),
-          );
-        },
-      ),
       backgroundColor: AppColors.white,
       body: SafeArea(
-        child: NestedScrollView(
+        child: BottomNavHideOnScroll(
+          child: NestedScrollView(
           headerSliverBuilder: (context, _) => [
+            SliverToBoxAdapter(
+              child: SizedBox(
+                height: kToolbarHeight,
+                child: CommonBackAppBar(
+                  showElevation: 0,
+                  isDrawerMenu: true,
+                  isLeading: false,
+                  isMore: true,
+                  isProfile: false,
+                  isNotification: !isGuestUser(),
+                  bellIconNotEmpty: true,
+                  isGuestLogout: isGuestUser(),
+                  onNotificationTap: () {
+                    Navigator.pushNamed(
+                      context,
+                      RouteHelper.getNotificationScreenRoute(),
+                    );
+                  },
+                  onMoreTap: () => Get.to(() => FoodCategoryMenuScreen()),
+                ),
+              ),
+            ),
             SliverToBoxAdapter(
               child: Obx(() {
                 final details = viewBusinessDetailsController
@@ -93,14 +101,7 @@ class _FoodMainScreenState extends State<FoodMainScreen>
                     Positioned(
                       left: SizeConfig.size10,
                       top: SizeConfig.size10,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          _buildRiderButton(),
-                          SizedBox(width: SizeConfig.size10),
-                          _buildAddFoodButton(),
-                        ],
-                      ),
+                      child: _buildRiderButton(),
                     ),
                   ],
                 );
@@ -144,6 +145,7 @@ class _FoodMainScreenState extends State<FoodMainScreen>
               const SubscriptionStatusView(),
             ],
           ),
+        ),
         ),
       ),
     );
@@ -202,20 +204,4 @@ class _FoodMainScreenState extends State<FoodMainScreen>
     );
   }
 
-  Widget _buildAddFoodButton() {
-    return InkWell(
-      onTap: () => Get.to(() => FoodCategoryMenuScreen()),
-      child: Container(
-        height: SizeConfig.size40,
-        width: SizeConfig.size40,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(SizeConfig.size8),
-          color: AppColors.primaryColor,
-        ),
-        alignment: Alignment.center,
-        padding: EdgeInsets.all(6.0),
-        child: LocalAssets(imagePath: AppIconAssets.add),
-      ),
-    );
-  }
 }

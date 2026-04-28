@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/widgets/bottom_nav_hide_on_scroll.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_service_ai_controller.dart';
 import 'package:BlueEra/features/me/hospital/view/hospital_home_screen.dart';
@@ -76,54 +77,72 @@ class _HospitalMainState extends State<HospitalMain>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(
-        showElevation: 0,
-        isDrawerMenu: true,
-        isLeading: false,
-        isMore: true,
-        isProfile: false,
-        isNotification: !isGuestUser(),
-        bellIconNotEmpty: true,
-        isGuestLogout: isGuestUser(),
-        onNotificationTap: () {
-          Navigator.pushNamed(
-            context,
-            RouteHelper.getNotificationScreenRoute(),
-          );
-        },
-      ),
       backgroundColor: AppColors.white,
       body: SafeArea(
-          child: Column(
-            children: [
-              SizedBox(height: SizeConfig.size12),
-              TabBar(
+          child: BottomNavHideOnScroll(
+            child: NestedScrollView(
+              headerSliverBuilder: (context, _) => [
+                SliverToBoxAdapter(
+                  child: SizedBox(
+                    height: kToolbarHeight,
+                    child: CommonBackAppBar(
+                      showElevation: 0,
+                      isDrawerMenu: true,
+                      isLeading: false,
+                      isMore: true,
+                      isProfile: false,
+                      isNotification: !isGuestUser(),
+                      bellIconNotEmpty: true,
+                      isGuestLogout: isGuestUser(),
+                      onNotificationTap: () {
+                        Navigator.pushNamed(
+                          context,
+                          RouteHelper.getNotificationScreenRoute(),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+                SliverToBoxAdapter(
+                  child: SizedBox(height: SizeConfig.size12),
+                ),
+                SliverAppBar(
+                  pinned: true,
+                  floating: false,
+                  primary: false,
+                  automaticallyImplyLeading: false,
+                  toolbarHeight: 0,
+                  collapsedHeight: 0,
+                  expandedHeight: 0,
+                  backgroundColor: AppColors.white,
+                  surfaceTintColor: AppColors.white,
+                  bottom: TabBar(
+                    controller: _tabController,
+                    labelColor: AppColors.primaryColor,
+                    unselectedLabelColor: Colors.grey[600],
+                    indicatorColor: AppColors.primaryColor,
+                    indicatorWeight: 4,
+                    tabAlignment: TabAlignment.fill,
+                    indicatorSize: TabBarIndicatorSize.tab,
+                    labelStyle:
+                    const TextStyle(fontWeight: FontWeight.w600),
+                    tabs: [
+                      Tab(text: AppStrings.home.tr),
+                      if (_hasWebsite) const Tab(text: 'Website'),
+                      Tab(text: AppStrings.statistics.tr),
+                    ],
+                  ),
+                ),
+              ],
+              body: TabBarView(
                 controller: _tabController,
-                labelColor: AppColors.primaryColor,
-                unselectedLabelColor: Colors.grey[600],
-                indicatorColor: AppColors.primaryColor,
-                indicatorWeight: 4,
-                tabAlignment: TabAlignment.fill,
-                indicatorSize: TabBarIndicatorSize.tab,
-                labelStyle:
-                const TextStyle(fontWeight: FontWeight.w600),
-                tabs: [
-                  Tab(text: AppStrings.home.tr),
-                  if (_hasWebsite) const Tab(text: 'Website'),
-                  Tab(text: AppStrings.statistics.tr),
+                children: [
+                  HospitalHomeScreen(),
+                  if (_hasWebsite) CommonWebView( urlLink: _websiteUrl, urlTitle: '',hideAppBar: true,),
+                  ComingSoon(),
                 ],
               ),
-              Expanded(
-                child: TabBarView(
-                  controller: _tabController,
-                  children: [
-                    HospitalHomeScreen(),
-                    if (_hasWebsite) CommonWebView( urlLink: _websiteUrl, urlTitle: '',hideAppBar: true,),
-                    ComingSoon(),
-                  ],
-                ),
-              ),
-            ],
+            ),
           )
       ),
     );

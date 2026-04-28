@@ -65,7 +65,6 @@ class _EarnServiceDashboardViewState extends State<EarnServiceDashboardView>
         showElevation: 0,
         isDrawerMenu: true,
         isLeading: false,
-        isMore: true,
         isProfile: false,
         isNotification: !isGuestUser(),
         bellIconNotEmpty: true,

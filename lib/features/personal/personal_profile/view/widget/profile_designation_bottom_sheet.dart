@@ -25,7 +25,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 /// Profile-data bottom sheet — mirrors `_showCategoryBottomSheet` in
-/// `profile_setup_new_screen.dart`. Lives here as a standalone function so
+/// `personal_profile_setup_new_screen.dart`. Lives here as a standalone function so
 /// any "Edit profile" surface (the [EditProfileBottomSheet], the dashboards,
 /// etc.) can pop the same designation editor without duplicating ~600 lines
 /// of profession/designation logic.

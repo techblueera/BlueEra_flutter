@@ -264,7 +264,7 @@ class _HomeScreenState extends State<HomeScreen> {
               padding: const EdgeInsets.all(2),
               decoration: const BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.white,
+                color: Color(0xFFEEF1F5),
               ),
               child: CachedAvatarWidget(
                 imageUrl: Get.find<AuthController>().imgPath.value,
@@ -305,7 +305,6 @@ class _HomeScreenState extends State<HomeScreen> {
     return SafeArea(
       child: Scaffold(
         // backgroundColor: AppColors.white,
-        backgroundColor: AppColors.lightBlueE9,
         extendBodyBehindAppBar: true,
         body: Obx(() => Stack(
               children: [

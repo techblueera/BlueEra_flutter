@@ -83,48 +83,112 @@ class BusinessProfileHeaderView extends StatelessWidget {
     // the overlay controls stay clear of it. When SafeArea is applied
     // upstream, this is 0 and nothing changes.
     final double topInset = MediaQuery.of(context).padding.top;
+    final double coverHeight = 210 + topInset;
 
     return SizedBox(
       height: 260 + topInset,
       child: Stack(
         clipBehavior: Clip.none,
         children: [
+          // ── Cover image with bottom scrim ──
           ClipRRect(
             borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(10),
               topRight: Radius.circular(10),
             ),
             child: SizedBox(
-              height: 210 + topInset,
+              height: coverHeight,
               width: double.infinity,
-              child: coverUrl.isNotEmpty
-                  ? Image.network(
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  if (coverUrl.isNotEmpty)
+                    Image.network(
                       coverUrl,
                       key: ValueKey(coverUrl),
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => const SizedBox(),
+                      errorBuilder: (_, __, ___) => _coverPlaceholder(),
                     )
-                  : const SizedBox(),
+                  else
+                    _coverPlaceholder(),
+                  // Bottom-up scrim keeps overlay buttons legible on bright photos
+                  IgnorePointer(
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.bottomCenter,
+                          end: Alignment.topCenter,
+                          stops: const [0.0, 0.55, 1.0],
+                          colors: [
+                            Colors.black.withValues(alpha: 0.32),
+                            Colors.black.withValues(alpha: 0.08),
+                            Colors.transparent,
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
+
+          // ── Avatar with thin bezel + soft elevation ──
           Positioned(
             left: 16,
             top: 180 + topInset,
-            child: CommonProfileImage(
-              key: ValueKey(profileUrl),
-              imagePath: profileUrl,
-              onImageUpdate: _onProfileImageUpdate,
-              dialogTitle: AppStrings.uploadBusinessLogo.tr,
+            child: Container(
+              padding: const EdgeInsets.all(1),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.10),
+                    blurRadius: 14,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: CommonProfileImage(
+                key: ValueKey(profileUrl),
+                imagePath: profileUrl,
+                onImageUpdate: _onProfileImageUpdate,
+                dialogTitle: AppStrings.uploadBusinessLogo.tr,
+              ),
             ),
           ),
+
+          // ── Refined cover-edit affordance ──
           Positioned(
-            right: 10,
-            top: 8 + topInset,
+            right: 12,
+            top: 12 + topInset,
             child: InkWell(
               onTap: () => _onCoverImageEdit(context),
-              child: Image.asset('assets/images/camera.png'),
+              borderRadius: BorderRadius.circular(999),
+              child: Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.92),
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.12),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.photo_camera_outlined,
+                  size: 16,
+                  color: AppColors.black,
+                ),
+              ),
             ),
           ),
+
           Positioned(
             right: 10,
             bottom: 5,
@@ -146,38 +210,54 @@ class BusinessProfileHeaderView extends StatelessWidget {
     );
   }
 
+  Widget _coverPlaceholder() {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            AppColors.primaryColor.withValues(alpha: 0.10),
+            AppColors.primaryColor.withValues(alpha: 0.04),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildDetailsSection(BuildContext context) {
     final hasAvailability = details?.availability?.schedule != null;
     final hasWebsite =
         details?.websiteUrl != null && details!.websiteUrl!.trim().isNotEmpty;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12.0),
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: 10),
-
           // ── Name ──
           CustomText(details?.businessName,
-              fontSize: 20,
-              maxLines: 1,
+              fontSize: 22,
+              maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              fontWeight: FontWeight.bold),
-          const SizedBox(height: 8),
+              fontWeight: FontWeight.w700,
+              letterSpacing: -0.3),
+          const SizedBox(height: 10),
 
-          // ── Category + Rating + Dietary (inline) ──
+          // ── Dietary · Category · Rating (dot-separated) ──
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               if (isRestaurantProfile && _hasDietaryType) ...[
                 _buildDietaryIndicator(),
-                const SizedBox(width: 6),
+                _separatorDot(),
               ],
-              BusinessCommonSubCategoryWidget(
-                label: details?.subCategoryDetails?.name,
+              Flexible(
+                child: BusinessCommonSubCategoryWidget(
+                  label: details?.subCategoryDetails?.name,
+                ),
               ),
-              const SizedBox(width: 5),
+              _separatorDot(),
               CommonRatingRow(
                 rating:
                     double.tryParse(details?.avg_rating.toString() ?? '0.0') ??
@@ -186,51 +266,47 @@ class BusinessProfileHeaderView extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 14),
 
-          // ── Location info block ──
+          // ── Location chip ──
           _buildLocationInfoBlock(context),
-          const SizedBox(height: 10),
 
-          // ── Website ──
+          // ── Website (only when missing) ──
           if (!hasWebsite) ...[
+            const SizedBox(height: 10),
             _buildInlineAdd(
               icon: Icons.link_rounded,
               label: 'Add Website',
               onTap: () => _openEditSheet(context),
             ),
-            const SizedBox(height: 10),
           ],
 
-          // else
-          // InkWell(
-          //   onTap: () => launchURL(details!.websiteUrl!),
-          //   child: Row(
-          //     children: [
-          //       Icon(Icons.link_rounded,
-          //           size: 14, color: AppColors.primaryColor),
-          //       const SizedBox(width: 4),
-          //       Flexible(
-          //         child: CustomText(
-          //           details?.websiteUrl,
-          //           fontSize: 12,
-          //           color: AppColors.primaryColor,
-          //           fontWeight: FontWeight.w500,
-          //           maxLines: 1,
-          //           overflow: TextOverflow.ellipsis,
-          //           decoration: TextDecoration.underline,
-          //           decorationColor: AppColors.primaryColor,
-          //         ),
-          //       ),
-          //     ],
-          //   ),
-          // )
-          //       const SizedBox(height: 10),
+          const SizedBox(height: 14),
+
+          // ── Hairline divider before operations ──
+          Container(
+            height: 1,
+            color: AppColors.greyE5.withValues(alpha: 0.6),
+          ),
+          const SizedBox(height: 12),
 
           // ── Availability + Restaurant type ──
-
           _buildQuickInfoRow(context, hasAvailability),
         ],
+      ),
+    );
+  }
+
+  Widget _separatorDot() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: Container(
+        width: 3,
+        height: 3,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: AppColors.secondaryTextColor.withValues(alpha: 0.45),
+        ),
       ),
     );
   }
@@ -240,20 +316,28 @@ class BusinessProfileHeaderView extends StatelessWidget {
     return Align(
       alignment: Alignment.centerLeft,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
         decoration: BoxDecoration(
-          color: AppColors.primaryColor.withValues(alpha: 0.04),
-          borderRadius: BorderRadius.circular(10),
+          gradient: LinearGradient(
+            begin: Alignment.centerLeft,
+            end: Alignment.centerRight,
+            colors: [
+              AppColors.primaryColor.withValues(alpha: 0.07),
+              AppColors.primaryColor.withValues(alpha: 0.02),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(999),
           border: Border.all(
-            color: AppColors.primaryColor.withValues(alpha: 0.08),
+            color: AppColors.primaryColor.withValues(alpha: 0.14),
+            width: 0.8,
           ),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(Icons.near_me_rounded,
-                size: 14, color: AppColors.primaryColor),
-            const SizedBox(width: 5),
+                size: 13, color: AppColors.primaryColor),
+            const SizedBox(width: 6),
             CustomText(
               '${calculateDistance(
                     details?.businessLocation?.lat?.toDouble() ?? 0.0,
@@ -262,19 +346,22 @@ class BusinessProfileHeaderView extends StatelessWidget {
               fontSize: 11,
               fontWeight: FontWeight.w700,
               color: AppColors.primaryColor,
+              letterSpacing: 0.2,
             ),
             if (_hasAddress && cityState.isNotEmpty) ...[
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4),
-                child: CustomText('|',
-                    fontSize: 11,
-                    color:
-                        AppColors.secondaryTextColor.withValues(alpha: 0.4)),
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: Container(
+                  width: 1,
+                  height: 10,
+                  color: AppColors.primaryColor.withValues(alpha: 0.22),
+                ),
               ),
               Flexible(
                 child: CustomText(
                   cityState,
                   fontSize: 11,
+                  fontWeight: FontWeight.w500,
                   color: AppColors.secondaryTextColor,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -285,12 +372,20 @@ class BusinessProfileHeaderView extends StatelessWidget {
               InkWell(
                 onTap: () => _openAddressEditSheet(context),
                 child: Padding(
-                  padding: const EdgeInsets.only(left: 8),
-                  child: CustomText(
-                    '+ ${AppStrings.addAddress.tr}',
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.primaryColor,
+                  padding: const EdgeInsets.only(left: 10),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.add_rounded,
+                          size: 13, color: AppColors.primaryColor),
+                      const SizedBox(width: 2),
+                      CustomText(
+                        AppStrings.addAddress.tr,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.primaryColor,
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -362,20 +457,32 @@ class BusinessProfileHeaderView extends StatelessWidget {
   }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(6),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 2),
+      borderRadius: BorderRadius.circular(999),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+        decoration: BoxDecoration(
+          color: AppColors.primaryColor.withValues(alpha: 0.04),
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(
+            color: AppColors.primaryColor.withValues(alpha: 0.20),
+            width: 0.8,
+          ),
+        ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(icon, size: 13, color: AppColors.primaryColor),
-            const SizedBox(width: 3),
+            const SizedBox(width: 6),
             CustomText(
               label,
-              fontSize: 11,
+              fontSize: 11.5,
               fontWeight: FontWeight.w600,
               color: AppColors.primaryColor,
+              letterSpacing: 0.1,
             ),
+            const SizedBox(width: 6),
+            Icon(Icons.add_rounded,
+                size: 13, color: AppColors.primaryColor),
           ],
         ),
       ),

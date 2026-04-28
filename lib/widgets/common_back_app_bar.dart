@@ -16,7 +16,7 @@ import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/jobs/controller/applied_job_controller.dart';
 import 'package:BlueEra/features/journey/repo/travel_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_settings_new_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/profile_setup_new_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/personal_profile_setup_new_screen.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/common_button_with_icon.dart';
 import 'package:BlueEra/widgets/common_search_bar.dart';
@@ -240,9 +240,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
       title: Padding(
         padding: EdgeInsets.only(
             // left: SizeConfig.paddingL,
-            right: SizeConfig.paddingXSL,
-            // top: SizeConfig.paddingXSL,
-            bottom: SizeConfig.paddingXSL),
+            right: SizeConfig.paddingXSL),
         child: Obx(() {
           bool isSearchOn = Get.find<AuthController>().isSearchOpen.value;
           return Row(
@@ -265,9 +263,10 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
               // if (isLeading ?? false) SizedBox(width: SizeConfig.paddingXSL),
               if (leadingWidget != null)
                 Padding(
-                  padding: const EdgeInsets.only(left: 15.0, top: 6),
+                  padding: const EdgeInsets.only(left: 15.0),
                   child: leadingWidget!,
                 ),
+
               if (isDrawerMenu ?? false)
                 Padding(
                   padding: const EdgeInsets.only(left: 15.0, top: 10),
@@ -347,8 +346,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                   child: Padding(
                     padding: EdgeInsets.only(
                         left:
-                            (isLeading ?? false) ? 0.0 : SizeConfig.size15,
-                        top: 10),
+                            (isLeading ?? false) ? 0.0 : SizeConfig.size15),
                     child: CommonSearchBar(
                         controller: controller!,
                         isShowCursor: isShowCursor,
@@ -473,7 +471,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
         if (isSearch == true &&
             Get.find<AuthController>().isSearchOpen.value == false)
           Padding(
-            padding: const EdgeInsets.only(right: 14.0, top: 10.0),
+            padding: const EdgeInsets.only(right: 14.0),
             child: InkWell(
               onTap: () {
                 Get.find<AuthController>().isSearchOpen.value =
@@ -504,46 +502,62 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
         if (isNotification == true &&
             Get.find<AuthController>().isSearchOpen.value == false)
           Padding(
-            padding: const EdgeInsets.only(top: 10, right: 14.0),
+            padding: const EdgeInsets.only(right: 14.0),
             child: InkWell(
                 onTap: () => onNotificationTap?.call(),
                 child: LocalAssets(
                     imagePath: AppIconAssets.notificationOutlineIcon)),
           ),
         if (isMore ?? false)
-          PopupMenuButton<PostCreationMenu>(
-            padding: EdgeInsets.zero,
-            offset: const Offset(0, 36),
-            color: AppColors.white,
-            elevation: 8,
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10)),
-            onSelected: (value) async {
-              if (isGuestUser()) {
-                createProfileScreen();
-              } else if (value == PostCreationMenu.message ||
-                  value == PostCreationMenu.poll) {
-                postVia(context, value);
-              } else if (value == PostCreationMenu.jobPost) {
-                Get.toNamed(RouteHelper.getCreateJobPostScreenRoute(),
-                    arguments: {
-                      'isEditMode': false,
-                      'jobId': '',
-                      'createJobVia': 'business',
-                    });
-              } else if (value == PostCreationMenu.symbol) {
-                Get.to(() => AddChatSymbolScreen());
-              }
-            },
-            itemBuilder: (context) => PopupMenuBuilders.popupMenuItems(),
-            child: Padding(
-              padding: const EdgeInsets.only(top: 10.0, right: 14.0),
-              child: LocalAssets(
-                imagePath: AppIconAssets.addOutlinedIcon,
-                imgColor: AppColors.primaryColor,
+          // When `onMoreTap` is supplied, render a plain tap target with
+          // the same "+" UI instead of the post-creation popup. Lets a
+          // screen reuse the icon for a screen-specific action (e.g.
+          // grocery's "add product" flow) without rebuilding the chrome.
+          if (onMoreTap != null)
+            InkWell(
+              onTap: onMoreTap,
+              child: Padding(
+                padding: const EdgeInsets.only(right: 14.0),
+                child: LocalAssets(
+                  imagePath: AppIconAssets.addOutlinedIcon,
+                  imgColor: AppColors.primaryColor,
+                ),
+              ),
+            )
+          else
+            PopupMenuButton<PostCreationMenu>(
+              padding: EdgeInsets.zero,
+              offset: const Offset(0, 36),
+              color: AppColors.white,
+              elevation: 8,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
+              onSelected: (value) async {
+                if (isGuestUser()) {
+                  createProfileScreen();
+                } else if (value == PostCreationMenu.message ||
+                    value == PostCreationMenu.poll) {
+                  postVia(context, value);
+                } else if (value == PostCreationMenu.jobPost) {
+                  Get.toNamed(RouteHelper.getCreateJobPostScreenRoute(),
+                      arguments: {
+                        'isEditMode': false,
+                        'jobId': '',
+                        'createJobVia': 'business',
+                      });
+                } else if (value == PostCreationMenu.symbol) {
+                  Get.to(() => AddChatSymbolScreen());
+                }
+              },
+              itemBuilder: (context) => PopupMenuBuilders.popupMenuItems(),
+              child: Padding(
+                padding: const EdgeInsets.only(right: 14.0),
+                child: LocalAssets(
+                  imagePath: AppIconAssets.addOutlinedIcon,
+                  imgColor: AppColors.primaryColor,
+                ),
               ),
             ),
-          ),
         if (buildCustomActionWidget != null)
           Builder(
             builder: (context) => buildCustomActionWidget!(),

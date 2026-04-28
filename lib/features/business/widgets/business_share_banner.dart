@@ -10,6 +10,7 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -61,11 +62,9 @@ class _BusinessShareBannerState extends State<BusinessShareBanner> {
       final subCategory = details.subCategoryDetails?.name ??
           details.subCategoryOfBusiness;
 
-      return Padding(
-        padding: EdgeInsets.symmetric(
-          horizontal: SizeConfig.size12,
-          vertical: SizeConfig.size8,
-        ),
+      return CustomFormCard(
+        padding: const EdgeInsets.all(10.0),
+        margin: const EdgeInsets.only(top: 10.0),
         child: Column(
           children: [
             RepaintBoundary(
