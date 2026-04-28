@@ -20,11 +20,20 @@ import '../pin_chat/pin_chat_list.dart';
 import '../widget/component_widgets.dart';
 
 class PersonalChatsList extends StatefulWidget {
-  const PersonalChatsList({super.key, this.isForwardUI, this.isNewGroupUI,this.hideAiChats});
+  const PersonalChatsList({
+    super.key,
+    this.isForwardUI,
+    this.isNewGroupUI,
+    this.hideAiChats,
+    this.hideSubTabs,
+  });
 
   final bool? isForwardUI;
   final bool? isNewGroupUI;
   final bool? hideAiChats;
+  /// When `true`, the All / Group / Pinned / Flagged / Records sub-tab
+  /// strip is hidden and only the personal chat list is rendered.
+  final bool? hideSubTabs;
 
   @override
   State<PersonalChatsList> createState() => _PersonalChatsListState();
@@ -52,9 +61,9 @@ class _PersonalChatsListState extends State<PersonalChatsList> {
           child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if(widget.isForwardUI==false)
+              if(widget.isForwardUI==false && widget.hideSubTabs != true)
               SizedBox(height: 16,),
-              if(widget.isForwardUI==false)
+              if(widget.isForwardUI==false && widget.hideSubTabs != true)
               HorizontalTabSelector(horizontalMargin: 14,
                 horizontalPadding: 10,
                   tabs: [AppStrings.allTab.tr, AppStrings.groupTab.tr, AppStrings.pinnedTab.tr, AppStrings.flaggedTab.tr, AppStrings.recordsTab.tr],
@@ -68,7 +77,7 @@ class _PersonalChatsListState extends State<PersonalChatsList> {
                   },
                   labelBuilder: (value)=>value),
               if(chatViewController.personalTabSelectedIndex.value==0)
-                (widget.isForwardUI==false)?
+                (widget.isForwardUI != true)?
                     Expanded(child: personalChatListWidget(data,theme)):personalChatListWidget(data,theme)
               else if(chatViewController.personalTabSelectedIndex.value==1 && widget.isForwardUI==false)
                 Expanded(child: const GroupChatListTabPage())

@@ -28,8 +28,10 @@ import '../../../personal/personal_profile/view/wallet/wallet_screen.dart';
 import '../../../personal/personal_profile/view/widget/changes_languages_screen.dart';
 import '../../../subscription/view/single_plan_subscription_view.dart';
 import '../../auth/controller/auth_controller.dart';
+import '../../connect/view/connect_main_page.dart';
 import '../../referral/view/referral_page.dart';
-import '../view/home_screen.dart';
+
+
 import '../view/saved_feed_screen.dart';
 
 class ProfileMenuDrawer extends StatefulWidget {

@@ -43,8 +43,8 @@ import 'wallet_chat/wallet_chat_screen.dart';
 import '../../../features/personal/personal_profile/view/manage_notification/notification.dart';
 import 'reminder_chat/reminder_todo_screen.dart';
 
-class NewChatMainScreen extends StatefulWidget {
-  const NewChatMainScreen({super.key,
+class OrderMainChatScreen extends StatefulWidget {
+  const OrderMainChatScreen({super.key,
     this.isNewGroupUI,
     this.isForwardUI=false,
     this.onHeaderVisibilityChanged});
@@ -54,10 +54,10 @@ class NewChatMainScreen extends StatefulWidget {
 
 
   @override
-  _NewChatMainScreenState createState() => _NewChatMainScreenState();
+  _OrderMainChatScreenState createState() => _OrderMainChatScreenState();
 }
 
-class _NewChatMainScreenState extends State<NewChatMainScreen>
+class _OrderMainChatScreenState extends State<OrderMainChatScreen>
     with SingleTickerProviderStateMixin {
    ChatViewController  chatViewController = getOrPut(() => ChatViewController());
    ChatThemeController chatThemeController = getOrPut(() => ChatThemeController());
@@ -79,9 +79,11 @@ class _NewChatMainScreenState extends State<NewChatMainScreen>
     if (widget.isForwardUI != null && (widget.isForwardUI ?? false)) {
       chatViewController.selectedUserIds.clear();
     }
-    final pendingIndex = chatViewController.selectedChatTabIndex.value;
+    // Leads tab is commented out — clamp any persisted index to the new range.
+    final rawIndex = chatViewController.selectedChatTabIndex.value;
+    final pendingIndex = (rawIndex >= 0 && rawIndex < 2) ? rawIndex : 0;
     chatViewController.chatMainTabController = TabController(
-      length:3,
+      length: 2,
       vsync: this,
       initialIndex: pendingIndex,
     );
@@ -95,13 +97,15 @@ class _NewChatMainScreenState extends State<NewChatMainScreen>
         final index = chatViewController.chatMainTabController?.index;
         chatViewController.onSelectChatTab(index ?? 0);
 
+        // Indices shifted by -1 because the Leads (personal) tab is removed.
+        // if (index == 0) {
+        //   chatViewController.emitEvent(ChatEmitEvents.ChatList,
+        //       {ApiKeys.type: AppConstants.personal_Chat_Type});
+        // }
         if (index == 0) {
           chatViewController.emitEvent(ChatEmitEvents.ChatList,
-              {ApiKeys.type: AppConstants.personal_Chat_Type});
-        } else if (index == 1) {
-          chatViewController.emitEvent(ChatEmitEvents.ChatList,
               {ApiKeys.type: AppConstants.business_Chat_Type});
-        } else if (index == 2) {
+        } else if (index == 1) {
           chatViewController.emitEvent(ChatEmitEvents.ChatList,
               {ApiKeys.type: AppConstants.order_Chat_Type});
         }
@@ -110,21 +114,19 @@ class _NewChatMainScreenState extends State<NewChatMainScreen>
 
     // If a pending tab index was set before the screen was built (e.g. from
     // order placement), ensure the correct chat list is emitted after the
-    // first frame so the UI matches.
-    if (pendingIndex != 0) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (chatViewController.chatMainTabController != null &&
-            chatViewController.chatMainTabController!.index == pendingIndex) {
-          if (pendingIndex == 1) {
-            chatViewController.emitEvent(ChatEmitEvents.ChatList,
-                {ApiKeys.type: AppConstants.business_Chat_Type});
-          } else if (pendingIndex == 2) {
-            chatViewController.emitEvent(ChatEmitEvents.ChatList,
-                {ApiKeys.type: AppConstants.order_Chat_Type});
-          }
+    // first frame so the UI matches. Indices shifted by -1.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (chatViewController.chatMainTabController != null &&
+          chatViewController.chatMainTabController!.index == pendingIndex) {
+        if (pendingIndex == 0) {
+          chatViewController.emitEvent(ChatEmitEvents.ChatList,
+              {ApiKeys.type: AppConstants.business_Chat_Type});
+        } else if (pendingIndex == 1) {
+          chatViewController.emitEvent(ChatEmitEvents.ChatList,
+              {ApiKeys.type: AppConstants.order_Chat_Type});
         }
-      });
-    }
+      }
+    });
     _loadContactsFromStorage();
     // First-time-only contacts sync. On entry to the chat tab we ask for
     // contacts permission, upload the phone book, and persist the response.
@@ -230,24 +232,24 @@ class _NewChatMainScreenState extends State<NewChatMainScreen>
         return false;
       },
       child: Scaffold(
-        floatingActionButton: (_isFromForward()) ||
-            chatViewController.chatMainTabController?.index == 1 ||
-            chatViewController.chatMainTabController?.index == 2 ||
-            isSelectionMode
-            ? SizedBox()
-            : SafeArea(
-          child: Padding(
-              padding:
-              const EdgeInsets.only(bottom: kBottomNavigationBarHeight),
-              child: FloatingActionButton(
-                child: Icon(Icons.add),
-                backgroundColor: AppColors.primaryColor,
-                foregroundColor: Colors.white,
-                onPressed: () {
-                  Get.toNamed(RouteHelper.getChatContactsRoute());
-                },
-              )),
-        ),
+        // floatingActionButton: (_isFromForward()) ||
+        //     chatViewController.chatMainTabController?.index == 1 ||
+        //     chatViewController.chatMainTabController?.index == 2 ||
+        //     isSelectionMode
+        //     ? SizedBox()
+        //     : SafeArea(
+        //   child: Padding(
+        //       padding:
+        //       const EdgeInsets.only(bottom: kBottomNavigationBarHeight),
+        //       child: FloatingActionButton(
+        //         child: Icon(Icons.add),
+        //         backgroundColor: AppColors.primaryColor,
+        //         foregroundColor: Colors.white,
+        //         onPressed: () {
+        //           Get.toNamed(RouteHelper.getChatContactsRoute());
+        //         },
+        //       )),
+        // ),
         body: SafeArea(
           child: NestedScrollView(
             headerSliverBuilder: (context, innerBoxIsScrolled) {
@@ -397,7 +399,7 @@ class _NewChatMainScreenState extends State<NewChatMainScreen>
                       unselectedLabelColor: Colors.black54,
                       indicatorColor: Colors.lightBlue,
                       tabs:  [
-                        Tab(text: "Leads"),
+                        // Tab(text: "Leads"),
                         Tab(text: "Inquiry"),
                         // Tab(text: "Finder"),
                         Tab(text: "Orders"),
@@ -415,8 +417,9 @@ class _NewChatMainScreenState extends State<NewChatMainScreen>
                     child: TabBarView(
                       controller: chatViewController.chatMainTabController,
                       children: [
-                        PersonalChatsList(isForwardUI: widget.isForwardUI,
-                          isNewGroupUI: widget.isNewGroupUI,),
+                        // PersonalChatsList(isForwardUI: widget.isForwardUI,
+                        //   isNewGroupUI: widget.isNewGroupUI,
+                        //   hideSubTabs: true,),
                         BusinessChatsList(isForwardUI: widget.isForwardUI,
                           isNewGroupUI: widget.isNewGroupUI,),
                         // FindContactWithService(fromBottomNav: true),
@@ -520,76 +523,82 @@ class _NewChatMainScreenState extends State<NewChatMainScreen>
       children: [
         (_isFromForward())
             ? InkWell(
-          onTap: () => Navigator.pop(context),
-          child: Icon(Icons.arrow_back_ios),
-        )
-            : Obx(() {
-          return Stack(
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(right: 1.0, top: 3),
-                child: InkWell(
-                  onTap: () => _openProfileDrawer(context),
-                  borderRadius: BorderRadius.circular(20),
-                  child: Container(
-                    padding: const EdgeInsets.all(2.4),
-                    decoration: addSymbolController.mySymbols.isNotEmpty
-                        ? const BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: SweepGradient(
-                        startAngle: 0.0,
-                        endAngle: 6.28319,
-                        colors: [
-                          AppColors.symbolBorderRed,
-                          AppColors.symbolBorderBlue,
-                          AppColors.symbolBorderYellow,
-                          AppColors.symbolBorderGreen,
-                          AppColors.symbolBorderRed,
-                        ],
-                      ),
-                    )
-                        : null,
-                    child: Container(
-                      padding: const EdgeInsets.all(2),
-                      decoration: const BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.white,
-                      ),
-                      child: CachedAvatarWidget(
-                        imageUrl: Get
-                            .find<AuthController>()
-                            .imgPath
-                            .value,
-                        size: SizeConfig.size36,
-                        borderRadius: SizeConfig.size34 / 2,
-                        showProfileOnFullScreen: false,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              Positioned(
-                  top: 0,
-                  right: 0,
-                  child: InkWell(
-                    onTap: () {
-                      Get.to(()=>AddChatSymbolScreen());
-                    },
-                    child: Container(
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(4),
-                          color: AppColors.primaryColor),
-                      padding: EdgeInsets.all(1.4),
-                      child: Icon(
-                        Icons.add,
-                        color: AppColors.white,
-                        size: 15,
-                      ),
-                    ),
-                  ))
-            ],
-          );
-        }),
+                onTap: () => Navigator.pop(context),
+                child: Icon(Icons.arrow_back_ios),
+              )
+            : const SizedBox.shrink(),
+        // Profile (symbol avatar + drawer trigger) was here.
+        // Moved to ConnectMainPage so the drawer is reachable from the
+        // app's top-level Connect tab. Keeping the original code as a
+        // reference in case we need to restore it on this screen:
+        //
+        // : Obx(() {
+        //   return Stack(
+        //     children: [
+        //       Padding(
+        //         padding: const EdgeInsets.only(right: 1.0, top: 3),
+        //         child: InkWell(
+        //           onTap: () => _openProfileDrawer(context),
+        //           borderRadius: BorderRadius.circular(20),
+        //           child: Container(
+        //             padding: const EdgeInsets.all(2.4),
+        //             decoration: addSymbolController.mySymbols.isNotEmpty
+        //                 ? const BoxDecoration(
+        //               shape: BoxShape.circle,
+        //               gradient: SweepGradient(
+        //                 startAngle: 0.0,
+        //                 endAngle: 6.28319,
+        //                 colors: [
+        //                   AppColors.symbolBorderRed,
+        //                   AppColors.symbolBorderBlue,
+        //                   AppColors.symbolBorderYellow,
+        //                   AppColors.symbolBorderGreen,
+        //                   AppColors.symbolBorderRed,
+        //                 ],
+        //               ),
+        //             )
+        //                 : null,
+        //             child: Container(
+        //               padding: const EdgeInsets.all(2),
+        //               decoration: const BoxDecoration(
+        //                 shape: BoxShape.circle,
+        //                 color: Colors.white,
+        //               ),
+        //               child: CachedAvatarWidget(
+        //                 imageUrl: Get
+        //                     .find<AuthController>()
+        //                     .imgPath
+        //                     .value,
+        //                 size: SizeConfig.size36,
+        //                 borderRadius: SizeConfig.size34 / 2,
+        //                 showProfileOnFullScreen: false,
+        //               ),
+        //             ),
+        //           ),
+        //         ),
+        //       ),
+        //       Positioned(
+        //           top: 0,
+        //           right: 0,
+        //           child: InkWell(
+        //             onTap: () {
+        //               Get.to(()=>AddChatSymbolScreen());
+        //             },
+        //             child: Container(
+        //               decoration: BoxDecoration(
+        //                   borderRadius: BorderRadius.circular(4),
+        //                   color: AppColors.primaryColor),
+        //               padding: EdgeInsets.all(1.4),
+        //               child: Icon(
+        //                 Icons.add,
+        //                 color: AppColors.white,
+        //                 size: 15,
+        //               ),
+        //             ),
+        //           ))
+        //     ],
+        //   );
+        // }),
         SizedBox(width: SizeConfig.size8),
         Expanded(
           child: CommonSearchBar(
@@ -599,13 +608,33 @@ class _NewChatMainScreenState extends State<NewChatMainScreen>
             controller: TextEditingController(),
           ),
         ),
-        const SizedBox(width: 18),
+        const SizedBox(width: 14),
         InkWell(
           onTap: () {
-            Get.to(() => const ReminderTodoScreen());
+            // TODO: hook up flagged-chat list when destination is ready.
+            commonSnackBar(message: "Coming soon....");
           },
-          child: const Icon(Icons.lock_clock),
-        )
+          borderRadius: BorderRadius.circular(20),
+          child: const Icon(Icons.flag_outlined, color: Colors.black),
+        ),
+        const SizedBox(width: 14),
+        InkWell(
+          onTap: () {
+            // TODO: hook up card / wallet destination.
+            commonSnackBar(message: "Coming soon....");
+          },
+          borderRadius: BorderRadius.circular(20),
+          child: const Icon(Icons.credit_card, color: Colors.black),
+        ),
+        const SizedBox(width: 14),
+        InkWell(
+          onTap: () {
+            // TODO: hook up rider destination.
+            commonSnackBar(message: "Coming soon....");
+          },
+          borderRadius: BorderRadius.circular(20),
+          child: const Icon(Icons.delivery_dining, color: Colors.black),
+        ),
         // InkWell(
         //   onTap: () {
         //     Get.to(FindContactWithService());
@@ -662,6 +691,9 @@ class _NewChatMainScreenState extends State<NewChatMainScreen>
     );
   }
 
+  // Profile drawer methods moved to ConnectMainPage. Kept here as a
+  // reference in case we need to restore the in-screen drawer.
+  /*
   void _openProfileDrawer(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final authController = Get.find<AuthController>();
@@ -940,6 +972,7 @@ class _NewChatMainScreenState extends State<NewChatMainScreen>
       ),
     );
   }
+  */
 }
 
 /// Bottom sheet to apply a flag to multiple selected conversations

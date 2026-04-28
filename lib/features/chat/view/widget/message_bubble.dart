@@ -16,7 +16,7 @@ import '../../../../core/constants/snackbar_helper.dart';
 import '../../../../widgets/custom_text_cm.dart';
 import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/controller/chat_view_controller.dart';
-import '../chat_screen_new.dart';
+import '../order_main_chat_screen.dart';
 import 'component_widgets.dart';
 class MessageBubble extends StatefulWidget {
   final String message;
@@ -381,7 +381,7 @@ mainAxisAlignment: MainAxisAlignment.center,
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => NewChatMainScreen(
+                      builder: (context) => OrderMainChatScreen(
                         isForwardUI: true,
 
                       ),

@@ -15,7 +15,7 @@ import '../../../../core/constants/size_config.dart';
 import '../../../../core/services/notification_utils.dart';
 import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/controller/chat_view_controller.dart';
-import '../chat_screen_new.dart';
+import '../order_main_chat_screen.dart';
 import '../widget/chat_input_box.dart';
 import '../widget/component_widgets.dart';
 import '../widget/message_card.dart';
@@ -93,14 +93,21 @@ class _OrderChatScreenState extends State<OrderChatScreen> {
       child: Obx(() {
         // Determine the order-conversation expiry once, so the appbar call
         // button and the chat input below stay in sync. A conversation is
-        // considered expired 24h after the most recent rider / rider_map
-        // message snapshot. Pick by parsed time so we don't depend on list
-        // order (which is sorted later, inside the body Obx).
+        // considered expired 24h after the most recent order-lifecycle
+        // message snapshot (rider, rider_map, selfpickup variants, or
+        // rider_association). Pick by parsed time so we don't depend on
+        // list order (which is sorted later, inside the body Obx).
+        const Set<String> expiryDrivingTypes = {
+          'rider',
+          'rider_map',
+          'selfpickup',
+          'food_selfpickup',
+          'product_selfpickup',
+          'rider_association',
+        };
         DateTime? latestRiderTime;
         for (final m in (chatViewController.getListOfMessageData ?? [])) {
-          if (m.messageType != 'rider' && m.messageType != 'rider_map') {
-            continue;
-          }
+          if (!expiryDrivingTypes.contains(m.messageType)) continue;
           final raw = m.createdAt;
           if (raw == null || raw.isEmpty) continue;
           try {
@@ -372,7 +379,7 @@ class _ReactionInfoWidgetState extends State<ReactionInfoWidget> {
               InkWell(
                   onTap: (){
                     chatThemeController.selectedMessageIds.add(widget.message.id??'');
-                    Navigator.push(context, MaterialPageRoute(builder: (context)=>NewChatMainScreen(isForwardUI: true,)));
+                    Navigator.push(context, MaterialPageRoute(builder: (context)=>OrderMainChatScreen(isForwardUI: true,)));
                   },
                   child: _iconText(widget.userId,widget.conversation,AppIconAssets.chat_share_icon, "${(widget.message.forwards_count=="null")?"0":widget.message.forwards_count??0}",context,chatThemeController)),
             ],

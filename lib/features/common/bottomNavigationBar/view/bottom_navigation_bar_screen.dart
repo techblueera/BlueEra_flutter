@@ -20,7 +20,7 @@ import 'package:BlueEra/features/common/auth/views/screens/guest_dashboard_scree
 import 'package:BlueEra/features/common/bottomNavigationBar/controller/ai_chat_guest_controller.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/controller/bottom_bar_controller.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/view/bottom_navigation_widget.dart';
-import 'package:BlueEra/features/common/home/view/home_screen.dart';
+import 'package:BlueEra/features/common/connect/view/connect_main_page.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/common/more/controller/more_cards_screen_controller.dart';
 import 'package:BlueEra/features/common/reel/models/channel_model.dart';
@@ -58,7 +58,7 @@ import '../../../../core/routes/route_helper.dart';
 import '../../../chat/auth/controller/chat_theme_controller.dart';
 import '../../../chat/auth/controller/call_controller.dart';
 import '../../../chat/auth/controller/chat_view_controller.dart';
-import '../../../chat/view/chat_screen_new.dart';
+import '../../../chat/view/order_main_chat_screen.dart';
 import '../../../chat/view/forward_screen/chat_forward_screen.dart';
 import '../../../me/manufacture/view/manufacture_main.dart';
 import '../../delivery_partner/controller/delivery_partner_orders_controller.dart';
@@ -572,7 +572,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   Widget _getScreen(int index, bool isVisible) {
     switch (index) {
       case 0:
-        return HomeScreen(
+        return ConnectMainPage(
           isHeaderVisible: isVisible,
           onHeaderVisibilityChanged: _toggleAppBar,
         );
@@ -607,7 +607,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       default:
         return isGuestUser()
             ? GuestDashBoardScreen()
-            : NewChatMainScreen(
+            : OrderMainChatScreen(
                 onHeaderVisibilityChanged: _toggleAppBar,
               );
     }

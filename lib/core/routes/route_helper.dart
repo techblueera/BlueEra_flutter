@@ -58,7 +58,7 @@ import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/feed/view/post_detail_screen.dart';
 import 'package:BlueEra/features/common/food/view/food_upload_screen.dart';
-import 'package:BlueEra/features/common/home/view/home_screen.dart';
+import 'package:BlueEra/features/common/connect/view/connect_main_page.dart';
 import 'package:BlueEra/features/common/jobs/create_job_post/create_job.dart';
 import 'package:BlueEra/features/common/jobs/create_job_post/create_job_post_step2.dart';
 import 'package:BlueEra/features/common/jobs/create_job_post/create_job_post_step3.dart';
@@ -660,7 +660,7 @@ class RouteHelper {
             args[ApiKeys.onHeaderVisibilityChanged] as Function(bool);
         final isHeaderVisible = args[ApiKeys.isHeaderVisible] as bool;
         return MaterialPageRoute(
-            builder: (_) => HomeScreen(
+            builder: (_) => ConnectMainPage(
                 isHeaderVisible: isHeaderVisible,
                 onHeaderVisibilityChanged: onHeaderVisibilityChanged));
       case RouteConstant.BottomNavigationBarScreen:

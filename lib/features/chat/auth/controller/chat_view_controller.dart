@@ -1224,7 +1224,7 @@ class ChatViewController extends GetxController {
     selectedChatTabIndex.value = index;
     if (chatMainTabController == null) {
       // Tab controller not yet created — selectedChatTabIndex is stored so
-      // that initState in NewChatMainScreen picks it up as initialIndex.
+      // that initState in OrderMainChatScreen picks it up as initialIndex.
       return;
     }
     chatMainTabController!.animateTo(index);

@@ -34,7 +34,7 @@ import '../chat_theme/chat_background_screen.dart';
 import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/controller/order_controllar.dart';
 import '../../auth/model/GetChatListModel.dart';
-import '../chat_screen_new.dart';
+import '../order_main_chat_screen.dart';
 import '../contacts/view/contact_list_page.dart';
 import '../group_chat/view_group_members.dart';
 import '../group_chat/widgets/delete_chat_history_dialog.dart';
@@ -1826,7 +1826,7 @@ PreferredSize getChatOptionsAppBar(BuildContext context, {
                   context,
                   MaterialPageRoute(
                       builder: (context) =>
-                          NewChatMainScreen(
+                          OrderMainChatScreen(
                             isForwardUI: true,
 
                           )));

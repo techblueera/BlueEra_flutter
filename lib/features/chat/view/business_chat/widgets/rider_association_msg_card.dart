@@ -3,6 +3,7 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/chat/auth/model/GetListOfMessageData.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
+import 'package:BlueEra/features/chat/view/widget/component_widgets.dart';
 import 'package:BlueEra/features/common/delivery_partner/repo/delivery_partner_repo.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
@@ -252,7 +253,12 @@ class _RiderAssociationMsgCardState extends State<RiderAssociationMsgCard> {
           ),
 
           // ─── Rider side: Accept/Reject inline (when rider is recipient) ───
-          if (status == 'pending' && isRecipient && isCurrentUserRider)
+          // After 24h the request is locked — swap the button row for a
+          // disabled "Order Closed" status so the rider can't act.
+          if (status == 'pending' &&
+              isRecipient &&
+              isCurrentUserRider &&
+              !isMessageOlderThan24Hours(widget.message.createdAt))
             Padding(
               padding: const EdgeInsets.fromLTRB(12, 10, 12, 4),
               child: Row(
@@ -280,6 +286,27 @@ class _RiderAssociationMsgCardState extends State<RiderAssociationMsgCard> {
                         'accept',
                       ),
                     ),
+                  ),
+                ],
+              ),
+            )
+          else if (status == 'pending' &&
+              isRecipient &&
+              isCurrentUserRider &&
+              isMessageOlderThan24Hours(widget.message.createdAt))
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 10, 12, 4),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.lock_clock,
+                      color: AppColors.grayText, size: 18),
+                  const SizedBox(width: 6),
+                  CustomText(
+                    'Order Closed',
+                    fontSize: SizeConfig.size14,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.grayText,
                   ),
                 ],
               ),

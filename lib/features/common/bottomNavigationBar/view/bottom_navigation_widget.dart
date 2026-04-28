@@ -36,6 +36,13 @@ class BottomNavigationBarWidget extends StatelessWidget {
       onHeaderVisibilityChanged.call(true);
       return false;
     }
+    // From Connect (0) or Order (3), back routes to Discover (1) instead
+    // of falling through to the press-twice-to-exit flow. Discover is the
+    // app's "home" tab in this layout.
+    if (currentIndex == 0 || currentIndex == 3) {
+      onTap(1);
+      return false;
+    }
     final now = DateTime.now();
     if (lastBackPressed == null ||
         now.difference(lastBackPressed!) > const Duration(seconds: 2)) {
@@ -104,7 +111,7 @@ class BottomNavigationBarWidget extends StatelessWidget {
               ),
               _buildNavItem(
                 index: 0,
-                iconPath: AppIconAssets.home,
+                iconPath:  AppIconAssets.chat,
                 isSelected: currentIndex == 0,
                 label: 'Connect',
               ),
@@ -116,7 +123,7 @@ class BottomNavigationBarWidget extends StatelessWidget {
               // ),
               _buildNavItem(
                 index: 3,
-                iconPath: AppIconAssets.chat,
+                iconPath: AppIconAssets.cartIcon,
                 isSelected: currentIndex == 3,
                 label: 'Order',
                 showBadge: chatNotificationCount > 0,

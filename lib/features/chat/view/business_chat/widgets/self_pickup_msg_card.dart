@@ -14,7 +14,8 @@ import 'package:dio/dio.dart' as dio;
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_theme_controller.dart';
-import 'package:BlueEra/features/chat/view/chat_screen_new.dart';
+import 'package:BlueEra/features/chat/view/order_main_chat_screen.dart';
+import 'package:BlueEra/features/chat/view/widget/component_widgets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
@@ -912,6 +913,33 @@ class _SelfPickupMsgCardState extends State<SelfPickupMsgCard> {
   }
 
   Widget _buildActionSection() {
+    // 24h after createdAt, lock the action row regardless of side. Mirrors
+    // the order-chat appbar/input expiry — the order can't be progressed.
+    final bool isExpired =
+        isMessageOlderThan24Hours(widget.message.createdAt);
+    if (isExpired && !_isReady) {
+      return Column(
+        children: [
+          const Divider(height: 1, color: Colors.grey),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.lock_clock, color: AppColors.grayText, size: 18),
+                const SizedBox(width: 6),
+                CustomText(
+                  'Order Closed',
+                  fontSize: SizeConfig.size14,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.grayText,
+                ),
+              ],
+            ),
+          ),
+        ],
+      );
+    }
     // If already ready, show ready confirmation for both sides
     if (_isReady) {
       return Column(
@@ -1866,7 +1894,7 @@ class _PackingPdfPreviewScreen extends StatelessWidget {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => NewChatMainScreen(isForwardUI: true),
+        builder: (context) => OrderMainChatScreen(isForwardUI: true),
       ),
     );
   }

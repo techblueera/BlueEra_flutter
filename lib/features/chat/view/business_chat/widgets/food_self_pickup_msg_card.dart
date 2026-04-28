@@ -6,6 +6,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/chat/auth/model/GetListOfMessageData.dart';
 import 'package:BlueEra/features/chat/auth/model/self_pickup_order_model.dart';
+import 'package:BlueEra/features/chat/view/widget/component_widgets.dart';
 import 'package:BlueEra/features/me/food/repo/food_repo.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -211,6 +212,33 @@ class _FoodSelfPickupMsgCardState extends State<FoodSelfPickupMsgCard> {
   }
 
   Widget _buildActionSection() {
+    // 24h after createdAt, lock the action row regardless of side. Mirrors
+    // the order-chat appbar/input expiry — the order can't be progressed.
+    final bool isExpired =
+        isMessageOlderThan24Hours(widget.message.createdAt);
+    if (isExpired && !_isReady) {
+      return Column(
+        children: [
+          const Divider(height: 1, color: Colors.grey),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.lock_clock, color: AppColors.grayText, size: 18),
+                const SizedBox(width: 6),
+                CustomText(
+                  'Order Closed',
+                  fontSize: SizeConfig.size14,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.grayText,
+                ),
+              ],
+            ),
+          ),
+        ],
+      );
+    }
     if (_isReady) {
       return Column(
         children: [

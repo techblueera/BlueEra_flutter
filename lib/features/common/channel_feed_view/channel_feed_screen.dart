@@ -10,7 +10,7 @@ import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/channel_feed_view/channel_card_widget.dart';
 import 'package:BlueEra/features/common/channel_feed_view/channel_feed_controllar.dart';
 import 'package:BlueEra/features/common/channel_feed_view/channel_feed_post_listing_screen.dart';
-import 'package:BlueEra/features/common/channel_feed_view/unjoin_channel_card_widget.dart';
+import 'package:BlueEra/features/common/channel_feed_view/suggested_channels_screen.dart';
 
 import 'package:BlueEra/features/common/feed/view/home_feed_screen_new.dart';
 import 'package:BlueEra/features/common/home/controller/home_screen_controller.dart';
@@ -194,52 +194,41 @@ class _ChannelFeedScreenState extends State<ChannelFeedScreen> {
                     ),
                   ),
                 ),
-              if (channelFeedController.communityIndex.value == 0) ...[
-                // Joined Channels
-                Obx(() => SliverList(
-                      delegate: SliverChildBuilderDelegate(
-                        (context, index) {
-                          final channel =
-                              channelFeedController.channelDataList[index];
-                          return InkWell(
-                            onTap: () => Get.to(
-                              () => ChannelFeedPostListingScreen(
-                                  channelData: channel),
-                            ),
-                            child: ChannelCardWidget(channelModel: channel),
-                          );
-                        },
-                        childCount: channelFeedController.channelDataList.length,
-                      ),
-                    )),
-              ],
+              // Joined channels (only). Empty state nudges the user to
+              // browse suggestions on a separate screen.
+              Obx(() {
+                final joined = channelFeedController.channelDataList;
+                if (joined.isEmpty) {
+                  return SliverToBoxAdapter(child: _buildJoinedEmptyState());
+                }
+                return SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      final channel = joined[index];
+                      return InkWell(
+                        onTap: () => Get.to(
+                          () => ChannelFeedPostListingScreen(
+                              channelData: channel),
+                        ),
+                        child: ChannelCardWidget(channelModel: channel),
+                      );
+                    },
+                    childCount: joined.length,
+                  ),
+                );
+              }),
 
-              if (channelFeedController.communityIndex.value == 1) ...[
-                Obx(() => SliverList(
-                      delegate: SliverChildBuilderDelegate(
-                        (context, index) {
-                          final newChannel =
-                              channelFeedController.unJoinChannelDataList[index];
-                          return InkWell(
-                            onTap: () async {
-                              await Get.to(() => ChannelFeedPostListingScreen(
-                                  channelData: newChannel));
-                            },
-                            child: Padding(
-                              padding: const EdgeInsets.only(
-                                  right: 12, left: 12, top: 10),
-                              child: UnjoinChannelCardWidget(
-                                channelModel: newChannel,
-                                index: index,
-                              ),
-                            ),
-                          );
-                        },
-                        childCount:
-                            channelFeedController.unJoinChannelDataList.length,
-                      ),
-                    )),
-              ],
+              // "See more suggestions" CTA at the end of the joined list —
+              // hidden when the list is empty (empty state already has its
+              // own CTA).
+              Obx(() {
+                if (channelFeedController.channelDataList.isEmpty) {
+                  return const SliverToBoxAdapter(child: SizedBox.shrink());
+                }
+                return SliverToBoxAdapter(
+                  child: _buildSeeMoreSuggestionsButton(),
+                );
+              }),
 
               // Bottom Spacer
               const SliverToBoxAdapter(
@@ -284,6 +273,105 @@ class _ChannelFeedScreenState extends State<ChannelFeedScreen> {
       fontSize: SizeConfig.medium,
       fontWeight: FontWeight.w600,
       color: AppColors.secondaryTextColor,
+    );
+  }
+
+  Widget _buildJoinedEmptyState() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 40, 20, 20),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: AppColors.primaryColor.withValues(alpha: 0.1),
+            ),
+            child: const Icon(Icons.groups_rounded,
+                size: 36, color: AppColors.primaryColor),
+          ),
+          const SizedBox(height: 16),
+          const CustomText(
+            'No channels joined yet',
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+          ),
+          const SizedBox(height: 6),
+          CustomText(
+            'Discover communities you\'ll love and join the conversation.',
+            fontSize: 13,
+            color: AppColors.secondaryTextColor,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 18),
+          InkWell(
+            onTap: () => Get.to(() => const SuggestedChannelsScreen()),
+            borderRadius: BorderRadius.circular(24),
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 22, vertical: 12),
+              decoration: BoxDecoration(
+                color: AppColors.primaryColor,
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.explore_outlined,
+                      size: 18, color: Colors.white),
+                  SizedBox(width: 8),
+                  CustomText(
+                    'Browse suggested channels',
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSeeMoreSuggestionsButton() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+      child: InkWell(
+        onTap: () => Get.to(() => const SuggestedChannelsScreen()),
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: AppColors.primaryColor.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: AppColors.primaryColor.withValues(alpha: 0.25),
+            ),
+          ),
+          child: Row(
+            children: [
+              const Icon(Icons.add_circle_outline,
+                  size: 20, color: AppColors.primaryColor),
+              const SizedBox(width: 10),
+              const Expanded(
+                child: CustomText(
+                  'See more suggestions',
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.primaryColor,
+                ),
+              ),
+              const Icon(Icons.arrow_forward_ios,
+                  size: 14, color: AppColors.primaryColor),
+            ],
+          ),
+        ),
+      ),
     );
   }
 

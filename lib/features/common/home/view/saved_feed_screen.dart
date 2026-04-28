@@ -1,7 +1,7 @@
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
-import 'package:BlueEra/features/common/home/view/home_screen.dart';
+import 'package:BlueEra/features/common/connect/view/connect_main_page.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:flutter/material.dart';
 

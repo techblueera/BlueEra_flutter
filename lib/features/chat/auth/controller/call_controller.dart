@@ -2019,6 +2019,31 @@ class CallController extends GetxController {
     return (data['calls'] as List).map((c) => CallModel.fromJson(c)).toList();
   }
 
+  /// GET https://call.blueera.ai/call/history?page=$page&limit=$limit
+  /// Fetches the global call history (all conversations) for the current user.
+  /// Logs the raw response for debugging and returns the parsed list.
+  Future<List<CallModel>> fetchCallHistory({
+    int page = 1,
+    int limit = 20,
+  }) async {
+    final ResponseModel response =
+        await _callRepo.getCallHistory(page: page, limit: limit);
+
+    debugPrint('[CALL_HISTORY] statusCode=${response.statusCode}');
+    debugPrint('[CALL_HISTORY] response=${response.response?.data}');
+
+    if (!response.isSuccess) return [];
+    final dynamic data = response.response?.data;
+    if (data is! Map) return [];
+    if (data['success'] != true) return [];
+    final dynamic calls = data['calls'];
+    if (calls is! List) return [];
+    return calls
+        .whereType<Map>()
+        .map((c) => CallModel.fromJson(Map<String, dynamic>.from(c)))
+        .toList();
+  }
+
   // ==================== UTILITY ====================
 
   String getCallDisplayText(CallModel call, String currentUserId) {
