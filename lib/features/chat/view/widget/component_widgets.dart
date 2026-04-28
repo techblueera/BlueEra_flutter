@@ -1570,16 +1570,11 @@ AppBar getChatTitleAppBar(BuildContext context, {
             },
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 0),
-              child: SvgPicture.asset(
-                'assets/svg/audio_and_video_call.svg',
-                width: 20,
-                height: 20,
-                colorFilter: ColorFilter.mode(
-                  disableCallButton
-                      ? AppColors.grayText.withOpacity(0.6)
-                      : AppColors.chat_input_icon_color,
-                  BlendMode.srcIn,
-                ),
+              child: Image.asset(
+             "assets/images/audio_and_video_call.png",
+                width: 24,
+                height: 24,
+
               ),
             )),
       if(isFromAiChat==true)
