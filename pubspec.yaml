@@ -2,7 +2,7 @@ name: BlueEra
 description: "A new Flutter project."
 publish_to: "none" # Remove this line if you wish to publish to pub.dev
 
-version: 13.40.221+165
+version: 13.40.227+171
 
 environment:
   sdk: ">=3.3.3 <4.0.0"
@@ -147,7 +147,6 @@ flutter:
     - assets/video/
     - assets/store/
     - assets/sound/
-    - assets/dummy/
     - assets/category/grocery/menu/
     - assets/category/medical/
     - assets/category/hotel_service/
