@@ -841,7 +841,7 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
         child: Stack(
           children: [
             Image.asset(
-              'assets/dummy/oth_s1.png',
+              'assets/images/other_service_add.png',
               height: 200,
               width: double.infinity,
               fit: BoxFit.cover,
