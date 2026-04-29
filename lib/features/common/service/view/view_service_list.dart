@@ -4,6 +4,8 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/common/service/controller/service_controller.dart';
 import 'package:BlueEra/features/common/service/model/get_service_model.dart';
 import 'package:BlueEra/features/common/service/view/service_details_view_screen.dart';
+import 'package:BlueEra/features/common/service/view/service_upload_screen.dart';
+import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:flutter/material.dart';
@@ -19,13 +21,16 @@ class ViewServiceList extends StatefulWidget {
   final String? serviceSubType;
   final String? channelId;
   final bool isShowGrid;
+  final bool showScaffold;
 
   const ViewServiceList({
     super.key,
     required this.providerType,
     this.serviceSubType,
     this.channelId,
-    this.isShowGrid = true});
+    this.isShowGrid = true,
+    this.showScaffold = false,
+  });
 
   @override
   State<ViewServiceList> createState() => _ViewServiceListState();
@@ -95,12 +100,40 @@ class _ViewServiceListState extends State<ViewServiceList> {
     }
   }
 
+  void _goToAddService() {
+    Get.to(() => ServiceUploadScreen(
+          providerType: widget.providerType,
+          channelId: widget.channelId,
+        ));
+  }
+
   @override
   Widget build(BuildContext context) {
+    final body = _buildBody();
 
+    if (!widget.showScaffold) return body;
+
+    return Scaffold(
+      backgroundColor: AppColors.appBackgroundColor,
+      appBar: CommonBackAppBar(title: AppStrings.service.tr),
+      floatingActionButton: FloatingActionButton.extended(
+        backgroundColor: AppColors.primaryColor,
+        onPressed: _goToAddService,
+        icon: const Icon(Icons.add, color: Colors.white),
+        label: CustomText(
+          AppStrings.service.tr,
+          color: Colors.white,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      body: body,
+    );
+  }
+
+  Widget _buildBody() {
     return Obx(() {
       if (serviceController.isServiceDataFirstLoading.isTrue) {
-        const Center(
+        return const Center(
           child: CircularProgressIndicator(),
         );
       }
@@ -123,7 +156,7 @@ class _ViewServiceListState extends State<ViewServiceList> {
             final totalHorizontalSpacing = (crossAxisCount - 1) * crossSpacing;
             final itemWidth = (constraints.maxWidth - totalHorizontalSpacing) / crossAxisCount;
 
-            final approximateItemHeight = SizeConfig.size240;
+            final approximateItemHeight = SizeConfig.size250;
 
             final childAspectRatio = itemWidth / approximateItemHeight;
 
@@ -551,7 +584,44 @@ class _ViewServiceListState extends State<ViewServiceList> {
         );
       }
       else{
-        return Center(child: CustomText(AppStrings.noServices, fontSize: 18));
+        return Center(
+          child: Padding(
+            padding: EdgeInsets.all(SizeConfig.size20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.miscellaneous_services_outlined,
+                    size: 64, color: AppColors.greyAF),
+                SizedBox(height: SizeConfig.size12),
+                CustomText(
+                  AppStrings.noServices.tr,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.mainTextColor,
+                ),
+                SizedBox(height: SizeConfig.size16),
+                ElevatedButton.icon(
+                  onPressed: _goToAddService,
+                  icon: const Icon(Icons.add, color: Colors.white),
+                  label: CustomText(
+                    "Add Service",
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primaryColor,
+                    padding: EdgeInsets.symmetric(
+                        horizontal: SizeConfig.size20,
+                        vertical: SizeConfig.size12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
       }
 
     });

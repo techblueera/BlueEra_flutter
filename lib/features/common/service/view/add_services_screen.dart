@@ -40,7 +40,7 @@ class _AddServicesScreenState extends State<AddServicesScreenNew> {
   @override
   void initState() {
     super.initState();
-    final addServiceController = getOrPut(() => AddServiceController());
+    addServiceController = getOrPut(() => AddServiceController());
     addServiceController.consumePendingEdit();
   }
 
