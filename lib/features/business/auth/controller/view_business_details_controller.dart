@@ -3,6 +3,7 @@ import 'dart:developer';
 
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/api/model/guest_model_response.dart';
+import 'package:BlueEra/core/services/business_profile_cache.dart';
 import 'package:BlueEra/core/api/model/type_of_business_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
@@ -166,73 +167,99 @@ class ViewBusinessDetailsController extends GetxController {
   }
 
   Future<void> viewBusinessProfile() async {
-    // try {
     await getUserLoginBusinessId();
+
+    // 1. Show cached business profile (if any) immediately so the UI
+    //    isn't blank while the network call is in flight. The repo call
+    //    already runs with `showProgress: false`, so the refresh below
+    //    is silent regardless.
+    final cacheKey = businessId.isNotEmpty ? businessId : userId;
+    final cached = await BusinessProfileCache.read(cacheKey);
+    if (cached != null) {
+      _applyBusinessProfileData(cached, persistPrefs: false);
+    }
+
+    // 2. Silently refresh from the server and replace state + cache on
+    //    success.
     ResponseModel responseModel =
         await BusinessProfileRepo().viewParticularBusinessProfile();
     if (responseModel.isSuccess) {
       final data = responseModel.response?.data;
-
-      businessProfileDetails.value = ViewBusinessProfileModel.fromJson(data);
-
-      selectDay?.value =
-          businessProfileDetails.value?.data?.dateOfIncorporation?.date ?? 0;
-      selectMonth?.value =
-          businessProfileDetails.value?.data?.dateOfIncorporation?.month ?? 0;
-      selectYear?.value =
-          businessProfileDetails.value?.data?.dateOfIncorporation?.year ?? 0;
-      imagePath?.value = businessProfileDetails.value?.data?.logo ?? "";
-      coverImage?.value = businessProfileDetails.value?.data?.coverimage ?? "";
-
-      businessDescription.value =
-          businessProfileDetails.value?.data?.businessDescription ?? "";
-      tempDescription.value = businessDescription.value;
-      controllerVisit.isFollow.value =
-          businessProfileDetails.value?.data?.is_following ?? false;
-      isBusinessVerified.value =
-          businessProfileDetails.value?.data?.businessIsVerified ?? false;
-      // if (selectedBusinessType?.value.name.toLowerCase() == "both") {
-      //   selectedCategoryOfBusiness.value = null;
-      //   selectedSubCategoryOfBusinessNew.value = null;
-      // }
-      Get.find<AuthController>().imgPath.value =
-          businessProfileDetails.value?.data?.logo ?? "";
-      log('business type -- ${businessProfileDetails.value?.data?.typeOfBusiness}');
-      await SharedPreferenceUtils.userLoggedInBusiness(
-        // contactNo: businessProfileDetails.value?.data?.userContactNo ?? '',
-        email: businessProfileDetails.value?.data?.ownerDetails?[0].email ?? '',
-        profileImage: businessProfileDetails.value?.data?.logo ?? '',
-        businessName: businessProfileDetails.value?.data?.businessName ?? '',
-        businessOwnerName:
-            businessProfileDetails.value?.data?.ownerDetails?[0].name ?? '',
-        businessId: businessProfileDetails.value!.data!.id!,
-        loginBusinessUserId: businessProfileDetails.value!.data!.userId!,
-        userNameAt: "",
-        businessAddress: businessProfileDetails.value?.data?.address ?? '',
-        categoryOfBusiness:
-            businessProfileDetails.value?.data?.categoryDetails?.name ?? '',
-        subCategoryOfBusiness:
-            businessProfileDetails.value?.data?.subCategoryDetails?.name ?? '',
-        typeOfBusiness:
-            businessProfileDetails.value?.data?.typeOfBusiness ?? '',
-        // typeOfBusiness: businessProfileDetails.value?.data?.typeOfBusiness ?? '',
-      );
-
-      await getUserLoginData();
-
+      if (data is Map<String, dynamic>) {
+        await _applyBusinessProfileData(data, persistPrefs: true);
+        // Persist for next launch.
+        final freshKey = businessId.isNotEmpty ? businessId : userId;
+        await BusinessProfileCache.write(freshKey, data);
+      }
       viewBusinessResponse = ApiResponse.complete(responseModel);
       update();
     } else {
       logs(
           "ERROR BUSINESS PROFILE ${responseModel.message ?? AppStrings.somethingWentWrong}");
 
-      commonSnackBar(
-          message: responseModel.message ?? AppStrings.somethingWentWrong);
+      // Only surface the error to the user when we have nothing cached
+      // to fall back on — otherwise the cached UI is already showing.
+      if (cached == null) {
+        commonSnackBar(
+            message: responseModel.message ?? AppStrings.somethingWentWrong);
+      }
     }
-    // } catch (e) {
-    //   logs("ERROR BUSINESS PROFILE ${e}");
-    //   viewBusinessResponse = ApiResponse.error('error');
-    // }
+  }
+
+  /// Applies a business-profile JSON map to all the reactive fields and
+  /// optionally writes the related shared-preference snapshot. The
+  /// `persistPrefs` flag is `true` only for fresh API responses — for
+  /// cached data we skip writing prefs so we never overwrite newer
+  /// values with stale ones.
+  Future<void> _applyBusinessProfileData(
+    Map<String, dynamic> data, {
+    required bool persistPrefs,
+  }) async {
+    businessProfileDetails.value = ViewBusinessProfileModel.fromJson(data);
+
+    selectDay?.value =
+        businessProfileDetails.value?.data?.dateOfIncorporation?.date ?? 0;
+    selectMonth?.value =
+        businessProfileDetails.value?.data?.dateOfIncorporation?.month ?? 0;
+    selectYear?.value =
+        businessProfileDetails.value?.data?.dateOfIncorporation?.year ?? 0;
+    imagePath?.value = businessProfileDetails.value?.data?.logo ?? "";
+    coverImage?.value = businessProfileDetails.value?.data?.coverimage ?? "";
+
+    businessDescription.value =
+        businessProfileDetails.value?.data?.businessDescription ?? "";
+    tempDescription.value = businessDescription.value;
+    controllerVisit.isFollow.value =
+        businessProfileDetails.value?.data?.is_following ?? false;
+    isBusinessVerified.value =
+        businessProfileDetails.value?.data?.businessIsVerified ?? false;
+
+    if (Get.isRegistered<AuthController>()) {
+      Get.find<AuthController>().imgPath.value =
+          businessProfileDetails.value?.data?.logo ?? "";
+    }
+
+    if (!persistPrefs) return;
+
+    log('business type -- ${businessProfileDetails.value?.data?.typeOfBusiness}');
+    await SharedPreferenceUtils.userLoggedInBusiness(
+      email: businessProfileDetails.value?.data?.ownerDetails?[0].email ?? '',
+      profileImage: businessProfileDetails.value?.data?.logo ?? '',
+      businessName: businessProfileDetails.value?.data?.businessName ?? '',
+      businessOwnerName:
+          businessProfileDetails.value?.data?.ownerDetails?[0].name ?? '',
+      businessId: businessProfileDetails.value!.data!.id!,
+      loginBusinessUserId: businessProfileDetails.value!.data!.userId!,
+      userNameAt: "",
+      businessAddress: businessProfileDetails.value?.data?.address ?? '',
+      categoryOfBusiness:
+          businessProfileDetails.value?.data?.categoryDetails?.name ?? '',
+      subCategoryOfBusiness:
+          businessProfileDetails.value?.data?.subCategoryDetails?.name ?? '',
+      typeOfBusiness:
+          businessProfileDetails.value?.data?.typeOfBusiness ?? '',
+    );
+    await getUserLoginData();
   }
 
   ///UPDATE BUSINESS IMAGES....

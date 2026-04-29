@@ -3,6 +3,8 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/language_localization_service/language_controller_new.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/core/services/business_profile_cache.dart';
+import 'package:BlueEra/core/services/personal_profile_cache.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/auth/service/location_update_service.dart';
 import 'package:BlueEra/widgets/app_loader.dart';
@@ -48,6 +50,12 @@ class LogoutHelper {
   }
 
   static Future<void> clearAllLocalData() async {
+    try {
+      // Explicit per-cache clears so the debug log shows what wiped,
+      // before the full Hive disk-delete sweeps the rest.
+      await BusinessProfileCache.clear();
+      await PersonalProfileCache.clear();
+    } catch (_) {}
     try {
       await Hive.deleteFromDisk();
       final dir = await getApplicationDocumentsDirectory();

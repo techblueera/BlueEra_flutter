@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/api/model/personal_profile_details_model.dart';
+import 'package:BlueEra/core/services/personal_profile_cache.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
@@ -198,141 +199,162 @@ class ViewPersonalDetailsController extends GetxController {
   Future<void> viewPersonalProfile() async {
     final personalController = Get.put(PersonalCreateProfileController());
 
-    try {
-      // viewPersonalResponse.value = ApiResponse.initial("Initial");
+    // 1. Hydrate from cache immediately so the UI isn't blank while
+    //    the silent network refresh below is in flight. The repo call
+    //    runs without a global progress dialog.
+    final cacheKey = userId;
+    final cached = await PersonalProfileCache.read(cacheKey);
+    if (cached != null) {
+      _applyPersonalProfileData(cached, personalController,
+          persistPrefs: false);
+    }
 
-      // await getUserLoginBusinessId();
+    try {
+      // 2. Silently refresh from the server.
       ResponseModel responseModel =
           await PersonalProfileRepo().viewParticularPersonalProfile();
 
-      // await PersonalProfileRepo().getUserWithFollowersAndPostsCount();
-      // ResponseModel response = await UserRepo().getUserById(userId: userId);
-
       if (responseModel.isSuccess) {
         final data = responseModel.response?.data;
-
-        personalProfileDetails.value =
-            PersonalProfileDetailsModel.fromJson(data);
-
-        ///SET MY PROFILE DATA
-        final user = personalProfileDetails.value.user;
-        if (user != null) {
-          fields = [
-            _ProfileFieldStatus(
-              id: 1,
-              title: AppStrings.profileVideo,
-              isCompleted: user.introVideo?.isNotEmpty ?? false,
-            ),
-            _ProfileFieldStatus(
-              id: 2,
-              title: AppStrings.bio,
-              isCompleted: user.bio?.isNotEmpty ?? false,
-            ),
-            _ProfileFieldStatus(
-              id: 3,
-              title: AppStrings.designation,
-              isCompleted: user.designation?.isNotEmpty ?? false,
-            ),
-            // _ProfileFieldStatus(
-            //   id: 4,
-            //   title: AppStrings.phoneNumber,
-            //   isCompleted: user.contactNo?.isNotEmpty ?? false,
-            // ),
-            _ProfileFieldStatus(
-              id: 4,
-              title: AppStrings.education,
-              isCompleted: user.highestEducation?.isNotEmpty ?? false,
-            ),
-            _ProfileFieldStatus(
-              id: 5,
-              title: (user.emailVerified == true)
-                  ? AppStrings.emailVerified
-                  : AppStrings.emailUnverified,
-              isCompleted: user.emailVerified ?? false,
-            ),
-          ];
-
-          final int totalFields = fields.length;
-          final int completedFields = fields.where((e) => e.isCompleted).length;
-          final double percent =
-              totalFields > 0 ? completedFields / totalFields : 0.0;
-
-          myProfileCompletionPercent.value = percent;
+        if (data is Map<String, dynamic>) {
+          await _applyPersonalProfileData(data, personalController,
+              persistPrefs: true);
+          final freshKey = userId;
+          await PersonalProfileCache.write(freshKey, data);
         }
-
-        if (user?.emailVerified ?? false) {
-          verifiedEmail.value = user?.email ?? "";
-        } else {
-          verifiedEmail.value = "";
-        }
-
-        ///SET SOCIAL DATA LINK...
-        setSocialLink(data);
-        personalController.imagePath?.value = user?.profileImage ?? "";
-        personalController.coverImagePath?.value = user?.coverPicture ?? "";
-
-        ///SET SKILL...
-        personalController.skillsList.clear();
-        personalController.skillsList.addAll(user?.skills ?? []);
-
-        ///SET OVERVIEW
-        overView.value = user?.objective ?? "";
-
-        /// SYNC GENDER, DOB AND PROFESSION TO CONTROLLER
-        personalController.selectedGender.value =
-            GenderTypeExtension.fromString(user?.gender ?? "male");
-        personalController.selectedDay?.value = user?.dateOfBirth?.date ?? 0;
-        personalController.selectedMonth?.value = user?.dateOfBirth?.month ?? 0;
-        personalController.selectedYear?.value = user?.dateOfBirth?.year ?? 0;
-        personalController.selectedProfession.value = user?.profession ?? "";
-
-        Get.find<AuthController>().imgPath.value = user?.profileImage ?? "";
-        // await SharedPreferenceUtils.setSecureValue(SharedPreferenceUtils.userProfile, user?.profileImage??"");
-        await SharedPreferenceUtils.userLoggedInIndividualGuest(
-          businesId: "",
-          loginUserId_: "${user?.id}",
-          contactNo: "${user?.contactNo}",
-          getUserName: "${user?.name}",
-          profileImage: "${user?.profileImage}",
-          profileType: "${user?.profileType}",
-          profession: "${user?.profession}",
-          designation: "${user?.designation}",
-          userNameAt: "${user?.username}",
-        );
-        await getUserLoginData();
-        userProfileType.value = userProfileTypeGlobal;
-        debugPrint("userProfileTypeGlobal after api: ${userProfileType.value}");
-        // print("Hash 1: ${userProfileType.hashCode}");
-
-        /// Check Earn services
-        earnProfileType.value = personalProfileDetails.value.earnProfileType;
-        debugPrint(
-            '=== earnProfileType: "${earnProfileType.value}", raw: "${personalProfileDetails.value.earnProfileType}" ===');
-
-        /// need to verify (for checking is service exists or not)
-        if (user?.profession?.toUpperCase() == SELF_EMPLOYED ||
-            user?.profession?.toUpperCase() == GIG_WORKER) {
-          await getServiceProviderStatusUtils();
-          if (serviceProviderStatusGlobal.isNotEmpty) {
-            if (serviceProviderStatusGlobal.toUpperCase() ==
-                AppConstants.OPEN.toUpperCase()) {
-              shopStatusOpenClose.value = true;
-            } else {
-              shopStatusOpenClose.value = false;
-            }
-          } else {
-            getServiceProviderStatus();
-          }
-        }
-
         viewPersonalResponse.value = ApiResponse.complete(responseModel);
       } else {
-        commonSnackBar(
-            message: responseModel.message ?? AppStrings.somethingWentWrong);
+        if (cached == null) {
+          commonSnackBar(
+              message: responseModel.message ?? AppStrings.somethingWentWrong);
+        }
       }
     } catch (e, s) {
       log('stack trace -- $s');
       viewPersonalResponse.value = ApiResponse.error('error');
+    }
+  }
+
+  /// Applies a personal-profile JSON map to all the reactive fields and
+  /// optionally writes shared-preference snapshots / runs the side-effect
+  /// helpers. `persistPrefs` is `true` only for fresh API responses — for
+  /// cached data we skip prefs and the service-status fetch so we never
+  /// overwrite newer values with stale ones.
+  Future<void> _applyPersonalProfileData(
+    Map<String, dynamic> data,
+    PersonalCreateProfileController personalController, {
+    required bool persistPrefs,
+  }) async {
+    personalProfileDetails.value =
+        PersonalProfileDetailsModel.fromJson(data);
+
+    ///SET MY PROFILE DATA
+    final user = personalProfileDetails.value.user;
+    if (user != null) {
+      fields = [
+        _ProfileFieldStatus(
+          id: 1,
+          title: AppStrings.profileVideo,
+          isCompleted: user.introVideo?.isNotEmpty ?? false,
+        ),
+        _ProfileFieldStatus(
+          id: 2,
+          title: AppStrings.bio,
+          isCompleted: user.bio?.isNotEmpty ?? false,
+        ),
+        _ProfileFieldStatus(
+          id: 3,
+          title: AppStrings.designation,
+          isCompleted: user.designation?.isNotEmpty ?? false,
+        ),
+        _ProfileFieldStatus(
+          id: 4,
+          title: AppStrings.education,
+          isCompleted: user.highestEducation?.isNotEmpty ?? false,
+        ),
+        _ProfileFieldStatus(
+          id: 5,
+          title: (user.emailVerified == true)
+              ? AppStrings.emailVerified
+              : AppStrings.emailUnverified,
+          isCompleted: user.emailVerified ?? false,
+        ),
+      ];
+
+      final int totalFields = fields.length;
+      final int completedFields = fields.where((e) => e.isCompleted).length;
+      final double percent =
+          totalFields > 0 ? completedFields / totalFields : 0.0;
+
+      myProfileCompletionPercent.value = percent;
+    }
+
+    if (user?.emailVerified ?? false) {
+      verifiedEmail.value = user?.email ?? "";
+    } else {
+      verifiedEmail.value = "";
+    }
+
+    ///SET SOCIAL DATA LINK...
+    setSocialLink(data);
+    personalController.imagePath?.value = user?.profileImage ?? "";
+    personalController.coverImagePath?.value = user?.coverPicture ?? "";
+
+    ///SET SKILL...
+    personalController.skillsList.clear();
+    personalController.skillsList.addAll(user?.skills ?? []);
+
+    ///SET OVERVIEW
+    overView.value = user?.objective ?? "";
+
+    /// SYNC GENDER, DOB AND PROFESSION TO CONTROLLER
+    personalController.selectedGender.value =
+        GenderTypeExtension.fromString(user?.gender ?? "male");
+    personalController.selectedDay?.value = user?.dateOfBirth?.date ?? 0;
+    personalController.selectedMonth?.value = user?.dateOfBirth?.month ?? 0;
+    personalController.selectedYear?.value = user?.dateOfBirth?.year ?? 0;
+    personalController.selectedProfession.value = user?.profession ?? "";
+
+    if (Get.isRegistered<AuthController>()) {
+      Get.find<AuthController>().imgPath.value = user?.profileImage ?? "";
+    }
+
+    /// Check Earn services
+    earnProfileType.value = personalProfileDetails.value.earnProfileType;
+    debugPrint(
+        '=== earnProfileType: "${earnProfileType.value}", raw: "${personalProfileDetails.value.earnProfileType}" ===');
+
+    if (!persistPrefs) return;
+
+    await SharedPreferenceUtils.userLoggedInIndividualGuest(
+      businesId: "",
+      loginUserId_: "${user?.id}",
+      contactNo: "${user?.contactNo}",
+      getUserName: "${user?.name}",
+      profileImage: "${user?.profileImage}",
+      profileType: "${user?.profileType}",
+      profession: "${user?.profession}",
+      designation: "${user?.designation}",
+      userNameAt: "${user?.username}",
+    );
+    await getUserLoginData();
+    userProfileType.value = userProfileTypeGlobal;
+    debugPrint("userProfileTypeGlobal after api: ${userProfileType.value}");
+
+    /// need to verify (for checking is service exists or not)
+    if (user?.profession?.toUpperCase() == SELF_EMPLOYED ||
+        user?.profession?.toUpperCase() == GIG_WORKER) {
+      await getServiceProviderStatusUtils();
+      if (serviceProviderStatusGlobal.isNotEmpty) {
+        if (serviceProviderStatusGlobal.toUpperCase() ==
+            AppConstants.OPEN.toUpperCase()) {
+          shopStatusOpenClose.value = true;
+        } else {
+          shopStatusOpenClose.value = false;
+        }
+      } else {
+        getServiceProviderStatus();
+      }
     }
   }
 
