@@ -155,9 +155,9 @@ class _ChannelFeedPostListingScreenState
                                 Obx(() {
                                   return GestureDetector(
                                     onTap: () async {
-                                      if (isGuestUser()) {
-                                        createProfileScreen();
-                                      } else {
+                                      // if (isGuestUser()) {
+                                      //   createProfileScreen();
+                                      // } else {
                                         if (controller.isChannelJoin.value) {
                                           await controller
                                               .unFollowUserController(
@@ -168,7 +168,7 @@ class _ChannelFeedPostListingScreenState
                                               candidateResumeId:
                                                   widget.channelData?.id);
                                         }
-                                      }
+                                      // }
                                     },
                                     child: Container(
                                       padding: const EdgeInsets.symmetric(

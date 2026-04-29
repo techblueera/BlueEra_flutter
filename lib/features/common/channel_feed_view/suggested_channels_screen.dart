@@ -3,6 +3,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/common/channel_feed_view/channel_feed_controllar.dart';
 import 'package:BlueEra/features/common/channel_feed_view/channel_feed_post_listing_screen.dart';
 import 'package:BlueEra/features/common/channel_feed_view/unjoin_channel_card_widget.dart';
+import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -32,20 +33,7 @@ class _SuggestedChannelsScreenState extends State<SuggestedChannelsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0.5,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Get.back(),
-        ),
-        title: const CustomText(
-          AppStrings.suggested,
-          fontSize: 18,
-          fontWeight: FontWeight.w600,
-          color: Colors.black,
-        ),
-      ),
+      appBar: CommonBackAppBar(title:  AppStrings.suggested,),
       body: RefreshIndicator(
         onRefresh: () =>
             _controller.fetchUnJoinChannelData(loadMore: false),

@@ -1,8 +1,11 @@
 import 'dart:async';
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/features/chat/auth/repo/chat_view_repo.dart';
 import 'package:BlueEra/features/common/home/controller/symbol_feed_controller.dart';
 import 'package:BlueEra/features/common/home/model/symbol_feed_model.dart';
 import 'package:BlueEra/widgets/common_dialog.dart';
@@ -343,7 +346,7 @@ class _SymbolFullscreenViewerState extends State<SymbolFullscreenViewer>
 
               /// Center: caption + link preview
               if ((symbol.caption != null && symbol.caption!.isNotEmpty) ||
-                  symbol.type == 'embeddedUrl')
+                  _shouldShowLinkPreview(symbol))
                 Center(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -362,8 +365,7 @@ class _SymbolFullscreenViewerState extends State<SymbolFullscreenViewer>
                               maxLines: 3,
                             ),
                           ),
-                        if (symbol.type == 'embeddedUrl' &&
-                            symbol.content != null)
+                        if (_shouldShowLinkPreview(symbol))
                           GestureDetector(
                             onTap: () async {
                               final uri = Uri.tryParse(symbol.content!);
@@ -511,30 +513,57 @@ class _SymbolFullscreenViewerState extends State<SymbolFullscreenViewer>
 
   void _showCommentSheet(SymbolFeedItem symbol) {
     _pauseTimer();
-    _feedController.fetchComments(symbol.id!);
 
     final bool isOwn = (symbol.userId != null && symbol.userId == userId) ||
         (_currentGroup.user?.id != null && _currentGroup.user?.id == userId);
+
+    if (isOwn) {
+      // Owner sees the existing read-only comments view (so they can read
+      // replies others have already sent / their own past comments).
+      _feedController.fetchComments(symbol.id!);
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (ctx) => _CommentSheet(
+          symbol: symbol,
+          controller: _feedController,
+          readOnly: true,
+        ),
+      ).whenComplete(_resumeTimer);
+      return;
+    }
+
+    // Non-owner: WhatsApp-style reply. No comments are loaded — we just
+    // open a keyboard input and DM the symbol's owner directly.
+    final String? otherUserId =
+        _currentGroup.user?.id ?? symbol.userId;
+    final String ownerName =
+        _currentGroup.user?.name ?? symbol.user?.name ?? AppStrings.userFallback.tr;
+
+    if (otherUserId == null || otherUserId.isEmpty) {
+      _resumeTimer();
+      return;
+    }
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => _CommentSheet(
-        symbol: symbol,
-        controller: _feedController,
-        readOnly: isOwn,
+      builder: (ctx) => _ReplySheet(
+        otherUserId: otherUserId,
+        ownerName: ownerName,
       ),
-    ).whenComplete(() {
-      _resumeTimer();
-    });
+    ).whenComplete(_resumeTimer);
   }
 
   Widget _buildContent(SymbolFeedItem symbol, Color bgColor) {
-    if (symbol.type == 'image' && symbol.content != null) {
+    final String? content = symbol.content;
+    final bool hasContent = content != null && content.isNotEmpty;
+    if (hasContent && (symbol.type == 'image' || _isImageUrl(content))) {
       return Center(
         child: CachedNetworkImage(
-          imageUrl: symbol.content!,
+          imageUrl: content,
           fit: BoxFit.contain,
           width: double.infinity,
           height: double.infinity,
@@ -549,17 +578,23 @@ class _SymbolFullscreenViewerState extends State<SymbolFullscreenViewer>
   }
 
   Widget _buildTextContent(SymbolFeedItem symbol, Color bgColor) {
+    final String? content = symbol.content;
+    final bool hasContent = content != null && content.isNotEmpty;
+    // Don't render the raw URL as text — embeddedUrl, image URLs and plain
+    // links are surfaced via the dedicated image / link-preview blocks.
+    final bool isUrl = hasContent && _isHttpUrl(content);
+    final bool showText = hasContent &&
+        symbol.type != 'embeddedUrl' &&
+        !isUrl;
     return Container(
       width: double.infinity,
       height: double.infinity,
       color: bgColor,
       alignment: Alignment.center,
       padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 100),
-      child: (symbol.content != null &&
-              symbol.content!.isNotEmpty &&
-              symbol.type != 'embeddedUrl')
+      child: showText
           ? CustomText(
-              symbol.content!,
+              content,
               color: Colors.white,
               fontSize: 18,
               textAlign: TextAlign.center,
@@ -568,6 +603,38 @@ class _SymbolFullscreenViewerState extends State<SymbolFullscreenViewer>
             )
           : const SizedBox.shrink(),
     );
+  }
+
+  static const Set<String> _imageExtensions = {
+    'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'heic', 'heif', 'avif', 'svg',
+  };
+
+  bool _isHttpUrl(String value) {
+    final uri = Uri.tryParse(value.trim());
+    return uri != null && (uri.scheme == 'http' || uri.scheme == 'https');
+  }
+
+  bool _isImageUrl(String value) {
+    final uri = Uri.tryParse(value.trim());
+    if (uri == null) return false;
+    if (uri.scheme != 'http' && uri.scheme != 'https') return false;
+    String path;
+    try {
+      path = Uri.decodeFull(uri.path);
+    } catch (_) {
+      path = uri.path;
+    }
+    final dot = path.lastIndexOf('.');
+    if (dot == -1) return false;
+    return _imageExtensions.contains(path.substring(dot + 1).toLowerCase());
+  }
+
+  bool _shouldShowLinkPreview(SymbolFeedItem symbol) {
+    final String? content = symbol.content;
+    if (content == null || content.isEmpty) return false;
+    if (symbol.type == 'embeddedUrl') return true;
+    // Plain URL in `content` that isn't an image — render as a link preview.
+    return _isHttpUrl(content) && !_isImageUrl(content);
   }
 
   Widget _buildLinkPlaceholder(String link) {
@@ -823,6 +890,200 @@ class _BottomActionBar extends StatelessWidget {
     if (count >= 1000000) return '${(count / 1000000).toStringAsFixed(1)}M';
     if (count >= 1000) return '${(count / 1000).toStringAsFixed(1)}K';
     return count.toString();
+  }
+}
+
+/// Lightweight reply sheet shown when a non-owner taps the comment input
+/// on someone else's symbol. It does NOT show other users' comments — it
+/// just opens the keyboard and sends a direct chat message (DM) to the
+/// symbol owner, WhatsApp-style.
+class _ReplySheet extends StatefulWidget {
+  final String otherUserId;
+  final String ownerName;
+
+  const _ReplySheet({
+    required this.otherUserId,
+    required this.ownerName,
+  });
+
+  @override
+  State<_ReplySheet> createState() => _ReplySheetState();
+}
+
+class _ReplySheetState extends State<_ReplySheet> {
+  final TextEditingController _textController = TextEditingController();
+  final FocusNode _focusNode = FocusNode();
+  bool _sending = false;
+
+  static const int _maxChars = 360;
+
+  @override
+  void initState() {
+    super.initState();
+    // Auto-focus so the keyboard pops as soon as the sheet opens.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _focusNode.requestFocus();
+    });
+  }
+
+  @override
+  void dispose() {
+    _textController.dispose();
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  Future<void> _send() async {
+    final text = _textController.text.trim();
+    if (text.isEmpty || _sending) return;
+
+    setState(() => _sending = true);
+    try {
+      final params = <String, dynamic>{
+        ApiKeys.other_user_id: widget.otherUserId,
+        ApiKeys.message: text,
+        ApiKeys.message_type: 'text',
+      };
+      final response = await ChatViewRepo().sendMessageToUser(params);
+      if (response.isSuccess) {
+        if (mounted) {
+          Navigator.of(context).pop();
+        }
+        commonSnackBar(message: AppStrings.messageSent.tr);
+      } else {
+        commonSnackBar(
+            message: response.message ?? AppStrings.somethingWentWrong.tr);
+      }
+    } catch (_) {
+      commonSnackBar(message: AppStrings.somethingWentWrong.tr);
+    } finally {
+      if (mounted) setState(() => _sending = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+    return Padding(
+      padding: EdgeInsets.only(bottom: bottomInset),
+      child: Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              margin: const EdgeInsets.only(bottom: 10),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8, left: 4, right: 4),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: CustomText(
+                      '${AppStrings.directReply.tr} ${widget.ownerName}',
+                      fontSize: 13,
+                      color: AppColors.secondaryTextColor,
+                      maxLines: 1,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _textController,
+                    focusNode: _focusNode,
+                    autofocus: true,
+                    maxLength: _maxChars,
+                    minLines: 1,
+                    maxLines: 5,
+                    textCapitalization: TextCapitalization.sentences,
+                    textInputAction: TextInputAction.newline,
+                    onChanged: (_) => setState(() {}),
+                    decoration: InputDecoration(
+                      hintText: AppStrings.typeAMessage.tr,
+                      hintStyle: TextStyle(
+                          color: Colors.grey[400], fontSize: 14),
+                      counterText: '',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(24),
+                        borderSide:
+                            BorderSide(color: Colors.grey.shade300),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(24),
+                        borderSide:
+                            BorderSide(color: Colors.grey.shade300),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(24),
+                        borderSide: const BorderSide(
+                            color: AppColors.primaryColor),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 12),
+                      isDense: true,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                GestureDetector(
+                  onTap: _send,
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: _sending
+                          ? AppColors.primaryColor.withValues(alpha: 0.6)
+                          : AppColors.primaryColor,
+                      shape: BoxShape.circle,
+                    ),
+                    child: _sending
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                  Colors.white),
+                            ),
+                          )
+                        : const Icon(Icons.send,
+                            color: Colors.white, size: 18),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Align(
+              alignment: Alignment.centerRight,
+              child: Padding(
+                padding: const EdgeInsets.only(right: 6, top: 2),
+                child: Text(
+                  '${_textController.text.characters.length}/$_maxChars',
+                  style: TextStyle(
+                    color: Colors.grey[500],
+                    fontSize: 11,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
