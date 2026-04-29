@@ -50,7 +50,9 @@ class FeedScreen extends StatefulWidget {
 }
 
 class _FeedScreenState extends State<FeedScreen> {
-  final feedController = Get.find<FeedController>();
+  final feedController = Get.isRegistered<FeedController>()
+      ? Get.find<FeedController>()
+      : Get.put(FeedController());
   Timer? _searchDebounce;
   final ScrollController _scrollController = ScrollController();
 
@@ -322,7 +324,9 @@ class _FeedScreenState extends State<FeedScreen> {
 }
 
 class _FeedScreenState extends State<FeedScreen> {
-  final feedController = Get.find<FeedController>();
+  final feedController = Get.isRegistered<FeedController>()
+      ? Get.find<FeedController>()
+      : Get.put(FeedController());
   Timer? _searchDebounce;
   final ScrollController _scrollController = ScrollController();
 
