@@ -204,7 +204,7 @@ class ProductSelfPickupController extends GetxController {
       ChatViewController chatViewController =
           getOrPut(() => ChatViewController());
       chatViewController.emitEvent(ChatEmitEvents.ChatList, {ApiKeys.type: AppConstants.order_Chat_Type},);
-      chatViewController.onSelectChatTab(2);
+      chatViewController.onSelectChatTab(1);
 
 
       Get.until((route) =>

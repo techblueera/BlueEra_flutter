@@ -110,39 +110,56 @@ class _OrdersTabViewState extends State<OrdersTabView> {
                       itemCount: data?.chatList?.length,
                       shrinkWrap: true,
                       itemBuilder: (context, index) {
+                        final chat = data?.chatList?[index];
+                        final isInSelectionMode = chatViewController
+                            .isChatListSelectionMode.value;
+                        final isChatSelected = chatViewController
+                            .selectedConversationIds
+                            .contains(chat?.conversationId ?? '');
 
                         return ChatListTile(
                           onTab: () {
+                            if (isInSelectionMode) {
+                              chatViewController.toggleChatListSelection(chat);
+                              setState(() {});
+                              return;
+                            }
                             Navigator.push(
                                 context, MaterialPageRoute(builder: (context) =>
                                 OrderChatScreen(
-                                  name: data?.chatList?[index]?.sender?.name ??
-                                      '',
-                                  contactNo: data?.chatList?[index]?.sender
-                                      ?.contactNo ?? '',
-                                  conversationId: data?.chatList?[index]
-                                      ?.conversationId ?? '',
-                                  type: data?.chatList?[index]?.sender
-                                      ?.accountType ?? '',
-                                  userId: data?.chatList?[index]?.sender?.id ?? ''
-                                  ,
-                                  profileImage: data?.chatList?[index]?.sender
-                                      ?.profileImage ?? '',
-                                  designation: data?.chatList?[index]?.sender
-                                      ?.designation ?? '',
+                                  name: chat?.sender?.name ?? '',
+                                  contactNo: chat?.sender?.contactNo ?? '',
+                                  conversationId: chat?.conversationId ?? '',
+                                  type: chat?.sender?.accountType ?? '',
+                                  userId: chat?.sender?.id ?? '',
+                                  profileImage:
+                                      chat?.sender?.profileImage ?? '',
+                                  designation: chat?.sender?.designation ?? '',
                                 )));
                           },
+                          onLongPress: () {
+                            if (!isInSelectionMode) {
+                              chatViewController
+                                  .isChatListSelectionMode.value = true;
+                              chatViewController
+                                  .toggleChatListSelection(chat);
+                              setState(() {});
+                            }
+                          },
+                          isChatListSelected: isChatSelected,
                           onSelect: () {
                             setState(() {});
                           },
-                          type: data?.chatList?[index]?.sender?.accountType ??
+                          type: chat?.sender?.accountType ??
                               AppConstants.individual,
                           index: index,
                           chatViewController: chatViewController,
-                          chat: data?.chatList?[index],
+                          chat: chat,
                           theme: theme,
                           isForwardUI: false,
                           context: context,
+                          showNewBadgeIfRecent: true,
+                          showFlagBadge: true,
                         );
                       },
                     ),

@@ -262,6 +262,8 @@ Widget  ChatListTile({
   required ChatViewController chatViewController,
   required ChatList? chat,
   required ThemeData theme,
+  bool showNewBadgeIfRecent = false,
+  bool showFlagBadge = false,
 }) {
   final sender = chat?.sender;
   final senderName = chat?.lastMessage == "Order Message"
@@ -281,6 +283,18 @@ Widget  ChatListTile({
   final unreadCount = chat?.unreadCount ?? 0;
   final updatedAt = chat?.updatedAt ?? '';
   final isPendingLastMessage = chat?.lastMessageSendStatus == "pending";
+  // Orders tab: surface a "New" pill when the last message is fresh
+  // (within 15 minutes) instead of the numeric unread-count badge.
+  bool isRecentLastMessage = false;
+  if (showNewBadgeIfRecent && updatedAt.isNotEmpty) {
+    try {
+      final lastMessageAt = DateTime.parse(updatedAt).toLocal();
+      isRecentLastMessage =
+          DateTime.now().difference(lastMessageAt).inMinutes < 15;
+    } catch (_) {
+      isRecentLastMessage = false;
+    }
+  }
 
   bool isSelected = false;
 
@@ -691,7 +705,57 @@ Widget  ChatListTile({
                       child: Icon(Icons.push_pin,
                           size: 14, color: Colors.grey.shade500),
                     ),
-                  if (unreadCount > 0)
+                  if (showFlagBadge && Get.isRegistered<ChatFlagController>())
+                    Obx(() {
+                      final assignedFlag = Get.find<ChatFlagController>()
+                          .getFlagForConversation(conversationId);
+                      if (assignedFlag != null) {
+                        return Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: assignedFlag.color.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                                color: assignedFlag.color, width: 0.8),
+                          ),
+                          child: CustomText(
+                            assignedFlag.label,
+                            color: assignedFlag.color,
+                            fontSize: SizeConfig.size11,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        );
+                      }
+                      if (isRecentLastMessage) {
+                        return CustomText(
+                          "New",
+                          color: AppColors.primaryColor,
+                          fontSize: SizeConfig.size12,
+                          fontWeight: FontWeight.w600,
+                        );
+                      }
+                      if (unreadCount > 0) {
+                        return CircleAvatar(
+                          radius: SizeConfig.size12,
+                          backgroundColor: Colors.lightBlue,
+                          child: CustomText(
+                            "$unreadCount",
+                            color: AppColors.white,
+                            fontSize: SizeConfig.size12,
+                          ),
+                        );
+                      }
+                      return const SizedBox.shrink();
+                    })
+                  else if (isRecentLastMessage)
+                    CustomText(
+                      "New",
+                      color: AppColors.primaryColor,
+                      fontSize: SizeConfig.size12,
+                      fontWeight: FontWeight.w600,
+                    )
+                  else if (unreadCount > 0)
                     CircleAvatar(
                       radius: SizeConfig.size12,
                       backgroundColor: Colors.lightBlue,

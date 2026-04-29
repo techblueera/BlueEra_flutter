@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -6,6 +7,8 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/check_internet_connectivity.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
@@ -32,9 +35,12 @@ import 'package:BlueEra/widgets/bottom_nav_hide_on_scroll.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:get/get.dart';
 import 'package:flutter_upgrade_version/flutter_upgrade_version.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:share_handler/share_handler.dart';
 
 import '../../../chat/auth/controller/chat_view_controller.dart';
@@ -74,6 +80,8 @@ class _ConnectMainPageState extends State<ConnectMainPage>
   final homeScreenController = Get.put(HomeScreenController());
   final symbolFeedController = Get.put(SymbolFeedController());
   final addSymbolController = getOrPut(() => AddChatSymbolController());
+  final ChatViewController chatViewController =
+      getOrPut(() => ChatViewController());
   final LanguageListController langController =
       getOrPut(() => LanguageListController());
 
@@ -96,14 +104,65 @@ class _ConnectMainPageState extends State<ConnectMainPage>
 
     // Boot the personal chat list. Without this socket emit, the Chat tab
     // renders blank on first open until the user navigates away and back.
-    final cvc = getOrPut(() => ChatViewController());
-    cvc.emitEvent(
+    chatViewController.emitEvent(
       ChatEmitEvents.ChatList,
       {ApiKeys.type: AppConstants.personal_Chat_Type},
     );
     // Fire-and-forget: fetch the full chat export once on home entry.
     // Response is only logged right now (see ChatViewController.getChatExportAll).
-    cvc.getChatExportAll();
+    chatViewController.getChatExportAll();
+
+    _loadContactsFromStorage();
+    // First-time-only contacts sync. On entry to the connect tab we ask for
+    // contacts permission, upload the phone book, and persist the response.
+    // Subsequent entries short-circuit on the Hive cache and never hit the
+    // network again. Offline entries skip the sync entirely.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _syncContactsIfNeeded();
+    });
+  }
+
+  Future<void> _syncContactsIfNeeded() async {
+    // Already synced (memory or Hive)? Nothing to do.
+    final hydrated = await chatViewController.hydrateContactsFromCache();
+    if (hydrated) return;
+
+    // First-time sync needs internet. Offline → skip; ContactsPage will
+    // render from cache (empty if none yet).
+    final online = await checkInternetStatus();
+    if (!online) return;
+
+    // Ask for contacts permission.
+    PermissionStatus status = await Permission.contacts.status;
+    if (!status.isGranted) {
+      status = await Permission.contacts.request();
+      if (!status.isGranted) return;
+    }
+
+    // Read the device phone book and upload once.
+    final contacts = await FlutterContacts.getContacts(
+      withProperties: true,
+      withAccounts: true,
+    );
+    final formatted = contacts
+        .where((c) => c.phones.isNotEmpty)
+        .map<Map<String, dynamic>>((c) => {
+              ApiKeys.contact_no: c.phones.first.number,
+              ApiKeys.name: c.displayName,
+            })
+        .toList();
+    if (formatted.isEmpty) return;
+    await chatViewController.uploadContacts(formatted);
+  }
+
+  Future<void> _loadContactsFromStorage() async {
+    String? storedData = await SharedPreferenceUtils.getSecureValue(
+        SharedPreferenceUtils.saved_contacts);
+    if (storedData != null) {
+      Map<String, dynamic> decoded =
+          await compute(jsonDecode, storedData) as Map<String, dynamic>;
+      chatViewController.loadContactsFromLocalStorage(decoded);
+    }
   }
 
   void _handleTabChange() {

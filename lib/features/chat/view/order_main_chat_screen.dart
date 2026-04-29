@@ -1,8 +1,5 @@
-import 'dart:convert';
-
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/chat/view/business_chat/business_chat_list.dart';
 import 'package:BlueEra/features/chat/view/orders_chat/orders_chat_list.dart';
@@ -11,19 +8,15 @@ import 'package:BlueEra/features/chat/auth/controller/call_controller.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/widgets/bottom_nav_hide_on_scroll.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
-import 'package:permission_handler/permission_handler.dart';
-
-import '../../../core/constants/check_internet_connectivity.dart';
 
 import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/constants/app_icon_assets.dart';
 import '../../../../widgets/common_search_bar.dart';
 import '../../../core/constants/getx_utils.dart';
+import '../../../core/constants/shared_preference_utils.dart';
 import '../../../core/constants/snackbar_helper.dart';
 import '../../../core/routes/route_helper.dart';
 import '../../../widgets/custom_text_cm.dart';
@@ -36,6 +29,7 @@ import '../auth/controller/chat_theme_controller.dart';
 import '../auth/controller/chat_view_controller.dart';
 import 'add_symbol/add_symbol_screen.dart';
 import 'find_contacts_with_service/find_contact_with_service.dart';
+import 'flag_chat/order_flagged_chats_screen.dart';
 import 'widget/chat_flag_bottom_sheet.dart';
 import 'chat_theme/chat_background_screen.dart';
 import 'contacts/view/contact_list_page.dart';
@@ -127,82 +121,6 @@ class _OrderMainChatScreenState extends State<OrderMainChatScreen>
         }
       }
     });
-    _loadContactsFromStorage();
-    // First-time-only contacts sync. On entry to the chat tab we ask for
-    // contacts permission, upload the phone book, and persist the response.
-    // Subsequent entries short-circuit on the Hive cache and never hit the
-    // network again. Offline entries skip the sync entirely.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _syncContactsIfNeeded();
-    });
-  }
-
-  Future<void> _syncContactsIfNeeded() async {
-    // Already synced (memory or Hive)? Nothing to do.
-    final hydrated = await chatViewController.hydrateContactsFromCache();
-    if (hydrated) return;
-
-    // First-time sync needs internet. Offline → skip; ContactsPage will
-    // render from cache (empty if none yet).
-    final online = await checkInternetStatus();
-    if (!online) return;
-
-    // Ask for contacts permission.
-    PermissionStatus status = await Permission.contacts.status;
-    if (!status.isGranted) {
-      status = await Permission.contacts.request();
-      if (!status.isGranted) return;
-    }
-
-    // Read the device phone book and upload once.
-    final contacts = await FlutterContacts.getContacts(
-      withProperties: true,
-      withAccounts: true,
-    );
-    final formatted = contacts
-        .where((c) => c.phones.isNotEmpty)
-        .map<Map<String, dynamic>>((c) => {
-              ApiKeys.contact_no: c.phones.first.number,
-              ApiKeys.name: c.displayName,
-            })
-        .toList();
-    if (formatted.isEmpty) return;
-    await chatViewController.uploadContacts(formatted);
-  }
-
-  List<Map<String, dynamic>> getFormattedContacts(
-      List<Map<String, dynamic>> rawContacts) {
-    return rawContacts.map((c) {
-      final phones = (c["phones"] as List).cast<String>();
-      return {
-        ApiKeys.name: c["displayName"] ?? "",
-        ApiKeys.contactNo: phones.isNotEmpty ? phones.first : "",
-      };
-    }).toList();
-  }
-
-  Future<void> _loadContactsFromStorage() async {
-    String? storedData = await SharedPreferenceUtils.getSecureValue(
-        SharedPreferenceUtils.saved_contacts);
-    if (storedData != null) {
-      Map<String, dynamic> decoded =
-      await compute(jsonDecode, storedData) as Map<String, dynamic>;
-      chatViewController.loadContactsFromLocalStorage(decoded);
-    } else {
-      // await _refreshContacts();
-    }
-  }
-
-  List<Map<String, String>> formatContactsInIsolate(
-      List<Map<String, dynamic>> rawContacts) {
-    return rawContacts
-        .where((c) => (c["phones"] as List).isNotEmpty)
-        .map((c) =>
-    {
-      ApiKeys.contact_no: (c["phones"] as List).first as String,
-      ApiKeys.name: c["displayName"] as String,
-    })
-        .toList();
   }
 
   bool _isFromForward() {
@@ -608,10 +526,7 @@ class _OrderMainChatScreenState extends State<OrderMainChatScreen>
         ),
         const SizedBox(width: 14),
         InkWell(
-          onTap: () {
-            // TODO: hook up flagged-chat list when destination is ready.
-            commonSnackBar(message: "Coming soon....");
-          },
+          onTap: () => Get.to(() => const OrderFlaggedChatsScreen()),
           borderRadius: BorderRadius.circular(20),
           child: const Icon(Icons.flag_outlined, color: Colors.black),
         ),

@@ -606,9 +606,11 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
         );
       case 3:
       default:
-        return isGuestUser()
-            ? GuestDashBoardScreen()
-            : const OrderMainChatScreen();
+        return
+          // isGuestUser()
+          //   ? GuestDashBoardScreen()
+          //   :
+          const OrderMainChatScreen();
     }
   }
 
