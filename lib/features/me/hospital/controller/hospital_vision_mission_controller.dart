@@ -38,6 +38,7 @@ class HospitalVisionMissionController extends GetxController {
             VisionMissionRes.fromJson(res.response?.data);
         data.value = vm.data;
         visionController.text = vm.data?.visionAndMission ?? '';
+        descriptionTest.value = visionController.text;
       } else {
         error.value = res.message ?? AppStrings.somethingWentWrong;
         commonSnackBar(message: error.value);
@@ -65,6 +66,12 @@ class HospitalVisionMissionController extends GetxController {
     return true;
   }
 
+  bool get isDataChanged {
+    final originalText = data.value?.visionAndMission ?? '';
+    final currentText = descriptionTest.value.trim();
+    return currentText != originalText.trim() && currentText.isNotEmpty;
+  }
+
   Future<void> saveOrUpdate() async {
     if (!validate()) return;
     try {
@@ -83,7 +90,6 @@ class HospitalVisionMissionController extends GetxController {
           commonSnackBar(message: AppStrings.hospitalCtrlSavedSuccessfully.tr);
           Get.back();
           hospitalServiceController.getHospitalFullDetailsController();
-
         } else {
           commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong);
         }
@@ -99,7 +105,6 @@ class HospitalVisionMissionController extends GetxController {
               message: AppStrings.hospitalCtrlUpdatedSuccessfully.tr);
           Get.back();
           hospitalServiceController.getHospitalFullDetailsController();
-
         } else {
           commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong);
         }

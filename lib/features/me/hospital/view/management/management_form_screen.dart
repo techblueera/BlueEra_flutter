@@ -34,7 +34,9 @@ class _ManagementFormScreenState extends State<ManagementFormScreen> {
     SizeConfig.init(context);
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: controller.editingMember == null ? AppStrings.addedMembers : AppStrings.editMembers,
+        title: controller.editingMember == null
+            ? AppStrings.addedMembers
+            : AppStrings.editMembers,
         isLeading: true,
         isShadowShow: true,
       ),
@@ -54,7 +56,7 @@ class _ManagementFormScreenState extends State<ManagementFormScreen> {
                       title: AppStrings.fullName,
                       textEditController: controller.nameController,
                       isValidate: true,
-                      validator: (v)=> ValidationMethod.validateName(v),
+                      validator: (v) => ValidationMethod.validateName(v),
                       onChange: (_) => controller.validate(),
                     ),
                     SizedBox(height: SizeConfig.size10),
@@ -62,15 +64,15 @@ class _ManagementFormScreenState extends State<ManagementFormScreen> {
                       title: AppStrings.position,
                       textEditController: controller.positionController,
                       isValidate: true,
-                      validator: (v)=> ValidationMethod.validatePosition(v),
+                      validator: (v) => ValidationMethod.validatePosition(v),
                       onChange: (_) => controller.validate(),
                     ),
                     SizedBox(height: SizeConfig.size10),
                     CommonTextField(
-                      title:AppStrings.education,
+                      title: AppStrings.education,
                       textEditController: controller.educationController,
                       isValidate: true,
-                      validator: (v)=> ValidationMethod.validateEducation(v),
+                      validator: (v) => ValidationMethod.validateEducation(v),
                       onChange: (_) => controller.validate(),
                     ),
                     SizedBox(height: SizeConfig.size10),
@@ -79,29 +81,40 @@ class _ManagementFormScreenState extends State<ManagementFormScreen> {
                       maxLine: 5,
                       textEditController: controller.descriptionController,
                       isValidate: true,
-                      validator: (v)=> ValidationMethod.validateDescription(v),
+                      validator: (v) => ValidationMethod.validateDescription(v),
                       onChange: (_) => controller.validate(),
                     ),
                     SizedBox(height: SizeConfig.size15),
                     CustomBtn(
-                      title: controller.editingMember == null ? AppStrings.save : AppStrings.update,
+                      title: controller.editingMember == null
+                          ? AppStrings.save
+                          : AppStrings.update,
                       width: double.infinity,
                       height: SizeConfig.size45,
                       isLoading: controller.isSaving.value,
-                      isValidate: controller.isFormValid.value,
-                      onTap: () {
-                        if (controller.isFormValid.value) {
-                          controller.save();
-                        } else {
-                          // This triggers inline validation in fields.
-                          // If those fields are not visible, show a snackbar.
-                          if (!((controller.selectedImage.value != null) || controller.initialImageUrl.isNotEmpty)) {
-                            commonSnackBar(message: 'Please upload a photo');
-                          } else {
-                             commonSnackBar(message: AppStrings.hospitalCtrlAllFieldsRequiredValid.tr);
-                          }
-                        }
-                      },
+                      isValidate: controller.isFormValid.value &&
+                          controller.isChanged.value,
+                      onTap: (!controller.isChanged.value)
+                          ? null
+                          : () {
+                              if (controller.isFormValid.value) {
+                                controller.save();
+                              } else {
+                                // This triggers inline validation in fields.
+                                // If those fields are not visible, show a snackbar.
+                                if (!((controller.selectedImage.value !=
+                                        null) ||
+                                    controller.initialImageUrl.isNotEmpty)) {
+                                  commonSnackBar(
+                                      message: 'Please upload a photo');
+                                } else {
+                                  commonSnackBar(
+                                      message: AppStrings
+                                          .hospitalCtrlAllFieldsRequiredValid
+                                          .tr);
+                                }
+                              }
+                            },
                     ),
                   ],
                 ),
@@ -155,7 +168,7 @@ class _ManagementFormScreenState extends State<ManagementFormScreen> {
       );
     }
     return CommonImageUploadTile(
-      title:AppStrings.uploadPhotos,
+      title: AppStrings.uploadPhotos,
       context: context,
       onImageSelected: () async {
         final path = await CommonImageUploadTile.pickImage(context: context);
