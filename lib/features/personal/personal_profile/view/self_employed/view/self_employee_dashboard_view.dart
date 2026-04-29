@@ -148,7 +148,6 @@ class _SelfEmployeeDashboardViewState extends State<SelfEmployeeDashboardView>
                         showElevation: 0,
                         isDrawerMenu: true,
                         isLeading: false,
-                        isMore: !hasEarnProfile,
                         isProfile: false,
                         isNotification: !isGuestUser(),
                         bellIconNotEmpty: true,
@@ -159,8 +158,20 @@ class _SelfEmployeeDashboardViewState extends State<SelfEmployeeDashboardView>
                             RouteHelper.getNotificationScreenRoute(),
                           );
                         },
-                        onMoreTap: () =>
-                            Get.to(() => const chooseEarnServiceScreen()),
+                        buildCustomActionWidget: () => Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (!hasEarnProfile)
+                              _EarnActionPill(
+                                onTap: () => Get.to(
+                                    () => const chooseEarnServiceScreen()),
+                              ),
+                            Padding(
+                              padding: const EdgeInsets.only(right: 12),
+                              child: _buildGoLiveChip(),
+                            ),
+                          ],
+                        ),
                       );
                     }),
                   ),
@@ -496,9 +507,6 @@ class _SelfEmployeeDashboardViewState extends State<SelfEmployeeDashboardView>
               ],
             ),
           ),
-          // Go Live on right
-          const SizedBox(width: 12),
-          _buildGoLiveChip(),
         ],
       ),
     );
@@ -644,10 +652,29 @@ class _SelfEmployeeDashboardViewState extends State<SelfEmployeeDashboardView>
             color: AppColors.primaryColor,
             fontWeight: FontWeight.w600,
           ),
-          buildToggleSwitchChip(
-            value: _viewCtrl.shopStatusOpenClose,
-            onChanged: _viewCtrl.toggleShopStatus,
-          ),
+          Obx(() {
+            if (_viewCtrl.isShopStatusUpdating.value) {
+              return Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: SizeConfig.size10,
+                  vertical: SizeConfig.size6,
+                ),
+                child: SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                        AppColors.primaryColor),
+                  ),
+                ),
+              );
+            }
+            return buildToggleSwitchChip(
+              value: _viewCtrl.shopStatusOpenClose,
+              onChanged: _viewCtrl.toggleShopStatus,
+            );
+          }),
         ],
       ),
     );
@@ -756,5 +783,57 @@ class _SelfEmployeeDashboardViewState extends State<SelfEmployeeDashboardView>
     var reqProfile = {ApiKeys.coverpicture: dataImage};
     await _personalCtrl.updateUserProfileDetails(
         params: reqProfile, isFromProfileOnly: true);
+  }
+}
+
+class _EarnActionPill extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _EarnActionPill({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 8.0),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(100),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(100),
+          onTap: onTap,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: AppColors.primaryColor.withValues(alpha: 0.10),
+              borderRadius: BorderRadius.circular(100),
+              border: Border.all(
+                color: AppColors.primaryColor.withValues(alpha: 0.25),
+                width: 0.5,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                LocalAssets(
+                  imagePath: AppIconAssets.earnWithBEIcon,
+                  imgColor: AppColors.primaryColor,
+                  width: 16,
+                  height: 16,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  'Earn',
+                  style: TextStyle(
+                    color: AppColors.primaryColor,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }

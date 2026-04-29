@@ -9,6 +9,7 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/choose_earn_service_screen.dart';
 import 'package:BlueEra/core/services/multipart_image_service.dart';
 import 'package:BlueEra/widgets/bottom_nav_hide_on_scroll.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -133,7 +134,6 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen>
                     showElevation: 0,
                     isDrawerMenu: true,
                     isLeading: false,
-                    isMore: true,
                     isProfile: false,
                     isNotification: !isGuestUser(),
                     bellIconNotEmpty: true,
@@ -144,6 +144,10 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen>
                         RouteHelper.getNotificationScreenRoute(),
                       );
                     },
+                    buildCustomActionWidget: () => _EarnActionPill(
+                      onTap: () =>
+                          Get.to(() => const chooseEarnServiceScreen()),
+                    ),
                   ),
                 ),
               ),
@@ -897,5 +901,57 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen>
     var reqProfile = {ApiKeys.coverpicture: dataImage};
     await _personalCtrl.updateUserProfileDetails(
         params: reqProfile, isFromProfileOnly: true);
+  }
+}
+
+class _EarnActionPill extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _EarnActionPill({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 14.0),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(100),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(100),
+          onTap: onTap,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: AppColors.primaryColor.withValues(alpha: 0.10),
+              borderRadius: BorderRadius.circular(100),
+              border: Border.all(
+                color: AppColors.primaryColor.withValues(alpha: 0.25),
+                width: 0.5,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                LocalAssets(
+                  imagePath: AppIconAssets.earnWithBEIcon,
+                  imgColor: AppColors.primaryColor,
+                  width: 16,
+                  height: 16,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  'Earn',
+                  style: TextStyle(
+                    color: AppColors.primaryColor,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }

@@ -100,6 +100,7 @@ class PersonalProfileRepo extends BaseService {
     final response = await ApiBaseHelper().patchHTTP(
       mapServiceProviderStatus,
       params: bodyReq,
+      showProgress: false,
       onError: (error) {},
       onSuccess: (data) {},
     );

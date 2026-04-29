@@ -63,6 +63,7 @@ class ViewPersonalDetailsController extends GetxController {
   // }
 
   RxBool shopStatusOpenClose = false.obs;
+  RxBool isShopStatusUpdating = false.obs;
   final LiveLocationService locationService = LiveLocationService();
 
   Future<void> toggleShopStatus() async {
@@ -119,6 +120,7 @@ class ViewPersonalDetailsController extends GetxController {
 
   callApiForChangeStatus() async {
     try {
+      isShopStatusUpdating.value = true;
       changeShopStatusResponse.value = ApiResponse.initial("Initial");
 
       ResponseModel responseModel =
@@ -144,6 +146,8 @@ class ViewPersonalDetailsController extends GetxController {
       }
     } catch (e) {
       changeShopStatusResponse.value = ApiResponse.error('error');
+    } finally {
+      isShopStatusUpdating.value = false;
     }
   }
 
