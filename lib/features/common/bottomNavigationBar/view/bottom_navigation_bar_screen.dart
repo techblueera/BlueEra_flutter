@@ -131,7 +131,6 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     _getAllCategories();
     _initializeControllers();
     _initializeUserData();
-
     _initializeSocketConnections();
     _initializeChatMediaFolders();
     checkByRiderCall();
@@ -355,8 +354,6 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
         viewProfileController.viewBusinessProfile();
       }
     } else {
-      // Default landing tab is Me (index 0) for every user type, including
-      // bike riders. Callers can still pass `initialIndex` to override.
       if (userProfessionGlobal == BIKE_RIDER) {
         bottomBarController.currentIndex.value = 0;
       } else {
