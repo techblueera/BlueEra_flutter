@@ -22,6 +22,7 @@ class _GuestDashBoardScreenState extends State<GuestDashBoardScreen> {
     return Scaffold(
       appBar: CommonBackAppBar(
         isLeading: false,
+        isGuestLogout: isGuestUser(),
       ),
       body: Padding(
         padding: EdgeInsets.symmetric(horizontal: SizeConfig.size15),

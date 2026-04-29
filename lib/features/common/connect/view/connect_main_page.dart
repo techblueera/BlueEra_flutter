@@ -66,13 +66,19 @@ class _ConnectMainPageState extends State<ConnectMainPage>
     with SingleTickerProviderStateMixin {
   final List<String> iconTab = [
     AppIconAssets.chat,
-    AppIconAssets.community_tab,
+
     AppIconAssets.message_post,
+
+    AppIconAssets.community_tab,
+
   ];
   final List<String> postTab = [
     AppStrings.chat,
+
+    AppStrings.social,
     AppStrings.community,
-    AppStrings.lekha,
+
+
   ];
   int selectedIndex = 0;
   int selectedSubIndex = 0;
@@ -284,7 +290,7 @@ class _ConnectMainPageState extends State<ConnectMainPage>
       isSearch: !isChatTab,
       isProfile: false,
       isNotification: false,
-      isGuestLogout: isGuestUser(),
+      isGuestLogout:false,
       controller: searchController,
       onClearCallback: () => searchController.clear(),
       leadingWidget: _buildSymbolAvatar(),
@@ -458,10 +464,7 @@ class _ConnectMainPageState extends State<ConnectMainPage>
                 controller: _tabController,
                 children: [
                   PersonalChatsList(isForwardUI: false,),
-                  ChannelFeedScreen(
-                    headerHeight: 0,
-                    onHeaderVisibilityChanged: _toggleAppBarAndBottomNav,
-                  ),
+
                   HomeFeedScreenNew(
                     key: const ValueKey('feedScreen_all'),
                     onHeaderVisibilityChanged: _toggleAppBarAndBottomNav,
@@ -472,6 +475,12 @@ class _ConnectMainPageState extends State<ConnectMainPage>
                     headerHeight: 0,
                     isInParentScroll: false,
                   ),
+
+                  ChannelFeedScreen(
+                    headerHeight: 0,
+                    onHeaderVisibilityChanged: _toggleAppBarAndBottomNav,
+                  ),
+
                 ],
               ),
             ),

@@ -2125,6 +2125,7 @@ class AppStrings {
   /// Individual Profile
   static const String politician = 'politician';
   static const String socialist = 'socialist';
+  static const String social = 'social';
   static const String journalist = 'journalist';
   static const String artist = 'artist';
   static const String industrialist = 'industrialist';
@@ -5068,6 +5069,10 @@ class AppStrings {
   static const String pickColor = "pickColor";
   static const String removeLabelBtn = "removeLabelBtn";
   static const String addSymbolMenu = "addSymbolMenu";
+  static const String messageSent = "messageSent";
+  static const String replyTo = "replyTo";
+  static const String directReply = "directReply";
+  static const String typeAMessage = "typeAMessage";
   static const String viewSymbolMenu = "viewSymbolMenu";
   static const String createGroupMenu = "createGroupMenu";
   static const String backgroundMenu = "backgroundMenu";
