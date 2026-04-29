@@ -16,8 +16,7 @@ abstract class BaseService {
   final String getAllcategories = 'user-service/business/getAllcategories';
   final String getAllcategoriesByType = 'user-service/business/by-type/';
   final String viewBusinessProfile = '/user-service/business/$businessId';
-  final String updateBusinessProfile =
-      '/user-service/business/updateBusinessProfile';
+  final String updateBusinessProfile = '/user-service/business/updateBusinessProfile';
   final String subcategories = '/user-service/business/getAllSubcategories';
   final String channels = 'channel-service/channels';
   final String socialLinks = 'channel-service/channels/$channelId/social-links';
@@ -465,6 +464,7 @@ abstract class BaseService {
   //categories
   final String toplevelcategoriesApi = "/inventory-service/product/categories/top-level";
   final String createGuestAccount = "/user-service/user/create-guest-account";
+  final String updateGuestAccount = "/user-service/user/update-guest-account";
   final String userFeedReport = "userfeed-service/report/add-reports";
   final String updateIndividualAccountUser = "user-service/user/updateIndividualAccountUser/";
   final String updateBusinessAccount = "user-service/user/updateBusinessAccount/";

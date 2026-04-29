@@ -148,12 +148,14 @@ class SharedPreferenceUtils {
     required String contactNo,
     required String autToken,
     required String getUserName,
+    String profileImage = '',
   }) async {
     await SharedPreferenceUtils.setSecureValue(loginUserId, loginUserId_);
     await SharedPreferenceUtils.setSecureValue(isUserLogin, "true");
     await SharedPreferenceUtils.setSecureValue(userLoginMobile, contactNo);
     await SharedPreferenceUtils.setSecureValue(authToken, autToken);
     await SharedPreferenceUtils.setSecureValue(userName, getUserName);
+    await SharedPreferenceUtils.setSecureValue(userProfile, profileImage);
   }
 
   static Future<void> userLoggedInBusiness({

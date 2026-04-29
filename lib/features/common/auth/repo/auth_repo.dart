@@ -137,9 +137,24 @@ class AuthRepo extends BaseService {
       {required Map<String, dynamic> params}) async {
     final response = await ApiBaseHelper().postHTTP(
       createGuestAccount,
+      showProgress: false,
       params: params,
       onError: (error) {},
       onSuccess: (data) {},
+      isMultipart: true,
+    );
+    return response;
+  }
+
+  //updateGuestAccount...
+  Future<ResponseModel> updateGuestAccountRepo(
+      {required Map<String, dynamic> params}) async {
+    final response = await ApiBaseHelper().putHTTP(
+      updateGuestAccount,
+      params: params,
+      onError: (error) {},
+      onSuccess: (data) {},
+      isMultipart: true,
     );
     return response;
   }

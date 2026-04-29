@@ -123,7 +123,6 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
           statusBarBrightness: Brightness.dark,
         ),
         child: Scaffold(
-          backgroundColor: AppColors.appBackgroundColor,
           body: SafeArea(
             top: false,
             child: BottomNavHideOnScroll(

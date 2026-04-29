@@ -792,6 +792,7 @@ class AppStrings {
   static const postVia = "postVia";
   static const chooseWhereToPost = "chooseWhereToPost";
   static const profile = "profile";
+  static const guestProfile = "guestProfile";
   static const channel = "channel";
 
   ///CREATE LEKHA POST...
@@ -2146,6 +2147,12 @@ class AppStrings {
   static const String socialProfile = 'socialProfile';
   static const String joinAsEarnWithBlueEra = 'joinAsEarnWithBlueEra';
   static const String listYourBusiness = 'listYourBusiness';
+  static const String listYourProfession = 'listYourProfession';
+  static const String browsingAsGuest = 'browsingAsGuest';
+  static const String earnWithBlueEraDesc = 'earnWithBlueEraDesc';
+  static const String listYourBusinessDesc = 'listYourBusinessDesc';
+  static const String listYourProfessionDesc = 'listYourProfessionDesc';
+  static const String createAccount = 'createAccount';
   static const String groceryFoodRestaurant = 'groceryFoodRestaurant';
   static const String shopStoreShowroom = 'shopStoreShowroom';
   static const String chooseYourAccountType = 'chooseYourAccountType';
