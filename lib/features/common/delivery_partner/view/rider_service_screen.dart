@@ -523,8 +523,6 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
               ],
             ),
           ),
-          const SizedBox(width: 12),
-          _buildGoLiveWidget(),
         ],
       ),
     );

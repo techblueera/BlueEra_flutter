@@ -701,6 +701,7 @@ class AppStrings {
   static const youtube = "youtube";
 
   static const addFood = "addFood";
+  static const addGrocery = "addGrocery";
   static const createGroup = "createGroup";
   static const theme = "theme";
   static const wallpaper = "wallpaper";

@@ -616,8 +616,7 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
   }) {
     return Padding(
       padding: const EdgeInsets.only(left: 15.0),
-      child: SizedBox(
-        height: 110,
+      child: IntrinsicHeight(
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -625,10 +624,11 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
               flex: 7,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   _buildTimingTile(timingMap, palette),
                   SizedBox(height: SizeConfig.size6),
-                  Expanded(child: _buildExpertiseList(expertise)),
+                  _buildExpertiseList(expertise, palette),
                 ],
               ),
             ),
@@ -697,7 +697,8 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
     );
   }
 
-  Widget _buildExpertiseList(List<String> expertise) {
+  Widget _buildExpertiseList(
+      List<String> expertise, _SelfProfessionPalette palette) {
     if (expertise.isEmpty) {
       return CustomText(
         '—',
@@ -706,73 +707,73 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
         fontWeight: FontWeight.w400,
       );
     }
-    final visible = expertise.take(3).toList();
+    final visible = expertise.take(2).toList();
     final extra = expertise.length - visible.length;
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: SizeConfig.size8,
-        vertical: SizeConfig.size8,
-      ),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppColors.white, width: 1),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          for (var i = 0; i < visible.length; i++)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 2),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(top: 6, right: 6),
-                    child: Container(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: SizeConfig.size8,
+            vertical: SizeConfig.size8,
+          ),
+          decoration: BoxDecoration(
+            color: AppColors.white,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: palette.tileBorder, width: 1),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              for (var i = 0; i < visible.length; i++) ...[
+                if (i > 0) const SizedBox(height: 2),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Container(
                       width: 4,
                       height: 4,
+                      margin: const EdgeInsets.only(right: 6),
                       decoration: BoxDecoration(
                         color: AppColors.secondaryTextColor,
                         shape: BoxShape.circle,
                       ),
                     ),
-                  ),
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: (i == visible.length - 1 && extra > 0)
-                          ? () => _showExpertiseSheet(expertise)
-                          : null,
-                      child: RichText(
+                    Expanded(
+                      child: CustomText(
+                        visible[i],
+                        fontSize: SizeConfig.small,
+                        color: AppColors.secondaryTextColor,
+                        fontWeight: FontWeight.w500,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        text: TextSpan(
-                          style: TextStyle(
-                            fontSize: SizeConfig.small,
-                            color: AppColors.secondaryTextColor,
-                            fontWeight: FontWeight.w500,
-                          ),
-                          children: [
-                            TextSpan(text: visible[i]),
-                            if (i == visible.length - 1 && extra > 0)
-                              TextSpan(
-                                text: '  +$extra More',
-                                style: TextStyle(
-                                  color: AppColors.primaryColor,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                          ],
-                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
+              ],
+            ],
+          ),
+        ),
+        if (extra > 0)
+          Padding(
+            padding: EdgeInsets.only(
+              top: SizeConfig.size4,
+              left: SizeConfig.size8,
+            ),
+            child: GestureDetector(
+              onTap: () => _showExpertiseSheet(expertise),
+              child: CustomText(
+                '+$extra More',
+                fontSize: SizeConfig.small,
+                color: AppColors.primaryColor,
+                fontWeight: FontWeight.w700,
               ),
             ),
-        ],
-      ),
+          ),
+      ],
     );
   }
 
@@ -1403,6 +1404,12 @@ class _SelfProfessionMapScreenState extends State<_SelfProfessionMapScreen> {
   }
 }
 
+/// Premium photo lightbox shown as a bordered, rounded dialog (not
+/// full-page). Inside: a faint primary halo radial backdrop, a clean
+/// header with a title pill + counter + circular close, an
+/// `InteractiveViewer` PageView with double-tap-to-zoom, and an
+/// animated dot indicator below — the active dot stretches into a
+/// pill in the primary color.
 class _SelfProfessionPhotoDialog extends StatefulWidget {
   final List<String> images;
   final int initialIndex;
@@ -1420,21 +1427,50 @@ class _SelfProfessionPhotoDialog extends StatefulWidget {
 }
 
 class _SelfProfessionPhotoDialogState
-    extends State<_SelfProfessionPhotoDialog> {
+    extends State<_SelfProfessionPhotoDialog>
+    with SingleTickerProviderStateMixin {
   late final PageController _controller;
+  late final AnimationController _entry;
   late int _index;
+  final Map<int, TransformationController> _transformers = {};
+  TapDownDetails? _lastDoubleTap;
 
   @override
   void initState() {
     super.initState();
     _index = widget.initialIndex.clamp(0, widget.images.length - 1);
     _controller = PageController(initialPage: _index);
+    _entry = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 380),
+    )..forward();
   }
+
+  TransformationController _transformerFor(int i) =>
+      _transformers.putIfAbsent(i, TransformationController.new);
 
   @override
   void dispose() {
     _controller.dispose();
+    _entry.dispose();
+    for (final t in _transformers.values) {
+      t.dispose();
+    }
     super.dispose();
+  }
+
+  void _toggleZoom(int i) {
+    final t = _transformerFor(i);
+    final details = _lastDoubleTap;
+    if (t.value != Matrix4.identity()) {
+      t.value = Matrix4.identity();
+    } else if (details != null) {
+      const scale = 2.5;
+      final pos = details.localPosition;
+      t.value = Matrix4.identity()
+        ..translate(-pos.dx * (scale - 1), -pos.dy * (scale - 1))
+        ..scale(scale);
+    }
   }
 
   @override
@@ -1443,86 +1479,205 @@ class _SelfProfessionPhotoDialogState
     return Dialog(
       backgroundColor: Colors.transparent,
       insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          color: Colors.black,
-          width: size.width,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(12, 8, 4, 8),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: CustomText(
-                        widget.title,
-                        fontSize: SizeConfig.medium,
-                        color: Colors.white,
-                        fontWeight: FontWeight.w700,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.close_rounded,
-                          color: Colors.white, size: 22),
-                      onPressed: () => Navigator.of(context).pop(),
-                    ),
+      child: AnimatedBuilder(
+        animation: _entry,
+        builder: (_, __) => Opacity(
+          opacity: _entry.value,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(20),
+            child: Container(
+              width: size.width,
+              decoration: BoxDecoration(
+                gradient: RadialGradient(
+                  radius: 1.1,
+                  colors: [
+                    AppColors.primaryColor.withValues(alpha: 0.14),
+                    Colors.black.withValues(alpha: 0.96),
+                    Colors.black,
                   ],
+                  stops: const [0.0, 0.6, 1.0],
                 ),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.08),
+                  width: 0.5,
+                ),
+                borderRadius: BorderRadius.circular(20),
               ),
-              SizedBox(
-                height: size.height * 0.5,
-                child: PageView.builder(
-                  controller: _controller,
-                  itemCount: widget.images.length,
-                  onPageChanged: (i) => setState(() => _index = i),
-                  itemBuilder: (_, i) {
-                    return InteractiveViewer(
-                      minScale: 1,
-                      maxScale: 4,
-                      child: Center(
-                        child: CachedNetworkImage(
-                          imageUrl: widget.images[i],
-                          fit: BoxFit.contain,
-                          placeholder: (_, __) => const Center(
-                            child: CircularProgressIndicator(
-                                strokeWidth: 2, color: Colors.white),
-                          ),
-                          errorWidget: (_, __, ___) => LocalAssets(
-                            imagePath: AppIconAssets.place_holder_image,
-                            boxFix: BoxFit.contain,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 5),
+                              decoration: BoxDecoration(
+                                color: AppColors.primaryColor
+                                    .withValues(alpha: 0.22),
+                                borderRadius: BorderRadius.circular(999),
+                                border: Border.all(
+                                  color: AppColors.primaryColor
+                                      .withValues(alpha: 0.32),
+                                  width: 0.5,
+                                ),
+                              ),
+                              child: CustomText(
+                                widget.title,
+                                fontSize: SizeConfig.small,
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
                           ),
                         ),
-                      ),
-                    );
-                  },
-                ),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 5),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.10),
+                            borderRadius: BorderRadius.circular(999),
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.20),
+                              width: 0.5,
+                            ),
+                          ),
+                          child: CustomText(
+                            '${_index + 1} / ${widget.images.length}',
+                            fontSize: SizeConfig.small,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        GestureDetector(
+                          onTap: () => Navigator.of(context).pop(),
+                          child: Container(
+                            width: 32,
+                            height: 32,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.white.withValues(alpha: 0.12),
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.20),
+                                width: 0.5,
+                              ),
+                            ),
+                            child: const Icon(Icons.close_rounded,
+                                color: Colors.white, size: 18),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(
+                    height: size.height * 0.5,
+                    child: PageView.builder(
+                      controller: _controller,
+                      itemCount: widget.images.length,
+                      physics: const BouncingScrollPhysics(),
+                      onPageChanged: (i) => setState(() => _index = i),
+                      itemBuilder: (_, i) {
+                        return GestureDetector(
+                          onDoubleTapDown: (d) => _lastDoubleTap = d,
+                          onDoubleTap: () => _toggleZoom(i),
+                          child: Hero(
+                            tag: 'photo_${widget.images[i]}_$i',
+                            child: InteractiveViewer(
+                              transformationController:
+                                  _transformerFor(i),
+                              minScale: 1,
+                              maxScale: 5,
+                              child: Center(
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 8),
+                                  child: ClipRRect(
+                                    borderRadius:
+                                        BorderRadius.circular(12),
+                                    child: CachedNetworkImage(
+                                      imageUrl: widget.images[i],
+                                      fit: BoxFit.contain,
+                                      placeholder: (_, __) => Container(
+                                        color: Colors.white
+                                            .withValues(alpha: 0.04),
+                                        child: Center(
+                                          child: SizedBox(
+                                            width: 26,
+                                            height: 26,
+                                            child:
+                                                CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              valueColor:
+                                                  AlwaysStoppedAnimation<
+                                                      Color>(Colors.white
+                                                          .withValues(
+                                                              alpha:
+                                                                  0.55)),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      errorWidget: (_, __, ___) =>
+                                          LocalAssets(
+                                        imagePath: AppIconAssets
+                                            .place_holder_image,
+                                        boxFix: BoxFit.contain,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 14, horizontal: 16),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: List.generate(widget.images.length, (i) {
+                        final active = i == _index;
+                        return AnimatedContainer(
+                          duration: const Duration(milliseconds: 260),
+                          curve: Curves.easeOutCubic,
+                          margin:
+                              const EdgeInsets.symmetric(horizontal: 3),
+                          width: active ? 22 : 6,
+                          height: 6,
+                          decoration: BoxDecoration(
+                            color: active
+                                ? AppColors.primaryColor
+                                : Colors.white.withValues(alpha: 0.35),
+                            borderRadius: BorderRadius.circular(999),
+                            boxShadow: active
+                                ? [
+                                    BoxShadow(
+                                      color: AppColors.primaryColor
+                                          .withValues(alpha: 0.55),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ]
+                                : null,
+                          ),
+                        );
+                      }),
+                    ),
+                  ),
+                ],
               ),
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: List.generate(widget.images.length, (i) {
-                    final active = i == _index;
-                    return AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      margin: const EdgeInsets.symmetric(horizontal: 3),
-                      width: active ? 18 : 6,
-                      height: 6,
-                      decoration: BoxDecoration(
-                        color: active
-                            ? Colors.white
-                            : Colors.white.withValues(alpha: 0.45),
-                        borderRadius: BorderRadius.circular(999),
-                      ),
-                    );
-                  }),
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),

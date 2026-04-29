@@ -90,7 +90,6 @@ class _GroceryScreenState extends State<GroceryScreen> with SingleTickerProvider
                   showElevation: 0,
                   isDrawerMenu: true,
                   isLeading: false,
-                  isMore: true,
                   isProfile: false,
                   isNotification: !isGuestUser(),
                   bellIconNotEmpty: true,
@@ -101,17 +100,22 @@ class _GroceryScreenState extends State<GroceryScreen> with SingleTickerProvider
                       RouteHelper.getNotificationScreenRoute(),
                     );
                   },
-                  onMoreTap: () async {
-                    final groceryController = getOrPut(() => GroceryController());
-                    await Get.toNamed(
-                      RouteHelper.getGrocerySuperCategoryScreenRoute(),
-                      arguments: {ApiKeys.argBulkUpload: true},
-                    );
-                    if (groceryController.groceryDataNeedsRefresh) {
-                      groceryController.groceryDataNeedsRefresh = false;
-                      groceryController.fetchAllGroceryData(userId, otherStore: false);
-                    }
-                  },
+                  buildCustomActionWidget: () => _AddActionPill(
+                    label: AppStrings.addGrocery.tr,
+                    onTap: () async {
+                      final groceryController =
+                          getOrPut(() => GroceryController());
+                      await Get.toNamed(
+                        RouteHelper.getGrocerySuperCategoryScreenRoute(),
+                        arguments: {ApiKeys.argBulkUpload: true},
+                      );
+                      if (groceryController.groceryDataNeedsRefresh) {
+                        groceryController.groceryDataNeedsRefresh = false;
+                        groceryController.fetchAllGroceryData(userId,
+                            otherStore: false);
+                      }
+                    },
+                  ),
                 ),
               ),
             ),
@@ -228,6 +232,58 @@ class _GroceryScreenState extends State<GroceryScreen> with SingleTickerProvider
                 ),
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _AddActionPill extends StatelessWidget {
+  final String label;
+  final VoidCallback onTap;
+
+  const _AddActionPill({required this.label, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 14.0),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(100),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(100),
+          onTap: onTap,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: AppColors.primaryColor.withValues(alpha: 0.10),
+              borderRadius: BorderRadius.circular(100),
+              border: Border.all(
+                color: AppColors.primaryColor.withValues(alpha: 0.25),
+                width: 0.5,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.add,
+                  size: 16,
+                  color: AppColors.primaryColor,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: AppColors.primaryColor,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

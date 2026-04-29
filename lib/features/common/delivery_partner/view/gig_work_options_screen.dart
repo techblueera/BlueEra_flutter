@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'dart:io';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
@@ -9,6 +10,9 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
+import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/account_setting_screen/account_settings_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/choose_earn_service_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/controller/earn_service_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/self_employee_screen.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/rider_service_screen.dart';
@@ -38,6 +42,8 @@ class _GigWorkOptionsScreenState extends State<GigWorkOptionsScreen>
 
   final controller = getOrPut(() => EarnServiceController());
   final deliveryPartnerController = getOrPut(() => DeliveryPartnerController());
+  final _viewCtrl =
+      getOrPut(() => ViewPersonalDetailsController(), permanent: true);
 
   @override
   void initState() {
@@ -83,7 +89,6 @@ class _GigWorkOptionsScreenState extends State<GigWorkOptionsScreen>
         showElevation: 0,
         isDrawerMenu: true,
         isLeading: false,
-        isMore: true,
         isProfile: false,
         isNotification: !isGuestUser(),
         bellIconNotEmpty: true,
@@ -94,6 +99,15 @@ class _GigWorkOptionsScreenState extends State<GigWorkOptionsScreen>
             RouteHelper.getNotificationScreenRoute(),
           );
         },
+        buildCustomActionWidget: () => Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _EarnActionPill(
+              onTap: () => Get.to(() => const chooseEarnServiceScreen()),
+            ),
+            _buildGoLiveAction(),
+          ],
+        ),
       ),
       // BottomNavHideOnScroll listens to scroll notifications bubbling
       // up from the inner Scaffolds (RiderServiceScreen /
@@ -105,5 +119,115 @@ class _GigWorkOptionsScreenState extends State<GigWorkOptionsScreen>
     );
   }
 
+  Widget _buildGoLiveAction() {
+    if (!Platform.isAndroid) return const SizedBox.shrink();
+    return Builder(builder: (_) {
+      final statusData = serviceProviderStatusGlobal.toUpperCase();
+      final isOpen = statusData == AppConstants.OPEN.toUpperCase();
+      if (_viewCtrl.shopStatusOpenClose.value != isOpen) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _viewCtrl.shopStatusOpenClose.value = isOpen;
+        });
+      }
+      return Padding(
+        padding: const EdgeInsets.only(right: 8),
+        child: Container(
+          height: SizeConfig.size32,
+          decoration: BoxDecoration(
+            border: Border.all(color: AppColors.primaryColor),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(width: SizeConfig.size8),
+              CustomText(
+                AppStrings.goLive,
+                fontSize: SizeConfig.small,
+                color: AppColors.primaryColor,
+                fontWeight: FontWeight.w600,
+              ),
+              Obx(() {
+                if (_viewCtrl.isShopStatusUpdating.value) {
+                  return Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: SizeConfig.size10,
+                      vertical: SizeConfig.size6,
+                    ),
+                    child: SizedBox(
+                      width: 14,
+                      height: 14,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                            AppColors.primaryColor),
+                      ),
+                    ),
+                  );
+                }
+                return buildToggleSwitchChip(
+                  value: _viewCtrl.shopStatusOpenClose,
+                  onChanged: _viewCtrl.toggleShopStatus,
+                );
+              }),
+            ],
+          ),
+        ),
+      );
+    });
+  }
 
+
+}
+
+class _EarnActionPill extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _EarnActionPill({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 14.0),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(100),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(100),
+          onTap: onTap,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: AppColors.primaryColor.withValues(alpha: 0.10),
+              borderRadius: BorderRadius.circular(100),
+              border: Border.all(
+                color: AppColors.primaryColor.withValues(alpha: 0.25),
+                width: 0.5,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                LocalAssets(
+                  imagePath: AppIconAssets.earnWithBEIcon,
+                  imgColor: AppColors.primaryColor,
+                  width: 16,
+                  height: 16,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  'Earn',
+                  style: TextStyle(
+                    color: AppColors.primaryColor,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }

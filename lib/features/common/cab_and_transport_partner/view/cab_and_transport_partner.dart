@@ -445,8 +445,6 @@ class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
               ],
             ),
           ),
-          const SizedBox(width: 12),
-          _buildGoLiveWidget(),
         ],
       ),
     );
