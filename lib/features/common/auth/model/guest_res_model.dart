@@ -36,25 +36,29 @@ Data dataFromJson(String str) => Data.fromJson(json.decode(str));
 String dataToJson(Data data) => json.encode(data.toJson());
 class Data {
   Data({
-      this.id, 
-      this.name, 
-      this.contactNo, 
+      this.id,
+      this.name,
+      this.contactNo,
+      this.profileImage,
   });
 
   Data.fromJson(dynamic json) {
     id = json['_id'];
     name = json['name'];
     contactNo = json['contact_no'];
+    profileImage = json['profile_image'];
   }
   String? id;
   String? name;
   String? contactNo;
+  String? profileImage;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
     map['_id'] = id;
     map['name'] = name;
     map['contact_no'] = contactNo;
+    map['profile_image'] = profileImage;
     return map;
   }
 

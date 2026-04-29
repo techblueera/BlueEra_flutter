@@ -77,6 +77,7 @@ class AppImageAssets {
   static const String servicesDiscover = '${imgPath}services_discover.png';
   static const String subscriptionBgCard = '${imgPath}subscription_bg_card.png';
   static const String planTagIcon = '${imgPath}plan_tag_icon.png';
+  static const String listCardBoard = '${imgPath}list_cardboard.png';
 
   /// Business products images
   static String pharmacyMedicalStore = "${imgPath}pharmacy_medical_store_icon.png";

@@ -445,18 +445,28 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
 
               if (isGuestLogout ?? false)
                 Builder(
-                  builder: (context) => Container(
-                    height: SizeConfig.size30,
-                    width: SizeConfig.size30,
-                    margin: EdgeInsets.only(right: SizeConfig.size20),
-                    child: IconButton(
-                      padding:
-                          EdgeInsets.symmetric(horizontal: SizeConfig.size5),
-                      onPressed: () => LogoutHelper.showLogoutDialog(context),
-                      icon: LocalAssets(
-                        imagePath: AppIconAssets.logout_new,
-                        // height: SizeConfig.size15,
-                        // width: SizeConfig.size15,
+                  builder: (context) => Padding(
+                    padding: EdgeInsets.only(right: SizeConfig.size12),
+                    child: Material(
+                      color: Colors.transparent,
+                      borderRadius: BorderRadius.circular(10.0),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(10.0),
+                        onTap: () => LogoutHelper.showLogoutDialog(context),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(10.0),
+                            color: AppColors.appBackgroundColor,
+                          ),
+                          padding: EdgeInsets.all(SizeConfig.size10),
+                          alignment: Alignment.center,
+                          child: LocalAssets(
+                            imagePath: AppIconAssets.logout_new,
+                            height: SizeConfig.size20,
+                            width: SizeConfig.size20,
+                            boxFix: BoxFit.cover,
+                          ),
+                        ),
                       ),
                     ),
                   ),

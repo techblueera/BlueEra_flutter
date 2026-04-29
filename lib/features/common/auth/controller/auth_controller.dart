@@ -27,6 +27,8 @@ import 'package:BlueEra/features/common/auth/model/single_business_category_resp
 import 'package:BlueEra/features/common/auth/model/username_res_model.dart';
 import 'package:BlueEra/features/common/auth/repo/auth_repo.dart';
 import 'package:BlueEra/features/common/auth/views/screens/choose_account_type_screen.dart';
+import 'package:BlueEra/features/common/auth/views/screens/complete_guest_profile_screen.dart';
+import 'package:BlueEra/core/services/multipart_image_service.dart';
 import 'package:BlueEra/features/common/feed/models/block_user_response.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_service_ai_controller.dart';
 import 'package:BlueEra/features/me/hotel/controller/hotel_service_controller.dart';
@@ -239,7 +241,8 @@ class AuthController extends GetxController {
             loginUserId_: "${data.data?.id}",
             contactNo: "${data.data?.contactNo}",
             autToken: "${data.token}",
-            getUserName: "${data.data?.username}",
+            getUserName: "${data.data?.name ?? data.data?.username}",
+            profileImage: data.data?.profileImage ?? '',
           );
           await SharedPreferenceUtils.setSecureValue(
               SharedPreferenceUtils.accountType, AppConstants.guest);
@@ -255,10 +258,7 @@ class AuthController extends GetxController {
 
         ///GUEST ACCOUNT.....
         else {
-          await createGuestAccountUserController(reqData: {
-            ApiKeys.contact_no: mobileNumberEditController.text,
-            ApiKeys.account_type: AppConstants.guest
-          });
+          Get.offAll(() => const CompleteGuestProfileScreen());
         }
       } else {
         commonSnackBar(
@@ -737,11 +737,22 @@ class AuthController extends GetxController {
     update();
   }
 
+  RxBool isCreateGuestAccountLoading = false.obs;
+
   ///Add User...
   Future<void> createGuestAccountUserController(
       {required Map<String, dynamic> reqData}) async {
     try {
-      // eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzZXNzaW9uSWQiOiI2OWM2NmQ0ZmI2OWQ3YzJhMzU5ODg2ZDciLCJfaWQiOnsiX2lkIjoiNjljNjZkNGYyYjRmMTc5MTJmYTA0ZTNhIiwiaWQiOiI2OWM2NmQ0ZjJiNGYxNzkxMmZhMDRlM2EiLCJhY2NvdW50X3R5cGUiOiJHVUVTVCIsImNvbnRhY3Rfbm8iOiIwMDU1MDAwMDAwIiwiYnVzaW5lc3NfaWQiOm51bGwsIm5hbWUiOiJHdWVzdDAwMDAiLCJwcm9maWxlX2ltYWdlIjoiIn0sImlhdCI6MTc3NDYxMTc5MSwiZXhwIjoxNzkwMTYzNzkxfQ.TZUxK7P3W139h_tNeKGjW0nDuhADd9-6_xvFEk6Idro
+      isCreateGuestAccountLoading.value = true;
+      final imagePath = reqData[ApiKeys.profile_image];
+      if (imagePath is String && imagePath.isNotEmpty) {
+        final image = await multiPartImage(imagePath: imagePath);
+        if (image != null) {
+          reqData[ApiKeys.profile_image] = image;
+        } else {
+          reqData.remove(ApiKeys.profile_image);
+        }
+      }
       ResponseModel response =
           await AuthRepo().createGuestAccountRepo(params: reqData);
       if (response.isSuccess) {
@@ -754,17 +765,13 @@ class AuthController extends GetxController {
             contactNo: "${guestResModel.data?.contactNo}",
             autToken: "${guestResModel.token}",
             getUserName: "${guestResModel.data?.name}",
+            profileImage: guestResModel.data?.profileImage ?? '',
           );
           await SharedPreferenceUtils.setSecureValue(
               SharedPreferenceUtils.accountType, AppConstants.guest);
           await getGuestUserLoginData();
           await Future.delayed(Duration(milliseconds: 350));
           Get.offAll(() => const ChooseAccountTypeScreen());
-
-          // Get.offNamedUntil(
-          //   RouteHelper.getBottomNavigationBarScreenRoute(),
-          //   (route) => false,
-          // );
 
           clearAllData();
           addUserResponse = ApiResponse.complete(response);
@@ -779,6 +786,8 @@ class AuthController extends GetxController {
     } catch (e) {
       addUserResponse = ApiResponse.error('error');
       commonSnackBar(message: AppStrings.somethingWentWrong);
+    } finally {
+      isCreateGuestAccountLoading.value = false;
     }
   }
 

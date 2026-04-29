@@ -54,6 +54,8 @@ class User {
     this.username,
     this.accountType,
     this.business,
+    this.name,
+    this.profileImage,
   });
 
   User.fromJson(dynamic json) {
@@ -62,12 +64,16 @@ class User {
     username = json['username'];
     accountType = json['account_type'];
     business = json['business'];
+    name = json['name'];
+    profileImage = json['profile_image'];
   }
   String? id;
   String? accountType;
   String? contactNo;
   String? business;///business ID
   String? username;
+  String? name;
+  String? profileImage;
 
 
   Map<String, dynamic> toJson() {
@@ -77,6 +83,8 @@ class User {
     map['username'] = username;
     map['account_type'] = accountType;
     map['business'] = business;
+    map['name'] = name;
+    map['profile_image'] = profileImage;
     return map;
   }
 
