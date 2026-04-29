@@ -31,7 +31,6 @@ import '../../auth/controller/auth_controller.dart';
 import '../../connect/view/connect_main_page.dart';
 import '../../referral/view/referral_page.dart';
 
-
 import '../view/saved_feed_screen.dart';
 
 class ProfileMenuDrawer extends StatefulWidget {
@@ -44,7 +43,7 @@ class ProfileMenuDrawer extends StatefulWidget {
 class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
   final viewProfileController = getOrPut(() => ViewPersonalDetailsController());
   final viewBusinessProfileController =
-  Get.put(ViewBusinessDetailsController());
+      Get.put(ViewBusinessDetailsController());
 
   final lang = getOrPut(() => LanguageControllerNew());
 
@@ -75,7 +74,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
     } else {
       return _capitalizeFirstLetter(
         viewBusinessProfileController
-            .businessProfileDetails.value?.data?.businessName ??
+                .businessProfileDetails.value?.data?.businessName ??
             '',
       );
     }
@@ -92,12 +91,12 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
   String userDesigination() {
     if (accountTypeGlobal != "BUSINESS") {
       return viewProfileController
-          .personalProfileDetails.value.user?.designation ??
+              .personalProfileDetails.value.user?.designation ??
           '';
     } else {
       return _capitalizeFirstLetter(
         viewBusinessProfileController
-            .businessProfileDetails.value?.data?.categoryDetails?.name ??
+                .businessProfileDetails.value?.data?.categoryDetails?.name ??
             '',
       );
     }
@@ -188,11 +187,10 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
         children: [
           Expanded(
             child: InkWell(
-              onTap: () => Get.to(()=> WalletScreen()),
-
+              onTap: () => Get.to(() => WalletScreen()),
               child: Container(
                 padding:
-                const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
                   border: Border.all(color: AppColors.primaryColor),
                   borderRadius: BorderRadius.circular(10),
@@ -227,21 +225,20 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
           const SizedBox(width: 8),
           InkWell(
             onTap: () {
-
-              if(accountTypeGlobal == AppConstants.individual){
-                final viewProfileController = Get.find<ViewPersonalDetailsController>();
-                Get.to(()=> AllVisitingCards(
-                    personalDetails: viewProfileController.personalProfileDetails.value,
-                    showAppBar: true
-                )
-                );
-              }else{
-                final viewBusinessDetailsController = getOrPut(() => ViewBusinessDetailsController());
-                Get.to(()=> AllVisitingCards(
-                    businessDetails: viewBusinessDetailsController.businessProfileDetails.value?.data,
-                    showAppBar: true
-                  )
-                );
+              if (accountTypeGlobal == AppConstants.individual) {
+                final viewProfileController =
+                    Get.find<ViewPersonalDetailsController>();
+                Get.to(() => AllVisitingCards(
+                    personalDetails:
+                        viewProfileController.personalProfileDetails.value,
+                    showAppBar: true));
+              } else {
+                final viewBusinessDetailsController =
+                    getOrPut(() => ViewBusinessDetailsController());
+                Get.to(() => AllVisitingCards(
+                    businessDetails: viewBusinessDetailsController
+                        .businessProfileDetails.value?.data,
+                    showAppBar: true));
               }
 
               // Get.toNamed(
@@ -250,8 +247,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
               // );
             },
             child: Container(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 16, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               decoration: BoxDecoration(
                 border: Border.all(color: AppColors.whiteE5),
                 borderRadius: BorderRadius.circular(10),
@@ -273,20 +269,20 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
     final List<MenuItemModel> menus = [
       MenuItemModel(
         title: AppStrings.appTutorial,
-        onTap: () => Get.to(()=> AppTutorialScreen()),
+        onTap: () => Get.to(() => AppTutorialScreen()),
       ),
-      if(accountTypeGlobal == AppConstants.individual)
-      MenuItemModel(
-        title: AppStrings.referAndEarn,
-        // onTap: () => Get.to(()=> JoinAsBDMScreen()),
-        onTap: () => Get.to(()=> ReferralPage()),
-      ),
+      if (accountTypeGlobal == AppConstants.individual)
+        MenuItemModel(
+          title: AppStrings.referAndEarn,
+          // onTap: () => Get.to(()=> JoinAsBDMScreen()),
+          onTap: () => Get.to(() => ReferralPage()),
+        ),
       if (accountTypeGlobal != "BUSINESS")
         MenuItemModel(
           title: AppStrings.earnWithBlueEra,
           onTap: () {
-            if (viewProfileController.personalProfileDetails.value
-                .isProfileCreated ==
+            if (viewProfileController
+                    .personalProfileDetails.value.isProfileCreated ==
                 false) {
               Navigator.push(
                 context,
@@ -298,30 +294,30 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
               if (userProfessionGlobal == BIKE_RIDER) {
                 Get.toNamed(RouteHelper.getGigWorkerOptionsScreenRoute());
               } else {
-                Get.toNamed(
-                    RouteHelper.getSelfEmployeeScreenRoute());
+                Get.toNamed(RouteHelper.getSelfEmployeeScreenRoute());
               }
             }
           },
         ),
       MenuItemModel(
         title: AppStrings.saved,
-        onTap: (){
-          Get.to(()=> SavedFeedScreen(
-              selectedTab:SavedFeedTab.posts,
+        onTap: () {
+          Get.to(() => SavedFeedScreen(
+              selectedTab: SavedFeedTab.posts,
               headerHeight: SizeConfig.size30));
-         ;
+          ;
         },
       ),
-      if(userProfileTypeGlobal != SOCIAL_PROFILE)
-      MenuItemModel(
-        title: AppStrings.contribution,
-        // title: "Subscription",
-        onTap: () => Get.to(() => const SinglePlanSubscriptionView(isShowAppBar: true)),
-      ),
+      if (userProfileTypeGlobal != SOCIAL_PROFILE)
+        MenuItemModel(
+          title: AppStrings.contribution,
+          // title: "Subscription",
+          onTap: () => Get.to(
+              () => const SinglePlanSubscriptionView(isShowAppBar: true)),
+        ),
       MenuItemModel(
         title: AppStrings.payment,
-        onTap: () => Get.to(()=> PaymentSettingScreen()),
+        onTap: () => Get.to(() => PaymentSettingScreen()),
       ),
       MenuItemModel(
         title: AppStrings.channelAndCommunity,
@@ -332,8 +328,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
               arguments: {
                 ApiKeys.argAccountType: accountTypeGlobal,
                 ApiKeys.channelId: channelId,
-                ApiKeys.authorId: (accountTypeGlobal ==
-                    AppConstants.individual)
+                ApiKeys.authorId: (accountTypeGlobal == AppConstants.individual)
                     ? userId
                     : businessId
               },
@@ -360,12 +355,13 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
       ),
       MenuItemModel(
         title: AppStrings.franchiseInquiry,
-        onTap: () => Get.to(()=>FranchiseInquiryScreen()),
+        onTap: () => Get.to(() => FranchiseInquiryScreen()),
       ),
       MenuItemModel(
         title: AppStrings.accountSettings,
-        onTap: () => Get.to(()=>AccountSettingScreen()),
-      ),/* MenuItemModel(
+        onTap: () => Get.to(() => AccountSettingScreen()),
+      ),
+      /* MenuItemModel(
         title: AppStrings.profileSettings,
         onTap: () => Get.to(()=>ProfileSettingsDrawer()),
       ),*/
@@ -397,11 +393,9 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
 
     return ListView.separated(
       shrinkWrap: true,
-      physics:
-      const NeverScrollableScrollPhysics(),
+      physics: const NeverScrollableScrollPhysics(),
       itemCount: menus.length,
-      separatorBuilder: (_, __) =>
-          Divider(height: 1, color: AppColors.whiteE5),
+      separatorBuilder: (_, __) => Divider(height: 1, color: AppColors.whiteE5),
       itemBuilder: (context, index) {
         final item = menus[index];
         return InkWell(

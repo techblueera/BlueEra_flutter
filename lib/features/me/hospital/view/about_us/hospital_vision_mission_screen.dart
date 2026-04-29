@@ -65,15 +65,20 @@ class _HospitalVisionMissionScreenState
               ),
               SizedBox(height: SizeConfig.size20),
               PositiveCustomBtn(
-                onTap:
-                    controller.isSaving.value ? null : controller.saveOrUpdate,
+                onTap: controller.isSaving.value || !controller.isDataChanged
+                    ? null
+                    : controller.saveOrUpdate,
                 title: controller.data.value == null
                     ? AppStrings.save
                     : AppStrings.update,
                 width: double.infinity,
                 height: SizeConfig.size45,
-                bgColor: AppColors.primaryColor,
-                borderColor: AppColors.primaryColor,
+                bgColor: controller.isDataChanged
+                    ? AppColors.primaryColor
+                    : AppColors.grey9B,
+                borderColor: controller.isDataChanged
+                    ? AppColors.primaryColor
+                    : AppColors.grey9B,
               ),
             ],
           ),

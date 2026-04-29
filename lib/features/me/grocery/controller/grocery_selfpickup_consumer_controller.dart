@@ -48,12 +48,16 @@ class GrocerySelfPickupConsumerController extends GetxController {
 
   // --- Actions ---
   void addToCart(
-      ProductVariants variant,
-      {String? productId, String? inventoryId,
-      String? businessId, String? businessName, String? businessLogo, String? businessAddress,
-      String? productImage,
-      // String? deliveryType
-      }) {
+    ProductVariants variant, {
+    String? productId,
+    String? inventoryId,
+    String? businessId,
+    String? businessName,
+    String? businessLogo,
+    String? businessAddress,
+    String? productImage,
+    // String? deliveryType
+  }) {
     if (variant.sId == null) return;
 
     if (cartQuantities.containsKey(variant.sId)) {
@@ -155,7 +159,6 @@ class GrocerySelfPickupConsumerController extends GetxController {
     return count;
   }
 
-
   List<Map<String, dynamic>> buildBulkOrderItems() {
     List<Map<String, dynamic>> items = [];
 
@@ -187,7 +190,7 @@ class GrocerySelfPickupConsumerController extends GetxController {
       ApiResponse.initial('Initial').obs;
 
   Future<void> placeBulkGroceryOrderApi() async {
-    // try {
+    try {
       isPlaceBulkGroceryOrderLoading.value = true;
       AppLoader.show();
 
@@ -202,35 +205,40 @@ class GrocerySelfPickupConsumerController extends GetxController {
       final response =
           await GroceryRepo().placeBulkGroceryOrderApi(params: requestBody);
 
+      AppLoader.hide();
+
       if (!response.isSuccess) {
-        AppLoader.hide();
         commonSnackBar(
           message: response.message ?? AppStrings.somethingWentWrong,
         );
         return;
       }
-      final controller = getOrPut(() => BottomBarController());
-      controller.onChangeIndex(3);
 
-      ChatViewController  chatViewController = getOrPut(() => ChatViewController());
-      chatViewController.emitEvent(ChatEmitEvents.ChatList, {ApiKeys.type: AppConstants.order_Chat_Type},);
-      chatViewController.onSelectChatTab(2);
-      Get.until((route) => route.settings.name ==  RouteConstant.BottomNavigationBarScreen);
-      placeBulkGroceryOrderResponse.value = ApiResponse.complete(response);
-      AppLoader.hide();
       selectedGroceriesVariants.clear();
       cartQuantities.clear();
       cartBusinessInfo.clear();
       cartProductImages.clear();
 
+      final controller = getOrPut(() => BottomBarController());
+      controller.onChangeIndex(3);
 
+      ChatViewController chatViewController =
+          getOrPut(() => ChatViewController());
+      chatViewController.emitEvent(
+        ChatEmitEvents.ChatList,
+        {ApiKeys.type: AppConstants.order_Chat_Type},
+      );
+      chatViewController.onSelectChatTab(2);
+      Get.until((route) =>
+          route.settings.name == RouteConstant.BottomNavigationBarScreen);
 
-    // } catch (e) {
-    //   AppLoader.hide();
-    //   placeBulkGroceryOrderResponse.value = ApiResponse.error('error');
-    // } finally {
-    //   isPlaceBulkGroceryOrderLoading.value = false;
-    // }
+      placeBulkGroceryOrderResponse.value = ApiResponse.complete(response);
+    } catch (e) {
+      AppLoader.hide();
+      placeBulkGroceryOrderResponse.value = ApiResponse.error('error');
+    } finally {
+      AppLoader.hide();
+      isPlaceBulkGroceryOrderLoading.value = false;
+    }
   }
-
 }

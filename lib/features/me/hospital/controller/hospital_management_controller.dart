@@ -17,6 +17,7 @@ class HospitalManagementController extends GetxController {
   final RxBool isLoading = false.obs;
   final RxBool isSaving = false.obs;
   final RxBool isFormValid = false.obs;
+  final RxBool isChanged = false.obs;
   final RxString error = ''.obs;
 
   final nameController = TextEditingController();
@@ -63,6 +64,7 @@ class HospitalManagementController extends GetxController {
     descriptionController.clear();
     selectedImage.value = null;
     initialImageUrl = '';
+    isChanged.value = true;
     validate();
   }
 
@@ -74,6 +76,7 @@ class HospitalManagementController extends GetxController {
     descriptionController.text = m.description;
     initialImageUrl = m.imageUrl;
     selectedImage.value = null;
+    isChanged.value = false;
     validate();
   }
 
@@ -90,6 +93,28 @@ class HospitalManagementController extends GetxController {
         descErr == null &&
         ((selectedImage.value != null) || initialImageUrl.isNotEmpty);
     isFormValid.value = ok;
+    isChanged.value = isDataChanged;
+  }
+
+  bool get isDataChanged {
+    if (editingMember == null) return true;
+
+    final nameChanged = nameController.text.trim() != editingMember!.name;
+    final posChanged =
+        positionController.text.trim() != editingMember!.position;
+    final eduChanged =
+        educationController.text.trim() != editingMember!.education;
+    final descChanged =
+        descriptionController.text.trim() != editingMember!.description;
+
+    final imageChanged = selectedImage.value != null ||
+        initialImageUrl != editingMember!.imageUrl;
+
+    return nameChanged ||
+        posChanged ||
+        eduChanged ||
+        descChanged ||
+        imageChanged;
   }
 
   Future<void> save() async {
