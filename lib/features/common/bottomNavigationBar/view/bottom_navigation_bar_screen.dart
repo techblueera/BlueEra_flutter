@@ -52,7 +52,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_callkit_incoming/entities/call_event.dart';
 import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
 import 'package:get/get.dart';
-import 'package:permission_handler/permission_handler.dart';
 import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/routes/route_helper.dart';
 import '../../../chat/auth/controller/chat_theme_controller.dart';
@@ -548,21 +547,24 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
                             }
                           }
 
-                          /// Order/Chat (3) needs notification permission.
+                          /// Order/Chat (3) prompts for notification permission
+                          /// but no longer blocks navigation if the user skips —
+                          /// the prompt itself surfaces a follow-up warning.
                           else if (index == 3) {
                             await AppNotificationHandler()
                                 .checkNotificationPermission();
-                            if (await Permission.notification.isGranted) {
-                              if(chatViewController.chatMainTabController!=null){
-                                if(chatViewController.chatMainTabController?.index!=0){
-                                  chatViewController.onSelectChatTab(0);
-
-                                }
-                              }
-                              chatViewController.emitEvent(ChatEmitEvents.ChatList,
-                                  {ApiKeys.type: AppConstants.personal_Chat_Type});
-                              bottomBarController.onChangeIndex(index);
+                            if (chatViewController.chatMainTabController !=
+                                    null &&
+                                chatViewController
+                                        .chatMainTabController?.index !=
+                                    0) {
+                              chatViewController.onSelectChatTab(0);
                             }
+                            chatViewController.emitEvent(
+                                ChatEmitEvents.ChatList, {
+                              ApiKeys.type: AppConstants.personal_Chat_Type
+                            });
+                            bottomBarController.onChangeIndex(index);
                           } else {
                             bottomBarController.onChangeIndex(index);
                             // Stay on the same screen until permission is granted

@@ -2321,64 +2321,150 @@ print("ORDER SCREEN NAME message.data ${message.data}");
     final status = await Permission.notification.status;
 
     if (status.isDenied || status.isPermanentlyDenied) {
-      // Show custom GetX dialog to request permission
+      // Non-mandatory: user can dismiss via the close icon or "Skip".
+      // Both routes funnel through `_showSkipNotificationWarning` so the
+      // user is reminded what they'll miss before continuing.
       Get.dialog(
-        WillPopScope(
-          onWillPop: () async => false,
-          child: AlertDialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            backgroundColor: Colors.white,
-            title: CustomText(
-              "Notification Permission Required",
-              fontSize: 16,
-              textAlign: TextAlign.center,
-              fontWeight: FontWeight.w600,
-            ),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                CustomText(
-                  "Please enable notification permission to use chat features.",
-                  textAlign: TextAlign.center,
+        AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          backgroundColor: Colors.white,
+          titlePadding: const EdgeInsets.fromLTRB(20, 16, 8, 0),
+          title: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: CustomText(
+                  "Notification Permission Required",
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
                 ),
-                const SizedBox(height: 16),
-                PositiveCustomBtn(
-                    onTap: () async {
-                      Get.back(); // Close dialog if granted
-
-                      // Request permission
-                      final newStatus = await Permission.notification.request();
-                      if (newStatus.isGranted) {
-                        Get.back(); // Close dialog if granted
-                      } else {
-                        // If still denied, open settings
-                        await openAppSettings();
-                      }
-                    },
-                    title: "Grant Permission"),
-                const SizedBox(height: 10),
-                InkWell(
-                  onTap: () {
+              ),
+              InkWell(
+                onTap: () {
+                  Get.back();
+                  _showSkipNotificationWarning();
+                },
+                borderRadius: BorderRadius.circular(20),
+                child: const Padding(
+                  padding: EdgeInsets.all(4),
+                  child: Icon(Icons.close, size: 22, color: Colors.black54),
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CustomText(
+                "Please enable notification permission to use chat features.",
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              PositiveCustomBtn(
+                  onTap: () async {
                     Get.back();
+
+                    // Request permission
+                    final newStatus =
+                        await Permission.notification.request();
+                    if (!newStatus.isGranted) {
+                      // If still denied, open settings
+                      await openAppSettings();
+                    }
                   },
-                  child: CustomText(
-                    "Skip",
-                    fontSize: 16,
-                    color: AppColors.primaryColor,
-                    textAlign: TextAlign.center,
-                    fontWeight: FontWeight.w600,
-                    decorationColor: AppColors.primaryColor,
-                    decoration: TextDecoration.underline,
-                  ),
+                  title: "Grant Permission"),
+              const SizedBox(height: 10),
+              InkWell(
+                onTap: () {
+                  Get.back();
+                  _showSkipNotificationWarning();
+                },
+                child: CustomText(
+                  "Skip",
+                  fontSize: 16,
+                  color: AppColors.primaryColor,
+                  textAlign: TextAlign.center,
+                  fontWeight: FontWeight.w600,
+                  decorationColor: AppColors.primaryColor,
+                  decoration: TextDecoration.underline,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
-        barrierDismissible: false,
+        barrierDismissible: true,
       );
     }
+  }
+
+  /// Reminder shown when the user dismisses the notification permission
+  /// prompt. Notifications drive order updates, ride alerts and chat
+  /// messages — without them those features are silent.
+  void _showSkipNotificationWarning() {
+    Get.dialog(
+      AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        backgroundColor: Colors.white,
+        title: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.primaryColor.withValues(alpha: 0.10),
+              ),
+              child: Icon(
+                Icons.notifications_off_outlined,
+                size: 30,
+                color: AppColors.primaryColor,
+              ),
+            ),
+            const SizedBox(height: 12),
+            CustomText(
+              "You'll miss important alerts",
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+        content: CustomText(
+          "If you skip notifications, you won't be alerted about new orders, chat messages, ride requests, or payment updates. You can enable them later from your device settings.",
+          textAlign: TextAlign.center,
+          fontSize: 14,
+        ),
+        actionsAlignment: MainAxisAlignment.spaceBetween,
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: CustomText(
+              "Continue without",
+              fontSize: 14,
+              color: AppColors.secondaryTextColor,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          PositiveCustomBtn(
+            onTap: () async {
+              Get.back();
+              final newStatus = await Permission.notification.request();
+              if (!newStatus.isGranted) {
+                await openAppSettings();
+              }
+            },
+            title: "Enable",
+          ),
+        ],
+        actionsPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      ),
+      barrierDismissible: true,
+    );
   }
 }
