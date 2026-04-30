@@ -11,12 +11,7 @@ class PersonalProfileRepo extends BaseService {
 
     return response;
   }
- Future<ResponseModel> viewParticularPersonalProfiles(String no) async {
-    final response = await ApiBaseHelper().getHTTP(getotherUsers(no),
-        showProgress: false, onError: (error) {}, onSuccess: (data) {});
 
-    return response;
-  }
 
   ///UPDATE USER PROFILE....
   Future<ResponseModel> updateUser({

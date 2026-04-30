@@ -38,6 +38,7 @@ else
     tripDistance = haversine(pickup, drop)  ← legacy fallback
 ```
 
+[//]: # (0055130000)
 The resulting `tripDistance` is then fed into the existing fare formula
 (see `src/controllers/fare.controller.js` → `findRidersWithFare`):
 

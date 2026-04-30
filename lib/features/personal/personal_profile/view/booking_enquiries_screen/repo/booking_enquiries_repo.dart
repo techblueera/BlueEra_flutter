@@ -15,17 +15,7 @@ class BookingEnquiriesRepo extends BaseService{
     return response;
   }
 
-  /// Booking Availability...
-  Future<ResponseModel> addUpdateBookingAvailability({required String id, required Map<String, dynamic> params}) async {
-    final response = await ApiBaseHelper().putHTTP(
-      setAvailability(id),
-      params: params,
-      showProgress: false,
-      onError: (error) {},
-      onSuccess: (data) {},
-    );
-    return response;
-  }
+
 
 
 }

@@ -33,8 +33,7 @@ abstract class BaseService {
       '/user-service/business/verifyBusinessStatus';
   final String videoUpload = 'video-service/videos/upload';
   final String getUser = 'user-service/user/get?contact_no=$userMobileGlobal';
-  String getotherUsers (String contactNo )  =>
-       'user-service/user/get?contact_no=$contactNo';
+
   final String updateUserProfile = 'user-service/user/updateUser';
   final String videosSearch = 'video-service/videos/search';
   String channelStats(String channelId) =>
@@ -454,6 +453,8 @@ abstract class BaseService {
       '/notification-service/notifications/$notifyId';
   final String clearAllNotification = '/notification-service/notifications/all';
   final String notificationRead = 'notification-service/notifications/';
+  final String notificationSettingsApi =
+      'notification-service/notifications/settings';
 
 
 

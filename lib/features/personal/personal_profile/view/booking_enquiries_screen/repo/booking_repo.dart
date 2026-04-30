@@ -141,15 +141,7 @@ Future<ResponseModel> getBookingByIds({String? bookingId}) async {
     return response;
   }
 
-  Future<ResponseModel> checkAvailability({required String channelId, required Map<String, dynamic> params,}) async {
-    final response = await ApiBaseHelper().putHTTP(
-      setAvailability(channelId),
-      params: params,
-      onError: (error) {},
-      onSuccess: (res) {},
-    );
-    return response;
-  }
+
 
 
 

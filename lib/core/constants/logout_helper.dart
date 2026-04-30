@@ -35,6 +35,15 @@ class LogoutHelper {
   }
 
   static Future<void> _performLogout(BuildContext context) async {
+    // Close the confirmation dialog up front. The async work below
+    // (Hive.deleteFromDisk + recursive directory delete) can take long
+    // enough that the screen that owns `context` is torn down — once it
+    // deactivates, Navigator.of(context) throws "deactivated widget's
+    // ancestor is unsafe". Routing via Get avoids needing a live context.
+    if (Navigator.canPop(context)) {
+      Navigator.of(context).pop();
+    }
+
     AppLoader.showLogout();
     try {
       deleteIfRegistered<ChatViewController>();
@@ -43,10 +52,7 @@ class LogoutHelper {
       await clearAllLocalData();
     } catch (_) {}
     AppLoader.hide();
-    Navigator.of(context).pushNamedAndRemoveUntil(
-      RouteHelper.getMobileNumberLoginRoute(),
-      (Route<dynamic> route) => false,
-    );
+    Get.offAllNamed(RouteHelper.getMobileNumberLoginRoute());
   }
 
   static Future<void> clearAllLocalData() async {
