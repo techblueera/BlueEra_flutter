@@ -39,62 +39,65 @@ class _GuestDashBoardScreenState extends State<GuestDashBoardScreen> {
         isGuestLogout: true,
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          padding: EdgeInsets.fromLTRB(
-            SizeConfig.size16,
-            SizeConfig.size12,
-            SizeConfig.size16,
-            SizeConfig.size16,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Center(child: _hero()),
-              SizedBox(height: SizeConfig.size16),
-              _title(),
-              SizedBox(height: SizeConfig.size10),
-              Center(child: _statusPill()),
-              SizedBox(height: SizeConfig.size12),
-              _bodyCopy(),
-              SizedBox(height: SizeConfig.size20),
-              _featureCard(
-                bgColor: _earnCardBg,
-                borderColor: _earnCardBorder,
-                iconBg: AppColors.white,
-                iconAsset: AppImageAssets.loanSector,
-                title: AppStrings.earnWithBlueEra.tr,
-                subtitle: AppStrings.earnWithBlueEraDesc.tr,
-              ),
-              SizedBox(height: SizeConfig.paddingXSL),
-              _featureCard(
-                bgColor: _businessCardBg,
-                borderColor: _businessCardBorder,
-                iconBg: AppColors.white,
-                iconAsset: AppImageAssets.listCardBoard,
-                title: AppStrings.listYourBusiness.tr,
-                subtitle: AppStrings.listYourBusinessDesc.tr,
-              ),
-              SizedBox(height: SizeConfig.paddingXSL),
-              _featureCard(
-                bgColor: _professionCardBg,
-                borderColor: _professionCardBorder,
-                iconBg: AppColors.white,
-                iconAsset: AppImageAssets.professionalDiscover,
-                title: AppStrings.listYourProfession.tr,
-                subtitle: AppStrings.listYourProfessionDesc.tr,
-              ),
-              SizedBox(height: SizeConfig.paddingXL),
-              _ctaBar(),
-            ],
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () => createProfileScreen(),
+          child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            padding: EdgeInsets.fromLTRB(
+              SizeConfig.size16,
+              SizeConfig.size12,
+              SizeConfig.size16,
+              kBottomNavigationBarHeight + SizeConfig.size24,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Center(child: _hero(SizeConfig.size200)),
+                SizedBox(height: SizeConfig.size16),
+                _title(),
+                SizedBox(height: SizeConfig.size10),
+                Center(child: _statusPill()),
+                SizedBox(height: SizeConfig.size12),
+                _bodyCopy(),
+                SizedBox(height: SizeConfig.size20),
+                _featureCard(
+                  bgColor: _earnCardBg,
+                  borderColor: _earnCardBorder,
+                  iconBg: AppColors.white,
+                  iconAsset: AppImageAssets.loanSector,
+                  title: AppStrings.earnWithBlueEra.tr,
+                  subtitle: AppStrings.earnWithBlueEraDesc.tr,
+                ),
+                SizedBox(height: SizeConfig.paddingXSL),
+                _featureCard(
+                  bgColor: _businessCardBg,
+                  borderColor: _businessCardBorder,
+                  iconBg: AppColors.white,
+                  iconAsset: AppImageAssets.listCardBoard,
+                  title: AppStrings.listYourBusiness.tr,
+                  subtitle: AppStrings.listYourBusinessDesc.tr,
+                ),
+                SizedBox(height: SizeConfig.paddingXSL),
+                _featureCard(
+                  bgColor: _professionCardBg,
+                  borderColor: _professionCardBorder,
+                  iconBg: AppColors.white,
+                  iconAsset: AppImageAssets.professionalDiscover,
+                  title: AppStrings.listYourProfession.tr,
+                  subtitle: AppStrings.listYourProfessionDesc.tr,
+                ),
+                SizedBox(height: SizeConfig.size24),
+                _ctaBar(),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _hero() {
-    final size = SizeConfig.size220;
+  Widget _hero(double size) {
     return SizedBox(
       width: size,
       height: size * 0.85,
@@ -248,8 +251,8 @@ class _GuestDashBoardScreenState extends State<GuestDashBoardScreen> {
 
   Widget _title() {
     return CustomText(
-      AppStrings.guestUserTitle.tr,
-      fontSize: SizeConfig.size26,
+      AppStrings.completeProfile.tr,
+      fontSize: SizeConfig.size24,
       color: AppColors.primaryColor,
       fontWeight: FontWeight.w600,
       textAlign: TextAlign.center,
@@ -362,8 +365,8 @@ class _GuestDashBoardScreenState extends State<GuestDashBoardScreen> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Container(
-            width: SizeConfig.size50,
-            height: SizeConfig.size50,
+            width: SizeConfig.size48,
+            height: SizeConfig.size48,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: iconBg,
@@ -381,14 +384,14 @@ class _GuestDashBoardScreenState extends State<GuestDashBoardScreen> {
               children: [
                 CustomText(
                   title,
-                  fontSize: SizeConfig.large,
+                  fontSize: SizeConfig.medium,
                   fontWeight: FontWeight.w600,
                   color: AppColors.mainTextColor,
                 ),
                 SizedBox(height: 6),
                 CustomText(
                   subtitle,
-                  fontSize: SizeConfig.medium,
+                  fontSize: SizeConfig.small,
                   fontWeight: FontWeight.w400,
                   color: AppColors.mainTextColor,
                   maxLines: 3,

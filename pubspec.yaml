@@ -143,7 +143,6 @@ flutter:
   assets:
     - assets/guest.png
     - assets/images/
-    - assets/dummy/
     - assets/svg/
     - assets/icons/
     - assets/video/

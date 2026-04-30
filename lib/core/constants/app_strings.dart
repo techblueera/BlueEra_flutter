@@ -4938,6 +4938,7 @@ class AppStrings {
 
   ///GUEST DASHBOARD SCREEN
   static const String guestUserTitle = "guestUserTitle";
+  static const String completeProfile = "completeProfile";
   static const String guestCreateAccountMessage = "guestCreateAccountMessage";
   static const String createProfile = "createProfile";
 
