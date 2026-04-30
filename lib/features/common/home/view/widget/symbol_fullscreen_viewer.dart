@@ -978,6 +978,14 @@ class _ReplySheetState extends State<_ReplySheet> {
     }
 
     setState(() => _sending = true);
+
+    // Clear input + dismiss keyboard + close sheet immediately so the UI
+    // feels snappy. The send + chat-list refresh continue in the background;
+    // failures surface via snackbar. Mirrors symbol_view_images.dart:_sendReply.
+    _textController.clear();
+    _focusNode.unfocus();
+    if (mounted) Navigator.of(context).pop();
+
     try {
       final chatViewController = getOrPut(() => ChatViewController());
       final params = <String, dynamic>{
@@ -988,19 +996,14 @@ class _ReplySheetState extends State<_ReplySheet> {
         ApiKeys.symbol_snapshot:
             jsonEncode(_buildSymbolSnapshot(widget.symbol)),
       };
-      final ok = await chatViewController.sendMessage(params);
-      if (ok == true) {
-        // Refresh both chat-list views so the new (possibly brand-new)
-        // conversation appears in the receiver's connect tab too.
-        chatViewController.emitEvent(ChatEmitEvents.ChatList,
-            {ApiKeys.type: AppConstants.personal_Chat_Type});
-        chatViewController.emitEvent(ChatEmitEvents.ChatList,
-            {ApiKeys.type: AppConstants.business_Chat_Type});
-        if (mounted) Navigator.of(context).pop();
-        commonSnackBar(message: AppStrings.replySent.tr);
-      } else {
-        commonSnackBar(message: AppStrings.somethingWentWrong.tr);
-      }
+      await chatViewController.sendMessage(params);
+      // Refresh both chat-list views so the new (possibly brand-new)
+      // conversation appears in the receiver's connect tab too.
+      chatViewController.emitEvent(ChatEmitEvents.ChatList,
+          {ApiKeys.type: AppConstants.personal_Chat_Type});
+      chatViewController.emitEvent(ChatEmitEvents.ChatList,
+          {ApiKeys.type: AppConstants.business_Chat_Type});
+      commonSnackBar(message: AppStrings.replySent.tr);
     } catch (_) {
       commonSnackBar(message: AppStrings.somethingWentWrong.tr);
     } finally {

@@ -25,7 +25,6 @@ class _BusinessChatProductsState extends State<BusinessChatProducts> {
 
   @override
   void initState() {
-    // TODO: implement initState
     controller.fetchProducts(
         visitBusinessId: widget.businessId, isSilent: true);
     super.initState();
@@ -62,8 +61,6 @@ class _BusinessChatProductsState extends State<BusinessChatProducts> {
                 mainAxisSpacing: mainSpacing,
                 itemCount: controller.products.length,
                 shrinkWrap: true,
-                // physics: const NeverScrollableScrollPhysics(),
-                // let parent scroll handle it
                 padding: const EdgeInsets.only(bottom: 20),
                 itemBuilder: (context, index) {
                   final product = controller.products[index];

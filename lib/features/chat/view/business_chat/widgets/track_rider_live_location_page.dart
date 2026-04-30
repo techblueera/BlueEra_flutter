@@ -104,7 +104,6 @@ class SimpleGoogleMapsTracking extends StatefulWidget {
 
 class _SimpleGoogleMapsTrackingState extends State<SimpleGoogleMapsTracking> {
   List<LatLng> polylineCoordinates = []; // Store road points here
-  // PolylinePoints polylinePoints = PolylinePoints(apiKey: googleMapKey);
   GoogleMapController? mapController;
   Marker? startMarker;
   Marker? endMarker;
@@ -126,8 +125,6 @@ class _SimpleGoogleMapsTrackingState extends State<SimpleGoogleMapsTracking> {
   }
 
   Future<void> _getRoutePolyline() async {
-    // final riderLat = 11.6940;
-    // final riderLng = 77.9710;
     final riderLat = riderController.liveLat.value;
     final riderLng = riderController.liveLng.value;
 

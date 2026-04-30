@@ -130,8 +130,6 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated>
         if (chatViewController.canPopBusiness.value) {
           chatViewController.emitEvent(
               ChatEmitEvents.ChatList, {ApiKeys.type: "business"},);
-          // chatViewController.onSelectChatTab(1);
-          // bottomBarController.onChangeIndex(4);
         } else {
           chatViewController.emitEvent(
               ChatEmitEvents.ChatList, {ApiKeys.type: "business"},);
@@ -154,7 +152,6 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated>
                   socketType: "business",
                   context,
                   userId: widget.userId,
-                  // userId: widget.userId,
                   type: widget.type,
                   name: widget.name,
                   contactNo: widget.contactNo,
@@ -355,9 +352,7 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated>
                                 child: Padding(
                                   padding: const EdgeInsets.only(
                                       left: 8, right: 8, bottom: 0),
-                                  child:
-                                      //BusinessChatFoods
-                                      BusinessChatServices(
+                                  child: BusinessChatServices(
                                     businessId: widget.userId ?? '',
                                   ),
                                 ));

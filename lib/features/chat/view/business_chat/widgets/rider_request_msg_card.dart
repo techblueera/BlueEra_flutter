@@ -58,7 +58,6 @@ class _RiderRequestMsgCardState extends State<RiderRequestMsgCard> {
 
   @override
   void initState() {
-    // TODO: implement initState
     getAddress();
     super.initState();
   }
