@@ -32,8 +32,6 @@ class _ScrollVisibilityNotifierState extends State<ScrollVisibilityNotifier> {
   /// Minimum scroll delta to trigger show/hide
   static const double _scrollThreshold = 5.0;
 
-  /// Duration of inactivity before auto-showing header/footer
-  static const Duration _idleTimeout = Duration(milliseconds: 1500);
 
   bool _handleScrollNotification(ScrollNotification notification) {
     if (notification.metrics.axis != Axis.vertical) return false;

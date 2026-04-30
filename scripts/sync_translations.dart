@@ -56,7 +56,7 @@ Future<void> main(List<String> args) async {
         final body = await _get(client, '$baseUrl$downloadEndpoint/$code');
 
         final Map<String, dynamic> jsonData =
-            body is String ? jsonDecode(body) : (body is Map ? body : {});
+            jsonDecode(body);
 
         if (jsonData.isEmpty) {
           print('  WARNING: Empty response for "$code", skipping.');

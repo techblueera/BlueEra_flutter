@@ -185,7 +185,6 @@ class _UserTile extends StatelessWidget {
 class _FollowButton extends StatefulWidget {
   const _FollowButton({
     required this.onPressed,
-    this.initiallyFollowing = true,
   });
 
   final bool initiallyFollowing;
