@@ -295,8 +295,14 @@ class GroceryRiderConsumerController extends GetxController{
 
 
       final groceryProductModel =
-      GroceryProductModel.fromJson(response.response?.data);
-      List<GroceryProductData> newItems = groceryProductModel.data ?? [];
+          GroceryProductModel.fromJson(response.response?.data);
+      // Flatten category-grouped wrappers (`{ category: { products: [...] } }`)
+      // into the flat products list this controller already iterates.
+      final List<GroceryProductData> newItems = groceryProductModel.data
+              ?.expand<GroceryProductData>(
+                  (g) => g.category?.products ?? const <GroceryProductData>[])
+              .toList() ??
+          <GroceryProductData>[];
 
       if (newItems.isNotEmpty) {
         if (isLoadMore) {

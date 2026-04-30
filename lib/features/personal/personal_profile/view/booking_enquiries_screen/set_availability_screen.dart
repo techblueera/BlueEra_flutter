@@ -216,7 +216,6 @@ class _SetAvailabilityScreenState extends State<SetAvailabilityScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.whiteF3,
       appBar: CommonBackAppBar(title: AppStrings.setYourAvailability),
       body: Obx(() {
         if (controller.isGetBookingAvailabilityLoading.value) {

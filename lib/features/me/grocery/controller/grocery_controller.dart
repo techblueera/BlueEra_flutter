@@ -378,7 +378,11 @@ class GroceryController extends GetxController {
       groceryCategoryResponse.value = ApiResponse.complete(response);
 
       final groceryProductModel = GroceryProductModel.fromJson(response.response?.data);
-      List<GroceryProductData> newItems = groceryProductModel.data ?? [];
+      final List<GroceryProductData> newItems = groceryProductModel.data
+              ?.expand<GroceryProductData>(
+                  (g) => g.category?.products ?? const <GroceryProductData>[])
+              .toList() ??
+          <GroceryProductData>[];
 
       if (newItems.isNotEmpty) {
           if (isLoadMore) {

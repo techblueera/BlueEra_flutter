@@ -39,7 +39,6 @@ class MedicalLevel2CategoryScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.whiteF3,
       appBar: CommonBackAppBar(title: title),
       body: level2Categories.isEmpty
           ? _buildEmptyState()

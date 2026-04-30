@@ -45,9 +45,7 @@ class _AccountSettingScreenState extends State<AccountSettingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.whiteF3,
-      appBar: CommonBackAppBar(
-
+       appBar: CommonBackAppBar(
         title: AppStrings.accountSettings,
         isLeading: true,
       ),

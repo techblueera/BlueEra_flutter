@@ -1520,10 +1520,10 @@ class RouteHelper {
             settings: RouteSettings(name: getMyGroceryProductsScreenRoute()));
       case RouteConstant.visitGroceryProductsScreen:
         final args = settings.arguments as Map<String, dynamic>;
-        final String userId = args[ApiKeys.userId] as String;
-        final String visitBusinessId = args[ApiKeys.businessId] as String;
-        final String argArrGroceryCatName = args[ApiKeys.argArrGroceryCatName] as String;
-        final String argArrGroceryCatKey = args[ApiKeys.argArrGroceryCatKey] as String;
+        final String userId = (args[ApiKeys.userId] as String?) ?? '';
+        final String visitBusinessId = (args[ApiKeys.businessId] as String?) ?? '';
+        final String argArrGroceryCatName = (args[ApiKeys.argArrGroceryCatName] as String?) ?? '';
+        final String argArrGroceryCatKey = (args[ApiKeys.argArrGroceryCatKey] as String?) ?? '';
         return MaterialPageRoute(
             builder: (_) => VisitGroceryProductsScreen(
                 userId: userId,

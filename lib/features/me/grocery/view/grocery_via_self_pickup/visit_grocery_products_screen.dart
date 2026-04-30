@@ -88,27 +88,28 @@ class _VisitGroceryProductsScreenState extends State<VisitGroceryProductsScreen>
     return Scaffold(
       appBar: CommonBackAppBar(
         isShadowShow: false,
-        isCustomTitleWidget: ()=> Obx(() {
+        // Don't return Expanded/Flexible here — CommonBackAppBar already
+        // wraps the result in Flexible(Padding(Builder(...))) before
+        // placing it in its title Row, so an Expanded ends up nested
+        // inside Padding/Builder (not the Row) and the framework throws
+        // "Incorrect use of ParentDataWidget".
+        isCustomTitleWidget: () => Obx(() {
           final bool isOpen = controller.isSearchOpen.value;
-
-          return Expanded(
-            child: isOpen
-                ? CommonSearchBar(
-              controller: searchController,
-              isShowCursor: true,
-              // onSearchTap: () => controller.fetchGroceryProducts(),
-              onClearCallback: () {
-                searchController.clear();
-                // controller.fetchGroceryProducts();
-              },
-              hintText: AppStrings.groceryViewSearchProductsHint.tr,
-            )
-                : CustomText(
-              controller.selectedGroceryData.value?.name ?? AppStrings.groceryViewProductsTitle.tr,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          );
+          return isOpen
+              ? CommonSearchBar(
+                  controller: searchController,
+                  isShowCursor: true,
+                  onClearCallback: () {
+                    searchController.clear();
+                  },
+                  hintText: AppStrings.groceryViewSearchProductsHint.tr,
+                )
+              : CustomText(
+                  controller.selectedGroceryData.value?.name ??
+                      AppStrings.groceryViewProductsTitle.tr,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                );
         }),
         buildCustomActionWidget: () =>  Obx(() {
           final bool isOpen = controller.isSearchOpen.value;

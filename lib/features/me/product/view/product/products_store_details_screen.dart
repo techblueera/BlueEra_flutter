@@ -163,7 +163,6 @@ class _ProductsStoreDetailsScreenState
         handleBackPress(context);
       },
       child: Scaffold(
-        backgroundColor: AppColors.whiteF3,
         appBar: CommonBackAppBar(
           // title: controller.productNameController.text.isNotEmpty
           //     ? controller.productNameController.text

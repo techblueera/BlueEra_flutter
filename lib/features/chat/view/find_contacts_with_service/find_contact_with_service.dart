@@ -123,7 +123,6 @@ class _FindContactWithServiceState extends State<FindContactWithService>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.whiteF3,
       appBar: widget.fromBottomNav ? null : CommonBackAppBar(
         isShadowShow: false,
         title: "Find In Your Contact",

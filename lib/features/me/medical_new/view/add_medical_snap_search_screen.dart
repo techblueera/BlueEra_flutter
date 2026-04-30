@@ -50,7 +50,6 @@ class _AddMedicalSnapSearchScreenState extends State<AddMedicalSnapSearchScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.whiteF3,
       appBar: CommonBackAppBar(
         title: AppStrings.medicalItemsTitle.tr,
       ),

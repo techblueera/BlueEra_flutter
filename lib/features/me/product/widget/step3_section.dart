@@ -91,7 +91,6 @@ class _Step3SectionState extends State<Step3Section> {
         }
       },
       child: Scaffold(
-        backgroundColor: AppColors.whiteF3,
         appBar: CommonBackAppBar(
           title: AppStrings.pricingWarranty,
           onBackTap: () async {

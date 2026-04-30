@@ -41,7 +41,6 @@ class _AddGrocerySnapSearchScreenState extends State<AddGrocerySnapSearchScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.whiteF3,
       appBar: CommonBackAppBar(
         title: AppStrings.groceryViewGroceryItemsTitle.tr,
       ),
@@ -486,7 +485,7 @@ class _AddGrocerySnapSearchScreenState extends State<AddGrocerySnapSearchScreen>
                       SizedBox(height: SizeConfig.size8),
 
                       /// --- Variant Column ---
-                      Obx(() {
+                      Builder(builder: (_) {
                         final groceryVariants = groceryItem.variants ?? [];
 
                         return Column(
@@ -497,7 +496,7 @@ class _AddGrocerySnapSearchScreenState extends State<AddGrocerySnapSearchScreen>
                               padding: EdgeInsets.zero,
                               child: Row(
                                 children: [
-                                  Checkbox(
+                                  Obx(() => Checkbox(
                                     value: controller.isVariantSelected(
                                       groceryItem.sId ?? '',
                                       v.sId ?? '',
@@ -514,7 +513,7 @@ class _AddGrocerySnapSearchScreenState extends State<AddGrocerySnapSearchScreen>
                                       color: AppColors.secondaryTextColor,
                                       width: 1.5,
                                     ),
-                                  ),
+                                  )),
 
                                   CustomText(
                                     '${v.quantity}',

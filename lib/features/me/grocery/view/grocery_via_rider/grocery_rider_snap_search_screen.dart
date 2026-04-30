@@ -36,7 +36,6 @@ class _GroceryRiderSnapSearchScreenState extends State<GroceryRiderSnapSearchScr
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.whiteF3,
       appBar: CommonBackAppBar(title: AppStrings.grocerySearchItemsTitle),
       bottomNavigationBar: _buildBottomAction(),
       body: SingleChildScrollView(

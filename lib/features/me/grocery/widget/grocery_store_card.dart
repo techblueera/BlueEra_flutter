@@ -639,8 +639,13 @@ class GroceryStoreCard extends StatelessWidget {
   }) {
     final ctx = Get.context;
     if (ctx == null || images.isEmpty) return;
-    showDialog<void>(
+    showModalBottomSheet<void>(
       context: ctx,
+      // isScrollControlled lets the sheet exceed the default 50% cap when
+      // content needs more space, while mainAxisSize.min on the inner
+      // Column keeps it from growing beyond the chrome + image area.
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
       barrierColor: Colors.black.withValues(alpha: 0.75),
       builder: (_) => _GroceryPhotoDialog(
         images: images,
@@ -744,39 +749,48 @@ class _GroceryPhotoDialogState extends State<_GroceryPhotoDialog>
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    return Dialog(
-      backgroundColor: Colors.transparent,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-      child: AnimatedBuilder(
-        animation: _entry,
-        builder: (_, __) => Opacity(
-          opacity: _entry.value,
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(20),
-            child: Container(
-              width: size.width,
-              decoration: BoxDecoration(
-                gradient: RadialGradient(
-                  radius: 1.1,
-                  colors: [
-                    AppColors.primaryColor.withValues(alpha: 0.14),
-                    Colors.black.withValues(alpha: 0.96),
-                    Colors.black,
-                  ],
-                  stops: const [0.0, 0.6, 1.0],
-                ),
-                border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.08),
-                  width: 0.5,
-                ),
-                borderRadius: BorderRadius.circular(20),
+    return AnimatedBuilder(
+      animation: _entry,
+      builder: (_, __) => Opacity(
+        opacity: _entry.value,
+        child: ClipRRect(
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+          child: Container(
+            width: double.infinity,
+            decoration: BoxDecoration(
+              gradient: RadialGradient(
+                radius: 1.1,
+                colors: [
+                  AppColors.primaryColor.withValues(alpha: 0.14),
+                  Colors.black.withValues(alpha: 0.96),
+                  Colors.black,
+                ],
+                stops: const [0.0, 0.6, 1.0],
               ),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.08),
+                width: 0.5,
+              ),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            child: SafeArea(
+              top: false,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  // Drag handle
+                  Container(
+                    width: 40,
+                    height: 4,
+                    margin: const EdgeInsets.only(top: 8, bottom: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.35),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                  ),
                   // Header
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
+                    padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
                     child: Row(
                       children: [
                         Expanded(

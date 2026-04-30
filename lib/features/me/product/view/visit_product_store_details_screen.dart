@@ -6,7 +6,6 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/widgets/business_contact_map_card.dart';
-import 'package:BlueEra/features/business/widgets/business_qrcode_widget.dart';
 import 'package:BlueEra/features/common/store/controller/new_store_controller.dart';
 import 'package:BlueEra/features/common/store/widget/store_live_photo_widget.dart';
 import 'package:BlueEra/features/me/product/controller/inventory_controller.dart';

@@ -66,7 +66,6 @@ class _AddProductTextOrSnapSearchScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.whiteF3,
       appBar: CommonBackAppBar(title: AppStrings.addProduct),
       body: SafeArea(
         child: Stack(

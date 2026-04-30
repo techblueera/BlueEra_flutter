@@ -19,6 +19,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/network_assets.dart';
 import 'package:BlueEra/widgets/route_map_bottom_sheet.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:share_plus/share_plus.dart';
@@ -499,15 +500,37 @@ class _VisitBusinessCommonHeaderState extends State<VisitBusinessCommonHeader> {
         ));
   }
 
+  /// Banner shown when `coverimage` is missing or fails to load.
+  /// Falls back to the business logo. If there's no logo either, shows
+  /// the generic place-holder asset.
   Widget _buildBannerPlaceholder() {
-    return Container(
-      color: AppColors.greyLite,
-      child: Center(
-        child: LocalAssets(
-          imagePath: AppIconAssets.place_holder_image,
-          boxFix: BoxFit.cover,
-          height: 210,
-          width: double.infinity,
+    final logo = details?.logo ?? '';
+    if (logo.isEmpty) {
+      return Container(
+        color: AppColors.greyLite,
+        child: Center(
+          child: LocalAssets(
+            imagePath: AppIconAssets.place_holder_image,
+            boxFix: BoxFit.cover,
+            height: 210,
+            width: double.infinity,
+          ),
+        ),
+      );
+    }
+    return CachedNetworkImage(
+      imageUrl: logo,
+      fit: BoxFit.cover,
+      placeholder: (_, __) => Container(color: AppColors.greyLite),
+      errorWidget: (_, __, ___) => Container(
+        color: AppColors.greyLite,
+        child: Center(
+          child: LocalAssets(
+            imagePath: AppIconAssets.place_holder_image,
+            boxFix: BoxFit.cover,
+            height: 210,
+            width: double.infinity,
+          ),
         ),
       ),
     );

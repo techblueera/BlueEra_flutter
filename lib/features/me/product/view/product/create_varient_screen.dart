@@ -36,7 +36,6 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.whiteF3,
       appBar: CommonBackAppBar(
         title: AppStrings.createVariantCombination,
       ),

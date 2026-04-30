@@ -132,7 +132,6 @@ class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
     final categoriesWithProducts = inventory?.categoriesWithProducts ?? [];
 
     return Scaffold(
-      backgroundColor: AppColors.whiteF3,
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(

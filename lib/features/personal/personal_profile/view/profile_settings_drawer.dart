@@ -15,7 +15,6 @@ class ProfileSettingsDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.whiteF3,
       appBar: CommonBackAppBar(
         title: "Profile setting",
         isLeading: true,

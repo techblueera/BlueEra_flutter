@@ -92,7 +92,6 @@ class _MedicalContactEditScreenState extends State<MedicalContactEditScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.whiteF3,
       appBar: CommonBackAppBar(title: AppStrings.editContactInfo),
       body: SafeArea(
         top: false,

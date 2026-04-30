@@ -257,7 +257,6 @@ class _PersonalProfileSetupNewScreenState
         return false;
       },
       child: Scaffold(
-        backgroundColor: AppColors.whiteF3,
         appBar: CommonBackAppBar(
           isLeading: false,
           title: '',
