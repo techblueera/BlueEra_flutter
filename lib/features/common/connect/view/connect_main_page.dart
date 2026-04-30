@@ -19,6 +19,7 @@ import 'package:BlueEra/features/chat/view/add_symbol/add_symbol_screen.dart';
 import 'package:BlueEra/features/chat/view/call_screen/call_history_screen.dart';
 import 'package:BlueEra/features/chat/view/chat_theme/chat_background_screen.dart';
 import 'package:BlueEra/features/chat/view/contacts/view/contact_list_page.dart';
+import 'package:BlueEra/features/chat/view/flag_chat/personal_flagged_chats_screen.dart';
 import 'package:BlueEra/features/chat/view/personal_chat/chat_search_screen.dart';
 import 'package:BlueEra/features/chat/view/personal_chat/personal_chat_list.dart';
 import 'package:BlueEra/features/chat/view/reminder_chat/reminder_todo_screen.dart';
@@ -44,8 +45,12 @@ import 'package:flutter_upgrade_version/flutter_upgrade_version.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:share_handler/share_handler.dart';
 
+import '../../../chat/auth/controller/chat_flag_controller.dart';
+import '../../../chat/auth/controller/chat_pin_archive_controller.dart';
 import '../../../chat/auth/controller/chat_view_controller.dart';
+import '../../../chat/auth/model/GetChatListModel.dart';
 import '../../../chat/view/forward_screen/chat_forward_screen.dart';
+import '../../../chat/view/widget/chat_flag_bottom_sheet.dart';
 import '../../../personal/personal_profile/controller/languge_list_controller.dart';
 import '../../../../core/constants/getx_utils.dart';
 
@@ -89,6 +94,10 @@ class _ConnectMainPageState extends State<ConnectMainPage>
   final addSymbolController = getOrPut(() => AddChatSymbolController());
   final ChatViewController chatViewController =
       getOrPut(() => ChatViewController());
+  final ChatPinArchiveController chatPinArchiveController =
+      getOrPut(() => ChatPinArchiveController());
+  final ChatFlagController chatFlagController =
+      getOrPut(() => ChatFlagController());
   final LanguageListController langController =
       getOrPut(() => LanguageListController());
 
@@ -187,6 +196,12 @@ class _ConnectMainPageState extends State<ConnectMainPage>
   void _handleTabChange() {
     if (_tabController.indexIsChanging) return;
     if (_tabController.index != selectedIndex && mounted) {
+      // Leaving the Chat tab while a selection is active would strand the
+      // user with no AppBar affordance to exit it — clear it on the way out.
+      if (selectedIndex == 0 &&
+          chatViewController.isChatListSelectionMode.value) {
+        chatViewController.exitChatListSelectionMode();
+      }
       setState(() {
         selectedIndex = _tabController.index;
         selectedSubIndex = 0;
@@ -348,6 +363,16 @@ class _ConnectMainPageState extends State<ConnectMainPage>
               color: Colors.black,
             ),
           ),
+          const SizedBox(width: 14),
+          InkWell(
+            onTap: () => Get.to(() => const PersonalFlaggedChatsScreen()),
+            borderRadius: BorderRadius.circular(20),
+            child: const Icon(
+              Icons.flag_outlined,
+              size: 24,
+              color: Colors.black,
+            ),
+          ),
         ],
       ),
     );
@@ -424,82 +449,226 @@ class _ConnectMainPageState extends State<ConnectMainPage>
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      child: Scaffold(
-        floatingActionButton: selectedIndex == 0
-            ? SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.only(
-                      bottom: kBottomNavigationBarHeight),
-                  child: FloatingActionButton(
-                    backgroundColor: AppColors.primaryColor,
-                    foregroundColor: Colors.white,
-                    onPressed: () {
-                      Get.toNamed(RouteHelper.getChatContactsRoute());
-                    },
-                    child: const Icon(Icons.add),
+      child: Obx(() {
+        // Selection mode is only meaningful on the Chat tab. We keep the
+        // condition local so the rest of the build stays cheap.
+        final bool isSelectionMode =
+            chatViewController.isChatListSelectionMode.value &&
+                selectedIndex == 0;
+        return WillPopScope(
+          onWillPop: () async {
+            if (isSelectionMode) {
+              chatViewController.exitChatListSelectionMode();
+              return false;
+            }
+            return true;
+          },
+          child: Scaffold(
+            floatingActionButton: (selectedIndex == 0 && !isSelectionMode)
+                ? SafeArea(
+                    child: Padding(
+                      padding: const EdgeInsets.only(
+                          bottom: kBottomNavigationBarHeight),
+                      child: FloatingActionButton(
+                        backgroundColor: AppColors.primaryColor,
+                        foregroundColor: Colors.white,
+                        onPressed: () {
+                          Get.toNamed(RouteHelper.getChatContactsRoute());
+                        },
+                        child: const Icon(Icons.add),
+                      ),
+                    ),
+                  )
+                : null,
+            body: BottomNavHideOnScroll(
+              child: NestedScrollView(
+                headerSliverBuilder: (context, innerBoxIsScrolled) {
+                  return [
+                    if (isSelectionMode)
+                      _buildSelectionSliverAppBar()
+                    else
+                      SliverAppBar(
+                        backgroundColor: Colors.white,
+                        elevation: 0,
+                        floating: true,
+                        snap: true,
+                        pinned: false,
+                        automaticallyImplyLeading: false,
+                        titleSpacing: 0,
+                        expandedHeight: 72,
+                        flexibleSpace: Container(
+                          color: Colors.white,
+                          child: _buildCustomAppBar(),
+                        ),
+                      ),
+                    if (!isSelectionMode)
+                      SliverPersistentHeader(
+                        pinned: true,
+                        delegate: _HomeTabBarDelegate(
+                          tabController: _tabController,
+                          iconTab: iconTab,
+                          postTab: postTab,
+                          selectedIndex: selectedIndex,
+                          onTabTapped: _onTabTapped,
+                        ),
+                      ),
+                  ];
+                },
+                body: Container(
+                  color: Colors.white,
+                  child: TabBarView(
+                    // Lock swiping while selecting — otherwise an accidental
+                    // pan would leave selection mode on a non-Chat tab.
+                    physics: isSelectionMode
+                        ? const NeverScrollableScrollPhysics()
+                        : null,
+                    controller: _tabController,
+                    children: [
+                      PersonalChatsList(isForwardUI: false,),
+
+                      HomeFeedScreenNew(
+                        key: const ValueKey('feedScreen_all'),
+                        onHeaderVisibilityChanged: _toggleAppBarAndBottomNav,
+                        postFilterType: PostType.all,
+                        query: searchController.text.isEmpty
+                            ? null
+                            : searchController.text,
+                        headerHeight: 0,
+                        isInParentScroll: false,
+                      ),
+
+                      ChannelFeedScreen(
+                        headerHeight: 0,
+                        onHeaderVisibilityChanged: _toggleAppBarAndBottomNav,
+                      ),
+
+                    ],
                   ),
                 ),
-              )
-            : null,
-        body: BottomNavHideOnScroll(
-          child: NestedScrollView(
-            headerSliverBuilder: (context, innerBoxIsScrolled) {
-              return [
-                SliverAppBar(
-                  backgroundColor: Colors.white,
-                  elevation: 0,
-                  floating: true,
-                  snap: true,
-                  pinned: false,
-                  automaticallyImplyLeading: false,
-                  titleSpacing: 0,
-                  expandedHeight: 72,
-                  flexibleSpace: Container(
-                    color: Colors.white,
-                    child: _buildCustomAppBar(),
-                  ),
-                ),
-                SliverPersistentHeader(
-                  pinned: true,
-                  delegate: _HomeTabBarDelegate(
-                    tabController: _tabController,
-                    iconTab: iconTab,
-                    postTab: postTab,
-                    selectedIndex: selectedIndex,
-                    onTabTapped: _onTabTapped,
-                  ),
-                ),
-              ];
-            },
-            body: Container(
-              color: Colors.white,
-              child: TabBarView(
-                controller: _tabController,
-                children: [
-                  PersonalChatsList(isForwardUI: false,),
-
-                  HomeFeedScreenNew(
-                    key: const ValueKey('feedScreen_all'),
-                    onHeaderVisibilityChanged: _toggleAppBarAndBottomNav,
-                    postFilterType: PostType.all,
-                    query: searchController.text.isEmpty
-                        ? null
-                        : searchController.text,
-                    headerHeight: 0,
-                    isInParentScroll: false,
-                  ),
-
-                  ChannelFeedScreen(
-                    headerHeight: 0,
-                    onHeaderVisibilityChanged: _toggleAppBarAndBottomNav,
-                  ),
-
-                ],
               ),
             ),
           ),
-        ),
+        );
+      }),
+    );
+  }
+
+  Widget _selectionActionIcon(IconData icon, VoidCallback onPressed) {
+    return IconButton(
+      icon: Icon(icon, color: Colors.black),
+      onPressed: onPressed,
+      splashRadius: 20,
+    );
+  }
+
+  /// Multi-select AppBar shown when the user long-presses a chat row in the
+  /// Chat tab — mirrors the one in `OrderMainChatScreen` so the gesture feels
+  /// identical across the chat surfaces. Personal-tab only, so pin/archive
+  /// always pass `isBusiness: false`.
+  Widget _buildSelectionSliverAppBar() {
+    final selectedCount = chatViewController.selectedConversationIds.length;
+    return SliverAppBar(
+      backgroundColor: Colors.white,
+      elevation: 0.5,
+      floating: false,
+      pinned: true,
+      automaticallyImplyLeading: false,
+      titleSpacing: 0,
+      title: Row(
+        children: [
+          IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.black),
+            onPressed: () =>
+                chatViewController.exitChatListSelectionMode(),
+          ),
+          CustomText(
+            "$selectedCount",
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
+          ),
+        ],
       ),
+      actions: [
+        _selectionActionIcon(Icons.flag_outlined, () {
+          final ids =
+              chatViewController.selectedConversationIds.toList();
+          if (ids.isEmpty) return;
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            backgroundColor: Colors.transparent,
+            builder: (_) => _MultiFlagBottomSheet(
+              conversationIds: ids,
+              onDone: () {
+                chatViewController.exitChatListSelectionMode();
+              },
+            ),
+          );
+        }),
+        _selectionActionIcon(Icons.push_pin_outlined, () {
+          final ids =
+              chatViewController.selectedConversationIds.toList();
+          final allPinned = ids.every(
+              (id) => chatPinArchiveController.isPinned(id, isBusiness: false));
+          if (allPinned) {
+            chatPinArchiveController.unpinMultiple(ids, isBusiness: false);
+          } else {
+            chatPinArchiveController.pinMultiple(ids, isBusiness: false);
+          }
+          chatViewController.exitChatListSelectionMode();
+        }),
+        _selectionActionIcon(Icons.volume_off_outlined, () {
+          // Mute action — placeholder, matches OrderMainChatScreen.
+        }),
+        _selectionActionIcon(Icons.archive_outlined, () {
+          final ids =
+              chatViewController.selectedConversationIds.toList();
+          chatPinArchiveController.archiveMultiple(ids, isBusiness: false);
+          chatViewController.exitChatListSelectionMode();
+        }),
+        PopupMenuButton<String>(
+          icon: const Icon(Icons.more_vert, color: Colors.black),
+          offset: const Offset(0, 40),
+          color: Colors.white,
+          elevation: 8,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          onSelected: (value) {
+            switch (value) {
+              case 'mark_unread':
+                break;
+              case 'select_all':
+                final allChats = chatViewController
+                        .getPersonalChatListModel?.value.chatList
+                        ?.whereType<ChatList>()
+                        .toList() ??
+                    [];
+                chatViewController.selectAllChats(allChats);
+                break;
+              case 'lock_chats':
+                break;
+              case 'add_favourites':
+                break;
+              case 'clear_chats':
+                break;
+            }
+          },
+          itemBuilder: (context) => [
+            const PopupMenuItem(
+                value: 'mark_unread', child: Text('Mark as unread')),
+            const PopupMenuItem(
+                value: 'select_all', child: Text('Select all')),
+            const PopupMenuItem(
+                value: 'lock_chats', child: Text('Lock chats')),
+            const PopupMenuItem(
+                value: 'add_favourites', child: Text('Add to Favourites')),
+            const PopupMenuItem(
+                value: 'clear_chats', child: Text('Clear chats')),
+          ],
+        ),
+      ],
     );
   }
 
@@ -868,6 +1037,207 @@ class _HomeTabBarDelegate extends SliverPersistentHeaderDelegate {
   bool shouldRebuild(covariant _HomeTabBarDelegate oldDelegate) =>
       selectedIndex != oldDelegate.selectedIndex ||
       tabController != oldDelegate.tabController;
+}
+
+/// Bottom sheet to apply a flag to multiple selected conversations.
+/// Mirrors the same widget in `OrderMainChatScreen` — kept local so the two
+/// screens stay independent.
+class _MultiFlagBottomSheet extends StatefulWidget {
+  final List<String> conversationIds;
+  final VoidCallback onDone;
+
+  const _MultiFlagBottomSheet({
+    required this.conversationIds,
+    required this.onDone,
+  });
+
+  @override
+  State<_MultiFlagBottomSheet> createState() => _MultiFlagBottomSheetState();
+}
+
+class _MultiFlagBottomSheetState extends State<_MultiFlagBottomSheet> {
+  final flagController = Get.find<ChatFlagController>();
+  String? selectedFlagId;
+
+  @override
+  void initState() {
+    super.initState();
+    final flags = widget.conversationIds
+        .map((id) => flagController.getFlagForConversation(id))
+        .toSet();
+    if (flags.length == 1 && flags.first != null) {
+      selectedFlagId = flags.first!.id;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: Colors.grey.shade300,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              CustomText(
+                "Label ${widget.conversationIds.length} Chat${widget.conversationIds.length > 1 ? 's' : ''}",
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  showAddFlagLabelDialog(context, flagController);
+                },
+                child: const CustomText(
+                  "+ New Label",
+                  color: AppColors.primaryColor,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Obx(() {
+            return ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * 0.5,
+              ),
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: flagController.allFlags.length,
+                itemBuilder: (context, index) {
+                  final flag = flagController.allFlags[index];
+                  final isSelected = selectedFlagId == flag.id;
+                  return InkWell(
+                    onTap: () {
+                      setState(() {
+                        selectedFlagId = isSelected ? null : flag.id;
+                      });
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 10, horizontal: 12),
+                      margin: const EdgeInsets.only(bottom: 4),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? flag.color.withValues(alpha: 0.1)
+                            : Colors.transparent,
+                        borderRadius: BorderRadius.circular(10),
+                        border: isSelected
+                            ? Border.all(color: flag.color, width: 1.5)
+                            : null,
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 32,
+                            height: 32,
+                            decoration: BoxDecoration(
+                              color: flag.color.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            alignment: Alignment.center,
+                            child: Text(
+                              flag.emoji,
+                              style: const TextStyle(fontSize: 16),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: CustomText(
+                              flag.label,
+                              fontSize: 15,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          if (isSelected)
+                            Icon(Icons.check_circle,
+                                color: flag.color, size: 22),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            );
+          }),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () {
+                    for (final id in widget.conversationIds) {
+                      flagController.removeFlagFromConversation(id);
+                    }
+                    Navigator.pop(context);
+                    widget.onDone();
+                  },
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: AppColors.red),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: const CustomText(
+                    "Remove Label",
+                    color: AppColors.red,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: selectedFlagId == null
+                      ? null
+                      : () {
+                          final flag = flagController.allFlags
+                              .firstWhere((f) => f.id == selectedFlagId);
+                          for (final id in widget.conversationIds) {
+                            flagController.assignFlagToConversation(id, flag);
+                          }
+                          Navigator.pop(context);
+                          widget.onDone();
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primaryColor,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: const CustomText(
+                    "Apply",
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+        ],
+      ),
+    );
+  }
 }
 
 /* Old _HomeScreenState removed - DO NOT DELETE

@@ -216,6 +216,7 @@ Widget personalChatListWidget(GetChatListModel? data,ThemeData theme ){
               chat: chat,
               theme: theme,
               isForwardUI: widget.isForwardUI,
+              showFlagBadge: true,
               context: context,
             );
           }
@@ -245,6 +246,7 @@ Widget personalChatListWidget(GetChatListModel? data,ThemeData theme ){
             chat: chat,
             theme: theme,
             isForwardUI: widget.isForwardUI,
+            showFlagBadge: true,
             context: context,
           );
         },

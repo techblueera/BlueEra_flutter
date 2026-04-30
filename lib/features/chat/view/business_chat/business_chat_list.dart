@@ -237,6 +237,7 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
                     chat: chat,
                     theme: theme,
                     isForwardUI: widget.isForwardUI,
+                    showFlagBadge: true,
                     context: context,
                   );
                 }
@@ -270,6 +271,7 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
                   chat: chat,
                   theme: theme,
                   isForwardUI: widget.isForwardUI,
+                  showFlagBadge: true,
                   context: context,
                 );
               },
