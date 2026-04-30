@@ -81,7 +81,6 @@ class _MedicalPharmacyDetailScreenState
     }
     if (_data == null) {
       return Scaffold(
-        backgroundColor: AppColors.whiteF3,
         appBar: CommonBackAppBar(title: AppStrings.pharmacy),
         body: Center(
           child: Column(
@@ -105,7 +104,6 @@ class _MedicalPharmacyDetailScreenState
     final categoriesWithProducts = inventory?.categoriesWithProducts ?? [];
 
     return Scaffold(
-      backgroundColor: AppColors.whiteF3,
       appBar: CommonBackAppBar(title: profile?.businessName ?? AppStrings.pharmacy.tr),
       body: SingleChildScrollView(
         child: Column(

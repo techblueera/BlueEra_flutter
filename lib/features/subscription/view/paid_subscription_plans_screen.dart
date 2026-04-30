@@ -23,7 +23,6 @@ class PaidSubscriptionPlansScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     // We use Obx here to make the whole screen reactive to controller changes
     return Scaffold(
-      backgroundColor: AppColors.whiteF3,
       bottomNavigationBar: SubscriptionPayButton(
           controller: controller
       ),

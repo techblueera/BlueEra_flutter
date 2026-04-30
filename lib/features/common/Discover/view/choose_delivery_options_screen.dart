@@ -32,7 +32,6 @@ class _ChooseDeliveryOptionsScreenState extends State<ChooseDeliveryOptionsScree
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.whiteF3,
       body: SafeArea(
         child: NestedScrollView(
             headerSliverBuilder: (context, innerBoxIsScrolled) {

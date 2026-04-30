@@ -87,7 +87,6 @@ class _GroceryNestedCategoryWithInventoryScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.whiteF3,
       appBar: CommonBackAppBar(
           isCustomTitleWidget: () => PopupMenuButton<GroceryCategoryWithInventoryModel>(
             offset: const Offset(0, 30),

@@ -32,7 +32,6 @@ class GrocerySuperCategoryScreen extends StatelessWidget {
     controller.fetchGroceryNestedCategory();
 
     return Scaffold(
-      backgroundColor: AppColors.whiteF3,
       appBar: CommonBackAppBar(
         title: AppStrings.addProducts,
         buildCustomActionWidget: () => Padding(

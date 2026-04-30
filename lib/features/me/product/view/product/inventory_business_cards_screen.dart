@@ -128,7 +128,6 @@ class _InventoryBusinessCardsScreenState extends State<InventoryBusinessCardsScr
     }
 
     return Scaffold(
-      backgroundColor: AppColors.whiteF3,
       appBar:  widget.showBackAppBar ? PreferredSize(
         preferredSize: Size.fromHeight(widget.showBackAppBar
             ? kToolbarHeight + 50

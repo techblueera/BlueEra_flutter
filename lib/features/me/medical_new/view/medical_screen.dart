@@ -59,7 +59,6 @@ class _MedicalScreenState extends State<MedicalScreen> with SingleTickerProvider
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.whiteF3,
       body: SafeArea(
           child: BottomNavHideOnScroll(
             child: NestedScrollView(

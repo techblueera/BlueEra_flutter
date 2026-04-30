@@ -41,7 +41,6 @@ class _AddMedicalProductsScreenState extends State<AddMedicalProductsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.whiteF3,
       appBar: CommonBackAppBar(title: AppStrings.medicalAddProductsTitle.tr),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(SizeConfig.size12),

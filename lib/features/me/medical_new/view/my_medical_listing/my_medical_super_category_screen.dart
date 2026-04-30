@@ -38,7 +38,6 @@ class _MyMedicalSuperCategoryScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.whiteF3,
       appBar: CommonBackAppBar(title: AppStrings.medicalMyProductsTitle.tr),
       body: Obx(() {
         if (controller.myMedicalCategoryLoading.value) {

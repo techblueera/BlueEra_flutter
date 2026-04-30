@@ -127,7 +127,6 @@ class _Step2SectionState extends State<Step2Section> {
         }
       },
       child: Scaffold(
-        backgroundColor: AppColors.whiteF3,
         appBar: CommonBackAppBar(
           title: AppStrings.productFeature,
           onBackTap: () async {

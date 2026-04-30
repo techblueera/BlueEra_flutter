@@ -25,7 +25,6 @@ class MissingGroceryItemsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.whiteF3,
       appBar: CommonBackAppBar(
         title: AppStrings.groceryViewMissingItemsTitle.tr,
       ),

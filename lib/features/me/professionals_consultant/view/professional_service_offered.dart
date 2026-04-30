@@ -44,7 +44,6 @@ class _ProfessionalServiceOfferedState extends State<ProfessionalServiceOffered>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.whiteF3,
       appBar: CommonBackAppBar(title: 'Service Offered'),
       body: Padding(
         padding: EdgeInsets.symmetric(

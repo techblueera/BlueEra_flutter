@@ -44,7 +44,6 @@ class ProductSuperCategoryScreen extends StatelessWidget {
     if (providerType != null) controller.ownerProviderType = providerType;
 
     return Scaffold(
-      backgroundColor: AppColors.whiteF3,
       appBar: CommonBackAppBar(
         title: AppStrings.addProducts,
         buildCustomActionWidget: () => CreateOwnProductViaAiWidget(

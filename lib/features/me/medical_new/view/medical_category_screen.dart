@@ -45,7 +45,6 @@ class _MedicalCategoryScreenState extends State<MedicalCategoryScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: AppColors.whiteF3,
         appBar: CommonBackAppBar(
             title: AppStrings.medicalAddProductsTitle.tr,
            ),

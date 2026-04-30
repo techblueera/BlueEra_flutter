@@ -23,7 +23,6 @@ class MedicalInventoryCategoryScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.whiteF3,
       appBar: CommonBackAppBar(title: title),
       body: children.isEmpty
           ? Center(

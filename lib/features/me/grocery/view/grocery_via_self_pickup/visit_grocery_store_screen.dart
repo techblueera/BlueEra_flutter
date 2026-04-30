@@ -318,43 +318,133 @@ class _VisitGroceryStoreScreenState extends State<VisitGroceryStoreScreen> {
                                 name: 'VisitStore',
                               );
 
-                              return IconButton(
-                                onPressed: () {
-                                  if (productVariants == null) {
-                                    commonSnackBar(message: AppStrings.groceryViewNoVariantsAvailable.tr);
-                                    return;
-                                  }
-
-                                  if(!isAdded){
-                                    final bDetails = viewBusinessDetailsController.visitedBusinessProfileDetails?.data;
-                                    groceryCustomerController.addToCart(
-                                      productVariants,
-                                      inventoryId: groceryProductData.sId,
-                                      productId: productVariants.sId,
-                                      businessId: widget.visitBusinessId,
-                                      businessName: bDetails?.businessName,
-                                      businessLogo: bDetails?.logo,
-                                      businessAddress: bDetails?.address,
-                                      productImage: (groceryProductData.product?.images?.isNotEmpty ?? false)
-                                          ? groceryProductData.product!.images!.first.url
-                                          : null,
-                                    );
-                                  }else{
-                                    groceryCustomerController.removeFromCart(productVariants);
-                                  }
-                                },
-                                icon: Container(
-                                  padding: const EdgeInsets.all(4),
-                                  decoration: BoxDecoration(
-                                    color: isAdded
-                                        ? AppColors.greenShade
-                                        : AppColors.blackMite,
+                              // Why: morph the cart-toggle from a compact
+                              // black "+" into a wider green "✓ Added"
+                              // pill on tap (and back). AnimatedContainer
+                              // handles color/shape/glow, AnimatedSize
+                              // handles the width swap, and the icon
+                              // swap pops via ScaleTransition for tactile
+                              // feedback. Tap again on the pill removes.
+                              return Padding(
+                                padding: const EdgeInsets.all(6),
+                                child: Material(
+                                  color: Colors.transparent,
+                                  child: InkWell(
                                     borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: Icon(
-                                    !isAdded ? Icons.add : Icons.check,
-                                    size: SizeConfig.size16,
-                                    color: AppColors.white,
+                                    onTap: () {
+                                      if (productVariants == null) {
+                                        commonSnackBar(
+                                            message: AppStrings
+                                                .groceryViewNoVariantsAvailable
+                                                .tr);
+                                        return;
+                                      }
+                                      if (!isAdded) {
+                                        final bDetails =
+                                            viewBusinessDetailsController
+                                                .visitedBusinessProfileDetails
+                                                ?.data;
+                                        groceryCustomerController.addToCart(
+                                          productVariants,
+                                          inventoryId: groceryProductData.sId,
+                                          productId: productVariants.sId,
+                                          businessId: widget.visitBusinessId,
+                                          businessName: bDetails?.businessName,
+                                          businessLogo: bDetails?.logo,
+                                          businessAddress: bDetails?.address,
+                                          productImage:
+                                              (groceryProductData.product?.images
+                                                          ?.isNotEmpty ??
+                                                      false)
+                                                  ? groceryProductData.product!
+                                                      .images!.first.url
+                                                  : null,
+                                          businessLat: bDetails
+                                              ?.businessLocation?.lat
+                                              ?.toDouble(),
+                                          businessLng: bDetails
+                                              ?.businessLocation?.lon
+                                              ?.toDouble(),
+                                          businessCategory: bDetails
+                                                  ?.subCategoryDetails?.name ??
+                                              bDetails?.categoryOfBusiness ??
+                                              bDetails?.natureOfBusiness,
+                                        );
+                                      } else {
+                                        groceryCustomerController
+                                            .removeFromCart(productVariants);
+                                      }
+                                    },
+                                    child: AnimatedContainer(
+                                      duration:
+                                          const Duration(milliseconds: 240),
+                                      curve: Curves.easeOutCubic,
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: isAdded ? 8 : 6,
+                                        vertical: 6,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: isAdded
+                                            ? AppColors.green00
+                                            : AppColors.blackMite,
+                                        borderRadius:
+                                            BorderRadius.circular(20),
+                                        boxShadow: isAdded
+                                            ? [
+                                                BoxShadow(
+                                                  color: AppColors.green00
+                                                      .withValues(alpha: 0.45),
+                                                  blurRadius: 10,
+                                                  offset: const Offset(0, 3),
+                                                ),
+                                              ]
+                                            : null,
+                                      ),
+                                      child: AnimatedSize(
+                                        duration: const Duration(
+                                            milliseconds: 240),
+                                        curve: Curves.easeOutCubic,
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            AnimatedSwitcher(
+                                              duration: const Duration(
+                                                  milliseconds: 200),
+                                              transitionBuilder:
+                                                  (child, anim) =>
+                                                      ScaleTransition(
+                                                scale: anim,
+                                                child: FadeTransition(
+                                                  opacity: anim,
+                                                  child: child,
+                                                ),
+                                              ),
+                                              child: Icon(
+                                                isAdded
+                                                    ? Icons.check_rounded
+                                                    : Icons.add,
+                                                key: ValueKey(isAdded),
+                                                size: SizeConfig.size16,
+                                                color: AppColors.white,
+                                              ),
+                                            ),
+                                            if (isAdded) ...[
+                                              const SizedBox(width: 4),
+                                              const Text(
+                                                'Added',
+                                                style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 11,
+                                                  fontWeight: FontWeight.w800,
+                                                  letterSpacing: 0.2,
+                                                  height: 1.0,
+                                                ),
+                                              ),
+                                            ],
+                                          ],
+                                        ),
+                                      ),
+                                    ),
                                   ),
                                 ),
                               );
@@ -414,26 +504,22 @@ class _VisitGroceryStoreScreenState extends State<VisitGroceryStoreScreen> {
                 iconHeight: SizeConfig.size60,
                 boxShadow: [],
                 onTap: (_categoryItem) {
-
+                  dev.log(
+                    '[VisitGroceryStore] navigate → '
+                    'userId=${widget.userId} '
+                    'businessId=${widget.visitBusinessId} '
+                    'catKey=${_categoryItem.key} '
+                    'catName=${_categoryItem.name}',
+                  );
                   Get.toNamed(
                     RouteHelper.getVisitGroceryProductsScreenRoute(),
                     arguments: {
-                      ApiKeys.userId: details?.userId,
-                      ApiKeys.businessId: details?.id,
+                      ApiKeys.userId: widget.userId,
+                      ApiKeys.businessId: widget.visitBusinessId,
                       ApiKeys.argArrGroceryCatKey: _categoryItem.key,
                       ApiKeys.argArrGroceryCatName: _categoryItem.name,
                     },
                   );
-
-                  // return Get.toNamed(RouteHelper.getGroceryNestedCategoryWithInventoryScreenRoute(),
-                  //   arguments: {
-                  //     ApiKeys.userId: details?.userId,
-                  //     ApiKeys.argGroceryCategoryWithInventory: groceryCategoryList,
-                  //     ApiKeys.argArrGroceryCatKey: _categoryItem.key,
-                  //     ApiKeys.argArrGroceryCatName: _categoryItem.name,
-                  //   },
-                  // );
-
                 },
               );
             },

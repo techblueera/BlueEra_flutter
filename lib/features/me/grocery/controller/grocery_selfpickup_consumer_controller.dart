@@ -52,6 +52,8 @@ class GrocerySelfPickupConsumerController extends GetxController {
       {String? productId, String? inventoryId,
       String? businessId, String? businessName, String? businessLogo, String? businessAddress,
       String? productImage,
+      double? businessLat, double? businessLng,
+      String? businessCategory,
       // String? deliveryType
       }) {
     if (variant.sId == null) return;
@@ -68,11 +70,17 @@ class GrocerySelfPickupConsumerController extends GetxController {
         cartInventoryIds[variant.sId!] = inventoryId;
       }
       if (businessId != null) {
+        // lat / lng / category travel with the rest of the business
+        // metadata so the cart screen can render distance + shop-type
+        // pill without re-fetching the profile.
         cartBusinessInfo[variant.sId!] = {
           'businessId': businessId,
           'businessName': businessName ?? '',
           'logo': businessLogo ?? '',
           'address': businessAddress ?? '',
+          'lat': businessLat?.toString() ?? '',
+          'lng': businessLng?.toString() ?? '',
+          'category': businessCategory ?? '',
         };
       }
       if (productImage != null && productImage.isNotEmpty) {

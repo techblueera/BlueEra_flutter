@@ -73,10 +73,18 @@ class _ShoppingCardWidgetState extends State<ShoppingCardWidget> {
                         service: categoryItem,
                         getName: (item) => item.name ?? '',
                         getIcon: (item) => getProductCategoryIcon(item.tagId),
-                        onTap: (item) => _showShoppingOptionDialog(
-                            context,
-                            categoryData: categoryItem
-                            ),
+                        onTap: (item) {
+
+                          Get.to(() => ProductsStoreScreen(
+                            productCategoryName: item.name,
+                            productCategory: item.tagId,
+                          ));
+
+                          // _showShoppingOptionDialog(
+                          //   context,
+                          //   categoryData: item
+                          //   );
+                        },
                       ),
                     );
                   }).toList(),

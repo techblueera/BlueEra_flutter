@@ -256,7 +256,6 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
         handleBackPress(context);
       },
       child: Scaffold(
-        backgroundColor: AppColors.whiteF3,
         body: SafeArea(
           child: SingleChildScrollView(
             child: Column(

@@ -55,6 +55,34 @@ class BusinessProductData {
     minSellingPrice = json['minSellingPrice'];
     minMrp = json['minMrp'];
     avgDiscount = json['avgDiscount'];
+
+    // Backend recently stopped populating the top-level price rollups
+    // (minSellingPrice / minMrp / avgDiscount come back null). Derive them
+    // from productVariant.pricing so the UI doesn't render "null" — the
+    // raw variant pricing is the source of truth either way.
+    final pricing = productVariant?.pricing;
+    if (pricing != null && pricing.isNotEmpty) {
+      if (minSellingPrice == null) {
+        final selling =
+            pricing.map((p) => p.sellingPrice).whereType<num>().toList();
+        if (selling.isNotEmpty) {
+          minSellingPrice = selling.reduce((a, b) => a < b ? a : b);
+        }
+      }
+      if (minMrp == null) {
+        final mrps = pricing.map((p) => p.mrp).whereType<num>().toList();
+        if (mrps.isNotEmpty) {
+          minMrp = mrps.reduce((a, b) => a < b ? a : b);
+        }
+      }
+      final mrp = minMrp;
+      final sp = minSellingPrice;
+      if ((avgDiscount == null || avgDiscount == 0) &&
+          mrp != null && sp != null && mrp > 0) {
+        final d = ((mrp - sp) / mrp) * 100;
+        avgDiscount = d < 0 ? 0 : d;
+      }
+    }
   }
 }
 

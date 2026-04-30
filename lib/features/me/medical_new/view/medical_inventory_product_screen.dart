@@ -36,7 +36,6 @@ class _MedicalInventoryProductScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.whiteF3,
       appBar: CommonBackAppBar(title: widget.title),
       body: Row(
         crossAxisAlignment: CrossAxisAlignment.start,

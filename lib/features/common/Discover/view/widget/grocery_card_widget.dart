@@ -9,6 +9,7 @@ import 'package:BlueEra/features/common/Discover/view/home_made_food_screen.dart
 import 'package:BlueEra/features/common/Discover/view/widget/choose_deliivery_option_dialog.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/choose_food_option_dialog.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/grid_icon_image_widget.dart';
+import 'package:BlueEra/features/me/food/view/restaurant_near_me_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -43,7 +44,8 @@ class GroceryCardWidget extends StatelessWidget {
                       RouteHelper.getGroceryStoresScreenRoute(),
                     );
                   } else if (item.slugId == AppConstants.food) {
-                    _chooseFoodOption();
+                    Get.to(() => const RestaurantNearMeScreen());
+                    // _chooseFoodOption();
                   } else {
                     Get.to(() => const HomeMadeFoodScreen());
                   }
