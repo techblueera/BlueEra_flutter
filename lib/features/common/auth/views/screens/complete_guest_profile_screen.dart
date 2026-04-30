@@ -85,8 +85,7 @@ class _CompleteGuestProfileScreenState
         ApiKeys.contact_no: _authController.mobileNumberEditController.text,
         ApiKeys.account_type: AppConstants.guest,
         ApiKeys.name: name,
-        if (_profileImagePath.value.isNotEmpty)
-          ApiKeys.profile_image: _profileImagePath.value,
+        if (_profileImagePath.value.isNotEmpty) ApiKeys.profile_image: _profileImagePath.value,
       },
     );
   }
@@ -447,8 +446,7 @@ class _CompleteGuestProfileScreenState
                   height: SizeConfig.size50,
                   fontSize: SizeConfig.medium,
                   fontWeight: FontWeight.w700,
-                  isLoading:
-                      _authController.isCreateGuestAccountLoading.value,
+                  isLoading: _authController.isCreateGuestAccountLoading.value,
                 ),
               );
             }),
