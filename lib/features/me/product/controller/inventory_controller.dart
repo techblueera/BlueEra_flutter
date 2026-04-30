@@ -97,7 +97,7 @@ class InventoryController extends GetxController {
   final variantSellingPrice = <String, String>{}.obs;
   RxList<VariantData> selectedVariantsList = <VariantData>[].obs;
 
-  final viewProfileController = getOrPut(() => ViewBusinessDetailsController());
+  final viewProfileController = getOrPut(() => ViewBusinessDetailsController(), permanent: true);
   final viewIndividualProfileController = getOrPut(() => ViewPersonalDetailsController(), permanent: true);
 
   bool isVariantSelected(String id) => variantSelection[id] ?? false;

@@ -6,6 +6,7 @@ import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 
 import '../../../../../core/api/apiService/api_response.dart';
+import '../../../../../core/constants/getx_utils.dart';
 import '../../../../business/auth/controller/view_business_details_controller.dart';
 import '../../../../common/service/widget/service_card.dart';
 
@@ -19,9 +20,7 @@ class BusinessChatServices extends StatefulWidget {
 }
 
 class _BusinessChatServicesState extends State<BusinessChatServices> {
-  final controller = Get.isRegistered<ViewBusinessDetailsController>()
-      ? Get.find<ViewBusinessDetailsController>()
-      : Get.put(ViewBusinessDetailsController());
+  final controller = getOrPut(() => ViewBusinessDetailsController(), permanent: true);
 
   @override
   void initState() {

@@ -43,7 +43,7 @@ class ProfileMenuDrawer extends StatefulWidget {
 class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
   final viewProfileController = getOrPut(() => ViewPersonalDetailsController());
   final viewBusinessProfileController =
-      Get.put(ViewBusinessDetailsController());
+      getOrPut(() => ViewBusinessDetailsController(), permanent: true);
 
   final lang = getOrPut(() => LanguageControllerNew());
 
@@ -234,7 +234,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
                     showAppBar: true));
               } else {
                 final viewBusinessDetailsController =
-                    getOrPut(() => ViewBusinessDetailsController());
+                    getOrPut(() => ViewBusinessDetailsController(), permanent: true);
                 Get.to(() => AllVisitingCards(
                     businessDetails: viewBusinessDetailsController
                         .businessProfileDetails.value?.data,

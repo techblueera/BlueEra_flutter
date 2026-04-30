@@ -3,6 +3,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/widgets/business_profile_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -25,7 +26,7 @@ class BusinessOwnProfileScreen extends StatefulWidget {
 }
 
 class _BusinessOwnProfileScreenState extends State<BusinessOwnProfileScreen> {
-  final viewProfileController = Get.put(ViewBusinessDetailsController());
+  final viewProfileController = getOrPut(() => ViewBusinessDetailsController(), permanent: true);
 
   @override
   void initState() {

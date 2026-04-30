@@ -31,7 +31,7 @@ class BdmDocumentVerifiedPage extends StatefulWidget {
 class _BdmDocumentVerifiedPageState extends State<BdmDocumentVerifiedPage> {
   final controller = getOrPut(()=> ReferralController());
   final viewProfileController = getOrPut(() => ViewPersonalDetailsController());
-  final viewBusinessProfileController =  getOrPut(() =>ViewBusinessDetailsController());
+  final viewBusinessProfileController =  getOrPut(() =>ViewBusinessDetailsController(), permanent: true);
 
   @override
   initState() {

@@ -531,7 +531,7 @@ class GroceryController extends GetxController {
 
   List<Map<String, dynamic>> buildInventoryPayload() {
     List<Map<String, dynamic>> payload = [];
-    final viewBusinessDetailsController = getOrPut(() => ViewBusinessDetailsController());
+    final viewBusinessDetailsController = getOrPut(() => ViewBusinessDetailsController(), permanent: true);
     final businessData = viewBusinessDetailsController.businessProfileDetails.value?.data;
 
     print("City (Profile): ${businessData?.cityStatePincode}");
@@ -1043,7 +1043,7 @@ class GroceryController extends GetxController {
   }
 
   Map<String, dynamic> buildMissingRequestsPayload(List<MissingProducts> missingProducts) {
-    final viewBusinessDetailsController = getOrPut(() => ViewBusinessDetailsController());
+    final viewBusinessDetailsController = getOrPut(() => ViewBusinessDetailsController(), permanent: true);
     String city = viewBusinessDetailsController.businessProfileDetails.value?.data?.cityStatePincode ?? LocationService.userCurrentAddress.value.city;
     String postalCode = viewBusinessDetailsController.businessProfileDetails.value?.data?.pincode.toString() ?? LocationService.userCurrentAddress.value.postalCode;
 

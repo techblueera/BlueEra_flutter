@@ -63,7 +63,7 @@ class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
   MedicalHomeResponseModel? _data;
   bool _isLoading = true;
   late final MedicalGalleryController _galleryController;
-  final _businessController = getOrPut(() => ViewBusinessDetailsController());
+  final _businessController = getOrPut(() => ViewBusinessDetailsController(), permanent: true);
   late final MedicalController _medicalController;
   final ImagePicker _picker = ImagePicker();
 

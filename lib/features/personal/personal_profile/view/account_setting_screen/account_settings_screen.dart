@@ -35,7 +35,7 @@ class _AccountSettingScreenState extends State<AccountSettingScreen> {
   final controller = getOrPut(() => LanguageControllerNew());
   final LiveLocationService locationService = LiveLocationService();
 
-  final viewBusinessProfileController = Get.put(ViewBusinessDetailsController());
+  final viewBusinessProfileController = getOrPut(() => ViewBusinessDetailsController(), permanent: true);
   @override
   void initState() {
     super.initState();

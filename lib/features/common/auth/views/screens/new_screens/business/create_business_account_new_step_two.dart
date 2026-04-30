@@ -52,7 +52,7 @@ class _CreateBusinessAccountNewStepTwoState
   final picCodeController = TextEditingController();
   ContactType? selectedType = ContactType.Mobile;
   final viewBusinessDetailsController =
-      getOrPut(() => ViewBusinessDetailsController());
+      getOrPut(() => ViewBusinessDetailsController(), permanent: true);
 
   bool isFormValid = false;
   final locationController = Get.put(LocationController());

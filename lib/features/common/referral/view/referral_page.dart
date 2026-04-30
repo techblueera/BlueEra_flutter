@@ -45,7 +45,7 @@ class _ReferralPageState extends State<ReferralPage> {
   final controller = getOrPut(() => ReferralController());
   final viewProfileController = getOrPut(() => ViewPersonalDetailsController(), permanent: true);
   final viewBusinessProfileController = getOrPut(() =>
-      ViewBusinessDetailsController());
+      ViewBusinessDetailsController(), permanent: true);
   final myDocumentsController = getOrPut(() => MyDocumentsController());
 
   String referralCode() {

@@ -37,7 +37,7 @@ class GroceryProductCard extends StatelessWidget {
 
   GroceryController get _groceryController => getOrPut(() => GroceryController());
   ViewBusinessDetailsController get _viewBusinessDetailsController =>
-      getOrPut(() => ViewBusinessDetailsController());
+      getOrPut(() => ViewBusinessDetailsController(), permanent: true);
 
   List<ProductVariants> get _variants {
     Images? productImage;

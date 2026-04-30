@@ -2,13 +2,8 @@
 import 'package:BlueEra/core/language_localization_service/language_service_app.dart';
 import 'package:BlueEra/core/services/app_notification.dart';
 import 'package:BlueEra/environment_config.dart';
-import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/feed/view/home_feed_screen_new.dart';
-import 'package:BlueEra/features/me/food/controller/home_food_controller.dart';
-import 'package:BlueEra/features/me/others/controller/business_profile_full_controller.dart';
-import 'package:BlueEra/features/me/school/controller/school_about_us_controller.dart';
-import 'package:BlueEra/features/me/school/controller/school_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get/get.dart';
@@ -237,18 +232,15 @@ class SharedPreferenceUtils {
     await _secureStorage.deleteAll();
   }
 
-  ///CLEAR DATA...
-  static Future<void> clearPreference() async {
+  /// Non-reactive half of `clearPreference()`: secure storage wipe, prefs
+  /// removal, plain global-string resets, base URL preserve, FCM token
+  /// refresh. Safe to call while screens are still mounted because none of
+  /// these touch Rx variables — no Obx rebuilds, no widget re-creations.
+  static Future<void> clearPreferenceDataOnly() async {
     try {
       final workManagerBaseUrl =
           await SharedPreferenceUtils.getBaseUrlSecureValue();
       await _secureStorage.deleteAll();
-      // await _secureStorage.isCupertinoProtectedDataAvailable();
-      Get.delete<SchoolAboutUsController>();
-      Get.delete<SchoolController>();
-      Get.delete<BusinessProfileFullController>();
-      Get.delete<ViewBusinessDetailsController>();
-      Get.delete<RestaurantController>();
 
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove("last_dialog_shown");
@@ -281,13 +273,30 @@ class SharedPreferenceUtils {
       hospitalIDGlobal = '';
       otherServiceIDGlobal = '';
       productBusinessProfileIDGlobal = '';
-      Get.find<AuthController>().imgPath.value = "";
       await SharedPreferenceUtils.setBaseUrlSecureValue(workManagerBaseUrl);
       await AppNotificationHandler.refreshFcmToken();
-      await resetLanguageLocalization();
     } on Exception {
       await SharedPreferenceUtils.setBaseUrlSecureValue(baseUrl);
     }
+  }
+
+  /// Reactive half: writing to AuthController.imgPath (RxString) and
+  /// clearing GetX translations both fire Obx rebuilds across the app, so
+  /// these MUST run after navigating away from data-driven screens —
+  /// otherwise the rebuild storm hits getOrPut(... permanent:true) paths
+  /// and re-creates controllers we've already torn down (orphan APIs).
+  static Future<void> clearPreferenceReactive() async {
+    if (Get.isRegistered<AuthController>()) {
+      Get.find<AuthController>().imgPath.value = "";
+    }
+    await resetLanguageLocalization();
+  }
+
+  ///CLEAR DATA... (data + reactive in one shot — unchanged behavior for
+  /// callers that don't need the phased split, e.g. the 401 handler).
+  static Future<void> clearPreference() async {
+    await clearPreferenceDataOnly();
+    await clearPreferenceReactive();
   }
 }
 

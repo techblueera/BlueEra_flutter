@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 
+import '../../../../../core/constants/getx_utils.dart';
 import '../../../../../widgets/custom_text_cm.dart';
 import '../../../../business/auth/controller/view_business_details_controller.dart';
 import '../../../../common/product_listing/widgets/product_card_business.dart';
@@ -20,9 +21,7 @@ class BusinessChatProducts extends StatefulWidget {
 }
 
 class _BusinessChatProductsState extends State<BusinessChatProducts> {
-  final controller = Get.isRegistered<ViewBusinessDetailsController>()
-      ? Get.find<ViewBusinessDetailsController>()
-      : Get.put(ViewBusinessDetailsController());
+  final controller = getOrPut(() => ViewBusinessDetailsController(), permanent: true);
 
   @override
   void initState() {

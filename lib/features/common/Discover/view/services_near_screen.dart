@@ -122,7 +122,7 @@ class _ServicesNearMeScreenState extends State<ServicesNearMeScreen> {
               onTap: () {
                 if (isBusinessUser()) {
                   final controller =
-                  getOrPut(() => ViewBusinessDetailsController());
+                  getOrPut(() => ViewBusinessDetailsController(), permanent: true);
 
                   if ((controller.businessProfileDetails.value?.data?.livePhotos ??
                       [])

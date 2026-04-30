@@ -2,6 +2,7 @@ import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
+import '../../../../../core/constants/getx_utils.dart';
 import '../../../../business/auth/controller/view_business_details_controller.dart';
 import '../../../../common/food/view/widget/food_product_card.dart';
 
@@ -17,9 +18,7 @@ class BusinessChatFoods extends StatefulWidget {
 }
 
 class _BusinessChatFoodsState extends State<BusinessChatFoods> {
-  final controller = Get.isRegistered<ViewBusinessDetailsController>()
-      ? Get.find<ViewBusinessDetailsController>()
-      : Get.put(ViewBusinessDetailsController());
+  final controller = getOrPut(() => ViewBusinessDetailsController(), permanent: true);
 
   @override
   void initState() {

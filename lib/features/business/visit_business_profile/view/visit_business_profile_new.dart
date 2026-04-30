@@ -22,6 +22,7 @@ import 'package:get/get.dart';
 import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_enum.dart';
+import '../../../../core/constants/getx_utils.dart';
 import '../../../../widgets/local_assets.dart';
 import '../../../chat/auth/controller/chat_view_controller.dart';
 import '../../../personal/personal_profile/view/visit_personal_profile/visit_personal_profile.dart';
@@ -50,7 +51,7 @@ class VisitBusinessProfileNew extends StatefulWidget {
 class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  final controller = Get.put(ViewBusinessDetailsController());
+  final controller = getOrPut(() => ViewBusinessDetailsController(), permanent: true);
   final controllerVisit = Get.put(VisitProfileController());
   final chatViewController = Get.isRegistered<ChatViewController>()
       ? Get.find<ChatViewController>()

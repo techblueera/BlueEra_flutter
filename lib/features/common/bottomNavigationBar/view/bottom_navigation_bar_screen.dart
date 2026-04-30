@@ -348,7 +348,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   void _handlePostFrameInitialization() {
     if (isBusiness()) {
       bottomBarController.currentIndex.value = widget.initialIndex ?? 0;
-      final viewProfileController = Get.put(ViewBusinessDetailsController());
+      final viewProfileController = getOrPut(() => ViewBusinessDetailsController(), permanent: true);
       if (viewProfileController.viewBusinessResponse.status !=
           Status.COMPLETE) {
         viewProfileController.viewBusinessProfile();

@@ -195,7 +195,7 @@ class AuthController extends GetxController {
               await getUserLoginAccountType();
               await getUserAuthToken();
               final viewProfileController =
-                  Get.put(ViewBusinessDetailsController());
+                  getOrPut(() => ViewBusinessDetailsController(), permanent: true);
 
               await viewProfileController.viewBusinessProfile();
             } else if (data.data?.accountType?.toUpperCase() ==
@@ -377,7 +377,7 @@ class AuthController extends GetxController {
           await getUserLoginAccountType();
           await getUserAuthToken();
           final viewProfileController =
-              Get.put(ViewBusinessDetailsController());
+              getOrPut(() => ViewBusinessDetailsController(), permanent: true);
           await viewProfileController.viewBusinessProfile();
 
           logs(
