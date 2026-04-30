@@ -236,25 +236,29 @@ class _CreateJobPostStep3State extends State<CreateJobPostStep3> {
                     ),
                     SizedBox(height: SizeConfig.size8),
                     Obx(
-                      () => Row(
-                        children: [
-                          Expanded(
-                            child: _buildRadioOption(
-                              AppStrings.yes,
-                              'Yes',
-                              controller.walkInInterview.value,
-                              controller.setWalkIn,
+                      () => RadioGroup<String>(
+                        groupValue: controller.walkInInterview.value,
+                        onChanged: (val) => controller.setWalkIn(val),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: _buildRadioOption(
+                                AppStrings.yes,
+                                'Yes',
+                                controller.walkInInterview.value,
+                                controller.setWalkIn,
+                              ),
                             ),
-                          ),
-                          Expanded(
-                            child: _buildRadioOption(
-                              AppStrings.no,
-                              'No',
-                              controller.walkInInterview.value,
-                              controller.setWalkIn,
+                            Expanded(
+                              child: _buildRadioOption(
+                                AppStrings.no,
+                                'No',
+                                controller.walkInInterview.value,
+                                controller.setWalkIn,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                     SizedBox(
@@ -542,35 +546,52 @@ class _CreateJobPostStep3State extends State<CreateJobPostStep3> {
                       fontWeight: FontWeight.w500,
                     ),
                     const SizedBox(height: 8),
-                    Wrap(
-                      alignment: WrapAlignment.start,
-                      children: [
-                        _buildCommunicationRadioOption(
-                          AppStrings.chat,
-                          'chat',
-                          controller.communicationPreferences,
-                          controller.setCommunicationPreference,
+                    Obx(() {
+                      String? activeKey;
+                      for (final e in controller.communicationPreferences.entries) {
+                        if (e.value == true) {
+                          activeKey = e.key;
+                          break;
+                        }
+                      }
+                      return RadioGroup<String>(
+                        groupValue: activeKey,
+                        onChanged: (val) {
+                          if (val != null) {
+                            controller.setCommunicationPreference(val);
+                          }
+                        },
+                        child: Wrap(
+                          alignment: WrapAlignment.start,
+                          children: [
+                            _buildCommunicationRadioOption(
+                              AppStrings.chat,
+                              'chat',
+                              controller.communicationPreferences,
+                              controller.setCommunicationPreference,
+                            ),
+                            _buildCommunicationRadioOption(
+                              AppStrings.call,
+                              'call',
+                              controller.communicationPreferences,
+                              controller.setCommunicationPreference,
+                            ),
+                            _buildCommunicationRadioOption(
+                              AppStrings.both,
+                              'both',
+                              controller.communicationPreferences,
+                              controller.setCommunicationPreference,
+                            ),
+                            _buildCommunicationRadioOption(
+                              AppStrings.weContactCandidate,
+                              'weContact',
+                              controller.communicationPreferences,
+                              controller.setCommunicationPreference,
+                            ),
+                          ],
                         ),
-                        _buildCommunicationRadioOption(
-                          AppStrings.call,
-                          'call',
-                          controller.communicationPreferences,
-                          controller.setCommunicationPreference,
-                        ),
-                        _buildCommunicationRadioOption(
-                          AppStrings.both,
-                          'both',
-                          controller.communicationPreferences,
-                          controller.setCommunicationPreference,
-                        ),
-                        _buildCommunicationRadioOption(
-                          AppStrings.weContactCandidate,
-                          'weContact',
-                          controller.communicationPreferences,
-                          controller.setCommunicationPreference,
-                        ),
-                      ],
-                    ),
+                      );
+                    }),
                   ],
                 ),
               ),
@@ -690,8 +711,6 @@ class _CreateJobPostStep3State extends State<CreateJobPostStep3> {
           ),
           child: Radio<String>(
             value: value,
-            groupValue: groupValue,
-            onChanged: onChanged,
             activeColor: AppColors.primaryColor,
             materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
           ),
@@ -713,8 +732,7 @@ class _CreateJobPostStep3State extends State<CreateJobPostStep3> {
     Function(String) onChanged,
   ) {
     return Obx(() {
-      bool isSelected = preferences[key] == true;
-
+      preferences[key]; // observe for reactivity
       return Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -726,10 +744,6 @@ class _CreateJobPostStep3State extends State<CreateJobPostStep3> {
             ),
             child: Radio<String>(
               value: key,
-              groupValue: isSelected ? value : null,
-              onChanged: (val) {
-                onChanged(key);
-              },
               activeColor: AppColors.primaryColor,
               materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),

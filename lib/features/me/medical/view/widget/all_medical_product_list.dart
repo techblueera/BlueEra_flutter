@@ -151,7 +151,7 @@ class AllMedicalProductList extends StatelessWidget {
                             width: 30,
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(30),
-                              color: AppColors.black.withOpacity(0.4),
+                              color: AppColors.black.withValues(alpha: 0.4),
                             ),
                             alignment: Alignment.center,
                             child: Container(

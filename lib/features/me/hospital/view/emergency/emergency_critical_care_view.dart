@@ -119,7 +119,7 @@ class _EmergencyCriticalCareViewState extends State<EmergencyCriticalCareView> {
           _isExpanded ? services : services.take(_maxVisibleItems).toList();
 
       return CommonCardWidget(
-        bgColor: const Color(0xff0085FE).withOpacity(0.08),
+        bgColor: const Color(0xff0085FE).withValues(alpha: 0.08),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

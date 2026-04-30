@@ -1,7 +1,6 @@
 import 'package:BlueEra/features/personal/emergency/repo/emergency_service_repo.dart';
 import 'package:get/get.dart';
 import '../model/emergency_profile_model.dart';
-import '../repo/emergency_profile_repo.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';

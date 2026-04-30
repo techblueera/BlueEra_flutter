@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
@@ -696,37 +695,36 @@ class _AddServicesScreenState extends State<AddServicesScreenNew> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             const CustomText(AppStrings.timing, fontWeight: FontWeight.w500),
-            Obx(() => Row(
-                  children: [
-                    SizedBox(
-                      width: 100,
-                      child: RadioListTile<bool>(
-                        contentPadding: EdgeInsets.zero,
-                        dense: true,
-                        visualDensity:
-                            const VisualDensity(horizontal: -4, vertical: -4),
-                        value: false,
-                        groupValue: addServiceController.isSpecial.value,
-                        onChanged: (val) =>
-                            addServiceController.isSpecial.value = val ?? false,
-                        title: const CustomText(AppStrings.defaultTiming, fontSize: 12),
+            Obx(() => RadioGroup<bool>(
+                  groupValue: addServiceController.isSpecial.value,
+                  onChanged: (val) =>
+                      addServiceController.isSpecial.value = val ?? false,
+                  child: Row(
+                    children: [
+                      SizedBox(
+                        width: 100,
+                        child: RadioListTile<bool>(
+                          contentPadding: EdgeInsets.zero,
+                          dense: true,
+                          visualDensity:
+                              const VisualDensity(horizontal: -4, vertical: -4),
+                          value: false,
+                          title: const CustomText(AppStrings.defaultTiming, fontSize: 12),
+                        ),
                       ),
-                    ),
-                    SizedBox(
-                      width: 100,
-                      child: RadioListTile<bool>(
-                        contentPadding: EdgeInsets.zero,
-                        dense: true,
-                        visualDensity:
-                            const VisualDensity(horizontal: -4, vertical: -4),
-                        value: true,
-                        groupValue: addServiceController.isSpecial.value,
-                        onChanged: (val) =>
-                            addServiceController.isSpecial.value = val ?? true,
-                        title: const CustomText(AppStrings.specialTiming, fontSize: 12),
+                      SizedBox(
+                        width: 100,
+                        child: RadioListTile<bool>(
+                          contentPadding: EdgeInsets.zero,
+                          dense: true,
+                          visualDensity:
+                              const VisualDensity(horizontal: -4, vertical: -4),
+                          value: true,
+                          title: const CustomText(AppStrings.specialTiming, fontSize: 12),
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ))
           ],
         ),
@@ -802,38 +800,37 @@ class _AddServicesScreenState extends State<AddServicesScreenNew> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const CustomText(AppStrings.price, fontWeight: FontWeight.w500),
-              Row(
-                children: [
-                  SizedBox(
-                    width: 90,
-                    child: RadioListTile<bool>(
-                      contentPadding: EdgeInsets.zero,
-                      visualDensity:
-                          const VisualDensity(horizontal: -4, vertical: -4),
-                      value: false,
-                      groupValue: addServiceController.isRange.value,
-                      onChanged: (val) =>
-                          addServiceController.isRange.value = val ?? false,
-                      title: CustomText(
-                        AppStrings.fixedPrice,
-                        fontSize: 12,
+              RadioGroup<bool>(
+                groupValue: addServiceController.isRange.value,
+                onChanged: (val) =>
+                    addServiceController.isRange.value = val ?? false,
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: 90,
+                      child: RadioListTile<bool>(
+                        contentPadding: EdgeInsets.zero,
+                        visualDensity:
+                            const VisualDensity(horizontal: -4, vertical: -4),
+                        value: false,
+                        title: CustomText(
+                          AppStrings.fixedPrice,
+                          fontSize: 12,
+                        ),
                       ),
                     ),
-                  ),
-                  SizedBox(
-                    width: 90,
-                    child: RadioListTile<bool>(
-                      contentPadding: EdgeInsets.zero,
-                      visualDensity:
-                          const VisualDensity(horizontal: -4, vertical: -4),
-                      value: true,
-                      groupValue: addServiceController.isRange.value,
-                      onChanged: (val) =>
-                          addServiceController.isRange.value = val ?? true,
-                      title: CustomText(AppStrings.rangePrice, fontSize: 12),
+                    SizedBox(
+                      width: 90,
+                      child: RadioListTile<bool>(
+                        contentPadding: EdgeInsets.zero,
+                        visualDensity:
+                            const VisualDensity(horizontal: -4, vertical: -4),
+                        value: true,
+                        title: CustomText(AppStrings.rangePrice, fontSize: 12),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ],
           ),
@@ -1321,49 +1318,45 @@ void showDiscountCouponDialog(BuildContext context) {
                             AppStrings.totalOff,
                             fontWeight: FontWeight.w500,
                           ),
-                          Row(
-                            children: [
-                              Row(
-                                children: [
-                                  Radio<String>(
-                                    value: "rupees",
-                                    groupValue: selectedType,
-                                    onChanged: (val) {
-                                      setState(() {
-                                        selectedType = val!;
-                                      });
-                                    },
-                                    visualDensity: const VisualDensity(
-                                        horizontal: -4, vertical: -4),
-                                  ),
-                                  const CustomText(
-                                    AppStrings.inRupees,
-                                    fontSize: 12,
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(width: 8),
-                              Row(
-                                children: [
-                                  Radio<String>(
-                                    value: "percentage",
-                                    groupValue: selectedType,
-                                    onChanged: (val) {
-                                      setState(() {
-                                        selectedType = val!;
-                                      });
-                                    },
-                                    visualDensity: const VisualDensity(
-                                        horizontal: -4, vertical: -4),
-                                  ),
-                                  const CustomText(
-                                    AppStrings.inPercentage,
-                                    fontSize: 12,
-                                  ),
-                                ],
-                              ),
-                            ],
-                          )
+                          RadioGroup<String>(
+                            groupValue: selectedType,
+                            onChanged: (val) {
+                              setState(() {
+                                selectedType = val!;
+                              });
+                            },
+                            child: Row(
+                              children: [
+                                Row(
+                                  children: [
+                                    Radio<String>(
+                                      value: "rupees",
+                                      visualDensity: const VisualDensity(
+                                          horizontal: -4, vertical: -4),
+                                    ),
+                                    const CustomText(
+                                      AppStrings.inRupees,
+                                      fontSize: 12,
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(width: 8),
+                                Row(
+                                  children: [
+                                    Radio<String>(
+                                      value: "percentage",
+                                      visualDensity: const VisualDensity(
+                                          horizontal: -4, vertical: -4),
+                                    ),
+                                    const CustomText(
+                                      AppStrings.inPercentage,
+                                      fontSize: 12,
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
                         ],
                       ),
                       const SizedBox(height: 8),

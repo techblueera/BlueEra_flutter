@@ -2,7 +2,6 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:flutter/material.dart';
 
-import '../../widgets/common_box_shadow.dart';
 
 class CustomFormCard extends StatelessWidget {
   final Widget? child;

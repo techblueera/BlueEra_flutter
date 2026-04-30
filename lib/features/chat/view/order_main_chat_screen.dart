@@ -3,11 +3,8 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/chat/view/business_chat/business_chat_list.dart';
 import 'package:BlueEra/features/chat/view/orders_chat/orders_chat_list.dart';
-import 'package:BlueEra/features/chat/view/personal_chat/personal_chat_list.dart';
 import 'package:BlueEra/features/chat/auth/controller/call_controller.dart';
-import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/widgets/bottom_nav_hide_on_scroll.dart';
-import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
@@ -18,7 +15,6 @@ import '../../../../widgets/common_search_bar.dart';
 import '../../../core/constants/getx_utils.dart';
 import '../../../core/constants/shared_preference_utils.dart';
 import '../../../core/constants/snackbar_helper.dart';
-import '../../../core/routes/route_helper.dart';
 import '../../../widgets/custom_text_cm.dart';
 import '../../common/bottomNavigationBar/controller/bottom_bar_controller.dart';
 import '../auth/controller/add_chat_symbol_controller.dart';
@@ -27,16 +23,8 @@ import '../auth/controller/chat_pin_archive_controller.dart';
 import '../auth/model/GetChatListModel.dart';
 import '../auth/controller/chat_theme_controller.dart';
 import '../auth/controller/chat_view_controller.dart';
-import 'add_symbol/add_symbol_screen.dart';
-import 'find_contacts_with_service/find_contact_with_service.dart';
 import 'flag_chat/order_flagged_chats_screen.dart';
 import 'widget/chat_flag_bottom_sheet.dart';
-import 'chat_theme/chat_background_screen.dart';
-import 'contacts/view/contact_list_page.dart';
-import 'symbol_view/symbol_view_images.dart';
-import 'wallet_chat/wallet_chat_screen.dart';
-import '../../../features/personal/personal_profile/view/manage_notification/notification.dart';
-import 'reminder_chat/reminder_todo_screen.dart';
 
 class OrderMainChatScreen extends StatefulWidget {
   const OrderMainChatScreen({
@@ -559,8 +547,8 @@ class _OrderMainChatScreenState extends State<OrderMainChatScreen>
         //       //   end: Alignment.topCenter,
         //       //   transform: GradientRotation(10),
         //       //   colors: [
-        //       //  AppColors.primaryColor.withOpacity(0.1),
-        //       //     AppColors.primaryColor.withOpacity(0.05),
+        //       //  AppColors.primaryColor.withValues(alpha: 0.1),
+        //       //     AppColors.primaryColor.withValues(alpha: 0.05),
         //       //   ],
         //       // ),
         //         borderRadius: BorderRadius.circular(10),

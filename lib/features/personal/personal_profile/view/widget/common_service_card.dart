@@ -4,7 +4,6 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
-import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 
@@ -73,7 +72,7 @@ class CommonServiceCard<T> extends StatelessWidget {
                 flex: 3,
                 child: Container(
                   decoration: BoxDecoration(
-                    // color: Colors.blue.withOpacity(0.05), // Light background like image
+                    // color: Colors.blue.withValues(alpha: 0.05), // Light background like image
                     borderRadius: BorderRadius.circular(12),
                   ),
                   // padding: EdgeInsets.all(SizeConfig.size10),

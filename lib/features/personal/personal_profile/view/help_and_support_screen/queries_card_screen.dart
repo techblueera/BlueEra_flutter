@@ -142,7 +142,7 @@ class _QueriesCardState extends State<QueriesCard> {
                   Expanded(
                     // width: 300,
                     child: CommonSearchBar(
-                      backgroundColor: AppColors.whiteE5.withOpacity(0.5),
+                      backgroundColor: AppColors.whiteE5.withValues(alpha: 0.5),
                       controller: _searchController,
                       onSearchTap: () {
                         FocusScope.of(context).unfocus();

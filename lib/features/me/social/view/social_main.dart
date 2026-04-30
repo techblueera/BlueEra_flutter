@@ -14,7 +14,6 @@ import 'package:BlueEra/core/services/multipart_image_service.dart';
 import 'package:BlueEra/widgets/bottom_nav_hide_on_scroll.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/features/business/widgets/business_card_ui.dart';
-import 'package:BlueEra/features/common/auth/controller/ai_suggestion_controller.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import 'package:BlueEra/features/common/reel/view/channel/follower_following_screen.dart';
 import 'package:BlueEra/features/common/visiting_card/view/all_personal_visiting_cards.dart';
@@ -27,9 +26,6 @@ import 'package:BlueEra/features/personal/personal_profile/view/widget/edit_prof
 import 'package:BlueEra/features/personal/personal_profile/view/widget/profile_designation_bottom_sheet.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/common_circular_profile_image.dart';
-import 'package:BlueEra/widgets/commom_textfield.dart';
-import 'package:BlueEra/widgets/common_location_search_field.dart';
-import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -701,185 +697,6 @@ class _SocialMainScreenState extends State<SocialMainScreen>
     }
   }
 
-  // ============================================================
-  // BIO EDIT BOTTOM SHEET
-  // ============================================================
-
-  void _showBioEditSheet(BuildContext context, String currentBio) {
-    final bioController = TextEditingController(text: currentBio);
-    final locationController = TextEditingController(
-        text: _viewCtrl.personalProfileDetails.value.user?.address ?? '');
-    final aiController = Get.put(AiSuggestionController());
-    final user = _viewCtrl.personalProfileDetails.value.user;
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) {
-        return StatefulBuilder(
-          builder: (ctx, setSheetState) {
-            return GestureDetector(
-              onTap: () => FocusScope.of(ctx).unfocus(),
-              child: Padding(
-                padding: EdgeInsets.only(
-                  bottom: MediaQuery.of(ctx).viewInsets.bottom,
-                ),
-                child: Container(
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(20),
-                      topRight: Radius.circular(20),
-                    ),
-                  ),
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Drag handle
-                      Center(
-                        child: Container(
-                          width: 40,
-                          height: 4,
-                          decoration: BoxDecoration(
-                            color: Colors.grey[300],
-                            borderRadius: BorderRadius.circular(2),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          CustomText(
-                            "Update Bio",
-                            fontSize: SizeConfig.large18,
-                            fontWeight: FontWeight.w600,
-                          ),
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Obx(() => aiController.isLoading.value
-                                  ? const SizedBox(
-                                      height: 25,
-                                      width: 25,
-                                      child: CircularProgressIndicator(
-                                          strokeWidth: 2),
-                                    )
-                                  : InkWell(
-                                      onTap: () async {
-                                        await aiController.fetchSuggestions(
-                                          bodyRequest: {
-                                            ApiKeys.profession:
-                                                user?.profession ?? '',
-                                            ApiKeys.designation:
-                                                user?.designation ?? '',
-                                            ApiKeys.date_of_birth_Obj: {
-                                              ApiKeys.year:
-                                                  user?.dateOfBirth?.year,
-                                              ApiKeys.month:
-                                                  user?.dateOfBirth?.month,
-                                              ApiKeys.date:
-                                                  user?.dateOfBirth?.date,
-                                            },
-                                            ApiKeys.gender: user?.gender,
-                                          },
-                                          apiType: "bio",
-                                          targetController: bioController,
-                                          onSaved: () =>
-                                              setSheetState(() {}),
-                                        );
-                                      },
-                                      child: LocalAssets(
-                                        height: 25,
-                                        width: 25,
-                                        imagePath:
-                                            AppIconAssets.ai_generative,
-                                        imgColor: AppColors.primaryColor,
-                                      ),
-                                    )),
-                              const SizedBox(width: 4),
-                              const CloseButton(),
-                            ],
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      CommonTextField(
-                        textEditController: bioController,
-                        title: "",
-                        hintText: "Write something about yourself...",
-                        maxLine: 5,
-                        maxLength: 900,
-                        isValidate: false,
-                        isCounterVisible: true,
-                        keyBoardType: TextInputType.multiline,
-                        textInputAction: TextInputAction.newline,
-                      ),
-                      const SizedBox(height: 14),
-                      CustomText(
-                        AppStrings.location.tr,
-                        fontSize: SizeConfig.medium,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      const SizedBox(height: 6),
-                      CommonLocationSearchField(
-                        controller: locationController,
-                        hintText: "E.g. Ranchi, Jharkhand...",
-                        isShowLeading: false,
-                        title: "",
-                        onSelected: (placeId, lat, lng, address) {
-                          locationController.text = address;
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                      CustomBtn(
-                        radius: 10,
-                        bgColor: AppColors.primaryColor,
-                        title: AppStrings.save.tr,
-                        onTap: () async {
-                          final newBio = bioController.text.trim();
-                          final newAddress = locationController.text.trim();
-                          final currentAddress = user?.address ?? '';
-
-                          if (newBio == currentBio &&
-                              newAddress == currentAddress) {
-                            Navigator.pop(ctx);
-                            return;
-                          }
-
-                          final params = <String, dynamic>{};
-                          if (newBio != currentBio) {
-                            params[ApiKeys.bio] = newBio;
-                          }
-                          if (newAddress != currentAddress) {
-                            params[ApiKeys.address] = newAddress;
-                          }
-
-                          if (params.isNotEmpty) {
-                            await _personalCtrl.updateUserProfileDetails(
-                              params: params,
-                              isFromProfileOnly: true,
-                            );
-                            _ctrl.fetchProfile();
-                            _viewCtrl.viewPersonalProfile();
-                          }
-                          if (ctx.mounted) Navigator.pop(ctx);
-                        },
-                      ),
-                      SizedBox(height: MediaQuery.of(ctx).padding.bottom),
-                    ],
-                  ),
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
 
   // ============================================================
   // COVER IMAGE EDIT

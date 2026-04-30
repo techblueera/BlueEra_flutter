@@ -140,7 +140,7 @@ Widget _helpServiceCard(String value1, value2, GestureTapCallback? onTap) {
           Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(20),
-              color: AppColors.whiteE5.withOpacity(0.4)
+              color: AppColors.whiteE5.withValues(alpha: 0.4)
             ),
             padding: EdgeInsets.symmetric(vertical: 4,horizontal: 8),
             child: Center(

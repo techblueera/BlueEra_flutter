@@ -32,9 +32,7 @@ class CustomRadioOption extends StatelessWidget {
           ),
           Radio<String>(
             value: value,
-            groupValue: groupValue,
             activeColor: AppColors.primaryColor,
-            onChanged: onChanged,
           ),
         ],
       ),

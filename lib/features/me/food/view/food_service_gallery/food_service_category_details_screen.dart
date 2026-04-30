@@ -87,7 +87,7 @@ class FoodServiceCategoryDetailsScreen extends StatelessWidget {
                     },
                     child: CircleAvatar(
                       radius: 14,
-                      backgroundColor: Colors.red.withOpacity(0.8),
+                      backgroundColor: Colors.red.withValues(alpha: 0.8),
                       child: Icon(Icons.delete, color: Colors.white, size: 16),
                     ),
                   ),

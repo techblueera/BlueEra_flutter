@@ -18,7 +18,6 @@ import 'package:BlueEra/features/personal/auth/controller/view_personal_details_
 import 'package:BlueEra/features/personal/personal_profile/controller/email_verification_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/languge_list_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/my_documents/controller/my_documents_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/my_documents/widget/common_document_bottom_sheet.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/my_documents/widget/vehicle_document_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/controller/vehicle_rental_service_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/widget/add_highlights_widget.dart';
@@ -544,46 +543,44 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
                             fontWeight: FontWeight.w400,
                             color: AppColors.mainTextColor,
                           ),
-                          Row(
-                            children: [
-                              Row(
-                                children: [
-                                  Radio<LoadCapacity>(
-                                    value: LoadCapacity.KG,
-                                    groupValue: controller.selectedLoadCapacity.value,
-                                    onChanged: (value) {
-                                      if(value!=null) controller.selectedLoadCapacity.value = value;
-                                    },
-                                    activeColor: AppColors.primaryColor,
-                                  ),
-                                  CustomText(
-                                    AppStrings.kg,
-                                    color: AppColors.secondaryTextColor,
-                                    fontWeight: FontWeight.w400,
-                                    fontSize: SizeConfig.small,
-                                  ),
-                                ],
-                              ),
-                              SizedBox(width: SizeConfig.size10), // spacing between options
-                              Row(
-                                children: [
-                                  Radio<LoadCapacity>(
-                                    value: LoadCapacity.TON,
-                                    groupValue: controller.selectedLoadCapacity.value,
-                                    onChanged: (value) {
-                                      if(value!=null) controller.selectedLoadCapacity.value = value;
-                                    },
-                                    activeColor: AppColors.primaryColor,
-                                  ),
-                                  CustomText(
-                                    AppStrings.ton,
-                                    color: AppColors.secondaryTextColor,
-                                    fontWeight: FontWeight.w400,
-                                    fontSize: SizeConfig.small,
-                                  ),
-                                ],
-                              ),
-                            ],
+                          RadioGroup<LoadCapacity>(
+                            groupValue: controller.selectedLoadCapacity.value,
+                            onChanged: (value) {
+                              if(value!=null) controller.selectedLoadCapacity.value = value;
+                            },
+                            child: Row(
+                              children: [
+                                Row(
+                                  children: [
+                                    Radio<LoadCapacity>(
+                                      value: LoadCapacity.KG,
+                                      activeColor: AppColors.primaryColor,
+                                    ),
+                                    CustomText(
+                                      AppStrings.kg,
+                                      color: AppColors.secondaryTextColor,
+                                      fontWeight: FontWeight.w400,
+                                      fontSize: SizeConfig.small,
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(width: SizeConfig.size10), // spacing between options
+                                Row(
+                                  children: [
+                                    Radio<LoadCapacity>(
+                                      value: LoadCapacity.TON,
+                                      activeColor: AppColors.primaryColor,
+                                    ),
+                                    CustomText(
+                                      AppStrings.ton,
+                                      color: AppColors.secondaryTextColor,
+                                      fontWeight: FontWeight.w400,
+                                      fontSize: SizeConfig.small,
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
                           )
                         ]
                       ),
@@ -1106,56 +1103,5 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
     );
   }
 
-  Widget _buildAddButton({
-    required String title,
-    required VoidCallback onTap,
-    required bool status
-  }) {
-
-    // bool isUploadable = status == DocStatus.notUploaded;
-
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Expanded(
-          child: TextButton(
-            onPressed: status
-                ? null
-                : onTap,
-            style: TextButton.styleFrom(
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                (status)
-                    ? LocalAssets(
-                  imagePath: AppIconAssets.green_tick_icon,
-                  height: 20,
-                  width: 20,
-                ) : Icon(
-                  CupertinoIcons.add,
-                  color: AppColors.primaryColor,
-                  size: 20,
-                ),
-                SizedBox(width: SizeConfig.size8),
-                Flexible(
-                  child: CustomText(
-                    title,
-                    color: status
-                        ? AppColors.secondaryTextColor
-                        : AppColors.primaryColor,
-                    fontWeight: FontWeight.w400,
-                    fontSize: SizeConfig.large,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-
-  }
 
 }

@@ -1,4 +1,3 @@
-import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
@@ -20,7 +19,6 @@ import 'package:BlueEra/features/common/reel/view/channel/follower_following_scr
 import 'package:BlueEra/features/common/visiting_card/view/all_personal_visiting_cards.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/account_setting_screen/account_settings_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/edit_profile_bottom_sheet.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/profile_designation_bottom_sheet.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/controller/earn_service_controller.dart';
@@ -450,42 +448,6 @@ class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
     );
   }
 
-  Widget _buildGoLiveWidget() {
-    if (!Platform.isAndroid) return const SizedBox.shrink();
-
-    return Builder(builder: (_) {
-      final statusData = serviceProviderStatusGlobal.toUpperCase();
-      final isOpen = statusData == AppConstants.OPEN.toUpperCase();
-      if (_viewCtrl.shopStatusOpenClose.value != isOpen) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _viewCtrl.shopStatusOpenClose.value = isOpen;
-        });
-      }
-      return Container(
-        height: SizeConfig.size36,
-        decoration: BoxDecoration(
-          border: Border.all(color: AppColors.primaryColor),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SizedBox(width: SizeConfig.size8),
-            CustomText(
-              AppStrings.goLive,
-              fontSize: SizeConfig.small,
-              color: AppColors.primaryColor,
-              fontWeight: FontWeight.w600,
-            ),
-            buildToggleSwitchChip(
-              value: _viewCtrl.shopStatusOpenClose,
-              onChanged: _viewCtrl.toggleShopStatus,
-            ),
-          ],
-        ),
-      );
-    });
-  }
 
   Widget _infoRow(IconData icon, String text) {
     return Row(

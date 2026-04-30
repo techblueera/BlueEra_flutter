@@ -92,8 +92,8 @@ class MedicalLevel2CategoryScreen extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            AppColors.primaryColor.withOpacity(0.95),
-            AppColors.primaryColor.withOpacity(0.75),
+            AppColors.primaryColor.withValues(alpha: 0.95),
+            AppColors.primaryColor.withValues(alpha: 0.75),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -101,7 +101,7 @@ class MedicalLevel2CategoryScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primaryColor.withOpacity(0.18),
+            color: AppColors.primaryColor.withValues(alpha: 0.18),
             blurRadius: 14,
             offset: const Offset(0, 6),
           ),
@@ -113,7 +113,7 @@ class MedicalLevel2CategoryScreen extends StatelessWidget {
             width: 46,
             height: 46,
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.22),
+              color: Colors.white.withValues(alpha: 0.22),
               borderRadius: BorderRadius.circular(12),
             ),
             child: const Icon(
@@ -140,7 +140,7 @@ class MedicalLevel2CategoryScreen extends StatelessWidget {
                   '${level2Categories.length} ${AppStrings.medicalCategoriesAvailableSuffix.tr}',
                   fontSize: SizeConfig.small,
                   fontWeight: FontWeight.w400,
-                  color: Colors.white.withOpacity(0.9),
+                  color: Colors.white.withValues(alpha: 0.9),
                 ),
               ],
             ),
@@ -158,13 +158,13 @@ class MedicalLevel2CategoryScreen extends StatelessWidget {
           Container(
             padding: EdgeInsets.all(SizeConfig.size20),
             decoration: BoxDecoration(
-              color: AppColors.primaryColor.withOpacity(0.08),
+              color: AppColors.primaryColor.withValues(alpha: 0.08),
               shape: BoxShape.circle,
             ),
             child: Icon(
               Icons.inbox_rounded,
               size: 56,
-              color: AppColors.primaryColor.withOpacity(0.7),
+              color: AppColors.primaryColor.withValues(alpha: 0.7),
             ),
           ),
           SizedBox(height: SizeConfig.size16),

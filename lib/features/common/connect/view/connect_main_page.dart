@@ -32,7 +32,6 @@ import 'package:BlueEra/features/common/channel_feed_view/channel_feed_screen.da
 import 'package:BlueEra/features/common/feed/view/home_feed_screen_new.dart';
 import 'package:BlueEra/features/common/home/controller/home_screen_controller.dart';
 import 'package:BlueEra/features/common/home/controller/symbol_feed_controller.dart';
-import 'package:BlueEra/features/common/ott/view/ott_screen.dart';
 import 'package:BlueEra/widgets/bottom_nav_hide_on_scroll.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';

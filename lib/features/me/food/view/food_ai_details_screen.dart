@@ -85,8 +85,6 @@ class _FoodAiDetailScreenState extends State<FoodAiDetailScreen> {
       body: LayoutBuilder(
         builder: (context, constraints) {
           // Responsive horizontal padding
-          double horizontalPadding =
-              constraints.maxWidth > 600 ? 100 : 16;
 
           return SingleChildScrollView(
             padding: EdgeInsets.symmetric(

@@ -706,46 +706,41 @@ class _SubmitFoodProductPageState extends State<SubmitFoodProductPage> {
                         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             CustomText(AppStrings.price),
-                            Row(
-                              children: [
-                                Row(
-                                  children: [
-                                    Obx(() {
-                                      return Radio(
+                            Obx(() => RadioGroup<bool>(
+                              groupValue: controller.isSingleProduct.value,
+                              onChanged: (v) {
+                                if (v != null) {
+                                  setState(() =>
+                                      controller.isSingleProduct.value = v);
+                                }
+                              },
+                              child: Row(
+                                children: [
+                                  Row(
+                                    children: [
+                                      Radio<bool>(
                                         visualDensity: const VisualDensity(
                                             horizontal: -4, vertical: -4),
                                         value: true,
-                                        groupValue: controller.isSingleProduct
-                                            .value,
-                                        onChanged: (v) =>
-                                        controller.isSingleProduct.value = true,
-                                      );
-                                    }),
-                                    const CustomText(
-                                      AppStrings.singleProduct, fontSize: 12,)
-                                  ],
-                                ),
-                                const SizedBox(width: 16),
-                                Row(
-                                  children: [
-                                    Obx(() {
-                                      return Radio(
+                                      ),
+                                      const CustomText(
+                                        AppStrings.singleProduct, fontSize: 12,)
+                                    ],
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Row(
+                                    children: [
+                                      Radio<bool>(
                                         visualDensity: const VisualDensity(
                                             horizontal: -4, vertical: -4),
                                         value: false,
-                                        groupValue: controller.isSingleProduct
-                                            .value,
-                                        onChanged: (v) =>
-                                            setState(() =>
-                                            controller.isSingleProduct.value =
-                                            false),
-                                      );
-                                    }),
-                                    const CustomText(AppStrings.multipleType, fontSize: 12,)
-                                  ],
-                                ),
-                              ],
-                            ),
+                                      ),
+                                      const CustomText(AppStrings.multipleType, fontSize: 12,)
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            )),
                           ],
                         ),
                         SizedBox(height: SizeConfig.size10,),

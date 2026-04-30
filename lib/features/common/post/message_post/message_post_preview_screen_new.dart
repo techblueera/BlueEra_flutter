@@ -629,7 +629,7 @@ class _MessagePostPreviewScreenNewState
                                         bgColor: isUpdateEnabled
                                             ? AppColors.primaryColor
                                             : AppColors.primaryColor
-                                                .withOpacity(0.5),
+                                                .withValues(alpha: 0.5),
                                       );
                                     }),
                                   ),

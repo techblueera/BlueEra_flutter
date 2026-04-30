@@ -1304,11 +1304,6 @@ class _OrderCardState extends State<OrderCard> {
         widget.selectedPickUp == PickUpTab.orders;
   }
 
-  bool _shouldShowContactNumber() {
-    return widget.selectedPickUp == PickUpTab.newOrder ||
-        widget.selectedPickUp == PickUpTab.onGoing ||
-        widget.selectedPickUp == PickUpTab.orders;
-  }
 
   // ============================================
   void _handleCancelOrder(DeliverPartnerOrdersController controller) {

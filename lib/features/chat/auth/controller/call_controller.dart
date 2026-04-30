@@ -6,7 +6,6 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:BlueEra/widgets/global_message_service.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 
 import 'package:flutter_callkit_incoming/entities/android_params.dart';
 import 'package:flutter_callkit_incoming/entities/call_kit_params.dart';

@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
-import 'package:BlueEra/features/common/food/model/food_category_res_model.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
 FoodHomeResModel newFoodHomeResModelFromJson(String str) => FoodHomeResModel.fromJson(json.decode(str));
 String newFoodHomeResModelToJson(FoodHomeResModel data) => json.encode(data.toJson());

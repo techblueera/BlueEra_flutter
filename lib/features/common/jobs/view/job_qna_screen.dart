@@ -260,21 +260,25 @@ class _JobQNAScreenState extends State<JobQNAScreen> {
       String? groupValue,
       Function(String?) onChanged,
       ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: EdgeInsets.only(left: SizeConfig.size8),
-          child: titleWidget(title),
-        ),
-        SizedBox(height: SizeConfig.size12),
-        ...options.map((option) => RadioBtn(option, groupValue, onChanged)).toList(),
-      ],
+    return RadioGroup<String>(
+      groupValue: groupValue,
+      onChanged: onChanged,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: EdgeInsets.only(left: SizeConfig.size8),
+            child: titleWidget(title),
+          ),
+          SizedBox(height: SizeConfig.size12),
+          ...options.map((option) => RadioBtn(option)).toList(),
+        ],
+      ),
     );
   }
 
 
-  Theme RadioBtn(String option, String? groupValue, Function(String?) onChanged) {
+  Theme RadioBtn(String option) {
     return Theme(
       data: ThemeData(
       ),
@@ -284,8 +288,6 @@ class _JobQNAScreenState extends State<JobQNAScreen> {
         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
         title: CustomText(option, fontSize: SizeConfig.small, color: AppColors.grey83),
         value: option,
-        groupValue: groupValue,
-        onChanged: onChanged,
         dense: true,
         activeColor: AppColors.primaryColor,
       ),

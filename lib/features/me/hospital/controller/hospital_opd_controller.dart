@@ -113,7 +113,7 @@ class HospitalOpdController extends GetxController {
         "fees": int.tryParse(feesController.text.trim() == "" ? "0" : feesController.text.trim()) ?? 0,
         "imageUrl": imageUrl,
         "timing": timingController.text.trim(),
-        ApiKeys.hospitalId: hospitalIdArg ?? (await getHospitalID() ?? ""),
+        ApiKeys.hospitalId: hospitalIdArg ?? (await getHospitalID()),
       };
       if (editing == null) {
         final ResponseModel res = await _repo.create(body: body);

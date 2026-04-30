@@ -40,20 +40,30 @@ class _ChooseReelVisibilityScreenState extends State<ChooseReelVisibilityScreen>
               SizedBox(
                 height: SizeConfig.size20,
               ),
-              CustomRadioOption(
-                value: 'followers',
+              RadioGroup<String>(
                 groupValue: selectedOption,
-                title: "Your followers only",
-                onChanged: (value) => setState(() => selectedOption = value!),
-              ),
-              // SizedBox(
-              //   height: SizeConfig.size5,
-              // ),
-              CustomRadioOption(
-                value: 'close_friends',
-                groupValue: selectedOption,
-                title: "Only your close Friends",
-                onChanged: (value) => setState(() => selectedOption = value!),
+                onChanged: (value) {
+                  if (value != null) setState(() => selectedOption = value);
+                },
+                child: Column(
+                  children: [
+                    CustomRadioOption(
+                      value: 'followers',
+                      groupValue: selectedOption,
+                      title: "Your followers only",
+                      onChanged: (value) => setState(() => selectedOption = value!),
+                    ),
+                    // SizedBox(
+                    //   height: SizeConfig.size5,
+                    // ),
+                    CustomRadioOption(
+                      value: 'close_friends',
+                      groupValue: selectedOption,
+                      title: "Only your close Friends",
+                      onChanged: (value) => setState(() => selectedOption = value!),
+                    ),
+                  ],
+                ),
               ),
         
               TextButton(

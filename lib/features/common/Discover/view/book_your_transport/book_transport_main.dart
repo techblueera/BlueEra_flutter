@@ -368,9 +368,9 @@ class _BookTransportMainState extends State<BookTransportMain> {
                                         end: Alignment.bottomCenter,
                                         colors: [
                                           AppColors.primaryColor
-                                              .withOpacity(0.0),
+                                              .withValues(alpha: 0.0),
                                           AppColors.primaryColor
-                                              .withOpacity(0.2),
+                                              .withValues(alpha: 0.2),
                                         ],
                                       )
                                           : null,
@@ -593,7 +593,7 @@ class RiderCardWidget extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 10),
         decoration: BoxDecoration(
           color: isSelected
-              ? AppColors.primaryColor.withOpacity(0.05)
+              ? AppColors.primaryColor.withValues(alpha: 0.05)
               : AppColors.white,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(

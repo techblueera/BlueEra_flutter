@@ -4,7 +4,6 @@ import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
-import 'package:BlueEra/features/common/food/model/food_category_res_model.dart';
 import 'package:BlueEra/features/me/food/model/food_gen_ai_res_model.dart';
 import 'package:BlueEra/features/me/food/repo/food_repo.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';

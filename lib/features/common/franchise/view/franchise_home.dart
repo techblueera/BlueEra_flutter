@@ -13,10 +13,8 @@ import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
-import 'package:BlueEra/features/common/auth/model/personal_profession_model.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_constant.dart';
-import '../../../../core/constants/getx_utils.dart';
 import '../../../../core/constants/size_config.dart';
 import '../../../../widgets/expandable_text.dart';
 
@@ -530,8 +528,8 @@ class _FranchiseHomeState extends State<FranchiseHome> {
                   borderRadius: BorderRadius.vertical(bottom: Radius.circular(10.0)),
                   gradient: LinearGradient(
                       colors: [
-                        AppColors.black.withOpacity(0.0),
-                        AppColors.black.withOpacity(0.8),
+                        AppColors.black.withValues(alpha: 0.0),
+                        AppColors.black.withValues(alpha: 0.8),
                       ],
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter

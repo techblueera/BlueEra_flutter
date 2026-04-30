@@ -3,7 +3,6 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/me/social/controller/social_certificates_controller.dart';
 import 'package:BlueEra/features/me/social/model/social_certification_res_model.dart';
 import 'package:BlueEra/widgets/ai_description_field_screen.dart';

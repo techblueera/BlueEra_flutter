@@ -1,5 +1,4 @@
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -44,7 +43,7 @@ class _TopLeftOptionsState extends State<TopLeftOptions> {
             Container(
               padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
-                color: const Color(0xFF667EEA).withOpacity(0.08),
+                color: const Color(0xFF667EEA).withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Icon(Icons.timer_outlined,
@@ -89,7 +88,7 @@ class _TopLeftOptionsState extends State<TopLeftOptions> {
                             ? [
                                 BoxShadow(
                                   color:
-                                      const Color(0xFF667EEA).withOpacity(0.3),
+                                      const Color(0xFF667EEA).withValues(alpha: 0.3),
                                   blurRadius: 8,
                                   offset: const Offset(0, 2),
                                 ),
@@ -101,7 +100,7 @@ class _TopLeftOptionsState extends State<TopLeftOptions> {
                           "$day",
                           color: selected
                               ? Colors.white
-                              : const Color(0xFF2D3142).withOpacity(0.6),
+                              : const Color(0xFF2D3142).withValues(alpha: 0.6),
                           fontWeight: FontWeight.w700,
                           fontSize: 14,
                         ),
@@ -126,7 +125,7 @@ class _TopLeftOptionsState extends State<TopLeftOptions> {
             Container(
               padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
-                color: const Color(0xFF11998E).withOpacity(0.08),
+                color: const Color(0xFF11998E).withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Icon(Icons.visibility_rounded,
@@ -181,7 +180,7 @@ class _TopLeftOptionsState extends State<TopLeftOptions> {
                 color: const Color(0xFFF8F9FC),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: const Color(0xFF11998E).withOpacity(0.15),
+                  color: const Color(0xFF11998E).withValues(alpha: 0.15),
                 ),
               ),
               child: Column(
@@ -192,7 +191,7 @@ class _TopLeftOptionsState extends State<TopLeftOptions> {
                     children: [
                       CustomText(
                         '${c.onExceptContactSelectedList.length} ${c.onExceptContactSelectedList.length == 1 ? AppStrings.contactExcluded.tr : AppStrings.contactsExcluded.tr}',
-                        color: const Color(0xFF2D3142).withOpacity(0.6),
+                        color: const Color(0xFF2D3142).withValues(alpha: 0.6),
                         fontSize: 13,
                         fontWeight: FontWeight.w500,
                       ),
@@ -263,7 +262,7 @@ class _TopLeftOptionsState extends State<TopLeftOptions> {
               boxShadow: isSelected
                   ? [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.06),
+                        color: Colors.black.withValues(alpha: 0.06),
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                       ),
@@ -278,14 +277,14 @@ class _TopLeftOptionsState extends State<TopLeftOptions> {
                   size: 15,
                   color: isSelected
                       ? const Color(0xFF11998E)
-                      : const Color(0xFF2D3142).withOpacity(0.4),
+                      : const Color(0xFF2D3142).withValues(alpha: 0.4),
                 ),
                 const SizedBox(width: 5),
                 CustomText(
                   label,
                   color: isSelected
                       ? const Color(0xFF2D3142)
-                      : const Color(0xFF2D3142).withOpacity(0.4),
+                      : const Color(0xFF2D3142).withValues(alpha: 0.4),
                   fontSize: 12,
                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                 ),
@@ -304,7 +303,7 @@ class _TopLeftOptionsState extends State<TopLeftOptions> {
         gradient: LinearGradient(
           colors: [
             Colors.transparent,
-            const Color(0xFF2D3142).withOpacity(0.08),
+            const Color(0xFF2D3142).withValues(alpha: 0.08),
             Colors.transparent,
           ],
         ),

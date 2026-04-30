@@ -1,25 +1,14 @@
-import 'dart:io';
-import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
 import 'package:BlueEra/features/business/business_description/business_description_controller.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_bottom_sheet.dart';
-import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
-import 'package:BlueEra/features/business/widgets/business_description_card.dart';
-import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
-import 'package:BlueEra/widgets/common_box_shadow.dart';
-import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
-import 'package:croppy/croppy.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -816,189 +805,7 @@ class _BusinessProfileWidgetState extends State<BusinessProfileWidget> {
     );
   }
 
-  Widget _buildImageContainer(String? imagePath, int index,
-      bool uploadFromGallery, ViewBusinessDetailsController controller) {
-    return Stack(
-      children: [
-        GestureDetector(
-          onTap: () async {
-            if (imagePath == "") {
-              showCommonDialog(
-                  context: context,
-                  header: AppStrings.storeLivePhoto,
-                  text: AppStrings.submitStoreLivePhoto,
-                  confirmCallback: () async {
-                    Get.back();
-                  },
-                  cancelCallback: () async {
-                    Get.back();
-                    final imgStr =
-                        await SelectProfilePictureDialog.pickFromCamera(
-                      context,
-                      cropAspectRatio: CropAspectRatio(width: 3, height: 4)
-                    );
-                    if (imgStr != null) {
-                      controller.saveBusinessImages(imgStr, controller);
-                    }
-                  },
-                  confirmText: AppStrings.cancel,
-                  cancelText: AppStrings.ok);
-            } else {
-              navigatePushTo(
-                context,
-                ImageViewScreen(
-                  subTitle: '',
-                  appBarTitle: AppStrings.imageViewer,
-                  imageUrls: controller.imgLocalL3,
-                  initialIndex: index,
-                ),
-              );
-            }
-          },
-          child: Container(
-            height: SizeConfig.screenWidth * .30,
-            width: SizeConfig.screenWidth * .30,
-            margin: EdgeInsets.only(
-                right: SizeConfig.size6, bottom: 8, left: 4, top: 4),
-            decoration: BoxDecoration(
-              color: AppColors.white,
-              border: Border.all(color: AppColors.red),
-              boxShadow: [AppShadows.textFieldShadow],
-              borderRadius: BorderRadius.circular(10),
-              image: imagePath != null
-                  ? DecorationImage(
-                      image: imagePath.startsWith("http")
-                          ? NetworkImage(imagePath) as ImageProvider
-                          : FileImage(File(imagePath)),
-                      fit: BoxFit.cover,
-                    )
-                  : null,
-            ),
-            child: imagePath == ""
-                ? Center(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        LocalAssets(
-                            imagePath: AppIconAssets.profile_camera_pic),
-                        SizedBox(
-                          height: SizeConfig.size5,
-                        ),
-                        CustomText(
-                          AppStrings.addLiveStorePhoto,
-                          textAlign: TextAlign.center,
-                          fontSize: SizeConfig.extraSmall,
-                          decoration: TextDecoration.underline,
-                        )
-                      ],
-                    ),
-                  )
-                : null,
-          ),
-        ),
-        if (imagePath != "")
-          Positioned(
-            top: 8,
-            right: 18,
-            child: Container(
-              margin: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
-              decoration: BoxDecoration(
-                  color: Colors.white, borderRadius: BorderRadius.circular(50)),
-              child: GestureDetector(
-                onTap: () {
-                  Map<String, dynamic> data = {ApiKeys.image_url: imagePath};
-                  controller.deleteLiveStoreImage(data);
-                },
-                child: const Icon(
-                  Icons.close,
-                  color: Colors.grey,
-                  size: 20,
-                ),
-              ),
-            ),
-          ),
-      ],
-    );
-  }
 
-  Widget _APIbuildImageContainer(
-      String? imagePath,
-      int index,
-      bool uploadFromGallery,
-      int indexDelete,
-      ThemeData theme,
-      ViewBusinessDetailsController controller) {
-    return Stack(
-      children: [
-        InkWell(
-          onTap: () {
-            if (imagePath != null) {
-              navigatePushTo(
-                context,
-                ImageViewScreen(
-                  subTitle: '',
-                  appBarTitle: AppStrings.imageViewer,
-                  imageUrls: [imagePath],
-                  initialIndex: index,
-                ),
-              );
-            }
-          },
-          child: Container(
-            height: SizeConfig.screenWidth * .30,
-            width: SizeConfig.screenWidth * .30,
-            margin: EdgeInsets.only(right: SizeConfig.size10),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.surface,
-              borderRadius: BorderRadius.circular(10),
-              boxShadow: [AppShadows.textFieldShadow],
-              image: imagePath != null
-                  ? DecorationImage(
-                      image: imagePath.startsWith("http")
-                          ? NetworkImage(imagePath) as ImageProvider
-                          : FileImage(File(imagePath)),
-                      fit: BoxFit.cover,
-                    )
-                  : null,
-            ),
-            child: imagePath == null
-                ? const Center(
-                    child: Icon(
-                      Icons.camera_alt,
-                      color: Colors.white,
-                      size: 32,
-                    ),
-                  )
-                : null,
-          ),
-        ),
-        if (imagePath != null)
-          Positioned(
-            top: 8,
-            right: 18,
-            child: Container(
-              decoration: BoxDecoration(
-                  color: Colors.white, borderRadius: BorderRadius.circular(50)),
-              child: GestureDetector(
-                onTap: () {
-                  Map<String, dynamic> data = {ApiKeys.image_url: imagePath};
-                  controller.deleteLiveStoreImage(data);
-                  // if (!viewBusinessDetailsController.imgDeleteL3.contains(indexDelete)) {
-                  //   viewBusinessDetailsController.imgDeleteL3.add(indexDelete);
-                  // }
-                },
-                child: const Icon(
-                  Icons.close,
-                  color: Colors.grey,
-                  size: 20,
-                ),
-              ),
-            ),
-          ),
-      ],
-    );
-  }
 }
 
 Future<void> updateLocationDialog(

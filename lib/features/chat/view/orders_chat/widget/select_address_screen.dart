@@ -98,7 +98,7 @@ class _AddressListScreenState extends State<AddressListScreen> {
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.grey.withOpacity(0.1),
+                                  color: Colors.grey.withValues(alpha: 0.1),
                                   blurRadius: 4,
                                   offset: const Offset(0, 3),
                                 ),
@@ -408,7 +408,7 @@ AppStrings.edit,                                                color: Colors.gr
     showDialog(
       context: context,
       barrierDismissible: false, // ❌ cannot close manually
-      barrierColor: Colors.black.withOpacity(0.4), // dim background
+      barrierColor: Colors.black.withValues(alpha: 0.4), // dim background
       builder: (BuildContext context) {
         int remainingSeconds = 30;
         ValueNotifier<int> timerNotifier = ValueNotifier(remainingSeconds);
@@ -435,7 +435,7 @@ AppStrings.edit,                                                color: Colors.gr
                   width: 80,
                   height: 80,
                   decoration: BoxDecoration(
-                    color: AppColors.primaryColor.withOpacity(0.1),
+                    color: AppColors.primaryColor.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   child: Center(

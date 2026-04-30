@@ -69,7 +69,7 @@ class _TwitterPostDetailScreenState extends State<TwitterPostDetailScreen> {
     commentController.replyingToUser.value = null;
     commentController.parentCommentId = null;
     commentController.getAllPostComments(
-        postId: _post.id ?? '', isInitialized: true);
+        postId: _post.id, isInitialized: true);
   }
 
   @override
@@ -516,7 +516,7 @@ class _TwitterPostDetailScreenState extends State<TwitterPostDetailScreen> {
 
   void _onLikePressed() {
     feedController.postLikeDislike(
-      postId: _post.id ?? '',
+      postId: _post.id,
       type: widget.postType,
       sortBy: widget.sortBy,
     );
@@ -559,7 +559,7 @@ class _TwitterPostDetailScreenState extends State<TwitterPostDetailScreen> {
                             await PostRepo().addRePostNewRepo(
                           reqDataData: {
                             ApiKeys.type: AppConstants.MESSAGE_POST,
-                            ApiKeys.repostId: _post.id ?? "",
+                            ApiKeys.repostId: _post.id,
                           },
                         );
                         if (responseModel.isSuccess) {
@@ -985,8 +985,7 @@ class _TwitterPostDetailScreenState extends State<TwitterPostDetailScreen> {
                         }
                         Get.to(() => PostAiCommentScreen(
                               dataId: commentController.parentCommentId ??
-                                  _post.id ??
-                                  '',
+                                  _post.id,
                               commentType:
                                   commentController.parentCommentId != null
                                       ? "comment_reply"
@@ -1015,7 +1014,7 @@ class _TwitterPostDetailScreenState extends State<TwitterPostDetailScreen> {
                 if (text.isEmpty) return;
 
                 Map<String, dynamic> params = {
-                  ApiKeys.post_id: _post.id ?? '',
+                  ApiKeys.post_id: _post.id,
                   ApiKeys.message: text,
                 };
                 if (commentController.parentCommentId != null) {
@@ -1024,11 +1023,11 @@ class _TwitterPostDetailScreenState extends State<TwitterPostDetailScreen> {
                 }
                 await commentController.addPostComment(
                   params: params,
-                  postId: _post.id ?? '',
+                  postId: _post.id,
                 );
 
                 feedController.updateCommentCount(
-                  postId: _post.id ?? '',
+                  postId: _post.id,
                   type: widget.postType,
                   sortBy: widget.sortBy,
                   newCommentCount: commentController.totalCommentCount.value,

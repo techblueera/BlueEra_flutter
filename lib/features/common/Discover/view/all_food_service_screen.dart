@@ -1,18 +1,13 @@
-import 'package:BlueEra/core/api/model/school_details_res_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
-import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/me/food/view/visit_food_store_details_screen.dart';
-import 'package:BlueEra/features/common/Discover/view/discover_school_home_screen.dart';
 import 'package:BlueEra/features/common/Discover/widget/common_generic_left_side_category_list.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
-import 'package:BlueEra/features/me/school/controller/school_about_us_controller.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
@@ -23,7 +18,6 @@ import 'package:flutter/material.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_cart_icon.dart';
 import 'package:get/get.dart';
 import '../../../../core/api/model/new_food_home_res_model.dart';
-import '../../../../core/constants/app_enum.dart';
 
 class AllFoodServiceScreen extends StatefulWidget {
   final List<OnboardingCategoryModel> professionalConsultantCategories;
@@ -121,13 +115,6 @@ class _AllFoodServiceScreenState extends State<AllFoodServiceScreen> {
   }
 
   Widget leftCategoryList() {
-    final allItem = OnboardingCategoryModel(
-      name: 'All',
-      slugId: 'ALL_OPTION',
-      icon: AppImageAssets.all,
-      individualType: IndividualProfileType.PROFESSIONAL,
-      accountType: AppConstants.individual,
-    );
 
     final fullList = [..._professionalConsultantCategories];
 

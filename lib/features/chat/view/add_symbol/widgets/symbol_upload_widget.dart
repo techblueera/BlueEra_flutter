@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'dart:typed_data';
-import 'dart:ui';
 
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -8,7 +7,6 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../../../common/post/message_post/feed_video_preview_widget.dart';
 import '../../../../common/post/widget/video_trimmer_screen.dart';
 import '../../../auth/controller/add_chat_symbol_controller.dart';
 
@@ -891,7 +889,7 @@ class _SymbolUploadWidgetState extends State<SymbolUploadWidget> {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.5),
+                      color: Colors.black.withValues(alpha: 0.5),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: CustomText(

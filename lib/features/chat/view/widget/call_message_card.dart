@@ -95,12 +95,6 @@ class CallMessageCard extends StatelessWidget {
     return AppColors.primaryColor;
   }
 
-  Color _iconColor(BuildContext context) {
-    if (_isMissedCall || _isDeclined) {
-      return Colors.red;
-    }
-    return AppColors.primaryColor;
-  }
 
   /// Open the active call screen. On Android the call runs inside a separate
   /// task (CallActivity, often in PiP) — bring that task back to front, or
@@ -246,13 +240,13 @@ class CallMessageCard extends StatelessWidget {
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [
-                      accent.withOpacity(0.12),
-                      accent.withOpacity(0.03),
+                      accent.withValues(alpha: 0.12),
+                      accent.withValues(alpha: 0.03),
                     ],
                   ),
                   borderRadius: BorderRadius.circular(16),
                   border:
-                      Border.all(color: accent.withOpacity(0.30), width: 1),
+                      Border.all(color: accent.withValues(alpha: 0.30), width: 1),
                 ),
                 child: IntrinsicHeight(
                   child: Row(
@@ -339,7 +333,7 @@ class CallMessageCard extends StatelessWidget {
                                 time,
                                 style: TextStyle(
                                   fontSize: 10,
-                                  color: textColor.withOpacity(0.5),
+                                  color: textColor.withValues(alpha: 0.5),
                                   fontFamily: "Poppins",
                                 ),
                               ),
@@ -360,7 +354,7 @@ class CallMessageCard extends StatelessWidget {
                               shape: BoxShape.circle,
                               boxShadow: [
                                 BoxShadow(
-                                  color: accent.withOpacity(0.35),
+                                  color: accent.withValues(alpha: 0.35),
                                   blurRadius: 8,
                                   offset: const Offset(0, 2),
                                 ),

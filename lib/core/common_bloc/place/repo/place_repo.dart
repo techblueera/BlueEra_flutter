@@ -1,6 +1,5 @@
 import 'package:BlueEra/core/api/apiService/api_base_helper.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
-import 'package:BlueEra/env.dart';
 import 'package:BlueEra/environment_config.dart';
 import 'package:geolocator/geolocator.dart';
 

@@ -1,5 +1,4 @@
 import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_chat_icon.dart';
@@ -17,7 +16,6 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/route_map_bottom_sheet.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
-import 'package:pro_image_editor/core/constants/editor_shader_constants.dart';
 
 class _GroceryCardPalette {
   final Color cardBorder;

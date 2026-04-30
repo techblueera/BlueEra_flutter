@@ -124,7 +124,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
   }
 
   Widget _header() {
-    String? imageUrl = accountProfileImage();
+    accountProfileImage();
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
       child: InkWell(

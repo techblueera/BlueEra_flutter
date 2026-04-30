@@ -5,7 +5,6 @@ import 'package:BlueEra/features/common/qr_code/model/qr_design_model.dart';
 import 'package:BlueEra/features/common/qr_code/view/qr_design_card_widget.dart';
 import 'package:BlueEra/features/common/qr_code/view/qr_fullscreen_view.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
-import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 

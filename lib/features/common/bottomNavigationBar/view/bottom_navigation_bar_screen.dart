@@ -1,12 +1,9 @@
-import 'dart:developer';
 import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
-import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/chat_media_storage_service.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
-import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -14,7 +11,6 @@ import 'package:BlueEra/core/constants/string_utils.dart';
 import 'package:BlueEra/core/services/app_notification.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
-import 'package:BlueEra/features/chat/view/ai_chat/view/ask_chat_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/discover_screen.dart';
 import 'package:BlueEra/features/common/auth/views/screens/guest_dashboard_screen.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/controller/ai_chat_guest_controller.dart';
@@ -44,12 +40,10 @@ import 'package:BlueEra/features/personal/personal_profile/view/personal_profile
 import 'package:BlueEra/features/subscription/auth/controller/subscription_controller.dart';
 import 'package:BlueEra/features/subscription/view/subscription_bottom_sheet.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/service_provider_dialoge.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_callkit_incoming/entities/call_event.dart';
 import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
 import 'package:get/get.dart';
 import '../../../../core/api/apiService/api_keys.dart';
@@ -366,30 +360,6 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     }
   }
 
-  void _setupCallKitEventListener() {
-    FlutterCallkitIncoming.onEvent.listen((CallEvent? event) {
-      if (event == null) return;
-
-      final extra = Map<String, dynamic>.from(event.body['extra'] as Map? ?? {});
-      final operation = (extra['operation'] ?? '').toString();
-
-      if (operation == 'incoming_call') {
-        // Call events are handled by CallController._setupCallKitListeners()
-        // which is registered permanently in main(). No duplicate handling needed.
-        return;
-      }
-
-      // Ride order events
-      if (event.event == Event.actionCallAccept) {
-        Get.toNamed(RouteHelper.getRiderServiceScreenRoute());
-        FlutterCallkitIncoming.endAllCalls();
-      } else if (event.event == Event.actionCallDecline) {
-        commonSnackBar(message: "Your Order Rejected by You");
-        Get.toNamed(RouteHelper.getRiderServiceScreenRoute());
-        FlutterCallkitIncoming.endAllCalls();
-      }
-    });
-  }
 
   // GET CHANNEL DETAILS...
   Future<ChannelModel?> getChannelDetails() async {
@@ -763,39 +733,6 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     }
   }
 
-  void _checkAndShowDialog() async {
-    if (await dialogService.shouldShowDialog()) {
-      Future.delayed(Duration(seconds: 5), () async {
-        await showCommonDialog(
-            context: context,
-            header: "Sarthi AI",
-            text: "Chat With Sarthi",
-            confirmCallback: () async {
-              Navigator.of(context).pop();
-            },
-            cancelCallback: () {
-              Navigator.of(context).pop();
-
-              final chat = ChatViewController.inventoryAiChatListSearchModule;
-
-              Get.to(() => AskChatScreen(
-                    profileImage: chat?.sender?.profileImage,
-                    name: chat?.sender?.name,
-                    contactNo: chat?.sender?.contactNo,
-                    conversationId: '',
-                    userId: '',
-                    businessId: '',
-                    type: chat?.sender?.accountType,
-                    isInitialMessage: false,
-                  ));
-              // Close the dialog
-            },
-            confirmText: AppStrings.cancel,
-            cancelText: AppStrings.chatNow);
-        dialogService.saveDialogShown();
-      });
-    }
-  }
 }
 
 /// Fixed "I'm Live" bar shown at the top of the BottomNavigationBarScreen

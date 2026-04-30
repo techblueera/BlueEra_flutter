@@ -1,8 +1,4 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/core/constants/app_icon_assets.dart';
-import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/food/controller/food_service_controller.dart';
 import 'package:BlueEra/features/me/food/model/category_food_product_res_model.dart';
 import 'package:BlueEra/features/me/food/view/widget/custom_add_button_widget.dart';
@@ -10,10 +6,7 @@ import 'package:BlueEra/features/me/food/view/widget/food_dietary_and_tag_row.da
 import 'package:BlueEra/features/me/food/view/widget/food_product_des_widget.dart';
 import 'package:BlueEra/features/me/food/view/widget/food_product_image_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/expandable_text.dart';
-import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:get/get.dart';
 
 class FoodProductCard extends StatelessWidget {
@@ -98,32 +91,5 @@ class FoodProductCard extends StatelessWidget {
       ),
     );
   }
-
-  Widget _tagWidget(String label) {
-    return FittedBox(
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-        decoration: BoxDecoration(
-            border: Border.all(color: AppColors.whiteE5),
-            borderRadius: BorderRadius.circular(4)),
-        child: Row(
-          children: [
-            LocalAssets(imagePath: AppIconAssets.boiled),
-            SizedBox(
-              width: 5,
-            ),
-            CustomText(
-              label,
-              color: AppColors.secondaryTextColor,
-              fontSize: 10,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
 
 }

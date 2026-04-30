@@ -128,31 +128,33 @@ class _ReminderBottomSheetState extends State<ReminderBottomSheet> {
             const SizedBox(height: 12),
 
             /// Radio Grid
-            GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: quickOptions.length,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                childAspectRatio: 5,
-              ),
-              itemBuilder: (context, index) {
-                final option = quickOptions[index];
-                return RadioListTile<String>(hoverColor: AppColors.secondaryTextColor,
-                  // activeColor: AppColors.secondaryTextColor,
-                  value: option,
-                  groupValue: selectedOption,
-                  onChanged: (val) {
-                    setState(() => selectedOption = val);
-                    applyQuickOption(val!);
-                  },
-                  title: CustomText(_localizedOption(option),
-                      fontSize: 14,
-                  color: AppColors.secondaryTextColor,),
-                  contentPadding: EdgeInsets.zero,
-                  dense: true,
-                );
+            RadioGroup<String>(
+              groupValue: selectedOption,
+              onChanged: (val) {
+                setState(() => selectedOption = val);
+                if (val != null) applyQuickOption(val);
               },
+              child: GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: quickOptions.length,
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  childAspectRatio: 5,
+                ),
+                itemBuilder: (context, index) {
+                  final option = quickOptions[index];
+                  return RadioListTile<String>(hoverColor: AppColors.secondaryTextColor,
+                    // activeColor: AppColors.secondaryTextColor,
+                    value: option,
+                    title: CustomText(_localizedOption(option),
+                        fontSize: 14,
+                    color: AppColors.secondaryTextColor,),
+                    contentPadding: EdgeInsets.zero,
+                    dense: true,
+                  );
+                },
+              ),
             ),
 
             const SizedBox(height: 20),

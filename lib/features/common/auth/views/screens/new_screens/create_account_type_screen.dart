@@ -3,22 +3,17 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
-import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
-import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
-import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
 import 'package:BlueEra/features/common/auth/model/personal_profession_model.dart';
-import 'package:BlueEra/features/common/auth/views/widget/business_category_selection_dialog.dart';
 import 'package:BlueEra/features/common/auth/views/widget/business_sub_category_selection_dialog.dart';
 import 'package:BlueEra/features/common/auth/views/widget/gradient_border_container.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
-import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -436,76 +431,6 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
     );
   }
 
-  Widget _selfWorkContent({
-    Key? key,
-    required List<ProfessionTypeData> arrSelfWorkTransportCategory,
-    required List<ProfessionTypeData> arrSelfWorkSkilledCategory,
-  }) {
-    if(arrSelfWorkTransportCategory.isEmpty ||
-        arrSelfWorkSkilledCategory.isEmpty)
-      return EmptyStateWidget(
-        message: langController.tr('No profession found'),
-      );
-
-    return SingleChildScrollView(
-      key: key,
-      padding: const EdgeInsets.all(8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          CustomText(
-              langController.tr('Self Work (Transport)'),
-              fontSize: SizeConfig.large,
-              fontWeight: FontWeight.w600,
-              color: AppColors.mainTextColor
-          ),
-
-          SizedBox(height: SizeConfig.paddingXSL),
-
-          MasonryGridView.count(
-            crossAxisCount: 2,
-            mainAxisSpacing: 10,
-            crossAxisSpacing: 10,
-            itemCount: arrSelfWorkTransportCategory.length,
-            physics: NeverScrollableScrollPhysics(),
-            itemBuilder: (context, index) {
-              var item = arrSelfWorkTransportCategory[index];
-              return _individualCommonCard(item, textMaxLine: 1);
-            },
-            padding: EdgeInsets.zero,
-            shrinkWrap: true,
-          ),
-
-          SizedBox(height: SizeConfig.paddingM),
-
-          CustomText(
-              langController.tr('Self Work (Skill Work)'),
-              fontSize: SizeConfig.large,
-              fontWeight: FontWeight.w600,
-              color: AppColors.mainTextColor
-          ),
-
-          SizedBox(height: SizeConfig.paddingXSL),
-
-          MasonryGridView.count(
-            crossAxisCount: 2,
-            mainAxisSpacing: 10,
-            crossAxisSpacing: 10,
-            itemCount: arrSelfWorkSkilledCategory.length,
-            physics: NeverScrollableScrollPhysics(),
-            itemBuilder: (context, index) {
-              var item = arrSelfWorkSkilledCategory[index];
-              return _individualCommonCard(item, textMaxLine: 1);
-            },
-            padding: EdgeInsets.only(bottom: SizeConfig.size16),
-            shrinkWrap: true,
-          ),
-
-          _otherOptionCreation()
-        ],
-      ),
-    );
-  }
 
   Widget _consultationContent({
     Key? key,
@@ -881,17 +806,6 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
     );
   }
 
-  Future<void>  _showBusinessCategoryDialog(BusinessType businessType){
-    return showDialog<SubCategories>(
-      context: context,
-      builder: (context) {
-        return BusinessCategorySelectionDialog(
-            authController: authController,
-            businessType: businessType
-        );
-      },
-    );
-  }
 
 }
 

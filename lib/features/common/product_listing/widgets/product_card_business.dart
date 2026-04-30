@@ -9,7 +9,6 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
-import 'package:BlueEra/features/common/food/view/widget/km_away_text_widget.dart';
 import 'package:BlueEra/features/me/grocery/widget/price_row.dart';
 import 'package:BlueEra/features/me/product/model/get_product_model.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -150,7 +149,7 @@ class _ProductCardState extends State<ProductCardBusiness> {
             //   ),
             //     decoration: BoxDecoration(
             //         borderRadius: BorderRadius.circular(SizeConfig.size4),
-            //         color: AppColors.blueShade.withOpacity(0.1),
+            //         color: AppColors.blueShade.withValues(alpha: 0.1),
             //         border: Border.all(
             //             color: AppColors.blueShade
             //         )

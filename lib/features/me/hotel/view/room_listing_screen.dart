@@ -90,7 +90,7 @@ class _RoomListingScreenState extends State<RoomListingScreen> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           )
@@ -162,7 +162,7 @@ class _RoomListingScreenState extends State<RoomListingScreen> {
                             margin: const EdgeInsets.symmetric(horizontal: 4.0),
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: Colors.white.withOpacity(
+                              color: Colors.white.withValues(alpha: 
                                   currentImageIndex.value == entry.key
                                       ? 1.0
                                       : 0.4),
@@ -200,7 +200,7 @@ class _RoomListingScreenState extends State<RoomListingScreen> {
                   },
                   // The visual trigger for the menu
                   child: CircleAvatar(
-                    backgroundColor: Colors.black.withOpacity(0.4),
+                    backgroundColor: Colors.black.withValues(alpha: 0.4),
                     radius: 16,
                     child: const Icon(Icons.more_vert,
                         color: Colors.white, size: 18),
@@ -233,7 +233,7 @@ class _RoomListingScreenState extends State<RoomListingScreen> {
               //   top: 12,
               //   right: 12,
               //   child: CircleAvatar(
-              //     backgroundColor: Colors.black.withOpacity(0.3),
+              //     backgroundColor: Colors.black.withValues(alpha: 0.3),
               //     radius: 18,
               //     child: const Icon(Icons.more_vert,
               //         color: Colors.white, size: 20),

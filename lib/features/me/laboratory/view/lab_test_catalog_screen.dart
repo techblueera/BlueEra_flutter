@@ -107,7 +107,7 @@ class _LabTestCatalogScreenState extends State<LabTestCatalogScreen> {
               decoration: BoxDecoration(
                 color: bgColor,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.black.withOpacity(0.05)),
+                border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
               ),
               child: InkWell(
                 borderRadius: BorderRadius.circular(16),
@@ -202,7 +202,7 @@ class _LabTestCatalogScreenState extends State<LabTestCatalogScreen> {
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 12, vertical: 10),
                               decoration: BoxDecoration(
-                                color: Colors.black.withOpacity(0.05),
+                                color: Colors.black.withValues(alpha: 0.05),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Row(
@@ -320,12 +320,12 @@ class _LabTestCatalogScreenState extends State<LabTestCatalogScreen> {
                               decoration: BoxDecoration(
                                 color: isSelected
                                     ? AppColors.primaryColor
-                                    : AppColors.primaryColor.withOpacity(0.06),
+                                    : AppColors.primaryColor.withValues(alpha: 0.06),
                                 borderRadius: BorderRadius.circular(20),
                                 border: Border.all(
                                   color: isSelected
                                       ? AppColors.primaryColor
-                                      : AppColors.primaryColor.withOpacity(0.2),
+                                      : AppColors.primaryColor.withValues(alpha: 0.2),
                                 ),
                               ),
                               child: CustomText(

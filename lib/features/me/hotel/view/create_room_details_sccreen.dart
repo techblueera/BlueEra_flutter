@@ -8,7 +8,6 @@ import 'package:BlueEra/widgets/common_drop_down-dialoge.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 class RoomDesignScreen extends StatelessWidget {
@@ -362,15 +361,24 @@ void showCouponModal(BuildContext context) {
                 },
               ),
               const SizedBox(height: 15),
-              Row(
-                children: [
-                  CustomText(AppStrings.hotelTotalOff.tr,
-                      fontWeight: FontWeight.w500),
-                  const Spacer(),
-                  Obx(() => _radioOption(controller, "In Rupees")),
-                  Obx(() => _radioOption(controller, "In Percentage")),
-                ],
-              ),
+              Obx(() => RadioGroup<String>(
+                    groupValue: controller.offType.value,
+                    onChanged: (val) {
+                      if (val != null) {
+                        controller.offType.value = val;
+                        controller.isCouponValidMethod();
+                      }
+                    },
+                    child: Row(
+                      children: [
+                        CustomText(AppStrings.hotelTotalOff.tr,
+                            fontWeight: FontWeight.w500),
+                        const Spacer(),
+                        _radioOption(controller, "In Rupees"),
+                        _radioOption(controller, "In Percentage"),
+                      ],
+                    ),
+                  )),
               CommonTextField(
                 hintText: AppStrings.hotelHintPercentageOff.tr,
                 textEditController: controller.totalOff,
@@ -431,13 +439,6 @@ Widget _radioOption(RoomDetailController controller, String value) {
     children: [
       Radio<String>(
         value: value,
-        groupValue: controller.offType.value,
-        // onChanged: (val) => controller.offType.value = val!,
-        onChanged: (val) {
-          controller.offType.value = val!;
-          controller.isCouponValidMethod();
-          // controller.update();
-        },
       ),
       CustomText(displayValue, fontSize: 12),
     ],

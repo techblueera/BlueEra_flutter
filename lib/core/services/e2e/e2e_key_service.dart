@@ -1,10 +1,8 @@
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:pinenacl/ed25519.dart';
-import 'package:pinenacl/x25519.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../features/chat/auth/model/e2e_models.dart';

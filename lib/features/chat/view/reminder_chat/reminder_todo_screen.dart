@@ -51,7 +51,7 @@ class _ReminderTodoScreenState extends State<ReminderTodoScreen>
         ),
         bottom: TabBar(
           controller: _tabController,
-          dividerColor: AppColors.primaryColor.withOpacity(0.4),
+          dividerColor: AppColors.primaryColor.withValues(alpha: 0.4),
           labelColor: Colors.black,
           unselectedLabelColor: Colors.black54,
           indicatorColor: Colors.lightBlue,

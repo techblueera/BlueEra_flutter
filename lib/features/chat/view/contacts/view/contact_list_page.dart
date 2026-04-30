@@ -478,7 +478,7 @@ class _GroupContactTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    Theme.of(context);
     final userId = item['platform_id'] ?? item['user_id'];
     final name = (item['name'] ?? '').toString();
     final phone = (item['contact_no'] ?? item['contact'] ?? '').toString();
@@ -522,7 +522,7 @@ class _ExistingContactTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    Theme.of(context);
     final name = contact?.name ?? "";
     final phone = contact?.contactNo ?? "No number";
     final profileImage = contact?.profileImage ?? "";

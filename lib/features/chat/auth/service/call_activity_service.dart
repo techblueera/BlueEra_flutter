@@ -1,4 +1,5 @@
 import 'dart:io';
+// ignore: unused_import
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
@@ -60,7 +61,7 @@ class CallActivityService {
 
       return launched??true;
 
-    } catch (e, stack) {
+    } catch (e) {
 
 
       return false;

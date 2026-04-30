@@ -1,6 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/language_localization_service/language_controller_new.dart';
@@ -110,7 +109,7 @@ class _SelectLanguageScreenState extends State<SelectLanguageScreen> {
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primaryColor,
               disabledBackgroundColor:
-                  AppColors.primaryColor.withOpacity(0.4),
+                  AppColors.primaryColor.withValues(alpha: 0.4),
               padding: const EdgeInsets.symmetric(vertical: 14),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10),
@@ -217,12 +216,12 @@ class _LanguageTile extends StatelessWidget {
           border: Border.all(
             color: isSelected
                 ? AppColors.primaryColor
-                : Colors.grey.withOpacity(0.25),
+                : Colors.grey.withValues(alpha: 0.25),
             width: isSelected ? 2 : 1,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.04),
+              color: Colors.black.withValues(alpha: 0.04),
               blurRadius: 6,
               offset: const Offset(0, 2),
             ),

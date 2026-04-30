@@ -799,8 +799,6 @@ extension StoreTypeExtension on StoreType {
         return StoreType.food;
       case 'business':
         return StoreType.business;
-      case 'product':
-        return StoreType.inventory;
       default:
         return StoreType.inventory;
     }

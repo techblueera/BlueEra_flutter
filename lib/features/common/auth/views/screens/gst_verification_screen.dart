@@ -112,17 +112,33 @@ class _GstNumberScreenState extends State<GstNumberScreen> {
                       color: AppColors.grey80,
                     ),
                     SizedBox(height: SizeConfig.size30),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildRadioOption(
-                            true, AppStrings.yesIHave.tr),
-                        SizedBox(width: SizeConfig.size20),
-                        _buildRadioOption(
-                            false, AppStrings.noIDont.tr),
-                      ],
-                    ),
+                    Obx(() => RadioGroup<bool>(
+                          groupValue: authController.hasGstNumber.value,
+                          onChanged: (val) {
+                            if (val == null) return;
+                            authController.isHaveGstApprove.value = val;
+                            if (val) {
+                              authController.isValidate.value = false;
+                              _gstController.clear();
+                              _emailController.clear();
+                            } else {
+                              gstController.resetState();
+                              _otpController.clear();
+                            }
+                            authController.hasGstNumber.value = val;
+                          },
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildRadioOption(
+                                  true, AppStrings.yesIHave.tr),
+                              SizedBox(width: SizeConfig.size20),
+                              _buildRadioOption(
+                                  false, AppStrings.noIDont.tr),
+                            ],
+                          ),
+                        )),
                     SizedBox(
                       height: SizeConfig.size30,
                     ),
@@ -425,23 +441,8 @@ class _GstNumberScreenState extends State<GstNumberScreen> {
               height: SizeConfig.size20,
               child: Radio<bool>(
                 value: value,
-                groupValue: authController.hasGstNumber.value,
                 fillColor: WidgetStateProperty.all(AppColors.primaryColor),
                 activeColor: AppColors.primaryColor,
-                onChanged: (val) {
-                  if (val == null) return;
-                  authController.isHaveGstApprove.value = value;
-                  if (value) {
-                    authController.isValidate.value = false;
-                    _gstController.clear();
-                    _emailController.clear();
-                  } else {
-                    gstController.resetState();
-                    _otpController.clear();
-                  }
-
-                  authController.hasGstNumber.value = value;
-                },
               ),
             ),
             SizedBox(width: SizeConfig.size10),
@@ -457,15 +458,6 @@ class _GstNumberScreenState extends State<GstNumberScreen> {
     Get.toNamed(RouteHelper.getCreateBusinessAccountNewStepOneRoute());
   }
 
-  Future<void> _addBusinessWithGST() async {
-    if (authController.hasGstNumber.value) {
-      await Get.find<AuthController>()
-          .getGstVerify(gstNumber: _gstController.text);
-    } else {
-      authController.hasGstNumber.value = false;
-      Get.toNamed(RouteHelper.getCreateBusinessAccountNewStepOneRoute());
-    }
-  }
   void _validateAll() {
     final email = _emailController.text.trim();
     final gst = _gstController.text.trim();
@@ -474,18 +466,6 @@ class _GstNumberScreenState extends State<GstNumberScreen> {
 
     final isGstValid = RegExp(
         r'^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$')
-        .hasMatch(gst);
-
-    authController.isValidate.value = isEmailValid && isGstValid;
-  }
-  void _validateAll_() {
-    final email = _emailController.text.trim();
-    final gst = _gstController.text.trim();
-
-    final isEmailValid = GetUtils.isEmail(email) &&
-        email.toLowerCase().endsWith('@gmail.com');
-    final isGstValid = RegExp(
-            r'^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$')
         .hasMatch(gst);
 
     authController.isValidate.value = isEmailValid && isGstValid;

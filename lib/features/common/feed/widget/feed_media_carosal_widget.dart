@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:ui' as ui;
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -59,12 +58,10 @@ class _FeedMediaCarouselWidgetState extends State<FeedMediaCarouselWidget>
   late AnimationController _pulseController;
   late Animation<double> _pulseAnimation;
 
-  late Map<String, String> _orientationCache;
 
   @override
   void initState() {
     super.initState();
-    _orientationCache = {};
     _audioPlayer = AudioPlayer();
     _initializeAudio();
     _setupAnimations();
@@ -290,36 +287,6 @@ class _FeedMediaCarouselWidgetState extends State<FeedMediaCarouselWidget>
 
   Map<String, String> imageOrientation = {}; // cache url → orientation
 
-  Future<String> _getImageOrientation(String url) async {
-    if (imageOrientation.containsKey(url)) {
-      return imageOrientation[url]!;
-    }
-
-    final completer = Completer<ui.Image>();
-    final stream = NetworkImage(url).resolve(const ImageConfiguration());
-
-    stream.addListener(
-      ImageStreamListener((info, _) {
-        completer.complete(info.image);
-      }),
-    );
-
-    final ui.Image image = await completer.future;
-
-    String type;
-    if (image.width > image.height) {
-      type = "landscape";
-    }
-    /*else if (image.height > image.width) {
-      type = "portrait";
-    }*/
-    else {
-      type = "square";
-    }
-
-    imageOrientation[url] = type;
-    return type;
-  }
 
   Widget _buildAudioControls() {
     return Positioned(

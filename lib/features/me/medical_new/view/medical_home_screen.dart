@@ -21,16 +21,11 @@ import 'package:BlueEra/features/me/medical_new/repo/medical_repo.dart';
 import 'package:BlueEra/features/me/medical_new/view/medical_gallery/medical_gallery_list_screen.dart';
 import 'package:BlueEra/features/me/medical_new/controller/medical_controller.dart';
 import 'package:BlueEra/features/me/medical_new/view/medical_contact_edit_screen.dart';
-import 'package:BlueEra/features/me/medical_new/model/medical_nested_category_model.dart';
-import 'package:BlueEra/features/me/medical_new/view/add_medical_products_screen.dart';
-import 'package:BlueEra/features/me/medical_new/view/medical_level2_category_screen.dart';
 import 'package:BlueEra/features/me/medical_new/view/my_medical_listing/my_medical_super_category_screen.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/common_circular_profile_image.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/service_home_title_widget.dart';
@@ -41,15 +36,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:get/get.dart';
 
-/// Static 6 categories for "Update Your Medical Products"
-const List<Map<String, String>> _staticCategories = [
-  {'title': AppStrings.medicalAyurvedaNutrition, 'key': 'AYURVEDA___NUTRITION', 'image': 'assets/category/medical/AyurvedaNutrition.png'},
-  {'title': AppStrings.medicalHomePatientCare, 'key': 'HOME___PATIENT_CARE', 'image': 'assets/category/medical/Home_Patient_Care.png'},
-  {'title': AppStrings.medicalDevicesCat, 'key': 'MEDICAL_DEVICES', 'image': 'assets/category/medical/Medical_Devices.png'},
-  {'title': AppStrings.medicalOtcMedicines, 'key': 'OTC_MEDICINES', 'image': 'assets/category/medical/OTC_Medicines.png'},
-  {'title': AppStrings.medicalPersonalBabyCare, 'key': 'PERSONAL___BABY_CARE', 'image': 'assets/category/medical/Personal_Baby_Care.png'},
-  {'title': AppStrings.medicalWoundCareFirstAid, 'key': 'WOUND_CARE___FIRST_AID', 'image': 'assets/category/medical/Wound_Care_First_Aid.png'},
-];
 class MedicalHomeScreen extends StatefulWidget {
   final String businessId;
 
@@ -65,7 +51,6 @@ class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
   late final MedicalGalleryController _galleryController;
   final _businessController = getOrPut(() => ViewBusinessDetailsController(), permanent: true);
   late final MedicalController _medicalController;
-  final ImagePicker _picker = ImagePicker();
 
   @override
   void initState() {
@@ -129,7 +114,6 @@ class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
     final profile = _data!.businessProfile;
     final inventory = _data!.inventorySummary;
     final popularProducts = inventory?.popularProducts ?? [];
-    final categoriesWithProducts = inventory?.categoriesWithProducts ?? [];
 
     return Scaffold(
       body: SafeArea(
@@ -358,17 +342,6 @@ class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
     } catch (e) {
       commonSnackBar(message: AppStrings.updatePictureFailed);
     }
-  }
-
-  Widget _circleIconButton(IconData icon) {
-    return Container(
-      padding: EdgeInsets.all(6),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.8),
-        shape: BoxShape.circle,
-      ),
-      child: Icon(icon, size: 18, color: AppColors.mainTextColor),
-    );
   }
 
   // ─────────────────────────────────────────────
@@ -608,25 +581,6 @@ class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
       ),
     );
   }
-
-  MedicalNestedCategoryModel? _findApiCategory(String staticKey) {
-    for (final level0 in _medicalController.medicalNestedCategoryList) {
-      if (_keysMatch(level0.key, staticKey)) return level0;
-      for (final level1 in (level0.children ?? <MedicalNestedCategoryModel>[])) {
-        if (_keysMatch(level1.key, staticKey)) return level1;
-      }
-    }
-    return null;
-  }
-
-  bool _keysMatch(String? apiKey, String staticKey) {
-    if (apiKey == null) return false;
-    return apiKey.toUpperCase().replaceAll(' ', '_') ==
-        staticKey.toUpperCase().replaceAll(' ', '_');
-  }
-
-
-
 
 
   // ─────────────────────────────────────────────

@@ -56,7 +56,7 @@
 //             decoration: BoxDecoration(
 //               borderRadius: BorderRadius.circular(10),
 //               border: Border.all(color: AppColors.primaryColor),
-//               color: AppColors.primaryColor.withOpacity(0.1),
+//               color: AppColors.primaryColor.withValues(alpha: 0.1),
 //             ),
 //             padding: EdgeInsets.symmetric(horizontal: 14, vertical: 15),
 //             child: Row(

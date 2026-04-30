@@ -88,7 +88,7 @@ class _AddChatSymbolScreenState extends State<AddChatSymbolScreen>
                 borderRadius: BorderRadius.circular(10),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.06),
+                    color: Colors.black.withValues(alpha: 0.06),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -142,7 +142,7 @@ class _AddChatSymbolScreenState extends State<AddChatSymbolScreen>
                       boxShadow: canPost
                           ? [
                               BoxShadow(
-                                color: const Color(0xFF0086FF).withOpacity(0.3),
+                                color: const Color(0xFF0086FF).withValues(alpha: 0.3),
                                 blurRadius: 16,
                                 offset: const Offset(0, 6),
                               ),
@@ -259,7 +259,7 @@ class _AddChatSymbolScreenState extends State<AddChatSymbolScreen>
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF2D3142).withOpacity(0.05),
+            color: const Color(0xFF2D3142).withValues(alpha: 0.05),
             blurRadius: 20,
             offset: const Offset(0, 4),
           ),
@@ -269,45 +269,4 @@ class _AddChatSymbolScreenState extends State<AddChatSymbolScreen>
     );
   }
 
-  Widget _buildStepIndicator() {
-    final type = controller.selectedSymbolPostType.value;
-    final String label = type == SymbolPostType.image
-        ? AppStrings.photoSymbol.tr
-        : type == SymbolPostType.video
-            ? AppStrings.videoSymbol.tr
-            : type == SymbolPostType.text
-                ? AppStrings.textSymbol.tr
-                : AppStrings.linkSymbol.tr;
-    final icon = type == SymbolPostType.image
-        ? Icons.photo_rounded
-        : type == SymbolPostType.video
-            ? Icons.videocam_rounded
-            : type == SymbolPostType.text
-                ? Icons.text_fields_rounded
-                : Icons.link_rounded;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-      decoration: BoxDecoration(
-        color: const Color(0xFF0086FF).withOpacity(0.08),
-        borderRadius: BorderRadius.circular(30),
-        border: Border.all(
-          color: const Color(0xFF0086FF).withOpacity(0.15),
-        ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 16, color: const Color(0xFF0086FF)),
-          const SizedBox(width: 6),
-          CustomText(
-            label,
-            color: const Color(0xFF0086FF),
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-          ),
-        ],
-      ),
-    );
-  }
 }

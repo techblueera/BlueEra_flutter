@@ -40,7 +40,7 @@ class FinanceDiscoverController extends GetxController {
       }
       error.value = '';
 
-      final String categoryType = _mapCategoryToApiType(selectedCategory.value);
+      _mapCategoryToApiType(selectedCategory.value);
 
       final ResponseModel res = await ApiBaseHelper().getHTTP(
         "other-service/business-profile/search?distance=5000&limit=$_limit&type=finance",

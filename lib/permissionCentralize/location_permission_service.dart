@@ -1,7 +1,6 @@
 import 'dart:developer';
 import 'dart:io';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -182,31 +181,6 @@ class PermissionService {
   //   }
   // }
 
-  // ---------------- NOTIFICATION ----------------
-  static Future<bool> _checkNotificationPermission() async {
-    try {
-      // Request notification permission via Firebase Messaging
-      NotificationSettings settings = await FirebaseMessaging.instance
-          .requestPermission(
-        alert: true,
-        badge: true,
-        sound: true,
-      );
-
-      // Check if user granted or provisional permission
-      if (settings.authorizationStatus == AuthorizationStatus.authorized ||
-          settings.authorizationStatus == AuthorizationStatus.provisional) {
-        return true;
-      }
-
-      // Permission denied
-      log('Notification permission denied: ${settings.authorizationStatus}');
-      return false;
-    } catch (e) {
-      log("Notification permission error: $e");
-      return false;
-    }
-  }
 }
 
 /// Model to represent a permission visually

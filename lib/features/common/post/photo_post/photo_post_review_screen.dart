@@ -241,43 +241,43 @@ class PhotoPostReviewScreen extends StatelessWidget {
             color: AppColors.black,
           ),
         ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Radio<SymbolDuration>(
-                  value: SymbolDuration.hours24,
-                  groupValue: controller.selectedSymbol.value,
-                  onChanged: null,
-                  activeColor: AppColors.primaryColor,
-                ),
-                CustomText(
-                  AppStrings.hours24,
-                  color: AppColors.black,
-                  fontWeight: FontWeight.w400,
-                  fontSize: SizeConfig.large,
-                ),
-              ],
-            ),
-            SizedBox(width: 20), // spacing between options
-            Row(
-              children: [
-                Radio<SymbolDuration>(
-                  value: SymbolDuration.days7,
-                  groupValue: controller.selectedSymbol.value,
-                  onChanged: null,
-                  activeColor: AppColors.primaryColor,
-                ),
-                CustomText(
-                  AppStrings.days7,
-                  color: AppColors.black,
-                  fontWeight: FontWeight.w400,
-                  fontSize: SizeConfig.large,
-                ),
-              ],
-            ),
-          ],
+        RadioGroup<SymbolDuration>(
+          groupValue: controller.selectedSymbol.value,
+          onChanged: (_) {},
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Radio<SymbolDuration>(
+                    value: SymbolDuration.hours24,
+                    activeColor: AppColors.primaryColor,
+                  ),
+                  CustomText(
+                    AppStrings.hours24,
+                    color: AppColors.black,
+                    fontWeight: FontWeight.w400,
+                    fontSize: SizeConfig.large,
+                  ),
+                ],
+              ),
+              SizedBox(width: 20), // spacing between options
+              Row(
+                children: [
+                  Radio<SymbolDuration>(
+                    value: SymbolDuration.days7,
+                    activeColor: AppColors.primaryColor,
+                  ),
+                  CustomText(
+                    AppStrings.days7,
+                    color: AppColors.black,
+                    fontWeight: FontWeight.w400,
+                    fontSize: SizeConfig.large,
+                  ),
+                ],
+              ),
+            ],
+          ),
         )
       ],
     );

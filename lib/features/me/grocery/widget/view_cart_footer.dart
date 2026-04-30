@@ -1,12 +1,10 @@
 import 'package:BlueEra/features/me/grocery/controller/grocery_rider_consumer_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
-import 'package:BlueEra/features/me/grocery/controller/grocery_selfpickup_consumer_controller.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 
 class ViewCartFooter extends StatelessWidget {

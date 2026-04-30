@@ -21,7 +21,6 @@ import 'package:BlueEra/features/me/grocery/model/grocery_category_with_inventor
 import 'package:BlueEra/features/me/grocery/widget/grocery_self_pickup_cart.dart';
 import 'package:BlueEra/features/me/grocery/widget/grocery_top_selling_tile.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
-import 'package:BlueEra/features/business/widgets/business_qrcode_widget.dart';
 import 'package:BlueEra/features/common/store/widget/store_live_photo_widget.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';

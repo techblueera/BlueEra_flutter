@@ -19,9 +19,6 @@ import 'package:get/get.dart';
 import 'package:pro_image_editor/shared/widgets/animated/fade_in_up.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
-import 'dart:async';
-import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 
 class FeedScreen extends StatefulWidget {
   final PostType postFilterType;

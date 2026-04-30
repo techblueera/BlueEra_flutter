@@ -12,7 +12,6 @@ import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/progrss_dialog.dart';
-import 'package:BlueEra/widgets/progrss_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -67,43 +66,44 @@ class _PollReviewScreenState extends State<PollReviewScreen> {
                       fontWeight: FontWeight.w600,
                     ),
                     SizedBox(height: SizeConfig.size16),
-                    Obx(() => Column(
-                          children: pollController.options
-                              .asMap()
-                              .entries
-                              .map((entry) {
-                            final index = entry.key;
-                            final option = entry.value;
-                            final label = String.fromCharCode(65 + index);
+                    Obx(() => RadioGroup<int>(
+                          groupValue: selectedIndex.value,
+                          onChanged: (val) {
+                            if (val != null) selectedIndex.value = val;
+                          },
+                          child: Column(
+                            children: pollController.options
+                                .asMap()
+                                .entries
+                                .map((entry) {
+                              final index = entry.key;
+                              final option = entry.value;
+                              final label = String.fromCharCode(65 + index);
 
-                            return Container(
-                              margin:
-                                  EdgeInsets.only(bottom: SizeConfig.size10),
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: SizeConfig.size12),
-                              decoration: BoxDecoration(
-                                border: Border.all(color: Colors.grey.shade300),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    child: CustomText("$label.  $option"),
-                                  ),
-                                  Obx(
-                                    () => Radio<int>(
+                              return Container(
+                                margin:
+                                    EdgeInsets.only(bottom: SizeConfig.size10),
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: SizeConfig.size12),
+                                decoration: BoxDecoration(
+                                  border:
+                                      Border.all(color: Colors.grey.shade300),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: CustomText("$label.  $option"),
+                                    ),
+                                    Radio<int>(
                                       value: index,
-                                      groupValue: selectedIndex.value,
-                                      onChanged: (val) {
-                                        selectedIndex.value = val!;
-                                      },
                                       activeColor: AppColors.primaryColor,
                                     ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          }).toList(),
+                                  ],
+                                ),
+                              );
+                            }).toList(),
+                          ),
                         )),
                     SizedBox(height: SizeConfig.size16),
                     CommonTextField(

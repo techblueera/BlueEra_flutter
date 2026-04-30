@@ -17,7 +17,6 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:croppy/croppy.dart';
-import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -213,7 +212,6 @@ class _AddBusinessLivePhotoState extends State<AddBusinessLivePhoto> {
   Widget _buildLayout(
       List<String> photos, ViewBusinessDetailsController controller) {
     final count = photos.length;
-    final bool showAdd = count < 3;
 
     if (count == 1) {
       // 1 photo left + add button right

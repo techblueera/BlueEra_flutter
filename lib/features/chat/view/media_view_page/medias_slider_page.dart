@@ -104,7 +104,7 @@ class _MediaSliderPageState extends State<MediaSliderPage> {
                             right: SizeConfig.size18,
                             top: SizeConfig.size4,
                         bottom: SizeConfig.size2),
-                        color: AppColors.black.withOpacity(0.5),
+                        color: AppColors.black.withValues(alpha: 0.5),
                         child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Row(
@@ -167,7 +167,7 @@ class _MediaSliderPageState extends State<MediaSliderPage> {
                         padding: EdgeInsets.symmetric(
                             horizontal: SizeConfig.size14,
                             vertical: SizeConfig.size24),
-                        color: AppColors.black.withOpacity(0.4),
+                        color: AppColors.black.withValues(alpha: 0.4),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
@@ -367,7 +367,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
               child: Container(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(30),
-                  color: Colors.black.withOpacity(0.4),
+                  color: Colors.black.withValues(alpha: 0.4),
                 ),
                 child: IconButton(
                   icon: Icon(

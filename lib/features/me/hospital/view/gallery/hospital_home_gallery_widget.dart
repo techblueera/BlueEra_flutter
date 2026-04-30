@@ -111,7 +111,7 @@ class HospitalHomeGalleryWidget extends StatelessWidget {
               ),
               if (showOverlay && extra > 0)
                 Container(
-                  color: Colors.black.withOpacity(0.5),
+                  color: Colors.black.withValues(alpha: 0.5),
                   alignment: Alignment.center,
                   child: Text(
                     '+$extra',

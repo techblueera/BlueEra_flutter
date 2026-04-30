@@ -1,11 +1,5 @@
-import 'package:BlueEra/core/constants/getx_utils.dart';
-import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/self_employed/controller/home_made_food_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/self_employed/controller/tiffin_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/add_self_work_service_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/self_employee_dashboard_view.dart';
-import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 

@@ -262,25 +262,30 @@ class _CreateJobPostStep4State extends State<CreateJobPostStep4> {
     required String value,
     required RxString groupValue,
   }) {
-    return Obx(() => Theme(
-          data: ThemeData(
-            unselectedWidgetColor: AppColors.primaryColor, // Unselected border
-            splashColor: Colors.transparent, // Disable ripple if needed
-          ),
-          child: RadioListTile<String>(
-            contentPadding: EdgeInsets.zero,
-            dense: true,
-            visualDensity: VisualDensity.compact,
-            title: Align(
-              alignment: Alignment.centerLeft,
-              child: CustomText(
-                label,
-              ),
+    return Obx(() => RadioGroup<String>(
+          groupValue: groupValue.value,
+          onChanged: (val) {
+            if (val != null) groupValue.value = val;
+          },
+          child: Theme(
+            data: ThemeData(
+              unselectedWidgetColor:
+                  AppColors.primaryColor, // Unselected border
+              splashColor: Colors.transparent, // Disable ripple if needed
             ),
-            value: value,
-            groupValue: groupValue.value,
-            activeColor: AppColors.primaryColor,
-            onChanged: (val) => groupValue.value = val!,
+            child: RadioListTile<String>(
+              contentPadding: EdgeInsets.zero,
+              dense: true,
+              visualDensity: VisualDensity.compact,
+              title: Align(
+                alignment: Alignment.centerLeft,
+                child: CustomText(
+                  label,
+                ),
+              ),
+              value: value,
+              activeColor: AppColors.primaryColor,
+            ),
           ),
         ));
   }

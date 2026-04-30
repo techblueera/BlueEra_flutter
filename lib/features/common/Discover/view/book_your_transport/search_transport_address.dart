@@ -11,10 +11,8 @@ import 'dart:async';
 import 'dart:developer';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
-import 'package:BlueEra/features/common/Discover/widget/discover_cart_icon.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -472,7 +470,7 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.08),
+                    color: Colors.black.withValues(alpha: 0.08),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -499,7 +497,7 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
                           Container(
                             width: 2,
                             height: 30,
-                            color: AppColors.grayText.withOpacity(0.3),
+                            color: AppColors.grayText.withValues(alpha: 0.3),
                           ),
                           Container(
                             width: 10,

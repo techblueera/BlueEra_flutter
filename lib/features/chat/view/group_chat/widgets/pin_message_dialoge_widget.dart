@@ -42,37 +42,39 @@ class PinMessageDurationDialog extends StatelessWidget {
             const SizedBox(height: 10),
 
             /// Duration Options
-            Column(
-              children: [
-                _durationTile(
-                  title: AppStrings.oneDay.tr,
-                  value: 1,
-                  groupValue: chatViewController.selectedDays.value,
-                  onChanged: (val) =>
-                  chatViewController.selectedDays.value = val,
-                ),
-                _durationTile(
-                  title: AppStrings.sevenDays.tr,
-                  value: 7,
-                  groupValue: chatViewController.selectedDays.value,
-                  onChanged: (val) =>
-                  chatViewController.selectedDays.value = val,
-                ),
-                _durationTile(
-                  title: AppStrings.thirtyDays.tr,
-                  value: 30,
-                  groupValue: chatViewController.selectedDays.value,
-                  onChanged: (val) =>
-                  chatViewController.selectedDays.value = val,
-                ),
-                _durationTile(
-                  title: AppStrings.lifeTime.tr,
-                  value: 34,
-                  groupValue: chatViewController.selectedDays.value,
-                  onChanged: (val) =>
-                  chatViewController.selectedDays.value = val,
-                ),
-              ],
+            RadioGroup<int>(
+              groupValue: chatViewController.selectedDays.value,
+              onChanged: (val) {
+                if (val != null) chatViewController.selectedDays.value = val;
+              },
+              child: Column(
+                children: [
+                  _durationTile(
+                    title: AppStrings.oneDay.tr,
+                    value: 1,
+                    onChanged: (val) =>
+                    chatViewController.selectedDays.value = val,
+                  ),
+                  _durationTile(
+                    title: AppStrings.sevenDays.tr,
+                    value: 7,
+                    onChanged: (val) =>
+                    chatViewController.selectedDays.value = val,
+                  ),
+                  _durationTile(
+                    title: AppStrings.thirtyDays.tr,
+                    value: 30,
+                    onChanged: (val) =>
+                    chatViewController.selectedDays.value = val,
+                  ),
+                  _durationTile(
+                    title: AppStrings.lifeTime.tr,
+                    value: 34,
+                    onChanged: (val) =>
+                    chatViewController.selectedDays.value = val,
+                  ),
+                ],
+              ),
             ),
 
             const SizedBox(height: 24),
@@ -132,7 +134,6 @@ class PinMessageDurationDialog extends StatelessWidget {
   Widget _durationTile({
     required String title,
     required int value,
-    required int groupValue,
     required Function(int) onChanged,
   }) {
     return InkWell(
@@ -141,8 +142,6 @@ class PinMessageDurationDialog extends StatelessWidget {
         children: [
           Radio<int>(
             value: value,
-            groupValue: groupValue,
-            onChanged: (val) => onChanged(val!),
           ),
           CustomText(title, fontSize: 14),
         ],

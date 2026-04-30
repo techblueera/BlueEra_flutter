@@ -14,7 +14,6 @@ import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/services.dart';
 import 'package:pinput/pinput.dart';
-import '../../../me/food/view/visit_food_store_details_screen.dart';
 import '../../auth/controller/call_controller.dart';
 import '../../auth/service/call_activity_service.dart';
 import '../../auth/controller/chat_flag_controller.dart';
@@ -709,7 +708,7 @@ Widget  ChatListTile({
                       overflow: TextOverflow.ellipsis,
                     )
                         : Builder(builder: (_) {
-                      final msg = lastMessage ?? '';
+                      final msg = lastMessage;
                       final lowerMsg = msg.toLowerCase();
                       Color msgColor = AppColors.grey9A;
                       if (lowerMsg.contains('missed call')) {
@@ -1726,7 +1725,7 @@ AppBar getChatTitleAppBar(BuildContext context, {
               },
               behavior: HitTestBehavior.opaque, // IMPORTANT
               child: Material(
-                color: Colors.black.withOpacity(0.2), // optional dim background
+                color: Colors.black.withValues(alpha: 0.2), // optional dim background
                 child: Align(
                   alignment: Alignment.topLeft,
                   child: Padding(

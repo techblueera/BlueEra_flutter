@@ -1,5 +1,3 @@
-import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../../core/constants/app_colors.dart';

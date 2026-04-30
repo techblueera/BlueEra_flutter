@@ -23,7 +23,7 @@ class ChatActionBar extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(10),
-        color: AppColors.lightBlueShade.withOpacity(0.2),
+        color: AppColors.lightBlueShade.withValues(alpha: 0.2),
       ),
       margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),

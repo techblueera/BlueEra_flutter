@@ -241,7 +241,7 @@ class _SimpleGoogleMapsTrackingState extends State<SimpleGoogleMapsTracking> {
         circleId: CircleId('live_location_circle'),
         center: currentPosition!,
         radius: 15.0,
-        fillColor: Colors.blue.withOpacity(0.5),
+        fillColor: Colors.blue.withValues(alpha: 0.5),
         strokeColor: Colors.white,
         strokeWidth: 3,
       );

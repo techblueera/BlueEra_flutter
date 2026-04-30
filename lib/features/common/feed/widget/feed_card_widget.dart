@@ -1,6 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:flutter/material.dart';
 
 class FeedCardWidget extends StatelessWidget {

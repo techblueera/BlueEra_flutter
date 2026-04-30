@@ -3,7 +3,6 @@ import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
 import '../../../../../core/constants/app_colors.dart';
-import '../../../../../core/constants/app_enum.dart';
 import '../../../../../core/constants/getx_utils.dart';
 import '../../../../../widgets/custom_text_cm.dart';
 import '../../../../chat/auth/model/rider_orders_details_model.dart';
@@ -11,7 +10,6 @@ import '../../../../chat/view/call_screen/rider_call/rider_pickup_navigation_scr
 import '../../../../chat/view/call_screen/rider_call/rider_ride_navigation_screen.dart';
 import '../../controller/delivery_partner_orders_controller.dart';
 import '../../controller/pip_floating_page_controller.dart';
-import '../../widget/order_card.dart';
 
 class OnGoingPipScreen extends StatefulWidget {
   const OnGoingPipScreen({super.key});
@@ -72,11 +70,6 @@ void enablePip()async{
     }
   }
 
-  /// Check if an order is a fare-call order
-  bool _isFareCallOrder(RiderOrdersDetailsModel order) {
-
-    return order.orderType == 'fare-call';
-  }
 
   /// Check if pickup OTP has been verified (status is 'picked-up' or later)
   bool _isPickupOtpVerified(RiderOrdersDetailsModel order) {
@@ -389,125 +382,6 @@ void enablePip()async{
     );
   }
 
-  Widget _buildContent(bool isPip,RiderOrdersDetailsModel orders) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10),
-        color: AppColors.white
-      ),
-      padding: EdgeInsets.symmetric(horizontal: !isPip ? 10 : 0,vertical: !isPip ?  10:0),
-      margin: EdgeInsets.symmetric(vertical: 5),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // if (!isPip) ...[
-          // const SizedBox(height: 8),
-            CustomText(
-              "Ongoing Ride",
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-            ),
-            const SizedBox(height: 8),
-          // ],
 
-          /// Drop Location
-          Container(
-            padding: EdgeInsets.all(isPip ? 10 : 8),
-            decoration: BoxDecoration(
-              border: Border.all(color: AppColors.whiteE5),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CustomText(
-                  "DROP LOCATION",
-                  fontSize: isPip ? 13 : 12,
-                  color: Colors.grey,
-                  letterSpacing: 1,
-                ),
-                const SizedBox(height: 4),
-                CustomText(
-                  "${orders.dropLocation?.address}",
-                  fontSize: isPip ? 14 : 13,
-                  color: Colors.black54,
-                  maxLines: isPip ? 3 : 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 12),
-
-          _slideToComplete(isPip),
-        ],
-      ),
-    );
-  }
-
-  Widget _slideToComplete(bool isPip) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final sliderWidth = constraints.maxWidth;
-        final buttonWidth = isPip ? 64.0 : 56.0;
-
-        return Container(
-          height: 48,
-          decoration: BoxDecoration(
-            color: AppColors.whiteE5,
-            borderRadius: BorderRadius.circular(32),
-          ),
-          child: Stack(
-            children: [
-              Center(
-                child: CustomText(
-                  "Slide to complete",
-                  fontSize: isPip ? 15 : 14,
-                  color: Colors.grey.shade600,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              Positioned(
-                left: dragX,
-                child: GestureDetector(
-                  onHorizontalDragUpdate: (details) {
-                    setState(() {
-                      dragX += details.delta.dx;
-                      dragX = dragX.clamp(
-                        0,
-                        sliderWidth - buttonWidth,
-                      );
-                    });
-                  },
-                  onHorizontalDragEnd: (_) {
-                    if (dragX > (sliderWidth - buttonWidth) * 0.7) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text("Order Completed")),
-                      );
-                    }
-                    setState(() => dragX = 0);
-                  },
-                  child: Container(
-                    height:48,
-                    width: buttonWidth,
-                    decoration: BoxDecoration(
-                      color: Colors.green,
-                      borderRadius: BorderRadius.circular(32),
-                    ),
-                    child: const Icon(
-                      Icons.arrow_forward_ios,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
 
 }

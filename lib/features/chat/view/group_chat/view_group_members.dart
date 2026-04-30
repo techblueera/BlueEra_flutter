@@ -446,7 +446,7 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
                       (groupProfileImage.startsWith('http') ||
                           File(groupProfileImage).existsSync()))
                   ? null
-                  : (groupName != null && (groupName.isNotEmpty??false))
+                  : (groupName != null && (groupName.isNotEmpty))
                       ? Center(
                           child: CustomText(
                             "${groupName.split('')[0]}",

@@ -20,9 +20,6 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
-import 'package:flutter_contacts/contact.dart';
-import 'package:flutter_contacts/properties/name.dart';
-import 'package:flutter_contacts/properties/phone.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -455,7 +452,7 @@ class _MessageCardState extends State<MessageCard>
                       bottomLeft: Radius.circular((isReceive) ? 0 : 12),
                     ),
                     color: chatThemeController.myMessageBgColor.value
-                        .withOpacity(0.4),
+                        .withValues(alpha: 0.4),
                   ),
                 ),
               ))

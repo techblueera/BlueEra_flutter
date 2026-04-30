@@ -59,7 +59,7 @@ class HospitalContactUsView extends StatelessWidget {
                 width: double.infinity,
                 padding: EdgeInsets.all(SizeConfig.paddingS),
                 decoration: BoxDecoration(
-                  color: AppColors.primaryColor.withOpacity(0.05),
+                  color: AppColors.primaryColor.withValues(alpha: 0.05),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Column(

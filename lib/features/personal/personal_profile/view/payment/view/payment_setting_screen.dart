@@ -1,7 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/payment/controller/payment_setting_controller.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
@@ -209,7 +208,7 @@ class _PaymentSettingScreenState extends State<PaymentSettingScreen> {
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.08),
+                      color: Colors.black.withValues(alpha: 0.08),
                       offset: const Offset(0, 1),
                       blurRadius: 2,
                       spreadRadius: 0,
@@ -311,10 +310,4 @@ class _PaymentSettingScreenState extends State<PaymentSettingScreen> {
     );
   }
 
-  Color _getColor(String name) {
-    if (name.contains("State")) return Colors.blue;
-    if (name.contains("ICICI")) return Colors.red;
-    if (name.contains("HDFC")) return Colors.indigo;
-    return AppColors.primaryColor;
-  }
 }

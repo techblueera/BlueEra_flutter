@@ -7,7 +7,6 @@ import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/service_home_header_title_widget.dart';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -29,7 +28,6 @@ class HotelHeaderView extends StatefulWidget {
 class _HotelHeaderViewState extends State<HotelHeaderView> {
   File? _bannerImage;
   File? _logoImage;
-  final ImagePicker _picker = ImagePicker();
 
   Future<void> _pickImage(bool isBanner) async {
     final String? imagePath = await SelectProfilePictureDialog.showLogoDialog(

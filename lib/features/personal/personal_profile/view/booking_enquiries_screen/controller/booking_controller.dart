@@ -442,7 +442,7 @@ class BookingController extends GetxController {
     //   selectedTimeSlot.value = allowed.contains(candidate) ? candidate : '30 Min';
     // }
 
-    final controller = getOrPut(() => VisitingHoursSelectorController());
+    getOrPut(() => VisitingHoursSelectorController());
 
     // Prefill visiting hours
     SchedulerBinding.instance.addPostFrameCallback((_) {

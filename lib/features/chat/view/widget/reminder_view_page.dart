@@ -176,7 +176,7 @@ class _ReminderViewPageState extends State<ReminderViewPage> {
                                             Container(
                                               decoration: BoxDecoration(
                                                 borderRadius: BorderRadius.circular(4),
-                                                color: chatThemeController.myMessageBgColor.value.withOpacity(0.13),
+                                                color: chatThemeController.myMessageBgColor.value.withValues(alpha: 0.13),
                                               ),
                                               margin: const EdgeInsets.only(top: 6, bottom: 4),
                                               padding: const EdgeInsets.symmetric(vertical: 4),

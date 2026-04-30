@@ -191,10 +191,10 @@ class _NewDeliveryRequestScreenState extends State<NewDeliveryRequestScreen>
                   padding: const EdgeInsets.all(18),
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.orange.withOpacity(0.15),
+                    color: Colors.orange.withValues(alpha: 0.15),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.orange.withOpacity(0.4),
+                        color: Colors.orange.withValues(alpha: 0.4),
                         blurRadius: 30,
                         spreadRadius: 10,
                       )
@@ -247,8 +247,8 @@ class _NewDeliveryRequestScreenState extends State<NewDeliveryRequestScreen>
               borderRadius: BorderRadius.circular(40),
               gradient: LinearGradient(
                 colors: [
-                  AppColors.primaryColor.withOpacity(0.8),
-                  AppColors.primaryColor.withOpacity(0.4),
+                  AppColors.primaryColor.withValues(alpha: 0.8),
+                  AppColors.primaryColor.withValues(alpha: 0.4),
                 ],
               ),
             ),
@@ -265,7 +265,7 @@ class _NewDeliveryRequestScreenState extends State<NewDeliveryRequestScreen>
               gradient: LinearGradient(
                 colors: [
                   Colors.blueGrey.shade900,
-                  Colors.black.withOpacity(0.3),
+                  Colors.black.withValues(alpha: 0.3),
                 ],
               ),
             ),
@@ -283,7 +283,7 @@ class _NewDeliveryRequestScreenState extends State<NewDeliveryRequestScreen>
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(SizeConfig.size25),
         color: AppColors.white,
-        border: Border.all(color: AppColors.grayText.withOpacity(0.1)),
+        border: Border.all(color: AppColors.grayText.withValues(alpha: 0.1)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -329,7 +329,7 @@ class _NewDeliveryRequestScreenState extends State<NewDeliveryRequestScreen>
           Container(
             margin: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
             decoration: BoxDecoration(
-              color: AppColors.grayText.withOpacity(0.1),
+              color: AppColors.grayText.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(SizeConfig.size10),
             ),
             child: Padding(
@@ -361,7 +361,7 @@ class _NewDeliveryRequestScreenState extends State<NewDeliveryRequestScreen>
     return Container(
       margin: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
       decoration: BoxDecoration(
-        color: AppColors.grayText.withOpacity(0.1),
+        color: AppColors.grayText.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(SizeConfig.size10),
       ),
       child: Padding(
@@ -466,11 +466,11 @@ class _ModernSwipeToActionState extends State<ModernSwipeToAction>
             child: Row(
               children: [
                 Icon(Icons.keyboard_double_arrow_left,
-                    size: 30, color: Colors.red.withOpacity(blink)),
+                    size: 30, color: Colors.red.withValues(alpha: blink)),
                 const SizedBox(width: 5),
                 CustomText(
                   AppStrings.decline,
-                  color: Colors.red.withOpacity(blink),
+                  color: Colors.red.withValues(alpha: blink),
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
                 ),
@@ -491,13 +491,13 @@ class _ModernSwipeToActionState extends State<ModernSwipeToAction>
               children: [
                 CustomText(
                   AppStrings.accept,
-                  color: Colors.green.withOpacity(blink),
+                  color: Colors.green.withValues(alpha: blink),
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
                 ),
                 const SizedBox(width: 5),
                 Icon(Icons.keyboard_double_arrow_right,
-                    size: 30, color: Colors.green.withOpacity(blink)),
+                    size: 30, color: Colors.green.withValues(alpha: blink)),
               ],
             ),
           ),
@@ -538,15 +538,15 @@ class _ModernSwipeToActionState extends State<ModernSwipeToAction>
                       : _dragX < 0
                           ? [Colors.redAccent, Colors.red]
                           : [
-                              Colors.white.withOpacity(0.8),
+                              Colors.white.withValues(alpha: 0.8),
                               Colors.grey.shade200,
                             ],
                 ),
                 boxShadow: [
                   BoxShadow(
                     color: _dragX == 0
-                        ? Colors.blue.withOpacity(blink * 0.3)
-                        : Colors.black.withOpacity(0.2),
+                        ? Colors.blue.withValues(alpha: blink * 0.3)
+                        : Colors.black.withValues(alpha: 0.2),
                     blurRadius: _dragX == 0 ? 30 : 15,
                     spreadRadius: 2,
                   ),
@@ -563,11 +563,11 @@ class _ModernSwipeToActionState extends State<ModernSwipeToAction>
                   ],
                   if (_dragX == 0) ...[
                     Icon(Icons.swipe,
-                        color: Colors.blue.withOpacity(blink), size: 28),
+                        color: Colors.blue.withValues(alpha: blink), size: 28),
                     const SizedBox(width: 12),
                     CustomText(
                       AppStrings.swipe,
-                      color: Colors.black.withOpacity(0.7),
+                      color: Colors.black.withValues(alpha: 0.7),
                       fontSize: 17,
                       fontWeight: FontWeight.bold,
                     ),

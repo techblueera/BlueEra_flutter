@@ -127,7 +127,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
               // Overlay: spinner while initializing, play/pause icon otherwise
               if (_isInitializing)
                 const CircularProgressIndicator(color: Colors.white)
-              else if (!isReady || _showOverlay || !ctrl!.value.isPlaying)
+              else if (!isReady || _showOverlay || !ctrl.value.isPlaying)
                 AnimatedOpacity(
                   opacity: 1.0,
                   duration: const Duration(milliseconds: 300),
@@ -138,7 +138,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
                     ),
                     padding: const EdgeInsets.all(8.0),
                     child: Icon(
-                      isReady && ctrl!.value.isPlaying
+                      isReady && ctrl.value.isPlaying
                           ? Icons.pause_outlined
                           : Icons.play_arrow_outlined,
                       size: SizeConfig.size40,

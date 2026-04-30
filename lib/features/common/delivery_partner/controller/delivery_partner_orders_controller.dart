@@ -16,7 +16,6 @@ import '../../../chat/auth/repo/make_order_repo.dart';
 import '../../../chat/auth/stream/get_orders_stream.dart';
 import '../model/rider_shops_list_grocery.dart';
 import 'package:flutter/services.dart';
-import 'package:get/get_rx/src/rx_types/rx_types.dart';
 
 
 

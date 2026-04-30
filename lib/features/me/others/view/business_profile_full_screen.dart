@@ -15,19 +15,15 @@ import 'package:BlueEra/features/common/service/view/service_upload_screen.dart'
 import 'package:BlueEra/features/common/service/view/view_service_list.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/business/widgets/business_share_banner.dart';
-import 'package:BlueEra/features/me/laboratory/view/widgets/me_menu_card_design.dart';
 import 'package:BlueEra/features/me/others/controller/business_profile_full_controller.dart';
 import 'package:BlueEra/features/me/others/controller/other_branch_contact_controller.dart';
 import 'package:BlueEra/features/me/others/model/business_profile_full_model.dart' hide Location;
-import 'package:BlueEra/features/me/others/view/about_us/about_us.dart';
 import 'package:BlueEra/features/me/others/view/management/management_screen.dart';
-import 'package:BlueEra/features/me/others/view/other_blog/other_blogs_screen.dart';
 import 'package:BlueEra/features/me/others/view/other_career_jobs/other_job_listing_screen.dart';
 import 'package:BlueEra/features/me/others/view/other_contact_us/other_branch_details_form_screen.dart';
 import 'package:BlueEra/features/me/others/view/other_contact_us/other_branch_only_screen.dart';
 import 'package:BlueEra/features/me/others/view/other_contact_us/other_contact_us.dart';
 import 'package:BlueEra/features/me/others/view/other_service_gallery/other_service_photos_screen.dart';
-import 'package:BlueEra/features/me/others/view/staff/staff_screen.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
@@ -347,73 +343,6 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
     );
   }
 
-  Widget _buildOrgEmptyCard({required VoidCallback onTap}) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-      decoration: BoxDecoration(
-        color: Colors.grey[50],
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.business_center_outlined, size: 36, color: Colors.grey[350]),
-          const SizedBox(height: 8),
-          CustomText(
-            AppStrings.otherNoOrganisationInfoAdded.tr,
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            color: AppColors.mainTextColor,
-          ),
-          const SizedBox(height: 4),
-          CustomText(
-            AppStrings.otherShareOrgStory.tr,
-            fontSize: 11,
-            color: AppColors.secondaryTextColor,
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 10),
-          GestureDetector(
-            onTap: onTap,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
-              decoration: BoxDecoration(
-                color: AppColors.primaryColor,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.add, color: Colors.white, size: 18),
-                  const SizedBox(width: 6),
-                  CustomText(
-                    AppStrings.otherAddOrganisation.tr,
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildEmptySectionCard({
-    required String title,
-    required String icon,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      child: MeMenuCardDesign(title: title, icon: icon),
-    );
-  }
-
   Widget _buildSectionTitle(String title, {VoidCallback? onSeeAll}) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -429,63 +358,6 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
             ),
           ),
       ],
-    );
-  }
-
-  Widget _buildStaffList(List<Staff> staffList) {
-    return SizedBox(
-      height: 197,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: staffList.length,
-        itemBuilder: (context, index) {
-          final staff = staffList[index];
-          return Container(
-            width: 160,
-            margin: const EdgeInsets.only(right: 12),
-            decoration: BoxDecoration(
-                border: Border.all(
-                  color: AppColors.whiteE5,
-                ),
-                borderRadius: BorderRadius.circular(10)),
-            child: Column(
-              children: [
-                Expanded(
-                  child: ClipRRect(
-                    borderRadius: const BorderRadius.only(
-                        topRight: Radius.circular(8),
-                        topLeft: Radius.circular(8)),
-                    child: CachedNetworkImage(
-                      imageUrl: staff.imageUrl ?? "",
-                      height: 132,
-                      width: 160,
-                      fit: BoxFit.cover,
-                      errorWidget: (context, url, error) => Container(
-                          height: 100, width: 120, color: Colors.grey[300]),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                CustomText(
-                  staff.name ?? "",
-                  fontWeight: FontWeight.bold,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  color: AppColors.mainTextColor,
-                ),
-                CustomText(
-                  staff.position ?? "",
-                  color: AppColors.secondaryTextColor,
-                  fontSize: 12,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 8),
-              ],
-            ),
-          );
-        },
-      ),
     );
   }
 
@@ -967,146 +839,6 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildServicesList(List<AboutOrganisation> services) {
-    return SizedBox(
-      height: 180,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: services.length,
-        itemBuilder: (context, index) {
-          final service = services[index];
-          return Container(
-            width: 250,
-            margin: const EdgeInsets.only(right: 12),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              color: Colors.white,
-            ),
-            child: Stack(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: CachedNetworkImage(
-                    imageUrl: service.imageUrl ?? "",
-                    height: 180,
-                    width: 250,
-                    fit: BoxFit.cover,
-                    errorWidget: (context, url, error) => Container(
-                        height: 180, width: 250, color: Colors.grey[300]),
-                  ),
-                ),
-                Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.transparent,
-                        Colors.black.withValues(alpha: 0.8)
-                      ],
-                    ),
-                  ),
-                ),
-                Positioned(
-                  bottom: 12,
-                  left: 12,
-                  right: 12,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      CustomText(
-                        service.title ?? "",
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16),
-                      CustomText(
-                        service.description ?? "",
-                            color: AppColors.whiteE5, fontSize: 12,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildBlogsServicesList(List<Blogs> services) {
-    return SizedBox(
-      height: 180,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: services.length,
-        itemBuilder: (context, index) {
-          final service = services[index];
-          return Container(
-            width: 250,
-            margin: const EdgeInsets.only(right: 12),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              color: Colors.white,
-            ),
-            child: Stack(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: CachedNetworkImage(
-                    imageUrl: service.imageUrl ?? "",
-                    height: 180,
-                    width: 250,
-                    fit: BoxFit.cover,
-                    errorWidget: (context, url, error) => Container(
-                        height: 180, width: 250, color: Colors.grey[300]),
-                  ),
-                ),
-                Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.transparent,
-                        Colors.black.withValues(alpha: 0.8)
-                      ],
-                    ),
-                  ),
-                ),
-                Positioned(
-                  bottom: 12,
-                  left: 12,
-                  right: 12,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      CustomText(service.title ?? "",
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16),
-                      CustomText(
-                        service.blog ?? "",
-                        color: AppColors.whiteE5,
-                        fontSize: 12,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          );
-        },
       ),
     );
   }

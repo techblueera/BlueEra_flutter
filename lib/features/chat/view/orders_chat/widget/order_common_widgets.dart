@@ -6,7 +6,6 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/common/Discover/view/choose_delivery_options_screen.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -63,7 +62,7 @@ class OrderCommonWidget {
                             child: ElevatedButton(
                               style: ElevatedButton.styleFrom(
                                 backgroundColor:
-                                    AppColors.grayText.withOpacity(0.04),
+                                    AppColors.grayText.withValues(alpha: 0.04),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(10),
                                 ),
@@ -83,7 +82,7 @@ class OrderCommonWidget {
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: hasOrderValue
                                     ? AppColors.primaryColor
-                                    : AppColors.grayText.withOpacity(0.3),
+                                    : AppColors.grayText.withValues(alpha: 0.3),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(10),
                                 ),

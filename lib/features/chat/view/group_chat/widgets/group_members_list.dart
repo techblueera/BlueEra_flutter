@@ -127,9 +127,9 @@ class _GroupMembersListState extends State<GroupMembersList> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
         decoration: BoxDecoration(
-          color: (iconColor ?? AppColors.primaryColor).withOpacity(0.05),
+          color: (iconColor ?? AppColors.primaryColor).withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: (iconColor ?? AppColors.primaryColor).withOpacity(0.1)),
+          border: Border.all(color: (iconColor ?? AppColors.primaryColor).withValues(alpha: 0.1)),
         ),
         child: Row(
           children: [

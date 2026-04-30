@@ -17,7 +17,6 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/hive_services.dart';
 import 'package:BlueEra/features/common/store/repo/product_repo.dart';
-import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
 import 'package:BlueEra/features/me/product/model/generate_ai_product_content.dart';
 import 'package:BlueEra/features/me/product/model/inventory_based_search_product_response.dart';
 import 'package:BlueEra/features/me/product/model/product_nested_category_response.dart';

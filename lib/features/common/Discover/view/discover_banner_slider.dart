@@ -1,9 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/features/common/franchise/view/franchise_home.dart';
 import 'package:BlueEra/features/common/referral/view/referral_page.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
-import 'package:BlueEra/widgets/network_assets.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -81,41 +79,9 @@ class _DiscoverBannerSliderState extends State<DiscoverBannerSlider> {
                 ),
               );
 
-              return InkWell(
-                onTap: () => _handleOnTap(data['slugId']!),
-                child: NetWorkOcToAssets(
-                  imgUrl: data["image"]!,
-                  boxFit: BoxFit.cover,
-                ),
-              );
             },
           ),
 
-         /* /// DOT INDICATOR overlaid at bottom of banner
-          if (sliderData.length > 1)
-            Positioned(
-              bottom: 10,
-              left: 0,
-              right: 0,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(
-                  sliderData.length,
-                  (index) => AnimatedContainer(
-                    duration: const Duration(milliseconds: 300),
-                    margin: const EdgeInsets.symmetric(horizontal: 3),
-                    height: 6,
-                    width: currentPage == index ? 20 : 6,
-                    decoration: BoxDecoration(
-                      color: currentPage == index
-                          ? AppColors.white
-                          : AppColors.white.withValues(alpha: 0.4),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
-              ),
-            ),*/
         ],
       ),
     );

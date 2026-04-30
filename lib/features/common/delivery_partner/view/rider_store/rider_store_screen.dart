@@ -11,7 +11,6 @@ import 'package:BlueEra/features/me/food/controller/food_service_controller.dart
 import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
-import 'package:BlueEra/widgets/collapsible_grid_model.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
@@ -285,32 +284,6 @@ class _RiderStoreScreenState extends State<RiderStoreScreen> {
     );
   }
 
-  Widget _buildCategoryGrid({
-    required List<CollapsibleGridModel> items,
-    required Function(CollapsibleGridModel) onTap,
-  }) {
-    return MasonryGridView.count(
-      shrinkWrap: true,
-      primary: false,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: items.length,
-      crossAxisCount: 3,
-      crossAxisSpacing: 6,
-      mainAxisSpacing: 6,
-      padding: EdgeInsets.zero,
-      itemBuilder: (context, index) {
-        var item = items[index];
-        return CommonServiceCard<CollapsibleGridModel>(
-            service: item,
-            getName: (item) => item.name,
-            getIcon: (item) => item.icon??'',
-            iconHeight: SizeConfig.size60,
-            boxShadow: [],
-            onTap: (item) => onTap(item),
-          );
-      },
-    );
-  }
 
   Widget _buildPaymentMode(String text){
     return Container(

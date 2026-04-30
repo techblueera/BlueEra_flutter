@@ -242,7 +242,6 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
             // left: SizeConfig.paddingL,
             right: SizeConfig.paddingXSL),
         child: Obx(() {
-          bool isSearchOn = Get.find<AuthController>().isSearchOpen.value;
           return Row(
             // mainAxisAlignment: MainAxisAlignment.center,
             children: [

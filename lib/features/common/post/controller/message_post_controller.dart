@@ -806,7 +806,7 @@ class MessagePostController extends GetxController {
 
     suggestions.value = data.map((inner) {
       if (inner is List) {
-        return (inner as List<dynamic>).join("\n"); // join lines as paragraph
+        return (inner).join("\n"); // join lines as paragraph
       } else if (inner is String) {
         return inner;
       } else {

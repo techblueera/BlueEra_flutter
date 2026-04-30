@@ -8,8 +8,6 @@ import 'package:BlueEra/features/subscription/auth/model/subscription_list_detai
 import 'package:BlueEra/features/subscription/widget/active_subscription_plan_card.dart';
 import 'package:BlueEra/features/subscription/widget/paid_subscription_plan_card.dart';
 import 'package:BlueEra/features/subscription/widget/subscription_pay_button.dart';
-import 'package:BlueEra/features/subscription/widget/subscription_payment_handler.dart';
-import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';

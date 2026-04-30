@@ -1,4 +1,3 @@
-import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
@@ -20,7 +19,6 @@ import 'package:BlueEra/features/common/delivery_partner/view/delivery_partner_o
 import 'package:BlueEra/features/common/delivery_partner/view/personal_information_riding_screen.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/rider_profile_status_screen.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/vehicle_information_riding_screen.dart';
-import 'package:BlueEra/features/common/Discover/view/go_live_permission_screen.dart';
 import 'package:BlueEra/features/common/reel/view/channel/follower_following_screen.dart';
 import 'package:BlueEra/features/common/visiting_card/view/all_personal_visiting_cards.dart';
 import 'package:BlueEra/features/me/me_tab_registry.dart';
@@ -29,12 +27,10 @@ import 'package:BlueEra/features/personal/personal_profile/controller/perosonal_
 import 'package:BlueEra/features/personal/personal_profile/view/widget/edit_profile_bottom_sheet.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/profile_designation_bottom_sheet.dart';
 import 'package:BlueEra/features/subscription/view/subscription_status_view.dart';
-import 'package:BlueEra/permissionCentralize/go_live_permission_service.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/common_circular_profile_image.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/account_setting_screen/account_settings_screen.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:croppy/croppy.dart';
 import 'package:flutter/material.dart';
@@ -42,8 +38,6 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 
-import 'rider_add_store_screen.dart';
-import 'rider_my_store_tab.dart';
 
 class RiderServiceScreen extends StatefulWidget {
   final bool fromBottomNavBar;
@@ -144,24 +138,6 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
     return address;
   }
 
-  Future<void> _handleGoLiveToggle() async {
-    if (_viewCtrl.shopStatusOpenClose.value) {
-      _viewCtrl.toggleShopStatus();
-      return;
-    }
-    if (await GoLivePermissionService.areAllGranted()) {
-      _viewCtrl.toggleShopStatus();
-      return;
-    }
-    if (!mounted) return;
-    final granted = await Navigator.push<bool>(
-      context,
-      MaterialPageRoute(builder: (_) => const GoLivePermissionScreen()),
-    );
-    if (granted == true) {
-      _viewCtrl.toggleShopStatus();
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -528,43 +504,6 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
     );
   }
 
-  Widget _buildGoLiveWidget() {
-    if (_currentTabIndex == 1) return _buildNewStoreButton();
-    if (!Platform.isAndroid) return const SizedBox.shrink();
-
-    return Builder(builder: (_) {
-      final statusData = serviceProviderStatusGlobal.toUpperCase();
-      final isOpen = statusData == AppConstants.OPEN.toUpperCase();
-      if (_viewCtrl.shopStatusOpenClose.value != isOpen) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _viewCtrl.shopStatusOpenClose.value = isOpen;
-        });
-      }
-      return Container(
-        height: SizeConfig.size36,
-        decoration: BoxDecoration(
-          border: Border.all(color: AppColors.primaryColor),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SizedBox(width: SizeConfig.size8),
-            CustomText(
-              AppStrings.goLive,
-              fontSize: SizeConfig.small,
-              color: AppColors.primaryColor,
-              fontWeight: FontWeight.w600,
-            ),
-            buildToggleSwitchChip(
-              value: _viewCtrl.shopStatusOpenClose,
-              onChanged: () => _handleGoLiveToggle(),
-            ),
-          ],
-        ),
-      );
-    });
-  }
 
   Widget _infoRow(IconData icon, String text) {
     return Row(
@@ -654,37 +593,6 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
     return Container(height: 30, width: 1, color: Colors.grey.shade200);
   }
 
-  Widget _buildNewStoreButton() {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const RiderAddStoreScreen()),
-        ).then((_) => controller.getAssociatedShops(filter: 'all'));
-      },
-      child: Container(
-        padding: EdgeInsets.symmetric(
-            horizontal: SizeConfig.size10, vertical: SizeConfig.size6),
-        decoration: BoxDecoration(
-          color: AppColors.primaryColor,
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.add, color: AppColors.white, size: 18),
-            SizedBox(width: SizeConfig.size4),
-            CustomText(
-              'New Store',
-              fontSize: SizeConfig.medium,
-              color: AppColors.white,
-              fontWeight: FontWeight.w600,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   Widget _buildEditProfileChip() {
     return InkWell(

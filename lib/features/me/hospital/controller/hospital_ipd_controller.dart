@@ -111,7 +111,7 @@ class HospitalIpdController extends GetxController {
         'bedCount': int.tryParse(bedCountController.text.trim()) ?? 0,
         'description': historyController.text.trim(),
         'fees': int.tryParse(feesController.text.trim()) ?? 0,
-        'hospitalId': hospitalIdArg ?? (await getHospitalID() ?? ''),
+        'hospitalId': hospitalIdArg ?? (await getHospitalID()),
         'departmentId': departmentIdArg ?? '',
       };
       ResponseModel res;

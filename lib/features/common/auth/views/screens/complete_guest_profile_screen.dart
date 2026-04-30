@@ -90,15 +90,6 @@ class _CompleteGuestProfileScreenState
     );
   }
 
-  Future<void> _onSkip() async {
-    FocusScope.of(context).unfocus();
-    await _authController.createGuestAccountUserController(
-      reqData: {
-        ApiKeys.contact_no: _authController.mobileNumberEditController.text,
-        ApiKeys.account_type: AppConstants.guest,
-      },
-    );
-  }
 
   @override
   Widget build(BuildContext context) {

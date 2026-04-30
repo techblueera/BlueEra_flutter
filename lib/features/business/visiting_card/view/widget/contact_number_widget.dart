@@ -40,7 +40,12 @@ class _ContactInputFieldState extends State<ContactInputField1> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Row(
+        RadioGroup<ContactType>(
+          groupValue: widget.selectedType,
+          onChanged: (value) {
+            if (value != null) widget.onTypeChanged(value);
+          },
+          child: Row(
           children: [
             Expanded(
               child: InkWell(
@@ -55,10 +60,6 @@ class _ContactInputFieldState extends State<ContactInputField1> {
                       child: Radio<ContactType>(
                         activeColor: AppColors.primaryColor,
                         value: ContactType.Mobile,
-                        groupValue: widget.selectedType,
-                        onChanged: (value) {
-                          widget.onTypeChanged(value!);
-                        },
                         // materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         // visualDensity: VisualDensity(horizontal: -3, vertical: -3),
                       ),
@@ -85,10 +86,6 @@ class _ContactInputFieldState extends State<ContactInputField1> {
                       child: Radio<ContactType>(
                         activeColor: AppColors.primaryColor,
                         value: ContactType.Landline,
-                        groupValue: widget.selectedType,
-                        onChanged: (value) {
-                          widget.onTypeChanged(value!);
-                        },
                         // materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         // visualDensity: VisualDensity(horizontal: -3, vertical: -3),
                       ),
@@ -103,6 +100,7 @@ class _ContactInputFieldState extends State<ContactInputField1> {
               ),
             ),
           ],
+        ),
         ),
         SizedBox(
           height: SizeConfig.size10,

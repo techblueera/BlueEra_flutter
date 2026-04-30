@@ -12,7 +12,6 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:croppy/croppy.dart';
 
 class LabHeaderView extends StatefulWidget {
@@ -32,7 +31,6 @@ class LabHeaderView extends StatefulWidget {
 class _LabHeaderViewState extends State<LabHeaderView> {
   File? _bannerImage;
   File? _logoImage;
-  final ImagePicker _picker = ImagePicker();
 
   Future<void> _pickImage(bool isBanner) async {
     final String? imagePath = await SelectProfilePictureDialog.showLogoDialog(

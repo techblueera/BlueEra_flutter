@@ -15,7 +15,6 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../common/food/model/food_category_res_model.dart';
 
 class FoodEntryAiScreen extends StatefulWidget {
   final int? createMissingProductIndex;
@@ -194,15 +193,22 @@ class _FoodEntryAiScreenState extends State<FoodEntryAiScreen> {
 
               // 2. Food Type Radio Group
               _titleWidget(AppStrings.foodFoodTypeLabel.tr),
-              Obx(() => Wrap(
-                    spacing: 8,
-                    children: [
-                      _buildRadioButton("Veg", controller.selectedFoodType),
-                      _buildRadioButton("Non-Veg", controller.selectedFoodType),
-                      _buildRadioButton("Vigan", controller.selectedFoodType),
-                      _buildRadioButton(
-                          "Dairy/Sweet", controller.selectedFoodType),
-                    ],
+              Obx(() => RadioGroup<String>(
+                    groupValue: controller.selectedFoodType.value,
+                    onChanged: (val) {
+                      if (val != null) controller.selectedFoodType.value = val;
+                    },
+                    child: Wrap(
+                      spacing: 8,
+                      children: [
+                        _buildRadioButton("Veg", controller.selectedFoodType),
+                        _buildRadioButton(
+                            "Non-Veg", controller.selectedFoodType),
+                        _buildRadioButton("Vigan", controller.selectedFoodType),
+                        _buildRadioButton(
+                            "Dairy/Sweet", controller.selectedFoodType),
+                      ],
+                    ),
                   )),
               const SizedBox(height: 16),
 
@@ -582,8 +588,6 @@ class _FoodEntryAiScreenState extends State<FoodEntryAiScreen> {
         children: [
           Radio<String>(
             value: label,
-            groupValue: selectedValue.value,
-            onChanged: (value) => selectedValue.value = value!,
             fillColor: WidgetStateProperty.resolveWith<Color>((states) {
               if (states.contains(WidgetState.selected)) {
                 return AppColors.primaryColor; // Color when selected (the dot)

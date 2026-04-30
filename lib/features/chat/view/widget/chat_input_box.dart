@@ -30,7 +30,6 @@ import '../../../../core/constants/snackbar_helper.dart';
 import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/model/GetListOfMessageData.dart';
-import 'component_widgets.dart';
 
 class ChatInputBar extends StatefulWidget {
   const ChatInputBar(

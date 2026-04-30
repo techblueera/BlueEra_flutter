@@ -43,7 +43,6 @@ class _HomeMadeFoodProfileScreenState extends State<HomeMadeFoodProfileScreen> {
   bool _acceptPrivacy = false;
 
   // Location data from search
-  String _selectedPlaceId = '';
   double _selectedLat = 0.0;
   double _selectedLng = 0.0;
 
@@ -161,7 +160,6 @@ class _HomeMadeFoodProfileScreenState extends State<HomeMadeFoodProfileScreen> {
                   isShowLeading: false,
                   onSelected: (placeId, lat, lng, address) {
                     _addressController.text = address;
-                    _selectedPlaceId = placeId;
                     _selectedLat = lat;
                     _selectedLng = lng;
                   },

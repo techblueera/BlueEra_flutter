@@ -15,10 +15,8 @@ import 'package:get/get.dart';
 
 import '../../../../../core/constants/getx_utils.dart';
 import '../../../../../core/constants/shared_preference_utils.dart';
-import '../../../../../core/routes/route_helper.dart';
 import '../../../../../widgets/common_dialog.dart';
 import '../../../../business/auth/controller/view_business_details_controller.dart';
-import '../../../../chat/auth/controller/chat_view_controller.dart';
 import '../../../../chat/auth/service/location_update_service.dart';
 import '../../../../subscription/view/single_plan_subscription_view.dart';
 import '../widget/changes_languages_screen.dart';
@@ -332,42 +330,6 @@ Widget _statusChip(
     ),
   );
 }
-Widget _greenChip(String text) {
-  return Container(
-    padding: EdgeInsets.symmetric(
-      horizontal: SizeConfig.size14,
-      vertical: SizeConfig.size6,
-    ),
-    decoration: BoxDecoration(
-      color: AppColors.green4F,
-      borderRadius: BorderRadius.circular(20),
-    ),
-    child: CustomText(
-      text,
-      fontSize: SizeConfig.size10,
-      color: Colors.white,
-    ),
-  );
-}
-Widget _greyChip(String text) {
-  return Container(
-    padding: EdgeInsets.symmetric(
-      horizontal: SizeConfig.size14,
-      vertical: SizeConfig.size6,
-    ),
-    decoration: BoxDecoration(
-      color: Colors.grey.shade200,
-      borderRadius: BorderRadius.circular(20),
-    ),
-    child: CustomText(
-      text,
-      fontSize: SizeConfig.size10,
-      color: AppColors.mainTextColor,
-    ),
-  );
-}
-
-
 Widget buildSettingItem({
   required String imagePath,
   required String title,

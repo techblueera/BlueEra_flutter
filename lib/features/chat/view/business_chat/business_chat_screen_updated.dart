@@ -229,7 +229,7 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated>
                                           ? null
                                           : Border.all(
                                               color: AppColors.borderBox
-                                                  .withOpacity(0.75)),
+                                                  .withValues(alpha: 0.75)),
                                     ),
                                     child: Center(
                                       child: CustomText(

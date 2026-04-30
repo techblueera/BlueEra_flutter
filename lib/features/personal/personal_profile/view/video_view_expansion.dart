@@ -269,7 +269,7 @@
 //                               width: SizeConfig.size50,
 //                               decoration: BoxDecoration(
 //                                 shape: BoxShape.circle,
-//                                 color: AppColors.primaryColor.withOpacity(.5),
+//                                 color: AppColors.primaryColor.withValues(alpha: .5),
 //                               ),
 //                               child: GestureDetector(
 //                                 onTap: _onPlayPausePressed,

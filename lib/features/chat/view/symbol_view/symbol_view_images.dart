@@ -14,7 +14,6 @@ import 'package:video_player/video_player.dart';
 import 'package:any_link_preview/any_link_preview.dart';
 import '../../auth/controller/add_chat_symbol_controller.dart';
 import '../../auth/controller/chat_view_controller.dart';
-import '../../auth/model/GetChatListModel.dart';
 import '../../auth/model/symbol_details_model.dart';
 import '../widget/custom_video_player.dart';
 

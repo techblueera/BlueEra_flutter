@@ -1,4 +1,3 @@
-import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_theme_controller.dart';
@@ -175,11 +174,6 @@ class _StoreAiChatScreenState extends State<StoreAiChatScreen> {
                               ? Center(
                             child: InkWell(
                               onTap: () {
-                                Map<String, dynamic> data = {
-                                  // ApiKeys.other_user_id: widget.userId,
-                                  ApiKeys.message: "Namaste 🙏",
-                                  ApiKeys.message_type: "text",
-                                };
                                 // chatViewController.sendInitialMessage(data);
                               },
                               child: Container(

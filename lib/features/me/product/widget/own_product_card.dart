@@ -1,6 +1,4 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
-import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
@@ -74,7 +72,7 @@ class OwnProductCard extends StatelessWidget {
       }
     }
 
-    int discountProduct = calculateDiscount(
+    calculateDiscount(
       variants[0].sellingPrice.toString(),
       variants[0].mrp.toString(),
     ).toInt();

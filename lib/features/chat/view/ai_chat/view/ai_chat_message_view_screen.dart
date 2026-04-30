@@ -4,13 +4,11 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../../../core/api/apiService/api_response.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/app_icon_assets.dart';
-import '../../../../../core/constants/app_image_assets.dart';
 import '../../../../../core/constants/app_strings.dart';
 import '../../../../../core/constants/common_methods.dart';
 import '../../../../../core/constants/shared_preference_utils.dart';

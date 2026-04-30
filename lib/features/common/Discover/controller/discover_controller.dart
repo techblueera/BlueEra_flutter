@@ -572,12 +572,6 @@ class DiscoverController extends GetxController {
       hasMoreFoodRestaurantData = true;
     }
 
-    final Map<String, dynamic> queryParams = {
-      if (selectedFoodServiceData.value?.slugId != null)
-        "categoryId": selectedFoodServiceData.value?.slugId,
-      // ApiKeys.page: foodRestaurantServicePage,
-      // ApiKeys.limit: limit,
-    };
 
     ResponseModel response = await SchoolRepo().getSearchFoodRepo(
         reqParm: selectedFoodServiceData.value?.slugId ?? "");

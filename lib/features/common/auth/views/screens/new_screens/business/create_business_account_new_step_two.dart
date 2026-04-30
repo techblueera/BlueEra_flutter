@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:developer';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/model/location_data_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -29,7 +28,6 @@ import 'package:BlueEra/widgets/fetch_location_button.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:pinput/pinput.dart';
 
 class CreateBusinessAccountNewStepTwo extends StatefulWidget {
   const CreateBusinessAccountNewStepTwo({
@@ -202,7 +200,7 @@ class _CreateBusinessAccountNewStepTwoState
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    Theme.of(context);
 
     return PopScope(
       canPop: false,

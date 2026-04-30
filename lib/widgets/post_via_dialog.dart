@@ -127,38 +127,38 @@ Future<void> showPostViaDialog(
                             : AppColors.secondaryTextColor,
                       ),
                     ),
-                    child: Column(
-                      children: [
-                        RadioListTile(
-                          value: 'channel',
-                          groupValue: selected,
-                          visualDensity: VisualDensity.compact,
-                          onChanged: (value) =>
-                              setState(() => selected = value!),
-                          contentPadding: EdgeInsets.zero,
-                          title: CustomText(
-                            AppStrings.channel,
-                            color: AppColors.mainTextColor,
-                            fontSize: SizeConfig.medium,
-                            fontWeight: FontWeight.w400,
+                    child: RadioGroup<String>(
+                      groupValue: selected,
+                      onChanged: (value) {
+                        if (value != null) setState(() => selected = value);
+                      },
+                      child: Column(
+                        children: [
+                          RadioListTile<String>(
+                            value: 'channel',
+                            visualDensity: VisualDensity.compact,
+                            contentPadding: EdgeInsets.zero,
+                            title: CustomText(
+                              AppStrings.channel,
+                              color: AppColors.mainTextColor,
+                              fontSize: SizeConfig.medium,
+                              fontWeight: FontWeight.w400,
+                            ),
                           ),
-                        ),
 
-                        RadioListTile(
-                          value: 'profile',
-                          groupValue: selected,
-                          visualDensity: VisualDensity.compact,
-                          onChanged: (value) =>
-                              setState(() => selected = value!),
-                          contentPadding: EdgeInsets.zero,
-                          title: CustomText(
-                            AppStrings.profile,
-                            color: AppColors.mainTextColor,
-                            fontSize: SizeConfig.medium,
-                            fontWeight: FontWeight.w400,
+                          RadioListTile<String>(
+                            value: 'profile',
+                            visualDensity: VisualDensity.compact,
+                            contentPadding: EdgeInsets.zero,
+                            title: CustomText(
+                              AppStrings.profile,
+                              color: AppColors.mainTextColor,
+                              fontSize: SizeConfig.medium,
+                              fontWeight: FontWeight.w400,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
 

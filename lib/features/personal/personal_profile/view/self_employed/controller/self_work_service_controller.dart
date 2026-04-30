@@ -15,7 +15,6 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
 import 'package:BlueEra/features/common/service/model/add_service_response_model.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/model/earn_service_model_response.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/model/predefined_category_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/repo/earn_service_repo.dart';

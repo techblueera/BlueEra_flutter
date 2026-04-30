@@ -130,30 +130,27 @@ class _AddMoreCourseScreenState extends State<AddMoreCourseScreen> {
                 ),
                 SizedBox(height: SizeConfig.paddingM),
                 // Radio buttons with Obx to update UI immediately
-                Obx(() => Row(
-                      children: [
-                        CustomText(
-                          AppStrings.courseFee,
-                        ),
-                        Radio<String>(
-                          value: 'Monthly',
-                          groupValue: courseController.feeType.value,
-                          onChanged: (val) {
-                            courseController.setFeeType(val);
-                            _runValidation();
-                          },
-                        ),
-                        const CustomText(AppStrings.monthly),
-                        Radio<String>(
-                          value: 'Yearly',
-                          groupValue: courseController.feeType.value,
-                          onChanged: (val) {
-                            courseController.setFeeType(val);
-                            _runValidation();
-                          },
-                        ),
-                         CustomText(AppStrings.years),
-                      ],
+                Obx(() => RadioGroup<String>(
+                      groupValue: courseController.feeType.value,
+                      onChanged: (val) {
+                        courseController.setFeeType(val);
+                        _runValidation();
+                      },
+                      child: Row(
+                        children: [
+                          CustomText(
+                            AppStrings.courseFee,
+                          ),
+                          Radio<String>(
+                            value: 'Monthly',
+                          ),
+                          const CustomText(AppStrings.monthly),
+                          Radio<String>(
+                            value: 'Yearly',
+                          ),
+                          CustomText(AppStrings.years),
+                        ],
+                      ),
                     )),
 
                 SizedBox(height: SizeConfig.paddingXSL),

@@ -38,7 +38,7 @@ class BottomCaptionField extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF7971E).withOpacity(0.08),
+                    color: const Color(0xFFF7971E).withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Icon(Icons.person_pin_rounded,
@@ -65,11 +65,11 @@ class BottomCaptionField extends StatelessWidget {
                     children: [
                       Icon(Icons.add_rounded,
                           size: 16,
-                          color: const Color(0xFF2D3142).withOpacity(0.5)),
+                          color: const Color(0xFF2D3142).withValues(alpha: 0.5)),
                       const SizedBox(width: 4),
                       CustomText(
                         AppStrings.add.tr,
-                        color: const Color(0xFF2D3142).withOpacity(0.5),
+                        color: const Color(0xFF2D3142).withValues(alpha: 0.5),
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                       ),
@@ -91,13 +91,13 @@ class BottomCaptionField extends StatelessWidget {
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
-                        const Color(0xFF0086FF).withOpacity(0.06),
-                        const Color(0xFF0086FF).withOpacity(0.02),
+                        const Color(0xFF0086FF).withValues(alpha: 0.06),
+                        const Color(0xFF0086FF).withValues(alpha: 0.02),
                       ],
                     ),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: const Color(0xFF0086FF).withOpacity(0.12),
+                      color: const Color(0xFF0086FF).withValues(alpha: 0.12),
                     ),
                   ),
                   padding:
@@ -108,7 +108,7 @@ class BottomCaptionField extends StatelessWidget {
                       CircleAvatar(
                         radius: 10,
                         backgroundColor:
-                            const Color(0xFF0086FF).withOpacity(0.15),
+                            const Color(0xFF0086FF).withValues(alpha: 0.15),
                         child: CustomText(
                           (user.name ?? 'U')[0].toUpperCase(),
                           color: const Color(0xFF0086FF),
@@ -134,13 +134,13 @@ class BottomCaptionField extends StatelessWidget {
                         child: Container(
                           padding: const EdgeInsets.all(2),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF2D3142).withOpacity(0.08),
+                            color: const Color(0xFF2D3142).withValues(alpha: 0.08),
                             shape: BoxShape.circle,
                           ),
                           child: Icon(
                             Icons.close_rounded,
                             size: 12,
-                            color: const Color(0xFF2D3142).withOpacity(0.5),
+                            color: const Color(0xFF2D3142).withValues(alpha: 0.5),
                           ),
                         ),
                       ),
@@ -162,7 +162,7 @@ class BottomCaptionField extends StatelessWidget {
         gradient: LinearGradient(
           colors: [
             Colors.transparent,
-            const Color(0xFF2D3142).withOpacity(0.08),
+            const Color(0xFF2D3142).withValues(alpha: 0.08),
             Colors.transparent,
           ],
         ),

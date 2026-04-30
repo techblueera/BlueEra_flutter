@@ -10,7 +10,6 @@ import 'package:BlueEra/core/constants/string_utils.dart';
 import 'package:BlueEra/features/personal/personal_profile/repo/user_repo.dart';
 import 'package:BlueEra/features/subscription/auth/model/subscription_trial_initiate.dart';
 import 'package:BlueEra/features/subscription/auth/repo/subscription_repo.dart';
-import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import '../model/subscription_list_details_model.dart';
 import '../model/user_subscription_model.dart';

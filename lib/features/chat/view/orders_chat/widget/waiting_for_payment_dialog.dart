@@ -231,9 +231,9 @@ class WaitingForPaymentDialog extends StatelessWidget {
                                 shape: BoxShape.circle,
                                 gradient: SweepGradient(
                                   colors: [
-                                    AppColors.primaryColor.withOpacity(0.1),
+                                    AppColors.primaryColor.withValues(alpha: 0.1),
                                     AppColors.primaryColor,
-                                    AppColors.primaryColor.withOpacity(0.1),
+                                    AppColors.primaryColor.withValues(alpha: 0.1),
                                   ],
                                   stops: const [0.2, 0.5, 1],
                                 ),
@@ -246,7 +246,7 @@ class WaitingForPaymentDialog extends StatelessWidget {
                         width: SizeConfig.size65,
                         height: SizeConfig.size65,
                         decoration: BoxDecoration(
-                          color: AppColors.primaryColor.withOpacity(0.1),
+                          color: AppColors.primaryColor.withValues(alpha: 0.1),
                           shape: BoxShape.circle,
                         ),
                         child: Icon(
@@ -280,7 +280,7 @@ class WaitingForPaymentDialog extends StatelessWidget {
                         vertical: SizeConfig.size8,
                         horizontal: SizeConfig.size16),
                     decoration: BoxDecoration(
-                      color: AppColors.red.withOpacity(0.08),
+                      color: AppColors.red.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(SizeConfig.size12),
                     ),
                     child: CustomText(
@@ -385,7 +385,7 @@ Future<void> showOrderPlacedDialog(BuildContext context) async {
             borderRadius: BorderRadius.circular(SizeConfig.size24),
             gradient: LinearGradient(
               colors: [
-                AppColors.primaryColor.withOpacity(0.1),
+                AppColors.primaryColor.withValues(alpha: 0.1),
                 AppColors.white,
               ],
               begin: Alignment.topCenter,
@@ -398,7 +398,7 @@ Future<void> showOrderPlacedDialog(BuildContext context) async {
               // ✅ Success icon
               Container(
                 decoration: BoxDecoration(
-                  color: AppColors.primaryColor.withOpacity(0.1),
+                  color: AppColors.primaryColor.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 padding: EdgeInsets.all(SizeConfig.size16),

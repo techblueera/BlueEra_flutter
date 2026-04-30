@@ -1,11 +1,9 @@
-import 'dart:ui';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/laboratory/view/lab_test_list_screen.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_utils/src/extensions/internacionalization.dart';
 
 class BloodTestEmptyState extends StatelessWidget {
   const BloodTestEmptyState({super.key});
@@ -41,7 +39,7 @@ class BloodTestEmptyState extends StatelessWidget {
                   fit: BoxFit.cover,
                 ),
                 // Positioned.fill(
-                //   child: Container(color: Colors.black.withOpacity(0.4)),
+                //   child: Container(color: Colors.black.withValues(alpha: 0.4)),
                 // ),
                 // The Content Overlay
                 Padding(
@@ -75,7 +73,7 @@ class BloodTestEmptyState extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 24, vertical: 10),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
+                            color: Colors.white.withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(color: Colors.white54),
                           ),

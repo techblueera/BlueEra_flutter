@@ -1,28 +1,19 @@
-import 'dart:io';
-import 'dart:typed_data';
-import 'dart:ui' as ui;
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
-import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/personal/emergency/controller/emergency_profile_controller.dart';
-import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:get/get.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:BlueEra/features/common/qr_code/view/qr_design_options_screen.dart';
 
 class EmergencyQrWidget extends StatelessWidget {
   EmergencyQrWidget({super.key});
 
   final GlobalKey _qrKey = GlobalKey();
-  final RxBool _isSaving = false.obs;
 
   String get _qrData => 'https://emergency.blueera.ai/$userId';
   final controller = Get.find<EmergencyProfileController>();
@@ -174,32 +165,6 @@ class EmergencyQrWidget extends StatelessWidget {
     );
   }
 
-  Widget _actionButton({
-    required IconData icon,
-    required String label,
-    VoidCallback? onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 18, color: AppColors.primaryColor),
-            const SizedBox(width: 4),
-            CustomText(
-              label,
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: AppColors.primaryColor,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   Widget _buildDisabledQr(
       BuildContext context, EmergencyProfileController controller) {
@@ -297,80 +262,6 @@ class EmergencyQrWidget extends StatelessWidget {
     );
   }
 
-  Future<Uint8List?> _captureQrImage() async {
-    try {
-      RenderRepaintBoundary boundary =
-          _qrKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
-      ui.Image image = await boundary.toImage(pixelRatio: 3.0);
-      ByteData? byteData =
-          await image.toByteData(format: ui.ImageByteFormat.png);
-      return byteData?.buffer.asUint8List();
-    } catch (e) {
-      debugPrint("Error capturing QR: $e");
-      return null;
-    }
-  }
 
-  Future<void> _saveQrToGallery() async {
-    _isSaving.value = true;
-    try {
-      final pngBytes = await _captureQrImage();
-      if (pngBytes == null) {
-        commonSnackBar(message: AppStrings.failedToCaptureQrCode.tr);
-        return;
-      }
 
-      if (Platform.isAndroid) {
-        final status = await Permission.storage.request();
-        if (!status.isGranted) {
-          commonSnackBar(message: AppStrings.storagePermissionRequired.tr);
-          return;
-        }
-      } else if (Platform.isIOS) {
-        final status = await Permission.photos.request();
-        if (!status.isGranted) {
-          commonSnackBar(message: AppStrings.photosPermissionRequired.tr);
-          return;
-        }
-      }
-
-      final directory = await getApplicationDocumentsDirectory();
-      final filePath =
-          '${directory.path}/emergency_qr_${DateTime.now().millisecondsSinceEpoch}.png';
-      final file = File(filePath);
-      await file.writeAsBytes(pngBytes);
-
-      commonSnackBar(message: AppStrings.qrCodeSavedSuccessfully.tr);
-    } catch (e) {
-      debugPrint("Error saving QR: $e");
-      commonSnackBar(message: AppStrings.failedToSaveQrCode.tr);
-    } finally {
-      _isSaving.value = false;
-    }
-  }
-
-  Future<void> _shareQr() async {
-    try {
-      final pngBytes = await _captureQrImage();
-      if (pngBytes == null) {
-        commonSnackBar(message: AppStrings.failedToCaptureQrCode.tr);
-        return;
-      }
-
-      final tempDir = await getTemporaryDirectory();
-      final file = await File('${tempDir.path}/emergency_qr.png').create();
-      await file.writeAsBytes(pngBytes);
-
-      await SharePlus.instance.share(ShareParams(
-        files: [XFile(file.path)],
-        text: "${AppStrings.myEmergencyQrCode.tr}\n$_qrData",
-      ));
-
-      if (await file.exists()) {
-        await file.delete();
-      }
-    } catch (e) {
-      debugPrint("Error sharing QR: $e");
-    }
-  }
 }

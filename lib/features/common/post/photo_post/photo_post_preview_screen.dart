@@ -284,15 +284,16 @@ class PhotoPostPreviewScreen extends StatelessWidget {
             color: AppColors.black,
           ),
         ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
+        RadioGroup<SymbolDuration>(
+          groupValue: controller.selectedSymbol.value,
+          onChanged: (_) {},
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
             Row(
               children: [
                 Radio<SymbolDuration>(
                   value: SymbolDuration.hours24,
-                  groupValue: controller.selectedSymbol.value,
-                  onChanged: null,
                   activeColor: AppColors.primaryColor,
                 ),
                 CustomText(
@@ -308,8 +309,6 @@ class PhotoPostPreviewScreen extends StatelessWidget {
               children: [
                 Radio<SymbolDuration>(
                   value: SymbolDuration.days7,
-                  groupValue: controller.selectedSymbol.value,
-                  onChanged: null,
                   activeColor: AppColors.primaryColor,
                 ),
                 CustomText(
@@ -321,6 +320,7 @@ class PhotoPostPreviewScreen extends StatelessWidget {
               ],
             ),
           ],
+        ),
         )
       ],
     );

@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/me/professionals_consultant/controller/ai_professionals_controller.dart';
 import 'package:BlueEra/features/me/professionals_consultant/controller/professionals_certificates_controller.dart';
 import 'package:BlueEra/features/me/professionals_consultant/controller/professionals_service_photo_controller.dart';
@@ -147,8 +146,8 @@ class ProfessionalsCertificatesScreen extends StatelessWidget {
                             end: Alignment.bottomCenter,
                             colors: [
                               Colors.transparent,
-                              Colors.black.withOpacity(0.1),
-                              Colors.black.withOpacity(0.8),
+                              Colors.black.withValues(alpha: 0.1),
+                              Colors.black.withValues(alpha: 0.8),
                             ],
                             stops: const [0.5, 0.7, 1.0],
                           ),

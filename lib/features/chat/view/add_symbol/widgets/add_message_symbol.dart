@@ -60,7 +60,7 @@ class _CreateMessagePostScreenState extends State<CreateMessagePostScreen> {
             Container(
               padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
-                color: const Color(0xFF0086FF).withOpacity(0.08),
+                color: const Color(0xFF0086FF).withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Icon(Icons.palette_rounded,
@@ -87,7 +87,7 @@ class _CreateMessagePostScreenState extends State<CreateMessagePostScreen> {
                   boxShadow: [
                     BoxShadow(
                       color:
-                          controller.selectedBgColor.value.withOpacity(0.35),
+                          controller.selectedBgColor.value.withValues(alpha: 0.35),
                       blurRadius: 20,
                       offset: const Offset(0, 8),
                     ),
@@ -146,7 +146,7 @@ class _CreateMessagePostScreenState extends State<CreateMessagePostScreen> {
                       boxShadow: isSelected
                           ? [
                               BoxShadow(
-                                color: color.withOpacity(0.5),
+                                color: color.withValues(alpha: 0.5),
                                 blurRadius: 8,
                                 spreadRadius: 1,
                               ),
@@ -315,7 +315,7 @@ class _CreateMessagePostScreenState extends State<CreateMessagePostScreen> {
         LengthLimitingTextInputFormatter(140),
       ],
       showCursor: true,
-      cursorColor: Colors.white.withOpacity(0.7),
+      cursorColor: Colors.white.withValues(alpha: 0.7),
       textAlign: TextAlign.center,
       textAlignVertical: TextAlignVertical.center,
       maxLines: null,
@@ -336,7 +336,7 @@ class _CreateMessagePostScreenState extends State<CreateMessagePostScreen> {
         isCollapsed: true,
         hintText: AppStrings.typeYourMessageHere.tr,
         hintStyle: TextStyle(
-          color: Colors.white.withOpacity(0.5),
+          color: Colors.white.withValues(alpha: 0.5),
           fontSize: controller.selectedFontSize.value,
           fontWeight:
               controller.getFontWeight(controller.selectedFontWeight.value),
@@ -374,7 +374,7 @@ class _CreateMessagePostScreenState extends State<CreateMessagePostScreen> {
             borderRadius: BorderRadius.circular(30),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.1),
+                color: Colors.black.withValues(alpha: 0.1),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),
@@ -410,7 +410,7 @@ class _CreateMessagePostScreenState extends State<CreateMessagePostScreen> {
           const SizedBox(height: 14),
           CustomText(
             "Enter URL below to see preview",
-            color: Colors.white.withOpacity(0.7),
+            color: Colors.white.withValues(alpha: 0.7),
             fontSize: 12,
             fontWeight: FontWeight.w500,
           ),
@@ -496,7 +496,7 @@ class _CreateMessagePostScreenState extends State<CreateMessagePostScreen> {
         gradient: LinearGradient(
           colors: [
             Colors.transparent,
-            const Color(0xFF2D3142).withOpacity(0.08),
+            const Color(0xFF2D3142).withValues(alpha: 0.08),
             Colors.transparent,
           ],
         ),

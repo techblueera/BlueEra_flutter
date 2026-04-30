@@ -19,7 +19,6 @@ import 'package:BlueEra/features/common/channel_feed_view/channel_feed_screen.da
 import 'package:BlueEra/features/common/feed/view/home_feed_screen_new.dart';
 import 'package:BlueEra/features/common/home/controller/home_screen_controller.dart';
 import 'package:BlueEra/features/common/home/controller/symbol_feed_controller.dart';
-import 'package:BlueEra/features/common/ott/view/ott_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -523,36 +522,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   int selectedSubIndex = 0; // 0: For You, 1: Near Me, 2: Following
 
-  Widget _subFilterChip(String title, {required int index}) {
-    bool isActive = selectedSubIndex == index;
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          selectedSubIndex = index;
-        });
-      },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-        decoration: BoxDecoration(
-          color: isActive ? AppColors.primaryColor : Color(0xffF3F7FA),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: isActive
-                ? AppColors.primaryColor
-                : AppColors.transparent,
-            width: 1,
-          ),
-        ),
-        child: CustomText(
-          title,
-          fontSize: 14,
-          fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
-          color: isActive ? Colors.white : AppColors.secondaryTextColor,
-        ),
-      ),
-    );
-  }
 
   Widget _communitySubFilterChip(String title, {required int index}) {
     final channelFeedController = Get.isRegistered<ChannelFeedController>()

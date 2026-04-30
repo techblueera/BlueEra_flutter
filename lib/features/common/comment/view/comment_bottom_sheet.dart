@@ -458,14 +458,11 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
 
     final replyingTo = commentController.replyingToUser.value;
 // 🧠 New logic: consider AI icon visible if only mention exists or empty
-    bool isAiVisible = false;
     if (textValue.isEmpty) {
-      isAiVisible = true;
     } else if (replyingTo != null) {
       // If text only contains the mention (like "@Bluecs limited")
       final mentionText = "@$replyingTo";
       if (textValue == mentionText || textValue == "$mentionText ") {
-        isAiVisible = true;
       }
     }
     return Container(
