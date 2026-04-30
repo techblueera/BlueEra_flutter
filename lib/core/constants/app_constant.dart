@@ -423,6 +423,14 @@ class MedicalStoreType {
 ///IS GUEST USER...
 bool isGuestUser() => (accountTypeGlobal.toUpperCase() == AppConstants.guest);
 
+/// Returns true only when an authenticated session is active. Used to
+/// guard authenticated API calls so they no-op after logout (when the
+/// token global has been cleared but stale controllers, in-flight
+/// futures, or Obx-driven rebuilds may still try to fire requests).
+/// Checks only the token: `userId` is populated *by* viewPersonalProfile
+/// on first login, so requiring it here would block the post-login fetch.
+bool isLoggedIn() => (authTokenGlobal?.isNotEmpty ?? false);
+
 ///IS individual USER...
 bool isIndividualUser() =>
     (accountTypeGlobal.toUpperCase() == AppConstants.individual);

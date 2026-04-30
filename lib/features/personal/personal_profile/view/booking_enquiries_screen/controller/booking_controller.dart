@@ -5,6 +5,7 @@ import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/api/model/place_prediction.dart';
 import 'package:BlueEra/core/common_bloc/place/repo/place_repo.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
@@ -331,6 +332,7 @@ class BookingController extends GetxController {
   RxBool isGetBookingAvailabilityLoading = false.obs;
 
   Future<void> checkAndGetAvailabilityBookingData(String id) async {
+    if (!isLoggedIn()) return;
     isGetBookingAvailabilityLoading.value = true;
 
     try {
@@ -360,6 +362,7 @@ class BookingController extends GetxController {
   }
 
   Future<AvailabilityData?> getBookingAvailability({required String id}) async {
+    if (!isLoggedIn()) return null;
     try {
       final availabilityRes = await BookingRepo()
           .getUserAvailability(id: id, queryParams: {ApiKeys.type: 'user'});

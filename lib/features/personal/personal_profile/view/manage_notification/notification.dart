@@ -1,67 +1,146 @@
-import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/widgets/custom_btn.dart';
-import 'package:flutter/material.dart';
-import 'package:BlueEra/widgets/common_back_app_bar.dart';
-import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import '../../../../../widgets/custom_switch_widget.dart';
+import 'package:BlueEra/features/personal/personal_profile/controller/notification_settings_controller.dart';
+import 'package:BlueEra/widgets/common_back_app_bar.dart';
+import 'package:BlueEra/widgets/custom_btn.dart';
+import 'package:BlueEra/widgets/custom_switch_widget.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class NotificationSettingScreen extends StatelessWidget {
   const NotificationSettingScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final controller = Get.put(NotificationSettingsController());
+
     return Scaffold(
-      appBar: const CommonBackAppBar(
-        title: AppStrings.notificationSetting,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(14),
-          ),
+      appBar: const CommonBackAppBar(title: AppStrings.notificationSetting),
+      body: Obx(() {
+        final status = controller.getResponse.value.status;
+        if (status == Status.LOADING || status == Status.INITIAL) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (status == Status.ERROR && controller.preferences.isEmpty) {
+          return _ErrorState(onRetry: controller.fetchSettings);
+        }
+        if (controller.preferences.isEmpty) {
+          return const Center(
+            child: CustomText(
+              'No notification settings available',
+              color: AppColors.mainTextColor,
+            ),
+          );
+        }
+
+        final keys = controller.preferences.keys.toList();
+        return Padding(
+          padding: const EdgeInsets.all(16),
           child: Column(
-            mainAxisSize: MainAxisSize.min,
             children: [
-              NotificationTile(title: AppStrings.comment),
-              NotificationTile(title: AppStrings.post),
-              NotificationTile(title: AppStrings.like),
-              NotificationTile(title: AppStrings.tag),
-              NotificationTile(title: AppStrings.followingNotification),
-              SizedBox(
-                height: 20,
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const _ColumnHeader(),
+                        ...keys.map(
+                          (key) => _NotificationTile(
+                            title: _formatTitle(key),
+                            settingKey: key,
+                            controller: controller,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 15.0),
-                child:
-                    PositiveCustomBtn(onTap: () {}, title: AppStrings.submit),
+              const SizedBox(height: 12),
+              Obx(
+                () => PositiveCustomBtn(
+                  onTap: controller.isUpdating.value
+                      ? null
+                      : () => controller.submit(),
+                  title: controller.isUpdating.value
+                      ? '${AppStrings.submit}...'
+                      : AppStrings.submit,
+                ),
               ),
-              SizedBox(
-                height: 10,
-              ),
+              const SizedBox(height: 40),
+
             ],
           ),
-        ),
+        );
+      }),
+    );
+  }
+
+  String _formatTitle(String key) {
+    if (key.isEmpty) return key;
+    final normalized = key.replaceAll(RegExp(r'[_\-]+'), ' ');
+    final spaced = normalized.replaceAllMapped(
+      RegExp(r'([a-z])([A-Z])'),
+      (m) => '${m[1]} ${m[2]}',
+    );
+    return spaced
+        .split(RegExp(r'\s+'))
+        .where((w) => w.isNotEmpty)
+        .map((w) => w[0].toUpperCase() + w.substring(1).toLowerCase())
+        .join(' ');
+  }
+}
+
+class _ColumnHeader extends StatelessWidget {
+  const _ColumnHeader();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(18, 6, 18, 10),
+      child: Row(
+        children: [
+          const Expanded(
+            child: CustomText(
+              'Category',
+              color: AppColors.mainTextColor,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          SizedBox(
+            width: SizeConfig.size60,
+            child: const CustomText(
+              'Push',
+              color: AppColors.mainTextColor,
+              fontWeight: FontWeight.w600,
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ],
       ),
     );
   }
 }
 
-class NotificationTile extends StatefulWidget {
+class _NotificationTile extends StatelessWidget {
   final String title;
+  final String settingKey;
+  final NotificationSettingsController controller;
 
-  const NotificationTile({super.key, required this.title});
-
-  @override
-  State<NotificationTile> createState() => _NotificationTileState();
-}
-
-class _NotificationTileState extends State<NotificationTile> {
-  bool isEnabled = false;
+  const _NotificationTile({
+    required this.title,
+    required this.settingKey,
+    required this.controller,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -72,28 +151,57 @@ class _NotificationTileState extends State<NotificationTile> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(
-            color: AppColors.greyE5, // thin grey border like image
-            width: 0.5,
-          ),
+          border: Border.all(color: AppColors.greyE5, width: 0.5),
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        child: Obx(() {
+          final pref = controller.preferences[settingKey];
+          final push = pref?.push ?? false;
+          return Row(
+            children: [
+              Expanded(
+                child: CustomText(title, color: AppColors.mainTextColor),
+              ),
+              SizedBox(
+                width: SizeConfig.size60,
+                child: Center(
+                  child: CustomSwitch(
+                    value: push,
+                    onChanged: (v) => controller.togglePush(settingKey, v),
+                    containerHeight: SizeConfig.size24,
+                    containerWidth: SizeConfig.size44,
+                    circleSize: SizeConfig.size16,
+                  ),
+                ),
+              ),
+            ],
+          );
+        }),
+      ),
+    );
+  }
+}
+
+class _ErrorState extends StatelessWidget {
+  final VoidCallback onRetry;
+  const _ErrorState({required this.onRetry});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            CustomText(
-              widget.title,
+            const CustomText(
+              AppStrings.somethingWentWrong,
               color: AppColors.mainTextColor,
             ),
-            CustomSwitch(
-              value: isEnabled,
-              onChanged: (value) {
-                setState(() {
-                  isEnabled = value;
-                });
-              },
-              containerHeight: SizeConfig.size24,
-              containerWidth: SizeConfig.size44,
-              circleSize: SizeConfig.size16,
+            const SizedBox(height: 12),
+            PositiveCustomBtn(
+              onTap: onRetry,
+              title: 'Retry',
+              width: SizeConfig.size120,
             ),
           ],
         ),

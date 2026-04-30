@@ -162,6 +162,10 @@ class _PersonalProfileSetupNewScreenState
   }
 
   Future<void> _loadInitialData() async {
+    // If the screen is rebuilt without an authenticated session (e.g. during
+    // logout teardown, before the navigator unwinds it), skip the fetches —
+    // every repo call below uses globals that are empty post-logout.
+    if (!isLoggedIn()) return;
     await viewProfileController.viewPersonalProfile();
     // if (userProfileTypeGlobal == SELF_EMPLOYED &&
     //     earnServiceCreatedStatusGlobal == 'false') {

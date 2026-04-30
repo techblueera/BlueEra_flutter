@@ -365,5 +365,27 @@ class UserRepo extends BaseService {
     return response;
   }
 
+  /// Notification preferences
+  Future<ResponseModel> getNotificationSettingsRepo() async {
+    final response = await ApiBaseHelper().getHTTP(
+      notificationSettingsApi,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
+  Future<ResponseModel> updateNotificationSettingsRepo(
+      {required Map<String, dynamic> body}) async {
+    final response = await ApiBaseHelper().putHTTP(
+      notificationSettingsApi,
+      params: body,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
 
 }

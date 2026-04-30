@@ -197,6 +197,11 @@ class ViewPersonalDetailsController extends GetxController {
   Rxn<String> earnProfileType = Rxn<String>();
 
   Future<void> viewPersonalProfile() async {
+    // Skip when logged out: stale screens / in-flight asyncs / Obx rebuilds
+    // can re-enter this after token + userId globals were cleared, which
+    // would otherwise hit /user/get?contact_no= with an invalidated token.
+    if (!isLoggedIn()) return;
+
     final personalController = Get.put(PersonalCreateProfileController());
 
     // 1. Hydrate from cache immediately so the UI isn't blank while
@@ -358,43 +363,6 @@ class ViewPersonalDetailsController extends GetxController {
     }
   }
 
-  Future<void> viewPersonalProfiles(String number) async {
-    final personalController = Get.find<PersonalCreateProfileController>();
-
-    // try {
-    viewPersonalResponse.value = ApiResponse.initial("Initial");
-
-    // await getUserLoginBusinessId();
-    ResponseModel responseModel =
-        await PersonalProfileRepo().viewParticularPersonalProfiles(number);
-
-    // await PersonalProfileRepo().getUserWithFollowersAndPostsCount();
-    // ResponseModel response = await UserRepo().getUserById(userId: userId);
-
-    if (responseModel.isSuccess) {
-      final data = responseModel.response?.data;
-      personalProfileDetails.value = PersonalProfileDetailsModel.fromJson(data);
-
-      ///SET SOCIAL DATA LINK...
-      setSocialLink(data);
-
-      ///SET SKILL...
-      personalController.skillsList.clear();
-      personalController.skillsList
-          .addAll(personalProfileDetails.value.user?.skills ?? []);
-
-      ///SET OVERVIEW
-      overView.value = personalProfileDetails.value.user?.objective ?? "";
-
-      viewPersonalResponse.value = ApiResponse.complete(responseModel);
-    } else {
-      commonSnackBar(
-          message: responseModel.message ?? AppStrings.somethingWentWrong);
-    }
-    // } catch (e) {
-    //   viewPersonalResponse.value = ApiResponse.error('error');
-    // }
-  }
 
   ///SET SOCIAL LINK DATA
   setSocialLink(data) async {
@@ -421,6 +389,7 @@ class ViewPersonalDetailsController extends GetxController {
   }
 
   Future<void> UserFollowersAndPostsCount(String? userId) async {
+    if (!isLoggedIn()) return;
     try {
       ResponseModel responseModel =
           await PersonalProfileRepo().getUserWithFollowersAndPostsCount(userId);

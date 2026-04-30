@@ -68,6 +68,7 @@ class MyDocumentsController extends GetxController {
 
   RxList<DocumentsResponse> documents = <DocumentsResponse>[].obs;
   Future<void> fetchAllDocumentApi() async {
+    if (!isLoggedIn()) return;
     try {
       ResponseModel response = await MyDocumentRepo().getAllDocument();
 
