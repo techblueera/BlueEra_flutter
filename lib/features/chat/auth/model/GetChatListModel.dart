@@ -1,4 +1,6 @@
 
+import 'package:BlueEra/features/chat/auth/model/symbol_details_model.dart';
+
 /// success : true
 /// chatList : [{"conversation_id":"687baa79fabe9b852eb68f7b","is_group":false,"last_message":"it's backend issue ","last_message_type":"text","created_at":"2025-07-19T14:23:53.538Z","updated_at":"2025-07-19T14:25:07.896Z","unread_count":5,"public_group":false,"sender":{"_id":"687baa0ca598e3558edda1d7","name":"good person","gender":"Male","contact_no":"9363029058","profession":"GOVERNMENT_JOB","designation":"asxasasx","profile_image":"https://bluehr-public-prod.s3.ap-south-1.amazonaws.com/user/temp/profile/1752934924281_cropped_image_01752934892306.png","username":"usermdac70amcd3bf","date_of_birth":{"date":8,"month":4,"year":2018},"deleted_at":null,"account_type":"INDIVIDUAL","language":"ENG","referral_points":0,"last_seen":null,"highest_education":null,"role":null,"current_organisation":null,"bio":null,"introVideo":null,"social_links":{"youtube":null,"twitter":null,"linkedin":null,"instagram":null,"website":null},"created_at":"2025-07-19T14:22:04.609Z","updated_at":"2025-07-19T14:22:04.609Z","__v":0}}]
 /// archived : []
@@ -73,6 +75,8 @@ class ChatList {
     this.symbolData,
     this.isEnded,
     this.lastMessageSendStatus,
+    this.repliedSymbol,
+    this.repliedSymbolId,
   });
 
   ChatList.fromJson(dynamic json) {
@@ -97,6 +101,16 @@ class ChatList {
       symbolData = (json['symbolData'] as List)
           .map((e) => SymbolDataModel.fromJson(e))
           .toList();
+    }
+
+    // reply_to_symbol preview fields — only present when last_message_type
+    // is "reply_to_symbol". Per the integration guide, these mirror the
+    // stored message.metadata.symbol so the chat-list row can render the
+    // quoted-symbol preview without a history fetch.
+    repliedSymbolId = json['replied_symbol_id']?.toString();
+    if (json['replied_symbol'] is Map) {
+      repliedSymbol = SymbolDetailsModel.fromJson(
+          Map<String, dynamic>.from(json['replied_symbol'] as Map));
     }
   }
 
@@ -124,6 +138,10 @@ class ChatList {
   /// NEW FIELD
   List<SymbolDataModel>? symbolData;
 
+  /// reply_to_symbol preview snapshot for the chat-list row's last message.
+  SymbolDetailsModel? repliedSymbol;
+  String? repliedSymbolId;
+
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
     map['conversation_id'] = conversationId;
@@ -147,6 +165,13 @@ class ChatList {
     /// NEW
     if (symbolData != null) {
       map['symbolData'] = symbolData!.map((e) => e.toJson()).toList();
+    }
+
+    if (repliedSymbol != null) {
+      map['replied_symbol'] = repliedSymbol!.toJson();
+    }
+    if (repliedSymbolId != null) {
+      map['replied_symbol_id'] = repliedSymbolId;
     }
 
     return map;

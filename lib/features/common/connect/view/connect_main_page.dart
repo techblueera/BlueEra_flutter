@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
@@ -145,6 +146,11 @@ class _ConnectMainPageState extends State<ConnectMainPage>
       if (!status.isGranted) return;
     }
 
+    // Mirror ContactsPage._loadContactsFromCache: hydrate from cache or
+    // mark the response complete so a later open of ContactsPage doesn't
+    // hang on the spinner while the upload below is in flight.
+    await _loadContactsFromCache();
+
     // Read the device phone book and upload once.
     final contacts = await FlutterContacts.getContacts(
       withProperties: true,
@@ -159,6 +165,13 @@ class _ConnectMainPageState extends State<ConnectMainPage>
         .toList();
     if (formatted.isEmpty) return;
     await chatViewController.uploadContacts(formatted);
+  }
+
+  Future<void> _loadContactsFromCache() async {
+    final hydrated = await chatViewController.hydrateContactsFromCache();
+    if (hydrated) return;
+    chatViewController.viewContactsListResponse.value =
+        ApiResponse.complete(chatViewController.contactsListModel?.value);
   }
 
   Future<void> _loadContactsFromStorage() async {
