@@ -31,7 +31,8 @@ class BusinessChatScreenUpdated extends StatefulWidget {
       required this.type,
       this.name,
       this.contactNo,
-      required this.isInitialMessage});
+      required this.isInitialMessage,
+      this.prefilledMessage});
 
   final String? conversationId;
   final String? userId;
@@ -41,6 +42,9 @@ class BusinessChatScreenUpdated extends StatefulWidget {
   final String? type;
   final bool isInitialMessage;
   final String? contactNo;
+  /// Optional intro text seeded into the input field on first open. Applied
+  /// inside the post-frame callback so it survives the `clear()` there.
+  final String? prefilledMessage;
 
   @override
   State<BusinessChatScreenUpdated> createState() =>
@@ -62,6 +66,13 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated>
       chatViewController.isChatFromBusinessProfile(true);
       chatViewController.sendMessageController.value.clear();
       chatViewController.isTextFieldEmpty.value = false;
+      final prefill = widget.prefilledMessage;
+      if (prefill != null && prefill.isNotEmpty) {
+        chatViewController.sendMessageController.value.text = prefill;
+        // `isTextFieldEmpty` is inverted in this codebase: `true` means the
+        // field HAS text, which is what flips the mic icon to send.
+        chatViewController.isTextFieldEmpty.value = true;
+      }
       chatViewController.listenUserNewMessages(
           userId: widget.userId ?? "",
           conversationId: widget.conversationId ?? '');

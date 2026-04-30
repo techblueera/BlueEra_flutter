@@ -20,7 +20,8 @@ class PersonalChatScreen extends StatefulWidget {
       required this.type,
       this.name,
       this.contactNo,
-      required this.isInitialMessage});
+      required this.isInitialMessage,
+      this.prefilledMessage});
 
   final String? conversationId;
   final String? userId;
@@ -29,6 +30,9 @@ class PersonalChatScreen extends StatefulWidget {
   final String? contactNo;
   final String? type;
   final bool isInitialMessage;
+  /// Optional intro text seeded into the input field on first open. Survives
+  /// the in-init `clear()` because we apply it right after.
+  final String? prefilledMessage;
 
 
   @override
@@ -46,6 +50,14 @@ class _PersonalChatScreenState extends State<PersonalChatScreen>
   void initState() {
     chatViewController.sendMessageController.value.clear();
     chatViewController.isTextFieldEmpty.value = false;
+    final prefill = widget.prefilledMessage;
+    if (prefill != null && prefill.isNotEmpty) {
+      chatViewController.sendMessageController.value.text = prefill;
+      // `isTextFieldEmpty` has inverted semantics in this codebase — see
+      // chat_input_box.dart onChanged: it's `true` when the field HAS text.
+      // The send icon only shows in that state; otherwise the mic shows.
+      chatViewController.isTextFieldEmpty.value = true;
+    }
     chatViewController.listenUserNewMessages(
         userId: widget.userId ?? "",
         conversationId: widget.conversationId ?? '');

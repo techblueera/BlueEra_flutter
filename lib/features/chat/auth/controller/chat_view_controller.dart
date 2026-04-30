@@ -2847,6 +2847,11 @@ class ChatViewController extends GetxController {
         String? name,
         String? conductNo,
         String? profile,
+        // When non-empty, the destination chat screen seeds its input field
+        // with this text so the user starts a new conversation with a
+        // pre-written intro (e.g. "Hi, I'm Alice — I'd like to know more
+        // about your service"). The user can edit before sending.
+        String? prefilledMessage,
       }) async {
     Map<String, dynamic> params = {
       ApiKeys.user_id: userId
@@ -2881,6 +2886,7 @@ class ChatViewController extends GetxController {
         contactName: contactName,
         contactNo: contactNo,
         isFromContactList: isFromContactList,
+        prefilledMessage: prefilledMessage,
       );
     } else {
       // Offline fallback: try to open from local cache
@@ -2973,6 +2979,7 @@ class ChatViewController extends GetxController {
     required String contactName,
     required String contactNo,
     bool? isFromContactList,
+    String? prefilledMessage,
   }) {
     if (type.toLowerCase() == AppConstants.business_Chat_Type) {
       if (isFromContactList != null && isFromContactList) {
@@ -2985,6 +2992,7 @@ class ChatViewController extends GetxController {
             profileImage: profileImage,
             name: contactName,
             contactNo: contactNo,
+            prefilledMessage: prefilledMessage,
           ),
         );
       } else {
@@ -2997,6 +3005,7 @@ class ChatViewController extends GetxController {
             profileImage: profileImage,
             name: contactName,
             contactNo: contactNo,
+            prefilledMessage: prefilledMessage,
           ),
         );
       }
@@ -3011,6 +3020,7 @@ class ChatViewController extends GetxController {
             profileImage: profileImage,
             name: contactName,
             contactNo: contactNo,
+            prefilledMessage: prefilledMessage,
           ),
         );
       } else {
@@ -3023,6 +3033,7 @@ class ChatViewController extends GetxController {
             profileImage: profileImage,
             name: contactName,
             contactNo: contactNo,
+            prefilledMessage: prefilledMessage,
           ),
         );
       }

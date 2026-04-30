@@ -3,6 +3,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
@@ -214,8 +215,19 @@ class SelfProfessionScreenPreview extends StatelessWidget {
                   final chatViewController =
                       getOrPut(() => ChatViewController());
 
+                  final senderName = userNameGlobal.trim();
+                  final providerName = (service.name ?? '').trim();
+                  final introBody = providerName.isEmpty
+                      ? "I'd like to know more about your service."
+                      : "I'd like to know more about your $providerName service.";
+                  final prefill = senderName.isEmpty
+                      ? "Hi, $introBody"
+                      : "Hi, I'm $senderName. $introBody";
+
                   chatViewController.checkChatConnectionAndOpenChat(
-                      userId: service.id ?? "");
+                    userId: targetUserId,
+                    prefilledMessage: prefill,
+                  );
                 },
                 isValidate: true,
                 radius: SizeConfig.size12,
