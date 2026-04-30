@@ -15,7 +15,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../core/api/apiService/api_keys.dart' show ApiKeys;
 
 /// A reusable bottom sheet that shows a Google Map with a driving route
@@ -191,17 +190,6 @@ class _RouteMapBottomSheetState extends State<RouteMapBottomSheet> {
     _mapController?.animateCamera(CameraUpdate.newLatLngBounds(bounds, 60));
   }
 
-  Future<void> _openInGoogleMaps() async {
-    final url = Uri.parse(
-      'https://www.google.com/maps/dir/?api=1'
-      '&origin=${widget.userLat},${widget.userLng}'
-      '&destination=${widget.destinationLat},${widget.destinationLng}'
-      '&travelmode=driving',
-    );
-    if (await canLaunchUrl(url)) {
-      await launchUrl(url, mode: LaunchMode.externalApplication);
-    }
-  }
 
 List<String> get _validPhotos =>
       widget.livePhotos?.where((p) => p.trim().isNotEmpty).toList() ?? [];

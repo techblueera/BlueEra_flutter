@@ -5,14 +5,10 @@ import 'dart:ui' as ui;
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
-import 'package:BlueEra/features/common/home/controller/home_screen_controller.dart';
-import 'package:flutter/foundation.dart' as foundationObj;
 import 'package:flutter/material.dart' hide Key;
-import 'package:flutter/rendering.dart' hide Key;
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:geolocator/geolocator.dart' as geo;
-import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:mime/mime.dart';
@@ -24,9 +20,7 @@ import 'app_colors.dart';
 
 ///SHOW APP LOGS
 logs(String logMsg) {
-  // if (foundationObj.kDebugMode) {
   log(logMsg);
-  // }
 }
 
 ///UN FOCUS KEYBOARD
@@ -34,53 +28,9 @@ unFocus() {
   FocusManager.instance.primaryFocus?.unfocus();
 }
 
-bool isAllowedImageExtension_(String path) {
-  final allowedExtensions = ['jpg', 'jpeg', 'png'];
-  final ext = path.split('.').last.toLowerCase();
-  return allowedExtensions.contains(ext);
-}
-
 ///DATE FORMAT
 dateFormatddMMyyyy(DateTime date) {
   return DateFormat('dd-MM-yyyy').format(date);
-}
-
-bool isSuccessStatus(int? statusCode) {
-  return statusCode == 200 || statusCode == 201;
-}
-
-//function to get year
-int getYear(DateTime date) {
-  return date.year;
-}
-
-//function for format data
-String formatDate2(DateTime date) {
-  return '${date.day}/${date.month}/${date.year}';
-}
-
-String obfuscateEmail(String email) {
-  final parts = email.split("@");
-  if (parts.length != 2) return email;
-  return "${parts[0][0]}*${parts[1]}";
-}
-
-///OPEN GMAIL...
-// On iOS, you cannot open the default mail inbox programmatically. Apple doesn’t allow it.
-Future<void> openGmail() async {
-  const url = 'googlegmail://co'; // this opens Gmail's compose screen
-
-  if (await canLaunchUrl(Uri.parse(url))) {
-    await launchUrl(Uri.parse(url));
-  } else {
-    // Fallback to opening Gmail in browser
-    const webUrl = 'https://mail.google.com/';
-    if (await canLaunchUrl(Uri.parse(webUrl))) {
-      await launchUrl(Uri.parse(webUrl), mode: LaunchMode.externalApplication);
-    } else {
-      throw 'Could not launch Gmail';
-    }
-  }
 }
 
 /// Helper to convert month number to short name
@@ -115,19 +65,6 @@ String getMonthName(int monthNumber) {
   }
 }
 
-/// Posted dd MMM yyyy
-String formatPostedDate(DateTime dateTime) {
-  // Convert to local time if needed
-  DateTime localDateTime = dateTime.toLocal();
-
-  // Format date as "dd MMM yyyy"
-  String formattedDate = "${localDateTime.day.toString().padLeft(2, '0')} "
-      "${getMonthName(localDateTime.month)} "
-      "${localDateTime.year}";
-
-  return "Posted $formattedDate";
-}
-
 ///GENERATE YEAR LIST....
 List<String> generateList(int startYear, int endYear) {
   endYear = DateTime.now().year;
@@ -137,9 +74,6 @@ List<String> generateList(int startYear, int endYear) {
   }
   return yearsList;
 }
-
-
-
 
 ///GENERATE POST DEEPLINK
 String postDeepLink({String? postId}) {
@@ -162,9 +96,8 @@ String jobDeepLink({String? jobId}) {
 }
 
 /// Generate deep link for a Profile
-String profileDeepLink({String? userId,required String accountType}) {
+String profileDeepLink({String? userId, required String accountType}) {
   return 'https://blueera.ai/app/profile/${(userId ?? "")}';
-  // return 'https://blueera.ai/app/profile/${(userId ?? "")}/${accountType}';
 }
 
 /// Generate deep link for a Product item
@@ -172,12 +105,12 @@ String productDeepLink({String? productId}) {
   return 'https://blueera.ai/app/product/${productId ?? ""}';
 }
 
-/// Generate deep link for a Product item
+/// Generate deep link for a Service item
 String serviceDeepLink({String? serviceId}) {
   return 'https://blueera.ai/app/food/${serviceId ?? ""}';
 }
 
-/// Generate deep link for a Product item
+/// Generate deep link for a Food Service item
 String foodServiceDeepLink({String? foodServiceId}) {
   return 'https://blueera.ai/app/food/${foodServiceId ?? ""}';
 }
@@ -190,11 +123,11 @@ String timeAgo(DateTime date) {
   if (difference.inSeconds < 60) {
     return 'just now';
   } else if (difference.inMinutes < 60) {
-    return '${difference.inMinutes} m${difference.inMinutes > 1 ? '' : ''} ago';
+    return '${difference.inMinutes} m ago';
   } else if (difference.inHours < 24) {
-    return '${difference.inHours} h${difference.inHours > 1 ? '' : ''} ago';
+    return '${difference.inHours} h ago';
   } else if (difference.inDays < 7) {
-    return '${difference.inDays} d${difference.inDays > 1 ? '' : ''} ago';
+    return '${difference.inDays} d ago';
   } else if (difference.inDays < 14) {
     return '1 w ago';
   } else if (difference.inDays < 21) {
@@ -208,7 +141,7 @@ String timeAgo(DateTime date) {
     } else if (months > 1) {
       return '$months months ago';
     }
-    return date.toLocal().toString().split(' ')[0]; // fallback: show date
+    return date.toLocal().toString().split(' ')[0];
   }
 }
 
@@ -235,129 +168,8 @@ String timeAgoFormatted(DateTime date) {
     if (months >= 1) {
       return '${months}mo';
     }
-    return date.toLocal().toString().split(' ')[0]; // fallback
+    return date.toLocal().toString().split(' ')[0];
   }
-}
-
-/// Hashtag method
-void formatHashtags(TextEditingController controller) {
-  final text = controller.text.trimRight(); // handle trailing spaces
-  final words = text.split(RegExp(r'\s+'));
-
-  final formatted = words.map((word) {
-    if (word.startsWith('#')) return word;
-    return '#$word';
-  }).join(' ');
-
-  // Only update if something changed
-  if (text != formatted) {
-    final selection = controller.selection;
-    final offsetAdjustment = formatted.length - text.length;
-
-    controller.value = TextEditingValue(
-      text: formatted + (controller.text.endsWith(' ') ? ' ' : ''),
-      selection: TextSelection.collapsed(
-        offset: selection.baseOffset + offsetAdjustment,
-      ),
-    );
-  }
-}
-
-// void formatHashtags(TextEditingController controller) {
-//   final text = controller.text;
-//   final cursorPosition = controller.selection.baseOffset;
-//
-//   // Only update if the last character is a space
-//   if (text.isNotEmpty && text.endsWith(' ')) {
-//     final words = text.trim().split(RegExp(r'\s+'));
-//
-//     final formatted = words.map((word) {
-//       if (word.startsWith('#')) {
-//         return word;
-//       } else {
-//         return '#$word';
-//       }
-//     }).join(' ') + ' '; // Keep the space at the end
-//
-//     controller.value = TextEditingValue(
-//       text: formatted,
-//       selection: TextSelection.collapsed(offset: formatted.length),
-//     );
-//   }
-// }
-
-// Future<BitmapDescriptor> createMarkerUsingTearDropImage({
-//   required String tearDropAssetPath,
-//   required String centerIconAssetPath,
-// }) async {
-//   final recorder = ui.PictureRecorder();
-//   final canvas = Canvas(recorder);
-//   final paint = Paint()..isAntiAlias = true;
-//
-//   // Load the teardrop background image
-//   final tearDropData = await rootBundle.load(tearDropAssetPath);
-//   final tearDropCodec = await ui.instantiateImageCodec(
-//     tearDropData.buffer.asUint8List(),
-//     targetWidth: 40, // adjust as per required visual size
-//     targetHeight: 60,
-//   );
-//   final tearDropFrame = await tearDropCodec.getNextFrame();
-//   final tearDropImage = tearDropFrame.image;
-//
-//   final int width = tearDropImage.width;
-//   final int height = tearDropImage.height;
-//
-//   // Draw the background image (tear drop)
-//   canvas.drawImage(tearDropImage, Offset.zero, paint);
-//
-//   // Load the center icon
-//   final centerIconData = await rootBundle.load(centerIconAssetPath);
-//   final centerIconCodec = await ui.instantiateImageCodec(
-//     centerIconData.buffer.asUint8List(),
-//     targetWidth: (width * 0.5).toInt(), // ~40% width
-//     targetHeight: (width * 0.5).toInt(), // keep it square
-//   );
-//   final centerIconFrame = await centerIconCodec.getNextFrame();
-//   final centerIcon = centerIconFrame.image;
-//
-//   // Position icon near the upper circular part of the tear-drop
-//   final Offset centerOffset = Offset(
-//     (width - centerIcon.width) / 2,
-//     (height * 0.28) -
-//         (centerIcon.height /
-//             2), // Adjust vertically for perfect center of bulge
-//   );
-//
-//   // Draw the icon on top of tear drop
-//   canvas.drawImage(centerIcon, centerOffset, paint);
-//
-//   // Finish and convert to BitmapDescriptor
-//   final picture = recorder.endRecording();
-//   final img = await picture.toImage(width, height);
-//   final byteData = await img.toByteData(format: ui.ImageByteFormat.png);
-//
-//   return BitmapDescriptor.bytes(byteData!.buffer.asUint8List());
-// }
-
-void setupScrollVisibilityListener({
-  required ScrollController controller,
-  required bool Function() isCurrentlyVisible,
-  required void Function(bool) onVisibilityChanged,
-}) {
-  controller.addListener(() {
-    final direction = controller.position.userScrollDirection;
-    final currentVisible = isCurrentlyVisible();
-
-    if (direction == ScrollDirection.reverse && currentVisible) {
-      onVisibilityChanged(false);
-    } else if (direction == ScrollDirection.forward && !currentVisible) {
-      onVisibilityChanged(true);
-    }
-  });
-}
-
-extension StringExtension on String {
-  String capitalize() => '${this[0].toUpperCase()}${substring(1)}';
 }
 
 String formatDuration(Duration duration) {
@@ -381,15 +193,9 @@ Future<Size> getImageDimensions(File imageFile) async {
 }
 
 Map<String, String?> getFileInfo(File file) {
-  String fileName = path.basename(file.path); // e.g., "video123.mp4"
-
-  String extension = path.extension(file.path); // e.g., ".mp4"
-
-  String? mimeType = lookupMimeType(file.path); // e.g., "video/mp4"
-
-  print("📁 File Name: $fileName");
-  print("🧩 Extension: $extension");
-  print("📎 MIME Type: $mimeType");
+  final fileName = path.basename(file.path);
+  final extension = path.extension(file.path);
+  final mimeType = lookupMimeType(file.path);
 
   return {
     'fileName': fileName,
@@ -400,39 +206,16 @@ Map<String, String?> getFileInfo(File file) {
 
 bool isNetworkImage(dynamic image) =>
     image is String &&
-    (image.trim().toLowerCase().startsWith('http://') || image.trim().toLowerCase().startsWith('https://'));
+    (image.trim().toLowerCase().startsWith('http://') ||
+        image.trim().toLowerCase().startsWith('https://'));
 
-bool isFileImage(dynamic image) => image is File || image is XFile;
-
-Widget staggeredDotsWaveLoading({Color color = AppColors.primaryColor,EdgeInsets? padding}) {
+Widget staggeredDotsWaveLoading(
+    {Color color = AppColors.primaryColor, EdgeInsets? padding}) {
   return Center(
       child: Padding(
-          padding: padding??EdgeInsets.all(SizeConfig.size15),
+          padding: padding ?? EdgeInsets.all(SizeConfig.size15),
           child: LoadingAnimationWidget.staggeredDotsWave(
               size: SizeConfig.size40, color: color)));
-}
-
-/// Returns true if user has not disabled AND API has not been called today
-Future<GreetingCheckResult> canCallCardApi() async {
-  final dontShow = await SharedPreferenceUtils.getSecureValue(
-    SharedPreferenceUtils.disableGreetingCardKey,
-  );
-
-  final today = DateTime.now().toIso8601String(); // yyyy-MM-dd
-  log('today--> $today');
-
-  if (dontShow == "true") {
-    log("User disabled greeting card ❌");
-    return GreetingCheckResult(canCall: false, today: today);
-  }
-
-  // ✅ Then check daily condition
-  final lastDate = await SharedPreferenceUtils.getSecureValue(
-    SharedPreferenceUtils.lastGreetingCallKey,
-  );
-
-  final canCall = lastDate != today.substring(0, 10);
-  return GreetingCheckResult(canCall: canCall, today: today);
 }
 
 /// Save user preference (don't show again)
@@ -443,17 +226,8 @@ Future<void> disableGreetingCard() async {
   );
 }
 
-/// Save today's date after successful API call
-Future<void> saveApiCallDate() async {
-  final today = DateTime.now().toIso8601String().substring(0, 10);
-  await SharedPreferenceUtils.setSecureValue(
-      SharedPreferenceUtils.lastGreetingCallKey, today);
-}
-
-bool isHlsUrl(String? url) {
-  if (url == null || url.isEmpty) return false;
-  return url.toLowerCase().endsWith('.m3u8');
-}
+bool isHlsUrl(String? url) =>
+    url?.toLowerCase().endsWith('.m3u8') ?? false;
 
 Future<void> launchURL(String url) async {
   final Uri uri = Uri.parse(url);
@@ -475,13 +249,11 @@ String colorToHex(Color color) {
   final r = color.r * 255.0;
   final g = color.g * 255.0;
   final b = color.b * 255.0;
-  final hex = '#'
+  return '#'
           '${r.toInt().toRadixString(16).padLeft(2, '0')}'
           '${g.toInt().toRadixString(16).padLeft(2, '0')}'
           '${b.toInt().toRadixString(16).padLeft(2, '0')}'
       .toUpperCase();
-
-  return hex;
 }
 
 double calculateDiscount(String priceText, String mrpText) {
@@ -491,69 +263,17 @@ double calculateDiscount(String priceText, String mrpText) {
   if (mrp == 0) return 0;
 
   final discount = ((mrp - price) / mrp) * 100;
-
-  // Round or format to two decimals
-  final formatted = discount.toStringAsFixed(2);
-
-  // If before decimal is single-digit, add leading zero
-  final parts = formatted.split('.');
-  if (parts[0].length == 1) {
-    // return as double but formatted string parsed back to double
-    return double.parse('0$formatted');
-  }
-
-  return double.parse(formatted);
+  return double.parse(discount.toStringAsFixed(2));
 }
-
-Map<String, dynamic> normalizeMap(dynamic value) {
-  if (value is Map) {
-    return value.map(
-      (key, val) => MapEntry(key.toString(), normalizeMap(val)),
-    );
-  } else {
-    return value;
-  }
-}
-
-// Future<String?> compressVideo(File videoFile) async {
-//   String? videoPath;
-//   try {
-//     // 1. Start the compression process
-//     final MediaInfo? info = await VideoCompress.compressVideo(
-//       videoFile.path,
-//       quality: VideoQuality.LowQuality,
-//       // Choose quality: Low, Medium, High, Default
-//       deleteOrigin: false,
-//       // Set to true to delete the original file after compression
-//       // Optional: set a callback to listen to the progress
-//       includeAudio: true,
-//       startTime: 0,
-//       duration: 0,
-//     );
-//
-//     if (info != null) {
-//       videoPath = info.path;
-//       print('✅ Compression completed!');
-//       print('Original Size: ${videoFile.lengthSync() / (1024 * 1024)} MB');
-//       print('Compressed Path: ${info.path}');
-//       print('Compressed Size: ${info.filesize! / (1024 * 1024)} MB');
-//       // You can now use the compressed video file at info.path
-//       // The MediaInfo object also contains other metadata like duration, thumbnail path, etc.
-//     }
-//     return videoPath;
-//   } catch (e) {
-//     print('❌ Compression failed: $e');
-//   }
-//   return null;
-// }
 
 String formatBytesToMB(int bytes) {
-  double mb = bytes / (1024 * 1024);
+  final mb = bytes / (1024 * 1024);
   return mb.toStringAsFixed(2);
 }
 
 bool validateEmail(String email) {
-  final emailRegex = RegExp(r'^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$');
+  final emailRegex = RegExp(
+      r'^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$');
   return emailRegex.hasMatch(email);
 }
 
@@ -590,21 +310,20 @@ Future<void> openGoogleMaps({
 
 Map<String, int> calculateExperience(String startDateString) {
   try {
-    DateTime startDate = DateTime.parse(startDateString);
-    DateTime now = DateTime.now();
+    final startDate = DateTime.parse(startDateString);
+    final now = DateTime.now();
 
     int years = now.year - startDate.year;
     int months = now.month - startDate.month;
 
-    // Adjust if the current month is before the start month
     if (months < 0) {
       years--;
       months += 12;
     }
 
     return {
-      "years": years < 0 ? 0 : years, // Prevent negative years
-      "months": months
+      "years": years < 0 ? 0 : years,
+      "months": months,
     };
   } catch (e) {
     return {"years": 0, "months": 0};
@@ -612,24 +331,26 @@ Map<String, int> calculateExperience(String startDateString) {
 }
 
 Map<String, String> getServicesMinMaxTimings(List<Timings>? timingsList) {
-  if (timingsList == null || timingsList.isEmpty) return {"start": "--", "end": "--"};
+  if (timingsList == null || timingsList.isEmpty) {
+    return {"start": "--", "end": "--"};
+  }
 
-  Timings? earliest = timingsList.first;
-  Timings? latest = timingsList.first;
+  Timings earliest = timingsList.first;
+  Timings latest = timingsList.first;
 
   for (final t in timingsList) {
     final startTime = parse12HourTime(t.start ?? "00:00 AM");
-    final earliestStart = parse12HourTime(earliest?.start ?? "00:00 AM");
+    final earliestStart = parse12HourTime(earliest.start ?? "00:00 AM");
     if (startTime.isBefore(earliestStart)) earliest = t;
 
     final endTime = parse12HourTime(t.end ?? "00:00 AM");
-    final latestEnd = parse12HourTime(latest?.end ?? "00:00 AM");
+    final latestEnd = parse12HourTime(latest.end ?? "00:00 AM");
     if (endTime.isAfter(latestEnd)) latest = t;
   }
 
   return {
-    "start": earliest?.start ?? "--",
-    "end": latest?.end ?? "--",
+    "start": earliest.start ?? "--",
+    "end": latest.end ?? "--",
   };
 }
 
@@ -639,7 +360,7 @@ DateTime parse12HourTime(String timeStr) {
 
   if (match != null) {
     int hour = int.parse(match.group(1)!);
-    int minute = int.parse(match.group(2)!);
+    final minute = int.parse(match.group(2)!);
     final period = match.group(3);
 
     if (period == "PM" && hour != 12) hour += 12;
@@ -651,11 +372,12 @@ DateTime parse12HourTime(String timeStr) {
   return DateTime(0); // fallback
 }
 
-double? calculateDistance(double targetLat, double targetLng){
-  double userLat = LocationService.lat;
-  double userLng = LocationService.lng;
-  if(userLat == 0.0 || userLng == 0.0) return null;
-  double distanceMeters = geo.Geolocator.distanceBetween(
+double? calculateDistance(double targetLat, double targetLng) {
+  final userLat = LocationService.lat;
+  final userLng = LocationService.lng;
+  if (userLat == 0.0 || userLng == 0.0) return null;
+
+  final distanceMeters = geo.Geolocator.distanceBetween(
     userLat,
     userLng,
     targetLat,
@@ -663,40 +385,22 @@ double? calculateDistance(double targetLat, double targetLng){
   );
 
   // Road factor ≈ 1.27 (very close to Google distance)
-  const double roadFactor = 1.27;
-
-  return ((distanceMeters * roadFactor) / 1000);
+  const roadFactor = 1.27;
+  return (distanceMeters * roadFactor) / 1000;
 }
 
-String? calculateDistanceInt(double targetLat, double targetLng){
-  double userLat = LocationService.lat;
-  double userLng = LocationService.lng;
-  if(userLat == 0.0 || userLng == 0.0) return null;
-  double distanceMeters = geo.Geolocator.distanceBetween(
-    userLat,
-    userLng,
-    targetLat,
-    targetLng,
-  );
-
-  // Road factor ≈ 1.27 (very close to Google distance)
-  const double roadFactor = 1.27;
-
-  return ((distanceMeters * roadFactor) / 1000).toStringAsFixed(0);
-}
-
+String? calculateDistanceInt(double targetLat, double targetLng) =>
+    calculateDistance(targetLat, targetLng)?.toStringAsFixed(0);
 
 Future<Uint8List> getBytesFromSvgAsset(
-    String assetName,
-    double size,
-    ) async {
-  final pictureInfo =
-  await vg.loadPicture(SvgAssetLoader(assetName), null);
+  String assetName,
+  double size,
+) async {
+  final pictureInfo = await vg.loadPicture(SvgAssetLoader(assetName), null);
 
-  final double width = pictureInfo.size.width;
-  final double height = pictureInfo.size.height;
-
-  final double scale = size / width;
+  final width = pictureInfo.size.width;
+  final height = pictureInfo.size.height;
+  final scale = size / width;
 
   final recorder = ui.PictureRecorder();
   final canvas = Canvas(recorder);
@@ -705,15 +409,12 @@ Future<Uint8List> getBytesFromSvgAsset(
   canvas.drawPicture(pictureInfo.picture);
 
   final picture = recorder.endRecording();
-
   final image = await picture.toImage(
     (width * scale).toInt(),
     (height * scale).toInt(),
   );
 
-  final byteData =
-  await image.toByteData(format: ui.ImageByteFormat.png);
-
+  final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
   pictureInfo.picture.dispose();
 
   return byteData!.buffer.asUint8List();
@@ -731,13 +432,4 @@ Future<void> copyToClipboard(BuildContext context, String textToCopy) async {
       ),
     );
   }
-
-  // await Clipboard.setData(ClipboardData(text: textToCopy));
-  //
-  // Get.snackbar(
-  //   "Success",
-  //   "Copied to clipboard!",
-  //   snackPosition: SnackPosition.BOTTOM,
-  // );
-
 }

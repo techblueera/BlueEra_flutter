@@ -34,7 +34,7 @@ abstract class BaseService {
   final String videoUpload = 'video-service/videos/upload';
   final String getUser = 'user-service/user/get?contact_no=$userMobileGlobal';
 
-  final String updateUserProfile = 'user-service/user/updateUser';
+  final String updateUserProfile = 'user-service/user/update-user';
   final String videosSearch = 'video-service/videos/search';
   String channelStats(String channelId) =>
       'channel-service/channels/$channelId/stats';
