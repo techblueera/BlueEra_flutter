@@ -1,11 +1,14 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/features/chat/auth/repo/chat_view_repo.dart';
+import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/common/home/controller/symbol_feed_controller.dart';
 import 'package:BlueEra/features/common/home/model/symbol_feed_model.dart';
 import 'package:BlueEra/widgets/common_dialog.dart';
@@ -553,6 +556,7 @@ class _SymbolFullscreenViewerState extends State<SymbolFullscreenViewer>
       builder: (ctx) => _ReplySheet(
         otherUserId: otherUserId,
         ownerName: ownerName,
+        symbol: symbol,
       ),
     ).whenComplete(_resumeTimer);
   }
@@ -895,15 +899,19 @@ class _BottomActionBar extends StatelessWidget {
 
 /// Lightweight reply sheet shown when a non-owner taps the comment input
 /// on someone else's symbol. It does NOT show other users' comments — it
-/// just opens the keyboard and sends a direct chat message (DM) to the
-/// symbol owner, WhatsApp-style.
+/// sends a `reply_to_symbol` chat message (per
+/// docs/reply-to-symbol-integration-guide.md) to the symbol's author,
+/// carrying a full symbol snapshot so the receiver can render the quoted
+/// bubble + chat-list preview without an extra fetch.
 class _ReplySheet extends StatefulWidget {
   final String otherUserId;
   final String ownerName;
+  final SymbolFeedItem symbol;
 
   const _ReplySheet({
     required this.otherUserId,
     required this.ownerName,
+    required this.symbol,
   });
 
   @override
@@ -933,26 +941,65 @@ class _ReplySheetState extends State<_ReplySheet> {
     super.dispose();
   }
 
+  Map<String, dynamic> _buildSymbolSnapshot(SymbolFeedItem s) {
+    return {
+      '_id': s.id,
+      'user_id': s.userId,
+      'type': s.type,
+      'content': s.content,
+      'caption': s.caption,
+      'backgroundColor': s.backgroundColor,
+      'visibility': s.visibility,
+      'expires_at': s.expiresAt?.toIso8601String(),
+      'created_at': s.createdAt?.toIso8601String(),
+      // Carry the author so the receiver's bubble shows the creator without
+      // a separate fetch.
+      'user': s.user == null
+          ? {
+              'id': s.userId,
+              'name': widget.ownerName,
+            }
+          : {
+              'id': s.user?.id,
+              'name': s.user?.name,
+              'profile_image': s.user?.profileImage,
+              'username': s.user?.username,
+            },
+    };
+  }
+
   Future<void> _send() async {
     final text = _textController.text.trim();
     if (text.isEmpty || _sending) return;
+    final symbolId = widget.symbol.id;
+    if (symbolId == null || symbolId.isEmpty) {
+      commonSnackBar(message: AppStrings.somethingWentWrong.tr);
+      return;
+    }
 
     setState(() => _sending = true);
     try {
+      final chatViewController = getOrPut(() => ChatViewController());
       final params = <String, dynamic>{
-        ApiKeys.other_user_id: widget.otherUserId,
+        ApiKeys.message_type: 'reply_to_symbol',
         ApiKeys.message: text,
-        ApiKeys.message_type: 'text',
+        ApiKeys.other_user_id: widget.otherUserId,
+        ApiKeys.symbol_id: symbolId,
+        ApiKeys.symbol_snapshot:
+            jsonEncode(_buildSymbolSnapshot(widget.symbol)),
       };
-      final response = await ChatViewRepo().sendMessageToUser(params);
-      if (response.isSuccess) {
-        if (mounted) {
-          Navigator.of(context).pop();
-        }
-        commonSnackBar(message: AppStrings.messageSent.tr);
+      final ok = await chatViewController.sendMessage(params);
+      if (ok == true) {
+        // Refresh both chat-list views so the new (possibly brand-new)
+        // conversation appears in the receiver's connect tab too.
+        chatViewController.emitEvent(ChatEmitEvents.ChatList,
+            {ApiKeys.type: AppConstants.personal_Chat_Type});
+        chatViewController.emitEvent(ChatEmitEvents.ChatList,
+            {ApiKeys.type: AppConstants.business_Chat_Type});
+        if (mounted) Navigator.of(context).pop();
+        commonSnackBar(message: AppStrings.replySent.tr);
       } else {
-        commonSnackBar(
-            message: response.message ?? AppStrings.somethingWentWrong.tr);
+        commonSnackBar(message: AppStrings.somethingWentWrong.tr);
       }
     } catch (_) {
       commonSnackBar(message: AppStrings.somethingWentWrong.tr);

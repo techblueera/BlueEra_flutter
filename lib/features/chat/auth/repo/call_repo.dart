@@ -1,6 +1,8 @@
 import 'dart:io';
 
+import 'package:BlueEra/core/api/apiService/api_base_helper.dart';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/api/apiService/base_service.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
@@ -8,7 +10,7 @@ import 'package:BlueEra/environment_config.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 
-class CallRepo {
+class CallRepo extends BaseService {
   static const String _basePath = 'call';
 
   /// Dedicated Dio instance for call service (https://call.blueera.ai/)
@@ -120,11 +122,21 @@ class CallRepo {
     int page = 1,
     int limit = 20,
   }) async {
-    String url = '$_basePath/history?page=$page&limit=$limit';
+    final Map<String, dynamic> params = {
+      ApiKeys.page: page,
+      ApiKeys.limit: limit,
+    };
     if (conversationId != null) {
-      url += '&conversation_id=$conversationId';
+      params[ApiKeys.conversation_id] = conversationId;
     }
-    return await _get(url);
+    final response = await ApiBaseHelper().getHTTP(
+      callHistory,
+      showProgress: false,
+      params: params,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
   }
 
   /// POST /call/switch-type

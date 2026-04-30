@@ -248,6 +248,66 @@ Widget _buildChatListName({
   });
 }
 
+/// Chat-list preview for `last_message_type == "reply_to_symbol"`. Renders a
+/// tiny thumbnail of the quoted symbol (image content / coloured tile / icon)
+/// followed by "Symbol reply: <text>". Reads from the snapshot the server
+/// puts on `chat.repliedSymbol` per docs/reply-to-symbol-integration-guide.md.
+Widget _buildSymbolReplyPreview(ChatList? chat, String? lastMessage) {
+  final symbol = chat?.repliedSymbol;
+  final type = symbol?.type;
+  final content = symbol?.content ?? '';
+  final bool isMedia =
+      (type == 'photo' || type == 'video') && content.startsWith('http');
+
+  Widget thumb;
+  if (isMedia) {
+    thumb = ClipRRect(
+      borderRadius: BorderRadius.circular(4),
+      child: CachedNetworkImage(
+        imageUrl: content,
+        width: SizeConfig.size20,
+        height: SizeConfig.size20,
+        fit: BoxFit.cover,
+        placeholder: (_, __) => Container(
+          width: SizeConfig.size20,
+          height: SizeConfig.size20,
+          color: AppColors.grey9A.withValues(alpha: 0.2),
+        ),
+        errorWidget: (_, __, ___) => Container(
+          width: SizeConfig.size20,
+          height: SizeConfig.size20,
+          color: AppColors.grey9A.withValues(alpha: 0.2),
+          child: Icon(Icons.image, size: SizeConfig.size14, color: AppColors.grey9A),
+        ),
+      ),
+    );
+  } else {
+    thumb = Icon(
+      Icons.chat_bubble_outline,
+      size: SizeConfig.size16,
+      color: AppColors.grey9A,
+    );
+  }
+
+  return Row(
+    children: [
+      thumb,
+      SizedBox(width: SizeConfig.size4),
+      Expanded(
+        child: CustomText(
+          (lastMessage ?? '').isEmpty
+              ? 'Symbol reply'
+              : 'Symbol reply: $lastMessage',
+          fontSize: SizeConfig.size14,
+          color: AppColors.grey9A,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ),
+    ],
+  );
+}
+
 Widget  ChatListTile({
   required Function onSelect,
   required String type,
@@ -586,7 +646,9 @@ Widget  ChatListTile({
                   }
                   return SizedBox(
                     width: SizeConfig.size260,
-                    child: (lastMessageType == "document" ||
+                    child: lastMessageType == "reply_to_symbol"
+                        ? _buildSymbolReplyPreview(chat, lastMessage)
+                        : (lastMessageType == "document" ||
                         lastMessageType == "contact" ||
                         lastMessageType == "audio" ||
                         lastMessageType == "location" ||

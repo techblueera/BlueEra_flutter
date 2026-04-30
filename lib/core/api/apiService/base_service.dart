@@ -211,6 +211,9 @@ abstract class BaseService {
   final String requestForPersonalChat = 'chat-service/connections/request';
   final String updateMessageOrderStatus = 'chat-service/chat/order-status';
 
+  // ── Call Service (separate host: callBaseUrl) ─────────────────────────
+  String get callHistory => '${callBaseUrl ?? ''}call/history';
+
   // ── E2E Encryption API (Phase 1–4) ──────────────────────────────────────
   // Phase 1: Protocol versioning
   String e2eCapability(String userId) => 'chat-service/protocol/capability/$userId';
