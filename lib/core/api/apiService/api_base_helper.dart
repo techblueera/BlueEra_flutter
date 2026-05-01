@@ -11,6 +11,7 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/logger_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/logout_helper.dart';
+import 'package:BlueEra/core/services/app_notification.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/environment_config.dart';
@@ -33,23 +34,37 @@ class AuthManager {
 
   static Future<void> handleLogout(Response<dynamic>? response) async {
     if (isLoggingOut) return;
-// commonSnackBar(message: response?.data["message"]);
     isLoggingOut = true;
 
-    deleteIfRegistered<ChatViewController>();
-    deleteIfRegistered<FeedController>();
-    deleteIfRegistered<LanguageControllerNew>();
-    lastHomeFetchTime = null;
-    await SharedPreferenceUtils.clearPreference();
-    final LiveLocationService locationService = LiveLocationService();
+    try {
+      // Clear the in-memory token first so any request already queued in
+      // the interceptor stops re-using the dead credential and producing
+      // more 401s.
+      authTokenGlobal = '';
 
-    locationService.stop();
-    await LogoutHelper.clearAllLocalData();
+      try { deleteIfRegistered<ChatViewController>(); } catch (_) {}
+      try { deleteIfRegistered<FeedController>(); } catch (_) {}
+      try { deleteIfRegistered<LanguageControllerNew>(); } catch (_) {}
+      lastHomeFetchTime = null;
 
-    // Re-init localization Hive box after logout clears disk
-    await LocalizationService().init();
-
-    getxObj.Get.offAllNamed(RouteHelper.getMobileNumberLoginRoute());
+      try { LiveLocationService().stop(); } catch (_) {}
+      try { await SharedPreferenceUtils.clearPreference(); } catch (_) {}
+      try { await LogoutHelper.clearAllLocalData(); } catch (_) {}
+      try { await LocalizationService().init(); } catch (_) {}
+      // Guarantee FCM rotation regardless of whether clearPreference's
+      // internal try/on-Exception swallowed the refresh call. Idempotent
+      // on iOS; on Android it forces a delete + re-issue.
+      try { await AppNotificationHandler.refreshFcmToken(); } catch (_) {}
+    } catch (_) {
+      // Swallow — navigation in finally must run no matter what.
+    } finally {
+      // Always navigate to login, even if a cleanup step threw. Reset the
+      // re-entrancy flag so a future session that hits 401 can log out again.
+      try {
+        getxObj.Get.offAllNamed(RouteHelper.getMobileNumberLoginRoute());
+      } catch (_) {}
+      isLoggingOut = false;
+    }
   }
 }
 

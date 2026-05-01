@@ -242,6 +242,8 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
             // left: SizeConfig.paddingL,
             right: SizeConfig.paddingXSL),
         child: Obx(() {
+          final bool isSearchOpen =
+              Get.find<AuthController>().isSearchOpen.value;
           return Row(
             // mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -354,8 +356,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                   ),
                 ),
 
-              if (isSearch == true &&
-                  Get.find<AuthController>().isSearchOpen.value)
+              if (isSearch == true && isSearchOpen)
                 Expanded(
                   child: Padding(
                     padding: EdgeInsets.only(
@@ -369,9 +370,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                         hintText: searchHintText),
                   ),
                 ),
-              if (!(isSearch == true &&
-                  Get.find<AuthController>().isSearchOpen.value))
-                Spacer(),
+              if (!(isSearch == true && isSearchOpen)) Spacer(),
               if (isGoLive ?? false)
                 Builder(
                   builder: (context) => Row(

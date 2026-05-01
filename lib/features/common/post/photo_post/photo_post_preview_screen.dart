@@ -187,26 +187,25 @@ class PhotoPostPreviewScreen extends StatelessWidget {
               fontSize: SizeConfig.medium, fontWeight: FontWeight.w500),
 
           // Selected users chips
-          Obx(() => tagUserController.selectedUsers.isNotEmpty
-              ? Padding(
-                  padding: EdgeInsets.only(top: SizeConfig.size16),
-                  child: Wrap(
-                    children: tagUserController.selectedUsers
-                        .map((user) => UserChip(
-                              user: user,
-                              onRemove: () {
-                                    // tagUserController.removeSelectedUser(user);
-                              },
-                            ))
-                        .toList(),
+          Obx(
+            () => tagUserController.selectedUsers.isNotEmpty
+                ? Padding(
+                    padding: EdgeInsets.only(top: SizeConfig.size16),
+                    child: Wrap(
+                      children: tagUserController.selectedUsers
+                          .map((user) => UserChip(
+                                user: user,
+                                onRemove: () {
+                                  // tagUserController.removeSelectedUser(user);
+                                },
+                              ))
+                          .toList(),
+                    ),
+                  )
+                : Padding(
+                    padding: const EdgeInsets.only(top: 8.0, left: 8.0),
+                    child: CustomText("N/A"),
                   ),
-                )
-              : Padding(
-            padding: const EdgeInsets.only(top: 8.0, left: 8.0),
-            child: CustomText(
-                "N/A"
-            ),
-           ),
           ),
 
           SizedBox(height: SizeConfig.size15),
@@ -215,53 +214,46 @@ class PhotoPostPreviewScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildAddSongSection(){
+  Widget _buildAddSongSection() {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: SizeConfig.size16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CustomText(
-              AppStrings.song,
-              fontSize: SizeConfig.medium,
-              fontWeight: FontWeight.w500
-          ),
+          CustomText(AppStrings.song,
+              fontSize: SizeConfig.medium, fontWeight: FontWeight.w500),
 
           // Selected users chips
           Obx(() => (controller.songData.value?.name != null)
               ? Padding(
-              padding: EdgeInsets.only(top: SizeConfig.size15),
-              child: Wrap(
-                spacing: 8,
-                runSpacing: 2,
-                children: [controller.songData.value?.name].map((item) {
-                  return Chip(
-                    label: Text(item??''),
-                    backgroundColor: AppColors.lightBlue,
-                    labelStyle: TextStyle(
-                        fontSize: SizeConfig.size14,
-                        color: Colors.black87
-                    ),
-                    deleteIcon: const Icon(Icons.close,
-                        size: 20, color: AppColors.mainTextColor),
-                    shape: RoundedRectangleBorder(
-                        side: BorderSide(color: Colors.transparent),
-                        borderRadius: BorderRadius.circular(8.0)),
-                    onDeleted: (){},
-                    labelPadding: const EdgeInsets.only(left: 12),
-                    padding: EdgeInsets.zero,
-                    visualDensity: VisualDensity.compact,
-                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap, // ✅ removes min constraints
-                  );
-                }).toList(),
-              ))
+                  padding: EdgeInsets.only(top: SizeConfig.size15),
+                  child: Wrap(
+                    spacing: 8,
+                    runSpacing: 2,
+                    children: [controller.songData.value?.name].map((item) {
+                      return Chip(
+                        label: Text(item ?? ''),
+                        backgroundColor: AppColors.lightBlue,
+                        labelStyle: TextStyle(
+                            fontSize: SizeConfig.size14, color: Colors.black87),
+                        deleteIcon: const Icon(Icons.close,
+                            size: 20, color: AppColors.mainTextColor),
+                        shape: RoundedRectangleBorder(
+                            side: BorderSide(color: Colors.transparent),
+                            borderRadius: BorderRadius.circular(8.0)),
+                        onDeleted: () {},
+                        labelPadding: const EdgeInsets.only(left: 12),
+                        padding: EdgeInsets.zero,
+                        visualDensity: VisualDensity.compact,
+                        materialTapTargetSize: MaterialTapTargetSize
+                            .shrinkWrap, // ✅ removes min constraints
+                      );
+                    }).toList(),
+                  ))
               : Padding(
-                padding: const EdgeInsets.only(top: 8.0, left: 8.0),
-                child: CustomText(
-                "N/A"
-                ),
-              )
-           ),
+                  padding: const EdgeInsets.only(top: 8.0, left: 8.0),
+                  child: CustomText("N/A"),
+                )),
 
           SizedBox(height: SizeConfig.size15),
         ],
@@ -272,7 +264,6 @@ class PhotoPostPreviewScreen extends StatelessWidget {
   Widget _buildSymbolDurationSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-
       children: [
         const SizedBox(height: 4),
         Padding(
@@ -290,37 +281,37 @@ class PhotoPostPreviewScreen extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
-            Row(
-              children: [
-                Radio<SymbolDuration>(
-                  value: SymbolDuration.hours24,
-                  activeColor: AppColors.primaryColor,
-                ),
-                CustomText(
-                  AppStrings.hours24,
-                  color: AppColors.black,
-                  fontWeight: FontWeight.w400,
-                  fontSize: SizeConfig.large,
-                ),
-              ],
-            ),
-            SizedBox(width: 20), // spacing between options
-            Row(
-              children: [
-                Radio<SymbolDuration>(
-                  value: SymbolDuration.days7,
-                  activeColor: AppColors.primaryColor,
-                ),
-                CustomText(
-                  AppStrings.days7,
-                  color: AppColors.black,
-                  fontWeight: FontWeight.w400,
-                  fontSize: SizeConfig.large,
-                ),
-              ],
-            ),
-          ],
-        ),
+              Row(
+                children: [
+                  Radio<SymbolDuration>(
+                    value: SymbolDuration.hours24,
+                    activeColor: AppColors.primaryColor,
+                  ),
+                  CustomText(
+                    AppStrings.hours24,
+                    color: AppColors.black,
+                    fontWeight: FontWeight.w400,
+                    fontSize: SizeConfig.large,
+                  ),
+                ],
+              ),
+              SizedBox(width: 20), // spacing between options
+              Row(
+                children: [
+                  Radio<SymbolDuration>(
+                    value: SymbolDuration.days7,
+                    activeColor: AppColors.primaryColor,
+                  ),
+                  CustomText(
+                    AppStrings.days7,
+                    color: AppColors.black,
+                    fontWeight: FontWeight.w400,
+                    fontSize: SizeConfig.large,
+                  ),
+                ],
+              ),
+            ],
+          ),
         )
       ],
     );
@@ -331,10 +322,8 @@ class PhotoPostPreviewScreen extends StatelessWidget {
       padding: EdgeInsets.symmetric(horizontal: SizeConfig.size16),
       child: PositiveCustomBtn(
           onTap: () {
-            Get.toNamed(
-                RouteHelper.getPhotoPostReviewScreenRoute(),
-                arguments: {ApiKeys.argPostVia: postVia}
-            );
+            Get.toNamed(RouteHelper.getPhotoPostReviewScreenRoute(),
+                arguments: {ApiKeys.argPostVia: postVia});
           },
           title: AppStrings.continueTxt),
     );

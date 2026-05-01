@@ -148,13 +148,18 @@ class AuthController extends GetxController {
   Future<void> verifyOTP({required String? otp}) async {
     String? token;
     try {
-      token = await SharedPreferenceUtils.getSecureValue(
-          SharedPreferenceUtils.notificationDeviceToken);
-      print("TOKEN 1 = $token");
+      // Always force-refresh on login so the backend gets the latest FCM
+      // token bound to this user. Relying on the cached value caused the
+      // previous user's stale token to be re-sent after a 401 auto-logout
+      // when the cleanup path hadn't successfully rotated it.
+      token = await AppNotificationHandler.refreshFcmToken();
       if (token == null || token.isEmpty) {
-        token = await AppNotificationHandler.refreshFcmToken();
+        // Refresh failed (GMS unavailable, APNs not ready, etc.) — fall
+        // back to whatever is in cache so verifyOTP still sends something.
+        token = await SharedPreferenceUtils.getSecureValue(
+            SharedPreferenceUtils.notificationDeviceToken);
       }
-      print("TOKEN 2 = $token");
+      print("TOKEN = $token");
 
       Map<String, dynamic> requestData = {
         ApiKeys.contact_no: mobileNumberEditController.text,
