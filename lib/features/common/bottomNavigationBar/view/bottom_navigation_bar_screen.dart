@@ -37,8 +37,8 @@ import 'package:BlueEra/features/personal/personal_profile/view/self_employed/vi
 import 'package:BlueEra/features/me/product/controller/inventory_controller.dart';
 import 'package:BlueEra/features/me/product/view/product/inventory_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/personal_profile_setup_new_screen.dart';
-import 'package:BlueEra/features/subscription/auth/controller/subscription_controller.dart';
-import 'package:BlueEra/features/subscription/view/subscription_bottom_sheet.dart';
+import 'package:BlueEra/features/contribution/controller/contribution_controller.dart';
+import 'package:BlueEra/features/contribution/view/contribution_bottom_sheet.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -82,11 +82,11 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   final inventoryController = Get.put(InventoryController());
   final orderController = getOrPut(() => DeliverPartnerOrdersController());
   final dialogService = Get.put(DialogService());
-  // Shared with SubscriptionDraggableSheet via getOrPut, so we can observe
-  // the user's plan state up here and decide whether to mount the peek sheet
-  // at all (once the user is on an active/trial plan we hide it).
-  final SubscriptionController _subController =
-      getOrPut(() => SubscriptionController());
+  // Shared with ContributionDraggableSheet via getOrPut, so we can observe
+  // the user's recharge state up here and decide whether to mount the peek
+  // sheet at all (once the user has an active recharge we hide it).
+  final ContributionController _contribCtrl =
+      getOrPut(() => ContributionController());
 
   void handleRejectOrder(String orderId) {
     orderController.updateOrderStatusFromPialot(
@@ -128,6 +128,18 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     _initializeSocketConnections();
     _initializeChatMediaFolders();
     checkByRiderCall();
+    // Kick off /recharge/current AND /recharge/plans up front so the
+    // contribution peek-sheet has a real answer + a populated card list
+    // before the Me tab renders. We can't rely solely on the
+    // controller's onInit (it only runs on first registration; hot
+    // reload reuses the existing instance and skips it) or on the
+    // view's initState (the sheet may be hidden by the gating until
+    // /recharge/current resolves). Calling them here is the only
+    // guarantee. Skipped for guests — they don't see the sheet anyway.
+    if (!isGuestUser()) {
+      _contribCtrl.fetchCurrent();
+      _contribCtrl.fetchPlans();
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _handlePostFrameInitialization();
       _maybePromptGuestToCreateProfile();
@@ -469,7 +481,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
                             curve: Curves.easeInOut,
                             child: IgnorePointer(
                               ignoring: !isVisible,
-                              child: SubscriptionDraggableSheet(
+                              child: ContributionDraggableSheet(
                                 bottomPadding: navBarHeight,
                               ),
                             ),
@@ -501,7 +513,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
                         onTap: (index) async {
                           // Tabs: 0=Me, 1=Discover, 2=Connect, 3=Order.
                           if (index == 0 && !isGuestUser()) {
-                            _subController.userCurrentPlanApi();
+                            _contribCtrl.fetchCurrent();
                           }
 
                           /// Me (0) and Discover (1) need location permission.
@@ -591,33 +603,22 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   }
 
   bool _shouldShowSubscriptionSheet(int index) {
-    // Subscription peek belongs to the Me tab — now at index 0.
+    // Contribution peek belongs to the Me tab — index 0.
     if (index != 0) return false;
     if (isGuestUser()) return false;
 
-    // Single source of truth — same allowlist used by the controller to
-    // decide whether to even hit the plans API. If the user has no
-    // resolvable entity type, there is no subscription flow at all.
-    if (SubscriptionController.resolveEntityType() == null) return false;
-
-    // Don't decide visibility while the first /user-subscriptions call
-    // is still in flight. Before the response lands we don't know if
-    // the user is subscribed or not — rendering the sheet here is what
-    // causes the "subscribe pill flashes then disappears" flicker for
-    // already-subscribed users. Wait until we have a real answer.
-    final planResp = _subController.userSubscriptionResponse.value;
-    if (planResp.status == Status.INITIAL ||
-        planResp.status == Status.LOADING) {
+    // Don't decide visibility while the first /recharge/current call
+    // is still in flight — same flicker reasoning as the old
+    // subscription gating: if we render before the answer lands, the
+    // peek pill flashes and then disappears for users who already
+    // contributed. Wait for a real answer.
+    final status = _contribCtrl.currentStatus.value;
+    if (status == Status.INITIAL || status == Status.LOADING) {
       return false;
     }
 
-    // Once the user is on an active paid plan or an authenticated trial,
-    // there is nothing left to upsell — hide the peek.
-    final plans = _subController.currentPlansList;
-    if (plans.isNotEmpty) {
-      final status = plans.first.status;
-      if (status == 'active' || status == 'authenticated') return false;
-    }
+    // Already has an active recharge → nothing to upsell.
+    if (_contribCtrl.hasActiveRecharge.value) return false;
 
     return true;
   }

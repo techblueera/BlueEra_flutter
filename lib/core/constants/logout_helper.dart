@@ -1,16 +1,14 @@
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
-import 'package:BlueEra/core/controller/navigation_helper_controller.dart';
 import 'package:BlueEra/core/language_localization_service/language_controller_new.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/business_profile_cache.dart';
 import 'package:BlueEra/core/services/personal_profile_cache.dart';
-import 'package:BlueEra/features/app_maintannace/app_maintenance_controller.dart';
-import 'package:BlueEra/features/chat/auth/controller/call_controller.dart';
+import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
+import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/auth/service/location_update_service.dart';
-import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/controller/languge_list_controller.dart';
-import 'package:BlueEra/widgets/global_message_service.dart';
+import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/widgets/app_loader.dart';
 import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:flutter/material.dart';
@@ -28,7 +26,7 @@ class LogoutHelper {
       context: context,
       text: AppStrings.logoutConfirmationMessage.tr,
       confirmCallback: () async {
-        await _performLogout(context);
+        await _performLogout();
       },
       cancelCallback: () {
         Navigator.of(context).pop();
@@ -38,64 +36,58 @@ class LogoutHelper {
     );
   }
 
-  static Future<void> _performLogout(BuildContext context) async {
-    // Close the confirmation dialog up front. The async work below
-    // (Hive.deleteFromDisk + recursive directory delete) can take long
-    // enough that the screen that owns `context` is torn down — once it
-    // deactivates, Navigator.of(context) throws "deactivated widget's
-    // ancestor is unsafe". Routing via Get avoids needing a live context.
-    if (Navigator.canPop(context)) {
-      Navigator.of(context).pop();
-    }
-
+  /// Two-phase logout: phase 1 wipes data while the source screen is still
+  /// mounted under the loader (no Rx writes → no Obx rebuilds → no orphan
+  /// controller re-creations via getOrPut). Phase 2 runs after navigation
+  /// when reactive writes are safe.
+  static Future<void> _performLogout() async {
+    if (Get.isDialogOpen ?? false) Get.back();
     AppLoader.showLogout();
+
+    // Phase 1 — non-reactive bulk wipe.
     try {
-      // 1. Stop services and clear on-disk persistence while controllers
-      // are still alive (clearAllLocalData reads LanguageControllerNew).
-      await SharedPreferenceUtils.clearPreference();
+      await SharedPreferenceUtils.clearPreferenceDataOnly();
       LiveLocationService().stop();
       await clearAllLocalData();
-
-      // 2. Wipe every registered GetX controller in one shot — this is
-      // the only place per-user state lives in memory. Doing it
-      // surgically (deleting individual controllers) is fragile: any
-      // controller a future feature adds silently leaks state across
-      // logins. force:true takes care of permanents too.
-      Get.deleteAll(force: true);
-
-      // 3. Re-register the bootstrap controllers main() puts up at app
-      // start. The login screen and overlay services depend on them
-      // being present; everything else lazily re-registers via
-      // getOrPut/Get.put when its screen mounts.
-      Get.put(AuthController());
-      Get.put(NavigationHelperController());
-      Get.put(GlobalMessageService());
-      Get.put(AppMaintenanceController());
-      Get.put(CallController(), permanent: true);
-      Get.put(LanguageListController());
     } catch (_) {}
-    AppLoader.hide();
+
     Get.offAllNamed(RouteHelper.getMobileNumberLoginRoute());
+    await WidgetsBinding.instance.endOfFrame;
+
+    // Phase 2 — reactive cleanup.
+    try {
+      _resetSessionControllers();
+      await SharedPreferenceUtils.clearPreferenceReactive();
+      if (Get.isRegistered<LanguageControllerNew>()) {
+        await Get.find<LanguageControllerNew>().reset();
+      }
+    } catch (_) {}
   }
 
+  /// Force-deletes the controllers that survive `Get.offAllNamed` and
+  /// would otherwise leak the previous session's `.obs` data:
+  /// - `ViewPersonalDetailsController`: registered `permanent:true`.
+  /// - `ViewBusinessDetailsController`: not flagged permanent, but several
+  ///   `Get.put` calls happen from non-route contexts (AuthController,
+  ///   drawer), so smart-management never auto-disposes them.
+  /// - `ChatViewController`: owns chat sockets/listeners.
+  static void _resetSessionControllers() {
+    deleteIfRegistered<ChatViewController>();
+    deleteIfRegistered<ViewPersonalDetailsController>();
+    deleteIfRegistered<ViewBusinessDetailsController>();
+  }
+
+  /// Wipes Hive (all boxes), per-feature caches, and the app docs dir.
+  /// Public so the API 401 handler can reuse it. Non-reactive.
   static Future<void> clearAllLocalData() async {
     try {
-      // Explicit per-cache clears so the debug log shows what wiped,
-      // before the full Hive disk-delete sweeps the rest.
       await BusinessProfileCache.clear();
       await PersonalProfileCache.clear();
     } catch (_) {}
     try {
       await Hive.deleteFromDisk();
       final dir = await getApplicationDocumentsDirectory();
-      if (dir.existsSync()) {
-        await dir.delete(recursive: true);
-      }
-    } catch (_) {}
-    try {
-      if (Get.isRegistered<LanguageControllerNew>()) {
-        await Get.find<LanguageControllerNew>().reset();
-      }
+      if (dir.existsSync()) await dir.delete(recursive: true);
     } catch (_) {}
   }
 }

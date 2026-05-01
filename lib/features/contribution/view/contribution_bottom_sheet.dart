@@ -25,8 +25,7 @@ class ContributionDraggableSheet extends StatefulWidget {
       _ContributionDraggableSheetState();
 }
 
-class _ContributionDraggableSheetState
-    extends State<ContributionDraggableSheet> {
+class _ContributionDraggableSheetState extends State<ContributionDraggableSheet> {
   static const double _collapsedHeaderHeight = 110.0;
   static const double _expandedHeaderHeight = 35.0;
 

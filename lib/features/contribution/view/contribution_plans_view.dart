@@ -1,17 +1,22 @@
+import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/features/contribution/controller/contribution_controller.dart';
+import 'package:BlueEra/features/contribution/model/recharge_plan_model.dart';
+import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-/// Static UI for the new "Contribution Plan" bottom sheet body.
-///
-/// Renders the three contribution tiers (Basic / Popular / Premium) shown in
-/// `assets/subscription_new_ui.png`. No API hookup yet — the values are
-/// hardcoded so we can finalize the visual design before wiring data.
-class ContributionPlansView extends StatelessWidget {
+/// "Contribution Plan" sheet body. Loads recharge plans from
+/// `GET /recharge/plans` and lets the user pay via Razorpay
+/// (`POST /recharge/initiate-order` → checkout → `POST /recharge/verify-payment`).
+/// See `lib/docs/RECHARGE_FLUTTER_GUIDE.md`.
+class ContributionPlansView extends StatefulWidget {
   /// When true, the primary CTA is pinned to the bottom of the available
   /// area and the cards scroll independently above it. Used when this view
   /// is embedded inside the persistent peek bottom sheet so the action
@@ -22,11 +27,49 @@ class ContributionPlansView extends StatelessWidget {
   /// Set false when the host (e.g. peek sheet header) already shows a title.
   final bool showHeader;
 
+  /// Optional bucket filter passed to `GET /recharge/plans?entity_type=...`.
+  /// Defaults to whatever `userProfessionGlobal` maps to.
+  final String? entityType;
+
   const ContributionPlansView({
     super.key,
     this.pinCta = false,
     this.showHeader = true,
+    this.entityType,
   });
+
+  @override
+  State<ContributionPlansView> createState() => _ContributionPlansViewState();
+}
+
+class _ContributionPlansViewState extends State<ContributionPlansView> {
+  late final ContributionController _ctrl;
+  int _selectedIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = getOrPut(() => ContributionController());
+    _hydrateBuyerDetails();
+    // Always refetch when the view mounts. The controller's onInit fires
+    // only once per registration; relying on it alone misses the case
+    // where the controller was created earlier (e.g. by the bottom-nav
+    // initState) but the plans didn't actually land. Calling fetchPlans
+    // every mount is cheap and guarantees the user sees fresh data.
+    _ctrl.fetchPlans(entityType: widget.entityType);
+  }
+
+  void _hydrateBuyerDetails() {
+    try {
+      final viewCtrl = Get.find<ViewPersonalDetailsController>();
+      final user = viewCtrl.personalProfileDetails.value.user;
+      _ctrl.userName = user?.name ?? '';
+      _ctrl.userEmail = user?.email ?? '';
+      _ctrl.userPhone = user?.contactNo ?? userMobileGlobal;
+    } catch (_) {
+      _ctrl.userPhone = userMobileGlobal;
+    }
+  }
 
   double _scaled(double base) {
     if (SizeConfig.isTablet) return base * 1.25;
@@ -36,51 +79,82 @@ class ContributionPlansView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cards = Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _ContributionPlanCard(
-          tier: _ContributionTier.basic,
-          price: '${AppConstants.rupeeSymbol}999',
-          duration: '/Year',
-          perk: 'Get Accrued - 300 Ride',
-          extraLabel: 'Get 10% Extra',
-          benefitNote: null,
-          scaled: _scaled,
-        ),
-        SizedBox(height: SizeConfig.size12),
-        _ContributionPlanCard(
-          tier: _ContributionTier.popular,
-          price: '${AppConstants.rupeeSymbol}2,999',
-          duration: 'Life Time',
-          perk: 'Get Accrued - 300 Ride',
-          extraLabel: 'Get 20% Extra',
-          benefitNote: 'Get 1.4 Time More Benefit Of Basic Plan',
-          scaled: _scaled,
-        ),
-        SizedBox(height: SizeConfig.size12),
-        _ContributionPlanCard(
-          tier: _ContributionTier.premium,
-          price: '${AppConstants.rupeeSymbol}9,999',
-          duration: 'Life Time',
-          perk: 'Get Accrued - 300 Ride',
-          extraLabel: 'Get 100% Extra',
-          benefitNote: 'Get 2 Time More Benefit Of Basic Plan',
-          scaled: _scaled,
-        ),
-      ],
-    );
+    final cards = Obx(() {
+      final status = _ctrl.plansStatus.value;
+      if (status == Status.LOADING || status == Status.INITIAL) {
+        return Padding(
+          padding: EdgeInsets.symmetric(vertical: SizeConfig.size40),
+          child: const Center(child: CircularProgressIndicator()),
+        );
+      }
+      if (status == Status.ERROR) {
+        return Padding(
+          padding: EdgeInsets.symmetric(
+              horizontal: SizeConfig.size16, vertical: SizeConfig.size24),
+          child: Column(
+            children: [
+              CustomText(
+                _ctrl.plansError.value.isNotEmpty
+                    ? _ctrl.plansError.value
+                    : 'Could not load plans.',
+                textAlign: TextAlign.center,
+                color: AppColors.secondaryTextColor,
+                fontSize: _scaled(14),
+              ),
+              SizedBox(height: SizeConfig.size10),
+              TextButton(
+                onPressed: () =>
+                    _ctrl.fetchPlans(entityType: widget.entityType),
+                child: const Text('Retry'),
+              ),
+            ],
+          ),
+        );
+      }
+      final plans = _ctrl.plans;
+      if (plans.isEmpty) {
+        return Padding(
+          padding: EdgeInsets.symmetric(vertical: SizeConfig.size40),
+          child: Center(
+            child: CustomText(
+              'No contribution plans available right now.',
+              fontSize: _scaled(13),
+              color: AppColors.secondaryTextColor,
+            ),
+          ),
+        );
+      }
+      // Clamp selection to available range whenever the list reloads.
+      if (_selectedIndex >= plans.length) _selectedIndex = 0;
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          for (int i = 0; i < plans.length; i++) ...[
+            _ContributionPlanCard(
+              plan: plans[i],
+              tier: _tierFor(plans[i].tier, i),
+              isSelected: i == _selectedIndex,
+              onTap: () => setState(() => _selectedIndex = i),
+              scaled: _scaled,
+            ),
+            if (i != plans.length - 1) SizedBox(height: SizeConfig.size12),
+          ],
+        ],
+      );
+    });
 
     final cta = Padding(
       padding: EdgeInsets.symmetric(
         horizontal: SizeConfig.size16,
         vertical: SizeConfig.size12,
       ),
-      child: CustomBtn(
-        title: 'Kindly Contribute Us',
-        bgColor: AppColors.primaryColor,
-        onTap: () {},
-      ),
+      child: Obx(() => CustomBtn(
+            title: _ctrl.isPurchasing.value
+                ? 'Processing…'
+                : 'Kindly Contribute Us',
+            bgColor: AppColors.primaryColor,
+            onTap: _ctrl.isPurchasing.value ? () {} : _onContributeTap,
+          )),
     );
 
     final header = Padding(
@@ -114,16 +188,16 @@ class ContributionPlansView extends StatelessWidget {
       ),
     );
 
-    if (pinCta) {
+    if (widget.pinCta) {
       return Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (showHeader) header,
+          if (widget.showHeader) header,
           Flexible(
             child: SingleChildScrollView(
               padding: EdgeInsets.fromLTRB(
                 SizeConfig.size16,
-                showHeader ? 0 : SizeConfig.size14,
+                widget.showHeader ? 0 : SizeConfig.size14,
                 SizeConfig.size16,
                 SizeConfig.size12,
               ),
@@ -139,11 +213,11 @@ class ContributionPlansView extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (showHeader) header,
+          if (widget.showHeader) header,
           Padding(
             padding: EdgeInsets.fromLTRB(
               SizeConfig.size16,
-              showHeader ? 0 : SizeConfig.size14,
+              widget.showHeader ? 0 : SizeConfig.size14,
               SizeConfig.size16,
               SizeConfig.size4,
             ),
@@ -153,6 +227,33 @@ class ContributionPlansView extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  void _onContributeTap() {
+    final plans = _ctrl.plans;
+    if (plans.isEmpty) return;
+    final plan = plans[_selectedIndex];
+    _ctrl.purchase(plan);
+  }
+
+  /// Map server `tier` strings to the three visual themes the design covers.
+  /// Falls back to position-based theming so plans like `advance` / `pro` /
+  /// `proplus` still render with sensible colors.
+  _ContributionTier _tierFor(String tier, int index) {
+    switch (tier.toLowerCase()) {
+      case 'basic':
+        return _ContributionTier.basic;
+      case 'popular':
+        return _ContributionTier.popular;
+      case 'advance':
+      case 'pro':
+      case 'proplus':
+      case 'premium':
+        return _ContributionTier.premium;
+    }
+    if (index == 0) return _ContributionTier.basic;
+    if (index == 1) return _ContributionTier.popular;
+    return _ContributionTier.premium;
   }
 }
 
@@ -230,168 +331,157 @@ _TierTheme _themeFor(_ContributionTier tier) {
 }
 
 class _ContributionPlanCard extends StatelessWidget {
+  final RechargePlan plan;
   final _ContributionTier tier;
-  final String price;
-  final String duration;
-  final String perk;
-  final String extraLabel;
-  final String? benefitNote;
+  final bool isSelected;
+  final VoidCallback onTap;
   final double Function(double) scaled;
 
   const _ContributionPlanCard({
+    required this.plan,
     required this.tier,
-    required this.price,
-    required this.duration,
-    required this.perk,
-    required this.extraLabel,
-    required this.benefitNote,
+    required this.isSelected,
+    required this.onTap,
     required this.scaled,
   });
+
+  String _formatRupees(int paise) {
+    final rupees = paise / 100;
+    // Whole rupees → no decimals; otherwise one decimal place.
+    if (rupees == rupees.truncateToDouble()) {
+      return rupees.toInt().toString();
+    }
+    return rupees.toStringAsFixed(2);
+  }
+
+  /// First perk line (the doc shows this is the headline like "25 Rides + 5 Bonus").
+  String _headlinePerk() {
+    if (plan.perks.isNotEmpty) return plan.perks.first;
+    if (plan.perkValue > 0) {
+      final type = plan.perkType.isEmpty ? 'perks' : plan.perkType;
+      final base = '${plan.perkValue} ${type[0].toUpperCase()}${type.substring(1)}';
+      if (plan.perkBonus > 0) return '$base + ${plan.perkBonus} Bonus';
+      return base;
+    }
+    return plan.description ?? plan.name;
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = _themeFor(tier);
 
-    return Container(
-      decoration: BoxDecoration(
-        color: theme.cardBg,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: theme.cardBorder, width: 1),
-      ),
-      padding: EdgeInsets.all(SizeConfig.size14),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Expanded(
-                child: Wrap(
-                  crossAxisAlignment: WrapCrossAlignment.end,
-                  spacing: SizeConfig.size6,
-                  children: [
-                    CustomText(
-                      price,
-                      fontSize: scaled(22),
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.mainTextColor,
-                    ),
-                    Padding(
-                      padding: EdgeInsets.only(bottom: scaled(3)),
-                      child: CustomText(
-                        duration,
-                        fontSize: scaled(13),
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.secondaryTextColor,
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        decoration: BoxDecoration(
+          color: theme.cardBg,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: isSelected ? AppColors.primaryColor : theme.cardBorder,
+            width: isSelected ? 1.5 : 1,
+          ),
+        ),
+        padding: EdgeInsets.all(SizeConfig.size14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.end,
+                    spacing: SizeConfig.size6,
+                    children: [
+                      CustomText(
+                        '${AppConstants.rupeeSymbol}${_formatRupees(plan.amount)}',
+                        fontSize: scaled(22),
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.mainTextColor,
                       ),
-                    ),
-                  ],
+                      if (plan.taxPercent > 0)
+                        Padding(
+                          padding: EdgeInsets.only(bottom: scaled(3)),
+                          child: CustomText(
+                            '+ ${plan.taxPercent}% GST',
+                            fontSize: scaled(12),
+                            fontWeight: FontWeight.w500,
+                            color: AppColors.secondaryTextColor,
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
-              ),
-              _Badge(theme: theme, scaled: scaled),
-            ],
-          ),
-          SizedBox(height: SizeConfig.size8),
-          Row(
-            children: [
-              Icon(Icons.check_circle_outline_rounded,
-                  size: scaled(18), color: AppColors.mainTextColor),
-              SizedBox(width: SizeConfig.size6),
-              Flexible(
-                child: CustomText(
-                  perk,
-                  fontSize: scaled(14),
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.mainTextColor,
+                _Badge(
+                  theme: theme,
+                  scaled: scaled,
+                  label: theme.badgeLabel,
                 ),
-              ),
-            ],
-          ),
-          SizedBox(height: SizeConfig.size10),
-          Wrap(
-            spacing: SizeConfig.size8,
-            runSpacing: SizeConfig.size8,
-            children: [
-              _OutlinedPill(
-                  text: extraLabel, theme: theme, scaled: scaled),
-              _OutlinedPill(
-                  text: 'Refundable*', theme: theme, scaled: scaled),
-              _OutlinedPill(
-                  text: 'Verified Profile', theme: theme, scaled: scaled),
-            ],
-          ),
-          SizedBox(height: SizeConfig.size10),
-          _DashedDivider(color: theme.cardBorder),
-          SizedBox(height: SizeConfig.size8),
-          Row(
-            children: [
-              Icon(Icons.block_rounded,
-                  size: scaled(14), color: AppColors.secondaryTextColor),
-              SizedBox(width: SizeConfig.size4),
-              CustomText(
-                'No Hidden Charges,',
-                fontSize: scaled(12),
-                fontWeight: FontWeight.w500,
-                color: AppColors.secondaryTextColor,
-              ),
-              SizedBox(width: SizeConfig.size6),
-              Icon(Icons.block_rounded,
-                  size: scaled(14), color: AppColors.red33),
-              SizedBox(width: SizeConfig.size4),
-              CustomText(
-                'No AutoPay',
-                fontSize: scaled(12),
-                fontWeight: FontWeight.w600,
-                color: AppColors.red33,
-              ),
-              const Spacer(),
-              CustomText(
-                '*T&C',
-                fontSize: scaled(10),
-                fontWeight: FontWeight.w500,
-                color: AppColors.secondaryTextColor,
-              ),
-            ],
-          ),
-          if (benefitNote != null) ...[
+              ],
+            ),
             SizedBox(height: SizeConfig.size8),
             Row(
               children: [
-                Icon(Icons.check_box_rounded,
-                    size: scaled(16), color: AppColors.green39),
+                Icon(Icons.check_circle_outline_rounded,
+                    size: scaled(18), color: AppColors.mainTextColor),
                 SizedBox(width: SizeConfig.size6),
                 Flexible(
-                  child: RichText(
-                    text: TextSpan(
-                      style: TextStyle(
-                        fontSize: scaled(12.5),
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.mainTextColor,
-                      ),
-                      children: [
-                        const TextSpan(text: 'Get '),
-                        TextSpan(
-                          text: benefitNote!
-                              .replaceFirst('Get ', '')
-                              .split(' Benefit')[0],
-                          style: TextStyle(
-                            color: AppColors.green39,
-                            fontWeight: FontWeight.w700,
-                            fontSize: scaled(12.5),
-                          ),
-                        ),
-                        TextSpan(
-                          text:
-                              ' Benefit${benefitNote!.split(' Benefit').length > 1 ? benefitNote!.split(' Benefit')[1] : ''}',
-                        ),
-                      ],
-                    ),
+                  child: CustomText(
+                    _headlinePerk(),
+                    fontSize: scaled(14),
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.mainTextColor,
                   ),
                 ),
               ],
             ),
+            if (plan.perks.length > 1) ...[
+              SizedBox(height: SizeConfig.size10),
+              Wrap(
+                spacing: SizeConfig.size8,
+                runSpacing: SizeConfig.size8,
+                children: [
+                  for (final p in plan.perks.skip(1).take(3))
+                    _OutlinedPill(text: p, theme: theme, scaled: scaled),
+                ],
+              ),
+            ],
+            SizedBox(height: SizeConfig.size10),
+            _DashedDivider(color: theme.cardBorder),
+            SizedBox(height: SizeConfig.size8),
+            Row(
+              children: [
+                Icon(Icons.block_rounded,
+                    size: scaled(14), color: AppColors.secondaryTextColor),
+                SizedBox(width: SizeConfig.size4),
+                CustomText(
+                  'No Hidden Charges,',
+                  fontSize: scaled(12),
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.secondaryTextColor,
+                ),
+                SizedBox(width: SizeConfig.size6),
+                Icon(Icons.block_rounded,
+                    size: scaled(14), color: AppColors.red33),
+                SizedBox(width: SizeConfig.size4),
+                CustomText(
+                  'No AutoPay',
+                  fontSize: scaled(12),
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.red33,
+                ),
+                const Spacer(),
+                CustomText(
+                  '*T&C',
+                  fontSize: scaled(10),
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.secondaryTextColor,
+                ),
+              ],
+            ),
           ],
-        ],
+        ),
       ),
     );
   }
@@ -399,9 +489,14 @@ class _ContributionPlanCard extends StatelessWidget {
 
 class _Badge extends StatelessWidget {
   final _TierTheme theme;
+  final String label;
   final double Function(double) scaled;
 
-  const _Badge({required this.theme, required this.scaled});
+  const _Badge({
+    required this.theme,
+    required this.label,
+    required this.scaled,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -420,7 +515,7 @@ class _Badge extends StatelessWidget {
           Icon(theme.badgeIcon, size: scaled(14), color: theme.badgeText),
           SizedBox(width: SizeConfig.size4),
           CustomText(
-            theme.badgeLabel,
+            label.isNotEmpty ? label : theme.badgeLabel,
             fontSize: scaled(11),
             fontWeight: FontWeight.w700,
             color: theme.badgeText,

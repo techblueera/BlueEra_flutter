@@ -88,6 +88,7 @@ class _GroceryScreenState extends State<GroceryScreen> with SingleTickerProvider
                 child: CommonBackAppBar(
                   showElevation: 0,
                   isDrawerMenu: true,
+                  // isStoreProfile: true,
                   isLeading: false,
                   isProfile: false,
                   isNotification: !isGuestUser(),
