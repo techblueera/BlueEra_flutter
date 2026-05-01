@@ -6,6 +6,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get_utils/src/extensions/internacionalization.dart';
 
 class BottomNavigationBarWidget extends StatelessWidget {
   final Function(bool isVisible) onHeaderVisibilityChanged;
@@ -115,13 +116,13 @@ class BottomNavigationBarWidget extends StatelessWidget {
                 index: 2,
                 iconPath: AppIconAssets.chat,
                 isSelected: currentIndex == 2,
-                label: 'Connect',
+                label: AppStrings.connect.tr,
               ),
               _buildNavItem(
                 index: 3,
                 iconPath: AppIconAssets.cartIcon,
                 isSelected: currentIndex == 3,
-                label: 'Order',
+                label: AppStrings.orders.tr,
                 showBadge: chatNotificationCount > 0,
                 badgeText: "$chatNotificationCount",
               ),

@@ -2,14 +2,11 @@ import 'dart:io';
 import 'dart:ui';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
-import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -17,86 +14,120 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/multipart_image_service.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
-import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
+import 'package:BlueEra/features/business/visiting_card/view/widget/business_verfication.dart';
+import 'package:BlueEra/features/common/Discover/model/service_model_response.dart';
+import 'package:BlueEra/features/common/Discover/view/self_profession_screen_preview.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/business/widgets/business_verify_now_button.dart';
 import 'package:BlueEra/features/chat/view/add_symbol/add_symbol_screen.dart';
-import 'package:BlueEra/features/common/Discover/model/service_model_response.dart';
-import 'package:BlueEra/features/common/Discover/view/self_profession_screen_preview.dart';
+import 'package:BlueEra/features/me/medical_new/view/medical_statistics_screen.dart';
+import 'package:BlueEra/widgets/post_via_dialog.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
+import 'package:BlueEra/features/common/home/widgets/drawer.dart';
+import 'package:BlueEra/core/api/apiService/api_keys.dart' show ApiKeys;
+import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
-import 'package:BlueEra/features/common/home/widgets/drawer.dart';
-import 'package:BlueEra/features/me/food/controller/home_food_controller.dart';
-import 'package:BlueEra/features/me/food/model/category_food_product_res_model.dart';
-import 'package:BlueEra/features/me/food/model/food_home_res_model.dart';
-import 'package:BlueEra/features/me/food/view/discount_food_products_screen.dart';
-import 'package:BlueEra/features/me/medical_new/view/medical_statistics_screen.dart';
-import 'package:BlueEra/features/me/food/view/food_category_screen.dart';
-import 'package:BlueEra/features/me/food/view/food_service_gallery/food_service_photos_screen.dart';
-import 'package:BlueEra/features/me/food/view/my_food_product_screen.dart';
-import 'package:BlueEra/features/me/food/view/widget/food_product_variant_sheet.dart';
-import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
-import 'package:BlueEra/features/me/grocery/widget/food_type_indicator.dart';
-import 'package:BlueEra/widgets/RatingBadge.dart';
-import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/features/me/medical_new/controller/medical_controller.dart';
+import 'package:BlueEra/features/me/medical_new/controller/medical_gallery_controller.dart';
+import 'package:BlueEra/features/me/medical_new/model/my_medical_super_category_model.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:BlueEra/features/me/medical_new/model/medical_home_response_model.dart';
+import 'package:BlueEra/features/me/medical_new/repo/medical_repo.dart';
+import 'package:BlueEra/features/me/medical_new/view/medical_gallery/medical_gallery_list_screen.dart';
+import 'package:BlueEra/features/me/others/model/other_service_gallery_res_model.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
-import 'package:BlueEra/widgets/post_via_dialog.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:croppy/croppy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:get/get.dart';
 
-/// Food main screen (v2) — same layout as MedicalHomeScreenV2:
-///   • Pattern background + custom top bar (drawer / earn / notifications / go-live)
-///   • Profile row with logo, name, type, verify-now and preview-as-visitor
-///   • Pill tab bar (Order / Overview / Products / Post / Statistics)
-///   • Body switches per selected tab — Overview composes banner, popular
-///     dishes, live photos, gallery and contact card from the existing
-///     [RestaurantController] and [ViewBusinessDetailsController] data.
-class FoodMainScreen extends StatefulWidget {
-  final bool? fromBottomNavBar;
+/// Medical Home screen (v2) — redesigned to match IMG-3 reference.
+class MedicalHomeScreenV2 extends StatefulWidget {
+  final String businessId;
 
-  const FoodMainScreen({super.key, this.fromBottomNavBar});
+  const MedicalHomeScreenV2({super.key, required this.businessId});
 
   @override
-  State<FoodMainScreen> createState() => _FoodMainScreenState();
+  State<MedicalHomeScreenV2> createState() => _MedicalHomeScreenV2State();
 }
 
-class _FoodMainScreenState extends State<FoodMainScreen> {
-  int _selectedTab = 1;
+class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2> {
+  MedicalHomeResponseModel? _data;
+  bool _isLoading = true;
   bool _isGoLive = false;
+  int _selectedTab = 1;
 
-  late final RestaurantController _foodController;
-  late final ViewBusinessDetailsController _businessController;
+  late final MedicalGalleryController _galleryController;
+  late final MedicalController _medicalController;
+  final _businessController =
+      getOrPut(() => ViewBusinessDetailsController(), permanent: true);
+
+  bool _productsFetched = false;
 
   static const _tabs = [
     'Order',
     'Overview',
     'Products',
     'Post',
-    'Statistics',
+    'Statics'
   ];
-
-  static const int _discountPreviewLimit = 20;
 
   @override
   void initState() {
     super.initState();
-    _foodController = getOrPut(() => RestaurantController());
-    _businessController =
-        getOrPut(() => ViewBusinessDetailsController(), permanent: true);
-    _loadInitialData();
+    _galleryController = Get.put(MedicalGalleryController());
+    _medicalController = getOrPut(() => MedicalController());
+    _fetchData();
   }
 
-  void _loadInitialData() {
-    final id = businessId;
-    if (id.isEmpty) return;
-    _foodController.fetchHomeData(businessId: id);
-    _foodController.fetchDiscountFoodProducts(businessId: id);
+  void _ensureProductsLoaded() {
+    if (_productsFetched) return;
+    _productsFetched = true;
+    _medicalController.fetchMyMedicalCategory();
+  }
+
+  Future<void> _fetchData() async {
+    try {
+      final res = await MedicalRepo()
+          .fetchMedicalProfileFd(businessId: widget.businessId);
+      if (res.isSuccess && res.response?.data != null) {
+        final data = res.response?.data['data'] ?? res.response?.data;
+        if (data != null && data is Map<String, dynamic>) {
+          setState(() => _data = MedicalHomeResponseModel.fromJson(data));
+          _populateGalleryFromResponse(data['gallery']);
+        }
+      }
+    } catch (e) {
+      debugPrint("Error fetching medical profile: $e");
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  void _populateGalleryFromResponse(dynamic galleryJson) {
+    if (galleryJson == null || galleryJson is! List || galleryJson.isEmpty) {
+      return;
+    }
+    if (_galleryController.galleryList.isNotEmpty) return;
+
+    try {
+      for (final item in galleryJson) {
+        if (item is Map<String, dynamic>) {
+          final entry = OtherServiceGalleryData.fromJson(item);
+          if (entry.imageUrls != null && entry.imageUrls!.isNotEmpty) {
+            _galleryController.galleryList.add(entry);
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint("Error parsing gallery from home response: $e");
+    }
   }
 
   // ─────────────────────────────────────────────
@@ -108,105 +139,81 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
       backgroundColor: const Color(0xFFEAF2FB),
       body: SafeArea(
         top: false,
-        child: Stack(
-          children: [
-            _buildPatternBackground(),
-            Column(
-              children: [
-                _buildTopBar(),
-                Obx(() {
-                  final details =
-                      _businessController.businessProfileDetails.value?.data;
-                  return _buildProfileRow(details);
-                }),
-                Expanded(
-                  child: Obx(() {
-                    final isHomeLoading = _foodController
-                            .foodHomeDataResponse.value.status ==
-                        Status.INITIAL;
-                    if (isHomeLoading) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
-
-                    return RefreshIndicator(
-                      onRefresh: _onRefresh,
-                      child: SingleChildScrollView(
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        padding: EdgeInsets.only(
-                          bottom: kBottomNavigationBarHeight + 30,
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            SizedBox(height: SizeConfig.size10),
-                            _buildTabsCard(),
-                            SizedBox(height: SizeConfig.size12),
-                            ..._buildTabContent(),
-                          ],
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : Stack(
+                children: [
+                  _buildPatternBackground(),
+                  Column(
+                    children: [
+                      _buildTopBar(),
+                      _buildProfileRow(_data?.businessProfile),
+                      Expanded(
+                        child: SingleChildScrollView(
+                          padding: EdgeInsets.only(
+                            bottom: kBottomNavigationBarHeight + 30,
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              SizedBox(height: SizeConfig.size10),
+                              _buildTabsCard(),
+                              SizedBox(height: SizeConfig.size12),
+                              ..._buildTabContent(),
+                            ],
+                          ),
                         ),
                       ),
-                    );
-                  }),
-                ),
-              ],
-            ),
-          ],
-        ),
+                    ],
+                  ),
+                ],
+              ),
       ),
     );
   }
 
-  Future<void> _onRefresh() async {
-    final id = businessId;
-    if (id.isEmpty) return;
-    _foodController.fetchHomeData(businessId: id);
-    await _foodController.fetchDiscountFoodProducts(businessId: id);
-  }
-
   // ─────────────────────────────────────────────
   // TAB CONTENT — switches body by _selectedTab
-  //   0 Order, 1 Overview, 2 Products, 3 Post, 4 Statistics
+  //   0 Order, 1 Overview, 2 Products, 3 Post, 4 Statics
   // ─────────────────────────────────────────────
   List<Widget> _buildTabContent() {
     switch (_selectedTab) {
-      case 0:
-        return [_buildComingSoon(label: 'Orders coming soon')];
       case 1:
         return _buildOverviewSlivers();
       case 2:
+        _ensureProductsLoaded();
         return _buildProductsTab();
       case 3:
         return _buildPostTab();
+      case 0:
       case 4:
-        return [
-          MedicalStatisticsScreen(
-            businessId: businessId.isNotEmpty ? businessId : userId,
-          ),
-        ];
+        return [MedicalStatisticsScreen(businessId: userId)];
       default:
-        return [_buildComingSoon(label: AppStrings.comingSoon)];
+        return [_buildComingSoon()];
     }
   }
 
   List<Widget> _buildOverviewSlivers() {
     return [
-      _buildBannerSection(),
+      _buildBannerSection(_data?.businessProfile),
       SizedBox(height: SizeConfig.size12),
       _buildCreateOffersButton(),
       SizedBox(height: SizeConfig.size16),
-      _buildPopularDishesSection(),
+      if ((_data?.inventorySummary?.popularProducts ?? []).isNotEmpty) ...[
+        _buildBikesSection(_data!.inventorySummary!.popularProducts!),
+        SizedBox(height: SizeConfig.size16),
+      ],
       _buildLivePhotosSection(),
       SizedBox(height: SizeConfig.size16),
       _buildGallerySection(),
       SizedBox(height: SizeConfig.size16),
-      _buildContactSection(),
+      _buildTestimonialsSection(),
+      SizedBox(height: SizeConfig.size16),
+      _buildContactSection(_data?.businessProfile),
       SizedBox(height: SizeConfig.size16),
     ];
   }
 
-  // ─────────────────────────────────────────────
-  // PRODUCTS TAB — food menu categories grid
-  // ─────────────────────────────────────────────
   List<Widget> _buildProductsTab() {
     return [
       Padding(
@@ -214,31 +221,24 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Flexible(
-              child: CustomText(
-                AppStrings.foodOurMenuLabel.tr,
-                fontSize: 15,
-                fontWeight: FontWeight.w700,
-                color: AppColors.mainTextColor,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
+            CustomText(
+              AppStrings.medicalMyProductsTitle.tr,
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+              color: AppColors.mainTextColor,
             ),
             ElevatedButton.icon(
-              onPressed: () => Get.to(() => FoodCategoryMenuScreen()),
+              onPressed: () =>
+                  Get.toNamed(RouteHelper.getAddMedicalSnapSearchScreenRoute()),
               icon: const Icon(Icons.add, size: 18, color: Colors.white),
-              label: CustomText(
-                'Add More Product',
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-                color: Colors.white,
-              ),
+              label: CustomText('Add More Product',
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primaryColor,
                 padding: EdgeInsets.symmetric(
-                  horizontal: SizeConfig.size16,
-                  vertical: SizeConfig.size8,
-                ),
+                    horizontal: SizeConfig.size16, vertical: SizeConfig.size8),
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20)),
                 elevation: 0,
@@ -248,58 +248,66 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
         ),
       ),
       SizedBox(height: SizeConfig.size10),
-      _buildFoodMenuGrid(),
+      _buildMyProductsInline(),
       SizedBox(height: SizeConfig.size16),
     ];
   }
 
-  Widget _buildFoodMenuGrid() {
+  Widget _buildMyProductsInline() {
     return Obx(() {
-      final List<GroceryNestedCategoryModel> menus =
-          List<GroceryNestedCategoryModel>.from(
-              _foodController.foodMenuNestedCategory);
-
-      if (menus.isEmpty) {
+      if (_medicalController.myMedicalCategoryLoading.value) {
         return Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: SizeConfig.size12,
-            vertical: SizeConfig.size20,
-          ),
-          child: EmptyStateWidget(
-            message: AppStrings.foodNoProductCreate.tr,
-            actionText: 'Add Product',
-            actionCallback: () => Get.to(() => FoodCategoryMenuScreen()),
+          padding: EdgeInsets.symmetric(vertical: SizeConfig.size30),
+          child: const Center(child: CircularProgressIndicator()),
+        );
+      }
+
+      final list = List<MyMedicalSuperCategoryModel>.from(
+          _medicalController.myMedicalCategoryList);
+
+      if (list.isEmpty) {
+        return Padding(
+          padding: EdgeInsets.symmetric(vertical: SizeConfig.size20),
+          child: Center(
+            child: EmptyStateWidget(
+              message: AppStrings.medicalHaveNotPostedProducts.tr,
+              actionText: AppStrings.medicalAddProductsNow.tr,
+              actionCallback: () =>
+                  Get.toNamed(RouteHelper.getMedicalCategoryScreenRoute()),
+            ),
           ),
         );
       }
 
-      return LayoutBuilder(
-        builder: (context, constraints) {
-          final crossAxisCount = constraints.maxWidth > 600 ? 3 : 2;
-          return GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
-            itemCount: menus.length,
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: crossAxisCount,
-              crossAxisSpacing: SizeConfig.size12,
-              mainAxisSpacing: SizeConfig.size12,
-              childAspectRatio: 0.92,
-            ),
-            itemBuilder: (_, i) => _foodMenuCategoryCard(menus[i]),
-          );
-        },
+      return GridView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
+        itemCount: list.length,
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          crossAxisSpacing: SizeConfig.size12,
+          mainAxisSpacing: SizeConfig.size12,
+          childAspectRatio: 0.92,
+        ),
+        itemBuilder: (_, i) => _myProductCategoryCard(list[i]),
       );
     });
   }
 
-  Widget _foodMenuCategoryCard(GroceryNestedCategoryModel item) {
-    final hasImage = (item.image ?? '').isNotEmpty;
+  Widget _myProductCategoryCard(MyMedicalSuperCategoryModel item) {
+    final hasImage = item.image != null && item.image!.isNotEmpty;
     final isNetwork = hasImage && isNetworkImage(item.image!);
+    final isSvg = hasImage && item.image!.toLowerCase().endsWith('.svg');
 
     return InkWell(
-      onTap: () => _openCategory(item),
+      onTap: () => Get.toNamed(
+        RouteHelper.getMyMedicalProductsScreenRoute(),
+        arguments: {
+          ApiKeys.argCategoryId: item.sId,
+          ApiKeys.argCategoryName: item.name,
+        },
+      ),
       borderRadius: BorderRadius.circular(12),
       child: Container(
         decoration: BoxDecoration(
@@ -322,10 +330,10 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
                 ),
                 child: Center(
                   child: _categoryImage(
-                    hasImage: hasImage,
-                    isNetwork: isNetwork,
-                    imagePath: item.image ?? '',
-                  ),
+                      hasImage: hasImage,
+                      isNetwork: isNetwork,
+                      isSvg: isSvg,
+                      imagePath: item.image ?? ''),
                 ),
               ),
             ),
@@ -333,9 +341,7 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
               flex: 2,
               child: Padding(
                 padding: EdgeInsets.symmetric(
-                  horizontal: SizeConfig.size10,
-                  vertical: SizeConfig.size8,
-                ),
+                    horizontal: SizeConfig.size10, vertical: SizeConfig.size8),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -361,9 +367,9 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
                         children: [
                           Icon(Icons.arrow_forward_ios_rounded,
                               size: 10, color: AppColors.primaryColor),
-                          const SizedBox(width: 4),
+                          SizedBox(width: 4),
                           CustomText(
-                            'View Products',
+                            AppStrings.medicalViewProducts,
                             fontSize: 11,
                             color: AppColors.primaryColor,
                             fontWeight: FontWeight.w600,
@@ -384,6 +390,7 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
   Widget _categoryImage({
     required bool hasImage,
     required bool isNetwork,
+    required bool isSvg,
     required String imagePath,
   }) {
     const double size = 56;
@@ -395,6 +402,18 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
         boxFix: BoxFit.contain,
       );
     }
+    if (isNetwork && isSvg) {
+      return SvgPicture.network(
+        imagePath,
+        width: size,
+        height: size,
+        fit: BoxFit.contain,
+        placeholderBuilder: (_) => const SizedBox(
+            width: size,
+            height: size,
+            child: CircularProgressIndicator(strokeWidth: 2)),
+      );
+    }
     if (isNetwork) {
       return CachedNetworkImage(
         imageUrl: imagePath,
@@ -402,36 +421,23 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
         height: size,
         fit: BoxFit.contain,
         placeholder: (_, __) => const SizedBox(
-          width: size,
-          height: size,
-          child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
-        ),
+            width: size,
+            height: size,
+            child: Center(child: CircularProgressIndicator(strokeWidth: 2))),
         errorWidget: (_, __, ___) =>
             Icon(Icons.broken_image, size: size, color: Colors.grey),
       );
     }
     return LocalAssets(
-      imagePath: imagePath,
-      height: size,
-      width: size,
-      boxFix: BoxFit.contain,
-    );
-  }
-
-  Future<void> _openCategory(GroceryNestedCategoryModel item) async {
-    if ((item.name ?? '').isEmpty) {
-      commonSnackBar(message: 'Invalid category');
-      return;
-    }
-    await Get.to(() => MyFoodProductScreen(foodMenu: item));
-    if (_foodController.foodDataNeedsRefresh) {
-      _foodController.foodDataNeedsRefresh = false;
-      _foodController.fetchHomeData(businessId: businessId);
-    }
+        imagePath: imagePath,
+        height: size,
+        width: size,
+        boxFix: BoxFit.contain);
   }
 
   // ─────────────────────────────────────────────
   // POST TAB — embeds FeedScreen filtered to current user's posts.
+  // Empty state surfaces a Create-Post CTA.
   // ─────────────────────────────────────────────
   List<Widget> _buildPostTab() {
     if (!Get.isRegistered<FeedController>()) {
@@ -444,7 +450,7 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
       ),
       SizedBox(height: SizeConfig.size12),
       FeedScreen(
-        key: const ValueKey('food_v2_my_posts'),
+        key: const ValueKey('medical_v2_my_posts'),
         postFilterType: PostType.myPosts,
         id: userId,
         isInParentScroll: true,
@@ -473,6 +479,8 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
     );
   }
 
+  /// Dialog with the same post-creation entries as the global app bar:
+  /// Lekha, Poll, Symbol, and Job (business only). Routes to existing flows.
   Future<void> _showCreatePostDialog() async {
     final isBusiness = isBusinessUser();
     final entries = <_PostMenuEntry>[
@@ -511,10 +519,12 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CustomText('Create Post',
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.mainTextColor),
+              CustomText(
+                'Create Post',
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: AppColors.mainTextColor,
+              ),
               SizedBox(height: SizeConfig.size12),
               for (var i = 0; i < entries.length; i++) ...[
                 InkWell(
@@ -588,11 +598,9 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.primaryColor,
             padding: EdgeInsets.symmetric(
-              horizontal: SizeConfig.size16,
-              vertical: SizeConfig.size8,
-            ),
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20)),
+                horizontal: SizeConfig.size16, vertical: SizeConfig.size8),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             elevation: 0,
           ),
         ),
@@ -604,12 +612,102 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
     commonSnackBar(message: AppStrings.comingSoon);
   }
 
-  Widget _buildComingSoon({required String label}) {
+  // ─────────────────────────────────────────────
+  // VERIFY TAB — shows verification status; tap to start the flow if pending
+  // ─────────────────────────────────────────────
+  // ignore: unused_element
+  List<Widget> _buildVerifyTab() {
+    return [
+
+      Padding(
+        padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
+        child: Obx(() {
+          final details =
+              _businessController.businessProfileDetails.value?.data;
+          final isVerified = details?.businessIsVerified ?? false;
+
+          return Container(
+            padding: EdgeInsets.all(SizeConfig.size16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: Colors.grey.shade200),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+
+                ElevatedButton(onPressed: (){
+                  Get.to(MedicalStatisticsScreen(businessId: userId));
+                }, child: CustomText("Click me")),
+
+                Row(
+                  children: [
+                    Icon(
+                      isVerified ? Icons.verified : Icons.gpp_maybe_outlined,
+                      color: isVerified ? AppColors.green00 : AppColors.redLite,
+                      size: 28,
+                    ),
+                    SizedBox(width: SizeConfig.size10),
+                    Expanded(
+                      child: CustomText(
+                        isVerified
+                            ? AppStrings.verifiedProfile.tr
+                            : 'Profile not verified',
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.mainTextColor,
+                      ),
+                    ),
+                    BusinessVerifyNowButton(details: details),
+                  ],
+                ),
+                SizedBox(height: SizeConfig.size10),
+                CustomText(
+                  isVerified
+                      ? 'Your business is verified. Customers can trust your profile and contact you with confidence.'
+                      : 'Verify your business to earn the verified badge, gain customer trust, and unlock enhanced visibility.',
+                  fontSize: 12,
+                  color: AppColors.secondaryTextColor,
+                  maxLines: 4,
+                ),
+                if (!isVerified) ...[
+                  SizedBox(height: SizeConfig.size12),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: ElevatedButton.icon(
+                      onPressed: () => Get.to(() => BusinessVerification()),
+                      icon: const Icon(Icons.verified_outlined,
+                          size: 18, color: Colors.white),
+                      label: CustomText('Start Verification',
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primaryColor,
+                        padding: EdgeInsets.symmetric(
+                            horizontal: SizeConfig.size16,
+                            vertical: SizeConfig.size8),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20)),
+                        elevation: 0,
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          );
+        }),
+      ),
+      SizedBox(height: SizeConfig.size16),
+    ];
+  }
+
+  Widget _buildComingSoon() {
     return Padding(
       padding: EdgeInsets.symmetric(
-        horizontal: SizeConfig.size12,
-        vertical: SizeConfig.size40,
-      ),
+          horizontal: SizeConfig.size12, vertical: SizeConfig.size40),
       child: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -617,13 +715,10 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
             Icon(Icons.hourglass_empty,
                 size: 48, color: AppColors.secondaryTextColor),
             SizedBox(height: SizeConfig.size10),
-            CustomText(
-              label,
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: AppColors.mainTextColor,
-              textAlign: TextAlign.center,
-            ),
+            CustomText(AppStrings.comingSoon,
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: AppColors.mainTextColor),
           ],
         ),
       ),
@@ -638,8 +733,7 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
       child: Image.asset(
         AppImageAssets.chatDefaultBg,
         fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) =>
-            Container(color: const Color(0xFFEAF2FB)),
+        errorBuilder: (_, __, ___) => Container(color: const Color(0xFFEAF2FB)),
       ),
     );
   }
@@ -671,9 +765,7 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
           if (!isBusinessUser()) _earnPill(),
           const Spacer(),
           _circleIconButton(
-            icon: Icons.notifications_none,
-            onTap: _openNotifications,
-          ),
+              icon: Icons.notifications_none, onTap: _openNotifications),
           SizedBox(width: SizeConfig.size8),
           _goLivePill(),
         ],
@@ -701,10 +793,8 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
     Navigator.pushNamed(context, RouteHelper.getNotificationScreenRoute());
   }
 
-  Widget _circleIconButton({
-    required IconData icon,
-    required VoidCallback onTap,
-  }) {
+  Widget _circleIconButton(
+      {required IconData icon, required VoidCallback onTap}) {
     return InkWell(
       onTap: onTap,
       customBorder: const CircleBorder(),
@@ -771,16 +861,13 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
               ),
               child: AnimatedAlign(
                 duration: const Duration(milliseconds: 180),
-                alignment: _isGoLive
-                    ? Alignment.centerRight
-                    : Alignment.centerLeft,
+                alignment:
+                    _isGoLive ? Alignment.centerRight : Alignment.centerLeft,
                 child: Container(
                   height: 14,
                   width: 14,
                   decoration: const BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                  ),
+                      color: Colors.white, shape: BoxShape.circle),
                 ),
               ),
             ),
@@ -793,7 +880,7 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
   // ─────────────────────────────────────────────
   // PROFILE ROW
   // ─────────────────────────────────────────────
-  Widget _buildProfileRow(BusinessProfileDetails? profile) {
+  Widget _buildProfileRow(BusinessProfile? profile) {
     return Container(
       color: Colors.white,
       padding: EdgeInsets.symmetric(
@@ -804,16 +891,14 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
             clipBehavior: Clip.none,
             children: [
               Obx(() {
-                final logo = _businessController.imagePath?.value ??
-                    profile?.logo ??
-                    '';
+                final logo =
+                    _businessController.imagePath?.value ?? profile?.logo ?? '';
                 return Container(
                   height: SizeConfig.size40,
                   width: SizeConfig.size40,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    border:
-                        Border.all(color: Colors.grey.shade300, width: 1),
+                    border: Border.all(color: Colors.grey.shade300, width: 1),
                   ),
                   clipBehavior: Clip.hardEdge,
                   child: logo.isNotEmpty
@@ -865,12 +950,11 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: CustomText('+1',
-                          fontSize: 11,
-                          color: AppColors.secondaryTextColor),
+                          fontSize: 11, color: AppColors.secondaryTextColor),
                     ),
                   ],
                 ),
-                const SizedBox(height: 2),
+                SizedBox(height: 2),
                 CustomText(
                   profile?.typeOfBusiness ?? '',
                   fontSize: 12,
@@ -882,8 +966,7 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
             ),
           ),
           Obx(() => BusinessVerifyNowButton(
-                details:
-                    _businessController.businessProfileDetails.value?.data,
+                details: _businessController.businessProfileDetails.value?.data,
               )),
           SizedBox(width: SizeConfig.size10),
           IconButton(
@@ -899,7 +982,7 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
 
   Widget _logoFallback() => Container(
         color: Colors.grey.shade200,
-        child: Icon(Icons.restaurant_menu,
+        child: Icon(Icons.storefront,
             size: 20, color: AppColors.secondaryTextColor),
       );
 
@@ -926,18 +1009,15 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
             children: List.generate(_tabs.length, (i) {
               final selected = i == _selectedTab;
               return Padding(
-                padding:
-                    EdgeInsets.symmetric(horizontal: SizeConfig.size4),
+                padding: EdgeInsets.symmetric(horizontal: SizeConfig.size4),
                 child: GestureDetector(
                   onTap: () => setState(() => _selectedTab = i),
                   child: Container(
                     padding: EdgeInsets.symmetric(
-                      horizontal: SizeConfig.size16,
-                      vertical: SizeConfig.size6,
-                    ),
+                        horizontal: SizeConfig.size16,
+                        vertical: SizeConfig.size6),
                     decoration: BoxDecoration(
-                      color:
-                          selected ? AppColors.primaryColor : Colors.white,
+                      color: selected ? AppColors.primaryColor : Colors.white,
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
                         color: selected
@@ -950,8 +1030,7 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
                       _tabs[i],
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
-                      color:
-                          selected ? Colors.white : AppColors.mainTextColor,
+                      color: selected ? Colors.white : AppColors.mainTextColor,
                     ),
                   ),
                 ),
@@ -966,14 +1045,12 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
   // ─────────────────────────────────────────────
   // BANNER (cover image)
   // ─────────────────────────────────────────────
-  Widget _buildBannerSection() {
+  Widget _buildBannerSection(BusinessProfile? profile) {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
       child: Obx(() {
         final cover = _businessController.coverImage?.value ?? '';
         final hasBanner = cover.isNotEmpty;
-        final profile =
-            _businessController.businessProfileDetails.value?.data;
 
         return GestureDetector(
           onTap: () => _onEditCover(profile),
@@ -1045,9 +1122,7 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
               borderRadius: BorderRadius.circular(8),
               boxShadow: const [
                 BoxShadow(
-                    color: Colors.black26,
-                    blurRadius: 4,
-                    offset: Offset(0, 1)),
+                    color: Colors.black26, blurRadius: 4, offset: Offset(0, 1)),
               ],
             ),
             child: Row(
@@ -1068,7 +1143,7 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
     );
   }
 
-  Future<void> _onEditCover(BusinessProfileDetails? profile) async {
+  Future<void> _onEditCover(BusinessProfile? profile) async {
     try {
       final newPath = await SelectProfilePictureDialog.showLogoDialog(
         context,
@@ -1077,13 +1152,8 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
       );
       if (newPath == null || newPath.isEmpty) return;
 
-      final file = File(newPath);
-      if (!await file.exists()) {
-        commonSnackBar(message: AppStrings.imageProcessingFailed);
-        return;
-      }
-
       _businessController.coverImage?.value = newPath;
+      final file = File(newPath);
       final compressed = await FlutterImageCompress.compressAndGetFile(
         file.absolute.path,
         "${file.path}_compressed.jpg",
@@ -1101,228 +1171,133 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
         "coverPicture": dataImage,
       };
       await _businessController.updateBusinessProfileDetails(reqProfile);
-    } catch (_) {
+    } catch (e) {
       commonSnackBar(message: AppStrings.updatePictureFailed);
     }
   }
 
   // ─────────────────────────────────────────────
-  // POPULAR DISHES (discount foods, horizontal)
+  // BIKES / POPULAR PRODUCTS
   // ─────────────────────────────────────────────
-  Widget _buildPopularDishesSection() {
-    return Obx(() {
-      final isInitialLoading =
-          _foodController.isDiscountProductsLoading.value &&
-              _foodController.discountFoodItems.isEmpty;
-      final hasItems = _foodController.discountFoodItems.isNotEmpty;
-      if (!isInitialLoading && !hasItems) {
-        return const SizedBox.shrink();
-      }
-
-      return Padding(
-        padding: EdgeInsets.only(bottom: SizeConfig.size16),
-        child: _SectionCard(
-          title: AppStrings.foodOfferDishDiscount.tr,
-          trailingLabel: AppStrings.viewAll.tr,
-          onTrailingTap: () => Get.to(
-              () => DiscountFoodProductsScreen(businessId: businessId)),
-          child: isInitialLoading
-              ? const SizedBox(
-                  height: 240,
-                  child: Center(
-                      child: CircularProgressIndicator(strokeWidth: 2)),
-                )
-              : _buildPopularDishesList(),
+  Widget _buildBikesSection(List<PopularProduct> products) {
+    final cardWidth = MediaQuery.of(context).size.width * 0.55;
+    return _SectionCard(
+      title: 'Bikes',
+      trailingLabel: 'Update',
+      onTrailingTap: () {},
+      child: SizedBox(
+        height: cardWidth * 1.05,
+        child: ListView.separated(
+          scrollDirection: Axis.horizontal,
+          padding: EdgeInsets.symmetric(horizontal: SizeConfig.size4),
+          itemCount: products.length,
+          separatorBuilder: (_, __) => SizedBox(width: SizeConfig.size10),
+          itemBuilder: (_, i) => _bikeCard(products[i], cardWidth),
         ),
-      );
-    });
-  }
-
-  Widget _buildPopularDishesList() {
-    final items = _foodController.discountFoodItems.length >
-            _discountPreviewLimit
-        ? _foodController.discountFoodItems
-            .take(_discountPreviewLimit)
-            .toList()
-        : _foodController.discountFoodItems.toList();
-
-    return SizedBox(
-      height: 240,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: items.length,
-        padding: EdgeInsets.symmetric(horizontal: SizeConfig.size4),
-        separatorBuilder: (_, __) => SizedBox(width: SizeConfig.size10),
-        itemBuilder: (_, i) => _popularDishCard(items[i]),
       ),
     );
   }
 
-  Widget _popularDishCard(CategoryFoodProductData item) {
-    final hasVariants = item.variants != null && item.variants!.isNotEmpty;
-    final variantCount = item.variants?.length ?? 0;
-    final isMultiVariant = variantCount > 1;
-    final sellingPrice = hasVariants ? item.variants![0].baseSellingPrice : null;
-    final mrp = hasVariants ? item.variants![0].mrp : null;
-    final discountPercent =
-        (mrp != null && sellingPrice != null && mrp > sellingPrice)
-            ? (((mrp - sellingPrice) / mrp) * 100).round()
-            : 0;
+  Widget _bikeCard(PopularProduct item, double width) {
+    final productName = item.product?.name ?? item.variant?.variantName ?? '';
+    final description = item.product?.description ?? '';
+    final imageUrl = item.product?.images?.firstOrNull?.url ??
+        item.variant?.images?.firstOrNull?.url;
+    final mrp = item.batches?.mrp ?? item.variant?.pricing?.firstOrNull?.mrp;
+    final sellingPrice = item.batches?.sellingPrice ??
+        item.variant?.pricing?.firstOrNull?.sellingPrice;
 
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: () => showFoodProductVariantSheet(context, product: item),
-      child: Container(
-        width: 170,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: AppColors.greyE5),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Stack(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: CachedNetworkImage(
-                    imageUrl: item.images?.firstOrNull ?? '',
-                    height: 130,
-                    width: 170,
+    return Container(
+      width: width,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      clipBehavior: Clip.hardEdge,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          AspectRatio(
+            aspectRatio: 16 / 10,
+            child: imageUrl != null
+                ? CachedNetworkImage(
+                    imageUrl: imageUrl,
                     fit: BoxFit.cover,
                     placeholder: (_, __) =>
-                        Container(color: Colors.grey.shade200),
+                        Container(color: Colors.grey.shade100),
                     errorWidget: (_, __, ___) => Container(
-                      height: 130,
-                      width: 170,
                       color: Colors.grey.shade100,
-                      child: const Icon(Icons.fastfood, color: Colors.grey),
+                      child: Icon(Icons.image_outlined, color: Colors.grey),
                     ),
+                  )
+                : Container(
+                    color: Colors.grey.shade100,
+                    child: Icon(Icons.image_outlined, color: Colors.grey),
                   ),
+          ),
+          Padding(
+            padding: EdgeInsets.all(SizeConfig.size8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CustomText(productName,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis),
+                SizedBox(height: 2),
+                if (description.isNotEmpty)
+                  CustomText(description,
+                      fontSize: 10,
+                      color: AppColors.secondaryTextColor,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis),
+                SizedBox(height: SizeConfig.size6),
+                Row(
+                  children: [
+                    _spec(item.category?.name ?? 'Petrol'),
+                    SizedBox(width: SizeConfig.size4),
+                    _spec(item.variant?.unit ?? 'Sports'),
+                  ],
                 ),
-                if (discountPercent > 0)
-                  Positioned(
-                    top: 0,
-                    left: 0,
-                    child: ClipRRect(
-                      borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(10),
-                        bottomRight: Radius.circular(10),
-                      ),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 6),
-                        decoration: const BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.centerLeft,
-                            end: Alignment.centerRight,
-                            colors: [Color(0xFFFD7845), Color(0xFFFA5568)],
-                          ),
-                          borderRadius: BorderRadius.only(
-                            topLeft: Radius.circular(10),
-                            bottomRight: Radius.circular(10),
-                          ),
-                        ),
-                        child: CustomText(
-                          '$discountPercent% OFF',
-                          fontSize: 10,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),
-                Positioned(
-                  top: 8,
-                  right: 8,
-                  child: FoodTypeIndicator(
-                    isVegetarian:
-                        item.dietaryType?.toLowerCase() == AppConstants.veg,
-                    size: 8,
-                  ),
+                SizedBox(height: SizeConfig.size8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _priceCol('Ex Showroom Price', mrp ?? sellingPrice),
+                    _priceCol('On Road Price', sellingPrice ?? mrp),
+                  ],
                 ),
               ],
             ),
-            Padding(
-              padding: const EdgeInsets.all(6.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CustomText(
-                    item.name ?? '',
-                    fontWeight: FontWeight.w600,
-                    maxLines: 1,
-                    fontSize: 13,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      RatingBadge(rating: '4.5'),
-                      const SizedBox(width: 4),
-                      Flexible(
-                        child: CustomText(
-                          '1.2 K Reviews',
-                          fontWeight: FontWeight.w600,
-                          maxLines: 1,
-                          color: AppColors.secondaryTextColor,
-                          fontSize: 11,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      CustomText(
-                        '${AppConstants.rupeeSymbol}${sellingPrice ?? 0}',
-                        fontWeight: FontWeight.w700,
-                        fontSize: 14,
-                      ),
-                      if (mrp != null &&
-                          sellingPrice != null &&
-                          mrp >= sellingPrice) ...[
-                        const SizedBox(width: 6),
-                        CustomText(
-                          '${AppConstants.rupeeSymbol}$mrp',
-                          fontSize: 12,
-                          fontWeight: FontWeight.w400,
-                          color: AppColors.secondaryTextColor,
-                          decoration: TextDecoration.lineThrough,
-                          decorationColor: AppColors.secondaryTextColor,
-                        ),
-                      ],
-                    ],
-                  ),
-                  if (variantCount > 0)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 6.0),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color:
-                              AppColors.primaryColor.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: CustomText(
-                          isMultiVariant
-                              ? '+${variantCount - 1} more variant'
-                              : '$variantCount variant',
-                          fontSize: 10,
-                          color: AppColors.primaryColor,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
+    );
+  }
+
+  Widget _spec(String text) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size6, vertical: 2),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey.shade300),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: CustomText(text, fontSize: 9, color: AppColors.secondaryTextColor),
+    );
+  }
+
+  Widget _priceCol(String label, num? value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CustomText(label, fontSize: 9, color: AppColors.secondaryTextColor),
+        CustomText('₹${value ?? '-'}',
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+            color: AppColors.mainTextColor),
+      ],
     );
   }
 
@@ -1340,13 +1315,12 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
             builder: (_) {
               final photos = _businessController
                       .businessProfileDetails.value?.data?.livePhotos ??
-                  <String>[];
+                  [];
               return GridView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: 4,
-                gridDelegate:
-                    const SliverGridDelegateWithFixedCrossAxisCount(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 2,
                   crossAxisSpacing: 10,
                   mainAxisSpacing: 10,
@@ -1379,9 +1353,7 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
               shape: BoxShape.circle,
               boxShadow: const [
                 BoxShadow(
-                    color: Colors.black26,
-                    blurRadius: 6,
-                    offset: Offset(0, 2)),
+                    color: Colors.black26, blurRadius: 6, offset: Offset(0, 2)),
               ],
             ),
             child: Icon(Icons.edit_outlined,
@@ -1421,27 +1393,28 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
   }
 
   // ─────────────────────────────────────────────
-  // GALLERY (food gallery WhatsApp-style preview)
+  // GALLERY (2x2 grid)
   // ─────────────────────────────────────────────
   Widget _buildGallerySection() {
     return Obx(() {
-      final data = _foodController.restaurantData.value;
       final all = <String>[];
-      for (final entry in data?.gallery ?? const <FoodGallery>[]) {
-        all.addAll(entry.imageUrls ?? const []);
+      for (final entry in _galleryController.galleryList) {
+        all.addAll(entry.imageUrls ?? []);
       }
       return _SectionCard(
         title: 'Gallery',
         trailingLabel: 'Add Photo',
-        onTrailingTap: () => Get.to(() => FoodServicePhotosPhotoScreen()),
+        onTrailingTap: () => Get.to(() => MedicalGalleryListScreen()),
         child: all.isEmpty ? _galleryEmptyGuide() : _galleryGrid(all),
       );
     });
   }
 
+  /// Empty-gallery guide — black & white preview image overlaid with
+  /// add-photo CTA so the user understands what the section will look like.
   Widget _galleryEmptyGuide() {
     return GestureDetector(
-      onTap: () => Get.to(() => FoodServicePhotosPhotoScreen()),
+      onTap: () => Get.to(() => MedicalGalleryListScreen()),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(10),
         child: AspectRatio(
@@ -1451,10 +1424,26 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
             children: [
               ColorFiltered(
                 colorFilter: const ColorFilter.matrix(<double>[
-                  0.2126, 0.7152, 0.0722, 0, 0,
-                  0.2126, 0.7152, 0.0722, 0, 0,
-                  0.2126, 0.7152, 0.0722, 0, 0,
-                  0, 0, 0, 1, 0,
+                  0.2126,
+                  0.7152,
+                  0.0722,
+                  0,
+                  0,
+                  0.2126,
+                  0.7152,
+                  0.0722,
+                  0,
+                  0,
+                  0.2126,
+                  0.7152,
+                  0.0722,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  1,
+                  0,
                 ]),
                 child: Image.asset(
                   'assets/images/other_gallery.png',
@@ -1468,10 +1457,10 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.add_photo_alternate_outlined,
+                    Icon(Icons.add_photo_alternate_outlined,
                         color: Colors.white, size: 32),
                     SizedBox(height: SizeConfig.size6),
-                    CustomText(AppStrings.foodAddPhotoLabel.tr,
+                    CustomText(AppStrings.medicalAddPhotos.tr,
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
                         color: Colors.white),
@@ -1485,6 +1474,12 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
     );
   }
 
+  /// WhatsApp-style preview:
+  ///   1 image  → full
+  ///   2 images → side-by-side
+  ///   3 images → 1 large left + 2 stacked right
+  ///   4 images → 2×2
+  ///   5+       → 2×2 with `+N` overlay on the 4th cell
   Widget _galleryGrid(List<String> images) {
     final display = images.length > 4 ? images.sublist(0, 4) : images;
     final extra = images.length > 4 ? images.length - 4 : 0;
@@ -1507,14 +1502,12 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
             child: Stack(
               fit: StackFit.expand,
               children: [
-                Image.network(
-                  display[i],
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
-                    color: Colors.grey[300],
-                    child: const Icon(Icons.broken_image),
-                  ),
-                ),
+                Image.network(display[i],
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => Container(
+                          color: Colors.grey[300],
+                          child: const Icon(Icons.broken_image),
+                        )),
                 if (overlay && extra > 0)
                   Container(
                     color: Colors.black.withValues(alpha: 0.5),
@@ -1522,10 +1515,9 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
                     child: Text(
                       '+$extra',
                       style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                      ),
+                          color: Colors.white,
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold),
                     ),
                   ),
               ],
@@ -1533,10 +1525,12 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
           ),
         );
 
+    // 1 image — full
     if (display.length == 1) {
       return AspectRatio(aspectRatio: 1, child: tile(0));
     }
 
+    // 2 images — side by side
     if (display.length == 2) {
       return AspectRatio(
         aspectRatio: 2,
@@ -1548,6 +1542,7 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
       );
     }
 
+    // 3 images — 1 large left + 2 stacked right
     if (display.length == 3) {
       return AspectRatio(
         aspectRatio: 1,
@@ -1565,6 +1560,7 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
       );
     }
 
+    // 4+ images — 2x2 grid, with +N overlay on last cell when more
     return AspectRatio(
       aspectRatio: 1,
       child: Column(
@@ -1590,102 +1586,183 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
   }
 
   // ─────────────────────────────────────────────
-  // CONTACT US
+  // TESTIMONIALS
   // ─────────────────────────────────────────────
-  Widget _buildContactSection() {
-    return Obx(() {
-      final profile =
-          _businessController.businessProfileDetails.value?.data;
-      if (profile == null) return const SizedBox.shrink();
+  Widget _buildTestimonialsSection() {
+    final list = _data?.testimonials ?? [];
+    if (list.isEmpty) return const SizedBox.shrink();
 
-      final loc = profile.businessLocation;
-      final lat = loc?.lat;
-      final lon = loc?.lon;
-      final phone = profile.businessNumber?.officeMobNo?.number;
-      final owner = profile.ownerDetails?.firstOrNull;
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
+      child: Column(
+        children: [
+          CustomText('Testimonials',
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: AppColors.mainTextColor),
+          SizedBox(height: SizeConfig.size12),
+          Container(
+            padding: EdgeInsets.all(SizeConfig.size16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey.shade200),
+            ),
+            child: _testimonialCard(list.first),
+          ),
+        ],
+      ),
+    );
+  }
 
-      return Padding(
-        padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
-        child: Column(
+  Widget _testimonialCard(dynamic raw) {
+    final m = raw is Map<String, dynamic> ? raw : <String, dynamic>{};
+    final text =
+        (m['testimonial'] ?? m['text'] ?? m['message'] ?? '').toString();
+    final name = (m['name'] ?? m['author'] ?? '').toString();
+    final role = (m['role'] ?? m['designation'] ?? '').toString();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            CustomText('Contact Us',
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                color: AppColors.mainTextColor),
-            SizedBox(height: SizeConfig.size12),
-            Container(
-              padding: EdgeInsets.all(SizeConfig.size16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: Colors.grey.shade200),
-              ),
+            Icon(Icons.format_quote, color: AppColors.primaryColor, size: 18),
+            SizedBox(width: SizeConfig.size6),
+            Expanded(
+              child: CustomText(text,
+                  fontSize: 13,
+                  color: AppColors.secondaryTextColor,
+                  maxLines: 5,
+                  overflow: TextOverflow.ellipsis),
+            ),
+          ],
+        ),
+        SizedBox(height: SizeConfig.size10),
+        Row(
+          children: [
+            Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if ((profile.logo ?? '').isNotEmpty)
-                    Container(
-                      width: SizeConfig.size60,
-                      height: SizeConfig.size60,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        boxShadow: const [
-                          BoxShadow(color: Colors.black12, blurRadius: 6)
-                        ],
-                        image: DecorationImage(
-                          image: NetworkImage(profile.logo!),
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                    ),
-                  SizedBox(height: SizeConfig.size10),
-                  CustomText(profile.businessName ?? '',
-                      fontSize: 15, fontWeight: FontWeight.w700),
-                  if ((profile.businessDescription ?? '').isNotEmpty) ...[
-                    SizedBox(height: SizeConfig.size4),
-                    CustomText(
-                      profile.businessDescription!,
-                      fontSize: 12,
-                      color: AppColors.secondaryTextColor,
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                  Divider(height: SizeConfig.size20),
-                  if ((profile.websiteUrl ?? '').isNotEmpty)
-                    _contactItem(AppIconAssets.website_click,
-                        profile.websiteUrl!, AppColors.primaryColor),
-                  if ((owner?.name ?? '').isNotEmpty)
-                    _contactItem(AppIconAssets.principal, owner!.name!,
-                        Colors.grey[700]!),
-                  if ((owner?.email ?? '').isNotEmpty)
-                    _contactItem(AppIconAssets.email, owner!.email!,
-                        AppColors.secondaryTextColor),
-                  if ((phone ?? '').isNotEmpty)
-                    _contactItem(AppIconAssets.phone_outline, phone!,
-                        AppColors.secondaryTextColor),
-                  if ((profile.address ?? '').isNotEmpty)
-                    _contactItem(AppIconAssets.location_new,
-                        profile.address!, Colors.grey[700]!),
+                  if (name.isNotEmpty)
+                    CustomText('-$name',
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.mainTextColor),
+                  if (role.isNotEmpty)
+                    CustomText(role,
+                        fontSize: 11, color: AppColors.secondaryTextColor),
                 ],
               ),
             ),
-            if (lat != null && lon != null) ...[
-              SizedBox(height: SizeConfig.size12),
-              BusinessLocationWidget(
-                locationText: '',
-                latitude: lat,
-                longitude: lon,
-                businessName: profile.businessName ?? '',
-                padding: 0,
-                isTitleShow: false,
+            OutlinedButton(
+              onPressed: () {},
+              style: OutlinedButton.styleFrom(
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8)),
+                padding: EdgeInsets.symmetric(
+                    horizontal: SizeConfig.size16, vertical: SizeConfig.size4),
+                side: BorderSide(color: Colors.grey.shade300),
               ),
-            ],
+              child: CustomText('Reply',
+                  fontSize: 12, color: AppColors.mainTextColor),
+            ),
           ],
         ),
-      );
-    });
+      ],
+    );
+  }
+
+  // ─────────────────────────────────────────────
+  // CONTACT US
+  // ─────────────────────────────────────────────
+  Widget _buildContactSection(BusinessProfile? profile) {
+    if (profile == null) return const SizedBox.shrink();
+    final loc = profile.businessLocation;
+    final phone = profile.businessNumber?.formattedMobile;
+    final owner = profile.ownerDetails?.firstOrNull;
+
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          CustomText('Contact Us',
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: AppColors.mainTextColor),
+          SizedBox(height: SizeConfig.size12),
+          Container(
+            padding: EdgeInsets.all(SizeConfig.size16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: Colors.grey.shade200),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (profile.logo != null && profile.logo!.isNotEmpty)
+                  Container(
+                    width: SizeConfig.size60,
+                    height: SizeConfig.size60,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      boxShadow: const [
+                        BoxShadow(color: Colors.black12, blurRadius: 6)
+                      ],
+                      image: DecorationImage(
+                        image: NetworkImage(profile.logo!),
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
+                SizedBox(height: SizeConfig.size10),
+                CustomText(profile.businessName ?? '',
+                    fontSize: 15, fontWeight: FontWeight.w700),
+                if (profile.businessDescription?.isNotEmpty ?? false) ...[
+                  SizedBox(height: SizeConfig.size4),
+                  CustomText(profile.businessDescription!,
+                      fontSize: 12,
+                      color: AppColors.secondaryTextColor,
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis),
+                ],
+                Divider(height: SizeConfig.size20),
+                if (profile.websiteUrl?.isNotEmpty ?? false)
+                  _contactItem(AppIconAssets.website_click, profile.websiteUrl!,
+                      AppColors.primaryColor),
+                if (owner?.name?.isNotEmpty ?? false)
+                  _contactItem(
+                      AppIconAssets.principal, owner!.name!, Colors.grey[700]!),
+                if (owner?.email?.isNotEmpty ?? false)
+                  _contactItem(AppIconAssets.email, owner!.email!,
+                      AppColors.secondaryTextColor),
+                if (phone != null)
+                  _contactItem(AppIconAssets.phone_outline, phone,
+                      AppColors.secondaryTextColor),
+                if (profile.address?.isNotEmpty ?? false)
+                  _contactItem(AppIconAssets.location_new, profile.address!,
+                      Colors.grey[700]!),
+              ],
+            ),
+          ),
+          if (loc?.lat != null && loc?.lon != null) ...[
+            SizedBox(height: SizeConfig.size12),
+            BusinessLocationWidget(
+              locationText: "",
+              latitude: loc!.lat!,
+              longitude: loc.lon!,
+              businessName: profile.businessName ?? "",
+              padding: 0,
+              isTitleShow: false,
+            ),
+          ],
+        ],
+      ),
+    );
   }
 
   Widget _contactItem(String icon, String label, Color iconColor) {
@@ -1709,32 +1786,30 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
     );
   }
 
-  /// Discover-style profile preview so the owner can preview their food
-  /// profile the way customers discover it.
+  /// Opens the Discover-style profile preview so the owner can see the
+  /// public profile the way other users discover it on the Discover screen.
   void _previewProfileAsVisitor() {
-    final profile =
-        _businessController.businessProfileDetails.value?.data;
+    final profile = _data?.businessProfile;
     final coverFromCtrl = _businessController.coverImage?.value ?? '';
     final logoFromCtrl = _businessController.imagePath?.value ?? '';
 
+    // Collect gallery image URLs from the gallery controller (same source the
+    // overview Gallery section uses).
     final galleryPhotos = <String>[];
-    final restaurantData = _foodController.restaurantData.value;
-    for (final entry in restaurantData?.gallery ?? const <FoodGallery>[]) {
-      galleryPhotos.addAll(entry.imageUrls ?? const []);
+    for (final entry in _galleryController.galleryList) {
+      galleryPhotos.addAll(entry.imageUrls ?? []);
     }
 
     final service = ServiceData()
-      ..id = profile?.id ?? businessId
+      ..id = profile?.id ?? widget.businessId
       ..name = profile?.businessName
       ..profileImage = (coverFromCtrl.isNotEmpty
           ? coverFromCtrl
-          : (logoFromCtrl.isNotEmpty
-              ? logoFromCtrl
-              : (profile?.logo ?? '')))
+          : (logoFromCtrl.isNotEmpty ? logoFromCtrl : (profile?.logo ?? '')))
       ..bio = profile?.businessDescription
       ..address = profile?.address
-      ..rating = profile?.avg_rating
-      ..reviewCount = profile?.total_ratings?.toInt() ?? 0
+      ..rating = profile?.avgRating
+      ..reviewCount = int.tryParse(profile?.totalRatings ?? '') ?? 0
       ..category = profile?.typeOfBusiness
       ..serviceMedia = ServiceMedia(photos: galleryPhotos);
 
@@ -1794,14 +1869,10 @@ class _SectionCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Flexible(
-                  child: CustomText(title,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.mainTextColor,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis),
-                ),
+                CustomText(title,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.mainTextColor),
                 if (trailingLabel != null)
                   GestureDetector(
                     onTap: onTrailingTap,
@@ -1853,7 +1924,33 @@ class _LivePhotoSlotState extends State<_LivePhotoSlot> {
     final hasPhoto = widget.photoUrl != null;
 
     return GestureDetector(
-      onTap: _isLoading ? null : _onTap,
+      onTap: _isLoading
+          ? null
+          : () async {
+              if (hasPhoto) {
+                navigatePushTo(
+                  context,
+                  ImageViewScreen(
+                    appBarTitle: AppStrings.imageViewer,
+                    subTitle: '',
+                    imageUrls: widget.allPhotos,
+                    initialIndex: widget.index,
+                  ),
+                );
+              } else {
+                final imgStr = await SelectProfilePictureDialog.pickFromCamera(
+                  context,
+                  cropAspectRatio: CropAspectRatio(width: 1, height: 1),
+                );
+                if (imgStr != null) {
+                  setState(() => _isLoading = true);
+                  await widget.controller
+                      .saveBusinessImages(imgStr, widget.controller);
+                  widget.controller.update(['livePhotos']);
+                  if (mounted) setState(() => _isLoading = false);
+                }
+              }
+            },
       child: Stack(
         children: [
           ClipRRect(
@@ -1875,8 +1972,7 @@ class _LivePhotoSlotState extends State<_LivePhotoSlot> {
             right: 0,
             bottom: 0,
             child: Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
@@ -1923,7 +2019,16 @@ class _LivePhotoSlotState extends State<_LivePhotoSlot> {
               top: 6,
               right: 6,
               child: GestureDetector(
-                onTap: _onDelete,
+                onTap: () async {
+                  setState(() => _isLoading = true);
+                  final data = {ApiKeys.image_url: widget.photoUrl};
+                  await widget.controller.deleteLiveStoreImage(data);
+                  widget
+                      .controller.businessProfileDetails.value?.data?.livePhotos
+                      ?.removeAt(widget.index);
+                  widget.controller.update(['livePhotos']);
+                  if (mounted) setState(() => _isLoading = false);
+                },
                 child: Container(
                   padding: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
@@ -1960,52 +2065,6 @@ class _LivePhotoSlotState extends State<_LivePhotoSlot> {
         ],
       ),
     );
-  }
-
-  Future<void> _onTap() async {
-    final hasPhoto = widget.photoUrl != null;
-    if (hasPhoto) {
-      navigatePushTo(
-        context,
-        ImageViewScreen(
-          appBarTitle: AppStrings.imageViewer,
-          subTitle: '',
-          imageUrls: widget.allPhotos,
-          initialIndex: widget.index,
-        ),
-      );
-      return;
-    }
-    final imgStr = await SelectProfilePictureDialog.pickFromCamera(
-      context,
-      cropAspectRatio: CropAspectRatio(width: 1, height: 1),
-    );
-    if (imgStr == null || imgStr.isEmpty) return;
-    if (!await File(imgStr).exists()) {
-      commonSnackBar(message: AppStrings.imageProcessingFailed);
-      return;
-    }
-    setState(() => _isLoading = true);
-    try {
-      await widget.controller.saveBusinessImages(imgStr, widget.controller);
-      widget.controller.update(['livePhotos']);
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
-  }
-
-  Future<void> _onDelete() async {
-    if (widget.photoUrl == null) return;
-    setState(() => _isLoading = true);
-    try {
-      final data = {ApiKeys.image_url: widget.photoUrl};
-      await widget.controller.deleteLiveStoreImage(data);
-      widget.controller.businessProfileDetails.value?.data?.livePhotos
-          ?.removeAt(widget.index);
-      widget.controller.update(['livePhotos']);
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
   }
 
   Widget _blurredPlaceholder() {

@@ -25,6 +25,7 @@ import 'package:BlueEra/features/me/medical_new/view/add_medical_snap_search_scr
 import 'package:BlueEra/features/me/grocery/view/missing_grocery_items_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/grocery_via_self_pickup/visit_grocery_store_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/grocery_nested_category_with_inventory_screen.dart';
+import 'package:BlueEra/features/me/medical_new/view/medical_home_screen_v2.dart';
 import 'package:BlueEra/features/me/product/model/product_category_with_inventory_model.dart';
 import 'package:BlueEra/features/me/product/view/product_nested_category_with_inventory_screen.dart';
 import 'package:BlueEra/features/me/product/view/my_product_products_screen.dart';
@@ -1766,7 +1767,7 @@ class RouteHelper {
         final args = settings.arguments as Map<String, dynamic>;
         final String argBusinessId = args[ApiKeys.argBusinessId] as String;
         return MaterialPageRoute(
-            builder: (_) => MedicalHomeScreen(businessId: argBusinessId),
+            builder: (_) => MedicalHomeScreenV2(businessId: argBusinessId),
             settings: RouteSettings(name: getMedicalHomeScreenRoute())
         );
 

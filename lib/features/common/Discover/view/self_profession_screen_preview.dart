@@ -26,6 +26,7 @@ class SelfProfessionScreenPreview extends StatelessWidget {
   final String priceDisplay;
   final String priceBadgeText;
   final Color priceBadgeColor;
+  final bool isSelfPreview;
 
   const SelfProfessionScreenPreview({
     super.key,
@@ -34,6 +35,7 @@ class SelfProfessionScreenPreview extends StatelessWidget {
     required this.priceDisplay,
     required this.priceBadgeText,
     required this.priceBadgeColor,
+    this.isSelfPreview = false,
   });
 
   @override
@@ -186,56 +188,57 @@ class SelfProfessionScreenPreview extends StatelessWidget {
             ),
           ),
 
-          // ─── Fixed Bottom Button ───
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: Container(
-              padding: EdgeInsets.fromLTRB(
-                SizeConfig.size16,
-                SizeConfig.size12,
-                SizeConfig.size16,
-                SizeConfig.size16 + MediaQuery.of(context).padding.bottom,
-              ),
-              decoration: BoxDecoration(
-                color: AppColors.white,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.08),
-                    blurRadius: 20,
-                    offset: const Offset(0, -4),
-                  ),
-                ],
-              ),
-              child: CustomBtn(
-                onTap: () {
-                  final targetUserId = service.id ?? '';
-                  if (targetUserId.isEmpty) return;
-                  final chatViewController =
-                      getOrPut(() => ChatViewController());
+          // ─── Fixed Bottom Button (hidden when previewing own profile) ───
+          if (!isSelfPreview)
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: Container(
+                padding: EdgeInsets.fromLTRB(
+                  SizeConfig.size16,
+                  SizeConfig.size12,
+                  SizeConfig.size16,
+                  SizeConfig.size16 + MediaQuery.of(context).padding.bottom,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.08),
+                      blurRadius: 20,
+                      offset: const Offset(0, -4),
+                    ),
+                  ],
+                ),
+                child: CustomBtn(
+                  onTap: () {
+                    final targetUserId = service.id ?? '';
+                    if (targetUserId.isEmpty) return;
+                    final chatViewController =
+                        getOrPut(() => ChatViewController());
 
-                  final senderName = userNameGlobal.trim();
-                  final providerName = (service.name ?? '').trim();
-                  final introBody = providerName.isEmpty
-                      ? "I'd like to know more about your service."
-                      : "I'd like to know more about your $providerName service.";
-                  final prefill = senderName.isEmpty
-                      ? "Hi, $introBody"
-                      : "Hi, I'm $senderName. $introBody";
+                    final senderName = userNameGlobal.trim();
+                    final providerName = (service.name ?? '').trim();
+                    final introBody = providerName.isEmpty
+                        ? "I'd like to know more about your service."
+                        : "I'd like to know more about your $providerName service.";
+                    final prefill = senderName.isEmpty
+                        ? "Hi, $introBody"
+                        : "Hi, I'm $senderName. $introBody";
 
-                  chatViewController.checkChatConnectionAndOpenChat(
-                    userId: targetUserId,
-                    prefilledMessage: prefill,
-                  );
-                },
-                isValidate: true,
-                radius: SizeConfig.size12,
-                title: AppStrings.requestBooking.tr,
-                bgColor: AppColors.primaryColor,
+                    chatViewController.checkChatConnectionAndOpenChat(
+                      userId: targetUserId,
+                      prefilledMessage: prefill,
+                    );
+                  },
+                  isValidate: true,
+                  radius: SizeConfig.size12,
+                  title: AppStrings.requestBooking.tr,
+                  bgColor: AppColors.primaryColor,
+                ),
               ),
             ),
-          ),
         ],
       ),
     );
