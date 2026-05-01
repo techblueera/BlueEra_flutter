@@ -7,7 +7,7 @@ import 'package:BlueEra/features/business/widgets/business_stats.dart';
 import 'package:BlueEra/features/business/widgets/empty_website_tab.dart';
 import 'package:BlueEra/features/me/me_tab_registry.dart';
 import 'package:BlueEra/features/me/others/controller/business_profile_full_controller.dart';
-import 'package:BlueEra/features/subscription/view/subscription_status_view.dart';
+import 'package:BlueEra/features/contribution/view/contribution_status_view.dart';
 import 'package:BlueEra/features/me/others/view/business_profile_full_screen.dart';
 import 'package:BlueEra/widgets/bottom_nav_hide_on_scroll.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -125,7 +125,7 @@ class _OthersMainState extends State<OthersMain>
             children: [
               BusinessProfileFullScreen(),
               const WebsiteTab(),
-              const SubscriptionStatusView(),
+              const ContributionStatusView(),
             ],
           ),
         ),

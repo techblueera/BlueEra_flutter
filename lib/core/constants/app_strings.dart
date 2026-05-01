@@ -48,7 +48,7 @@ class AppStrings {
   static const language = "language";
   static const verificationStatus = "verificationStatus";
   static const ownerVerified = "ownerVerified";
-  static const manageSubscription = "manageSubscription";
+  static const contribute = "contribute";
   static const freePlan = "freePlan";
   static const twoStepAuthentication = "twoStepAuthentication";
   static const accountDelete = "accountDelete";

@@ -30,7 +30,7 @@ import 'package:BlueEra/features/personal/auth/controller/view_personal_details_
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/edit_profile_bottom_sheet.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/profile_designation_bottom_sheet.dart';
-import 'package:BlueEra/features/subscription/view/subscription_status_view.dart';
+import 'package:BlueEra/features/contribution/view/contribution_status_view.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/common_circular_profile_image.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -243,7 +243,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
                               : RiderProfileStatusScreen(
                                   screeName: 'from_tab_view'),
               // const RiderMyStoreTab(),
-              const SubscriptionStatusView(),
+              const ContributionStatusView(),
             ],
           ),
         ),

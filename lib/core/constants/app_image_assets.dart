@@ -24,11 +24,6 @@ class AppImageAssets {
 
   static const String dummy_resume = "assets/images/dummy_resume.png";
   static const String wallet_heater_bg = "assets/images/wallet_heater_bg.png";
-  static const String basic_subscription_plan_bg = "assets/images/basic_subscription_plan_bg.png";
-  static const String popular_subscription_plan_bg = "assets/images/popular_subscription_plan_bg.png";
-  static const String advance_subscription_plan_bg = "assets/images/advance_subscription_plan_bg.png";
-  static const String pro_subscription_plan_bg = "assets/images/pro_subscription_plan_bg.png";
-  static const String pro_plus_subscription_plan_bg = "assets/images/pro_plus_subscription_plan_bg.png";
   static const String chat_with_ai_bot = "assets/images/chat_with_aibot.png";
   static const String hospitalIpd_ward = "assets/images/hospitalIpd_ward.png";
   static const String visitingCardBg = "${imgPath}visiting_card_background.jpg";
@@ -75,7 +70,6 @@ class AppImageAssets {
   static const String professionalDiscover = '${imgPath}professional_discover.png';
   static const String shoppingDiscover = '${imgPath}shopping_discover.png';
   static const String servicesDiscover = '${imgPath}services_discover.png';
-  static const String subscriptionBgCard = '${imgPath}subscription_bg_card.png';
   static const String planTagIcon = '${imgPath}plan_tag_icon.png';
   static const String listCardBoard = '${imgPath}list_cardboard.png';
 
