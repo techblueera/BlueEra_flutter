@@ -69,17 +69,17 @@ class EarnServiceProfileSelector extends StatelessWidget {
         child: ClipRRect(
           borderRadius: BorderRadius.circular(24),
           child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+            filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
             child: Container(
               padding:
                   const EdgeInsets.fromLTRB(4, 4, 10, 4),
               constraints: const BoxConstraints(maxWidth: 180),
               decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.38),
+                color: Colors.black.withValues(alpha: 0.35),
                 borderRadius: BorderRadius.circular(24),
                 border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.35),
-                  width: 0.8,
+                  color: Colors.white.withValues(alpha: 0.18),
+                  width: 0.6,
                 ),
               ),
               child: Row(

@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:ui';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
@@ -20,22 +21,14 @@ import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
-/// Twitter-style header for earn-service dashboards.
-///
-/// Renders edge-to-edge cover (with back + camera overlays and a circular
-/// service logo) followed by profile info (name, joined date, type chip,
-/// location, email, phone). Intended to be placed inside a
-/// `SliverToBoxAdapter` so it scrolls away under the pinned TabBar.
 class EarnServiceDashboardHeader extends StatelessWidget {
   final EarnProfileController controller;
-  final VoidCallback? onBack;
-  final Widget? profileSelector;
+  final Widget? headerOverlay;
 
   const EarnServiceDashboardHeader({
     super.key,
     required this.controller,
-    this.onBack,
-    this.profileSelector,
+    this.headerOverlay,
   });
 
   @override
@@ -60,14 +53,15 @@ class EarnServiceDashboardHeader extends StatelessWidget {
   Widget _buildCoverSection(BuildContext context, EarnProfileModel? profile) {
     final coverUrl = profile?.coverImage ?? '';
     final logoUrl = profile?.serviceLogo ?? '';
+    const bannerHeight = 260.0;
 
     return SizedBox(
-      height: 230,
+      height: bannerHeight + 40,
       child: Stack(
         clipBehavior: Clip.none,
         children: [
           SizedBox(
-            height: 190,
+            height: bannerHeight,
             width: double.infinity,
             child: coverUrl.isNotEmpty
                 ? CachedNetworkImage(
@@ -78,42 +72,38 @@ class EarnServiceDashboardHeader extends StatelessWidget {
                   )
                 : _coverPlaceholder(),
           ),
+          if (headerOverlay != null)
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: headerOverlay!,
+            ),
+          // Banner-edit camera — bottom-right of the banner image.
           Positioned(
-            top: 8,
-            left: 8,
             right: 8,
-            child: Row(
-              children: [
-                if (onBack != null) ...[
-                  GestureDetector(
-                    onTap: onBack,
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.35),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(Icons.arrow_back,
-                          color: Colors.white, size: 18),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                ],
-                if (profileSelector != null) profileSelector!,
-                const Spacer(),
-                GestureDetector(
-                  onTap: () => _onCoverEdit(context),
+            top: bannerHeight - 44,
+            child: GestureDetector(
+              onTap: () => _onCoverEdit(context),
+              child: ClipPath(
+                clipper: const ShapeBorderClipper(shape: CircleBorder()),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
                   child: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.35),
                       shape: BoxShape.circle,
+                      color: Colors.black.withValues(alpha: 0.35),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.18),
+                        width: 0.6,
+                      ),
                     ),
                     child: const Icon(Icons.camera_alt_outlined,
                         color: Colors.white, size: 18),
                   ),
                 ),
-              ],
+              ),
             ),
           ),
           Positioned(

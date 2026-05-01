@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/model/personal_profile_details_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -10,11 +12,15 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/choose_earn_service_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_dashboard_view.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/earn_service_profile_selector.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/self_employed/controller/earn_service_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/self_employed/controller/self_work_service_controller.dart';
 import 'package:BlueEra/core/services/multipart_image_service.dart';
 import 'package:BlueEra/widgets/bottom_nav_hide_on_scroll.dart';
-import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/features/business/widgets/business_card_ui.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
+import 'package:BlueEra/features/common/home/widgets/drawer.dart';
 import 'package:BlueEra/features/common/reel/view/channel/follower_following_screen.dart';
 import 'package:BlueEra/features/common/visiting_card/view/all_personal_visiting_cards.dart';
 import 'package:BlueEra/features/me/me_tab_registry.dart';
@@ -52,6 +58,8 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen>
   final _personalCtrl = getOrPut(() => PersonalCreateProfileController());
   final _viewCtrl =
       getOrPut(() => ViewPersonalDetailsController(), permanent: true);
+  final _selfWorkCtrl = getOrPut(() => SelfWorkServiceController());
+  final _earnServiceCtrl = getOrPut(() => EarnServiceController());
 
   TabController? _tabController;
   bool _lastHasWebsite = false;
@@ -110,8 +118,17 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Obx(() {
+      body: SafeArea(
+        bottom: false,
+        child: Obx(() {
         _ctrl.getProfessionalServiceRes?.value;
+        final earnType = _viewCtrl.earnProfileType.value;
+        final hasEarnProfile = earnType != null && earnType.isNotEmpty;
+        final isEarnSelected =
+            _selfWorkCtrl.selectedProfileIndex.value == 1 && hasEarnProfile;
+        if (isEarnSelected) {
+          return const EarnServiceDashboardView(fromBottomNavBar: false);
+        }
         _rebuildTabsIfNeeded();
         final tabCtrl = _tabController;
         if (tabCtrl == null) return const SizedBox.shrink();
@@ -120,39 +137,13 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen>
           child: NestedScrollView(
           headerSliverBuilder: (context, innerBoxIsScrolled) {
             return [
-              // Custom AppBar — placed in the sliver header so it scrolls
-              // away with the cover/profile/stats content. The TabBar
-              // below stays pinned.
-              SliverToBoxAdapter(
-                child: SizedBox(
-                  height: kToolbarHeight,
-                  child: CommonBackAppBar(
-                    showElevation: 0,
-                    isDrawerMenu: true,
-                    isLeading: false,
-                    isProfile: false,
-                    isNotification: !isGuestUser(),
-                    bellIconNotEmpty: true,
-                    isGuestLogout: isGuestUser(),
-                    onNotificationTap: () {
-                      Navigator.pushNamed(
-                        context,
-                        RouteHelper.getNotificationScreenRoute(),
-                      );
-                    },
-                    buildCustomActionWidget: () => _EarnActionPill(
-                      onTap: () =>
-                          Get.to(() => const chooseEarnServiceScreen()),
-                    ),
-                  ),
-                ),
-              ),
               SliverToBoxAdapter(child: _buildCoverSection(context)),
               SliverToBoxAdapter(child: _buildProfileInfoSection()),
               SliverToBoxAdapter(child: _buildStatsRow()),
               SliverAppBar(
                 pinned: true,
                 floating: false,
+                primary: false,
                 automaticallyImplyLeading: false,
                 toolbarHeight: 0,
                 collapsedHeight: 0,
@@ -198,6 +189,7 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen>
         ),
         );
       }),
+      ),
     );
   }
 
@@ -289,16 +281,17 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen>
   // ============================================================
 
   Widget _buildCoverSection(BuildContext context) {
+    const bannerHeight = 260.0;
     return Container(
       color: AppColors.white,
-      height: 230,
+      height: bannerHeight + 40,
       child: Stack(
         clipBehavior: Clip.none,
         children: [
           Obx(() {
             final banner = _personalCtrl.coverImagePath?.value ?? '';
             return SizedBox(
-              height: 190,
+              height: bannerHeight,
               width: double.infinity,
               child: banner.isNotEmpty
                   ? Image.network(banner, fit: BoxFit.cover)
@@ -326,10 +319,18 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen>
                     ),
             );
           }),
+          // Single glassmorphic header row sitting on the banner.
           Positioned(
-            top: MediaQuery.of(context).padding.top + 4,
+            top: 0,
+            left: 0,
+            right: 0,
+            child: _buildGlassHeaderRow(context),
+          ),
+          // Banner-edit camera — bottom-right of the banner image.
+          Positioned(
             right: 8,
-            child: _circleButton(
+            top: bannerHeight - 44,
+            child: _coverIconButton(
               icon: Icons.camera_alt_outlined,
               onTap: () => _onCoverImageEdit(context),
             ),
@@ -421,17 +422,214 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen>
     );
   }
 
-  Widget _circleButton({required IconData icon, required VoidCallback onTap}) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: Colors.black.withValues(alpha: 0.35),
-          shape: BoxShape.circle,
+  Widget _buildGlassHeaderRow(BuildContext context) {
+    return Obx(() {
+      final earnType = _viewCtrl.earnProfileType.value;
+      final hasEarnProfile = earnType != null && earnType.isNotEmpty;
+      return Stack(
+        children: [
+          Positioned.fill(
+            child: ClipRect(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.25),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                _GlassPill(
+                  onTap: () => _openDrawer(context),
+                  padding: const EdgeInsets.all(8),
+                  shape: BoxShape.circle,
+                  dark: true,
+                  child: LocalAssets(
+                    imagePath: AppIconAssets.drawer_more,
+                    width: 18,
+                    height: 18,
+                    imgColor: Colors.white,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                if (hasEarnProfile)
+                  Flexible(
+                    child: EarnServiceProfileSelector(
+                      profileImages: [
+                        _viewCtrl.personalProfileDetails.value.user
+                                ?.profileImage ??
+                            '',
+                        _viewCtrl.personalProfileDetails.value.user
+                                ?.profileImage ??
+                            '',
+                      ],
+                      profileNames: [
+                        'Skill Work',
+                        _earnServiceCtrl.earnProfileLabel(earnType),
+                      ],
+                      selectedIndex: _selfWorkCtrl.selectedProfileIndex.value,
+                      onProfileSelected: (index) =>
+                          _selfWorkCtrl.switchProfile(index),
+                      onCoverOverlay: true,
+                    ),
+                  )
+                else
+                  _EarnActionPill(
+                    onTap: () => Get.to(() => const chooseEarnServiceScreen()),
+                  ),
+                const Spacer(),
+                if (!isGuestUser()) ...[
+                  _GlassPill(
+                    onTap: () => Navigator.pushNamed(
+                      context,
+                      RouteHelper.getNotificationScreenRoute(),
+                    ),
+                    padding: const EdgeInsets.all(8),
+                    shape: BoxShape.circle,
+                    dark: true,
+                    child: LocalAssets(
+                      imagePath: AppIconAssets.notificationOutlineIcon,
+                      width: 18,
+                      height: 18,
+                      imgColor: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                ],
+                _buildGoLiveChip(),
+              ],
+            ),
+          ),
+        ],
+      );
+    });
+  }
+
+  Widget _buildGoLiveChip() {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(100),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+        child: Container(
+          height: SizeConfig.size36,
+          decoration: BoxDecoration(
+            color: Colors.black.withValues(alpha: 0.35),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.18),
+              width: 0.6,
+            ),
+            borderRadius: BorderRadius.circular(100),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(width: SizeConfig.size10),
+              CustomText(
+                AppStrings.goLive,
+                fontSize: SizeConfig.small,
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+              ),
+              SizedBox(width: SizeConfig.size8),
+              Obx(() {
+                if (_viewCtrl.isShopStatusUpdating.value) {
+                  return Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: SizeConfig.size10,
+                      vertical: SizeConfig.size6,
+                    ),
+                    child: SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                            AppColors.primaryColor),
+                      ),
+                    ),
+                  );
+                }
+                final isOn = _viewCtrl.shopStatusOpenClose.value;
+                return GestureDetector(
+                  onTap: () => _viewCtrl.toggleShopStatus(),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(100),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 180),
+                        width: 38,
+                        height: 22,
+                        padding: const EdgeInsets.all(3),
+                        decoration: BoxDecoration(
+                          color: isOn
+                              ? AppColors.primaryColor
+                              : Colors.black.withValues(alpha: 0.25),
+                          borderRadius: BorderRadius.circular(100),
+                          border: Border.all(
+                            color: isOn
+                                ? AppColors.primaryColor
+                                : Colors.white.withValues(alpha: 0.18),
+                            width: 0.6,
+                          ),
+                        ),
+                        alignment:
+                            isOn ? Alignment.centerRight : Alignment.centerLeft,
+                        child: Container(
+                          width: 14,
+                          height: 14,
+                          decoration: const BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              }),
+              SizedBox(width: SizeConfig.size6),
+            ],
+          ),
         ),
-        child: Icon(icon, color: Colors.white, size: 18),
       ),
+    );
+  }
+
+  void _openDrawer(BuildContext context) {
+    showDialog(
+      barrierDismissible: true,
+      barrierColor: Colors.black.withValues(alpha: 0.3),
+      context: context,
+      builder: (BuildContext context) {
+        return Align(
+          alignment: Alignment.centerLeft,
+          child: SizedBox(
+            width: Get.width * 0.85,
+            height: double.infinity,
+            child: Drawer(child: ProfileMenuDrawer()),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _coverIconButton({
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return _GlassPill(
+      onTap: onTap,
+      padding: const EdgeInsets.all(8),
+      shape: BoxShape.circle,
+      dark: true,
+      child: Icon(icon, color: Colors.white, size: 18),
     );
   }
 
@@ -731,47 +929,98 @@ class _EarnActionPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(right: 14.0),
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(100),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(100),
-          onTap: onTap,
+    return _GlassPill(
+      onTap: onTap,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      dark: true,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          LocalAssets(
+            imagePath: AppIconAssets.earnWithBEIcon,
+            imgColor: Colors.white,
+            width: 16,
+            height: 16,
+          ),
+          const SizedBox(width: 4),
+          const Text(
+            'Earn',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _GlassPill extends StatelessWidget {
+  final Widget child;
+  final VoidCallback onTap;
+  final EdgeInsets padding;
+  final BoxShape shape;
+  final bool dark;
+
+  const _GlassPill({
+    required this.child,
+    required this.onTap,
+    required this.padding,
+    this.shape = BoxShape.rectangle,
+    this.dark = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final borderRadius =
+        shape == BoxShape.circle ? null : BorderRadius.circular(100);
+    final fill = dark
+        ? Colors.black.withValues(alpha: 0.35)
+        : Colors.white.withValues(alpha: 0.35);
+    final border = dark
+        ? Colors.white.withValues(alpha: 0.18)
+        : Colors.white.withValues(alpha: 0.5);
+    return GestureDetector(
+      onTap: onTap,
+      child: ClipPath(
+        clipper: _GlassClipper(shape: shape, borderRadius: borderRadius),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            padding: padding,
             decoration: BoxDecoration(
-              color: AppColors.primaryColor.withValues(alpha: 0.10),
-              borderRadius: BorderRadius.circular(100),
-              border: Border.all(
-                color: AppColors.primaryColor.withValues(alpha: 0.25),
-                width: 0.5,
-              ),
+              color: fill,
+              borderRadius: borderRadius,
+              shape: shape,
+              border: Border.all(color: border, width: 0.6),
             ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                LocalAssets(
-                  imagePath: AppIconAssets.earnWithBEIcon,
-                  imgColor: AppColors.primaryColor,
-                  width: 16,
-                  height: 16,
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  'Earn',
-                  style: TextStyle(
-                    color: AppColors.primaryColor,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
+            child: child,
           ),
         ),
       ),
     );
   }
+}
+
+class _GlassClipper extends CustomClipper<Path> {
+  final BoxShape shape;
+  final BorderRadius? borderRadius;
+
+  _GlassClipper({required this.shape, this.borderRadius});
+
+  @override
+  Path getClip(Size size) {
+    final rect = Offset.zero & size;
+    if (shape == BoxShape.circle) {
+      return Path()..addOval(rect);
+    }
+    return Path()
+      ..addRRect((borderRadius ?? BorderRadius.circular(100)).toRRect(rect));
+  }
+
+  @override
+  bool shouldReclip(covariant _GlassClipper oldClipper) =>
+      oldClipper.shape != shape || oldClipper.borderRadius != borderRadius;
 }
