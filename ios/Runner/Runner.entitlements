@@ -8,6 +8,7 @@
 	<array>
 		<string>applinks:be.blueera.ai</string>
 		<string>applinks:blueera.ai</string>
+		<string>applinks:ai.bluecs.app</string>
 	</array>
 	<key>com.apple.security.application-groups</key>
 	<array>

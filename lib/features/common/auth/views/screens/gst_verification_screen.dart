@@ -419,6 +419,7 @@ class _GstNumberScreenState extends State<GstNumberScreen> {
 
   Widget _buildRadioOption(bool value, String label) {
     return Obx(() {
+      final groupValue = authController.hasGstNumber.value;
       return InkWell(
         onTap: () {
           authController.isHaveGstApprove.value = value;
@@ -441,6 +442,20 @@ class _GstNumberScreenState extends State<GstNumberScreen> {
               height: SizeConfig.size20,
               child: Radio<bool>(
                 value: value,
+                groupValue: groupValue,
+                onChanged: (val) {
+                  if (val == null) return;
+                  authController.isHaveGstApprove.value = val;
+                  if (val) {
+                    authController.isValidate.value = false;
+                    _gstController.clear();
+                    _emailController.clear();
+                  } else {
+                    gstController.resetState();
+                    _otpController.clear();
+                  }
+                  authController.hasGstNumber.value = val;
+                },
                 fillColor: WidgetStateProperty.all(AppColors.primaryColor),
                 activeColor: AppColors.primaryColor,
               ),

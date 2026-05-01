@@ -55,6 +55,16 @@ class CallController extends GetxController {
   RxBool isIncomingCall=false.obs;
   var callStatus = CallStatus.idle.obs;
 
+  /// Server-pushed outgoing-call state from `call:ringing`.
+  /// Used to drive the outgoing-call screen label
+  /// (Dialing… / Ringing… / Connecting… / Connected / terminal).
+  /// See `lib/docs/call-ringing-event-flutter-integration-guide.md`.
+  var ringingState = CallRingingState.dialing.obs;
+
+  /// Per-participant ringing state for group calls (user_id → state).
+  /// Replaced wholesale on every `call:ringing` snapshot.
+  final ringingParticipantStates = <String, CallRingingState>{}.obs;
+
   var callerName = ''.obs;
   var callerImage = ''.obs;
   var remoteUserName = ''.obs;
@@ -275,6 +285,15 @@ class CallController extends GetxController {
       _handleCallEnded(data);
     });
 
+    // Outgoing-call state stream (caller-only). Drives the Dialing…/Ringing…/
+    // Connecting…/Connected label. The server only emits this to the initiator,
+    // so receivers will never see it. Additive — does not replace the existing
+    // call:incoming/accepted/declined/cancelled/ended events.
+    _socket.listenEvent('call:ringing', (data) {
+      if (_disposed) return;
+      _handleCallRinging(data);
+    });
+
     // Answered elsewhere
     _socket.listenEvent('call:answered-elsewhere', (data) {
       print('[CALL_DEBUG] SOCKET EVENT → call:answered-elsewhere');
@@ -409,9 +428,14 @@ class CallController extends GetxController {
     if (!response.isSuccess) {
       final statusCode = response.response?.statusCode;
       print('[CALL_DEBUG] initiateCall → API FAILED, statusCode=$statusCode');
+      // Surface a terminal ringing state locally — the server cannot emit
+      // `call:ringing` for a request that never reached the call pipeline.
+      // The outgoing screen (if shown) reads this and auto-dismisses.
       if (statusCode == 409) {
+        markRingingFailedLocally(CallRingingState.busy);
         commonSnackBar(message: AppStrings.userBusyOnAnotherCall.tr);
       } else {
+        markRingingFailedLocally(CallRingingState.failed);
         commonSnackBar(message: response.message ?? AppStrings.failedToInitiateCall.tr);
       }
       return false;
@@ -430,6 +454,9 @@ class CallController extends GetxController {
     remoteUserName.value = userName;
     remoteUserImage.value = userImage;
     isGroupCall.value = false;
+    // Reset ringing state once we have a callId — subsequent `call:ringing`
+    // events with this callId will drive the outgoing-call label.
+    _attachRingingState();
 
     print('[CALL_DEBUG] initiateCall → API SUCCESS, callId=${callId.value}, roomId=${roomId.value}');
 
@@ -836,6 +863,9 @@ class CallController extends GetxController {
           'room_id': savedRoomId,
           'target_user_id': savedRemoteUserId,
           'sdp': {'sdp': answer.sdp, 'type': answer.type},
+          // Required for the server to emit `connected` back to the caller via
+          // `call:ringing`. Without it, the caller stays on `connecting`.
+          'call_id': callId.value,
         });
         _pendingOffer = null;
         print('[CALL_DEBUG] acceptCall → call:answer emitted to $savedRemoteUserId');
@@ -1314,6 +1344,83 @@ class CallController extends GetxController {
     _navigateBackFromCallScreen();
   }
 
+  // ==================== OUTGOING-CALL RINGING STATE ====================
+
+  /// Reset ringing state when starting a new outgoing call. Call right after
+  /// `POST /call/initiate` succeeds.
+  void _attachRingingState() {
+    ringingState.value = CallRingingState.dialing;
+    ringingParticipantStates.clear();
+  }
+
+  /// Locally derive a terminal state when the server cannot emit `call:ringing`
+  /// (REST 409 = busy, REST 5xx = failed). The outgoing screen reads this and
+  /// auto-dismisses ~2s later via its terminal-state handler.
+  void markRingingFailedLocally(CallRingingState state) {
+    if (!state.isTerminal) return;
+    ringingState.value = state;
+  }
+
+  /// Handle server-pushed `call:ringing` event. Updates ringingState (1-to-1)
+  /// or aggregates participant states (group). Stale events for other calls
+  /// are ignored via the call_id filter.
+  void _handleCallRinging(dynamic raw) {
+    if (raw is! Map) return;
+    final data = raw.cast<String, dynamic>();
+    final eventCallId = (data['call_id'] ?? '').toString();
+    // Filter stale events: ignore if not for the current outgoing call.
+    if (callId.value.isEmpty || eventCallId != callId.value) {
+      print('[CALL_DEBUG] call:ringing → IGNORED (callId mismatch: event=$eventCallId active=${callId.value})');
+      return;
+    }
+
+    final isGroup = data['is_group_call'] == true;
+    if (isGroup && data['participants'] is List) {
+      ringingParticipantStates.clear();
+      for (final p in (data['participants'] as List)) {
+        if (p is! Map) continue;
+        final userId = (p['user_id'] ?? '').toString();
+        if (userId.isEmpty) continue;
+        ringingParticipantStates[userId] =
+            CallRingingState.fromServer(p['state']?.toString());
+      }
+      ringingState.value = _aggregateGroupRingingState();
+    } else {
+      ringingState.value =
+          CallRingingState.fromServer(data['state']?.toString());
+    }
+
+    print('[CALL_DEBUG] call:ringing → state=${ringingState.value.name}, group=$isGroup');
+  }
+
+  /// Aggregate group participant states into a single label state.
+  /// Priority: connected > connecting > ringing > dialing > terminal.
+  CallRingingState _aggregateGroupRingingState() {
+    final values = ringingParticipantStates.values;
+    if (values.isEmpty) return CallRingingState.dialing;
+    if (values.any((s) => s == CallRingingState.connected)) {
+      return CallRingingState.connected;
+    }
+    if (values.any((s) => s == CallRingingState.connecting)) {
+      return CallRingingState.connecting;
+    }
+    if (values.any((s) => s == CallRingingState.ringing)) {
+      return CallRingingState.ringing;
+    }
+    if (values.any((s) => s == CallRingingState.dialing)) {
+      return CallRingingState.dialing;
+    }
+    // All remaining participants are in terminal states → call effectively over.
+    return CallRingingState.noAnswer;
+  }
+
+  /// Reset ringing state on call:ended / cleanup so the next outgoing call
+  /// starts from a clean slate.
+  void _resetRingingState() {
+    ringingState.value = CallRingingState.dialing;
+    ringingParticipantStates.clear();
+  }
+
   /// Leave socket room and cleanup — ensures server knows we left
   void _leaveRoomAndCleanup() {
     if (roomId.value.isNotEmpty) {
@@ -1451,6 +1558,9 @@ class CallController extends GetxController {
         'room_id': roomId.value,
         'target_user_id': fromUserId,
         'sdp': {'sdp': answer.sdp, 'type': answer.type},
+        // Required for the server to emit `connected` back to the caller via
+        // `call:ringing`. Without it, the caller stays on `connecting`.
+        'call_id': callId.value,
       });
       print('[FARE_CALL_DEBUG] _handleRemoteOffer → answer emitted to $fromUserId');
     } catch (e) {
@@ -2535,6 +2645,7 @@ class CallController extends GetxController {
     fareCallOrderId.value = '';
     fareCallOrderMongoId.value = '';
     fareCallRideDetails.value = null;
+    _resetRingingState();
   }
 
   // ==================== FLOATING OVERLAY ====================
