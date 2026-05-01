@@ -241,8 +241,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
         padding: EdgeInsets.only(
             // left: SizeConfig.paddingL,
             right: SizeConfig.paddingXSL),
-        child: Obx(() {
-          return Row(
+        child: Row(
             // mainAxisAlignment: MainAxisAlignment.center,
             children: [
               if (isLeading ?? false)
@@ -484,8 +483,7 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                 ),
 
             ],
-          );
-        }),
+          ),
       ),
       actions: [
         if (isSearch == true &&

@@ -77,8 +77,8 @@ class _NoOrdersWidgetState extends State<NoOrdersWidget>
         opacity: _fadeIn,
         child: SlideTransition(
           position: _slideUp,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 40),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
