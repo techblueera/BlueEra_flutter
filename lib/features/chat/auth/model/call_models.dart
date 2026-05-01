@@ -1,3 +1,78 @@
+/// State pushed by the server via `call:ringing` to drive the outgoing-call
+/// label on the caller side. See `lib/docs/call-ringing-event-flutter-integration-guide.md`.
+enum CallRingingState {
+  dialing,
+  ringing,
+  connecting,
+  connected,
+  noAnswer,
+  declined,
+  busy,
+  failed,
+  cancelled;
+
+  static CallRingingState fromServer(String? raw) {
+    switch (raw) {
+      case 'dialing':
+        return CallRingingState.dialing;
+      case 'ringing':
+        return CallRingingState.ringing;
+      case 'connecting':
+        return CallRingingState.connecting;
+      case 'connected':
+        return CallRingingState.connected;
+      case 'no_answer':
+        return CallRingingState.noAnswer;
+      case 'declined':
+        return CallRingingState.declined;
+      case 'busy':
+        return CallRingingState.busy;
+      case 'cancelled':
+        return CallRingingState.cancelled;
+      case 'failed':
+        return CallRingingState.failed;
+      default:
+        return CallRingingState.dialing;
+    }
+  }
+
+  bool get isTerminal {
+    switch (this) {
+      case CallRingingState.noAnswer:
+      case CallRingingState.declined:
+      case CallRingingState.busy:
+      case CallRingingState.failed:
+      case CallRingingState.cancelled:
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  String get label {
+    switch (this) {
+      case CallRingingState.dialing:
+        return 'Dialing…';
+      case CallRingingState.ringing:
+        return 'Ringing…';
+      case CallRingingState.connecting:
+        return 'Connecting…';
+      case CallRingingState.connected:
+        return 'Connected';
+      case CallRingingState.noAnswer:
+        return 'No answer';
+      case CallRingingState.declined:
+        return 'Call declined';
+      case CallRingingState.busy:
+        return 'User is busy';
+      case CallRingingState.failed:
+        return 'Call failed';
+      case CallRingingState.cancelled:
+        return 'Cancelled';
+    }
+  }
+}
+
 class CallModel {
   final String id;
   final String conversationId;

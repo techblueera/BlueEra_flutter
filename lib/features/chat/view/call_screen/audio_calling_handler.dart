@@ -29,6 +29,8 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
     with TickerProviderStateMixin {
   late Worker _callStatusWorker;
   late Worker _switchTypeWorker;
+  late Worker _ringingStateWorker;
+  Timer? _terminalDismissTimer;
   final AudioPlayer _ringbackPlayer = AudioPlayer();
 
   // Ripple animation controllers (staggered — used for outgoing ringing view)
@@ -157,6 +159,24 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
       }
     });
 
+    // Watch ringing-state terminal transitions (Dialing/Ringing/Connecting/
+    // Connected → no_answer/declined/busy/cancelled/failed). Show the label
+    // for ~2s, then dismiss the outgoing-call screen if no other handler
+    // (call:declined/cancelled/ended) already popped it. Caller-side only.
+    _ringingStateWorker = ever(controller.ringingState, (state) {
+      if (!mounted) return;
+      if (!controller.isCaller.value) return;
+      if (state.isTerminal) {
+        _terminalDismissTimer?.cancel();
+        _terminalDismissTimer = Timer(const Duration(seconds: 2), () {
+          if (!mounted) return;
+          if (Navigator.canPop(context)) {
+            Navigator.pop(context);
+          }
+        });
+      }
+    });
+
     // Watch for incoming switch type requests
     _switchTypeWorker = ever(controller.switchTypeRequestedBy, (requestedBy) {
       if (requestedBy.isNotEmpty && mounted) {
@@ -196,6 +216,8 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
   void dispose() {
     _callStatusWorker.dispose();
     _switchTypeWorker.dispose();
+    _ringingStateWorker.dispose();
+    _terminalDismissTimer?.cancel();
     _ripple1Controller.dispose();
     _ripple2Controller.dispose();
     _ripple3Controller.dispose();
@@ -797,14 +819,20 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
                         ),
                       ),
                       const SizedBox(height: 20),
-                      // Ringing status
+                      // Outgoing-call status label.
+                      // For the caller, this is driven by the server's
+                      // `call:ringing` event (Dialing…/Ringing…/Connecting…/
+                      // Connected/terminal). For the callee's accepting flow
+                      // we keep the local CallStatus.accepting label since
+                      // `call:ringing` is caller-only.
                       Obx(() {
-                        final status = controller.callStatus.value;
-                        String text = 'Ringing...';
-                        if (status == CallStatus.connecting) {
-                          text = 'Connecting...';
-                        } else if (status == CallStatus.accepting) {
+                        String text;
+                        if (controller.callStatus.value ==
+                                CallStatus.accepting &&
+                            !controller.isCaller.value) {
                           text = 'Accepting...';
+                        } else {
+                          text = controller.ringingState.value.label;
                         }
                         return Text(
                           text,
