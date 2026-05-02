@@ -1,16 +1,8 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
-import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/core/routes/route_helper.dart';
-import 'package:BlueEra/widgets/bottom_nav_hide_on_scroll.dart';
-import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_service_ai_controller.dart';
-import 'package:BlueEra/features/me/hospital/view/hospital_home_screen.dart';
+import 'package:BlueEra/features/me/hospital/view/v2/hospital_home_screen_v2.dart';
 import 'package:BlueEra/features/me/me_tab_registry.dart';
-import 'package:BlueEra/features/me/school/view/coming_soon.dart';
-import 'package:BlueEra/widgets/webview_common.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -77,7 +69,7 @@ class _HospitalMainState extends State<HospitalMain>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.white,
-      body: SafeArea(
+      body: HospitalHomeScreenV2()/*SafeArea(
           child: BottomNavHideOnScroll(
             child: NestedScrollView(
               headerSliverBuilder: (context, _) => [
@@ -133,17 +125,17 @@ class _HospitalMainState extends State<HospitalMain>
                   ),
                 ),
               ],
-              body: TabBarView(
+              body: const HospitalHomeScreenV2()*//*TabBarView(
                 controller: _tabController,
                 children: [
-                  HospitalHomeScreen(),
+                  const HospitalHomeScreenV2(),
                   if (_hasWebsite) CommonWebView( urlLink: _websiteUrl, urlTitle: '',hideAppBar: true,),
                   ComingSoon(),
                 ],
-              ),
+              )*//*,
             ),
           )
-      ),
+      )*/,
     );
   }
 }

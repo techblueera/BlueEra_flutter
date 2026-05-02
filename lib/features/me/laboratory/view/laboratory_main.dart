@@ -1,20 +1,13 @@
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
-import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/me/laboratory/controller/lab_full_details_controller.dart';
+import 'package:BlueEra/features/me/laboratory/view/v2/lab_home_screen_v2.dart';
 import 'package:BlueEra/widgets/bottom_nav_hide_on_scroll.dart';
-import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/features/me/me_tab_registry.dart';
-import 'package:BlueEra/features/me/school/view/coming_soon.dart';
 import 'package:BlueEra/features/me/laboratory/controller/lab_service_ai_controller.dart';
 import 'package:BlueEra/features/me/laboratory/repo/lab_service_repo.dart';
-import 'package:BlueEra/features/me/laboratory/view/lab_full_details_screen.dart';
-import 'package:BlueEra/widgets/webview_common.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -67,9 +60,6 @@ class _LaboratoryMainState extends State<LaboratoryMain>
         .isNotEmpty;
   }
 
-  String get _websiteUrl {
-    return _labDetailsController.details.value?.contactInfo?.websiteUrl ?? '';
-  }
 
   void _rebuildTabsIfNeeded() {
     final current = _hasWebsite;
@@ -130,13 +120,12 @@ class _LaboratoryMainState extends State<LaboratoryMain>
         body: Obx(() {
           labServiceAiController.hasLabCreated.value;
 
-          final hasWebsite = _lastHasWebsite;
           final tabCtrl = _tabController;
           if (tabCtrl == null) return const SizedBox.shrink();
 
           return SafeArea(
             child: BottomNavHideOnScroll(
-              child: NestedScrollView(
+              child: LabHomeScreenV2()/*NestedScrollView(
                 headerSliverBuilder: (context, _) => [
                   SliverToBoxAdapter(
                     child: SizedBox(
@@ -204,7 +193,7 @@ class _LaboratoryMainState extends State<LaboratoryMain>
                     ComingSoon(),
                   ],
                 ),
-              ),
+              )*/,
             ),
           );
         }));

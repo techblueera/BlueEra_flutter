@@ -10,6 +10,7 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/model/personal_profession_model.dart';
+import 'package:BlueEra/features/common/auth/views/screens/guest_exit_handler.dart';
 import 'package:BlueEra/features/common/auth/views/widget/business_sub_category_selection_dialog.dart';
 import 'package:BlueEra/features/common/auth/views/widget/gradient_border_container.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
@@ -92,56 +93,17 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      canPop: true,
+      canPop: false,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
-
-        // if (!isGuestUser()) {
-        //   commonConformationDialog(
-        //     context: context,
-        //     text: AppStrings.areYouSureYouWantToExitTheApp, // not in JSON yet
-        //     confirmCallback: () async {
-        //       await SharedPreferenceUtils.clearPreference();
-        //       Navigator.of(context).pushNamedAndRemoveUntil(
-        //         RouteHelper.getMobileNumberLoginRoute(),
-        //             (Route<dynamic> route) => false,
-        //       );
-        //       // Get.close(2);
-        //     },
-        //     cancelCallback: () {
-        //       Navigator.of(context).pop(); // Close the dialog
-        //     },
-        //   );
-        // } else {
-        //   Navigator.of(context).pop(); // Close the dialog
-        // }
+        GuestExitHandler.handleBack(context);
       },
       child: Scaffold(
         appBar: CommonBackAppBar(
           isLeading: true,
           appBarColor: Colors.white,
           title: AppStrings.chooseYourAccountType,
-          onBackTap: () {
-            Navigator.of(context).pop();
-            // if (!isGuestUser()) {
-            //   commonConformationDialog(
-            //     context: context,
-            //     text: AppStrings.areYouSureYouWantToExitTheApp, // not in JSON yet
-            //     confirmCallback: () async {
-            //       await SharedPreferenceUtils.clearPreference();
-            //       Navigator.of(context).pushNamedAndRemoveUntil(
-            //         RouteHelper.getMobileNumberLoginRoute(),
-            //             (Route<dynamic> route) => false,
-            //       );
-            //     },
-            //     cancelCallback: () {
-            //       Navigator.of(context).pop(); // Close the dialog
-            //     },
-            //   );
-            // } else {
-            //   Navigator.of(context).pop(); // Close the dialog
-            // }
-          },
+          onBackTap: () => GuestExitHandler.handleBack(context),
         ),
         body: SafeArea(
             child:

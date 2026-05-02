@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_service_ai_controller.dart';
 import 'package:BlueEra/features/me/hospital/view/emergency/emergency_service_card_home_view.dart';
 import 'package:BlueEra/features/me/hospital/view/emergency/hospital_emergency_care_screen.dart';
+import 'package:BlueEra/features/me/hospital/view/v2/widgets/empty_section_placeholder.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/service_home_title_widget.dart';
@@ -143,45 +144,11 @@ class _EmergencyCriticalCareViewState extends State<EmergencyCriticalCareView> {
             ),
             const SizedBox(height: 16),
             services.isEmpty
-                ? GridView.builder(
-                    shrinkWrap: true,
-                    padding: EdgeInsets.zero,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: 4,
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 10,
-                      mainAxisSpacing: 10,
-                      childAspectRatio: 1,
-                    ),
-                    itemBuilder: (context, index) {
-                      return GestureDetector(
-                        onTap: () => Get.to(const HospitalEmergencyCareScreen()),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.grey[200],
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                                color: Colors.grey.shade300, width: 1.5),
-                          ),
-                          child: index == 0
-                              ? Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(Icons.add_circle_outline,
-                                        color: Colors.grey[400], size: 32),
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      AppStrings.hospitalViewAddFacilities.tr,
-                                      style: TextStyle(
-                                          color: Colors.grey[500], fontSize: 12),
-                                    ),
-                                  ],
-                                )
-                              : const SizedBox.shrink(),
-                        ),
-                      );
-                    },
+                ? EmptySectionPlaceholder(
+                    imageAsset: 'assets/images/other_gallery.png',
+                    ctaLabel: AppStrings.hospitalViewAddFacilities.tr,
+                    ctaIcon: Icons.local_hospital_outlined,
+                    onTap: () => Get.to(const HospitalEmergencyCareScreen()),
                   )
                 : GridView.builder(
                     shrinkWrap: true,

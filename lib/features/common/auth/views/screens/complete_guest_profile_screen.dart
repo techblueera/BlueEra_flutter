@@ -11,6 +11,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
+import 'package:BlueEra/features/common/auth/views/screens/guest_exit_handler.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -93,56 +94,64 @@ class _CompleteGuestProfileScreenState
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: CommonBackAppBar(
-        title: AppStrings.guestProfile.tr,
-        isShadowShow: false,
-      ),
-      body: SafeArea(
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: () => FocusScope.of(context).unfocus(),
-          child: Form(
-            key: _formKey,
-            child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              padding: EdgeInsets.fromLTRB(
-                SizeConfig.size8,
-                SizeConfig.size16,
-                SizeConfig.size8,
-                SizeConfig.size20,
-              ),
-              child: CustomFormCard(
-                isBoxShadowAvail: true,
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        GuestExitHandler.handleBack(context);
+      },
+      child: Scaffold(
+        appBar: CommonBackAppBar(
+          title: AppStrings.guestProfile.tr,
+          isShadowShow: false,
+          onBackTap: () => GuestExitHandler.handleBack(context),
+        ),
+        body: SafeArea(
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () => FocusScope.of(context).unfocus(),
+            child: Form(
+              key: _formKey,
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
                 padding: EdgeInsets.fromLTRB(
+                  SizeConfig.size8,
+                  SizeConfig.size16,
+                  SizeConfig.size8,
                   SizeConfig.size20,
-                  SizeConfig.size20,
-                  SizeConfig.size20,
-                  SizeConfig.size24,
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _photoSectionHeader(),
-                    SizedBox(height: SizeConfig.size20),
-                    Center(child: _profilePicker()),
-                    SizedBox(height: SizeConfig.size24),
-                    Divider(
-                      color:
-                          AppColors.primaryColor.withValues(alpha: 0.08),
-                      height: 1,
-                      thickness: 1,
-                    ),
-                    SizedBox(height: SizeConfig.size20),
-                    _nameSection(),
-                  ],
+                child: CustomFormCard(
+                  isBoxShadowAvail: true,
+                  padding: EdgeInsets.fromLTRB(
+                    SizeConfig.size20,
+                    SizeConfig.size20,
+                    SizeConfig.size20,
+                    SizeConfig.size24,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _photoSectionHeader(),
+                      SizedBox(height: SizeConfig.size20),
+                      Center(child: _profilePicker()),
+                      SizedBox(height: SizeConfig.size24),
+                      Divider(
+                        color:
+                            AppColors.primaryColor.withValues(alpha: 0.08),
+                        height: 1,
+                        thickness: 1,
+                      ),
+                      SizedBox(height: SizeConfig.size20),
+                      _nameSection(),
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
         ),
+        bottomNavigationBar: _bottomActions(),
       ),
-      bottomNavigationBar: _bottomActions(),
     );
   }
 

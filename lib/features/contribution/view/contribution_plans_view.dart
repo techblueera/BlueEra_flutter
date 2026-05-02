@@ -81,11 +81,13 @@ class _ContributionPlansViewState extends State<ContributionPlansView> {
   Widget build(BuildContext context) {
     final cards = Obx(() {
       final status = _ctrl.plansStatus.value;
+      // Suppress the loader during the initial fetch — this view sits
+      // inside the bottom-nav subscription peek sheet and a spinner here
+      // surfaces as a stray "loader from the bottom navigation bar" on
+      // app open. We render an empty placeholder while loading so plans
+      // populate quietly once they land.
       if (status == Status.LOADING || status == Status.INITIAL) {
-        return Padding(
-          padding: EdgeInsets.symmetric(vertical: SizeConfig.size40),
-          child: const Center(child: CircularProgressIndicator()),
-        );
+        return const SizedBox.shrink();
       }
       if (status == Status.ERROR) {
         return Padding(

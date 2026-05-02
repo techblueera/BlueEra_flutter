@@ -252,6 +252,7 @@ class ContributionController extends GetxController {
     } else {
       hasActiveRecharge.value = false;
       currentStatus.value = Status.ERROR;
+
     }
   }
 }

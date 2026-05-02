@@ -1,18 +1,12 @@
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
-import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/me/me_tab_registry.dart';
+import 'package:BlueEra/features/me/school/view/v2/school_home_screen_v2.dart';
 import 'package:BlueEra/widgets/bottom_nav_hide_on_scroll.dart';
-import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/features/me/school/controller/school_about_us_controller.dart';
-import 'package:BlueEra/features/me/school/view/school_statics_screen.dart';
 import 'package:BlueEra/features/me/school/controller/school_controller.dart';
 import 'package:BlueEra/features/me/school/repo/school_repo.dart';
-import 'package:BlueEra/features/me/school/view/category/school_home/school_home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -76,7 +70,7 @@ class _SchoolMainState extends State<SchoolMain>
         backgroundColor: AppColors.white,
         body: SafeArea(
             child: BottomNavHideOnScroll(
-              child: NestedScrollView(
+              child: SchoolHomeScreenV2()/*NestedScrollView(
                 headerSliverBuilder: (context, _) => [
                   SliverToBoxAdapter(
                     child: SizedBox(
@@ -138,7 +132,7 @@ class _SchoolMainState extends State<SchoolMain>
                     SchoolStaticsScreen(),
                   ],
                 ),
-              ),
+              ),*/
             ),
           ));
   }

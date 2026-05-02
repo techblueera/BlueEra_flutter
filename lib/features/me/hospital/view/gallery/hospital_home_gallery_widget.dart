@@ -2,6 +2,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/me/hospital/model/hospital_full_details_res_model.dart';
 import 'package:BlueEra/features/me/hospital/view/gallery/hospital_photos_screen.dart';
+import 'package:BlueEra/features/me/hospital/view/v2/widgets/empty_section_placeholder.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/service_home_title_widget.dart';
@@ -48,29 +49,10 @@ class HospitalHomeGalleryWidget extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           if (allImages.isEmpty)
-            GestureDetector(
+            EmptySectionPlaceholder(
+              imageAsset: 'assets/images/other_gallery.png',
+              ctaLabel: AppStrings.hospitalViewAddPhotos.tr,
               onTap: () => Get.to(HospitalPhotosScreen()),
-              child: Container(
-                height: 160,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: Colors.grey[200],
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey.shade300, width: 1.5),
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.add_photo_alternate_outlined,
-                        color: Colors.grey[400], size: 40),
-                    const SizedBox(height: 10),
-                    Text(
-                      AppStrings.hospitalViewAddPhotos.tr,
-                      style: TextStyle(color: Colors.grey[500], fontSize: 13),
-                    ),
-                  ],
-                ),
-              ),
             )
           else
             _buildGalleryLayout(context, allImages),

@@ -19,10 +19,7 @@ import 'package:BlueEra/core/services/multipart_image_service.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/business/widgets/business_qrcode_widget.dart';
-import 'package:BlueEra/features/business/widgets/business_verify_now_button.dart';
 import 'package:BlueEra/features/chat/view/add_symbol/add_symbol_screen.dart';
-import 'package:BlueEra/features/common/Discover/model/service_model_response.dart';
-import 'package:BlueEra/features/common/Discover/view/self_profession_screen_preview.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
@@ -100,7 +97,7 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
             Column(
               children: [
                 _buildTopBar(),
-                _buildProfileRow(),
+                // _buildProfileRow(),
                 Expanded(
                   child: RefreshIndicator(
                     onRefresh: _refresh,
@@ -790,119 +787,7 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
   // ─────────────────────────────────────────────
   // PROFILE ROW
   // ─────────────────────────────────────────────
-  Widget _buildProfileRow() {
-    return Container(
-      color: Colors.white,
-      padding: EdgeInsets.symmetric(
-          horizontal: SizeConfig.size12, vertical: SizeConfig.size12),
-      child: Row(
-        children: [
-          Stack(
-            clipBehavior: Clip.none,
-            children: [
-              Obx(() {
-                final details =
-                    _businessController.businessProfileDetails.value?.data;
-                final logo = _businessController.imagePath?.value ??
-                    details?.logo ??
-                    '';
-                return Container(
-                  height: SizeConfig.size40,
-                  width: SizeConfig.size40,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.grey.shade300, width: 1),
-                  ),
-                  clipBehavior: Clip.hardEdge,
-                  child: logo.isNotEmpty
-                      ? CachedNetworkImage(
-                          imageUrl: logo,
-                          fit: BoxFit.cover,
-                          errorWidget: (_, __, ___) => _logoFallback(),
-                        )
-                      : _logoFallback(),
-                );
-              }),
-              Positioned(
-                right: -10,
-                top: 6,
-                child: Container(
-                  height: SizeConfig.size30,
-                  width: SizeConfig.size30,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.red.shade600,
-                    border: Border.all(color: Colors.white, width: 2),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          SizedBox(width: SizeConfig.size20),
-          Expanded(
-            child: Obx(() {
-              final details =
-                  _businessController.businessProfileDetails.value?.data;
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Flexible(
-                        child: CustomText(
-                          details?.businessName ?? '',
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      SizedBox(width: SizeConfig.size6),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 6, vertical: 1),
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade200,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: CustomText('+1',
-                            fontSize: 11,
-                            color: AppColors.secondaryTextColor),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 2),
-                  CustomText(
-                    details?.typeOfBusiness ?? '',
-                    fontSize: 12,
-                    color: AppColors.secondaryTextColor,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              );
-            }),
-          ),
-          Obx(() => BusinessVerifyNowButton(
-                details: _businessController.businessProfileDetails.value?.data,
-              )),
-          SizedBox(width: SizeConfig.size10),
-          IconButton(
-            onPressed: _previewProfileAsVisitor,
-            icon: const Icon(Icons.remove_red_eye_outlined, size: 20),
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(),
-          ),
-        ],
-      ),
-    );
-  }
 
-  Widget _logoFallback() => Container(
-        color: Colors.grey.shade200,
-        child: Icon(Icons.storefront,
-            size: 20, color: AppColors.secondaryTextColor),
-      );
 
   // ─────────────────────────────────────────────
   // TABS CARD (single white card with pills)
@@ -911,16 +796,6 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
       child: Container(
-        padding: EdgeInsets.symmetric(
-            horizontal: SizeConfig.size8, vertical: SizeConfig.size8),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(28),
-          boxShadow: const [
-            BoxShadow(
-                color: Colors.black12, blurRadius: 4, offset: Offset(0, 1)),
-          ],
-        ),
         child: SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: Row(
@@ -1483,35 +1358,6 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
     );
   }
 
-  /// Opens the Discover-style profile preview so the owner can see the
-  /// public profile the way other users discover it on the Discover screen.
-  void _previewProfileAsVisitor() {
-    final details = _businessController.businessProfileDetails.value?.data;
-    final coverFromCtrl = _businessController.coverImage?.value ?? '';
-    final logoFromCtrl = _businessController.imagePath?.value ?? '';
-
-    final livePhotos = details?.livePhotos ?? const <String>[];
-
-    final service = ServiceData()
-      ..id = details?.id ?? widget.businessId
-      ..name = details?.businessName
-      ..profileImage = (coverFromCtrl.isNotEmpty
-          ? coverFromCtrl
-          : (logoFromCtrl.isNotEmpty ? logoFromCtrl : (details?.logo ?? '')))
-      ..bio = details?.businessDescription
-      ..address = details?.address
-      ..category = details?.typeOfBusiness
-      ..serviceMedia = ServiceMedia(photos: List<String>.from(livePhotos));
-
-    Get.to(() => SelfProfessionScreenPreview(
-          service: service,
-          timingMap: const {},
-          priceDisplay: '',
-          priceBadgeText: '',
-          priceBadgeColor: AppColors.primaryColor,
-          isSelfPreview: true,
-        ));
-  }
 }
 
 class _PostMenuEntry {

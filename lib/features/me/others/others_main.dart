@@ -1,16 +1,9 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
-import 'package:BlueEra/features/business/widgets/business_profile_header_view.dart';
-import 'package:BlueEra/features/business/widgets/business_stats.dart';
-import 'package:BlueEra/features/business/widgets/empty_website_tab.dart';
 import 'package:BlueEra/features/me/me_tab_registry.dart';
 import 'package:BlueEra/features/me/others/controller/business_profile_full_controller.dart';
-import 'package:BlueEra/features/subscription/view/subscription_status_view.dart';
-import 'package:BlueEra/features/me/others/view/business_profile_full_screen.dart';
+import 'package:BlueEra/features/me/others/view/v2/other_home_screen_v2.dart';
 import 'package:BlueEra/widgets/bottom_nav_hide_on_scroll.dart';
-import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -53,7 +46,7 @@ class _OthersMainState extends State<OthersMain>
       backgroundColor: AppColors.white,
       body: SafeArea(
         child: BottomNavHideOnScroll(
-          child: NestedScrollView(
+          child: OtherHomeScreenV2()/*NestedScrollView(
           headerSliverBuilder: (context, _) => [
             SliverToBoxAdapter(
               child: SizedBox(
@@ -128,7 +121,7 @@ class _OthersMainState extends State<OthersMain>
               const SubscriptionStatusView(),
             ],
           ),
-        ),
+        ),*/
         ),
       ),
     );

@@ -1,10 +1,12 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_service_ai_controller.dart';
 import 'package:BlueEra/features/me/hospital/view/ipd/hospital_ipd_screen.dart';
 import 'package:BlueEra/features/me/hospital/view/opd/hospital_opd_screen.dart';
+import 'package:BlueEra/features/me/hospital/view/v2/widgets/empty_section_placeholder.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/service_home_title_widget.dart';
@@ -41,76 +43,112 @@ class HospitalBookingScreen extends StatelessWidget {
               ),
               SizedBox(height: 10),
 
-              Obx(() => SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: List.generate(
-                          controller.filteredOpdDepartments.length, (index) {
-                        final dept = controller.filteredOpdDepartments[index];
-                        return Padding(
-                          padding: const EdgeInsets.only(right: 8.0),
-                          child: ChoiceChip(
-                            label: CustomText(
-                              dept.name ?? "",
-                              // White text when selected, dark text when unselected for contrast
-                              color: controller.selectedDeptIndex.value == index
-                                  ? AppColors.white
-                                  : AppColors.secondaryTextColor,
-                              fontSize: SizeConfig.small,
-                            ),
-                            showCheckmark: false,
-
-                            selectedColor: AppColors.primaryColor,
-                            backgroundColor: Colors.transparent,
-                            // Background stays clear when not selected
-                            selected:
-                                controller.selectedDeptIndex.value == index,
-                            onSelected: (val) {
-                              if (val)
-                                controller.selectedDeptIndex.value = index;
-                            },
-                            // Pill shape matching the design
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            // Side border logic: Primary color when active, grey outline when inactive
-                            side: BorderSide(
-                              color: controller.selectedDeptIndex.value == index
-                                  ? AppColors.primaryColor
-                                  : Colors.grey.shade400,
-                              width: 1,
-                            ),
-                            // Ensuring the chip doesn't take up extra vertical space
-                            materialTapTargetSize:
-                                MaterialTapTargetSize.shrinkWrap,
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 0, vertical: 0),
-                          ),
-                        );
-                      }),
+              Obx(() {
+                final hasDepartments =
+                    controller.filteredOpdDepartments.isNotEmpty;
+                return Row(
+                  children: [
+                    Expanded(
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: List.generate(
+                              controller.filteredOpdDepartments.length,
+                              (index) {
+                            final dept =
+                                controller.filteredOpdDepartments[index];
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 8.0),
+                              child: ChoiceChip(
+                                label: CustomText(
+                                  dept.name ?? "",
+                                  color:
+                                      controller.selectedDeptIndex.value ==
+                                              index
+                                          ? AppColors.white
+                                          : AppColors.secondaryTextColor,
+                                  fontSize: SizeConfig.small,
+                                ),
+                                showCheckmark: false,
+                                selectedColor: AppColors.primaryColor,
+                                backgroundColor: Colors.transparent,
+                                selected:
+                                    controller.selectedDeptIndex.value ==
+                                        index,
+                                onSelected: (val) {
+                                  if (val)
+                                    controller.selectedDeptIndex.value = index;
+                                },
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                side: BorderSide(
+                                  color:
+                                      controller.selectedDeptIndex.value ==
+                                              index
+                                          ? AppColors.primaryColor
+                                          : Colors.grey.shade400,
+                                  width: 1,
+                                ),
+                                materialTapTargetSize:
+                                    MaterialTapTargetSize.shrinkWrap,
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 0, vertical: 0),
+                              ),
+                            );
+                          }),
+                        ),
+                      ),
                     ),
-                  )),
+                    if (!isReadOnly && hasDepartments)
+                      _AddPillButton(
+                        label: AppStrings.addDepartment.tr,
+                        onTap: () => Get.to(const HospitalOpdScreen()),
+                      ),
+                  ],
+                );
+              }),
               SizedBox(height: 10),
 
               // --- HORIZONTAL LIST VIEW ---
               Obx(() {
+                final hasDepartments =
+                    controller.filteredOpdDepartments.isNotEmpty;
                 final items = controller.currentCategoryItems;
-                if (items.isEmpty)
-                  return SizedBox(
-                    height: 280,
-                    child: isReadOnly
-                        ? Center(child: CustomText(AppStrings.noDataFound))
-                        : ListView(
-                            scrollDirection: Axis.horizontal,
-                            children: List.generate(
-                              3,
-                              (_) => _buildDummyDoctorCard(
-                                label: AppStrings.hospitalViewAddOpdDoctors.tr,
-                                onTap: () => Get.to(const HospitalOpdScreen()),
-                              ),
-                            ),
-                          ),
+
+                // No departments yet → surface "Add Department" CTA so the
+                // section is never a dead-end for fresh hospital profiles.
+                if (!hasDepartments) {
+                  if (isReadOnly) {
+                    return SizedBox(
+                      height: 280,
+                      child:
+                          Center(child: CustomText(AppStrings.noDataFound)),
+                    );
+                  }
+                  return EmptySectionPlaceholder(
+                    imageAsset: AppImageAssets.hospitalIpd_ward,
+                    ctaLabel: AppStrings.addDepartment.tr,
+                    ctaIcon: Icons.add_business_outlined,
+                    onTap: () => Get.to(const HospitalOpdScreen()),
                   );
+                }
+
+                if (items.isEmpty) {
+                  if (isReadOnly) {
+                    return SizedBox(
+                      height: 280,
+                      child:
+                          Center(child: CustomText(AppStrings.noDataFound)),
+                    );
+                  }
+                  return EmptySectionPlaceholder(
+                    imageAsset: AppImageAssets.hospitalIpd_ward,
+                    ctaLabel: AppStrings.hospitalViewAddOpdDoctors.tr,
+                    ctaIcon: Icons.medical_services_outlined,
+                    onTap: () => Get.to(const HospitalOpdScreen()),
+                  );
+                }
 
                 return Container(
                   height: 280,
@@ -154,76 +192,110 @@ class HospitalBookingScreen extends StatelessWidget {
               ),
 
               SizedBox(height: 10),
-              Obx(() => SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: List.generate(
-                          controller.filteredIpdDepartments.length, (index) {
-                        final dept = controller.filteredIpdDepartments[index];
-                        return Padding(
-                          padding: const EdgeInsets.only(right: 8.0),
-                          child: ChoiceChip(
-                            label: CustomText(
-                              dept.name ?? "",
-                              // Change text color based on selection state
-                              color: controller.selectedIpdDeptIndex.value == index
-                                  ? AppColors.white
-                                  : AppColors.secondaryTextColor,
-                              fontSize: SizeConfig.small,
-                            ),
-                            showCheckmark: false,
-                            selectedColor: AppColors.primaryColor,
-                            // Use transparent background for unselected to show the border clearly
-                            backgroundColor: Colors.transparent,
-                            selected:
-                                controller.selectedIpdDeptIndex.value == index,
-                            onSelected: (val) {
-                              if (val)
-                                controller.selectedIpdDeptIndex.value = index;
-                            },
-                            // Customizing the border and shape
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            side: BorderSide(
-                              color:
-                                  controller.selectedIpdDeptIndex.value == index
-                                      ? AppColors.primaryColor
-                                      : Colors.grey.shade700,
-                              // Border color for unselected chips
-                              width: 1,
-                            ),
-                            // Removes default material padding/shadows to match your clean UI
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 0, vertical: 0),
-                            materialTapTargetSize:
-                                MaterialTapTargetSize.shrinkWrap,
-                          ),
-                        );
-                      }),
+              Obx(() {
+                final hasDepartments =
+                    controller.filteredIpdDepartments.isNotEmpty;
+                return Row(
+                  children: [
+                    Expanded(
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: List.generate(
+                              controller.filteredIpdDepartments.length,
+                              (index) {
+                            final dept =
+                                controller.filteredIpdDepartments[index];
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 8.0),
+                              child: ChoiceChip(
+                                label: CustomText(
+                                  dept.name ?? "",
+                                  color:
+                                      controller.selectedIpdDeptIndex.value ==
+                                              index
+                                          ? AppColors.white
+                                          : AppColors.secondaryTextColor,
+                                  fontSize: SizeConfig.small,
+                                ),
+                                showCheckmark: false,
+                                selectedColor: AppColors.primaryColor,
+                                backgroundColor: Colors.transparent,
+                                selected:
+                                    controller.selectedIpdDeptIndex.value ==
+                                        index,
+                                onSelected: (val) {
+                                  if (val)
+                                    controller.selectedIpdDeptIndex.value =
+                                        index;
+                                },
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                side: BorderSide(
+                                  color:
+                                      controller.selectedIpdDeptIndex.value ==
+                                              index
+                                          ? AppColors.primaryColor
+                                          : Colors.grey.shade700,
+                                  width: 1,
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 0, vertical: 0),
+                                materialTapTargetSize:
+                                    MaterialTapTargetSize.shrinkWrap,
+                              ),
+                            );
+                          }),
+                        ),
+                      ),
                     ),
-                  )),
+                    if (!isReadOnly && hasDepartments)
+                      _AddPillButton(
+                        label: AppStrings.addDepartment.tr,
+                        onTap: () => Get.to(const HospitalIpdScreen()),
+                      ),
+                  ],
+                );
+              }),
               SizedBox(height: 10),
 
               // --- HORIZONTAL LIST VIEW ---
               Obx(() {
+                final hasDepartments =
+                    controller.filteredIpdDepartments.isNotEmpty;
                 final items = controller.currentCategoryItemsIpd;
-                if (items.isEmpty)
-                  return SizedBox(
-                    height: 280,
-                    child: isReadOnly
-                        ? Center(child: CustomText(AppStrings.noDataFound))
-                        : ListView(
-                            scrollDirection: Axis.horizontal,
-                            children: List.generate(
-                              3,
-                              (_) => _buildDummyDoctorCard(
-                                label: AppStrings.hospitalViewAddIpdWards.tr,
-                                onTap: () => Get.to(const HospitalIpdScreen()),
-                              ),
-                            ),
-                          ),
+
+                if (!hasDepartments) {
+                  if (isReadOnly) {
+                    return SizedBox(
+                      height: 280,
+                      child:
+                          Center(child: CustomText(AppStrings.noDataFound)),
+                    );
+                  }
+                  return EmptySectionPlaceholder(
+                    imageAsset: AppImageAssets.hospitalIpd_ward,
+                    ctaLabel: AppStrings.addDepartment.tr,
+                    ctaIcon: Icons.add_business_outlined,
+                    onTap: () => Get.to(const HospitalIpdScreen()),
                   );
+                }
+
+                if (items.isEmpty) {
+                  if (isReadOnly) {
+                    return SizedBox(
+                      height: 280,
+                      child: Center(child: CustomText(AppStrings.noDataFound)),
+                    );
+                  }
+                  return EmptySectionPlaceholder(
+                    imageAsset: AppImageAssets.hospitalIpd_ward,
+                    ctaLabel: AppStrings.hospitalViewAddIpdWards.tr,
+                    ctaIcon: Icons.bed_outlined,
+                    onTap: () => Get.to(const HospitalIpdScreen()),
+                  );
+                }
 
                 return Container(
                   height: 280,
@@ -251,31 +323,47 @@ class HospitalBookingScreen extends StatelessWidget {
   }
 }
 
-Widget _buildDummyDoctorCard({required String label, required VoidCallback onTap}) {
-  return GestureDetector(
-    onTap: onTap,
-    child: Container(
-      width: 220,
-      margin: const EdgeInsets.only(right: 16, bottom: 10),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        color: Colors.grey[200],
-        border: Border.all(color: Colors.grey.shade300, width: 1.5),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.add_circle_outline, color: Colors.grey[400], size: 40),
-          const SizedBox(height: 10),
-          Text(
-            label,
-            textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.grey[500], fontSize: 13),
+/// Compact pill-shaped CTA placed at the trailing end of the OPD/IPD
+/// chip rows so the user can add a new department without leaving the
+/// section, even when other departments already exist.
+class _AddPillButton extends StatelessWidget {
+  final String label;
+  final VoidCallback onTap;
+
+  const _AddPillButton({required this.label, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 4),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(10),
+        child: Container(
+          padding:
+              const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            color: AppColors.primaryColor.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: AppColors.primaryColor),
           ),
-        ],
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.add, size: 14, color: AppColors.primaryColor),
+              const SizedBox(width: 4),
+              CustomText(
+                label,
+                color: AppColors.primaryColor,
+                fontSize: SizeConfig.small,
+                fontWeight: FontWeight.w600,
+              ),
+            ],
+          ),
+        ),
       ),
-    ),
-  );
+    );
+  }
 }
 
 class DoctorOrBedCard extends StatelessWidget {

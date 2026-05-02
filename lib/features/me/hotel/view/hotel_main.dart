@@ -1,20 +1,9 @@
-import 'package:BlueEra/core/api/apiService/response_model.dart';
-import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
-import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/me/hotel/controller/hotel_home_detail_controller.dart';
+import 'package:BlueEra/features/me/hotel/view/v2/hotel_home_screen_v2.dart';
 import 'package:BlueEra/widgets/bottom_nav_hide_on_scroll.dart';
-import 'package:BlueEra/widgets/common_back_app_bar.dart';
-import 'package:BlueEra/features/me/hotel/repo/hotel_service_repo.dart';
-import 'package:BlueEra/features/me/hotel/view/hotel_home_detail_screen.dart';
 import 'package:BlueEra/features/me/me_tab_registry.dart';
-import 'package:BlueEra/features/me/school/view/coming_soon.dart';
-import 'package:BlueEra/widgets/webview_common.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -41,7 +30,18 @@ class _HotelMainState extends State<HotelMain>
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
     MeTabRegistry.register(_tabController);
-    _apiCalling();
+
+    // The controller initialises `isLoading = true.obs`. Any nested screen
+    // that observes it (e.g. RoomSelectionScreen) will render a loader on
+    // app open before the first fetch resolves. Reset it here so the v2
+    // screen — which gates on `hotelData == null` instead of `isLoading` —
+    // does not flash an unwanted spinner.
+    hotelDetailController.isLoading.value = false;
+
+    // Sync hotel id without re-fetching the home payload — the v2 screen
+    // already triggers `loadHotelData()` in its own initState. Doing it
+    // here as well caused a duplicate request and a visible loader.
+    _syncHotelId();
 
     ever(hotelDetailController.hotelData, (_) {
       final newHasWebsite = _websiteUrl.isNotEmpty;
@@ -61,22 +61,8 @@ class _HotelMainState extends State<HotelMain>
     });
   }
 
-  Future<void> _apiCalling() async {
-    logs("hotelIDGlobal=== $hotelIDGlobal");
+  Future<void> _syncHotelId() async {
     try {
-      if (hotelIDGlobal.isEmpty) {
-        ResponseModel response = await HotelServiceRepo().getHotelRepo();
-        if (response.isSuccess) {
-          String? id = response.response?.data['data']['_id'];
-          if (id != null && id.isNotEmpty) {
-            await setHotelID(id);
-          } else {
-            await setHotelID("");
-          }
-        } else {
-          await setHotelID("");
-        }
-      }
       await getHotelID();
       if (mounted) {
         setState(() {
@@ -100,7 +86,7 @@ class _HotelMainState extends State<HotelMain>
     return Scaffold(
       body: SafeArea(
         child: BottomNavHideOnScroll(
-          child: NestedScrollView(
+          child: HotelHomeScreenV2()/*NestedScrollView(
             headerSliverBuilder: (context, _) => [
               SliverToBoxAdapter(
                 child: SizedBox(
@@ -166,7 +152,7 @@ class _HotelMainState extends State<HotelMain>
                 ComingSoon(),
               ],
             ),
-          ),
+          ),*/
         ),
       ),
     );

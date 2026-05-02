@@ -113,7 +113,6 @@ import 'package:BlueEra/features/me/medical_new/model/my_medical_products_respon
 import 'package:BlueEra/features/me/medical_new/view/add_medical_screen.dart';
 import 'package:BlueEra/features/me/medical_new/view/add_medical_variant_screen.dart';
 import 'package:BlueEra/features/me/medical_new/view/medical_category_screen.dart';
-import 'package:BlueEra/features/me/medical_new/view/medical_home_screen.dart';
 import 'package:BlueEra/features/me/medical_new/view/medical_listing/medical_cart_screen.dart';
 import 'package:BlueEra/features/me/medical_new/view/medical_listing/medical_confirm_screen.dart';
 import 'package:BlueEra/features/me/medical_new/view/medical_listing/medical_listing_screen.dart';

@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/features/common/auth/views/screens/guest_exit_handler.dart';
 import 'package:BlueEra/features/common/auth/views/screens/new_screens/create_account_type_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -107,20 +108,33 @@ class _ChooseAccountTypeScreenState extends State<ChooseAccountTypeScreen> {
     );
   }
 
+  void _handleBack(BuildContext context) {
+    GuestExitHandler.handleBack(
+      context,
+      onPlainPop: () {
+        Get.offNamedUntil(
+          RouteHelper.getBottomNavigationBarScreenRoute(),
+          (route) => false,
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: CommonBackAppBar(
-        appBarColor: AppColors.white,
-        title: AppStrings.chooseYourAccountType.tr,
-        onBackTap: () {
-          Get.offNamedUntil(
-            RouteHelper.getBottomNavigationBarScreenRoute(),
-            (route) => false,
-          );
-        },
-      ),
-      body: SafeArea(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        _handleBack(context);
+      },
+      child: Scaffold(
+        appBar: CommonBackAppBar(
+          appBarColor: AppColors.white,
+          title: AppStrings.chooseYourAccountType.tr,
+          onBackTap: () => _handleBack(context),
+        ),
+        body: SafeArea(
         child: Column(
           children: [
             Expanded(
@@ -185,6 +199,7 @@ class _ChooseAccountTypeScreenState extends State<ChooseAccountTypeScreen> {
             ),
           ],
         ),
+      ),
       ),
     );
   }
