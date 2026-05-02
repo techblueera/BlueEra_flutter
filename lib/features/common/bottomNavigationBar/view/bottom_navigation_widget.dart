@@ -1,7 +1,8 @@
+import 'dart:ui';
+
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
@@ -59,6 +60,30 @@ class BottomNavigationBarWidget extends StatelessWidget {
     return true; // Exit on second press
   }
 
+  // ── Design tokens ──────────────────────────────────────────
+  // All values pinned to the spec the product asked for, so future
+  // tweaks to the bar's identity happen in one place.
+  static const double _barRadius = 20;
+  static const double _barPadding = 10;
+  static const double _pillRadius = 12;
+  // Column layout: icon stacked over label. Identical paddings/size
+  // for selected and unselected so layout is stable on tap — only
+  // the decoration (pill bg) and the text/icon color animate.
+  static const double _pillPaddingH = 6;
+  static const double _pillPaddingV = 2;
+  static const double _iconLabelGap = 2;
+  static const double _iconSize = 18;
+  static const double _labelFontSize = 11;
+  static const double _horizontalInset = 14;
+  static const double _bottomInset = 10;
+  // Bar height = bar padding (10×2) + pill v-padding (2×2) + icon (18)
+  // + icon→label gap (2) + actual label line height (~16 with default
+  // text height factor + leading) ≈ 60. Bumped slightly to 72 for
+  // text-metric headroom across devices. Pinned explicitly so the
+  // Stack→AnimatedSlide→FractionalTranslation chain never queries
+  // intrinsic dimensions through the BackdropFilter.
+  static const double _barHeight = 72;
+
   @override
   Widget build(BuildContext context) {
     return PopScope(
@@ -71,62 +96,85 @@ class BottomNavigationBarWidget extends StatelessWidget {
         }
       },
       child: SafeArea(
-        top: false, // we only care about bottom
-        child: Container(
-          height: SizeConfig.size70, // adjust as needed
-          decoration: BoxDecoration(
-            color: AppColors.white,
-            // Drop our own border + shadow only when the
-            // SubscriptionDraggableSheet is rendering above us — otherwise
-            // we'd doubled them up. The parent decides via [showShadow].
-            border: !showShadow
-                ? null
-                : const Border(
-                    top: BorderSide(color: AppColors.whiteDB, width: 1),
-                  ),
-            boxShadow: !showShadow
-                ? null
-                : const [
-                    BoxShadow(
-                      color: Colors.black12,
-                      blurRadius: 4,
-                      offset: Offset(0, -2),
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(
+              _horizontalInset, 0, _horizontalInset, _bottomInset),
+          child: DecoratedBox(
+            // Drop shadow per spec: black 0.26 / blur 16 / offset (0,0).
+            // BlurStyle.outer is the critical bit — at offset (0,0) a
+            // normal BoxShadow renders behind the box and bleeds
+            // through our translucent (white 0.30) surface, which made
+            // the whole bar look dark/blurred. .outer paints only the
+            // outer halo, leaving the bar interior clean so the
+            // BackdropFilter and icons read crisp.
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(_barRadius),
+              boxShadow: !showShadow
+                  ? null
+                  : [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.26),
+                        blurRadius: 16,
+                        offset: const Offset(0, 0),
+                        blurStyle: BlurStyle.outer,
+                      ),
+                    ],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(_barRadius),
+              child: BackdropFilter(
+                // Blur 12 per spec.
+                filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                child: Container(
+                  height: _barHeight,
+                  // White 0.30 fill + 1.5 px white border per spec.
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.30),
+                    borderRadius: BorderRadius.circular(_barRadius),
+                    border: Border.all(
+                      color: Colors.white,
+                      width: 1.5,
                     ),
-                  ],
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              // Tab mapping: Me=0, Discover=1, Connect=2, Order=3.
-              // Me sits at index 0 so default-launch (initialIndex ?? 0)
-              // and "back to first tab" both land on the Me screen.
-              _buildNavItem(
-                index: 0,
-                iconPath: AppIconAssets.menIcon,
-                isSelected: currentIndex == 0,
-                label: AppStrings.me,
+                  ),
+                  padding: const EdgeInsets.all(_barPadding),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // Tab mapping: Me=0, Discover=1, Connect=2, Order=3.
+                      // Selected tab takes flex 2 so the icon + label pill
+                      // can breathe; unselected take flex 1 (icon only).
+                      _buildNavItem(
+                        index: 0,
+                        iconPath: AppIconAssets.menIcon,
+                        isSelected: currentIndex == 0,
+                        label: AppStrings.me,
+                      ),
+                      _buildNavItem(
+                        index: 1,
+                        iconPath: AppIconAssets.finderIcon,
+                        isSelected: currentIndex == 1,
+                        label: AppStrings.discover,
+                      ),
+                      _buildNavItem(
+                        index: 2,
+                        iconPath: AppIconAssets.chat,
+                        isSelected: currentIndex == 2,
+                        label: AppStrings.connect.tr,
+                      ),
+                      _buildNavItem(
+                        index: 3,
+                        iconPath: AppIconAssets.cartIcon,
+                        isSelected: currentIndex == 3,
+                        label: AppStrings.orders.tr,
+                        showBadge: chatNotificationCount > 0,
+                        badgeText: "$chatNotificationCount",
+                      ),
+                    ],
+                  ),
+                ),
               ),
-              _buildNavItem(
-                index: 1,
-                iconPath: AppIconAssets.finderIcon,
-                isSelected: currentIndex == 1,
-                label: AppStrings.discover,
-              ),
-              _buildNavItem(
-                index: 2,
-                iconPath: AppIconAssets.chat,
-                isSelected: currentIndex == 2,
-                label: AppStrings.connect.tr,
-              ),
-              _buildNavItem(
-                index: 3,
-                iconPath: AppIconAssets.cartIcon,
-                isSelected: currentIndex == 3,
-                label: AppStrings.orders.tr,
-                showBadge: chatNotificationCount > 0,
-                badgeText: "$chatNotificationCount",
-              ),
-            ],
+            ),
           ),
         ),
       ),
@@ -138,62 +186,133 @@ class BottomNavigationBarWidget extends StatelessWidget {
     required String iconPath,
     required bool isSelected,
     String? label,
-    bool isCenter = false,
     bool showBadge = false,
     String badgeText = '',
   }) {
+    // Selected pill earns extra room so the icon + label can sit
+    // side-by-side without crowding the unselected slots next to it.
+    final color =
+        isSelected ? AppColors.primaryColor : AppColors.mainTextColor;
+
+    // Stable layout: every tab uses flex 1 + the same padding +
+    // always shows icon-and-label side-by-side. Only the decoration
+    // (pill bg color) and the text color/weight differ between
+    // selected and unselected. Size is identical → no layout reflow
+    // on tap → FractionalTranslation never finds an unlaid-out child.
     return Expanded(
-      child: InkWell(
-        onTap: () => onTap(index),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                SizedBox(
-                  height: isCenter ? 40 : 24,
-                  width: isCenter ? 40 : 24,
-                  child: LocalAssets(
-                    imagePath: iconPath,
-                    imgColor: !isCenter
-                        ? isSelected
-                        ? AppColors.primaryColor
-                        : AppColors.black
-                        : null,
-                    // imgColor: index != 2
-                    //     ? isSelected
-                    //         ? AppColors.primaryColor
-                    //         : AppColors.black
-                    //     : null,
-                  ),
-                ),
-                if (showBadge)
-                  Positioned(
-                    top: -6,
-                    right: -6,
-                    child: CircleAvatar(
-                      radius: 8,
-                      backgroundColor: Colors.red,
-                      child: CustomText(
-                        badgeText,
-                        fontSize: SizeConfig.extraSmall,
-                        color: AppColors.white,
+      flex: 1,
+      child: Material(
+        type: MaterialType.transparency,
+        child: InkWell(
+          onTap: () => onTap(index),
+          borderRadius: BorderRadius.circular(_pillRadius),
+          splashColor: AppColors.primaryColor.withValues(alpha: 0.10),
+          highlightColor: AppColors.primaryColor.withValues(alpha: 0.05),
+          child: Container(
+            margin: const EdgeInsets.symmetric(horizontal: 2),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(_pillRadius),
+              child: Stack(
+                children: [
+                  // Selected-only inner blur (16) — refracts the bar's
+                  // already-frosted surface a second time so the active
+                  // tab reads as a deeper glass plate inset into the
+                  // chrome. Sits inside the pill's clipped bounds so
+                  // the blur is contained to the rounded shape.
+                  if (isSelected)
+                    Positioned.fill(
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+                        child: const SizedBox.shrink(),
                       ),
                     ),
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 220),
+                    curve: Curves.easeOutCubic,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: _pillPaddingH,
+                      vertical: _pillPaddingV,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? AppColors.primaryColor.withValues(alpha: 0.14)
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(_pillRadius),
+                    ),
+                    alignment: Alignment.center,
+                    child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    SizedBox(
+                      height: _iconSize,
+                      width: _iconSize,
+                      child: LocalAssets(
+                        imagePath: iconPath,
+                        imgColor: color,
+                      ),
+                    ),
+                    if (showBadge)
+                      Positioned(
+                        top: -4,
+                        right: -6,
+                        child: Container(
+                          constraints: const BoxConstraints(
+                            minWidth: 16,
+                            minHeight: 16,
+                          ),
+                          padding:
+                              const EdgeInsets.symmetric(horizontal: 4),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFE53935),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: Colors.white,
+                              width: 1.5,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color:
+                                    Colors.black.withValues(alpha: 0.20),
+                                blurRadius: 4,
+                                offset: const Offset(0, 1),
+                              ),
+                            ],
+                          ),
+                          child: Center(
+                            child: CustomText(
+                              badgeText,
+                              fontSize: 9,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                if (label != null) ...[
+                  const SizedBox(height: _iconLabelGap),
+                  CustomText(
+                    label,
+                    fontSize: _labelFontSize,
+                    fontWeight:
+                        isSelected ? FontWeight.w800 : FontWeight.w600,
+                    color: color,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
+                ],
               ],
             ),
-            if (!isCenter && label != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 4),
-                child: CustomText(
-                  label,
-                  fontSize: SizeConfig.extraSmall,
-                  color: isSelected ? AppColors.primaryColor : AppColors.black,
-                ),
+          ),
+                ],
               ),
-          ],
+            ),
+          ),
         ),
       ),
     );

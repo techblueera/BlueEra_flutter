@@ -1,94 +1,30 @@
 import '../../../../core/api/model/images.dart';
 
 class GroceryProductModel {
-  List<GroceryCategoryProductGroup>? data;
+  List<GroceryProductData>? data;
   Pagination? pagination;
 
   GroceryProductModel({this.data, this.pagination});
 
   GroceryProductModel.fromJson(Map<String, dynamic> json) {
     if (json['data'] != null) {
-      data = <GroceryCategoryProductGroup>[];
+      data = <GroceryProductData>[];
       json['data'].forEach((v) {
-        data!.add(GroceryCategoryProductGroup.fromJson(v));
+        data!.add(new GroceryProductData.fromJson(v));
       });
     }
     pagination = json['pagination'] != null
-        ? Pagination.fromJson(json['pagination'])
+        ? new Pagination.fromJson(json['pagination'])
         : null;
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = <String, dynamic>{};
+    final Map<String, dynamic> data = new Map<String, dynamic>();
     if (this.data != null) {
       data['data'] = this.data!.map((v) => v.toJson()).toList();
     }
-    if (pagination != null) {
-      data['pagination'] = pagination!.toJson();
-    }
-    return data;
-  }
-}
-
-/// Top-level array item: a category bundled with its products.
-class GroceryCategoryProductGroup {
-  ProductCategoryInfo? category;
-
-  GroceryCategoryProductGroup({this.category});
-
-  GroceryCategoryProductGroup.fromJson(Map<String, dynamic> json) {
-    category = json['category'] != null
-        ? ProductCategoryInfo.fromJson(json['category'])
-        : null;
-  }
-
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = <String, dynamic>{};
-    if (category != null) data['category'] = category!.toJson();
-    return data;
-  }
-}
-
-class ProductCategoryInfo {
-  String? sId;
-  String? name;
-  String? image;
-  String? lastUpdate;
-  int? productVariantCount;
-  List<GroceryProductData>? products;
-
-  ProductCategoryInfo({
-    this.sId,
-    this.name,
-    this.image,
-    this.lastUpdate,
-    this.productVariantCount,
-    this.products,
-  });
-
-  ProductCategoryInfo.fromJson(Map<String, dynamic> json) {
-    sId = json['_id'];
-    name = json['name'];
-    image = json['image'];
-    lastUpdate = json['lastUpdate'];
-    productVariantCount = json['productVariantCount'];
-    if (json['products'] != null) {
-      products = <GroceryProductData>[];
-      json['products'].forEach((v) {
-        products!.add(GroceryProductData.fromJson(v));
-      });
-    }
-  }
-
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = <String, dynamic>{};
-    data['_id'] = sId;
-    data['name'] = name;
-    data['image'] = image;
-    data['lastUpdate'] = lastUpdate;
-    data['productVariantCount'] = productVariantCount;
-    if (products != null) {
-      data['products'] = products!.map((v) => v.toJson()).toList();
+    if (this.pagination != null) {
+      data['pagination'] = this.pagination!.toJson();
     }
     return data;
   }
@@ -111,45 +47,34 @@ class GroceryProductData {
   List<ProductVariants>? variants;
   String? lastInventoryAddedOrUpdated;
 
-  GroceryProductData({
-    this.sId,
-    this.name,
-    this.description,
-    this.brand,
-    this.category,
-    this.tags,
-    this.images,
-    this.isActive,
-    this.isVegetarian,
-    this.countryOfOrigin,
-    this.createdAt,
-    this.updatedAt,
-    this.iV,
-    this.variants,
-    this.lastInventoryAddedOrUpdated,
-  });
+  GroceryProductData(
+      {this.sId,
+        this.name,
+        this.description,
+        this.brand,
+        this.category,
+        this.tags,
+        this.images,
+        this.isActive,
+        this.isVegetarian,
+        this.countryOfOrigin,
+        this.createdAt,
+        this.updatedAt,
+        this.iV,
+        this.variants,
+        this.lastInventoryAddedOrUpdated});
 
   GroceryProductData.fromJson(Map<String, dynamic> json) {
     sId = json['_id'];
     name = json['name'];
     description = json['description'];
     brand = json['brand'];
-    // Server may send category as a String id (legacy) or as an object
-    // (newer responses where category is bundled at the parent group
-    // level). Coerce to String when present so callers can keep using it.
-    final dynamic rawCategory = json['category'];
-    if (rawCategory is String) {
-      category = rawCategory;
-    } else if (rawCategory is Map && rawCategory['_id'] is String) {
-      category = rawCategory['_id'] as String;
-    } else {
-      category = null;
-    }
+    category = json['category'];
     tags = (json['tags'] as List?)?.cast<String>() ?? [];
     if (json['images'] != null) {
       images = <Images>[];
       json['images'].forEach((v) {
-        images!.add(Images.fromJson(v));
+        images!.add(new Images.fromJson(v));
       });
     }
     isActive = json['isActive'];
@@ -161,33 +86,33 @@ class GroceryProductData {
     if (json['variants'] != null) {
       variants = <ProductVariants>[];
       json['variants'].forEach((v) {
-        variants!.add(ProductVariants.fromJson(v));
+        variants!.add(new ProductVariants.fromJson(v));
       });
     }
     lastInventoryAddedOrUpdated = json['lastInventoryAddedOrUpdated'];
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = <String, dynamic>{};
-    data['_id'] = sId;
-    data['name'] = name;
-    data['description'] = description;
-    data['brand'] = brand;
-    data['category'] = category;
-    data['tags'] = tags;
-    if (images != null) {
-      data['images'] = images!.map((v) => v.toJson()).toList();
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['_id'] = this.sId;
+    data['name'] = this.name;
+    data['description'] = this.description;
+    data['brand'] = this.brand;
+    data['category'] = this.category;
+    data['tags'] = this.tags;
+    if (this.images != null) {
+      data['images'] = this.images!.map((v) => v.toJson()).toList();
     }
-    data['isActive'] = isActive;
-    data['isVegetarian'] = isVegetarian;
-    data['countryOfOrigin'] = countryOfOrigin;
-    data['createdAt'] = createdAt;
-    data['updatedAt'] = updatedAt;
-    data['__v'] = iV;
-    if (variants != null) {
-      data['variants'] = variants!.map((v) => v.toJson()).toList();
+    data['isActive'] = this.isActive;
+    data['isVegetarian'] = this.isVegetarian;
+    data['countryOfOrigin'] = this.countryOfOrigin;
+    data['createdAt'] = this.createdAt;
+    data['updatedAt'] = this.updatedAt;
+    data['__v'] = this.iV;
+    if (this.variants != null) {
+      data['variants'] = this.variants!.map((v) => v.toJson()).toList();
     }
-    data['lastInventoryAddedOrUpdated'] = lastInventoryAddedOrUpdated;
+    data['lastInventoryAddedOrUpdated'] = this.lastInventoryAddedOrUpdated;
     return data;
   }
 
@@ -223,10 +148,10 @@ class GroceryProductData {
       updatedAt: updatedAt ?? this.updatedAt,
       iV: iV ?? this.iV,
       variants: variants ?? this.variants,
-      lastInventoryAddedOrUpdated:
-          lastInventoryAddedOrUpdated ?? this.lastInventoryAddedOrUpdated,
+      lastInventoryAddedOrUpdated: lastInventoryAddedOrUpdated ?? this.lastInventoryAddedOrUpdated,
     );
   }
+
 }
 
 class ProductVariants {
@@ -242,8 +167,8 @@ class ProductVariants {
   int? iV;
   String? sku;
   String? barcode;
-  bool? isVegetarian;
   Inventory? inventory;
+  bool? isVegetarian;
 
   ProductVariants({
     this.sId,
@@ -258,8 +183,8 @@ class ProductVariants {
     this.iV,
     this.sku,
     this.barcode,
-    this.isVegetarian,
     this.inventory,
+    this.isVegetarian
   });
 
   ProductVariants.fromJson(Map<String, dynamic> json) {
@@ -288,10 +213,10 @@ class ProductVariants {
     iV = json['__v'];
     sku = json['sku'];
     barcode = json['barcode'];
-    isVegetarian = json['isVegetarian'];
     inventory = json['inventory'] != null
         ? Inventory.fromJson(json['inventory'])
         : null;
+    isVegetarian = json['isVegetarian'];
   }
 
   Map<String, dynamic> toJson() {
@@ -308,8 +233,8 @@ class ProductVariants {
       '__v': iV,
       'sku': sku,
       'barcode': barcode,
-      'isVegetarian': isVegetarian,
       if (inventory != null) 'inventory': inventory!.toJson(),
+      'isVegetarian': isVegetarian,
     };
   }
 
@@ -357,14 +282,13 @@ class Pricing {
   String? currency;
   String? sId;
 
-  Pricing({
-    this.pincode,
-    this.cityName,
-    this.mrp,
-    this.sellingPrice,
-    this.currency,
-    this.sId,
-  });
+  Pricing(
+      {this.pincode,
+        this.cityName,
+        this.mrp,
+        this.sellingPrice,
+        this.currency,
+        this.sId});
 
   Pricing.fromJson(Map<String, dynamic> json) {
     pincode = json['pincode'];
@@ -376,13 +300,13 @@ class Pricing {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = <String, dynamic>{};
-    data['pincode'] = pincode;
-    data['cityName'] = cityName;
-    data['mrp'] = mrp;
-    data['sellingPrice'] = sellingPrice;
-    data['currency'] = currency;
-    data['_id'] = sId;
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['pincode'] = this.pincode;
+    data['cityName'] = this.cityName;
+    data['mrp'] = this.mrp;
+    data['sellingPrice'] = this.sellingPrice;
+    data['currency'] = this.currency;
+    data['_id'] = this.sId;
     return data;
   }
 
@@ -403,6 +327,7 @@ class Pricing {
       sId: sId ?? this.sId,
     );
   }
+
 }
 
 class Inventory {
@@ -469,12 +394,12 @@ class Batches {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = <String, dynamic>{};
-    data['batchNumber'] = batchNumber;
-    data['quantity'] = quantity;
-    data['mrp'] = mrp;
-    data['sellingPrice'] = sellingPrice;
-    data['_id'] = sId;
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['batchNumber'] = this.batchNumber;
+    data['quantity'] = this.quantity;
+    data['mrp'] = this.mrp;
+    data['sellingPrice'] = this.sellingPrice;
+    data['_id'] = this.sId;
     return data;
   }
 }
@@ -495,11 +420,12 @@ class Pagination {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = <String, dynamic>{};
-    data['total'] = total;
-    data['page'] = page;
-    data['limit'] = limit;
-    data['totalPages'] = totalPages;
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['total'] = this.total;
+    data['page'] = this.page;
+    data['limit'] = this.limit;
+    data['totalPages'] = this.totalPages;
     return data;
   }
 }
+

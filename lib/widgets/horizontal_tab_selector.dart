@@ -21,6 +21,7 @@ class HorizontalTabSelector<T> extends StatelessWidget {
   final Color? selectedBackgroundColor;
   final Color? unSelectedBorderColor;
   final List<BoxShadow>? boxShadow;
+  final double tabBorderRadius;
 
   const HorizontalTabSelector({
     super.key,
@@ -39,6 +40,7 @@ class HorizontalTabSelector<T> extends StatelessWidget {
     this.selectedBackgroundColor,
     this.unSelectedBorderColor,
     this.boxShadow,
+    this.tabBorderRadius = 10.0,
   });
 
   @override
@@ -72,7 +74,7 @@ class HorizontalTabSelector<T> extends StatelessWidget {
               padding: EdgeInsets.only(right: isLast ? 0.0 : SizeConfig.size8),
               child: InkWell(
                 onTap: () => onTabSelected(index, label),
-                borderRadius: BorderRadius.circular(10.0),
+                borderRadius: BorderRadius.circular(tabBorderRadius),
                 child: Container(
                   padding: EdgeInsets.symmetric(
                       horizontal: horizontalPadding, vertical: verticalPadding),
@@ -80,7 +82,7 @@ class HorizontalTabSelector<T> extends StatelessWidget {
                     color: isSelected
                         ? (selectedBackgroundColor ?? AppColors.primaryColor)
                         : (unSelectedBackgroundColor ?? Colors.transparent),
-                    borderRadius: BorderRadius.circular(10.0),
+                    borderRadius: BorderRadius.circular(tabBorderRadius),
 
                     border: isSelected
                         ? null

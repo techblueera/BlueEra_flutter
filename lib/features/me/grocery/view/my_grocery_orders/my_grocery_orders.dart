@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
@@ -22,13 +23,13 @@ class _MyGroceryOrdersState extends State<MyGroceryOrders> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+        backgroundColor: Colors.transparent,
         body: Obx(()=> Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
 
             Padding(
               padding: EdgeInsets.only(
-                  top: SizeConfig.size15,
                   left: SizeConfig.size8,
                   right: SizeConfig.size8,
                   bottom: SizeConfig.size15
@@ -36,6 +37,8 @@ class _MyGroceryOrdersState extends State<MyGroceryOrders> {
               child: HorizontalTabSelector<MyGroceryOrdersTab>(
                 tabs: controller.groceryOrdersTabs,
                 selectedIndex: controller.groceryOrdersTabs.indexOf(controller.groceryOrderStatus.value),
+                unSelectedBackgroundColor: Colors.white,
+                unSelectedBorderColor: AppColors.borderBox,
                 onTabSelected: (index, value) {
                   if (mounted) {
                     final selectedGroceryOrderStatus = controller.groceryOrdersTabs[index];
