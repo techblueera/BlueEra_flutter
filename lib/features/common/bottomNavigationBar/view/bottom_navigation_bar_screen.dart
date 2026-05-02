@@ -38,7 +38,6 @@ import 'package:BlueEra/features/me/product/controller/inventory_controller.dart
 import 'package:BlueEra/features/me/product/view/product/inventory_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/personal_profile_setup_new_screen.dart';
 import 'package:BlueEra/features/contribution/controller/contribution_controller.dart';
-import 'package:BlueEra/features/contribution/view/contribution_bottom_sheet.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -82,9 +81,6 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   final inventoryController = Get.put(InventoryController());
   final orderController = getOrPut(() => DeliverPartnerOrdersController());
   final dialogService = Get.put(DialogService());
-  // Shared with ContributionDraggableSheet via getOrPut, so we can observe
-  // the user's recharge state up here and decide whether to mount the peek
-  // sheet at all (once the user has an active recharge we hide it).
   final ContributionController _contribCtrl =
       getOrPut(() => ContributionController());
 
@@ -451,52 +447,8 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
                   );
                 }),
 
-                // Subscription peek sheet — visible only on the Me tab
-                // (index 2) and only after the user has chosen a profile
-                // type. Mounted here so every Me-tab screen gets it for
-                // free without per-screen wiring.
-                //
-                // IMPORTANT: this Stack child must always be a Positioned
-                // widget. Returning a non-positioned `SizedBox.shrink()`
-                // from the Obx would shrink the Stack to 0×0 and hide every
-                // other Positioned.fill child (screen content + nav bar).
-                //
-                // bottomPadding must match the *visible* height of the nav
-                // bar widget (SizeConfig.size70 + the bottom safe-area
-                // inset, since the nav uses SafeArea(top: false)). Using
-                // kBottomNavigationBarHeight here would push the peek into
-                // the nav row.
-
-                Obx(() {
-                  final navBarHeight = SizeConfig.size55 +
-                      MediaQuery.of(context).padding.bottom;
-                  final showSheet = _shouldShowSubscriptionSheet(
-                      bottomBarController.currentIndex.value);
-                  return Positioned.fill(
-                    child: showSheet
-                        ? AnimatedSlide(
-                            offset:
-                                isVisible ? Offset.zero : const Offset(0, 1),
-                            duration: const Duration(milliseconds: 300),
-                            curve: Curves.easeInOut,
-                            child: IgnorePointer(
-                              ignoring: !isVisible,
-                              child: ContributionDraggableSheet(
-                                bottomPadding: navBarHeight,
-                              ),
-                            ),
-                          )
-                        : const SizedBox.shrink(),
-                  );
-                }),
-
                 // Bottom Nav Animation using ValueListenableBuilder (Bottom tabs)
                 Obx(() {
-                  // Recompute here so this Obx also reacts to subscription
-                  // state changes — when the peek sheet hides, the nav bar
-                  // needs to flip its own shadow back on.
-                  final showSubscriptionSheet = _shouldShowSubscriptionSheet(
-                      bottomBarController.currentIndex.value);
                   return Positioned(
                     bottom: 0,
                     left: 0,
@@ -509,7 +461,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
                         onHeaderVisibilityChanged: _toggleAppBar,
                         isBottomNavVisible: isVisible,
                         currentIndex: bottomBarController.currentIndex.value,
-                        showShadow: !showSubscriptionSheet,
+                        showShadow: true,
                         onTap: (index) async {
                           // Tabs: 0=Me, 1=Discover, 2=Connect, 3=Order.
                           if (index == 0 && !isGuestUser()) {
@@ -600,27 +552,6 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     if (bottomBarVisibleNotifier.value != visible) {
       bottomBarVisibleNotifier.value = visible;
     }
-  }
-
-  bool _shouldShowSubscriptionSheet(int index) {
-    // Contribution peek belongs to the Me tab — index 0.
-    if (index != 0) return false;
-    if (isGuestUser()) return false;
-
-    // Don't decide visibility while the first /recharge/current call
-    // is still in flight — same flicker reasoning as the old
-    // subscription gating: if we render before the answer lands, the
-    // peek pill flashes and then disappears for users who already
-    // contributed. Wait for a real answer.
-    final status = _contribCtrl.currentStatus.value;
-    if (status == Status.INITIAL || status == Status.LOADING) {
-      return false;
-    }
-
-    // Already has an active recharge → nothing to upsell.
-    if (_contribCtrl.hasActiveRecharge.value) return false;
-
-    return true;
   }
 
   Widget meScreens() {

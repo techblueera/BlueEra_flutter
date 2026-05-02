@@ -18,6 +18,7 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/multipart_image_service.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
+import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/business/widgets/business_verify_now_button.dart';
 import 'package:BlueEra/features/chat/view/add_symbol/add_symbol_screen.dart';
@@ -39,6 +40,7 @@ import 'package:BlueEra/features/me/food/view/widget/food_product_variant_sheet.
 import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
 import 'package:BlueEra/features/me/grocery/widget/food_type_indicator.dart';
 import 'package:BlueEra/widgets/RatingBadge.dart';
+import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
@@ -667,6 +669,27 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
       child: Row(
         children: [
           _circleIconButton(icon: Icons.menu, onTap: _openDrawer),
+          SizedBox(width: SizeConfig.size8),
+          Builder(
+            builder: (BuildContext context) {
+              return InkWell(
+                onTap: () {
+                  if (isGuestUser()) {
+                    createProfileScreen();
+                  } else if (isBusinessUser()) {
+                    navigatePushTo(context, BusinessOwnProfileScreen());
+                  }
+                },
+                child: Padding(
+                    padding: EdgeInsets.only(left: SizeConfig.size15),
+                    child: CachedAvatarWidget(
+                        imageUrl: userProfileGlobal,
+                        size: SizeConfig.size30,
+                        borderRadius: SizeConfig.size15,
+                        showProfileOnFullScreen: false)),
+              );
+            },
+          ),
           SizedBox(width: SizeConfig.size8),
           if (!isBusinessUser()) _earnPill(),
           const Spacer(),

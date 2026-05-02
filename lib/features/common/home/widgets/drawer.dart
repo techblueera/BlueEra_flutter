@@ -26,7 +26,7 @@ import '../../../personal/personal_profile/view/manage_notification/notification
 import '../../../personal/personal_profile/view/payment/view/payment_setting_screen.dart';
 import '../../../personal/personal_profile/view/wallet/wallet_screen.dart';
 import '../../../personal/personal_profile/view/widget/changes_languages_screen.dart';
-import '../../../subscription/view/single_plan_subscription_view.dart';
+import '../../../contribution/view/contribution_screen.dart';
 import '../../auth/controller/auth_controller.dart';
 import '../../connect/view/connect_main_page.dart';
 import '../../referral/view/referral_page.dart';
@@ -313,7 +313,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
           title: AppStrings.contribution,
           // title: "Subscription",
           onTap: () => Get.to(
-              () => const SinglePlanSubscriptionView(isShowAppBar: true)),
+              () => const ContributionScreen()),
         ),
       MenuItemModel(
         title: AppStrings.payment,

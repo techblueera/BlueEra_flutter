@@ -18,7 +18,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueer
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/earn_service_dashboard_header.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/earn_service_profile_selector.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/earn_service_website_card.dart';
-import 'package:BlueEra/features/subscription/view/subscription_status_view.dart';
+import 'package:BlueEra/features/contribution/view/contribution_status_view.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
@@ -107,7 +107,7 @@ class _EarnServiceDashboardViewState extends State<EarnServiceDashboardView>
               controller: earnProfileController,
               webViewHeight: MediaQuery.of(context).size.height,
             ),
-            const SubscriptionStatusView(),
+            const ContributionStatusView(),
           ],
         ),
       ),

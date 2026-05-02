@@ -34,6 +34,7 @@ class _MyGroceryPendingScreenState extends State<MyGroceryPendingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.transparent,
       body: Obx(()=> controller.groceryPendingOrders.isEmpty
           ? Center(
         child: EmptyStateWidget(message: AppStrings.groceryViewYouHaveNoOrders.tr),

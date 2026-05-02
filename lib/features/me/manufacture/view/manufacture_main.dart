@@ -8,7 +8,7 @@ import 'package:BlueEra/widgets/bottom_nav_hide_on_scroll.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/features/me/me_tab_registry.dart';
 import 'package:BlueEra/features/me/medical/view/widget/add_medical_service.dart';
-import 'package:BlueEra/features/subscription/view/subscription_status_view.dart';
+import 'package:BlueEra/features/contribution/view/contribution_status_view.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../widgets/common_search_bar.dart';
@@ -143,7 +143,7 @@ class _ManufactureMainState extends State<ManufactureMain>
                     showAppBar: false,
                   ),
                   SizedBox(),
-                  const SubscriptionStatusView(),
+                  const ContributionStatusView(),
                 ],
               ),
             ),

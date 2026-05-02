@@ -64,7 +64,7 @@ class _CommonBusinessLivePhotoState extends State<CommonBusinessLivePhoto> {
             fontSize: 16,
             fontWeight: FontWeight.w700,
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           GetBuilder<ViewBusinessDetailsController>(
             id: 'livePhotos',
             builder: (_) {
@@ -72,32 +72,42 @@ class _CommonBusinessLivePhotoState extends State<CommonBusinessLivePhoto> {
                       .businessProfileDetails.value?.data?.livePhotos ??
                   [];
 
-              return GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: _maxPhotos,
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 10,
-                  mainAxisSpacing: 10,
-                  childAspectRatio: 1.1,
-                ),
-                itemBuilder: (ctx, index) {
-                  final hasPhoto = index < photos.length &&
-                      photos[index].isNotEmpty;
-                  final photoUrl =
-                      hasPhoto ? photos[index] : null;
-                  final config = _slotConfig[index];
+              // MediaQuery.removePadding strips the inherited top inset
+              // that GridView.builder otherwise picks up as implicit
+              // scroll padding — which was causing a ~30+ px ghost gap
+              // between the title and the first photo row.
+              return MediaQuery.removePadding(
+                context: context,
+                removeTop: true,
+                removeBottom: true,
+                child: GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  padding: EdgeInsets.zero,
+                  itemCount: _maxPhotos,
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 10,
+                    mainAxisSpacing: 10,
+                    childAspectRatio: 1.1,
+                  ),
+                  itemBuilder: (ctx, index) {
+                    final hasPhoto = index < photos.length &&
+                        photos[index].isNotEmpty;
+                    final photoUrl =
+                        hasPhoto ? photos[index] : null;
+                    final config = _slotConfig[index];
 
-                  return _buildPhotoSlot(
-                    context: ctx,
-                    index: index,
-                    photoUrl: photoUrl,
-                    label: config['label']!,
-                    placeholderImage: config['image']!,
-                    allPhotos: photos,
-                  );
-                },
+                    return _buildPhotoSlot(
+                      context: ctx,
+                      index: index,
+                      photoUrl: photoUrl,
+                      label: config['label']!,
+                      placeholderImage: config['image']!,
+                      allPhotos: photos,
+                    );
+                  },
+                ),
               );
             },
           ),

@@ -28,7 +28,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/self_employed/vi
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/self_profession_home_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/edit_profile_bottom_sheet.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/profile_designation_bottom_sheet.dart';
-import 'package:BlueEra/features/subscription/view/subscription_status_view.dart';
+import 'package:BlueEra/features/contribution/view/contribution_status_view.dart';
 import 'package:BlueEra/widgets/bottom_nav_hide_on_scroll.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/common_circular_profile_image.dart';
@@ -176,7 +176,7 @@ class _SelfEmployeeDashboardViewState extends State<SelfEmployeeDashboardView>
                 children: [
                   SelfEmployeeOrders(),
                   SelfProfessionHomeScreen(),
-                  const SubscriptionStatusView(),
+                  const ContributionStatusView(),
                 ],
               ),
             ),

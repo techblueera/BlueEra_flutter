@@ -1,64 +1,83 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/subscription/auth/controller/subscription_controller.dart';
-import 'package:BlueEra/features/subscription/widget/subscription_live_plan_card.dart';
+import 'package:BlueEra/features/contribution/controller/contribution_controller.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-/// Body of the "Statistics" tab on every Me-screen dashboard.
-///
-/// Renders the live plan card when the user is on a live plan
-/// (`status == 'active'` or `status == 'authenticated'`). For every other
-/// lifecycle state (no plan / paused / halted / cancelled) renders an
-/// instructional empty state pointing at the bottom [SubscriptionDraggableSheet]
-/// peek — deliberately CTA-less because the peek already has the
-/// subscribe / recharge button. Two competing CTAs on the same screen
-/// would split the user's attention.
-///
-/// No initState fetch lives here. The shared [SubscriptionController] is
-/// populated by the bottom-nav `Me` tab tap (the canonical refresh point)
-/// and the peek sheet's mount-time fetch, so by the time the user swipes
-/// to the statistics tab `currentPlansList` is already up to date. The
-/// [Obx] makes the body flip automatically when payments / cancels change
-/// the status.
-class SubscriptionStatusView extends StatelessWidget {
-  const SubscriptionStatusView({super.key});
+/// Body of the "Statistics" tab on every Me-screen dashboard. Mirrors the
+/// old SubscriptionStatusView — when the user has an active recharge it
+/// shows a simple confirmation card, otherwise it shows the same locked
+/// hint + arrow pointing at the contribution peek sheet at the bottom of
+/// the screen. CTA-less by design — the peek already carries the action.
+class ContributionStatusView extends StatelessWidget {
+  const ContributionStatusView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final controller = getOrPut(() => SubscriptionController());
+    final controller = getOrPut(() => ContributionController());
     return Container(
       width: double.infinity,
       alignment: Alignment.topCenter,
       child: Obx(() {
-        final plans = controller.currentPlansList;
-        final userSub = plans.isNotEmpty ? plans.first : null;
-        final isLive = userSub != null &&
-            (userSub.status == 'active' ||
-                userSub.status == 'authenticated');
-
-        if (isLive) {
+        if (controller.hasActiveRecharge.value) {
           return Padding(
             padding: EdgeInsets.symmetric(
-              horizontal: SizeConfig.size12,
-              vertical: SizeConfig.size12,
+              horizontal: SizeConfig.size16,
+              vertical: SizeConfig.size20,
             ),
-            child: SubscriptionLivePlanCard(userSub: userSub),
+            child: _ActiveContributionCard(),
           );
         }
-
         return const _StatisticsLockedHint();
       }),
     );
   }
 }
 
-/// Empty-state placeholder shown when the user has no live plan. Soft
-/// gradient halo around a stats icon, a short pitch, and a subtle pill
-/// pointing the user to the peek sheet at the bottom of the screen.
-/// Auto-plays a fade + slide entry the first time it mounts.
+class _ActiveContributionCard extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.all(SizeConfig.size16),
+      decoration: BoxDecoration(
+        color: AppColors.primaryColor.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: AppColors.primaryColor.withValues(alpha: 0.28),
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.workspace_premium_rounded,
+              size: 28, color: AppColors.primaryColor),
+          SizedBox(width: SizeConfig.size12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CustomText(
+                  'Contribution active',
+                  fontSize: SizeConfig.large,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.primaryColor,
+                ),
+                SizedBox(height: SizeConfig.size4),
+                CustomText(
+                  'Thanks for contributing! Your perks are being consumed as you use BlueEra.',
+                  fontSize: SizeConfig.medium,
+                  color: AppColors.secondaryTextColor,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _StatisticsLockedHint extends StatelessWidget {
   const _StatisticsLockedHint();
 
@@ -85,7 +104,6 @@ class _StatisticsLockedHint extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Gradient halo + insights icon — visual anchor for the empty state.
             Container(
               padding: EdgeInsets.all(SizeConfig.size24),
               decoration: BoxDecoration(
@@ -126,8 +144,8 @@ class _StatisticsLockedHint extends StatelessWidget {
             ),
             SizedBox(height: SizeConfig.size8),
             CustomText(
-              'Subscribe to a plan to unlock detailed analytics, '
-              'leads, and performance insights for your business.',
+              'Contribute to unlock detailed analytics, leads, and '
+              'performance insights for your business.',
               fontSize: SizeConfig.medium,
               fontWeight: FontWeight.w400,
               color: AppColors.secondaryTextColor,
@@ -135,8 +153,6 @@ class _StatisticsLockedHint extends StatelessWidget {
               maxLines: 4,
             ),
             SizedBox(height: SizeConfig.size20),
-            // Pill pointing the user at the peek sheet at the bottom of
-            // the screen. Deliberately not a button — just a hint.
             Container(
               padding: EdgeInsets.symmetric(
                 horizontal: SizeConfig.size16,

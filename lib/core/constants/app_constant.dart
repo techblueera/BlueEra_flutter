@@ -4,7 +4,6 @@ import 'dart:core';
 import 'dart:math' hide log;
 import 'package:BlueEra/core/api/model/create_account_model.dart';
 import 'package:BlueEra/core/api/model/onboarding_model.dart';
-import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
@@ -19,7 +18,6 @@ import 'package:BlueEra/features/common/post/repo/post_repo.dart';
 import 'package:BlueEra/features/common/reel/models/social_input_fields_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/personal_profile_setup_new_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
-import 'package:BlueEra/features/subscription/auth/model/subscription_plan_style_model.dart';
 import 'package:BlueEra/widgets/collapsible_grid_model.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -147,24 +145,6 @@ class AppConstants {
   static const String expired = 'expired';
   static const String halted = 'halted';
   static const String pending = 'pending';
-
-  static List<SubscriptionPlanStyleModel> listOfSubsBg = [
-    SubscriptionPlanStyleModel(
-        bg: AppImageAssets.basic_subscription_plan_bg,
-        color: AppColors.darkBlueShade),
-    SubscriptionPlanStyleModel(
-        bg: AppImageAssets.popular_subscription_plan_bg,
-        color: AppColors.darkYellowShade),
-    SubscriptionPlanStyleModel(
-        bg: AppImageAssets.advance_subscription_plan_bg,
-        color: AppColors.darkGreenShade),
-    SubscriptionPlanStyleModel(
-        bg: AppImageAssets.pro_subscription_plan_bg,
-        color: AppColors.darkPurpleShade),
-    SubscriptionPlanStyleModel(
-        bg: AppImageAssets.pro_plus_subscription_plan_bg,
-        color: AppColors.darkPinkShade),
-  ];
 
   static const String veg = 'veg';
   static const String group_Chat_Type = 'group';

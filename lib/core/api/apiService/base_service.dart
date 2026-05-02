@@ -359,26 +359,10 @@ abstract class BaseService {
   final String businessRating = "/user-service/business/business";
   final String postBusinessRating = 'user-service/business/rating';
 
-  ///SUBSCRIPTION....
-  // final String subscriptionCreate =
-  //     'subscription-service/subscription/create-subscription';
-  final String subscriptionVerification =
-      'subscription-service/subscription/verify-subscription-payment';
-  final String subscriptionCancel =
-      'subscription-service/subscription/cancel-subscription';
-
   final String FollowersAndPostsCount =
       'user-service/user/getUserWithFollowersAndPostsCount';
-  // final String getSubscriptionPlans =
-  //     'subscription-service/subscription/subscription-plans';
-  // final String getSubscriptionOffer =
-  //     'subscription-service/subscription/subscription-offers';
   final String getAllProducts = 'inventory-service/product/getAllProducts';
   final String getParticularRating = 'user-service/business/rating';
-  final String subscriptionTrialInitiate =
-      'subscription-service/subscription/trial/initiate';
-  final String verifyTrialSubscription =
-      'subscription-service/subscription/trial/verify';
 
   ///SAVED,DELETE,GET
   final String savedJob = 'job-service/saved-jobs';
@@ -746,7 +730,6 @@ abstract class BaseService {
   final String socialActivityFeed = 'social-service/activity-feed';
   final String socialAchievements = 'social-service/achievements';
   final String socialContact = 'social-service/contact';
-  final String subscriptionPlansGet = 'subscription-service/subscription/subscription-plans';
   final String walletPendingReferral = 'wallet-service/wallet/pending-referral';
   final String makeTransportBookOrder = 'rider-service/fare/orders';
 
@@ -845,7 +828,6 @@ abstract class BaseService {
   final String hospitalHistoryBase = 'hospital-service/history';
   final String hospitalHistoryGet = 'hospital-service/history/hospital/$hospitalIDGlobal';
   String hospitalHistoryById(String id) => 'hospital-service/history/$id';
-  final String  userCurrentPlan= 'subscription-service/subscription/user-subscriptions';
 
   /// Hospital Management (Doctors/Leadership)
   final String hospitalManagementBase = 'hospital-service/management';
