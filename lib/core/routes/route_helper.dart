@@ -395,8 +395,7 @@ class RouteHelper {
   static String getStoreProductSelectionScreenRoute() =>
       RouteConstant.storeProductSelectionScreen;
 
-  static String getProductCartScreenRoute() =>
-      RouteConstant.productCartScreen;
+  static String getProductCartScreenRoute() => RouteConstant.productCartScreen;
 
   static String getSelfEmployeeScreenRoute() =>
       RouteConstant.selfEmployeeScreen;
@@ -487,8 +486,7 @@ class RouteHelper {
   static String getRiderServiceScreenRoute() =>
       RouteConstant.riderServiceScreen;
 
-  static String getGroceryCartScreenRoute() =>
-      RouteConstant.groceryCartScreen;
+  static String getGroceryCartScreenRoute() => RouteConstant.groceryCartScreen;
 
   // static String getYourAddToCardScreenRoute() =>
   //     RouteConstant.yourAddToCardScreen;
@@ -513,14 +511,12 @@ class RouteHelper {
   static String getHospitalWardViewCategory() =>
       RouteConstant.hospitalWardViewCategory;
 
-  static String getRiderStoreScreenRoute() =>
-      RouteConstant.riderStoreScreen;
+  static String getRiderStoreScreenRoute() => RouteConstant.riderStoreScreen;
 
   static String getGroceryConfirmScreenRoute() =>
       RouteConstant.groceryConfirmScreen;
 
-  static String getAddSelfServiceRoute() =>
-      RouteConstant.addSelfServiceScreen;
+  static String getAddSelfServiceRoute() => RouteConstant.addSelfServiceScreen;
 
   static String getCreateAccountTypeScreenRoute() =>
       RouteConstant.createAccountTypeScreen;
@@ -528,8 +524,7 @@ class RouteHelper {
   static String getGigWorkerOptionsScreenRoute() =>
       RouteConstant.gigWorkerOptionsScreen;
 
-  static String getMedicalScreenRoute() =>
-      RouteConstant.medicalScreen;
+  static String getMedicalScreenRoute() => RouteConstant.medicalScreen;
 
   static String getMedicalCategoryScreenRoute() =>
       RouteConstant.medicalCategoryScreen;
@@ -537,8 +532,7 @@ class RouteHelper {
   static String getMedicalSubCategoryScreenRoute() =>
       RouteConstant.medicalSubCategoryScreen;
 
-  static String getAddMedicalScreenRoute  () =>
-      RouteConstant.addMedicalScreen;
+  static String getAddMedicalScreenRoute() => RouteConstant.addMedicalScreen;
 
   static String getAddMedicalVariantScreenRoute() =>
       RouteConstant.addMedicalVariantScreen;
@@ -552,14 +546,12 @@ class RouteHelper {
   static String getMedicalListingScreenRoute() =>
       RouteConstant.medicalListingScreen;
 
-  static String getMedicalCartScreenRoute() =>
-      RouteConstant.medicalCartScreen;
+  static String getMedicalCartScreenRoute() => RouteConstant.medicalCartScreen;
 
   static String getMedicalConfirmScreenRoute() =>
       RouteConstant.medicalConfirmScreen;
 
-  static String getMedicalHomeScreenRoute() =>
-      RouteConstant.medicalHomeScreen;
+  static String getMedicalHomeScreenRoute() => RouteConstant.medicalHomeScreen;
 
   static String getHospitalDepartmentsScreenRoute() =>
       RouteConstant.hospitalDepartmentsScreen;
@@ -576,13 +568,13 @@ class RouteHelper {
   static String getAddMedicalSnapSearchScreenRoute() =>
       RouteConstant.addMedicalSnapSearchScreen;
 
- static String getMissingGroceryItemsScreenRoute() =>
+  static String getMissingGroceryItemsScreenRoute() =>
       RouteConstant.missingGroceryItemsScreen;
 
   static String getMissingFoodItemsScreenRoute() =>
       RouteConstant.missingFoodItemsScreen;
 
- static String getVisitGroceryStoreScreenRoute() =>
+  static String getVisitGroceryStoreScreenRoute() =>
       RouteConstant.visitGroceryStoreScreen;
 
   static String getOtherFoodStoreDetailsScreenRoute() =>
@@ -606,8 +598,7 @@ class RouteHelper {
   static String getMyProductProductsScreenRoute() =>
       RouteConstant.myProductProductsScreen;
 
-  static String getFoodEntryAiScreenRoute() =>
-      RouteConstant.foodEntryAiScreen;
+  static String getFoodEntryAiScreenRoute() => RouteConstant.foodEntryAiScreen;
 
   static String getFoodAiDetailScreenRoute() =>
       RouteConstant.foodAiDetailScreen;
@@ -618,9 +609,7 @@ class RouteHelper {
   static String getNearByRidersScreenRoute() =>
       RouteConstant.nearByRidersScreen;
 
-
-  static String getYourCartScreenRoute() =>
-      RouteConstant.yourCartScreen;
+  static String getYourCartScreenRoute() => RouteConstant.yourCartScreen;
 
   ///REDIRECT ROUTING SETUP.....
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -1115,7 +1104,7 @@ class RouteHelper {
         );
       case RouteConstant.addDocumentScreen:
         final Map<String, dynamic>? args =
-        settings.arguments as Map<String, dynamic>?;
+            settings.arguments as Map<String, dynamic>?;
 
         final String argDocumentVia =
             args?[ApiKeys.argDocumentVia] as String? ?? "";
@@ -1125,8 +1114,7 @@ class RouteHelper {
         return MaterialPageRoute(
             builder: (_) => AddDocumentScreen(
                 showViewDocProof: showViewDocProof,
-                documentVia: argDocumentVia
-            ),
+                documentVia: argDocumentVia),
             settings:
                 RouteSettings(name: RouteHelper.getAddDocumentScreenRoute()));
       case RouteConstant.postDetailPage:
@@ -1158,7 +1146,8 @@ class RouteHelper {
                   id: id,
                   providerType: providerType,
                 ),
-            settings: RouteSettings(name: getAddProductTextOrSnapScreenRoute()));
+            settings:
+                RouteSettings(name: getAddProductTextOrSnapScreenRoute()));
       // case RouteConstant.listingFormScreen:
       //   return MaterialPageRoute(
       //       builder: (_) => ListingFormScreen(),
@@ -1173,7 +1162,6 @@ class RouteHelper {
             args[ApiKeys.providerType] as ProviderType;
         final String? channelId = args[ApiKeys.channelId] as String?;
 
-
         return MaterialPageRoute(
             builder: (_) => ServiceUploadScreen(
                   providerType: providerType,
@@ -1183,14 +1171,12 @@ class RouteHelper {
       case RouteConstant.addProductViaAiStep1:
         final args = settings.arguments as Map<String, dynamic>;
         final String id = args[ApiKeys.id] as String;
-        final ProviderType providerType = args[ApiKeys.providerType] as ProviderType;
+        final ProviderType providerType =
+            args[ApiKeys.providerType] as ProviderType;
         return MaterialPageRoute(
             builder: (_) =>
-                AddProductViaAiStep1(
-                    id: id,
-                    providerType: providerType),
-            settings: RouteSettings(name: getAddProductViaAiStep1Route())
-        );
+                AddProductViaAiStep1(id: id, providerType: providerType),
+            settings: RouteSettings(name: getAddProductViaAiStep1Route()));
       case RouteConstant.addProductViaAiStep2:
         final args = settings.arguments as Map<String, dynamic>;
         final ProductController controller =
@@ -1253,8 +1239,8 @@ class RouteHelper {
                 // isShowBusinessInfo: productDataBool,
                 id: id,
                 providerType: providerType),
-            settings: RouteSettings(
-                name: getProductsStoreDetailsScreenRoute()));
+            settings:
+                RouteSettings(name: getProductsStoreDetailsScreenRoute()));
       case RouteConstant.createVariantScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final ProductController controller =
@@ -1284,8 +1270,7 @@ class RouteHelper {
         final args = settings.arguments as Map<String, dynamic>;
         final ProviderType providerType =
             args[ApiKeys.providerType] as ProviderType;
-        final String? serviceSubType =
-            args[ApiKeys.serviceSubType] as String?;
+        final String? serviceSubType = args[ApiKeys.serviceSubType] as String?;
         final String? category = args[ApiKeys.category] as String?;
 
         return MaterialPageRoute(
@@ -1330,8 +1315,8 @@ class RouteHelper {
       case RouteConstant.vehicleInformationRidingScreen:
         return MaterialPageRoute(
             builder: (_) => VehicleInformationRidingScreen(
-              screeName: '',
-            ),
+                  screeName: '',
+                ),
             settings:
                 RouteSettings(name: getVehicleInformationRidingScreenRoute()));
       case RouteConstant.homeStayRentalService:
@@ -1380,7 +1365,8 @@ class RouteHelper {
       case RouteConstant.personalAccountNewScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final accountType = args[ApiKeys.argAccountType] as String;
-        final profileType = args[ApiKeys.argProfileType] as IndividualProfileType;
+        final profileType =
+            args[ApiKeys.argProfileType] as IndividualProfileType;
         final argProfessionTagId = args[ApiKeys.argProfessionTagId] as String;
         final argProfession = args[ApiKeys.argProfession] as String;
 
@@ -1454,35 +1440,44 @@ class RouteHelper {
       case RouteConstant.groceryNestedCategoryScreen:
         final args = settings.arguments as Map<String, dynamic>;
         // final bool argMyGrocery = args[ApiKeys.argMyGrocery] as bool;
-        final String argArrGroceryCatName = args[ApiKeys.argArrGroceryCatName] as String;
-        final String argArrGroceryCatKey = args[ApiKeys.argArrGroceryCatKey] as String;
+        final String argArrGroceryCatName =
+            args[ApiKeys.argArrGroceryCatName] as String;
+        final String argArrGroceryCatKey =
+            args[ApiKeys.argArrGroceryCatKey] as String;
         final List<GroceryNestedCategoryModel> argArrGrocerySuperCat =
-            args[ApiKeys.argArrGrocerySuperCategory] as List<GroceryNestedCategoryModel>;
+            args[ApiKeys.argArrGrocerySuperCategory]
+                as List<GroceryNestedCategoryModel>;
         return MaterialPageRoute(
             builder: (_) => GroceryNestedCategoryScreen(
-                argArrGrocerySuperCat: argArrGrocerySuperCat,
-                argArrGroceryCatKey: argArrGroceryCatKey,
-                argArrGroceryCatName: argArrGroceryCatName,
-                // isMyGrocery: argMyGrocery
-            ),
-            settings: RouteSettings(name: getGroceryNestedCategoryScreenRoute()));
+                  argArrGrocerySuperCat: argArrGrocerySuperCat,
+                  argArrGroceryCatKey: argArrGroceryCatKey,
+                  argArrGroceryCatName: argArrGroceryCatName,
+                  // isMyGrocery: argMyGrocery
+                ),
+            settings:
+                RouteSettings(name: getGroceryNestedCategoryScreenRoute()));
 
       case RouteConstant.groceryNestedCategoryWithInventoryScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final String userId = args[ApiKeys.userId] as String;
-        final List<GroceryCategoryWithInventoryModel> argGroceryCategoryWithInventory
-        = args[ApiKeys.argGroceryCategoryWithInventory] as List<GroceryCategoryWithInventoryModel>;
-        final String argArrGroceryCatName = args[ApiKeys.argArrGroceryCatName] as String;
-        final String argArrGroceryCatKey = args[ApiKeys.argArrGroceryCatKey] as String;
+        final List<GroceryCategoryWithInventoryModel>
+            argGroceryCategoryWithInventory =
+            args[ApiKeys.argGroceryCategoryWithInventory]
+                as List<GroceryCategoryWithInventoryModel>;
+        final String argArrGroceryCatName =
+            args[ApiKeys.argArrGroceryCatName] as String;
+        final String argArrGroceryCatKey =
+            args[ApiKeys.argArrGroceryCatKey] as String;
         return MaterialPageRoute(
             builder: (_) => GroceryNestedCategoryWithInventoryScreen(
-              userId: userId,
-              argGroceryCategoryWithInventory: argGroceryCategoryWithInventory,
-              argArrGroceryCatKey: argArrGroceryCatKey,
-              argArrGroceryCatName: argArrGroceryCatName,
-            ),
-            settings: RouteSettings(name: getGroceryNestedCategoryWithInventoryScreenRoute())
-        );
+                  userId: userId,
+                  argGroceryCategoryWithInventory:
+                      argGroceryCategoryWithInventory,
+                  argArrGroceryCatKey: argArrGroceryCatKey,
+                  argArrGroceryCatName: argArrGroceryCatName,
+                ),
+            settings: RouteSettings(
+                name: getGroceryNestedCategoryWithInventoryScreenRoute()));
 
       case RouteConstant.groceryProductsSelectionScreen:
         final args = settings.arguments as Map<String, dynamic>;
@@ -1492,10 +1487,11 @@ class RouteHelper {
         //     args[ApiKeys.argSelectedGroceryData] as GroceryNestedCategoryModel;
         return MaterialPageRoute(
             builder: (_) => GroceryProductsSelectionScreen(
-                arrGroceries: argGroceries,
-                // selectedGroceryData: argSelectedGroceryData
-            ),
-            settings: RouteSettings(name: getGroceryProductsSelectionScreenRoute()));
+                  arrGroceries: argGroceries,
+                  // selectedGroceryData: argSelectedGroceryData
+                ),
+            settings:
+                RouteSettings(name: getGroceryProductsSelectionScreenRoute()));
       // case RouteConstant.addGroceryScreen:
       //   return MaterialPageRoute(
       //       builder: (_) => AddGroceryScreen(),
@@ -1508,35 +1504,39 @@ class RouteHelper {
         final args = settings.arguments as Map<String, dynamic>;
         final String userId = args[ApiKeys.userId] as String;
         final List<GroceryNestedCategoryModel> argGroceries =
-        args[ApiKeys.argGroceries] as List<GroceryNestedCategoryModel>;
+            args[ApiKeys.argGroceries] as List<GroceryNestedCategoryModel>;
         return MaterialPageRoute(
             builder: (_) => MyGroceryProductsScreen(
-                  userId: userId,
-                  arrGroceries: argGroceries
-                ),
+                userId: userId, arrGroceries: argGroceries),
             settings: RouteSettings(name: getMyGroceryProductsScreenRoute()));
       case RouteConstant.visitGroceryProductsScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final String userId = (args[ApiKeys.userId] as String?) ?? '';
-        final String visitBusinessId = (args[ApiKeys.businessId] as String?) ?? '';
-        final String argArrGroceryCatName = (args[ApiKeys.argArrGroceryCatName] as String?) ?? '';
-        final String argArrGroceryCatKey = (args[ApiKeys.argArrGroceryCatKey] as String?) ?? '';
+        final String visitBusinessId =
+            (args[ApiKeys.businessId] as String?) ?? '';
+        final String argArrGroceryCatName =
+            (args[ApiKeys.argArrGroceryCatName] as String?) ?? '';
+        final String argArrGroceryCatKey =
+            (args[ApiKeys.argArrGroceryCatKey] as String?) ?? '';
         return MaterialPageRoute(
             builder: (_) => VisitGroceryProductsScreen(
-                userId: userId,
-                visitBusinessId: visitBusinessId,
-                argArrGroceryCatKey: argArrGroceryCatKey,
-                argArrGroceryCatName: argArrGroceryCatName,
-            ),
-            settings: RouteSettings(name: getVisitGroceryProductsScreenRoute()));
+                  userId: userId,
+                  visitBusinessId: visitBusinessId,
+                  argArrGroceryCatKey: argArrGroceryCatKey,
+                  argArrGroceryCatName: argArrGroceryCatName,
+                ),
+            settings:
+                RouteSettings(name: getVisitGroceryProductsScreenRoute()));
       case RouteConstant.allGroceryCategorizeProductsScreen:
         final args = settings.arguments as Map<String, dynamic>;
-        final List<GroceryNestedCategoryModel> argCategories = args[ApiKeys.argCategories] as List<GroceryNestedCategoryModel>;
+        final List<GroceryNestedCategoryModel> argCategories =
+            args[ApiKeys.argCategories] as List<GroceryNestedCategoryModel>;
         return MaterialPageRoute(
             builder: (_) => AllGroceryProductsScreen(
-              argSubCategory: argCategories,
-            ),
-            settings: RouteSettings(name: getAllGroceryCategorizeProductsScreenRoute()));
+                  argSubCategory: argCategories,
+                ),
+            settings: RouteSettings(
+                name: getAllGroceryCategorizeProductsScreenRoute()));
       // case RouteConstant.groceryCustomerListingScreen:
       //   final args = settings.arguments as Map<String, dynamic>;
       //   final List<GroceryNestedCategoryModel> argGroceries =
@@ -1561,8 +1561,7 @@ class RouteHelper {
             settings: RouteSettings(name: getRiderServiceScreenRoute()));
       case RouteConstant.groceryCartScreen:
         return MaterialPageRoute(
-            builder: (_) => GroceryCartScreen(
-            ),
+            builder: (_) => GroceryCartScreen(),
             settings: RouteSettings(name: getGroceryCartScreenRoute()));
       // case RouteConstant.yourAddToCardScreen:
       //
@@ -1576,27 +1575,27 @@ class RouteHelper {
       //      settings: RouteSettings(name: getGroceryCartScreenRoute())
       // );
       case RouteConstant.grocerySuperCategoryScreen:
-      final args = settings.arguments as Map<String, dynamic>;
-      final bool argBulkUpload = args[ApiKeys.argBulkUpload] as bool;
+        final args = settings.arguments as Map<String, dynamic>;
+        final bool argBulkUpload = args[ApiKeys.argBulkUpload] as bool;
 
         return MaterialPageRoute(
             builder: (_) =>
-                GrocerySuperCategoryScreen(
-                    isAvailBulkUpload: argBulkUpload
-                ),
+                GrocerySuperCategoryScreen(isAvailBulkUpload: argBulkUpload),
             settings:
                 RouteSettings(name: getGrocerySuperCategoryScreenRoute()));
 
       case RouteConstant.productSuperCategoryScreen:
         final args = settings.arguments as Map<String, dynamic>?;
         final String? ownerID = args?[ApiKeys.id] as String?;
-        final ProviderType? providerType = args?[ApiKeys.providerType] as ProviderType?;
+        final ProviderType? providerType =
+            args?[ApiKeys.providerType] as ProviderType?;
         return MaterialPageRoute(
             builder: (_) => ProductSuperCategoryScreen(
-                ownerID: ownerID,
-                providerType: providerType,
-            ),
-            settings: RouteSettings(name: getProductSuperCategoryScreenRoute()));
+                  ownerID: ownerID,
+                  providerType: providerType,
+                ),
+            settings:
+                RouteSettings(name: getProductSuperCategoryScreenRoute()));
 
       case RouteConstant.productNestedCategoryScreen:
         final args = settings.arguments as Map<String, dynamic>;
@@ -1611,7 +1610,8 @@ class RouteHelper {
                   argArrProductCatId: catId,
                   argArrProductCatName: catName,
                 ),
-            settings: RouteSettings(name: getProductNestedCategoryScreenRoute()));
+            settings:
+                RouteSettings(name: getProductNestedCategoryScreenRoute()));
 
       case RouteConstant.storeProductSelectionScreen:
         final args = settings.arguments as Map<String, dynamic>;
@@ -1655,16 +1655,15 @@ class RouteHelper {
             builder: (_) => GroceryConfirmScreen(orderId: argOrderId),
             settings: RouteSettings(name: getGroceryConfirmScreenRoute()));
 
-
       case RouteConstant.addSelfServiceScreen:
         final args = settings.arguments as Map<String, dynamic>;
-        final bool argFromBottomNavBar = args[ApiKeys.argFromBottomNavBar] as bool;
-        final String serviceSubType =
-            args[ApiKeys.serviceSubType] as String;
+        final bool argFromBottomNavBar =
+            args[ApiKeys.argFromBottomNavBar] as bool;
+        final String serviceSubType = args[ApiKeys.serviceSubType] as String;
         final String designation = args[ApiKeys.designation] as String;
         return MaterialPageRoute(
             builder: (_) => AddSelfServiceScreen(
-               fromBottomNavBar: argFromBottomNavBar,
+                fromBottomNavBar: argFromBottomNavBar,
                 designation: designation,
                 serviceSubType: serviceSubType),
             settings: RouteSettings(name: getAddSelfServiceRoute()));
@@ -1675,13 +1674,12 @@ class RouteHelper {
       case RouteConstant.gigWorkerOptionsScreen:
         return MaterialPageRoute(
             builder: (_) => GigWorkOptionsScreen(),
-            settings: RouteSettings(name: getGigWorkerOptionsScreenRoute())
-        );
+            settings: RouteSettings(name: getGigWorkerOptionsScreenRoute()));
 
       case RouteConstant.medicalScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final bool? argFromBottomNavBar =
-        args[ApiKeys.argFromBottomNavBar] as bool?;
+            args[ApiKeys.argFromBottomNavBar] as bool?;
         return MaterialPageRoute(
             builder: (_) =>
                 MedicalScreen(fromBottomNavBar: argFromBottomNavBar),
@@ -1695,13 +1693,13 @@ class RouteHelper {
       case RouteConstant.medicalSubCategoryScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final List<MedicalNestedCategoryModel> argGroceries =
-             args[ApiKeys.argGroceries] as List<MedicalNestedCategoryModel>;
+            args[ApiKeys.argGroceries] as List<MedicalNestedCategoryModel>;
         // final GroceryNestedCategoryModel argSelectedGroceryData =
         //     args[ApiKeys.argSelectedGroceryData] as GroceryNestedCategoryModel;
         return MaterialPageRoute(
             builder: (_) => MedicalSubCategoryScreen(
-              arrLevel3Category: argGroceries,
-            ),
+                  arrLevel3Category: argGroceries,
+                ),
             settings: RouteSettings(name: getMedicalSubCategoryScreenRoute()));
 
       case RouteConstant.addMedicalScreen:
@@ -1720,23 +1718,23 @@ class RouteHelper {
         final String argCategoryName = args[ApiKeys.argCategoryName] as String;
         return MaterialPageRoute(
             builder: (_) => MyMedicalProductsScreen(
-              categoryId: argCategoryId,
-              categoryName: argCategoryName,
-            ),
+                  categoryId: argCategoryId,
+                  categoryName: argCategoryName,
+                ),
             settings: RouteSettings(name: getMyMedicalProductsScreenRoute()));
 
       case RouteConstant.myMedicalVariantScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final List<MedicalProductVariants> variants =
-        args[ApiKeys.argVariants] as List<MedicalProductVariants>;
+            args[ApiKeys.argVariants] as List<MedicalProductVariants>;
         final bool? argIsShowInGrid = args[ApiKeys.argIsShowInGrid] as bool?;
         final String? argMedCategoryId = args[ApiKeys.argCategoryId] as String?;
         return MaterialPageRoute(
             builder: (_) => MyMedicalVariantScreen(
-                variants: variants,
-                isShowInGrid: argIsShowInGrid,
-                categoryId: argMedCategoryId,
-            ),
+                  variants: variants,
+                  isShowInGrid: argIsShowInGrid,
+                  categoryId: argMedCategoryId,
+                ),
             settings: RouteSettings(name: getMyMedicalVariantScreenRoute()));
 
       case RouteConstant.medicalListingScreen:
@@ -1745,8 +1743,8 @@ class RouteHelper {
             args[ApiKeys.argGroceries] as List<MedicalNestedCategoryModel>;
         return MaterialPageRoute(
             builder: (_) => MedicalListingScreen(
-              arrLevel3Category: argGroceries,
-            ),
+                  arrLevel3Category: argGroceries,
+                ),
             settings: RouteSettings(name: getMedicalListingScreenRoute()));
 
       case RouteConstant.medicalCartScreen:
@@ -1759,62 +1757,59 @@ class RouteHelper {
         final String argOrderId = args[ApiKeys.argOrderId] as String;
         return MaterialPageRoute(
             builder: (_) => MedicalConfirmScreen(orderId: argOrderId),
-            settings: RouteSettings(name: getMedicalConfirmScreenRoute())
-        );
+            settings: RouteSettings(name: getMedicalConfirmScreenRoute()));
 
       case RouteConstant.medicalHomeScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final String argBusinessId = args[ApiKeys.argBusinessId] as String;
         return MaterialPageRoute(
             builder: (_) => MedicalHomeScreenV2(businessId: argBusinessId),
-            settings: RouteSettings(name: getMedicalHomeScreenRoute())
-        );
+            settings: RouteSettings(name: getMedicalHomeScreenRoute()));
 
-       case RouteConstant.groceryStoresScreen:
-              return MaterialPageRoute(
-                  builder: (_) => const GroceryStoresScreen(),
-                  settings: RouteSettings(name: getGroceryStoresScreenRoute())
-              );
+      case RouteConstant.groceryStoresScreen:
+        return MaterialPageRoute(
+            builder: (_) => const GroceryStoresScreen(),
+            settings: RouteSettings(name: getGroceryStoresScreenRoute()));
 
       case RouteConstant.addGrocerySnapSearchScreen:
-                return MaterialPageRoute(
-                  builder: (_) => AddGrocerySnapSearchScreen(),
-                  settings: RouteSettings(name: getAddGrocerySnapSearchScreenRoute())
-              );
+        return MaterialPageRoute(
+            builder: (_) => AddGrocerySnapSearchScreen(),
+            settings:
+                RouteSettings(name: getAddGrocerySnapSearchScreenRoute()));
 
       case RouteConstant.groceryRiderSnapSearchScreen:
-                return MaterialPageRoute(
-                  builder: (_) => GroceryRiderSnapSearchScreen(),
-                  settings: RouteSettings(name: getGroceryRiderSnapSearchScreenRoute())
-              );
+        return MaterialPageRoute(
+            builder: (_) => GroceryRiderSnapSearchScreen(),
+            settings:
+                RouteSettings(name: getGroceryRiderSnapSearchScreenRoute()));
 
       case RouteConstant.addMedicalSnapSearchScreen:
-                return MaterialPageRoute(
-                  builder: (_) => AddMedicalSnapSearchScreen(),
-                  settings: RouteSettings(name: getAddMedicalSnapSearchScreenRoute())
-              );
+        return MaterialPageRoute(
+            builder: (_) => AddMedicalSnapSearchScreen(),
+            settings:
+                RouteSettings(name: getAddMedicalSnapSearchScreenRoute()));
 
       case RouteConstant.missingGroceryItemsScreen:
         final args = settings.arguments as Map<String, dynamic>;
-        final GroceryController controller = args[ApiKeys.controller] as GroceryController;
-        final List<MissingProducts> argMissingProducts = args[ApiKeys.argMissingProducts] as List<MissingProducts>;
-                return MaterialPageRoute(
-                  builder: (_) => MissingGroceryItemsScreen(
-                      controller: controller,
-                      missingProducts: argMissingProducts),
-                  settings: RouteSettings(name: getMissingGroceryItemsScreenRoute())
-              );
+        final GroceryController controller =
+            args[ApiKeys.controller] as GroceryController;
+        final List<MissingProducts> argMissingProducts =
+            args[ApiKeys.argMissingProducts] as List<MissingProducts>;
+        return MaterialPageRoute(
+            builder: (_) => MissingGroceryItemsScreen(
+                controller: controller, missingProducts: argMissingProducts),
+            settings: RouteSettings(name: getMissingGroceryItemsScreenRoute()));
 
       case RouteConstant.missingFoodItemsScreen:
         final args = settings.arguments as Map<String, dynamic>;
-        final FoodServiceController controller = args[ApiKeys.controller] as FoodServiceController;
-        final List<MissingFoodProducts> argMissingProducts = args[ApiKeys.argMissingProducts] as List<MissingFoodProducts>;
+        final FoodServiceController controller =
+            args[ApiKeys.controller] as FoodServiceController;
+        final List<MissingFoodProducts> argMissingProducts =
+            args[ApiKeys.argMissingProducts] as List<MissingFoodProducts>;
         return MaterialPageRoute(
             builder: (_) => MissingFoodItemsScreen(
-                controller: controller,
-                missingProducts: argMissingProducts),
-            settings: RouteSettings(name: getMissingFoodItemsScreenRoute())
-        );
+                controller: controller, missingProducts: argMissingProducts),
+            settings: RouteSettings(name: getMissingFoodItemsScreenRoute()));
 
       case RouteConstant.visitGroceryStoreScreen:
         final args = settings.arguments as Map<String, dynamic>;
@@ -1822,124 +1817,124 @@ class RouteHelper {
         final String userId = args[ApiKeys.userId] as String;
         return MaterialPageRoute(
             builder: (_) => VisitGroceryStoreScreen(
-                visitBusinessId: businessId,
-                userId: userId,
-            ),
-            settings: RouteSettings(name: getVisitGroceryStoreScreenRoute())
-        );
+                  visitBusinessId: businessId,
+                  userId: userId,
+                ),
+            settings: RouteSettings(name: getVisitGroceryStoreScreenRoute()));
 
       case RouteConstant.visitFoodStoreDetailsScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final String businessId = args[ApiKeys.businessId] as String;
         return MaterialPageRoute(
             builder: (_) => VisitFoodStoreDetailsScreen(
-              visitBusinessId: businessId,
-            ),
-            settings: RouteSettings(name: getOtherFoodStoreDetailsScreenRoute())
-        );
+                  visitBusinessId: businessId,
+                ),
+            settings:
+                RouteSettings(name: getOtherFoodStoreDetailsScreenRoute()));
 
       case RouteConstant.addFoodSnapSearchScreen:
         return MaterialPageRoute(
             builder: (_) => AddFoodSnapSearchScreen(),
-            settings: RouteSettings(name: getAddFoodSnapSearchScreenRoute())
-        );
+            settings: RouteSettings(name: getAddFoodSnapSearchScreenRoute()));
 
       case RouteConstant.addSingleProductScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final String productId = args[ApiKeys.productId] as String;
-        final int? createMissingProductIndex = args[ApiKeys.argCreateMissingProductIndex] as int?;
+        final int? createMissingProductIndex =
+            args[ApiKeys.argCreateMissingProductIndex] as int?;
 
         return MaterialPageRoute(
             builder: (_) => AddSingleFoodProductScreen(
-              foodProductId: productId,
-              createMissingProductIndex: createMissingProductIndex
-            ),
-            settings: RouteSettings(name: getAddSingleProductScreenRoute())
-        );
+                foodProductId: productId,
+                createMissingProductIndex: createMissingProductIndex),
+            settings: RouteSettings(name: getAddSingleProductScreenRoute()));
 
       case RouteConstant.productSelectionScreen:
         final args = settings.arguments as Map<String, dynamic>;
-        final GroceryNestedCategoryModel foodCategoryData = args[ApiKeys.argCategoryData] as GroceryNestedCategoryModel;
+        final GroceryNestedCategoryModel foodCategoryData =
+            args[ApiKeys.argCategoryData] as GroceryNestedCategoryModel;
         return MaterialPageRoute(
-            builder: (_) => FoodProductSelectionScreen(
-                foodCategoryData: foodCategoryData
-            ),
-            settings: RouteSettings(name: getProductSelectionScreenRoute())
-        );
+            builder: (_) =>
+                FoodProductSelectionScreen(foodCategoryData: foodCategoryData),
+            settings: RouteSettings(name: getProductSelectionScreenRoute()));
 
       case RouteConstant.productNestedCategoryWithInventoryScreen:
         final args = settings.arguments as Map<String, dynamic>;
-        final List<ProductCategoryWithInventoryModel> argProductCategoryWithInventory
-            = args[ApiKeys.argProductCategoryWithInventory] as List<ProductCategoryWithInventoryModel>;
-        final String argProductCatName = args[ApiKeys.argProductCatName] as String;
-        final String argProductCatKey = args[ApiKeys.argProductCatKey] as String;
+        final List<ProductCategoryWithInventoryModel>
+            argProductCategoryWithInventory =
+            args[ApiKeys.argProductCategoryWithInventory]
+                as List<ProductCategoryWithInventoryModel>;
+        final String argProductCatName =
+            args[ApiKeys.argProductCatName] as String;
+        final String argProductCatKey =
+            args[ApiKeys.argProductCatKey] as String;
         return MaterialPageRoute(
             builder: (_) => ProductNestedCategoryWithInventoryScreen(
-              argProductCategoryWithInventory: argProductCategoryWithInventory,
-              argProductCatKey: argProductCatKey,
-              argProductCatName: argProductCatName,
-            ),
-            settings: RouteSettings(name: getProductNestedCategoryWithInventoryScreenRoute())
-        );
+                  argProductCategoryWithInventory:
+                      argProductCategoryWithInventory,
+                  argProductCatKey: argProductCatKey,
+                  argProductCatName: argProductCatName,
+                ),
+            settings: RouteSettings(
+                name: getProductNestedCategoryWithInventoryScreenRoute()));
 
       case RouteConstant.myProductProductsScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final List<ProductNestedCategoryResponse> argProductCategories =
-            args[ApiKeys.argProductCategories] as List<ProductNestedCategoryResponse>;
+            args[ApiKeys.argProductCategories]
+                as List<ProductNestedCategoryResponse>;
         return MaterialPageRoute(
             builder: (_) => MyProductProductsScreen(
-              arrCategories: argProductCategories,
-            ),
+                  arrCategories: argProductCategories,
+                ),
             settings: RouteSettings(name: getMyProductProductsScreenRoute()));
 
       case RouteConstant.foodEntryAiScreen:
         final args = settings.arguments as Map<String, dynamic>;
-        final int? createMissingProductIndex = args[ApiKeys.argCreateMissingProductIndex] as int?;
+        final int? createMissingProductIndex =
+            args[ApiKeys.argCreateMissingProductIndex] as int?;
         return MaterialPageRoute(
             builder: (_) => FoodEntryAiScreen(
-                createMissingProductIndex: createMissingProductIndex
-            ),
-            settings: RouteSettings(name: getFoodEntryAiScreenRoute())
-        );
+                createMissingProductIndex: createMissingProductIndex),
+            settings: RouteSettings(name: getFoodEntryAiScreenRoute()));
 
-        case RouteConstant.foodAiDetailScreen:
+      case RouteConstant.foodAiDetailScreen:
         final args = settings.arguments as Map<String, dynamic>;
-        final FoodGenAiResModel foodGenAiResModel = args[ApiKeys.argFoodGenAiResModel] as FoodGenAiResModel;
-        final int? createMissingProductIndex = args[ApiKeys.argCreateMissingProductIndex] as int?;
+        final FoodGenAiResModel foodGenAiResModel =
+            args[ApiKeys.argFoodGenAiResModel] as FoodGenAiResModel;
+        final int? createMissingProductIndex =
+            args[ApiKeys.argCreateMissingProductIndex] as int?;
         return MaterialPageRoute(
             builder: (_) => FoodAiDetailScreen(
                 foodData: foodGenAiResModel,
-                createMissingProductIndex: createMissingProductIndex
-            ),
-            settings: RouteSettings(name: getFoodAiDetailScreenRoute())
-        );
+                createMissingProductIndex: createMissingProductIndex),
+            settings: RouteSettings(name: getFoodAiDetailScreenRoute()));
       case RouteConstant.foodCustomerListingScreen:
         final args = settings.arguments as Map<String, dynamic>;
-        final GroceryNestedCategoryModel foodCategoryData = args[ApiKeys.argCategoryData] as GroceryNestedCategoryModel;
+        final GroceryNestedCategoryModel foodCategoryData =
+            args[ApiKeys.argCategoryData] as GroceryNestedCategoryModel;
         final String? visitBusinessId = args[ApiKeys.argBusinessId] as String?;
         return MaterialPageRoute(
             builder: (_) => FoodCustomerListingScreen(
-                foodCategoryData: foodCategoryData,
-              visitBusinessId: visitBusinessId,
-            ),
-            settings: RouteSettings(name: getFoodCustomerListingScreenRoute())
-        );
+                  foodCategoryData: foodCategoryData,
+                  visitBusinessId: visitBusinessId,
+                ),
+            settings: RouteSettings(name: getFoodCustomerListingScreenRoute()));
 
       case RouteConstant.nearByRidersScreen:
         return MaterialPageRoute(
             builder: (_) => NearByRidersScreen(),
-            settings: RouteSettings(name: getNearByRidersScreenRoute())
-        );
-
+            settings: RouteSettings(name: getNearByRidersScreenRoute()));
 
       case '/CallRoomScreen':
       case RouteConstant.OutgoingCallScreen:
       case RouteConstant.IncomingCallScreen:
+      case RouteConstant.IncomingRiderOrderScreen:
         return MaterialPageRoute(
           builder: (_) => const CallActivityRoomScreen(),
           settings: RouteSettings(name: settings.name),
         );
-
+      // break;
       // case RouteConstant.CallListScreen:
       //   return MaterialPageRoute(
       //     builder: (_) => const CallListScreen(),
