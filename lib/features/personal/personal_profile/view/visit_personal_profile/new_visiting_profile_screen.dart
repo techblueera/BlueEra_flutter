@@ -76,7 +76,7 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
     if (widget.isScreenName == AppConstants.deepLinkScreen) {
       Get.offAllNamed(
         RouteHelper.getBottomNavigationBarScreenRoute(),
-        arguments: {ApiKeys.initialIndex: 0},
+        arguments: {ApiKeys.initialIndex: 1},
       );
     } else {
       Navigator.of(context).pop();

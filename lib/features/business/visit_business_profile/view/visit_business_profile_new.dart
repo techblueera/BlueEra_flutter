@@ -90,7 +90,7 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
     if (widget.isScreenFrom == AppConstants.deepLinkScreen) {
       Get.offAllNamed(
         RouteHelper.getBottomNavigationBarScreenRoute(),
-        arguments: {ApiKeys.initialIndex: 0},
+        arguments: {ApiKeys.initialIndex: 1},
       );
     } else {
       Get.back();
