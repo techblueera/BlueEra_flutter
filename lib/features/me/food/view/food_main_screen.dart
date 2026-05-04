@@ -291,6 +291,10 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
         padding: EdgeInsets.only(right: SizeConfig.size12),
         child: Center(
           child: Obx(() {
+            final status = contributionController.currentStatus.value;
+            if (status == Status.INITIAL || status == Status.LOADING) {
+              return _planPeekSkeleton();
+            }
             final hasPlan = contributionController.hasActiveRecharge.value;
             final data = contributionController.currentRecharge.value;
             if (hasPlan && data != null && data.isNotEmpty) {
@@ -301,6 +305,103 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
         ),
       ),
     ];
+  }
+
+  // ─────────────────────────────────────────────
+  // PEEK SKELETON — placeholder shown while /recharge/current is
+  // in-flight. Matches the active-plan peek silhouette so the slot
+  // doesn't jump height when the answer lands.
+  // ─────────────────────────────────────────────
+  Widget _planPeekSkeleton() {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x42001120),
+            blurRadius: 10,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: SizeConfig.size14,
+            vertical: SizeConfig.size12,
+          ),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Color(0xFFEFEAF7),
+                Color(0xFFE3D9F4),
+                Color(0xFFEFEAF7),
+              ],
+              stops: [0.0, 0.55, 1.0],
+            ),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: const Color(0xFF844CD5).withValues(alpha: 0.18),
+              width: 0.5,
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  _shimmerBox(width: 44, height: 44, radius: 22),
+                  SizedBox(width: SizeConfig.size10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _shimmerBox(width: 140, height: 14, radius: 4),
+                        const SizedBox(height: 6),
+                        _shimmerBox(width: 80, height: 10, radius: 4),
+                      ],
+                    ),
+                  ),
+                  SizedBox(width: SizeConfig.size8),
+                  const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor:
+                          AlwaysStoppedAnimation(Color(0xFF844CD5)),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: SizeConfig.size12),
+              _shimmerBox(width: double.infinity, height: 5, radius: 4),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _shimmerBox({
+    required double width,
+    required double height,
+    required double radius,
+  }) {
+    return Container(
+      width: width,
+      height: height,
+      decoration: BoxDecoration(
+        color: const Color(0xFFCDBCE9).withValues(alpha: 0.55),
+        borderRadius: BorderRadius.circular(radius),
+      ),
+    );
   }
 
   // ─────────────────────────────────────────────

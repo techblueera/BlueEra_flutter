@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/core/constants/shimmer_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/contribution/controller/contribution_controller.dart';
 import 'package:BlueEra/features/contribution/view/contribution_plans_view.dart';
@@ -41,13 +42,13 @@ class ContributionScreen extends StatelessWidget {
                     // Wait for /recharge/current to answer before
                     // deciding which surface to show — avoids a flash
                     // of plan cards before flipping to the current-plan
-                    // view, and vice versa.
+                    // view, and vice versa. While in flight, show a
+                    // shimmer skeleton sized to the membership layout
+                    // so the surface doesn't pop.
                     final status = controller.currentStatus.value;
                     if (status == Status.INITIAL ||
                         status == Status.LOADING) {
-                      return const Center(
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      );
+                      return const _CurrentPlanShimmer();
                     }
                     if (controller.hasActiveRecharge.value) {
                       return _CurrentPlanView(controller: controller);
@@ -61,6 +62,125 @@ class ContributionScreen extends StatelessWidget {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Loading skeleton shown while `/recharge/current` is in flight —
+/// silhouettes the four-card membership layout (hero · perks gauge ·
+/// included · receipt) so the surface holds its shape instead of
+/// popping when the answer lands. Uses the shared `Shimmer.fromColors`
+/// helper so the sweep cadence matches the rest of the app.
+class _CurrentPlanShimmer extends StatelessWidget {
+  const _CurrentPlanShimmer();
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      physics: const NeverScrollableScrollPhysics(),
+      padding: EdgeInsets.fromLTRB(
+        SizeConfig.size12,
+        SizeConfig.size12,
+        SizeConfig.size12,
+        SizeConfig.size40,
+      ),
+      child: buildLoadingShimmer(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Hero card silhouette — tall block matching the aurora
+            // membership card.
+            shimmerContainer(height: 200, radius: 20),
+            SizedBox(height: SizeConfig.size14),
+            // Perks gauge silhouette — header row, big number, bar,
+            // foot note. Stacked inside a single rounded container.
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      shimmerContainer(
+                          width: 22, height: 22, radius: 11),
+                      const SizedBox(width: 8),
+                      shimmerContainer(width: 130, height: 10),
+                      const Spacer(),
+                      shimmerContainer(width: 44, height: 18, radius: 12),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  shimmerContainer(width: 180, height: 28, radius: 6),
+                  const SizedBox(height: 14),
+                  shimmerContainer(height: 12, radius: 20),
+                  const SizedBox(height: 12),
+                  shimmerContainer(width: 200, height: 10),
+                ],
+              ),
+            ),
+            SizedBox(height: SizeConfig.size12),
+            // Included card silhouette — header row, three perk rows.
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      shimmerContainer(
+                          width: 22, height: 22, radius: 11),
+                      const SizedBox(width: 8),
+                      shimmerContainer(width: 110, height: 12),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                  ...List.generate(
+                    3,
+                    (_) => Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: Row(
+                        children: [
+                          shimmerContainer(
+                              width: 20, height: 20, radius: 10),
+                          const SizedBox(width: 10),
+                          Expanded(
+                              child: shimmerContainer(height: 12)),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(height: SizeConfig.size12),
+            // Receipt card silhouette — single collapsed row.
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Row(
+                children: [
+                  shimmerContainer(width: 22, height: 22, radius: 11),
+                  const SizedBox(width: 10),
+                  shimmerContainer(width: 80, height: 12),
+                  const Spacer(),
+                  shimmerContainer(width: 22, height: 22, radius: 11),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );

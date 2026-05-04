@@ -165,7 +165,7 @@ class BottomNavigationBarWidget extends StatelessWidget {
                       ),
                       _buildNavItem(
                         index: 3,
-                        iconPath: AppIconAssets.cartIcon,
+                        iconPath: AppIconAssets.socialNetworkIcon,
                         isSelected: currentIndex == 3,
                         label: AppStrings.social.tr,
                         showBadge: chatNotificationCount > 0,

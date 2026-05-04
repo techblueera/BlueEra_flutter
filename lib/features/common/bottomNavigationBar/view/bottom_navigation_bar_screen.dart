@@ -584,7 +584,8 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     } else if (businessTypeGlobal.toUpperCase() == BusinessType.Service.name.toUpperCase()) {
       return const OthersMain();
     }  else if (businessTypeGlobal.toUpperCase() == BusinessType.Manufacturing.name.toUpperCase()) {
-      return const ManufactureMain();
+      // return const ManufactureMain();
+      return const InventoryScreen(fromBottomNavBar: true);
     } else if (_isSpecificServiceAutomotive()) {
       return const OthersMain();
     }  else if (_isSpecificProductAutomotive()) {
