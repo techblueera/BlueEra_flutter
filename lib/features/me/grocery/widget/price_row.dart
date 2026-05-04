@@ -6,17 +6,18 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 class PriceRow extends StatelessWidget {
   final String sellingPrice;
   final String mrp;
-  final String discount;
+  final String? discount;
 
   const PriceRow({
     super.key,
     required this.sellingPrice,
     required this.mrp,
-    required this.discount,
+    this.discount,
   });
 
   @override
   Widget build(BuildContext context) {
+    final showDiscount = (discount ?? '').isNotEmpty;
     return FittedBox(
       fit: BoxFit.scaleDown,
       alignment: Alignment.centerLeft, // Ensures it stays left-aligned when scaling
@@ -44,10 +45,11 @@ class PriceRow extends StatelessWidget {
             decorationColor: AppColors.secondaryTextColor,
           ),
 
-          const SizedBox(width: 8.0),
-
-          // --- Discount Badge ---
-          DiscountBadge(discountText: discount),
+          if (showDiscount) ...[
+            const SizedBox(width: 8.0),
+            // --- Discount Badge ---
+            DiscountBadge(discountText: discount!),
+          ],
         ],
       ),
     );

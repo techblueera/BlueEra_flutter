@@ -27,6 +27,14 @@ class ContributionController extends GetxController {
   final Rx<Status> plansStatus = Status.INITIAL.obs;
   final RxString plansError = ''.obs;
 
+  /// Recharge environment surfaced by `GET /recharge/plans` — typically
+  /// `'test'` or `'live'`. Empty until the first successful fetch. UI
+  /// surfaces (the contribution screen header) display a "TEST MODE"
+  /// badge while this is `'test'` so the merchant knows real money
+  /// isn't being charged.
+  final RxString mode = ''.obs;
+  bool get isTestMode => mode.value.toLowerCase() == 'test';
+
   // ── Purchase flow state ──────────────────────────────────────
   final RxBool isPurchasing = false.obs;
   final Rxn<RechargePlan> activePlan = Rxn<RechargePlan>();
@@ -39,6 +47,12 @@ class ContributionController extends GetxController {
   /// peek sheet on the Me tab) should treat `INITIAL`/`LOADING` as
   /// "don't decide yet" to avoid flicker before the answer lands.
   final Rx<Status> currentStatus = Status.INITIAL.obs;
+  /// Raw payload returned by `GET /recharge/current` when an active
+  /// recharge exists. Stored as a map so the contribution screen can
+  /// surface plan name / amount / validity / expiry without us having
+  /// to hard-code a parser before the backend shape is final.
+  final Rxn<Map<String, dynamic>> currentRecharge =
+      Rxn<Map<String, dynamic>>();
 
   /// Resolved bucket sent to `GET /recharge/plans?entity_type=...`.
   /// Defaults to whatever [resolveEntityType] returns for the current
@@ -117,6 +131,7 @@ class ContributionController extends GetxController {
   void onInit() {
     super.onInit();
     fetchPlans();
+    fetchCurrent();
   }
 
   @override
@@ -135,7 +150,12 @@ class ContributionController extends GetxController {
     plansError.value = '';
     final ResponseModel res = await _repo.fetchPlans(entityType: this.entityType);
     if (res.statusCode == 200 && res.response?.data != null) {
-      final raw = res.response!.data['data'];
+      final body = res.response!.data;
+      // Capture the recharge mode flag the backend sends alongside the
+      // plan list so the UI can surface a "TEST MODE" badge.
+      final rawMode = body is Map<String, dynamic> ? body['mode'] : null;
+      mode.value = rawMode?.toString() ?? '';
+      final raw = body['data'];
       if (raw is List) {
         plans.assignAll(
           raw
@@ -243,16 +263,20 @@ class ContributionController extends GetxController {
     currentStatus.value = Status.LOADING;
     final ResponseModel res = await _repo.fetchCurrent();
     if (res.statusCode == 200 && res.response?.data?['data'] != null) {
+      final data = res.response!.data['data'];
+      currentRecharge.value =
+          data is Map<String, dynamic> ? data : <String, dynamic>{};
       hasActiveRecharge.value = true;
       currentStatus.value = Status.COMPLETE;
     } else if (res.statusCode == 404) {
       // 404 = no active recharge — that's a successful "answer", not an error.
+      currentRecharge.value = null;
       hasActiveRecharge.value = false;
       currentStatus.value = Status.COMPLETE;
     } else {
+      currentRecharge.value = null;
       hasActiveRecharge.value = false;
       currentStatus.value = Status.ERROR;
-
     }
   }
 }

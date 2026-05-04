@@ -37,7 +37,6 @@ import 'package:BlueEra/features/personal/personal_profile/view/self_employed/vi
 import 'package:BlueEra/features/me/product/controller/inventory_controller.dart';
 import 'package:BlueEra/features/me/product/view/product/inventory_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/personal_profile_setup_new_screen.dart';
-import 'package:BlueEra/features/contribution/controller/contribution_controller.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -81,8 +80,6 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   final inventoryController = Get.put(InventoryController());
   final orderController = getOrPut(() => DeliverPartnerOrdersController());
   final dialogService = Get.put(DialogService());
-  final ContributionController _contribCtrl =
-      getOrPut(() => ContributionController());
 
   void handleRejectOrder(String orderId) {
     orderController.updateOrderStatusFromPialot(
@@ -124,18 +121,6 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     _initializeSocketConnections();
     _initializeChatMediaFolders();
     checkByRiderCall();
-    // Kick off /recharge/current AND /recharge/plans up front so the
-    // contribution peek-sheet has a real answer + a populated card list
-    // before the Me tab renders. We can't rely solely on the
-    // controller's onInit (it only runs on first registration; hot
-    // reload reuses the existing instance and skips it) or on the
-    // view's initState (the sheet may be hidden by the gating until
-    // /recharge/current resolves). Calling them here is the only
-    // guarantee. Skipped for guests — they don't see the sheet anyway.
-    if (!isGuestUser()) {
-      _contribCtrl.fetchCurrent();
-      _contribCtrl.fetchPlans();
-    }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _handlePostFrameInitialization();
       _maybePromptGuestToCreateProfile();
@@ -464,9 +449,6 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
                         showShadow: true,
                         onTap: (index) async {
                           // Tabs: 0=Me, 1=Discover, 2=Connect, 3=Order.
-                          if (index == 0 && !isGuestUser()) {
-                            _contribCtrl.fetchCurrent();
-                          }
 
                           /// Me (0) and Discover (1) need location permission.
                           if (index == 0 || index == 1) {

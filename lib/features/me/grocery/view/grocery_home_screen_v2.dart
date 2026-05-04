@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'dart:ui';
-
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -17,10 +16,12 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/multipart_image_service.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
+import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
 import 'package:BlueEra/features/business/widgets/business_contact_map_card.dart';
 import 'package:BlueEra/features/business/widgets/business_description_card.dart';
 import 'package:BlueEra/features/business/widgets/business_qrcode_widget.dart';
 import 'package:BlueEra/features/business/widgets/business_share_banner.dart';
+import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/common_business_live_photo.dart';
 import 'package:BlueEra/features/chat/view/add_symbol/add_symbol_screen.dart';
 import 'package:BlueEra/features/common/Discover/model/service_model_response.dart';
@@ -29,6 +30,7 @@ import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_pictur
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
+import 'package:BlueEra/features/contribution/controller/contribution_controller.dart';
 import 'package:BlueEra/features/contribution/view/contribution_screen.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_business_products_model.dart';
@@ -42,7 +44,6 @@ import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:BlueEra/features/me/medical_new/view/medical_statistics_screen.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
-import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/post_via_dialog.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -68,6 +69,7 @@ class GroceryHomeScreenV2 extends StatefulWidget {
 class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
   bool _isGoLive = false;
   int _selectedTab = 1;
+  bool _showStickyTabs = false;
 
   late final GroceryController _groceryController;
   final _businessController =
@@ -100,37 +102,104 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
   // ─────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
+    final topInset = MediaQuery.of(context).padding.top;
+    // Approximate top-bar height; the sticky tabs overlay engages
+    // once the user has scrolled past the original (in-flow) tabs.
+    final topBarHeight = topInset + 56;
     return Scaffold(
       body: SafeArea(
         top: false,
         child: Stack(
           children: [
             _buildPatternBackground(),
-            Column(
-              children: [
-                _buildTopBar(),
-                // _buildProfileRow(),
-                SizedBox(height: SizeConfig.size10),
-                _buildTabsCard(),
-                SizedBox(height: SizeConfig.size10),
-                Expanded(
-                  child: RefreshIndicator(
-                    onRefresh: _refresh,
-                    child: SingleChildScrollView(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      padding: EdgeInsets.only(
-                        left: 20,
-                        bottom: kBottomNavigationBarHeight + 30,
+            NotificationListener<ScrollNotification>(
+              onNotification: (n) {
+                if (n.metrics.axis != Axis.vertical) return false;
+                final shouldShow = n.metrics.pixels > topBarHeight;
+                if (shouldShow != _showStickyTabs) {
+                  setState(() => _showStickyTabs = shouldShow);
+                }
+                return false;
+              },
+              child: RefreshIndicator(
+                onRefresh: _refresh,
+                child: CustomScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  slivers: [
+                    // Top bar — slides out of view on scroll-down,
+                    // snaps back on scroll-up (floating + snap).
+                    SliverAppBar(
+                      primary: false,
+                      pinned: false,
+                      floating: true,
+                      snap: true,
+                      backgroundColor: Colors.transparent,
+                      elevation: 0,
+                      scrolledUnderElevation: 0,
+                      surfaceTintColor: Colors.transparent,
+                      automaticallyImplyLeading: false,
+                      toolbarHeight: topBarHeight,
+                      flexibleSpace: _buildTopBar(),
+                    ),
+                    // In-flow tabs (no padding around them; let it sit
+                    // tight under the top bar). When the user scrolls
+                    // past, a separate overlay sticks them to the top.
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        child: _buildTabsCard(),
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: _buildTabContent(),
+                    ),
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: EdgeInsets.only(
+                          left: 20,
+                          top: SizeConfig.size10,
+                          bottom: kBottomNavigationBarHeight + 30,
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: _buildTabContent(),
+                        ),
                       ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            // Sticky overlay — only shown after the in-flow tabs have
+            // scrolled past. Padded for the status bar so it doesn't
+            // sit under the notch.
+            if (_showStickyTabs)
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                child: ClipRect(
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                    child: Container(
+                      padding: EdgeInsets.only(top: topInset + 10, bottom: 10),
+                      decoration: const BoxDecoration(
+                        color: Color(0x66FFFFFF),
+                        border: Border(
+                          bottom:
+                              BorderSide(color: Colors.white, width: 1),
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Color(0x42001120),
+                            blurRadius: 16,
+                            offset: Offset(0, 4),
+                            blurStyle: BlurStyle.outer,
+                          ),
+                        ],
+                      ),
+                      child: _buildTabsCard(),
                     ),
                   ),
                 ),
-              ],
-            ),
+              ),
           ],
         ),
       ),
@@ -138,31 +207,102 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
   }
 
   // ─────────────────────────────────────────────
-  // TABS — segmented-control look per assets/img_1.png: a soft grey
-  // capsule wraps the [HorizontalTabSelector]; selected tab is solid
-  // primaryColor + white label, unselected tabs are white + dark
-  // label. Centered horizontally on the screen.
+  // TABS — glass-pill container with a smoothly-sliding gradient
+  // indicator that morphs between tabs. Selected tab text fades from
+  // secondary grey → white and from medium → bold weight in a single
+  // continuous transition. The indicator carries the brand-colored
+  // glow + a 1-px inner top highlight for a "lifted glass" feel.
+  // ─────────────────────────────────────────────
+  // ─────────────────────────────────────────────
+  // TABS — solid white card with high-contrast labels and an animated
+  // underline that glides under the selected tab. The underline carries
+  // a small brand-colored glow so the selection reads at a glance even
+  // on busy backgrounds.
   // ─────────────────────────────────────────────
   Widget _buildTabsCard() {
-    return Center(
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 14),
       child: Container(
+        height: 48,
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(50),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: const Color(0xFFE6E8EE), width: 1),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x1A001120),
+              blurRadius: 16,
+              offset: Offset(0, 6),
+            ),
+          ],
         ),
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-        child: HorizontalTabSelector<String>(
-          tabs: _tabs,
-          selectedIndex: _selectedTab,
-          labelBuilder: (s) => s,
-          onTabSelected: (index, _) => setState(() => _selectedTab = index),
-          unSelectedBackgroundColor: Colors.white,
-          unSelectedBorderColor: AppColors.borderBox,
-          horizontalPadding: 8,
-          verticalPadding: 6,
-          horizontalMargin: 0,
-          verticalMargin: 0,
-          tabBorderRadius: 30,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final tabWidth = constraints.maxWidth / _tabs.length;
+            const indicatorWidth = 28.0;
+            final indicatorLeft =
+                tabWidth * _selectedTab + (tabWidth - indicatorWidth) / 2;
+            return Stack(
+              children: [
+                // Tap rows + animated labels. Selected tab swaps to
+                // primaryColor + bold; unselected stays mainTextColor +
+                // medium so the strip reads clearly when nothing is hot.
+                Row(
+                  children: List.generate(_tabs.length, (i) {
+                    final selected = _selectedTab == i;
+                    return Expanded(
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () => setState(() => _selectedTab = i),
+                        child: Center(
+                          child: AnimatedDefaultTextStyle(
+                            duration: const Duration(milliseconds: 220),
+                            curve: Curves.easeOutCubic,
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: selected
+                                  ? FontWeight.w700
+                                  : FontWeight.w500,
+                              letterSpacing: 0.2,
+                              color: selected
+                                  ? AppColors.primaryColor
+                                  : AppColors.mainTextColor,
+                            ),
+                            child: Text(_tabs[i]),
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
+                ),
+                // Animated underline — slides between tabs. Soft
+                // brand-color glow gives the indicator a touch of
+                // emphasis without dominating the card.
+                AnimatedPositioned(
+                  duration: const Duration(milliseconds: 280),
+                  curve: Curves.easeOutCubic,
+                  left: indicatorLeft,
+                  bottom: 6,
+                  child: Container(
+                    width: indicatorWidth,
+                    height: 3,
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryColor,
+                      borderRadius: BorderRadius.circular(3),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primaryColor
+                              .withValues(alpha: 0.4),
+                          blurRadius: 6,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
         ),
       ),
     );
@@ -190,16 +330,35 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
   }
 
   // ─────────────────────────────────────────────
-  // ORDER TAB — "Contribute now" CTA banner stacked above the legacy
-  // [MyGroceryOrders] list. The banner is horizontally centered on
-  // the screen and content-sized (shrink-wrapped) per the spec.
+  // ORDER TAB — top slot is reactive to the contribution status:
+  //   • Active recharge present → premium "membership peek" card with
+  //     plan name, perks-remaining strip, and a forward chevron that
+  //     pushes ContributionScreen.
+  //   • Otherwise → the lavender "Contribute now" CTA.
+  // Below the slot sits the legacy [MyGroceryOrders] list region.
   // ─────────────────────────────────────────────
   List<Widget> _buildOrderTab() {
+    // Lazy-register the contribution controller — its `onInit` fires
+    // /recharge/plans + /recharge/current. Bound here (only when the
+    // Order tab actually builds) so the APIs don't run on every Me-tab
+    // landing or on bottom-nav startup. Subsequent rebuilds reuse the
+    // existing instance, so the calls fire at most once per session.
+    final contributionController = getOrPut(() => ContributionController());
+
     final screenHeight = MediaQuery.of(context).size.height;
     return [
       Padding(
         padding: EdgeInsets.only(right: SizeConfig.size12),
-        child: Center(child: _contributeNowBanner()),
+        child: Center(
+          child: Obx(() {
+            final hasPlan = contributionController.hasActiveRecharge.value;
+            final data = contributionController.currentRecharge.value;
+            if (hasPlan && data != null && data.isNotEmpty) {
+              return _activePlanPeekCard(data);
+            }
+            return _contributeNowBanner();
+          }),
+        ),
       ),
       SizedBox(height: SizeConfig.paddingM),
       SizedBox(
@@ -207,6 +366,246 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
         child: const MyGroceryOrders(),
       ),
     ];
+  }
+
+  // ─────────────────────────────────────────────
+  // ACTIVE PLAN PEEK — compact aurora card mirroring the hero on
+  // ContributionScreen so recognition is instant. Gold tier badge on
+  // the left, plan name + ACTIVE pill on top, perks-remaining strip
+  // on the bottom, and a glass forward chevron on the right. Tapping
+  // anywhere pushes ContributionScreen for the full membership view.
+  // ─────────────────────────────────────────────
+  Widget _activePlanPeekCard(Map<String, dynamic> data) {
+    final plan = (data['rechargePlanId'] is Map<String, dynamic>)
+        ? data['rechargePlanId'] as Map<String, dynamic>
+        : <String, dynamic>{};
+
+    final name = (plan['name'] ?? 'Active Contribution').toString();
+    final tier = (plan['tier'] ?? '').toString();
+    final perkType = (plan['perk_type'] ?? '').toString();
+    final totalPerks = _asInt(data['total_perks']);
+    final perksRemaining = _asInt(data['perks_remaining']);
+    final progress = totalPerks > 0 ? perksRemaining / totalPerks : 0.0;
+
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => Get.to(() => const ContributionScreen()),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x42001120),
+              blurRadius: 10,
+              offset: Offset(0, 2),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: SizeConfig.size14,
+              vertical: SizeConfig.size12,
+            ),
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Color(0xFF1F1B5C),
+                  Color(0xFF5E2BA8),
+                  Color(0xFFB2308C),
+                ],
+                stops: [0.0, 0.55, 1.0],
+              ),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            Color(0xFFFCD34D),
+                            Color(0xFFF59E0B),
+                            Color(0xFFB7781F),
+                          ],
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Color(0x66FCD34D),
+                            blurRadius: 14,
+                            offset: Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: const Icon(
+                        Icons.workspace_premium_rounded,
+                        size: 24,
+                        color: Color(0xFF6B3A00),
+                      ),
+                    ),
+                    SizedBox(width: SizeConfig.size10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Row(
+                            children: [
+                              Flexible(
+                                child: CustomText(
+                                  name,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w800,
+                                  color: Colors.white,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              SizedBox(width: SizeConfig.size6),
+                              _activePill(),
+                            ],
+                          ),
+                          const SizedBox(height: 2),
+                          CustomText(
+                            tier.isNotEmpty
+                                ? '${tier.toUpperCase()} MEMBER'
+                                : 'MEMBER',
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                            color: const Color(0xFFE9D9FF),
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(width: SizeConfig.size8),
+                    Container(
+                      width: 34,
+                      height: 34,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white.withValues(alpha: 0.18),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.5),
+                          width: 1,
+                        ),
+                      ),
+                      child: const Icon(
+                        Icons.arrow_forward_rounded,
+                        size: 18,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+                if (totalPerks > 0) ...[
+                  SizedBox(height: SizeConfig.size12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      CustomText(
+                        perkType.isEmpty
+                            ? 'Perks remaining'
+                            : '${perkType[0].toUpperCase()}${perkType.substring(1)} remaining',
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFFE9D9FF),
+                      ),
+                      CustomText(
+                        '$perksRemaining of $totalPerks',
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                        color: const Color(0xFFFCD34D),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: SizeConfig.size6),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: LinearProgressIndicator(
+                      value: progress.clamp(0.0, 1.0),
+                      minHeight: 5,
+                      backgroundColor: Colors.white.withValues(alpha: 0.18),
+                      valueColor: const AlwaysStoppedAnimation(
+                        Color(0xFFFCD34D),
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _activePill() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xFF047857),
+            Color(0xFF065F46),
+            Color(0xFF064E3B),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: const Color(0xFF34D399).withValues(alpha: 0.5),
+          width: 0.5,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 5,
+            height: 5,
+            decoration: const BoxDecoration(
+              color: Color(0xFF34D399),
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: Color(0xFF34D399),
+                  blurRadius: 4,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 4),
+          const Text(
+            'ACTIVE',
+            style: TextStyle(
+              fontSize: 9,
+              fontWeight: FontWeight.w800,
+              color: Colors.white,
+              letterSpacing: 0.6,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  int _asInt(dynamic v) {
+    if (v is int) return v;
+    if (v is num) return v.toInt();
+    return int.tryParse(v?.toString() ?? '') ?? 0;
   }
 
   // ─────────────────────────────────────────────
@@ -408,7 +807,8 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
       alignment: Alignment.center,
       child: Container(
         padding: EdgeInsets.symmetric(
-            horizontal: SizeConfig.size12, vertical: SizeConfig.size8),
+            horizontal: SizeConfig.size12,
+            vertical: SizeConfig.size8),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(10),
@@ -765,33 +1165,8 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
   // ─────────────────────────────────────────────
   List<Widget> _buildProductsTab() {
     return [
-      Padding(
-        padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
-        child: Align(
-          alignment: Alignment.centerRight,
-          child: ElevatedButton.icon(
-            onPressed: _onAddMoreProducts,
-            icon: const Icon(Icons.add, size: 18, color: Colors.white),
-            label: CustomText(
-              AppStrings.addGrocery.tr,
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-              color: Colors.white,
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primaryColor,
-              padding: EdgeInsets.symmetric(
-                  horizontal: SizeConfig.size16, vertical: SizeConfig.size8),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20)),
-              elevation: 0,
-            ),
-          ),
-        ),
-      ),
-      SizedBox(height: SizeConfig.size12),
       _buildTopSellingSection(),
-      SizedBox(height: SizeConfig.size12),
+      SizedBox(height: SizeConfig.size16),
       _buildCategoryWithInventorySection(),
       SizedBox(height: SizeConfig.size16),
     ];
@@ -1378,9 +1753,12 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
   }
 
   // ─────────────────────────────────────────────
-  // TOP-SELLING PRODUCTS (overview) — mirrors the card style used in
-  // [MyGroceryStoreScreen] so the v2 home and the legacy store look
-  // identical. Image-on-top, name, veg indicator + variant chip, PriceRow.
+  // TOP-SELLING PRODUCTS — editorial-style horizontal scroller. Each
+  // tile is a ranked chart entry with a brand-tinted image hero, a
+  // small "#01" rank pill, the green-gradient discount sticker, a
+  // bold name, and a prominent price. A 3-px brand-blue gradient
+  // ribbon caps the bottom edge so the section reads as one curated
+  // shelf. Header uses the page's vertical-bar pattern + chip CTA.
   // ─────────────────────────────────────────────
   Widget _buildTopSellingSection() {
     return Obx(() {
@@ -1390,283 +1768,657 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
       final products = _groceryController.groceryBusinessProductsList;
       if (!isLoading && products.isEmpty) return const SizedBox.shrink();
 
-      return Padding(
-        padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
-        child: Container(
-          padding: EdgeInsets.all(SizeConfig.size10),
-          decoration: BoxDecoration(
-            color: AppColors.white,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0x4D000000),
-                blurRadius: 16,
-                offset: Offset(0, 2),
-              ),
-            ],
+      final previewItems = products.length >
+              GroceryController.businessProductsPreviewLimit
+          ? products
+              .take(GroceryController.businessProductsPreviewLimit)
+              .toList()
+          : products.toList();
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
+            child: _topSellingSectionHeader(),
           ),
-          child: Column(
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: CustomText(
-                      AppStrings.groceryViewTopSellingProduct.tr,
-                      fontSize: SizeConfig.large,
-                      color: AppColors.mainTextColor,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  SizedBox(width: SizeConfig.size8),
-                  InkWell(
-                    onTap: () =>
-                        Get.to(() => AllTopSellingGroceryProductsScreen(
-                          userId: widget.businessId,
-                          otherStore: false,
-                        )),
-                    child: CustomText(
-                      AppStrings.groceryViewViewAll.tr,
-                      fontSize: SizeConfig.medium,
-                      color: AppColors.primaryColor,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: SizeConfig.paddingXSL),
-              SizedBox(
-                height: SizeConfig.size230,
-                child: isLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : Builder(builder: (context) {
-                  final previewItems = products.length >
-                      GroceryController.businessProductsPreviewLimit
-                      ? products
-                      .take(GroceryController
-                      .businessProductsPreviewLimit)
-                      .toList()
-                      : products.toList();
-                  return ListView.builder(
+          SizedBox(height: SizeConfig.size12),
+          SizedBox(
+            height: 290,
+            child: isLoading
+                ? const Center(
+                    child: CircularProgressIndicator(strokeWidth: 2))
+                : ListView.builder(
                     itemCount: previewItems.length,
                     scrollDirection: Axis.horizontal,
+                    padding:
+                        EdgeInsets.symmetric(horizontal: SizeConfig.size12),
                     itemBuilder: (context, index) =>
-                        _productCard(previewItems[index]),
-                  );
-                }),
-              ),
-            ],
+                        _productCard(previewItems[index], index + 1),
+                  ),
           ),
-        ),
+        ],
       );
     });
   }
 
-  Widget _productCard(BusinessProductData item) {
-    final imageUrl = item.product?.images?.firstOrNull?.url ?? '';
-    final hasImage = imageUrl.isNotEmpty;
-
-    return Container(
-      width: SizeConfig.size160,
-      margin: const EdgeInsets.only(right: 8.0),
-      decoration: BoxDecoration(
-        border: Border.all(color: AppColors.greyE5),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(height: SizeConfig.size4),
-          Expanded(
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(10.0),
-              child: SizedBox(
-                width: double.infinity,
-                child: hasImage
-                    ? CachedNetworkImage(
-                  imageUrl: imageUrl,
-                  fit: BoxFit.cover,
-                  placeholder: (context, url) => Container(
-                    color: Colors.grey.shade200,
-                    child: const Center(
-                      child:
-                      CircularProgressIndicator(strokeWidth: 2),
-                    ),
-                  ),
-                  errorWidget: (context, url, error) => LocalAssets(
-                    imagePath: AppIconAssets.place_holder_image,
-                    boxFix: BoxFit.cover,
-                  ),
-                )
-                    : LocalAssets(
-                  imagePath: AppIconAssets.place_holder_image,
-                  boxFix: BoxFit.cover,
-                ),
+  Widget _topSellingSectionHeader() {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Container(
+          width: 3,
+          height: 26,
+          decoration: BoxDecoration(
+            color: AppColors.primaryColor,
+            borderRadius: BorderRadius.circular(2),
+          ),
+        ),
+        SizedBox(width: SizeConfig.size10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CustomText(
+                AppStrings.groceryViewTopSellingProduct.tr,
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+                color: AppColors.mainTextColor,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
-            ),
+              const SizedBox(height: 2),
+              CustomText(
+                'Hand-picked best sellers',
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+                color: AppColors.secondaryTextColor,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 6.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CustomText(
-                  '${item.product?.name ?? ''}',
-                  fontSize: SizeConfig.small,
-                  maxLines: 2,
-                  color: AppColors.mainTextColor,
-                  overflow: TextOverflow.ellipsis,
-                  fontWeight: FontWeight.w600,
-                ),
-                SizedBox(height: SizeConfig.size6),
-                FittedBox(
-                  child: Row(
-                    children: [
-                      if (item.productVariant?.isVegetarian != null) ...[
-                        FoodTypeIndicator(
-                            isVegetarian:
-                            item.productVariant?.isVegetarian ?? false),
-                        SizedBox(width: SizeConfig.size6),
-                      ],
-                      Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(4),
-                          border: Border.all(
-                              width: 0.5, color: AppColors.greyE5),
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 2, vertical: 0.5),
-                        child: CustomText(
-                          '${item.productVariant?.variantName ?? ''}',
-                          fontSize: 11,
-                          color: Colors.grey,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(height: SizeConfig.size6),
-                PriceRow(
-                  sellingPrice:
-                  '${AppConstants.rupeeSymbol}${item.minSellingPrice ?? '-'}',
-                  mrp: '${AppConstants.rupeeSymbol}${item.minMrp ?? '-'}',
-                  discount: '${item.avgDiscount ?? 0}% OFF',
-                ),
-                SizedBox(height: SizeConfig.size4),
-              ],
-            ),
+        ),
+        SizedBox(width: SizeConfig.size8),
+        _viewAllCta(),
+      ],
+    );
+  }
+
+  // "View All" chip — label on the left, solid primary circular
+  // arrow badge on the right. Mirrors the chip language used by the
+  // category section's CTA on the opposite end.
+  Widget _viewAllCta() {
+    return GestureDetector(
+      onTap: () => Get.to(() => AllTopSellingGroceryProductsScreen(
+            userId: widget.businessId,
+            otherStore: false,
+          )),
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(12, 4, 4, 4),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(
+            color: AppColors.primaryColor.withValues(alpha: 0.25),
+            width: 1,
           ),
-        ],
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x42001120),
+              blurRadius: 10,
+              offset: Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CustomText(
+              AppStrings.groceryViewViewAll.tr,
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: AppColors.primaryColor,
+            ),
+            SizedBox(width: SizeConfig.size6),
+            Container(
+              width: 26,
+              height: 26,
+              decoration: BoxDecoration(
+                color: AppColors.primaryColor,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.arrow_forward_rounded,
+                  size: 16, color: Colors.white),
+            ),
+          ],
+        ),
       ),
     );
   }
 
+  // Editorial "ranked tile" for the top-selling shelf. Image hero is
+  // padded inside a brand-tinted gradient backdrop so product shots
+  // never crop awkwardly. A small "#NN" pill in the top-right marks
+  // the chart position; the green discount sticker sits opposite. The
+  // info zone uses a clear three-row hierarchy (chips → name → price)
+  // and the card is finished with a brand-blue gradient ribbon at
+  // the bottom edge to anchor the silhouette.
+  Widget _productCard(BusinessProductData item, int rank) {
+    final imageUrl = item.product?.images?.firstOrNull?.url ?? '';
+    final hasImage = imageUrl.isNotEmpty;
+    final discountPercent = (item.avgDiscount ?? 0).toInt();
+    final variantName = item.productVariant?.variantName ?? '';
+    final isVeg = item.productVariant?.isVegetarian;
+
+    return Container(
+      width: 168,
+      margin: const EdgeInsets.only(right: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE6E8EE), width: 1),
+        boxShadow: const [
+          // Grocery-flavoured shadow — soft green halo (matches the
+          // discount sticker palette) instead of the page's neutral
+          // navy shadow, so the shelf reads as "fresh / produce".
+          BoxShadow(
+            color: Color(0x3315B85A),
+            blurRadius: 10,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      clipBehavior: Clip.antiAlias,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Image hero — brand-tinted backdrop with the photo
+            // centered (BoxFit.contain so packaged products never
+            // crop). Discount sticker top-left, rank pill top-right.
+            AspectRatio(
+              aspectRatio: 1.05,
+              child: Stack(
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          AppColors.primaryColor.withValues(alpha: 0.10),
+                          AppColors.primaryColor.withValues(alpha: 0.04),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(14),
+                    child: SizedBox.expand(
+                      child: hasImage
+                          ? CachedNetworkImage(
+                              imageUrl: imageUrl,
+                              fit: BoxFit.contain,
+                              placeholder: (_, __) => const SizedBox.shrink(),
+                              errorWidget: (_, __, ___) => LocalAssets(
+                                imagePath: AppIconAssets.place_holder_image,
+                                boxFix: BoxFit.contain,
+                              ),
+                            )
+                          : LocalAssets(
+                              imagePath: AppIconAssets.place_holder_image,
+                              boxFix: BoxFit.contain,
+                            ),
+                    ),
+                  ),
+                  if (discountPercent > 0)
+                    Positioned(
+                      top: 0,
+                      left: 0,
+                      child: ClipRRect(
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(16),
+                          bottomRight: Radius.circular(12),
+                        ),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 6),
+                          decoration: const BoxDecoration(
+                            // Grocery palette — fresh-leaf →
+                            // deep-produce green pulled from AppColors
+                            // so the sticker visibly belongs to the
+                            // grocery section's brand language.
+                            gradient: LinearGradient(
+                              begin: Alignment.centerLeft,
+                              end: Alignment.centerRight,
+                              colors: [
+                                AppColors.greenLight,
+                                AppColors.green1A,
+                              ],
+                            ),
+                          ),
+                          child: CustomText(
+                            '$discountPercent% OFF',
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color:
+                              AppColors.primaryColor.withValues(alpha: 0.30),
+                          width: 1,
+                        ),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Color(0x14001120),
+                            blurRadius: 4,
+                            offset: Offset(0, 1),
+                          ),
+                        ],
+                      ),
+                      child: CustomText(
+                        '#${rank.toString().padLeft(2, '0')}',
+                        fontSize: 10,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.primaryColor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Info zone — chips row, name, price hierarchy.
+            Padding(
+              padding: const EdgeInsets.fromLTRB(10, 10, 10, 12),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (isVeg != null || variantName.isNotEmpty)
+                    Row(
+                      children: [
+                        if (isVeg != null) ...[
+                          FoodTypeIndicator(isVegetarian: isVeg, size: 6),
+                          const SizedBox(width: 6),
+                        ],
+                        if (variantName.isNotEmpty)
+                          Flexible(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: AppColors.primaryColor
+                                    .withValues(alpha: 0.08),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: CustomText(
+                                variantName,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.primaryColor,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  if (isVeg != null || variantName.isNotEmpty)
+                    const SizedBox(height: 8),
+                  CustomText(
+                    item.product?.name ?? '',
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.mainTextColor,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.baseline,
+                    textBaseline: TextBaseline.alphabetic,
+                    children: [
+                      CustomText(
+                        '${AppConstants.rupeeSymbol}${item.minSellingPrice ?? '-'}',
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.mainTextColor,
+                      ),
+                      const SizedBox(width: 6),
+                      Flexible(
+                        child: CustomText(
+                          '${AppConstants.rupeeSymbol}${item.minMrp ?? '-'}',
+                          fontSize: 11,
+                          fontWeight: FontWeight.w400,
+                          color: AppColors.secondaryTextColor,
+                          decoration: TextDecoration.lineThrough,
+                          decorationColor: AppColors.secondaryTextColor,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            // Brand-blue gradient ribbon — the subtle "section
+            // signature" that ties the shelf together.
+            Container(
+              height: 3,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                  colors: [
+                    AppColors.primaryColor.withValues(alpha: 0.55),
+                    AppColors.primaryColor,
+                    AppColors.primaryColor.withValues(alpha: 0.55),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+  }
+
   // ─────────────────────────────────────────────
-  // CATEGORIES WITH INVENTORY (overview) — mirrors the "Category" card
-  // used in [MyGroceryStoreScreen]. Tapping "Update Inventory" opens
-  // the super-category picker; tapping a card jumps to the nested
-  // category-with-inventory screen for that key.
+  // CATEGORIES WITH INVENTORY — header strip + two-tone storefront
+  // card grid. Same design language used in food's products tab:
+  // a vertical brand-accent bar with title + helper, a refined chip
+  // CTA on the right, and full-bleed photo cards below with a tinted
+  // hero zone and a crisp footer carrying the name + a brand chevron.
   // ─────────────────────────────────────────────
   Widget _buildCategoryWithInventorySection() {
     return Obx(() {
       final groceryCategoryList = List<GroceryCategoryWithInventoryModel>.from(
           _groceryController.groceryCategoryList);
 
-      return Padding(
-        padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
-        child: Container(
-          padding: EdgeInsets.all(SizeConfig.size10),
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
+            child: _categorySectionHeader(),
+          ),
+          SizedBox(height: SizeConfig.size16),
+          if (groceryCategoryList.isEmpty)
+            Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: SizeConfig.size12,
+                vertical: SizeConfig.size20,
+              ),
+              child: EmptyStateWidget(
+                message: AppStrings.groceryViewNoProductsYetCreate.tr,
+              ),
+            )
+          else
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final crossAxisCount = constraints.maxWidth > 600 ? 3 : 2;
+                return GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  padding: EdgeInsets.fromLTRB(
+                    SizeConfig.size12,
+                    SizeConfig.size4,
+                    SizeConfig.size12,
+                    0,
+                  ),
+                  itemCount: groceryCategoryList.length,
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: crossAxisCount,
+                    crossAxisSpacing: SizeConfig.size12,
+                    mainAxisSpacing: SizeConfig.size12,
+                    childAspectRatio: 1.0,
+                  ),
+                  itemBuilder: (_, i) => _groceryCategoryCard(
+                    groceryCategoryList[i],
+                    groceryCategoryList,
+                  ),
+                );
+              },
+            ),
+        ],
+      );
+    });
+  }
+
+  Widget _categorySectionHeader() {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Container(
+          width: 3,
+          height: 26,
           decoration: BoxDecoration(
-            color: AppColors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.grey.shade200),
+            color: AppColors.primaryColor,
+            borderRadius: BorderRadius.circular(2),
+          ),
+        ),
+        SizedBox(width: SizeConfig.size10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CustomText(
+                AppStrings.groceryViewCategory.tr,
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+                color: AppColors.mainTextColor,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 2),
+              CustomText(
+                'Tap a category to manage inventory',
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+                color: AppColors.secondaryTextColor,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
+        SizedBox(width: SizeConfig.size8),
+        _addGroceryCta(),
+      ],
+    );
+  }
+
+  // Refined CTA chip — solid primary circular `+` badge anchors a
+  // brand-outlined chip. Same shadow + border treatment as other
+  // section chips so the rhythm reads as a single design language.
+  Widget _addGroceryCta() {
+    return GestureDetector(
+      onTap: _onAddMoreProducts,
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(4, 4, 12, 4),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(
+            color: AppColors.primaryColor.withValues(alpha: 0.25),
+            width: 1,
+          ),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x42001120),
+              blurRadius: 10,
+              offset: Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 26,
+              height: 26,
+              decoration: BoxDecoration(
+                color: AppColors.primaryColor,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.add, size: 16, color: Colors.white),
+            ),
+            SizedBox(width: SizeConfig.size6),
+            CustomText(
+              AppStrings.addGrocery.tr,
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: AppColors.primaryColor,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Two-tone storefront card. Tinted hero zone with the full image
+  // (BoxFit.contain so nothing crops), crisp white footer with the
+  // name + a small filled brand-blue chevron. Single tap target —
+  // no separate "View Products" CTA — for a clean silhouette.
+  Widget _groceryCategoryCard(
+    GroceryCategoryWithInventoryModel item,
+    List<GroceryCategoryWithInventoryModel> all,
+  ) {
+    final image = item.image ?? '';
+    final hasImage = image.isNotEmpty;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => Get.toNamed(
+          RouteHelper.getGroceryNestedCategoryWithInventoryScreenRoute(),
+          arguments: {
+            ApiKeys.userId: widget.businessId,
+            ApiKeys.argGroceryCategoryWithInventory: all,
+            ApiKeys.argArrGroceryCatKey: item.key,
+            ApiKeys.argArrGroceryCatName: item.name,
+          },
+        ),
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFFE6E8EE), width: 1),
             boxShadow: const [
               BoxShadow(
-                color: Color(0x4D000000),
-                blurRadius: 16,
+                color: Color(0x42001120),
+                blurRadius: 10,
                 offset: Offset(0, 2),
               ),
             ],
           ),
+          clipBehavior: Clip.antiAlias,
           child: Column(
             children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: CustomText(
-                      AppStrings.groceryViewCategory.tr,
-                      fontSize: SizeConfig.large,
-                      color: AppColors.mainTextColor,
-                      fontWeight: FontWeight.w600,
+              Expanded(
+                flex: 7,
+                child: Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        AppColors.primaryColor.withValues(alpha: 0.10),
+                        AppColors.primaryColor.withValues(alpha: 0.04),
+                      ],
                     ),
                   ),
-                  SizedBox(width: SizeConfig.size8),
-                  InkWell(
-                    onTap: () async {
-                      await Get.toNamed(
-                        RouteHelper.getGrocerySuperCategoryScreenRoute(),
-                        arguments: {ApiKeys.argBulkUpload: false},
-                      );
-                      if (_groceryController.groceryDataNeedsRefresh) {
-                        _groceryController.groceryDataNeedsRefresh = false;
-                        _groceryController.fetchAllGroceryData(
-                            widget.businessId,
-                            otherStore: false);
-                      }
-                    },
-                    child: CustomText(
-                      AppStrings.groceryViewUpdateInventory.tr,
-                      fontSize: SizeConfig.medium,
-                      color: AppColors.primaryColor,
-                      fontWeight: FontWeight.w600,
+                  child: Padding(
+                    padding: const EdgeInsets.all(8),
+                    child: SizedBox.expand(
+                      child: !hasImage
+                          ? LocalAssets(
+                              imagePath: AppIconAssets.place_holder_image,
+                              boxFix: BoxFit.contain,
+                            )
+                          : isNetworkImage(image)
+                              ? CachedNetworkImage(
+                                  imageUrl: image,
+                                  fit: BoxFit.contain,
+                                  placeholder: (_, __) =>
+                                      const SizedBox.shrink(),
+                                  errorWidget: (_, __, ___) => Icon(
+                                    Icons.broken_image,
+                                    size: 28,
+                                    color: Colors.grey,
+                                  ),
+                                )
+                              : LocalAssets(
+                                  imagePath: image,
+                                  boxFix: BoxFit.contain,
+                                ),
                     ),
                   ),
-                ],
+                ),
               ),
-              SizedBox(height: SizeConfig.paddingXSL),
-              groceryCategoryList.isNotEmpty
-                  ? MasonryGridView.count(
-                crossAxisCount: 3,
-                crossAxisSpacing: 6,
-                mainAxisSpacing: 6,
-                padding: EdgeInsets.zero,
-                primary: false,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: groceryCategoryList.length,
-                itemBuilder: (context, index) {
-                  final categoryItem = groceryCategoryList[index];
-                  return CommonServiceCard(
-                    service: categoryItem,
-                    getName: (c) => c.name ?? '',
-                    getIcon: (c) => c.image ?? '',
-                    iconHeight: SizeConfig.size60,
-                    boxShadow: const [],
-                    onTap: (c) {
-                      return Get.toNamed(
-                        RouteHelper
-                            .getGroceryNestedCategoryWithInventoryScreenRoute(),
-                        arguments: {
-                          ApiKeys.userId: widget.businessId,
-                          ApiKeys.argGroceryCategoryWithInventory:
-                          groceryCategoryList,
-                          ApiKeys.argArrGroceryCatKey: c.key,
-                          ApiKeys.argArrGroceryCatName: c.name,
-                        },
-                      );
-                    },
-                  );
-                },
-              )
-                  : EmptyStateWidget(
-                message: AppStrings.groceryViewNoProductsYetCreate.tr,
+              Container(
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  border: Border(
+                    top: BorderSide(color: Color(0xFFEEF1F4), width: 1),
+                  ),
+                ),
+                padding: EdgeInsets.symmetric(
+                  horizontal: SizeConfig.size10,
+                  vertical: SizeConfig.size10,
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: CustomText(
+                        item.name ?? '',
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.mainTextColor,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    SizedBox(width: SizeConfig.size6),
+                    Container(
+                      width: 22,
+                      height: 22,
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryColor,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.arrow_forward_rounded,
+                        size: 14,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              SizedBox(height: SizeConfig.paddingXSL),
             ],
           ),
         ),
-      );
-    });
+      ),
+    );
   }
 
   /// Opens the Discover-style profile preview so the owner can see the
@@ -1698,6 +2450,66 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
       isSelfPreview: true,
     ));
   }
+}
+
+class _TabsHeaderDelegate extends SliverPersistentHeaderDelegate {
+  _TabsHeaderDelegate({
+    required this.child,
+    this.height = 56,
+    this.topInset = 0,
+  });
+
+  final Widget child;
+  final double height;
+  final double topInset;
+
+  @override
+  double get minExtent => height + topInset;
+
+  @override
+  double get maxExtent => height + topInset;
+
+  @override
+  Widget build(
+      BuildContext context, double shrinkOffset, bool overlapsContent) {
+    final pinned = overlapsContent || shrinkOffset > 0;
+    return ClipRect(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          padding: EdgeInsets.only(top: pinned ? topInset : 0),
+          decoration: BoxDecoration(
+            color: pinned ? const Color(0x66FFFFFF) : Colors.transparent,
+            border: Border(
+              bottom: BorderSide(
+                color: pinned ? Colors.white : Colors.transparent,
+                width: 1,
+              ),
+            ),
+            boxShadow: pinned
+                ? const [
+                    BoxShadow(
+                      color: Color(0x42001120),
+                      blurRadius: 16,
+                      offset: Offset(0, 4),
+                      blurStyle: BlurStyle.outer,
+                    ),
+                  ]
+                : null,
+          ),
+          alignment: Alignment.center,
+          child: child,
+        ),
+      ),
+    );
+  }
+
+  @override
+  bool shouldRebuild(_TabsHeaderDelegate oldDelegate) =>
+      oldDelegate.child != child ||
+      oldDelegate.height != height ||
+      oldDelegate.topInset != topInset;
 }
 
 class _PostMenuEntry {
