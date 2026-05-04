@@ -64,16 +64,16 @@ class BottomNavigationBarWidget extends StatelessWidget {
   // All values pinned to the spec the product asked for, so future
   // tweaks to the bar's identity happen in one place.
   static const double _barRadius = 20;
-  static const double _barPadding = 10;
+  static const double _barPadding = 6;
   static const double _pillRadius = 12;
   // Column layout: icon stacked over label. Identical paddings/size
   // for selected and unselected so layout is stable on tap — only
   // the decoration (pill bg) and the text/icon color animate.
-  static const double _pillPaddingH = 6;
-  static const double _pillPaddingV = 2;
+  static const double _pillPaddingH = 16;
+  static const double _pillPaddingV = 8;
   static const double _iconLabelGap = 2;
   static const double _iconSize = 18;
-  static const double _labelFontSize = 11;
+  static const double _labelFontSize = 10;
   static const double _horizontalInset = 14;
   static const double _bottomInset = 10;
   // Bar height = bar padding (10×2) + pill v-padding (2×2) + icon (18)
@@ -82,7 +82,6 @@ class BottomNavigationBarWidget extends StatelessWidget {
   // text-metric headroom across devices. Pinned explicitly so the
   // Stack→AnimatedSlide→FractionalTranslation chain never queries
   // intrinsic dimensions through the BackdropFilter.
-  static const double _barHeight = 72;
 
   @override
   Widget build(BuildContext context) {
@@ -100,7 +99,9 @@ class BottomNavigationBarWidget extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.fromLTRB(
               _horizontalInset, 0, _horizontalInset, _bottomInset),
-          child: DecoratedBox(
+          child: Align(
+            alignment: Alignment.bottomCenter,
+            child: DecoratedBox(
             // Drop shadow per spec: black 0.26 / blur 16 / offset (0,0).
             // BlurStyle.outer is the critical bit — at offset (0,0) a
             // normal BoxShadow renders behind the box and bleeds
@@ -127,7 +128,6 @@ class BottomNavigationBarWidget extends StatelessWidget {
                 // Blur 12 per spec.
                 filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
                 child: Container(
-                  height: _barHeight,
                   // White 0.30 fill + 1.5 px white border per spec.
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.30),
@@ -139,7 +139,8 @@ class BottomNavigationBarWidget extends StatelessWidget {
                   ),
                   padding: const EdgeInsets.all(_barPadding),
                   child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       // Tab mapping: Me=0, Discover=1, Connect=2, Order=3.
                       // Selected tab takes flex 2 so the icon + label pill
@@ -176,6 +177,7 @@ class BottomNavigationBarWidget extends StatelessWidget {
               ),
             ),
           ),
+          ),
         ),
       ),
     );
@@ -199,9 +201,7 @@ class BottomNavigationBarWidget extends StatelessWidget {
     // (pill bg color) and the text color/weight differ between
     // selected and unselected. Size is identical → no layout reflow
     // on tap → FractionalTranslation never finds an unlaid-out child.
-    return Expanded(
-      flex: 1,
-      child: Material(
+    return Material(
         type: MaterialType.transparency,
         child: InkWell(
           onTap: () => onTap(index),
@@ -209,20 +209,16 @@ class BottomNavigationBarWidget extends StatelessWidget {
           splashColor: AppColors.primaryColor.withValues(alpha: 0.10),
           highlightColor: AppColors.primaryColor.withValues(alpha: 0.05),
           child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 2),
+            margin: const EdgeInsets.symmetric(horizontal: 7),
+            alignment: Alignment.center,
             child: ClipRRect(
               borderRadius: BorderRadius.circular(_pillRadius),
               child: Stack(
                 children: [
-                  // Selected-only inner blur (16) — refracts the bar's
-                  // already-frosted surface a second time so the active
-                  // tab reads as a deeper glass plate inset into the
-                  // chrome. Sits inside the pill's clipped bounds so
-                  // the blur is contained to the rounded shape.
                   if (isSelected)
                     Positioned.fill(
                       child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+                        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
                         child: const SizedBox.shrink(),
                       ),
                     ),
@@ -314,7 +310,7 @@ class BottomNavigationBarWidget extends StatelessWidget {
             ),
           ),
         ),
-      ),
     );
   }
 }
+

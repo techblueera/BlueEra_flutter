@@ -100,48 +100,38 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
   // ─────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
-    return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: const SystemUiOverlayStyle(
-        // Android: light icons (white) on the dark blue gradient.
-        statusBarIconBrightness: Brightness.light,
-        // iOS: dark *brightness* of the bar means iOS draws light icons.
-        statusBarBrightness: Brightness.dark,
-        statusBarColor: Colors.transparent,
-      ),
-      child: Scaffold(
-        backgroundColor: const Color(0xFFEAF2FB),
-        body: SafeArea(
-          top: false,
-          child: Stack(
-            children: [
-              _buildPatternBackground(),
-              Column(
-                children: [
-                  _buildTopBar(),
-                  // _buildProfileRow(),
-                  SizedBox(height: SizeConfig.size10),
-                  _buildTabsCard(),
-                  SizedBox(height: SizeConfig.size10),
-                  Expanded(
-                    child: RefreshIndicator(
-                      onRefresh: _refresh,
-                      child: SingleChildScrollView(
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        padding: EdgeInsets.only(
-                          left: 20,
-                          bottom: kBottomNavigationBarHeight + 30,
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: _buildTabContent(),
-                        ),
+    return Scaffold(
+      body: SafeArea(
+        top: false,
+        child: Stack(
+          children: [
+            _buildPatternBackground(),
+            Column(
+              children: [
+                _buildTopBar(),
+                // _buildProfileRow(),
+                SizedBox(height: SizeConfig.size10),
+                _buildTabsCard(),
+                SizedBox(height: SizeConfig.size10),
+                Expanded(
+                  child: RefreshIndicator(
+                    onRefresh: _refresh,
+                    child: SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: EdgeInsets.only(
+                        left: 20,
+                        bottom: kBottomNavigationBarHeight + 30,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: _buildTabContent(),
                       ),
                     ),
                   ),
-                ],
-              ),
-            ],
-          ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
@@ -1019,14 +1009,16 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                Color(0xFF0387FF),
-                Color(0xFF034785),
+                // Color(0xFF0387FF),  (Dark Bg)
+                // Color(0xFF034785),  (Dark Bg)
+                Color(0xFFDDEFFF),
+                Color(0xFF0085FE),
               ],
             ),
             border: Border(
               bottom: BorderSide(
-                color: Color(0x26FFFFFF),
-                width: 0.5,
+                color: Colors.white,
+                width: 1.0,
               ),
             ),
           ),
