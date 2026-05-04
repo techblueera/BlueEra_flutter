@@ -226,7 +226,7 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
           borderRadius: BorderRadius.circular(16),
           boxShadow: const [
             BoxShadow(
-              color: Color(0x0D020122),
+              color: Color(0x42001120),
               blurRadius: 10,
               offset: Offset(0, 2),
             ),
@@ -415,8 +415,8 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
           border: Border.all(color: Colors.grey.shade200, width: 1),
           boxShadow: const [
             BoxShadow(
-              color: Color(0x4D000000),
-              blurRadius: 16,
+              color: Color(0x42001120),
+              blurRadius: 10,
               offset: Offset(0, 2),
             ),
           ],
@@ -457,8 +457,8 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
         borderRadius: BorderRadius.circular(10),
         boxShadow: const [
           BoxShadow(
-            color: Color(0x4D000000),
-            blurRadius: 16,
+            color: Color(0x42001120),
+            blurRadius: 10,
             offset: Offset(0, 2),
           ),
         ],
@@ -993,7 +993,18 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
   // ─────────────────────────────────────────────
   Widget _buildTopBar() {
     final topInset = MediaQuery.of(context).padding.top;
-    return ClipRect(
+    return DecoratedBox(
+      decoration: const BoxDecoration(
+        boxShadow: [
+          BoxShadow(
+            color: Color(0x42001120),
+            blurRadius: 16,
+            offset: Offset(0, 0),
+            blurStyle: BlurStyle.outer,
+          ),
+        ],
+      ),
+      child: ClipRect(
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 50, sigmaY: 50),
         child: Container(
@@ -1004,22 +1015,11 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
             SizeConfig.size12,
             SizeConfig.size10,
           ),
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                // Color(0xFF0387FF),  (Dark Bg)
-                // Color(0xFF034785),  (Dark Bg)
-                Color(0xFFDDEFFF),
-                Color(0xFF0085FE),
-              ],
-            ),
-            border: Border(
-              bottom: BorderSide(
-                color: Colors.white,
-                width: 1.0,
-              ),
+          decoration: BoxDecoration(
+            color: const Color(0x33FFFFFF),
+            border: Border.all(
+              color: Colors.white,
+              width: 1.0,
             ),
           ),
           child: Row(
@@ -1036,6 +1036,7 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
           ),
         ),
       ),
+      ),
     );
   }
 
@@ -1043,13 +1044,13 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
     showDialog(
       barrierDismissible: true,
       barrierColor: Colors.black.withValues(alpha: 0.3),
+      useSafeArea: false,
       context: context,
       builder: (_) => Align(
         alignment: Alignment.centerLeft,
         child: SizedBox(
-          width: Get.width * 0.85,
           height: double.infinity,
-          child: Drawer(child: ProfileMenuDrawer()),
+          child: Drawer(backgroundColor: Colors.transparent, elevation: 0, child: ProfileMenuDrawer()),
         ),
       ),
     );
@@ -1084,13 +1085,13 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
               width: SizeConfig.size36,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0x29FFFFFF),
+                color: Colors.white,
                 border: Border.all(
-                  color: const Color(0x3DFFFFFF),
-                  width: 0.6,
+                  color: const Color(0xFFC9CDD5),
+                  width: 1,
                 ),
               ),
-              child: Icon(icon, size: 20, color: Colors.white),
+              child: Icon(icon, size: 20, color: AppColors.secondaryTextColor),
             ),
           ),
         ),
@@ -1123,11 +1124,11 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
               padding: EdgeInsets.symmetric(
                   horizontal: SizeConfig.size12, vertical: SizeConfig.size6),
               decoration: BoxDecoration(
-                color: const Color(0x29FFFFFF),
+                color: Colors.white,
                 borderRadius: BorderRadius.circular(24),
                 border: Border.all(
-                  color: const Color(0x3DFFFFFF),
-                  width: 0.6,
+                  color: const Color(0xFFC9CDD5),
+                  width: 1,
                 ),
               ),
               child: Row(
@@ -1135,7 +1136,7 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
                 children: [
                   LocalAssets(
                     imagePath: AppIconAssets.riderIcon,
-                    imgColor: Colors.white,
+                    imgColor: AppColors.secondaryTextColor,
                     height: 18,
                     width: 18,
                   ),
@@ -1143,7 +1144,7 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
                   CustomText('Nearby Riders',
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
-                      color: Colors.white),
+                      color: AppColors.secondaryTextColor),
                 ],
               ),
             ),
@@ -1175,11 +1176,11 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
               padding: EdgeInsets.symmetric(
                   horizontal: SizeConfig.size10, vertical: SizeConfig.size6),
               decoration: BoxDecoration(
-                color: const Color(0x29FFFFFF),
+                color: Colors.white,
                 borderRadius: BorderRadius.circular(24),
                 border: Border.all(
-                  color: const Color(0x3DFFFFFF),
-                  width: 0.6,
+                  color: const Color(0xFFC9CDD5),
+                  width: 1,
                 ),
               ),
               child: Row(
@@ -1188,7 +1189,7 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
                   CustomText('Go live',
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
-                      color: Colors.white),
+                      color: AppColors.secondaryTextColor),
                   SizedBox(width: SizeConfig.size6),
                   Container(
                     width: 30,
@@ -1197,10 +1198,11 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
                     decoration: BoxDecoration(
                       color: _isGoLive
                           ? AppColors.primaryColor
-                          : Colors.white.withValues(alpha: 0.35),
+                          : Colors.white,
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.25),
+                        color: AppColors.secondaryTextColor
+                            .withValues(alpha: 0.4),
                         width: 0.5,
                       ),
                     ),
@@ -1212,8 +1214,11 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
                       child: Container(
                         height: 14,
                         width: 14,
-                        decoration: const BoxDecoration(
-                            color: Colors.white, shape: BoxShape.circle),
+                        decoration: BoxDecoration(
+                            color: _isGoLive
+                                ? Colors.white
+                                : AppColors.secondaryTextColor,
+                            shape: BoxShape.circle),
                       ),
                     ),
                   ),

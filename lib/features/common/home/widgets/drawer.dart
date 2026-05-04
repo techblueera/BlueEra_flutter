@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/features/common/visiting_card/view/all_visting_cards.dart';
@@ -104,19 +106,46 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Container(
-        color: AppColors.white,
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              Obx(() => _header()),
-              _walletRow(),
-              const SizedBox(height: 6),
-              _menuList(),
-              Divider(color: AppColors.whiteE5),
-              _footer(),
-            ],
+    const radius = BorderRadius.only(
+      topRight: Radius.circular(16),
+      bottomRight: Radius.circular(16),
+    );
+    return DecoratedBox(
+      decoration: const BoxDecoration(
+        borderRadius: radius,
+        boxShadow: [
+          BoxShadow(
+            color: Color(0x1F000000),
+            offset: Offset(2, 0),
+            blurRadius: 16,
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: radius,
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+          child: Container(
+            decoration: const BoxDecoration(
+              color: Color(0xB2FFFFFF),
+              borderRadius: radius,
+              border: Border(
+                right: BorderSide(color: Colors.white, width: 1.5),
+              ),
+            ),
+            child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(vertical: 40),
+            child: Column(
+              children: [
+                Obx(() => _header()),
+                _walletRow(),
+                SizedBox(height: 16),
+                _menuList(),
+                Divider(color: AppColors.white, height: 0.5),
+                _footer(),
+              ],
+            ),
+          ),
           ),
         ),
       ),
@@ -222,44 +251,46 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
               ),
             ),
           ),
-          const SizedBox(width: 8),
-          InkWell(
-            onTap: () {
-              if (accountTypeGlobal == AppConstants.individual) {
-                final viewProfileController =
-                    Get.find<ViewPersonalDetailsController>();
-                Get.to(() => AllVisitingCards(
-                    personalDetails:
-                        viewProfileController.personalProfileDetails.value,
-                    showAppBar: true));
-              } else {
-                final viewBusinessDetailsController =
-                    getOrPut(() => ViewBusinessDetailsController(), permanent: true);
-                Get.to(() => AllVisitingCards(
-                    businessDetails: viewBusinessDetailsController
-                        .businessProfileDetails.value?.data,
-                    showAppBar: true));
-              }
 
-              // Get.toNamed(
-              //   RouteHelper.getMoreCardsScreenRoute(),
-              //   arguments: {ApiKeys.isFromHomeScreen: false},
-              // );
-            },
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              decoration: BoxDecoration(
-                border: Border.all(color: AppColors.whiteE5),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: const Center(
-                child: CustomText(
-                  AppStrings.cards,
-                  fontSize: 13,
-                ),
-              ),
-            ),
-          ),
+          /// Visiting Cards
+          // const SizedBox(width: 8),
+          // InkWell(
+          //   onTap: () {
+          //     if (accountTypeGlobal == AppConstants.individual) {
+          //       final viewProfileController =
+          //           Get.find<ViewPersonalDetailsController>();
+          //       Get.to(() => AllVisitingCards(
+          //           personalDetails:
+          //               viewProfileController.personalProfileDetails.value,
+          //           showAppBar: true));
+          //     } else {
+          //       final viewBusinessDetailsController =
+          //           getOrPut(() => ViewBusinessDetailsController(), permanent: true);
+          //       Get.to(() => AllVisitingCards(
+          //           businessDetails: viewBusinessDetailsController
+          //               .businessProfileDetails.value?.data,
+          //           showAppBar: true));
+          //     }
+          //
+          //     // Get.toNamed(
+          //     //   RouteHelper.getMoreCardsScreenRoute(),
+          //     //   arguments: {ApiKeys.isFromHomeScreen: false},
+          //     // );
+          //   },
+          //   child: Container(
+          //     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          //     decoration: BoxDecoration(
+          //       border: Border.all(color: AppColors.whiteE5),
+          //       borderRadius: BorderRadius.circular(10),
+          //     ),
+          //     child: const Center(
+          //       child: CustomText(
+          //         AppStrings.cards,
+          //         fontSize: 13,
+          //       ),
+          //     ),
+          //   ),
+          // ),
         ],
       ),
     );
@@ -393,9 +424,10 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
 
     return ListView.separated(
       shrinkWrap: true,
+      padding: EdgeInsets.zero,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: menus.length,
-      separatorBuilder: (_, __) => Divider(height: 1, color: AppColors.whiteE5),
+      separatorBuilder: (_, __) => Divider(height: 0.5, color: AppColors.white),
       itemBuilder: (context, index) {
         final item = menus[index];
         return InkWell(
@@ -407,7 +439,17 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
               width: 40,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
+                border: Border.all(
+                  color: Colors.white
+                ),
                 color: AppColors.circleBg,
+                boxShadow: [
+                  BoxShadow(
+                    color: Color(0x1A000000),
+                    offset: Offset(0, 1),
+                    blurRadius: 10,
+                  ),
+                ],
               ),
               child: LocalAssets(
                 imagePath: icons[index],
@@ -419,6 +461,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
               item.title,
               fontSize: 14,
               fontWeight: FontWeight.w600,
+              color: AppColors.secondaryTextColor,
             ),
             subtitle: const CustomText(
               AppStrings.learnHowToEarnWithBlueEra,
@@ -428,7 +471,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
             ),
             trailing: const Icon(
               Icons.chevron_right,
-              size: 30,
+              size: 28,
               color: AppColors.secondaryTextColor,
             ),
           ),

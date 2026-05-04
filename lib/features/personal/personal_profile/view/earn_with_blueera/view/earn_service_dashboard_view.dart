@@ -201,14 +201,14 @@ class _EarnServiceDashboardViewState extends State<EarnServiceDashboardView>
     showDialog(
       barrierDismissible: true,
       barrierColor: Colors.black.withValues(alpha: 0.3),
+      useSafeArea: false,
       context: context,
       builder: (BuildContext context) {
         return Align(
           alignment: Alignment.centerLeft,
           child: SizedBox(
-            width: Get.width * 0.85,
             height: double.infinity,
-            child: Drawer(child: ProfileMenuDrawer()),
+            child: Drawer(backgroundColor: Colors.transparent, elevation: 0, child: ProfileMenuDrawer()),
           ),
         );
       },

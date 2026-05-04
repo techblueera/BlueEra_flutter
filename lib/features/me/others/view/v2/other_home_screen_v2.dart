@@ -156,13 +156,13 @@ class _OtherHomeScreenV2State extends State<OtherHomeScreenV2> {
     showDialog(
       barrierDismissible: true,
       barrierColor: Colors.black.withValues(alpha: 0.3),
+      useSafeArea: false,
       context: context,
       builder: (_) => Align(
         alignment: Alignment.centerLeft,
         child: SizedBox(
-          width: Get.width * 0.85,
           height: double.infinity,
-          child: Drawer(child: ProfileMenuDrawer()),
+          child: Drawer(backgroundColor: Colors.transparent, elevation: 0, child: ProfileMenuDrawer()),
         ),
       ),
     );
