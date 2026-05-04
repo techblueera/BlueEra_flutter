@@ -1,6 +1,5 @@
 import 'dart:developer';
 
-import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -8,37 +7,30 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
-import 'package:BlueEra/features/common/auth/model/gst_details_model.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:pinput/pinput.dart';
-
 
 import '../../../../personal/personal_profile/controller/languge_list_controller.dart';
-import '../../controller/gst_controller.dart';
 
 class GstNumberScreen extends StatefulWidget {
   final String accountType;
   final BusinessType businessType;
-  // final CategoryData? categoryData;
+
   final String categorySlugId;
   final String categoryName;
   final SubCategories? subCategory;
 
-  GstNumberScreen({
-    super.key,
-    required this.accountType,
-    required this.businessType,
-    required this.categorySlugId,
-    required this.categoryName,
-    // this.categoryData,
-    required this.subCategory
-  });
+  GstNumberScreen(
+      {super.key,
+      required this.accountType,
+      required this.businessType,
+      required this.categorySlugId,
+      required this.categoryName,
+      required this.subCategory});
 
   @override
   State<GstNumberScreen> createState() => _GstNumberScreenState();
@@ -50,12 +42,9 @@ class _GstNumberScreenState extends State<GstNumberScreen> {
   late LanguageListController langController;
 
   final TextEditingController _gstController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _otpController = TextEditingController();
-  final GstController gstController = Get.put(GstController());
 
   @override
-  initState(){
+  initState() {
     super.initState();
     langController = Get.find<LanguageListController>();
     authController.selectedTypeOfBusiness = widget.businessType;
@@ -68,6 +57,12 @@ class _GstNumberScreenState extends State<GstNumberScreen> {
     log("Category Slug Id  : ${authController.selectedCategorySlugId}");
     log('sub category Name : ${authController.selectedSubCategoryData?.name}');
     log('sub category Slug Id : ${authController.selectedSubCategoryData?.sId}');
+  }
+
+  @override
+  void dispose() {
+    _gstController.dispose();
+    super.dispose();
   }
 
   @override
@@ -116,287 +111,77 @@ class _GstNumberScreenState extends State<GstNumberScreen> {
                           groupValue: authController.hasGstNumber.value,
                           onChanged: (val) {
                             if (val == null) return;
-                            authController.isHaveGstApprove.value = val;
-                            if (val) {
-                              authController.isValidate.value = false;
-                              _gstController.clear();
-                              _emailController.clear();
-                            } else {
-                              gstController.resetState();
-                              _otpController.clear();
-                            }
-                            authController.hasGstNumber.value = val;
+                            _onRadioChanged(val);
                           },
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.start,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              _buildRadioOption(
-                                  true, AppStrings.yesIHave.tr),
+                              _buildRadioOption(true, AppStrings.yesIHave.tr),
                               SizedBox(width: SizeConfig.size20),
-                              _buildRadioOption(
-                                  false, AppStrings.noIDont.tr),
+                              _buildRadioOption(false, AppStrings.noIDont.tr),
                             ],
                           ),
                         )),
-                    SizedBox(
-                      height: SizeConfig.size30,
-                    ),
+                    SizedBox(height: SizeConfig.size30),
                     Obx(() {
-                      if (authController.hasGstNumber.value) {
-                        final isGstVerified = gstController.gstResponse.value.status == Status.COMPLETE;
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            CommonTextField(
-                              textEditController: _emailController,
-                              hintText: AppStrings.enterEmailLinkedToGst.tr,
-                              title: AppStrings.enterEmailLabel.tr,
-                              readOnly: isGstVerified,
-                              autoFillType: AutoFillType.email,
-                              isValidate: false,
-                              autovalidateMode: AutovalidateMode.onUserInteraction,
-                              onChange: (_) => _validateAll(),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return AppStrings.pleaseEnterEmail.tr;
-                                }
-                                if (!GetUtils.isEmail(value)) {
-                                  return AppStrings.pleaseEnterValidEmail.tr;
-                                }
-                                if (!value.toLowerCase().endsWith('@gmail.com')) {
-                                  return AppStrings.onlyGmailAllowed.tr;
-                                }
-                                return null;
-                              },
-                            ),
-                            SizedBox(height: SizeConfig.size15),
-                            CommonTextField(
-                              textEditController: _gstController,
-                              hintText: AppStrings.enterGstNumberLabel.tr,
-                              title: AppStrings.enterGstNumberLabel.tr,
-                              maxLength: 15,
-                              isValidate: false,
-                              autovalidateMode: AutovalidateMode.onUserInteraction,
-                              onChange: (_) => _validateAll(),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return AppStrings.pleaseEnterGstNumber.tr;
-                                }
-                                final gstRegExp = RegExp(
-                                  r'^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$',
-                                );
-
-                                if (!gstRegExp.hasMatch(value)) {
-                                  return AppStrings.pleaseEnterValidGstNumber.tr;
-                                }
-
-                                return null;
-                              },
-                            ),
-                          ],
-                        );
-                      } else {
+                      if (!authController.hasGstNumber.value) {
                         return const SizedBox();
                       }
+                      return CommonTextField(
+                        textEditController: _gstController,
+                        hintText: AppStrings.enterGstNumberLabel.tr,
+                        title: AppStrings.enterGstNumberLabel.tr,
+                        maxLength: 15,
+                        isValidate: false,
+                        autovalidateMode:
+                            AutovalidateMode.onUserInteraction,
+                        onChange: (_) => _validateAll(),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return AppStrings.pleaseEnterGstNumber.tr;
+                          }
+                          if (!_gstRegExp.hasMatch(value)) {
+                            return AppStrings.pleaseEnterValidGstNumber.tr;
+                          }
+                          return null;
+                        },
+                      );
                     }),
                     SizedBox(height: SizeConfig.size20),
-                    
                     Obx(() {
-                      final response = gstController.gstResponse.value;
-                      if (authController.hasGstNumber.value && response.status == Status.COMPLETE) {
-                        final GstDetailsModel gstData = response.data;
-                        final data = gstData.data;
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              width: double.infinity,
-                              margin: EdgeInsets.only(bottom: SizeConfig.size20),
-                              padding: EdgeInsets.all(SizeConfig.size12),
-                              decoration: BoxDecoration(
-                                color: AppColors.whiteF3,
-                                borderRadius: BorderRadius.circular(SizeConfig.size8),
-                                border: Border.all(color: AppColors.green4F, width: 1),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  CustomText(
-                                    "${AppStrings.tradeNameLabel.tr}: ${data?.tradeNam ?? 'N/A'}",
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.mainTextColor,
-                                  ),
-                                  SizedBox(height: SizeConfig.size4),
-                                  CustomText(
-                                    "${AppStrings.addressLabel.tr}: ${data?.pradr?.addr?.getFullAddress() ?? 'N/A'}",
-                                    fontSize: SizeConfig.small,
-                                    color: AppColors.secondaryTextColor,
-                                  ),
-                                ],
-                              ),
-                            ),
-                            // CustomText(
-                            //   "GST State Code",
-                            //   fontSize: SizeConfig.medium,
-                            //   fontWeight: FontWeight.w600,
-                            // ),
-                            // SizedBox(height: SizeConfig.size8),
-                            // Obx(() => CommonDropdown<Map<String, String>>(
-                            //   items: GstController.gstStateCodes,
-                            //   selectedValue: gstController.selectedStateCode.value != null
-                            //       ? GstController.gstStateCodes.firstWhere(
-                            //           (e) => e['code'] == gstController.selectedStateCode.value,
-                            //           orElse: () => GstController.gstStateCodes.first,
-                            //         )
-                            //       : null,
-                            //   hintText: 'Select State Code',
-                            //   onChanged: (val) {
-                            //     gstController.selectedStateCode.value = val?['code'];
-                            //   },
-                            //   displayValue: (item) => "${item['code']}: ${item['state']}",
-                            // )),
-                            // SizedBox(height: SizeConfig.size15),
-                            CommonTextField(
-                              textEditController: gstController.gstUsernameController,
-                              hintText: AppStrings.enterGstUsername.tr,
-                              title: AppStrings.gstUsername.tr,
-                              readOnly: gstController.otpResponse.value.status == Status.COMPLETE,
-                              isValidate: false,
-                              autovalidateMode: AutovalidateMode.onUserInteraction,
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return AppStrings.pleaseEnterGstUsername.tr;
-                                }
-                                return null;
-                              },
-                            ),
-                            SizedBox(height: SizeConfig.size15),
-                            if (gstController.otpResponse.value.status == Status.COMPLETE) ...[
-                              CustomText(
-                                AppStrings.enterOtpTitle.tr,
-                                fontSize: SizeConfig.medium,
-                                fontWeight: FontWeight.w600,
-                              ),
-                              SizedBox(height: SizeConfig.size8),
-                              Pinput(
-                                controller: _otpController,
-                                length: 6,
-                                keyboardType: TextInputType.number,
-                                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                                defaultPinTheme: PinTheme(
-                                  width: 50,
-                                  height: 50,
-                                  textStyle: TextStyle(
-                                    fontSize: SizeConfig.medium,
-                                    color: Colors.black,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(SizeConfig.size10),
-                                    color: AppColors.white,
-                                    border: Border.all(
-                                      color: AppColors.greyE5,
-                                      width: 1,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              SizedBox(height: SizeConfig.size15),
-                            ],
-                          ],
-                        );
-                      } else if (authController.hasGstNumber.value && response.status == Status.ERROR) {
-                        return Padding(
-                          padding: EdgeInsets.only(bottom: SizeConfig.size10),
-                          child: CustomText(
-                            response.message ?? AppStrings.somethingWentWrong.tr,
-                            color: Colors.red,
-                            fontSize: SizeConfig.small,
-                          ),
-                        );
-                      }
-                      return const SizedBox();
-                    }),
-
-                    Obx(() {
-                      if (authController.hasGstNumber.value && gstController.otpResponse.value.status == Status.ERROR) {
-                        return Padding(
-                          padding: EdgeInsets.only(bottom: SizeConfig.size10),
-                          child: CustomText(
-                            gstController.otpResponse.value.message ?? AppStrings.otpRequestFailed.tr,
-                            color: Colors.red,
-                            fontSize: SizeConfig.small,
-                          ),
-                        );
-                      }
-                      return const SizedBox();
-                    }),
-
-                    Obx(() {
-                      if (authController.hasGstNumber.value && gstController.authTokenResponse.value.status == Status.ERROR) {
-                        return Padding(
-                          padding: EdgeInsets.only(bottom: SizeConfig.size10),
-                          child: CustomText(
-                            gstController.authTokenResponse.value.message ?? AppStrings.otpVerificationFailed.tr,
-                            color: Colors.red,
-                            fontSize: SizeConfig.small,
-                          ),
-                        );
-                      }
-                      return const SizedBox();
-                    }),
-
-                    Obx(() {
-                      final isOtpGenerated = gstController.otpResponse.value.status == Status.COMPLETE;
-                      final isGstVerified = gstController.gstResponse.value.status == Status.COMPLETE;
+                      final isLoading =
+                          authController.isGstVerifyLoading.value;
                       return CustomBtn(
                         onTap: authController.hasGstNumber.value
-                            ? authController.isValidate.value
-                            ? () async {
-                          if (_formKey.currentState!.validate()) {
-                            if (isOtpGenerated) {
-                              final otp = _otpController.text.trim();
-                              if (otp.length == 6) {
-                                await gstController.requestAuthToken(
-                                  _emailController.text, otp,
-                                );
-                                if (gstController.authTokenResponse.value.status == Status.COMPLETE) {
-                                  Get.toNamed(RouteHelper.getCreateBusinessAccountNewStepOneRoute());
-                                }
-                              }
-                            } else if (isGstVerified) {
-                              gstController.requestOtp(_emailController.text);
-                            } else {
-                              gstController.getGstDetails(
-                                _emailController.text, _gstController.text
-                              );
-                            }
-                          }
-                        }
-                            : null
+                            ? (authController.isValidate.value && !isLoading)
+                                ? () async {
+                                    if (_formKey.currentState!.validate()) {
+                                      await authController.getGstVerify(
+                                        gstNumber: _gstController.text.trim(),
+                                      );
+                                    }
+                                  }
+                                : null
                             : () {
-                          // No GST logic
-                           Get.toNamed(RouteHelper.getCreateBusinessAccountNewStepOneRoute());
-                        },
-                        title: gstController.isLoading.value
-                            ? (isGstVerified
-                                ? AppStrings.generatingOtpDots.tr
-                                : AppStrings.verifyingDots.tr)
-                            : isOtpGenerated
-                                ? AppStrings.verifyOtp.tr
-                                : isGstVerified
-                                    ? AppStrings.generateOtp.tr
-                                    : AppStrings.submit.tr,
+                                Get.toNamed(RouteHelper
+                                    .getCreateBusinessAccountNewStepOneRoute());
+                              },
+                        title: isLoading
+                            ? AppStrings.verifyingDots.tr
+                            : AppStrings.submit.tr,
                         isValidate: authController.hasGstNumber.value
                             ? authController.isValidate.value
                             : true,
                         radius: SizeConfig.size8,
                       );
                     }),
-                    
                     SizedBox(height: SizeConfig.size4),
-                    if (authController.hasGstNumber.value)
-                      Center(
+                    Obx(() {
+                      if (!authController.hasGstNumber.value) {
+                        return const SizedBox();
+                      }
+                      return Center(
                         child: TextButton(
                           onPressed: () => _skip(),
                           child: CustomText(
@@ -406,7 +191,8 @@ class _GstNumberScreenState extends State<GstNumberScreen> {
                             decorationColor: AppColors.primaryColor,
                           ),
                         ),
-                      )
+                      );
+                    }),
                   ],
                 ),
               ),
@@ -421,19 +207,7 @@ class _GstNumberScreenState extends State<GstNumberScreen> {
     return Obx(() {
       final groupValue = authController.hasGstNumber.value;
       return InkWell(
-        onTap: () {
-          authController.isHaveGstApprove.value = value;
-          if (value) {
-            authController.isValidate.value = false;
-            _gstController.clear();
-            _emailController.clear();
-          } else {
-            gstController.resetState();
-            _otpController.clear();
-          }
-
-          authController.hasGstNumber.value = value;
-        },
+        onTap: () => _onRadioChanged(value),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
@@ -445,16 +219,7 @@ class _GstNumberScreenState extends State<GstNumberScreen> {
                 groupValue: groupValue,
                 onChanged: (val) {
                   if (val == null) return;
-                  authController.isHaveGstApprove.value = val;
-                  if (val) {
-                    authController.isValidate.value = false;
-                    _gstController.clear();
-                    _emailController.clear();
-                  } else {
-                    gstController.resetState();
-                    _otpController.clear();
-                  }
-                  authController.hasGstNumber.value = val;
+                  _onRadioChanged(val);
                 },
                 fillColor: WidgetStateProperty.all(AppColors.primaryColor),
                 activeColor: AppColors.primaryColor,
@@ -468,22 +233,28 @@ class _GstNumberScreenState extends State<GstNumberScreen> {
     });
   }
 
+  void _onRadioChanged(bool value) {
+    authController.isHaveGstApprove.value = value;
+    if (value) {
+      authController.isValidate.value = false;
+      _gstController.clear();
+    } else {
+      _gstController.clear();
+    }
+    authController.hasGstNumber.value = value;
+  }
+
   Future<void> _skip() async {
     authController.isHaveGstApprove.value = false;
     Get.toNamed(RouteHelper.getCreateBusinessAccountNewStepOneRoute());
   }
 
   void _validateAll() {
-    final email = _emailController.text.trim();
     final gst = _gstController.text.trim();
-
-    final isEmailValid = GetUtils.isEmail(email);
-
-    final isGstValid = RegExp(
-        r'^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$')
-        .hasMatch(gst);
-
-    authController.isValidate.value = isEmailValid && isGstValid;
+    authController.isValidate.value = _gstRegExp.hasMatch(gst);
   }
 
+  static final RegExp _gstRegExp = RegExp(
+    r'^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$',
+  );
 }

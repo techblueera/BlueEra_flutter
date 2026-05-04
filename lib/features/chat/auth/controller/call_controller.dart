@@ -2486,8 +2486,8 @@ class CallController extends GetxController {
 
   bool _cleaningUp = false;
   void _cleanup() {
-    print('[FARE_CALL_DEBUG] _cleanup → CALLED, callStatus=${callStatus.value}, isFareCall=${isFareCall.value}, callId=${callId.value}, roomId=${roomId.value}, peerConnections=${peerConnections.keys.toList()}');
-    print('[FARE_CALL_DEBUG] _cleanup → stackTrace: ${StackTrace.current.toString().split('\n').take(5).join(' | ')}');
+    // print('[FARE_CALL_DEBUG] _cleanup → CALLED, callStatus=${callStatus.value}, isFareCall=${isFareCall.value}, callId=${callId.value}, roomId=${roomId.value}, peerConnections=${peerConnections.keys.toList()}');
+    // print('[FARE_CALL_DEBUG] _cleanup → stackTrace: ${StackTrace.current.toString().split('\n').take(5).join(' | ')}');
     // Idempotency guard: if we're already mid-cleanup, or the previous cleanup
     // already reset us to idle with no peers/stream, bail out. Double-cleanup
     // double-disposes the local renderer and stops SocketKeepAliveService

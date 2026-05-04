@@ -1327,7 +1327,7 @@ class _OrderCardState extends State<OrderCard> {
     );
   }
 
-  void _handleCallAction(String? contactNo) {
+  Future<void> _handleCallAction(String? contactNo) async {
     // For ride/parcel ongoing orders, use in-app calling via WebRTC
     if (widget.selectedPickUp == PickUpTab.onGoing &&
         (widget.order.orderFor == AppConstants.InCity ||
@@ -1336,13 +1336,19 @@ class _OrderCardState extends State<OrderCard> {
             widget.order.orderFor == AppConstants.Parcel)) {
       final userId = widget.order.user?.id;
       if (userId != null && userId.isNotEmpty) {
+        if (!Get.isRegistered<CallController>()) {
+          Get.put(CallController());
+        }
         final callController = Get.find<CallController>();
-        callController.initiateCall(
+        final success = await callController.initiateCall(
           type: CallType.audio,
           otherUserId: userId,
           userName: widget.order.user?.name ?? '',
           userImage: widget.order.user?.profileImage ?? '',
         );
+        if (success) {
+          Get.toNamed('/CallRoomScreen');
+        }
         return;
       }
     }
