@@ -61,7 +61,7 @@ class BottomNavigationBarScreen extends StatefulWidget {
   final SharedMedia? sharedMedia;
 
   const BottomNavigationBarScreen(
-      {super.key, this.initialIndex = 0, this.sharedMedia});
+      {super.key, this.initialIndex = 1, this.sharedMedia});
 
   @override
   State<BottomNavigationBarScreen> createState() =>
@@ -334,7 +334,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
 
   void _handlePostFrameInitialization() {
     if (isBusiness()) {
-      bottomBarController.currentIndex.value = widget.initialIndex ?? 0;
+      bottomBarController.currentIndex.value = widget.initialIndex ?? 1;
       final viewProfileController = getOrPut(() => ViewBusinessDetailsController(), permanent: true);
       if (viewProfileController.viewBusinessResponse.status !=
           Status.COMPLETE) {
@@ -342,9 +342,9 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       }
     } else {
       if (userProfessionGlobal == BIKE_RIDER) {
-        bottomBarController.currentIndex.value = 0;
+        bottomBarController.currentIndex.value = 1;
       } else {
-        bottomBarController.currentIndex.value = widget.initialIndex ?? 0;
+        bottomBarController.currentIndex.value = widget.initialIndex ?? 1;
       }
       if (viewPersonalDetailsController.viewPersonalResponse.value.status !=
           Status.COMPLETE) {
@@ -352,6 +352,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       }
     }
   }
+
 
 
   // GET CHANNEL DETAILS...

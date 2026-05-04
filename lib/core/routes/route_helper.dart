@@ -2,6 +2,7 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/routes/route_constant.dart';
 import 'package:BlueEra/features/chat/view/call_screen/audio_calling_handler.dart';
+import 'package:BlueEra/features/chat/view/call_screen/rider_call/incoming_rider_order_screen.dart';
 import 'package:BlueEra/features/common/delivery_partner/widget/near_by_rider_screen.dart';
 import 'package:BlueEra/features/me/food/controller/food_service_controller.dart';
 import 'package:BlueEra/features/me/food/model/food_gen_ai_res_model.dart';
@@ -126,6 +127,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/booking_enquirie
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/add_self_work_service_screen.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/gig_work_options_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/self_employee_screen.dart';
+import 'package:BlueEra/features/common/delivery_partner/view/rider_me_screen.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/rider_service_screen.dart';
 import 'package:BlueEra/features/me/product/controller/product_controller.dart';
 import 'package:BlueEra/features/me/product/model/get_product_model.dart';
@@ -485,6 +487,8 @@ class RouteHelper {
 
   static String getRiderServiceScreenRoute() =>
       RouteConstant.riderServiceScreen;
+
+  static String getRiderMeScreenRoute() => RouteConstant.riderMeScreen;
 
   static String getGroceryCartScreenRoute() => RouteConstant.groceryCartScreen;
 
@@ -1559,6 +1563,10 @@ class RouteHelper {
                 // selectedGroceryData: argSelectedGroceryData
                 ),
             settings: RouteSettings(name: getRiderServiceScreenRoute()));
+      case RouteConstant.riderMeScreen:
+        return MaterialPageRoute(
+            builder: (_) => const RiderMeScreen(),
+            settings: RouteSettings(name: getRiderMeScreenRoute()));
       case RouteConstant.groceryCartScreen:
         return MaterialPageRoute(
             builder: (_) => GroceryCartScreen(),
@@ -1929,7 +1937,7 @@ class RouteHelper {
       case '/CallRoomScreen':
       case RouteConstant.OutgoingCallScreen:
       case RouteConstant.IncomingCallScreen:
-      case RouteConstant.IncomingRiderOrderScreen:
+      // case RouteConstant.IncomingRiderOrderScreen:
         return MaterialPageRoute(
           builder: (_) => const CallActivityRoomScreen(),
           settings: RouteSettings(name: settings.name),
@@ -1960,11 +1968,11 @@ class RouteHelper {
       //     builder: (_) => const CallRoomScreen(),
       //     settings: const RouteSettings(name: '/CallRoomScreen'),
       //   );
-      // case RouteConstant.IncomingRiderOrderScreen:
-      //   return MaterialPageRoute(
-      //     builder: (_) => const IncomingRiderOrderScreen(),
-      //     settings: const RouteSettings(name: '/IncomingRiderOrderScreen'),
-      //   );
+      case RouteConstant.IncomingRiderOrderScreen:
+        return MaterialPageRoute(
+          builder: (_) => const IncomingRiderOrderScreen(),
+          settings: const RouteSettings(name: '/IncomingRiderOrderScreen'),
+        );
       // case RouteConstant.yourCartScreen:
       //   return MaterialPageRoute(
       //     builder: (_) => const YourCartScreen(),

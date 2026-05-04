@@ -282,7 +282,7 @@ class CreateJobPostController extends GetxController {
         commonSnackBar(message: response.message ?? AppStrings.success);
         Get.offAllNamed(
           RouteHelper.getBottomNavigationBarScreenRoute(),
-          arguments: {ApiKeys.initialIndex: 0},
+          arguments: {ApiKeys.initialIndex: 1},
         );
       } else {
         commonSnackBar(

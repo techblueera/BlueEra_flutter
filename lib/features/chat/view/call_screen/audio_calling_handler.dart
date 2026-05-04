@@ -11,6 +11,7 @@ import 'package:get/get.dart';
 
 import '../../auth/controller/call_controller.dart';
 import '../../auth/service/call_pip_service.dart';
+import 'rider_call/rider_pickup_navigation_screen.dart';
 
 // ══════════════════════════════════════════════════════════════════════════════
 // CallActivityRoomScreen — Unified call screen for both incoming and outgoing calls.
@@ -62,6 +63,20 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
 
   // Incoming call accepting state
   bool _isAccepting = false;
+
+  // Rider fare-call: snapshot of ride details captured while connected so we
+  // can navigate to the pickup/OTP screen after the call ends. CallController
+  // resets isFareCall/fareCallOrderId/fareCallRideDetails during cleanup, so
+  // reading them in the call:ended path is too late.
+  bool _riderFareCallSnapshotTaken = false;
+  bool _riderAcceptedRide = false; // set only when rider taps "Accept Ride"
+  bool _riderAcceptingRide = false; // in-flight guard for the API call
+  Map<String, dynamic>? _riderFareCallRideDetails;
+  String _riderFareCallOrderId = '';
+  String _riderFareCallOrderMongoId = '';
+  String _riderFareCallCustomerUserId = '';
+  String _riderFareCallCustomerName = '';
+  String _riderFareCallCustomerImage = '';
 
   @override
   void initState() {
@@ -148,6 +163,7 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
         _ripple1Controller.stop();
         _ripple2Controller.stop();
         _ripple3Controller.stop();
+        _captureRiderFareCallSnapshot(controller);
       }
       // Stop ringtone on decline, cancel, accept, end, or any non-ringing state
       if (status == CallStatus.idle ||
@@ -156,6 +172,18 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
           status == CallStatus.connected ||
           status == CallStatus.ended) {
         _stopRingtone();
+      }
+      // Rider fare-call: after the call ends, either redirect to pickup/OTP
+      // (rider accepted the ride) or pop the call screen (rider just hung up).
+      // CallController._handleCallEnded skips _navigateBackFromCallScreen for
+      // fare-calls, so without this hop the rider lands on a black screen.
+      if ((status == CallStatus.idle || status == CallStatus.ended) &&
+          _riderFareCallSnapshotTaken) {
+        if (_riderAcceptedRide) {
+          _navigateRiderToPickup();
+        } else {
+          _popRiderCallScreen();
+        }
       }
     });
 
@@ -212,6 +240,153 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
     }
   }
 
+  void _captureRiderFareCallSnapshot(CallController controller) {
+    if (_riderFareCallSnapshotTaken) return;
+    if (!controller.isFareCall.value) return;
+    if (controller.isCaller.value) return;
+    final orderId = controller.fareCallOrderId.value;
+    if (orderId.isEmpty) return;
+    final ride = controller.fareCallRideDetails.value;
+    _riderFareCallRideDetails = ride != null
+        ? Map<String, dynamic>.from(ride)
+        : null;
+    _riderFareCallOrderId = orderId;
+    _riderFareCallOrderMongoId = controller.fareCallOrderMongoId.value;
+    _riderFareCallCustomerUserId = controller.remoteUserId ?? '';
+    _riderFareCallCustomerName = controller.callerName.value.isNotEmpty
+        ? controller.callerName.value
+        : controller.remoteUserName.value;
+    _riderFareCallCustomerImage = controller.callerImage.value.isNotEmpty
+        ? controller.callerImage.value
+        : controller.remoteUserImage.value;
+    _riderFareCallSnapshotTaken = true;
+  }
+
+  double _toDouble(dynamic v) {
+    if (v is num) return v.toDouble();
+    if (v is String) return double.tryParse(v) ?? 0.0;
+    return 0.0;
+  }
+
+  void _popRiderCallScreen() {
+    _riderFareCallSnapshotTaken = false;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (Navigator.canPop(context)) {
+        Navigator.of(context).pop();
+      }
+    });
+  }
+
+  Future<void> _onRiderAcceptRide(CallController controller) async {
+    if (_riderAcceptingRide || _riderAcceptedRide) return;
+    setState(() => _riderAcceptingRide = true);
+    try {
+      // Make sure we have a snapshot — captureRiderFareCallSnapshot was
+      // already called when status became connected, but acceptFareCallRide
+      // and the subsequent endCall both clear the controller state, so we
+      // re-capture here as a safety net.
+      _captureRiderFareCallSnapshot(controller);
+      final accepted = await controller.acceptFareCallRide();
+      if (!accepted) {
+        if (mounted) setState(() => _riderAcceptingRide = false);
+        return;
+      }
+      _riderAcceptedRide = true;
+      // Ending the call triggers _handleCallEnded → resetState → status=idle,
+      // which the call-status worker observes and calls _navigateRiderToPickup.
+      if (controller.callStatus.value != CallStatus.idle) {
+        // Fire-and-forget so the navigation isn't blocked by the API roundtrip.
+        controller.endCall();
+      } else {
+        // Call already ended — navigate immediately.
+        _navigateRiderToPickup();
+      }
+    } catch (_) {
+      if (mounted) setState(() => _riderAcceptingRide = false);
+    }
+  }
+
+  Future<void> _onRiderRejectRide(CallController controller) async {
+    if (_riderAcceptingRide || _riderAcceptedRide) return;
+    // rejectFareCallRide → declineCall → call ends; the worker sees idle with
+    // _riderAcceptedRide=false and pops the screen.
+    await controller.rejectFareCallRide();
+  }
+
+  Widget _buildRiderFareCallActions(CallController controller) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+      child: Row(
+        children: [
+          Expanded(
+            child: _RiderActionButton(
+              label: 'Reject Ride',
+              icon: Icons.close_rounded,
+              backgroundColor: const Color(0xFF3A2A2A),
+              foregroundColor: const Color(0xFFEA4335),
+              onTap: _riderAcceptingRide
+                  ? null
+                  : () => _onRiderRejectRide(controller),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: _RiderActionButton(
+              label: _riderAcceptingRide ? 'Accepting...' : 'Accept Ride',
+              icon: Icons.check_rounded,
+              backgroundColor: const Color(0xFF1F4A2C),
+              foregroundColor: const Color(0xFF25D366),
+              isLoading: _riderAcceptingRide,
+              onTap: _riderAcceptingRide
+                  ? null
+                  : () => _onRiderAcceptRide(controller),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _navigateRiderToPickup() {
+    if (!_riderFareCallSnapshotTaken) return;
+    _riderFareCallSnapshotTaken = false; // one-shot
+
+    final ride = _riderFareCallRideDetails;
+    final pickup = ride?['pickup'] is Map ? ride!['pickup'] as Map : const {};
+    final drop = ride?['drop'] is Map ? ride!['drop'] as Map : const {};
+    final orderId = _riderFareCallOrderMongoId.isNotEmpty
+        ? _riderFareCallOrderMongoId
+        : _riderFareCallOrderId;
+
+    final target = RiderPickupNavigationScreen(
+      pickupLocation: (pickup['address'] ?? '').toString(),
+      dropLocation: (drop['address'] ?? '').toString(),
+      pickupLat: _toDouble(pickup['lat']),
+      pickupLng: _toDouble(pickup['lng']),
+      dropLat: _toDouble(drop['lat']),
+      dropLng: _toDouble(drop['lng']),
+      fareAmount: _toDouble(ride?['fare']),
+      distanceKm: _toDouble(ride?['distance']),
+      customerName: _riderFareCallCustomerName.isNotEmpty
+          ? _riderFareCallCustomerName
+          : 'Customer',
+      customerImage: _riderFareCallCustomerImage,
+      otp: '',
+      paymentMethod: (ride?['modeOfPayment'] ?? 'Cash').toString(),
+      orderId: orderId,
+      customerUserId: _riderFareCallCustomerUserId,
+    );
+
+    // Use offAll-style replace so the empty call screen doesn't linger in the
+    // back stack. Defer to next frame so we don't mutate the navigator while
+    // the Obx is rebuilding.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      Get.off(() => target);
+    });
+  }
+
   @override
   void dispose() {
     _callStatusWorker.dispose();
@@ -266,6 +441,13 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
             return _buildPipModeView(controller, isVideo);
           }
 
+          // Call has ended/reset — show empty body while navigation pops the screen.
+          // Prevents the ringing/active view from re-rendering during the gap
+          // between _resetState() (sets idle) and _navigateBackFromCallScreen().
+          if (status == CallStatus.idle || status == CallStatus.ended) {
+            return const SizedBox.shrink();
+          }
+
           // Incoming call ringing state — show incoming UI with accept/decline
           if (!isCaller &&
               !isConnected &&
@@ -279,7 +461,9 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
           // Outgoing ringing state
           if (!isConnected &&
               status != CallStatus.connecting &&
-              status != CallStatus.accepting) {
+              status != CallStatus.accepting &&
+              status != CallStatus.ended &&
+              status != CallStatus.idle) {
             return _buildRingingView(controller);
           }
 
@@ -1058,6 +1242,15 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
                   ),
                 ),
               ),
+
+              // Rider fare-call: Accept Ride / Reject Ride row (shown above
+              // the regular call controls when the rider is on a fare-call).
+              Obx(() {
+                if (!controller.isFareCall.value) return const SizedBox.shrink();
+                if (controller.isCaller.value) return const SizedBox.shrink();
+                if (_riderAcceptedRide) return const SizedBox.shrink();
+                return _buildRiderFareCallActions(controller);
+              }),
 
               // Bottom controls (WhatsApp pill — 5 buttons)
               Padding(
@@ -1971,6 +2164,78 @@ class _ControlButton extends StatelessWidget {
             color: resolvedIconColor,
             size: _size * (bold ? 0.5 : 0.44),
             weight: bold ? 900 : 400,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// Pill button used by the rider's fare-call Accept/Reject row.
+class _RiderActionButton extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final Color backgroundColor;
+  final Color foregroundColor;
+  final VoidCallback? onTap;
+  final bool isLoading;
+
+  const _RiderActionButton({
+    required this.label,
+    required this.icon,
+    required this.backgroundColor,
+    required this.foregroundColor,
+    required this.onTap,
+    this.isLoading = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final disabled = onTap == null;
+    return Opacity(
+      opacity: disabled && !isLoading ? 0.5 : 1.0,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          height: 48,
+          decoration: BoxDecoration(
+            color: backgroundColor,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(
+              color: foregroundColor.withValues(alpha: 0.35),
+              width: 1,
+            ),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (isLoading)
+                SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(foregroundColor),
+                  ),
+                )
+              else
+                Icon(icon, color: foregroundColor, size: 20),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: foregroundColor,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.2,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
