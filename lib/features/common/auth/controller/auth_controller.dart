@@ -553,43 +553,96 @@ class AuthController extends GetxController {
   RxBool isValidate = false.obs,
       isHaveGstApprove = false.obs,
       hasGstNumber = false.obs;
+  RxBool isGstVerifyLoading = false.obs;
   final businessNameTextController = TextEditingController();
   final businessOtherCategoryTextController = TextEditingController();
   RxString businessName = "".obs;
 
   Future<void> getGstVerify({required String? gstNumber}) async {
     try {
+      isGstVerifyLoading.value = true;
+      gstVerifyResponse.value = ApiResponse.loading('loading');
+
       ResponseModel responseModel =
           await AuthRepo().getUserVerifyGstRepo(gstNumber: gstNumber);
 
       if (responseModel.isSuccess) {
         final data = responseModel.response?.data;
         gstVerifyModel?.value = GstVerifyModel.fromJson(data);
-        List<String>? parts =
-            gstVerifyModel?.value.data?.registrationDate?.split("/");
 
-        selectedDay?.value = int.parse(parts?[0] ?? "");
-        selectedMonth?.value = int.parse(parts?[1] ?? "");
-        selectedYear?.value = int.parse(parts?[2] ?? "");
-        isHaveGstApprove.value = true;
-        businessNameTextController.text =
-            gstVerifyModel?.value.data?.tradeName ?? "";
-        businessName.value = gstVerifyModel?.value.data?.tradeName ?? "";
-        // Get.toNamed(RouteHelper.getBusinessAccountRoute());
+        if (gstVerifyModel?.value.isVerified == true) {
+          List<String>? parts =
+              gstVerifyModel?.value.data?.registrationDate?.split("/");
 
-        Get.toNamed(RouteHelper.getCreateBusinessAccountNewStepOneRoute());
+          selectedDay?.value = int.tryParse(parts?[0] ?? "") ?? 0;
+          selectedMonth?.value = int.tryParse(parts?[1] ?? "") ?? 0;
+          selectedYear?.value = int.tryParse(parts?[2] ?? "") ?? 0;
+          isHaveGstApprove.value = true;
+          businessNameTextController.text =
+              gstVerifyModel?.value.data?.tradeName ?? "";
+          businessName.value = gstVerifyModel?.value.data?.tradeName ?? "";
 
-        gstVerifyResponse.value = ApiResponse.complete(responseModel);
+          gstVerifyResponse.value = ApiResponse.complete(responseModel);
+
+          await _updateGstBusinessDetails(gstNumber: gstNumber);
+        } else {
+          isHaveGstApprove.value = false;
+          gstVerifyResponse.value = ApiResponse.error(
+              responseModel.message ?? AppStrings.somethingWentWrong);
+          commonSnackBar(
+              message: responseModel.message ?? AppStrings.somethingWentWrong);
+        }
       } else {
         isHaveGstApprove.value = false;
-
+        gstVerifyResponse.value = ApiResponse.error(
+            responseModel.message ?? AppStrings.somethingWentWrong);
         commonSnackBar(
             message: responseModel.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
       isHaveGstApprove.value = false;
-
       gstVerifyResponse.value = ApiResponse.error('error');
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    } finally {
+      isGstVerifyLoading.value = false;
+    }
+  }
+
+  Future<void> _updateGstBusinessDetails({required String? gstNumber}) async {
+    try {
+      final data = gstVerifyModel?.value.data;
+      final List<String>? parts = data?.registrationDate?.split("/");
+
+      final Map<String, dynamic> body = {
+        ApiKeys.gstNo: gstNumber ?? data?.gstin ?? "",
+        if ((data?.tradeName ?? "").isNotEmpty)
+          ApiKeys.businessName: data?.tradeName,
+        if (parts != null && parts.length == 3)
+          ApiKeys.date_of_incorporation: {
+            ApiKeys.date: int.tryParse(parts[0]) ?? 0,
+            ApiKeys.month: int.tryParse(parts[1]) ?? 0,
+            ApiKeys.year: int.tryParse(parts[2]) ?? 0,
+          },
+        if (selectedTypeOfBusiness != null)
+          ApiKeys.type_of_business: selectedTypeOfBusiness?.name,
+        if (selectedNatureOfBusiness != null)
+          ApiKeys.Nature_of_Business: selectedNatureOfBusiness?.name,
+        if ((selectedCategorySlugId ?? "").isNotEmpty)
+          ApiKeys.category_Of_Business: selectedCategorySlugId,
+      };
+logs("bodyRequest for gst ==== ${body}");
+      final ResponseModel response =
+          await AuthRepo().authBusinessUserRegisterRepo(bodyRequest: body);
+
+      if (response.isSuccess) {
+        Get.toNamed(RouteHelper.getCreateBusinessAccountNewStepOneRoute());
+      } else {
+        commonSnackBar(
+            message: response.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e) {
+      logs("updateGstBusinessDetails ERROR: $e");
+      commonSnackBar(message: AppStrings.somethingWentWrong);
     }
   }
 

@@ -98,7 +98,7 @@ class AuthRepo extends BaseService {
         params: bodyRequest,
         onError: (error) {},
         onSuccess: (data) {},
-        isMultipart: true);
+        isMultipart: false);
     return response;
   }
 

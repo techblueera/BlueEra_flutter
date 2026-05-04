@@ -48,6 +48,33 @@ class ValidationMethod {
 
     final email = value.toString().trim();
 
+    // Standard email regex (RFC 5322 compliant)
+    bool regex = RegExp(
+        r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$')
+        .hasMatch(email);
+
+    if (!regex) {
+      return AppStrings.pleaseEnterValidEmail.tr;
+    }
+
+    // Check the local part (before the @)
+    final localPart = email.split('@')[0];
+
+    // Optional: Reject emails that are ONLY numbers (e.g., 12345@domain.com)
+    // Remove this block if you want to allow all-numeric local parts
+    if (RegExp(r'^[0-9]+$').hasMatch(localPart)) {
+      return AppStrings.pleaseEnterValidEmail.tr;
+    }
+
+    return null;
+  }
+  /*static String? validateEmail(value) {
+    if (value == null || value.toString().trim().isEmpty) {
+      return AppStrings.emailIsRequired.tr;
+    }
+
+    final email = value.toString().trim();
+
     // Standard email regex
     bool regex = RegExp(
             r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$')
@@ -69,7 +96,7 @@ class ValidationMethod {
     }
 
     return null;
-  }
+  }*/
 
   emptyValidation(value) {
     if (value.toString().isEmpty) {

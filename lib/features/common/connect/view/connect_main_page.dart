@@ -126,7 +126,19 @@ class _ConnectMainPageState extends State<ConnectMainPage>
     // network again. Offline entries skip the sync entirely.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _syncContactsIfNeeded();
+      _askNotificationPermission();
     });
+  }
+
+  /// Ask the OS notification permission once on entry. Mirrors the
+  /// `_requestIfNotGranted` pattern in `AppServices.permissionHandler` —
+  /// silently no-ops if the user has already granted (or permanently
+  /// denied) the permission, so it's safe to call on every entry.
+  Future<void> _askNotificationPermission() async {
+    final status = await Permission.notification.status;
+    if (!status.isGranted) {
+      await Permission.notification.request();
+    }
   }
 
   Future<void> _syncContactsIfNeeded() async {
