@@ -81,7 +81,7 @@ class _SplashScreenState extends State<SplashScreen> {
       if ((sharedText != null && sharedText.isNotEmpty) || attachments.isNotEmpty) {
         Navigator.of(context).pushNamedAndRemoveUntil(
           RouteHelper.getBottomNavigationBarScreenRoute(),
-          arguments: {ApiKeys.initialIndex: 0},
+          arguments: {ApiKeys.initialIndex: 1},
           (Route<dynamic> route) => false,
         );
         if (sharedText != null && sharedText.isNotEmpty) {
@@ -139,7 +139,7 @@ class _SplashScreenState extends State<SplashScreen> {
           Navigator.of(context).pushNamedAndRemoveUntil(
             RouteHelper.getBottomNavigationBarScreenRoute(),
             arguments: {
-              ApiKeys.initialIndex: 0,
+              ApiKeys.initialIndex: 1,
               if (sharedMedia != null) 'sharedMedia': sharedMedia,
             },
             (Route<dynamic> route) => false,

@@ -246,7 +246,7 @@ class _CreateBusinessAccountNewStepThreeState
                               Get.offAllNamed(
                                   RouteHelper.getBottomNavigationBarScreenRoute(),
                                   arguments: {
-                                    ApiKeys.initialIndex: 2
+                                    ApiKeys.initialIndex: 1
                                   }
                               );
                             },
@@ -319,7 +319,7 @@ class _CreateBusinessAccountNewStepThreeState
                                         Get.offAllNamed(
                                             RouteHelper.getBottomNavigationBarScreenRoute(),
                                             arguments: {
-                                              ApiKeys.initialIndex: 2
+                                              ApiKeys.initialIndex: 1
                                             }
                                         );
                                         // Get.toNamed(RouteHelper

@@ -239,7 +239,7 @@ class _PersonalProfileSetupNewScreenState
     if (widget.isScreenName == AppConstants.deepLinkScreen) {
       Get.offAllNamed(
         RouteHelper.getBottomNavigationBarScreenRoute(),
-        arguments: {ApiKeys.initialIndex: 0},
+        arguments: {ApiKeys.initialIndex: 1},
       );
       deleteIfRegistered<IntroductionVideoController>();
     } else {

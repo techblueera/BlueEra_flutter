@@ -206,7 +206,7 @@ class AddPlaceStepTwoScreen extends StatelessWidget {
                       onPressed: () {
                         Get.offAllNamed(
                           RouteHelper.getBottomNavigationBarScreenRoute(),
-                          arguments: {ApiKeys.initialIndex: 0},
+                          arguments: {ApiKeys.initialIndex: 1},
                         );
                       },
                       child: CustomText(
@@ -222,7 +222,7 @@ class AddPlaceStepTwoScreen extends StatelessWidget {
                       onTap: () {
                         Get.offAllNamed(
                           RouteHelper.getBottomNavigationBarScreenRoute(),
-                          arguments: {ApiKeys.initialIndex: 0},
+                          arguments: {ApiKeys.initialIndex: 1},
                         );
                       },
                       title: 'Add Another',

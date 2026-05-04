@@ -195,7 +195,6 @@ class AuthController extends GetxController {
                   SharedPreferenceUtils.userLoginMobile, data.data?.contactNo);
               // eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzZXNzaW9uSWQiOiI2OWM3NzE2MGI2OWQ3YzJhMzU5ODkwMWMiLCJfaWQiOnsiX2lkIjoiNjljNzcxNjA0YjAzNjI0ZTBhNTEzYWQ1IiwiaWQiOiI2OWM3NzE2MDRiMDM2MjRlMGE1MTNhZDUiLCJhY2NvdW50X3R5cGUiOiJHVUVTVCIsImNvbnRhY3Rfbm8iOiIwMDEzMzAwMDAwIiwiYnVzaW5lc3NfaWQiOm51bGwsIm5hbWUiOiJHdWVzdDAwMDAiLCJwcm9maWxlX2ltYWdlIjoiIn0sImlhdCI6MTc3NDY3ODM2OCwiZXhwIjoxNzkwMjMwMzY4fQ.BQoIDhS442PXg92LoOLfl7Xi6IX65PanzhKAFI5Bx2A
               await getMobileNo();
-              log('contact number -- $userMobileGlobal');
               await getUserLoginBusinessId();
               await getUserLoginAccountType();
               await getUserAuthToken();
@@ -226,7 +225,17 @@ class AuthController extends GetxController {
             Get.offNamedUntil(
               RouteHelper.getBottomNavigationBarScreenRoute(),
               (route) => false,
+                arguments: {ApiKeys.initialIndex: 1},
+
             );
+
+            // Navigator.pushNamedAndRemoveUntil(
+            //   context,
+            //   RouteHelper.getBottomNavigationBarScreenRoute(),
+            //   arguments: {ApiKeys.initialIndex: 3},
+            //       (route) => false,
+            // );
+
             if (wasDeletionCancelled) {
               Future.delayed(const Duration(milliseconds: 400), () {
                 commonSnackBar(
@@ -328,7 +337,12 @@ class AuthController extends GetxController {
             Get.find<BottomBarController>().currentIndex.value = 0;
           }
 
-          Get.offAllNamed(RouteHelper.getBottomNavigationBarScreenRoute());
+          Get.offAllNamed(RouteHelper.getBottomNavigationBarScreenRoute(),
+
+
+            arguments: {ApiKeys.initialIndex: 1},
+
+          );
           Get.toNamed(
             RouteHelper.getAddBioViaAiScreenRoute(),
             arguments: {
@@ -506,7 +520,11 @@ class AuthController extends GetxController {
             Get.find<BottomBarController>().currentIndex.value = 0;
           }
 
-          Get.offAllNamed(RouteHelper.getBottomNavigationBarScreenRoute());
+          Get.offAllNamed(RouteHelper.getBottomNavigationBarScreenRoute(),
+
+            arguments: {ApiKeys.initialIndex: 1},
+
+          );
           Get.toNamed(RouteHelper.getCreateBusinessAccountNewStepTwoRoute());
 
           addUserResponse = ApiResponse.complete(response);
@@ -830,7 +848,7 @@ logs("bodyRequest for gst ==== ${body}");
               SharedPreferenceUtils.accountType, AppConstants.guest);
           await getGuestUserLoginData();
           await Future.delayed(Duration(milliseconds: 350));
-          Get.offAll(() => const BottomNavigationBarScreen());
+          Get.offAll(() => const BottomNavigationBarScreen( initialIndex: 1,));
           // Get.offAll(() => const ChooseAccountTypeScreen());
 
           clearAllData();
