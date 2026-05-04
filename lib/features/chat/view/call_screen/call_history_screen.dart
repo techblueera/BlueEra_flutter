@@ -304,10 +304,6 @@ class _CallHistoryScreenState extends State<CallHistoryScreen>
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0.5,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Get.back(),
-        ),
         title: const CustomText(
           'Call History',
           fontSize: 18,
