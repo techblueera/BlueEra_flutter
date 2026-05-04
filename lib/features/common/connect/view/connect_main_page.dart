@@ -5,14 +5,11 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/check_internet_connectivity.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
-import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/core/routes/route_helper.dart';
 
 import 'package:BlueEra/features/chat/auth/controller/add_chat_symbol_controller.dart';
 import 'package:BlueEra/features/chat/view/add_symbol/add_symbol_screen.dart';
@@ -20,17 +17,17 @@ import 'package:BlueEra/features/chat/view/call_screen/call_history_screen.dart'
 import 'package:BlueEra/features/chat/view/chat_theme/chat_background_screen.dart';
 import 'package:BlueEra/features/chat/view/contacts/view/contact_list_page.dart';
 import 'package:BlueEra/features/chat/view/flag_chat/personal_flagged_chats_screen.dart';
+import 'package:BlueEra/features/chat/view/flag_chat/order_flagged_chats_screen.dart';
 import 'package:BlueEra/features/chat/view/personal_chat/chat_search_screen.dart';
 import 'package:BlueEra/features/chat/view/personal_chat/personal_chat_list.dart';
+import 'package:BlueEra/features/chat/view/business_chat/business_chat_list.dart';
+import 'package:BlueEra/features/chat/view/orders_chat/orders_chat_list.dart';
 import 'package:BlueEra/features/chat/view/reminder_chat/reminder_todo_screen.dart';
 import 'package:BlueEra/features/chat/view/symbol_view/symbol_view_images.dart';
 import 'package:BlueEra/features/chat/view/wallet_chat/wallet_chat_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/manage_notification/notification.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
-import 'package:BlueEra/features/common/channel_feed_view/channel_feed_screen.dart';
-import 'package:BlueEra/features/common/feed/view/home_feed_screen_new.dart';
-import 'package:BlueEra/features/common/home/controller/home_screen_controller.dart';
 import 'package:BlueEra/features/common/home/controller/symbol_feed_controller.dart';
 import 'package:BlueEra/widgets/bottom_nav_hide_on_scroll.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -71,24 +68,19 @@ class _ConnectMainPageState extends State<ConnectMainPage>
     with SingleTickerProviderStateMixin {
   final List<String> iconTab = [
     AppIconAssets.chat,
-
-    AppIconAssets.message_post,
-
-    AppIconAssets.community_tab,
-
+    AppIconAssets.shop,
+    AppIconAssets.orderBookingIcon,
+    AppIconAssets.call,
   ];
   final List<String> postTab = [
     AppStrings.chat,
-
-    AppStrings.social,
-    AppStrings.community,
-
-
+    "Inquiry",
+    "Orders",
+    "Call",
   ];
   int selectedIndex = 0;
   int selectedSubIndex = 0;
   final TextEditingController searchController = TextEditingController();
-  final homeScreenController = Get.put(HomeScreenController());
   final symbolFeedController = Get.put(SymbolFeedController());
   final addSymbolController = getOrPut(() => AddChatSymbolController());
   final ChatViewController chatViewController =
@@ -195,9 +187,10 @@ class _ConnectMainPageState extends State<ConnectMainPage>
   void _handleTabChange() {
     if (_tabController.indexIsChanging) return;
     if (_tabController.index != selectedIndex && mounted) {
-      // Leaving the Chat tab while a selection is active would strand the
-      // user with no AppBar affordance to exit it — clear it on the way out.
-      if (selectedIndex == 0 &&
+      // Switching tabs while a selection is active would strand the user
+      // with no AppBar affordance to exit it — and the previous tab's
+      // selection wouldn't apply to the new list anyway.
+      if ((selectedIndex == 0 || selectedIndex == 1) &&
           chatViewController.isChatListSelectionMode.value) {
         chatViewController.exitChatListSelectionMode();
       }
@@ -205,6 +198,28 @@ class _ConnectMainPageState extends State<ConnectMainPage>
         selectedIndex = _tabController.index;
         selectedSubIndex = 0;
       });
+      _emitChatListForTab(selectedIndex);
+    }
+  }
+
+  /// Hydrate the tab's chat list. Personal is also emitted in `initState`
+  /// so the first paint isn't blank.
+  void _emitChatListForTab(int index) {
+    if (index == 0) {
+      chatViewController.emitEvent(
+        ChatEmitEvents.ChatList,
+        {ApiKeys.type: AppConstants.personal_Chat_Type},
+      );
+    } else if (index == 1) {
+      chatViewController.emitEvent(
+        ChatEmitEvents.ChatList,
+        {ApiKeys.type: AppConstants.business_Chat_Type},
+      );
+    } else if (index == 2) {
+      chatViewController.emitEvent(
+        ChatEmitEvents.ChatList,
+        {ApiKeys.type: AppConstants.order_Chat_Type},
+      );
     }
   }
 
@@ -296,14 +311,6 @@ class _ConnectMainPageState extends State<ConnectMainPage>
     }
   }
 
-  void _toggleAppBarAndBottomNav(bool visible) {
-    if (!mounted) return;
-    // Bottom-nav visibility is now handled by `BottomNavHideOnScroll`
-    // wrapping the page; this only updates the local header offset
-    // controller used by feed children.
-    homeScreenController.isVisible.value = visible;
-  }
-
   Widget _buildCustomAppBar() {
     final bool isChatTab = selectedIndex == 0;
     return CommonBackAppBar(
@@ -311,19 +318,54 @@ class _ConnectMainPageState extends State<ConnectMainPage>
       isLeading: false,
       // Hide the "+" icon on the Chat tab — its slot is replaced by
       // the search + call-history + reminder-clock actions below.
-      isMore: !isChatTab,
+      isMore: false,
       // Inline search is disabled on the Chat tab — the search icon below
       // pushes a fullscreen WhatsApp-style search page instead.
-      isSearch: !isChatTab,
+      isSearch: false,
       isProfile: false,
       isNotification: false,
       isGuestLogout:false,
       controller: searchController,
       onClearCallback: () => searchController.clear(),
       leadingWidget: _buildSymbolAvatar(),
-      buildCustomActionWidget: (isGuestUser() || !isChatTab)
+      buildCustomActionWidget: isGuestUser()
           ? null
-          : () => _buildChatTabActions(),
+          : () => isChatTab
+              ? _buildChatTabActions()
+              : _buildOrdersTabActions(),
+    );
+  }
+
+  /// Action row for the Inquiry / Orders tabs — the flag / wallet / rider
+  /// icons that previously lived in `OrderMainChatScreen`'s header.
+  Widget _buildOrdersTabActions() {
+    return Padding(
+      padding: const EdgeInsets.only(top: 10, right: 14.0),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          InkWell(
+            onTap: () => Get.to(() => const OrderFlaggedChatsScreen()),
+            borderRadius: BorderRadius.circular(20),
+            child: const Icon(Icons.flag_outlined,
+                size: 24, color: Colors.black),
+          ),
+          const SizedBox(width: 14),
+          InkWell(
+            onTap: () => commonSnackBar(message: "Coming soon...."),
+            borderRadius: BorderRadius.circular(20),
+            child: const Icon(Icons.credit_card,
+                size: 24, color: Colors.black),
+          ),
+          const SizedBox(width: 14),
+          InkWell(
+            onTap: () => commonSnackBar(message: "Coming soon...."),
+            borderRadius: BorderRadius.circular(20),
+            child: const Icon(Icons.delivery_dining,
+                size: 24, color: Colors.black),
+          ),
+        ],
+      ),
     );
   }
 
@@ -378,82 +420,30 @@ class _ConnectMainPageState extends State<ConnectMainPage>
   }
 
   Widget _buildSymbolAvatar() {
-    return Obx(() {
-      final hasSymbols = addSymbolController.mySymbols.isNotEmpty;
-      return Stack(
-        clipBehavior: Clip.none,
-        children: [
-          InkWell(
-            onTap: () => _openProfileDrawer(context),
-            borderRadius: BorderRadius.circular(20),
-            child: Container(
-              padding: const EdgeInsets.all(2.4),
-              decoration: hasSymbols
-                  ? const BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: SweepGradient(
-                        startAngle: 0.0,
-                        endAngle: 6.28319,
-                        colors: [
-                          AppColors.symbolBorderRed,
-                          AppColors.symbolBorderBlue,
-                          AppColors.symbolBorderYellow,
-                          AppColors.symbolBorderGreen,
-                          AppColors.symbolBorderRed,
-                        ],
-                      ),
-                    )
-                  : null,
-              child: Container(
-                padding: const EdgeInsets.all(2),
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white,
-                ),
-                child: CachedAvatarWidget(
-                  imageUrl: Get.find<AuthController>().imgPath.value,
-                  size: SizeConfig.size36,
-                  borderRadius: SizeConfig.size34 / 2,
-                  showProfileOnFullScreen: false,
-                ),
-              ),
-            ),
-          ),
-          Positioned(
-            top: 0,
-            right: 0,
-            child: InkWell(
-              onTap: () {
-                Get.to(() => AddChatSymbolScreen());
-              },
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(4),
-                  color: AppColors.primaryColor,
-                ),
-                padding: const EdgeInsets.all(1.4),
-                child: const Icon(
-                  Icons.add,
-                  color: AppColors.white,
-                  size: 15,
-                ),
-              ),
-            ),
-          ),
-        ],
-      );
-    });
+    return InkWell(
+      onTap: () => _openProfileDrawer(context),
+      borderRadius: BorderRadius.circular(20),
+      child: Padding(
+        padding: const EdgeInsets.all(6.0),
+        child: const Icon(
+          Icons.more_vert,
+          size: 26,
+          color: Colors.black,
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Obx(() {
-        // Selection mode is only meaningful on the Chat tab. We keep the
-        // condition local so the rest of the build stays cheap.
+        // Selection mode is only meaningful on chat-style tabs (Chat /
+        // Inquiry). The Orders tab uses its own filter UI and never enters
+        // selection mode.
         final bool isSelectionMode =
             chatViewController.isChatListSelectionMode.value &&
-                selectedIndex == 0;
+                (selectedIndex == 0 || selectedIndex == 1);
         return WillPopScope(
           onWillPop: () async {
             if (isSelectionMode) {
@@ -463,22 +453,6 @@ class _ConnectMainPageState extends State<ConnectMainPage>
             return true;
           },
           child: Scaffold(
-            floatingActionButton: (selectedIndex == 0 && !isSelectionMode)
-                ? SafeArea(
-                    child: Padding(
-                      padding: const EdgeInsets.only(
-                          bottom: kBottomNavigationBarHeight),
-                      child: FloatingActionButton(
-                        backgroundColor: AppColors.primaryColor,
-                        foregroundColor: Colors.white,
-                        onPressed: () {
-                          Get.toNamed(RouteHelper.getChatContactsRoute());
-                        },
-                        child: const Icon(Icons.add),
-                      ),
-                    ),
-                  )
-                : null,
             body: BottomNavHideOnScroll(
               child: NestedScrollView(
                 headerSliverBuilder: (context, innerBoxIsScrolled) {
@@ -523,24 +497,18 @@ class _ConnectMainPageState extends State<ConnectMainPage>
                         : null,
                     controller: _tabController,
                     children: [
-                      PersonalChatsList(isForwardUI: false,),
-
-                      HomeFeedScreenNew(
-                        key: const ValueKey('feedScreen_all'),
-                        onHeaderVisibilityChanged: _toggleAppBarAndBottomNav,
-                        postFilterType: PostType.all,
-                        query: searchController.text.isEmpty
-                            ? null
-                            : searchController.text,
-                        headerHeight: 0,
-                        isInParentScroll: false,
+                      PersonalChatsList(isForwardUI: false),
+                      const BusinessChatsList(isForwardUI: false),
+                      OrdersTabView(),
+                      // CallHistoryScreen has its own NestedScrollView; nesting
+                      // it inside the parent NestedScrollView lets the parent's
+                      // _NestedScrollController recursively try to attach to
+                      // the inner ListView and blows the stack. Detach it from
+                      // the inherited PrimaryScrollController so each scroll
+                      // surface stays independent.
+                      PrimaryScrollController.none(
+                        child: const CallHistoryScreen(),
                       ),
-
-                      ChannelFeedScreen(
-                        headerHeight: 0,
-                        onHeaderVisibilityChanged: _toggleAppBarAndBottomNav,
-                      ),
-
                     ],
                   ),
                 ),
@@ -608,12 +576,13 @@ class _ConnectMainPageState extends State<ConnectMainPage>
         _selectionActionIcon(Icons.push_pin_outlined, () {
           final ids =
               chatViewController.selectedConversationIds.toList();
-          final allPinned = ids.every(
-              (id) => chatPinArchiveController.isPinned(id, isBusiness: false));
+          final isBiz = selectedIndex == 1;
+          final allPinned = ids.every((id) =>
+              chatPinArchiveController.isPinned(id, isBusiness: isBiz));
           if (allPinned) {
-            chatPinArchiveController.unpinMultiple(ids, isBusiness: false);
+            chatPinArchiveController.unpinMultiple(ids, isBusiness: isBiz);
           } else {
-            chatPinArchiveController.pinMultiple(ids, isBusiness: false);
+            chatPinArchiveController.pinMultiple(ids, isBusiness: isBiz);
           }
           chatViewController.exitChatListSelectionMode();
         }),
@@ -623,7 +592,8 @@ class _ConnectMainPageState extends State<ConnectMainPage>
         _selectionActionIcon(Icons.archive_outlined, () {
           final ids =
               chatViewController.selectedConversationIds.toList();
-          chatPinArchiveController.archiveMultiple(ids, isBusiness: false);
+          final isBiz = selectedIndex == 1;
+          chatPinArchiveController.archiveMultiple(ids, isBusiness: isBiz);
           chatViewController.exitChatListSelectionMode();
         }),
         PopupMenuButton<String>(
@@ -639,11 +609,17 @@ class _ConnectMainPageState extends State<ConnectMainPage>
               case 'mark_unread':
                 break;
               case 'select_all':
-                final allChats = chatViewController
-                        .getPersonalChatListModel?.value.chatList
-                        ?.whereType<ChatList>()
-                        .toList() ??
-                    [];
+                final allChats = selectedIndex == 1
+                    ? chatViewController
+                            .getBusinessChatListModel?.value.chatList
+                            ?.whereType<ChatList>()
+                            .toList() ??
+                        []
+                    : chatViewController
+                            .getPersonalChatListModel?.value.chatList
+                            ?.whereType<ChatList>()
+                            .toList() ??
+                        [];
                 chatViewController.selectAllChats(allChats);
                 break;
               case 'lock_chats':
@@ -682,11 +658,7 @@ class _ConnectMainPageState extends State<ConnectMainPage>
       selectedIndex = index;
       selectedSubIndex = 0;
     });
-  }
-
-  void resetScrollingOnTabChanged() {
-    homeScreenController.isVisible.value = true;
-    homeScreenController.headerOffset.value = 0.0;
+    _emitChatListForTab(index);
   }
 
   /// Slide-in profile drawer (lifted from OrderMainChatScreen). Opened by

@@ -1,10 +1,16 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/popup_menu_builders.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/chat/view/business_chat/business_chat_list.dart';
-import 'package:BlueEra/features/chat/view/orders_chat/orders_chat_list.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/chat/auth/controller/call_controller.dart';
+import 'package:BlueEra/features/chat/view/add_symbol/add_symbol_screen.dart';
+import 'package:BlueEra/features/common/channel_feed_view/channel_feed_screen.dart';
+import 'package:BlueEra/features/common/feed/view/home_feed_screen_new.dart';
 import 'package:BlueEra/widgets/bottom_nav_hide_on_scroll.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:BlueEra/widgets/post_via_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
@@ -20,11 +26,8 @@ import '../../common/bottomNavigationBar/controller/bottom_bar_controller.dart';
 import '../auth/controller/add_chat_symbol_controller.dart';
 import '../auth/controller/chat_flag_controller.dart';
 import '../auth/controller/chat_pin_archive_controller.dart';
-import '../auth/model/GetChatListModel.dart';
 import '../auth/controller/chat_theme_controller.dart';
 import '../auth/controller/chat_view_controller.dart';
-import 'flag_chat/order_flagged_chats_screen.dart';
-import 'widget/chat_flag_bottom_sheet.dart';
 
 class OrderMainChatScreen extends StatefulWidget {
   const OrderMainChatScreen({
@@ -72,41 +75,13 @@ class _OrderMainChatScreenState extends State<OrderMainChatScreen>
 
     chatViewController.chatMainTabController?.addListener(() {
       if (!(chatViewController.chatMainTabController?.indexIsChanging ??
-          false) &&
+              false) &&
           chatViewController.chatMainTabController?.index ==
               chatViewController.chatMainTabController?.animation?.value
                   .round()) {
         final index = chatViewController.chatMainTabController?.index;
         chatViewController.onSelectChatTab(index ?? 0);
-
-        // Indices shifted by -1 because the Leads (personal) tab is removed.
-        // if (index == 0) {
-        //   chatViewController.emitEvent(ChatEmitEvents.ChatList,
-        //       {ApiKeys.type: AppConstants.personal_Chat_Type});
-        // }
-        if (index == 0) {
-          chatViewController.emitEvent(ChatEmitEvents.ChatList,
-              {ApiKeys.type: AppConstants.business_Chat_Type});
-        } else if (index == 1) {
-          chatViewController.emitEvent(ChatEmitEvents.ChatList,
-              {ApiKeys.type: AppConstants.order_Chat_Type});
-        }
-      }
-    });
-
-    // If a pending tab index was set before the screen was built (e.g. from
-    // order placement), ensure the correct chat list is emitted after the
-    // first frame so the UI matches. Indices shifted by -1.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (chatViewController.chatMainTabController != null &&
-          chatViewController.chatMainTabController!.index == pendingIndex) {
-        if (pendingIndex == 0) {
-          chatViewController.emitEvent(ChatEmitEvents.ChatList,
-              {ApiKeys.type: AppConstants.business_Chat_Type});
-        } else if (pendingIndex == 1) {
-          chatViewController.emitEvent(ChatEmitEvents.ChatList,
-              {ApiKeys.type: AppConstants.order_Chat_Type});
-        }
+        // Social / Community tabs are feed-based — no ChatList emit needed.
       }
     });
   }
@@ -116,16 +91,8 @@ class _OrderMainChatScreenState extends State<OrderMainChatScreen>
   }
 
   Widget build(BuildContext context) {
-    return Obx(() {
-      final isSelectionMode = chatViewController.isChatListSelectionMode.value;
-      final selectedCount = chatViewController.selectedConversationIds.length;
-
-      return WillPopScope(
+    return WillPopScope(
       onWillPop: () async{
-        if (isSelectionMode) {
-          chatViewController.exitChatListSelectionMode();
-          return false;
-        }
         if(chatViewController.chatMainTabController?.index==0){
           bottomBarController.onChangeIndex(0);
         }else{
@@ -155,270 +122,152 @@ class _OrderMainChatScreenState extends State<OrderMainChatScreen>
         body: SafeArea(
           child: BottomNavHideOnScroll(
             child: NestedScrollView(
-            headerSliverBuilder: (context, innerBoxIsScrolled) {
-              return [
-                if (isSelectionMode)
+              headerSliverBuilder: (context, innerBoxIsScrolled) {
+                return [
                   SliverAppBar(
                     backgroundColor: Colors.white,
-                    elevation: 0.5,
-                    floating: false,
-                    pinned: true,
+                    elevation: 0,
+                    floating: true,
+                    snap: true,
+                    pinned: false,
                     automaticallyImplyLeading: false,
-                    titleSpacing: 0,
-                    title: Row(
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.arrow_back, color: Colors.black),
-                          onPressed: () => chatViewController.exitChatListSelectionMode(),
-                        ),
-                        CustomText(
-                          "$selectedCount",
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
-                        ),
-                      ],
+                    flexibleSpace: Padding(
+                      padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      child: _buildHeader(context),
                     ),
-                    actions: [
-                      _selectionActionIcon(Icons.flag_outlined, () {
-                        final ids = chatViewController.selectedConversationIds.toList();
-                        if (ids.isEmpty) return;
-                        // Show flag bottom sheet for the first selected conversation,
-                        // then apply the chosen flag to all selected conversations
-                        showModalBottomSheet(
-                          context: context,
-                          isScrollControlled: true,
-                          backgroundColor: Colors.transparent,
-                          builder: (_) => _MultiFlagBottomSheet(
-                            conversationIds: ids,
-                            onDone: () {
-                              chatViewController.exitChatListSelectionMode();
-                            },
-                          ),
-                        );
-                      }),
-                      _selectionActionIcon(Icons.push_pin_outlined, () {
-                        final controller = Get.find<ChatPinArchiveController>();
-                        final ids = chatViewController.selectedConversationIds.toList();
-                        final isBiz = (chatViewController.chatMainTabController?.index ?? 0) == 1;
-                        final allPinned = ids.every((id) => controller.isPinned(id, isBusiness: isBiz));
-                        if (allPinned) {
-                          controller.unpinMultiple(ids, isBusiness: isBiz);
-                        } else {
-                          controller.pinMultiple(ids, isBusiness: isBiz);
-                        }
-                        chatViewController.exitChatListSelectionMode();
-                      }),
-                      _selectionActionIcon(Icons.volume_off_outlined, () {
-                        // Mute action
-                      }),
-                      _selectionActionIcon(Icons.archive_outlined, () {
-                        final controller = Get.find<ChatPinArchiveController>();
-                        final ids = chatViewController.selectedConversationIds.toList();
-                        final isBiz = (chatViewController.chatMainTabController?.index ?? 0) == 1;
-                        controller.archiveMultiple(ids, isBusiness: isBiz);
-                        chatViewController.exitChatListSelectionMode();
-                      }),
-                      PopupMenuButton<String>(
-                        icon: const Icon(Icons.more_vert, color: Colors.black),
-                        offset: const Offset(0, 40),
-                        color: Colors.white,
-                        elevation: 8,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        onSelected: (value) {
-                          switch (value) {
-                            case 'mark_unread':
-                              break;
-                            case 'select_all':
-                              final currentTab = chatViewController.chatMainTabController?.index ?? 0;
-                              final List<ChatList> allChats;
-                              if (currentTab == 1) {
-                                allChats = chatViewController
-                                    .getBusinessChatListModel?.value.chatList
-                                    ?.whereType<ChatList>()
-                                    .toList() ?? [];
-                              } else {
-                                allChats = chatViewController
-                                    .getPersonalChatListModel?.value.chatList
-                                    ?.whereType<ChatList>()
-                                    .toList() ?? [];
-                              }
-                              chatViewController.selectAllChats(allChats);
-                              break;
-                            case 'lock_chats':
-                              break;
-                            case 'add_favourites':
-                              break;
-                            case 'clear_chats':
-                              break;
+                    expandedHeight: 72,
+                  ),
+                  SliverPersistentHeader(
+                    pinned: true,
+                    delegate: _TabBarDelegate(
+                      TabBar(
+                        onTap: (index) {
+                          if (widget.isNewGroupUI != null &&
+                              widget.isNewGroupUI == true) {
+                            if (chatViewController.selectedChatList.isNotEmpty) {
+                              commonSnackBar(
+                                  message: "You can't select personal & business both");
+                              chatViewController.selectedUserIds.clear();
+                            }
                           }
                         },
-                        itemBuilder: (context) => [
-                          const PopupMenuItem(value: 'mark_unread', child: Text('Mark as unread')),
-                          const PopupMenuItem(value: 'select_all', child: Text('Select all')),
-                          const PopupMenuItem(value: 'lock_chats', child: Text('Lock chats')),
-                          const PopupMenuItem(value: 'add_favourites', child: Text('Add to Favourites')),
-                          const PopupMenuItem(value: 'clear_chats', child: Text('Clear chats')),
+                        controller: chatViewController.chatMainTabController,
+                        labelColor: Colors.black,
+                        padding: EdgeInsets.zero,
+                        labelPadding: const EdgeInsets.symmetric(horizontal: 12),
+                        unselectedLabelColor: Colors.black54,
+                        indicatorColor: Colors.lightBlue,
+                        tabs:  [
+                          Tab(text: "Social"),
+                          Tab(text: "Community"),
                         ],
                       ),
-                    ],
-                  )
-                else
-                SliverAppBar(
-                  backgroundColor: Colors.white,
-                  elevation: 0,
-                  floating: true,
-                  snap: true,
-                  pinned: false,
-                  automaticallyImplyLeading: false,
-                  flexibleSpace: Padding(
-                    padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    child: _buildHeader(context),
-                  ),
-                  expandedHeight: 72,
-                ),
-                if (!isSelectionMode)
-                SliverPersistentHeader(
-                  pinned: true,
-                  delegate: _TabBarDelegate(
-                    TabBar(
-                      onTap: (index) {
-                        if (widget.isNewGroupUI != null &&
-                            widget.isNewGroupUI == true) {
-                          if (chatViewController.selectedChatList.isNotEmpty) {
-                            commonSnackBar(
-                                message: "You can't select personal & business both");
-                            chatViewController.selectedUserIds.clear();
-                          }
-                        }
-                      },
-                      controller: chatViewController.chatMainTabController,
-                      labelColor: Colors.black,
-                      padding: EdgeInsets.zero,
-                      labelPadding: const EdgeInsets.symmetric(horizontal: 12),
-                      unselectedLabelColor: Colors.black54,
-                      indicatorColor: Colors.lightBlue,
-                      tabs:  [
-                        // Tab(text: "Leads"),
-                        Tab(text: "Inquiry"),
-                        // Tab(text: "Finder"),
-                        Tab(text: "Orders"),
-                      ],
                     ),
                   ),
-                ),
-              ];
-            },
-            body: Container(
-              color: AppColors.white,
-              child: Column(
-                children: [
-                  Expanded(
-                    child: TabBarView(
-                      controller: chatViewController.chatMainTabController,
-                      children: [
-                        // PersonalChatsList(isForwardUI: widget.isForwardUI,
-                        //   isNewGroupUI: widget.isNewGroupUI,
-                        //   hideSubTabs: true,),
-                        BusinessChatsList(isForwardUI: widget.isForwardUI,
-                          isNewGroupUI: widget.isNewGroupUI,),
-                        // FindContactWithService(fromBottomNav: true),
-                        OrdersTabView()
-                      ],
+                ];
+              },
+              body: Container(
+                color: AppColors.white,
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: TabBarView(
+                        controller: chatViewController.chatMainTabController,
+                        children: [
+                          HomeFeedScreenNew(
+                            key: const ValueKey('orderMain_feed_social'),
+                            postFilterType: PostType.all,
+                            headerHeight: 0,
+                            isInParentScroll: false,
+                          ),
+                          ChannelFeedScreen(
+                            key: const ValueKey('orderMain_feed_community'),
+                            headerHeight: 0,
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  (widget.isForwardUI != null && (widget.isForwardUI ?? false))
-                      ?
-                  Obx(() {
-                    return InkWell(
-                      onTap: (chatViewController.selectedUserIds.isNotEmpty)
-                          ? () async
-                      {
-                        if (widget.isNewGroupUI != null &&
-                            (widget.isNewGroupUI ?? false)) {
-                          // Navigator.push(
-                          //     context,
-                          //     MaterialPageRoute(
-                          //         builder: (context) => AddNewGroupPage(selectedUserIds: se,)));
-                        } else {
-                          Map<String, dynamic> data = {
-                            ApiKeys.forward_id:
-                            chatThemeController.selectedMessageIds,
-                            ApiKeys.forward_to_conversations:
-                            chatViewController.selectedUserIds,
-                            // ApiKeys.additional_message: "${widget.message?.messageType}"
-                            // ApiKeys.additional_message: "${widget.message?.messageType}"
-                          };
+                    (widget.isForwardUI != null && (widget.isForwardUI ?? false))
+                        ?
+                    Obx(() {
+                      return InkWell(
+                        onTap: (chatViewController.selectedUserIds.isNotEmpty)
+                            ? () async
+                        {
+                          if (widget.isNewGroupUI != null &&
+                              (widget.isNewGroupUI ?? false)) {
+                            // Navigator.push(
+                            //     context,
+                            //     MaterialPageRoute(
+                            //         builder: (context) => AddNewGroupPage(selectedUserIds: se,)));
+                          } else {
+                            Map<String, dynamic> data = {
+                              ApiKeys.forward_id:
+                              chatThemeController.selectedMessageIds,
+                              ApiKeys.forward_to_conversations:
+                              chatViewController.selectedUserIds,
+                              // ApiKeys.additional_message: "${widget.message?.messageType}"
+                              // ApiKeys.additional_message: "${widget.message?.messageType}"
+                            };
 
-                          bool value = await chatViewController
-                              .forwardMessageApi(data);
+                            bool value = await chatViewController
+                                .forwardMessageApi(data);
 
-                          if (value) {
-                            chatViewController.emitEvent(
-                                ChatEmitEvents.ChatList,
-                                {ApiKeys.type: AppConstants.personal_Chat_Type});
-                            Navigator.pop(context);
-                            Navigator.pop(context);
+                            if (value) {
+                              chatViewController.emitEvent(
+                                  ChatEmitEvents.ChatList,
+                                  {ApiKeys.type: AppConstants.personal_Chat_Type});
+                              Navigator.pop(context);
+                              Navigator.pop(context);
+                            }
                           }
                         }
-                      }
-                          : null,
-                      child: Container(
-                        padding: EdgeInsets.all(14),
-                        margin: EdgeInsets.symmetric(horizontal: 14),
-                        decoration: BoxDecoration(
-                            color: chatViewController.selectedUserIds.isNotEmpty
-                                ? AppColors.primaryColor
-                                : chatThemeController.myMessageBgColor.value,
-                            borderRadius: BorderRadius.circular(10)),
-                        child: Row(mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            CustomText(
+                            : null,
+                        child: Container(
+                          padding: EdgeInsets.all(14),
+                          margin: EdgeInsets.symmetric(horizontal: 14),
+                          decoration: BoxDecoration(
+                              color: chatViewController.selectedUserIds.isNotEmpty
+                                  ? AppColors.primaryColor
+                                  : chatThemeController.myMessageBgColor.value,
+                              borderRadius: BorderRadius.circular(10)),
+                          child: Row(mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              CustomText(
+                                (widget.isNewGroupUI != null &&
+                                    (widget.isNewGroupUI ?? false))
+                                    ? ""
+                                    : "${chatViewController.selectedUserIds.length} Forward",
+                                color: Colors.white,
+                              ),
+                              const SizedBox(
+                                width: 6,
+                              ),
                               (widget.isNewGroupUI != null &&
                                   (widget.isNewGroupUI ?? false))
-                                  ? ""
-                                  : "${chatViewController.selectedUserIds.length} Forward",
-                              color: Colors.white,
-                            ),
-                            const SizedBox(
-                              width: 6,
-                            ),
-                            (widget.isNewGroupUI != null &&
-                                (widget.isNewGroupUI ?? false))
-                                ? Icon(
-                              Icons.arrow_right_alt,
-                              size: 26,
-                              color: Colors.white,
-                            )
-                                : SvgPicture.asset(
-                                height: 18,
-                                width: 18,
-                                AppIconAssets.send_message_chat),
-                          ],
+                                  ? Icon(
+                                Icons.arrow_right_alt,
+                                size: 26,
+                                color: Colors.white,
+                              )
+                                  : SvgPicture.asset(
+                                  height: 18,
+                                  width: 18,
+                                  AppIconAssets.send_message_chat),
+                            ],
+                          ),
                         ),
-                      ),
-                    );
-                  })
-                      : SizedBox()
-                ],
+                      );
+                    })
+                        : SizedBox()
+                  ],
+                ),
               ),
             ),
           ),
-          ),
         ),
       ),
-    );
-    });
-  }
-
-  Widget _selectionActionIcon(IconData icon, VoidCallback onPressed) {
-    return IconButton(
-      icon: Icon(icon, color: Colors.black),
-      onPressed: onPressed,
-      splashRadius: 20,
     );
   }
 
@@ -512,69 +361,45 @@ class _OrderMainChatScreenState extends State<OrderMainChatScreen>
             controller: TextEditingController(),
           ),
         ),
-        const SizedBox(width: 14),
-        InkWell(
-          onTap: () => Get.to(() => const OrderFlaggedChatsScreen()),
-          borderRadius: BorderRadius.circular(20),
-          child: const Icon(Icons.flag_outlined, color: Colors.black),
-        ),
-        const SizedBox(width: 14),
-        InkWell(
-          onTap: () {
-            // TODO: hook up card / wallet destination.
-            commonSnackBar(message: "Coming soon....");
+        const SizedBox(width: 8),
+        // Mirrors `CommonBackAppBar`'s `isMore == true` slot — same "+" icon,
+        // same PostCreationMenu popup with message/poll/job-post/symbol.
+        PopupMenuButton<PostCreationMenu>(
+          padding: EdgeInsets.zero,
+          offset: const Offset(0, 36),
+          color: AppColors.white,
+          elevation: 8,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          onSelected: (value) async {
+            if (isGuestUser()) {
+              createProfileScreen();
+            } else if (value == PostCreationMenu.message ||
+                value == PostCreationMenu.poll) {
+              postVia(context, value);
+            } else if (value == PostCreationMenu.jobPost) {
+              Get.toNamed(
+                RouteHelper.getCreateJobPostScreenRoute(),
+                arguments: {
+                  'isEditMode': false,
+                  'jobId': '',
+                  'createJobVia': 'business',
+                },
+              );
+            } else if (value == PostCreationMenu.symbol) {
+              Get.to(() => AddChatSymbolScreen());
+            }
           },
-          borderRadius: BorderRadius.circular(20),
-          child: const Icon(Icons.credit_card, color: Colors.black),
+          itemBuilder: (context) => PopupMenuBuilders.popupMenuItems(),
+          child: Padding(
+            padding: const EdgeInsets.only(right: 14.0),
+            child: LocalAssets(
+              imagePath: AppIconAssets.addOutlinedIcon,
+              imgColor: AppColors.primaryColor,
+            ),
+          ),
         ),
-        const SizedBox(width: 14),
-        InkWell(
-          onTap: () {
-            // TODO: hook up rider destination.
-            commonSnackBar(message: "Coming soon....");
-          },
-          borderRadius: BorderRadius.circular(20),
-          child: const Icon(Icons.delivery_dining, color: Colors.black),
-        ),
-        // InkWell(
-        //   onTap: () {
-        //     Get.to(FindContactWithService());
-        //   },
-        //   child: Container(
-        //     decoration: BoxDecoration(
-        //       // gradient:  LinearGradient(
-        //       //   begin: Alignment.bottomCenter,
-        //       //   end: Alignment.topCenter,
-        //       //   transform: GradientRotation(10),
-        //       //   colors: [
-        //       //  AppColors.primaryColor.withValues(alpha: 0.1),
-        //       //     AppColors.primaryColor.withValues(alpha: 0.05),
-        //       //   ],
-        //       // ),
-        //         borderRadius: BorderRadius.circular(10),
-        //         border: Border.all(
-        //             color: AppColors.primaryColor
-        //         )
-        //     ),
-        //     margin: EdgeInsets.only(right: 6),
-        //     child: Container(
-        //       decoration: BoxDecoration(
-        //         color: Colors.white, // inner background
-        //         borderRadius: BorderRadius.circular(14),
-        //       ),
-        //       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
-        //       child: Row(
-        //         children: [
-        //           SvgPicture.asset(AppIconAssets.chat_find,
-        //               color: AppColors.primaryColor),
-        //           SizedBox(width: 4,),
-        //           CustomText("Find",
-        //             color: AppColors.primaryColor,),
-        //         ],
-        //       ),
-        //     ),
-        //   ),
-        // )
 
         // if (!_isFromForward())
         //   InkWell(
@@ -874,206 +699,6 @@ class _OrderMainChatScreenState extends State<OrderMainChatScreen>
     );
   }
   */
-}
-
-/// Bottom sheet to apply a flag to multiple selected conversations
-class _MultiFlagBottomSheet extends StatefulWidget {
-  final List<String> conversationIds;
-  final VoidCallback onDone;
-
-  const _MultiFlagBottomSheet({
-    required this.conversationIds,
-    required this.onDone,
-  });
-
-  @override
-  State<_MultiFlagBottomSheet> createState() => _MultiFlagBottomSheetState();
-}
-
-class _MultiFlagBottomSheetState extends State<_MultiFlagBottomSheet> {
-  final flagController = Get.find<ChatFlagController>();
-  String? selectedFlagId;
-
-  @override
-  void initState() {
-    super.initState();
-    // If all selected conversations have the same flag, pre-select it
-    final flags = widget.conversationIds
-        .map((id) => flagController.getFlagForConversation(id))
-        .toSet();
-    if (flags.length == 1 && flags.first != null) {
-      selectedFlagId = flags.first!.id;
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: Colors.grey.shade300,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              CustomText(
-                "Label ${widget.conversationIds.length} Chat${widget.conversationIds.length > 1 ? 's' : ''}",
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  showAddFlagLabelDialog(context, flagController);
-                },
-                child: const CustomText(
-                  "+ New Label",
-                  color: AppColors.primaryColor,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Obx(() {
-            return ConstrainedBox(
-              constraints: BoxConstraints(
-                maxHeight: MediaQuery.of(context).size.height * 0.5,
-              ),
-              child: ListView.builder(
-                shrinkWrap: true,
-                itemCount: flagController.allFlags.length,
-                itemBuilder: (context, index) {
-                  final flag = flagController.allFlags[index];
-                  final isSelected = selectedFlagId == flag.id;
-                  return InkWell(
-                    onTap: () {
-                      setState(() {
-                        selectedFlagId = isSelected ? null : flag.id;
-                      });
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 10, horizontal: 12),
-                      margin: const EdgeInsets.only(bottom: 4),
-                      decoration: BoxDecoration(
-                        color: isSelected
-                            ? flag.color.withValues(alpha: 0.1)
-                            : Colors.transparent,
-                        borderRadius: BorderRadius.circular(10),
-                        border: isSelected
-                            ? Border.all(color: flag.color, width: 1.5)
-                            : null,
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 32,
-                            height: 32,
-                            decoration: BoxDecoration(
-                              color: flag.color.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            alignment: Alignment.center,
-                            child: Text(
-                              flag.emoji,
-                              style: const TextStyle(fontSize: 16),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: CustomText(
-                              flag.label,
-                              fontSize: 15,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          if (isSelected)
-                            Icon(Icons.check_circle,
-                                color: flag.color, size: 22),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              ),
-            );
-          }),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: () {
-                    for (final id in widget.conversationIds) {
-                      flagController.removeFlagFromConversation(id);
-                    }
-                    Navigator.pop(context);
-                    widget.onDone();
-                  },
-                  style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: AppColors.red),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                  child: const CustomText(
-                    "Remove Label",
-                    color: AppColors.red,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: selectedFlagId == null
-                      ? null
-                      : () {
-                          final flag = flagController.allFlags
-                              .firstWhere((f) => f.id == selectedFlagId);
-                          for (final id in widget.conversationIds) {
-                            flagController.assignFlagToConversation(id, flag);
-                          }
-                          Navigator.pop(context);
-                          widget.onDone();
-                        },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryColor,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                  child: const CustomText(
-                    "Apply",
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-        ],
-      ),
-    );
-  }
 }
 
 class _TabBarDelegate extends SliverPersistentHeaderDelegate {

@@ -12,6 +12,7 @@ import 'package:BlueEra/features/chat/auth/model/call_models.dart';
 import 'package:BlueEra/features/chat/auth/service/call_activity_service.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -22,16 +23,14 @@ class CallHistoryScreen extends StatefulWidget {
   State<CallHistoryScreen> createState() => _CallHistoryScreenState();
 }
 
-class _CallHistoryScreenState extends State<CallHistoryScreen>
-    with SingleTickerProviderStateMixin {
+class _CallHistoryScreenState extends State<CallHistoryScreen> {
   final CallController _callController = getOrPut(() => CallController());
   final ChatViewController _chatViewController =
       getOrPut(() => ChatViewController());
 
   final RxBool _isLoading = true.obs;
   final RxList<CallModel> _calls = <CallModel>[].obs;
-
-  late final TabController _tabController;
+  final RxInt _selectedTabIndex = 0.obs;
 
   static const List<String> _tabLabels = [
     'All',
@@ -43,14 +42,7 @@ class _CallHistoryScreenState extends State<CallHistoryScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: _tabLabels.length, vsync: this);
     _loadHistory();
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
   }
 
   Future<void> _loadHistory() async {
@@ -301,58 +293,32 @@ class _CallHistoryScreenState extends State<CallHistoryScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0.5,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Get.back(),
-        ),
-        title: const CustomText(
-          'Call History',
-          fontSize: 18,
-          fontWeight: FontWeight.w600,
-          color: Colors.black,
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh, color: Colors.black),
-            onPressed: _loadHistory,
-          ),
-        ],
-      ),
-      body: NestedScrollView(
-        headerSliverBuilder: (context, innerBoxIsScrolled) {
-          return [
-            SliverPersistentHeader(
-              pinned: true,
-              delegate: _TabBarDelegate(
-                TabBar(
-                  controller: _tabController,
-                  labelColor: Colors.black,
-                  padding: EdgeInsets.zero,
-                  labelPadding: const EdgeInsets.symmetric(horizontal: 12),
-                  unselectedLabelColor: Colors.black54,
-                  indicatorColor: Colors.lightBlue,
-                  tabs: _tabLabels.map((t) => Tab(text: t)).toList(),
-                ),
-              ),
+      body: Obx(() {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 16),
+            // Mirrors PersonalChatsList's sub-tab strip — same widget,
+            // same paddings — so the Chat and Call tabs share a look.
+            HorizontalTabSelector(
+              horizontalMargin: 14,
+              horizontalPadding: 10,
+              tabs: _tabLabels,
+              selectedIndex: _selectedTabIndex.value,
+              onTabSelected: (index, val) {
+                _selectedTabIndex.value = index;
+              },
+              labelBuilder: (value) => value,
             ),
-          ];
-        },
-        body: Obx(() {
-          if (_isLoading.value) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          return TabBarView(
-            controller: _tabController,
-            children: List.generate(
-              _tabLabels.length,
-              (i) => _buildTabContent(_filteredFor(i)),
+            const SizedBox(height: 12),
+            Expanded(
+              child: _isLoading.value
+                  ? const Center(child: CircularProgressIndicator())
+                  : _buildTabContent(_filteredFor(_selectedTabIndex.value)),
             ),
-          );
-        }),
-      ),
+          ],
+        );
+      }),
     );
   }
 
@@ -566,26 +532,3 @@ class _CallHistoryScreenState extends State<CallHistoryScreen>
   }
 }
 
-class _TabBarDelegate extends SliverPersistentHeaderDelegate {
-  final TabBar _tabBar;
-
-  _TabBarDelegate(this._tabBar);
-
-  @override
-  Widget build(BuildContext context, double shrinkOffset,
-      bool overlapsContent) {
-    return Container(
-      color: Colors.white,
-      child: _tabBar,
-    );
-  }
-
-  @override
-  double get maxExtent => _tabBar.preferredSize.height;
-
-  @override
-  double get minExtent => _tabBar.preferredSize.height;
-
-  @override
-  bool shouldRebuild(_TabBarDelegate oldDelegate) => false;
-}
