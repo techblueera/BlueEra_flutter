@@ -318,12 +318,12 @@ class FoodSelfPickupController extends GetxController {
 
       // Navigate to chat Orders tab
       final bottomController = getOrPut(() => BottomBarController());
-      bottomController.onChangeIndex(3);
+      bottomController.onChangeIndex(2);
 
       ChatViewController chatViewController =
           getOrPut(() => ChatViewController());
       chatViewController.emitEvent(ChatEmitEvents.ChatList, {ApiKeys.type: AppConstants.order_Chat_Type},);
-      chatViewController.onSelectChatTab(1);
+      chatViewController.onSelectChatTab(2);
 
 
       Get.until((route) =>

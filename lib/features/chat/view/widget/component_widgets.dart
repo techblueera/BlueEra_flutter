@@ -1471,7 +1471,7 @@ AppBar getChatTitleAppBar(BuildContext context, {
         if (chatViewController.canPopBusiness.value) {
           chatViewController.emitEvent(
               ChatEmitEvents.ChatList, {ApiKeys.type: "$socketType"}, );
-          bottomBarController.onChangeIndex(4);
+          bottomBarController.onChangeIndex(2);
           Navigator.popUntil(context, ModalRoute.withName(
               RouteHelper.getBottomNavigationBarScreenRoute()));
           chatViewController.onSelectChatTab(1);
