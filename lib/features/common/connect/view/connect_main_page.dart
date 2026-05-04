@@ -9,7 +9,6 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/check_internet_connectivity.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
-import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 
 import 'package:BlueEra/features/chat/auth/controller/add_chat_symbol_controller.dart';
@@ -77,7 +76,7 @@ class _ConnectMainPageState extends State<ConnectMainPage>
     AppStrings.chat,
     "Inquiry",
     "Orders",
-    "Call History",
+    "Call",
   ];
   int selectedIndex = 0;
   int selectedSubIndex = 0;
@@ -421,71 +420,18 @@ class _ConnectMainPageState extends State<ConnectMainPage>
   }
 
   Widget _buildSymbolAvatar() {
-    return Obx(() {
-      final hasSymbols = addSymbolController.mySymbols.isNotEmpty;
-      return Stack(
-        clipBehavior: Clip.none,
-        children: [
-          InkWell(
-            onTap: () => _openProfileDrawer(context),
-            borderRadius: BorderRadius.circular(20),
-            child: Container(
-              padding: const EdgeInsets.all(2.4),
-              decoration: hasSymbols
-                  ? const BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: SweepGradient(
-                        startAngle: 0.0,
-                        endAngle: 6.28319,
-                        colors: [
-                          AppColors.symbolBorderRed,
-                          AppColors.symbolBorderBlue,
-                          AppColors.symbolBorderYellow,
-                          AppColors.symbolBorderGreen,
-                          AppColors.symbolBorderRed,
-                        ],
-                      ),
-                    )
-                  : null,
-              child: Container(
-                padding: const EdgeInsets.all(2),
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white,
-                ),
-                child: CachedAvatarWidget(
-                  imageUrl: Get.find<AuthController>().imgPath.value,
-                  size: SizeConfig.size36,
-                  borderRadius: SizeConfig.size34 / 2,
-                  showProfileOnFullScreen: false,
-                ),
-              ),
-            ),
-          ),
-          Positioned(
-            top: 0,
-            right: 0,
-            child: InkWell(
-              onTap: () {
-                Get.to(() => AddChatSymbolScreen());
-              },
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(4),
-                  color: AppColors.primaryColor,
-                ),
-                padding: const EdgeInsets.all(1.4),
-                child: const Icon(
-                  Icons.add,
-                  color: AppColors.white,
-                  size: 15,
-                ),
-              ),
-            ),
-          ),
-        ],
-      );
-    });
+    return InkWell(
+      onTap: () => _openProfileDrawer(context),
+      borderRadius: BorderRadius.circular(20),
+      child: Padding(
+        padding: const EdgeInsets.all(6.0),
+        child: const Icon(
+          Icons.more_vert,
+          size: 26,
+          color: Colors.black,
+        ),
+      ),
+    );
   }
 
   @override
