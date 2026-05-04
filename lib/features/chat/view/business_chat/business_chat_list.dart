@@ -6,6 +6,7 @@ import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/constants/app_constant.dart';
 import '../../../../core/constants/app_icon_assets.dart';
+import '../../../../core/constants/getx_utils.dart';
 import '../../../../core/constants/size_config.dart';
 import '../../../../widgets/custom_text_cm.dart';
 import '../../../../widgets/horizontal_tab_selector.dart';
@@ -34,7 +35,8 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
   @override
   void initState() {
     super.initState();
-    pinArchiveController = Get.find<ChatPinArchiveController>();
+
+    pinArchiveController =getOrPut(() => ChatPinArchiveController());
     if (chatViewController.canPopBusiness.value) {
       chatViewController.canPopBusiness.value = false;
     }
