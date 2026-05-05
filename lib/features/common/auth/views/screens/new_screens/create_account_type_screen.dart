@@ -7,31 +7,25 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
-import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/model/personal_profession_model.dart';
 import 'package:BlueEra/features/common/auth/views/screens/guest_exit_handler.dart';
-import 'package:BlueEra/features/common/auth/views/widget/business_sub_category_selection_dialog.dart';
-import 'package:BlueEra/features/common/auth/views/widget/gradient_border_container.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
+import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
-import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 import '../../../../../personal/personal_profile/controller/languge_list_controller.dart';
 import '../../../model/get_categories_model.dart';
 
+enum _AccountTab { business, professional, manufacturing }
+
 class CreateAccountTypeScreen extends StatefulWidget {
   final String? accountType;
 
-  /// When [accountType] is [AppConstants.individual], this chooses which
-  /// entry in [individualOnboardingProfilesCategory] is preselected on
-  /// entry. Used by [ChooseAccountTypeScreen] so the Professional card
-  /// lands on "Skill Work / Self Employee" (index 1) and the Personal
-  /// card lands on "Social profile" (index 0).
+  /// Kept for call-site compatibility. With Personal merged into the
+  /// Professional tab, this no longer changes the entry tab.
   final int initialIndividualIndex;
 
   const CreateAccountTypeScreen({
@@ -44,50 +38,103 @@ class CreateAccountTypeScreen extends StatefulWidget {
   State<CreateAccountTypeScreen> createState() => _CreateAccountTypeScreenState();
 }
 
-class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
+class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen>
+    with TickerProviderStateMixin {
   final authController = getOrPut(() => AuthController());
   final LanguageListController langController =
       Get.find<LanguageListController>();
 
-  bool get _showIndividualSidebar =>
-      widget.accountType == null ||
-      widget.accountType == AppConstants.individual;
+  /// Currently selected pill — `CategoryData` for business or
+  /// `ProfessionTypeData` for individual.
+  final Rxn<Object> selectedItem = Rxn<Object>();
 
-  bool get _showBusinessSidebar =>
-      widget.accountType == null ||
-      widget.accountType == AppConstants.business;
+  /// Sub-category picked in the bottom sheet alongside a business pill.
+  /// Null for individual pills, manufacturing, or categories with no subs.
+  final Rxn<SubCategories> selectedSubCategory = Rxn<SubCategories>();
+
+  late final List<_AccountTab> _tabs;
+  late final TabController _tabController;
 
   @override
   void initState() {
     super.initState();
     authController.getAllIndividualProfession();
     authController.getAllBusinessCategories();
-    // Defer the Rx writes to a microtask after the first frame so the
-    // back-to-back .value assignments here can never land mid-build of
-    // a sibling Obx (which throws "setState() called during build").
+
+    _tabs = _buildTabs();
+    _tabController = TabController(
+      length: _tabs.length,
+      vsync: this,
+      initialIndex: _initialTabIndex(),
+    );
+    _tabController.addListener(() {
+      if (_tabController.indexIsChanging) return;
+      _onTabChanged(_tabs[_tabController.index]);
+      setState(() {});
+    });
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      Future.microtask(() {
-        if (!mounted) return;
-        if (widget.accountType == AppConstants.business) {
-          authController.selectedIndividualOnboardingProfile.value = null;
-          authController.selectedBusinessOnboardingProfile.value =
-              businessOnboardingProfilesCategory.first;
-          authController.selectedParentSlug.value = AppConstants.business;
-        } else {
-          authController.selectedBusinessOnboardingProfile.value = null;
-          // Clamp the incoming index so an out-of-bounds value still
-          // falls back to the first item safely.
-          final idx = widget.initialIndividualIndex.clamp(
-            0,
-            individualOnboardingProfilesCategory.length - 1,
-          );
-          authController.selectedIndividualOnboardingProfile.value =
-              individualOnboardingProfilesCategory[idx];
-          authController.selectedParentSlug.value = AppConstants.individual;
-        }
-      });
+      _onTabChanged(_tabs[_tabController.index]);
     });
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  List<_AccountTab> _buildTabs() {
+    final showBusiness =
+        widget.accountType == null || widget.accountType == AppConstants.business;
+    final showIndividual =
+        widget.accountType == null || widget.accountType == AppConstants.individual;
+    return [
+      if (showBusiness) _AccountTab.business,
+      if (showIndividual) _AccountTab.professional,
+      if (showBusiness) _AccountTab.manufacturing,
+    ];
+  }
+
+  int _initialTabIndex() {
+    if (widget.accountType == AppConstants.individual) {
+      final idx = _tabs.indexOf(_AccountTab.professional);
+      return idx < 0 ? 0 : idx;
+    }
+    return 0;
+  }
+
+  String _labelFor(_AccountTab tab) {
+    switch (tab) {
+      case _AccountTab.business:
+        return langController.tr('Business');
+      case _AccountTab.professional:
+        return langController.tr('Social / Professional');
+      case _AccountTab.manufacturing:
+        return langController.tr('Manufacturing');
+    }
+  }
+
+  void _onTabChanged(_AccountTab tab) {
+    selectedItem.value = null;
+    selectedSubCategory.value = null;
+    switch (tab) {
+      case _AccountTab.business:
+      case _AccountTab.manufacturing:
+        authController.selectedParentSlug.value = AppConstants.business;
+        authController.selectedIndividualOnboardingProfile.value = null;
+        break;
+      case _AccountTab.professional:
+        authController.selectedParentSlug.value = AppConstants.individual;
+        authController.selectedBusinessOnboardingProfile.value = null;
+        break;
+    }
+  }
+
+  bool get _isBusinessTab {
+    final tab = _tabs[_tabController.index];
+    return tab == _AccountTab.business || tab == _AccountTab.manufacturing;
   }
 
   @override
@@ -99,6 +146,7 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
         GuestExitHandler.handleBack(context);
       },
       child: Scaffold(
+        backgroundColor: AppColors.white,
         appBar: CommonBackAppBar(
           isLeading: true,
           appBarColor: Colors.white,
@@ -106,253 +154,30 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
           onBackTap: () => GuestExitHandler.handleBack(context),
         ),
         body: SafeArea(
-            child:
-            // Obx(()=> authController.isAppLoading.value
-            //     ? const Center(child: CircularProgressIndicator())
-            //     :
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                accountTypesList(),
-                Expanded(
-                    child: Obx(
-                       () {
-                        if (authController.selectedParentSlug.value == AppConstants.individual) {
-                          if(authController.isProfessionLoading.value)
-                            return Center(
-                              child: CircularProgressIndicator(),
-                            );
-
-                          switch (authController.selectedIndividualOnboardingProfile.value?.slugId) {
-                            case SOCIAL_PROFILE:
-                              return _socialProfilesContent(
-                                  key: ValueKey(SOCIAL_PROFILE),
-                                  arrIndividualCategory: authController.individualOnboardingSocialProfileList);
-                            case SKILL_WORKER:
-                              return _socialProfilesContent(
-                                  key: ValueKey(SKILL_WORKER),
-                                  arrIndividualCategory: authController.individualOnboardingSkillWorkList);
-                            case GIG_WORKER:
-                              return _socialProfilesContent(
-                                  key: ValueKey(GIG_WORKER),
-                                  arrIndividualCategory: authController.individualOnboardingGigWorkList);
-                            case CONSULTANT:
-                              return _consultationContent(
-                                  key: ValueKey(CONSULTANT),
-                                  arrConsultationsCategory: authController.individualOnboardingConsultationList);
-                          }
-                        } else {
-                          if(authController.isAllBusinessCategoriesLoading.value)
-                            return Center(
-                              child: CircularProgressIndicator(),
-                            );
-
-                          switch (authController.selectedBusinessOnboardingProfile.value?.slugId) {
-                              case FOOD:
-                                return _foodNdGroceryContent(
-                                  key: ValueKey(FOOD),
-                                  arrGroceryCategory: authController.businessOnboardingGroceriesCategories,
-                                  arrFoodNdRestaurantCategory: authController.businessOnboardingFoodsCategories,
-                                );
-                              case PRODUCT:
-                                return _businessContent(
-                                    key: ValueKey(PRODUCT),
-                                    arrBusinessCategory: authController.businessOnboardingProductsCategories);
-                              case SERVICE_OTHERS:
-                                return _businessOtherServiceContent(
-                                  key: ValueKey(SERVICE_OTHERS),
-                                );
-                              case SERVICE:
-                                return _businessContent(
-                                    key: ValueKey(SERVICE),
-                                    arrBusinessCategory: authController.businessOnboardingServicesCategories);
-                              case MANUFACTURING:
-                                return _businessContent(
-                                    key: ValueKey(MANUFACTURING),
-                                    arrBusinessCategory: authController.businessOnboardingManufacturingCategories);
-                            }
-                        }
-
-                        return const SizedBox();
-                      },
-                    )
-                ),
-              ],
-            ),
-            // )
-        )
-      ),
-    );
-  }
-
-  Widget accountTypesList() {
-    return Container(
-      width: SizeConfig.screenWidth * 0.18,
-      height: SizeConfig.screenHeight,
-      color: AppColors.white,
-      child: ListView(
-        children: [
-          Column(
-            children: [
-
-              SizedBox(
-                height: SizeConfig.paddingXSL,
-              ),
-
-              if (_showIndividualSidebar)
-              Container(
-                color: AppColors.lightGreenShade.withValues(alpha: 0.1),
-                child: Column(
-                  children: [
-                    GradientBorderContainer(
-                      title: langController.tr("Personal"),
-                      gradientColor: AppColors.lightGreenShade,
-                    ),
-
-                    ListView.builder(
-                      itemCount: individualOnboardingProfilesCategory.length,
-                      padding: EdgeInsets.only(bottom: SizeConfig.size20),
-                      physics: NeverScrollableScrollPhysics(),
-                      shrinkWrap: true,
-                      itemBuilder: (context, index) {
-                        var category = individualOnboardingProfilesCategory[index];
-                        return Obx(()=> _categoryItem(
-                          category.icon ?? '',
-                          category.name,
-                          selected: authController.selectedIndividualOnboardingProfile.value!=null
-                              ? authController.selectedIndividualOnboardingProfile.value?.slugId == category.slugId
-                              : false,
-                          selectedColor: AppColors.lightGreenShade,
-                          onTap: () {
-                            authController.selectedIndividualOnboardingProfile.value = category;
-                            authController.selectedBusinessOnboardingProfile.value = null;
-                            authController.selectedParentSlug.value = AppConstants.individual;
-                            // controller.selectedTabIndex.value = 0;
-                            // log('new selection ${controller.selectedGroceryData.value}');
-                            //
-                            // /// api call
-                            // controller.fetchBoth();
-
-                          },
-                        ));
-                      },
-                    ),
-                  ],
-                ),
-              ),
-
-              if (_showBusinessSidebar)
-              Container(
-                color: AppColors.blueShade.withValues(alpha: 0.1),
-                child: Column(
-                  children: [
-                    GradientBorderContainer(
-                      title: langController.tr("Business"),
-                      gradientColor: AppColors.blueShade,
-                    ),
-
-                    ListView.builder(
-                      itemCount: businessOnboardingProfilesCategory.length,
-                      padding: EdgeInsets.only(bottom: SizeConfig.size30),
-                      physics: NeverScrollableScrollPhysics(),
-                      shrinkWrap: true,
-                      itemBuilder: (context, index) {
-                        var category = businessOnboardingProfilesCategory[index];
-                        return Obx(()=> _categoryItem(
-                          category.icon ?? '',
-                          category.name,
-                          selected: authController.selectedBusinessOnboardingProfile.value!=null
-                              ? authController.selectedBusinessOnboardingProfile.value?.slugId == category.slugId
-                              : false,
-                          selectedColor: AppColors.blueShade,
-                          onTap: () {
-                            authController.selectedBusinessOnboardingProfile.value = category;
-                            authController.selectedIndividualOnboardingProfile.value = null;
-                            authController.selectedParentSlug.value = AppConstants.business;
-                          },
-                        ));
-                      },
-                    ),
-                  ],
-                ),
-              )
-
-
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _categoryItem(
-      String icon,
-      String label,
-      { bool selected = false,
-        required Color selectedColor,
-        required VoidCallback onTap}) {
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 6),
-        child: Container(
-          padding: EdgeInsets.symmetric(vertical: selected ? 10 : 6),
-          decoration: BoxDecoration(
-            color: selected ? AppColors.white : Colors.transparent,
-            gradient: selected ? LinearGradient(
-              begin: Alignment.centerLeft,
-              end: Alignment.centerRight,
-              colors: [
-                selectedColor.withValues(alpha: 0.4),
-                selectedColor.withValues(alpha: 0.1),
-              ],
-            ) : null,
-            borderRadius: BorderRadius.circular(4),
-            border: selected
-                ? Border(
-                left: BorderSide(
-                    color: selectedColor,
-                    width: 4,
-                    style: BorderStyle.solid))
-                : null,
-          ),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Container(
-                  decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: AppColors.white),
-                  padding: EdgeInsets.all(8),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeOutBack, // Gives a "pop" effect
-                    height: selected ? 44 : 38, // Grow from 40 to 50
-                    width: selected ? 44 : 38,
-                    child: LocalAssets(
-                      imagePath: icon,
-                      height: selected ? 44 : 38,
-                      width: selected ? 44 : 38,
-                      // boxFix: BoxFit.contain, // Ensure image scales correctly
-                    ),
-                  ),
-              ),
-              const SizedBox(height: 6),
-              AnimatedDefaultTextStyle(
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeOutBack,
-                style: TextStyle(
-                  fontSize: selected ? 11 : 10,
-                  fontWeight: FontWeight.w600,
-                  color: selected ? AppColors.mainTextColor : AppColors.secondaryTextColor,
-                ),
-                textAlign: TextAlign.center,
-                child: Text(
-                  label,
-                  textAlign: TextAlign.center,
-                  // Remove style here since AnimatedDefaultTextStyle handles it
+              _buildTopTabs(),
+              Expanded(
+                child: Container(
+                  width: double.infinity,
+                  color: const Color(0xFFE9EFF7),
+                  child: Obx(() {
+                    if (_isBusinessTab &&
+                        authController.isAllBusinessCategoriesLoading.value) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    if (!_isBusinessTab &&
+                        authController.isProfessionLoading.value) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    // Touch the selection Rx so the body rebuilds when a
+                    // pill is tapped (so its highlight state updates).
+                    selectedItem.value;
+                    return _buildBodyForTab(_tabs[_tabController.index]);
+                  }),
                 ),
               ),
+              _buildBottomNext(),
             ],
           ),
         ),
@@ -360,401 +185,323 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
     );
   }
 
-  Widget _socialProfilesContent({
-    Key? key,
-    required List<ProfessionTypeData> arrIndividualCategory}) {
-    if(arrIndividualCategory.isEmpty )
-      return EmptyStateWidget(
-        message: langController.tr('No profession found'),
-      );
-
-    return SingleChildScrollView(
-      key: key,
-      padding: const EdgeInsets.all(8),
-      child: Column(
-        children: [
-          MasonryGridView.count(
-            crossAxisCount: 2,
-            mainAxisSpacing: 10,
-            crossAxisSpacing: 10,
-            itemCount: arrIndividualCategory.length,
-            physics: NeverScrollableScrollPhysics(),
-            itemBuilder: (context, index) {
-              var item = arrIndividualCategory[index];
-              return _individualCommonCard(item, textMaxLine: 1);
-            },
-            padding: EdgeInsets.only(bottom: SizeConfig.size16),
-            shrinkWrap: true,
-          ),
-
-          _otherOptionCreation()
-        ],
+  Widget _buildTopTabs() {
+    return Container(
+      color: AppColors.white,
+      child: TabBar(
+        controller: _tabController,
+        isScrollable: true,
+        tabAlignment: TabAlignment.start,
+        labelColor: AppColors.primaryColor,
+        unselectedLabelColor: AppColors.secondaryTextColor,
+        indicatorColor: AppColors.primaryColor,
+        indicatorWeight: 3,
+        labelPadding: EdgeInsets.symmetric(horizontal: SizeConfig.size16),
+        labelStyle: TextStyle(
+          fontSize: SizeConfig.medium,
+          fontWeight: FontWeight.w600,
+        ),
+        unselectedLabelStyle: TextStyle(
+          fontSize: SizeConfig.medium,
+          fontWeight: FontWeight.w500,
+        ),
+        tabs: _tabs.map((t) => Tab(text: _labelFor(t))).toList(),
       ),
     );
   }
 
-
-  Widget _consultationContent({
-    Key? key,
-    required List<ProfessionTypeData> arrConsultationsCategory}) {
-    if(arrConsultationsCategory.isEmpty)
-      return EmptyStateWidget(
-        message: langController.tr('No profession found'),
-      );
-
-    return SingleChildScrollView(
-      key: key,
-      padding: const EdgeInsets.all(8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-
-          Container(
-            padding: EdgeInsets.all(10.0),
-            decoration: BoxDecoration(
-              color: AppColors.redLite.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(10.0),
-              border: Border.all(
-                color: AppColors.redLite,
-              )
-            ),
-            child: CustomText(
-                langController.tr('If You Have Any Consulting Farm Then Choose business-service Account'),
-                fontSize: SizeConfig.small,
-                fontWeight: FontWeight.w400,
-                color: AppColors.redLite
-            ),
+  Widget _buildBodyForTab(_AccountTab tab) {
+    switch (tab) {
+      case _AccountTab.business:
+        return _sectionedBusinessBody([
+          _Section(
+            title: langController.tr('Grocery & Stationary Stores'),
+            items: authController.businessOnboardingGroceriesCategories,
           ),
-
-          SizedBox(height: SizeConfig.paddingM),
-
-          CustomText(
-              langController.tr('For Individual - Choose Your Sector'),
-              fontSize: SizeConfig.medium,
-              fontWeight: FontWeight.w600,
-              color: AppColors.mainTextColor
+          _Section(
+            title: langController.tr('Food & Restaurant'),
+            items: authController.businessOnboardingFoodsCategories,
           ),
-
-          SizedBox(height: SizeConfig.paddingXSL),
-
-          MasonryGridView.count(
-            crossAxisCount: 2,
-            mainAxisSpacing: 10,
-            crossAxisSpacing: 10,
-            itemCount: arrConsultationsCategory.length,
-            physics: NeverScrollableScrollPhysics(),
-            itemBuilder: (context, index) {
-              var item = arrConsultationsCategory[index];
-              return _individualCommonCard(item, textMaxLine: 2);
-            },
-            padding: EdgeInsets.only(bottom: SizeConfig.size16),
-            shrinkWrap: true,
+          _Section(
+            title: langController.tr('Shop & Store'),
+            items: authController.businessOnboardingProductsCategories,
           ),
-
-          _otherOptionCreation()
-        ],
-      ),
-    );
-  }
-
-  Widget _foodNdGroceryContent({
-    Key? key,
-    required List<CategoryData> arrGroceryCategory,
-    required List<CategoryData> arrFoodNdRestaurantCategory,
-  }) {
-    if(arrGroceryCategory.isEmpty ||
-        arrFoodNdRestaurantCategory.isEmpty)
-      return EmptyStateWidget(
-        message: langController.tr('No category found'),
-      );
-
-    return SingleChildScrollView(
-      key: key,
-      padding: const EdgeInsets.all(8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          CustomText(
-              langController.tr('Grocery'),
-              fontSize: SizeConfig.large,
-              fontWeight: FontWeight.w600,
-              color: AppColors.mainTextColor
+          _Section(
+            title: langController.tr('Services'),
+            items: authController.businessOnboardingServicesCategories,
           ),
-
-          SizedBox(height: SizeConfig.paddingXSL),
-
-          CustomFormCard(
-            padding: EdgeInsets.all(SizeConfig.paddingXSL),
-            child: MasonryGridView.count(
-              crossAxisCount: 2,
-              mainAxisSpacing: 10,
-              crossAxisSpacing: 10,
-              itemCount: arrGroceryCategory.length,
-              physics: NeverScrollableScrollPhysics(),
-              itemBuilder: (context, index) {
-                var item = arrGroceryCategory[index];
-                return _businessCommonCard(item, textMaxLine: 1);
-              },
-              padding: EdgeInsets.zero,
-              shrinkWrap: true,
-            ),
+          _Section(
+            title: langController.tr('Automotive Services'),
+            items: authController.businessOnboardingAutomotiveServicesCategories,
           ),
-
-          SizedBox(height: SizeConfig.paddingM),
-
-          CustomText(
-              langController.tr('Food & Restaurant'),
-              fontSize: SizeConfig.large,
-              fontWeight: FontWeight.w600,
-              color: AppColors.mainTextColor
+          _Section(
+            title: langController.tr('Health Care'),
+            items: authController.businessOnboardingHealthcareSectorsCategories,
           ),
-
-          SizedBox(height: SizeConfig.paddingXSL),
-
-          CustomFormCard(
-            padding: EdgeInsets.all(SizeConfig.paddingXSL),
-            child: MasonryGridView.count(
-              crossAxisCount: 2,
-              mainAxisSpacing: 10,
-              crossAxisSpacing: 10,
-              itemCount: arrFoodNdRestaurantCategory.length,
-              physics: NeverScrollableScrollPhysics(),
-              itemBuilder: (context, index) {
-                var item = arrFoodNdRestaurantCategory[index];
-                return _businessCommonCard(item, textMaxLine: 2);
-              },
-              padding: EdgeInsets.only(bottom: SizeConfig.size16),
-              shrinkWrap: true,
-            ),
+          _Section(
+            title: langController.tr('Hospitality & Stay'),
+            items: authController.businessOnboardingHospitalityStayCategories,
           ),
-
-          SizedBox(height: SizeConfig.paddingM),
-
-          _otherOptionCreation()
-        ],
-      ),
-    );
-  }
-
-  Widget _businessContent({
-    Key? key,
-    required List<CategoryData> arrBusinessCategory}) {
-    if(arrBusinessCategory.isEmpty)
-      return EmptyStateWidget(
-        message: langController.tr('No category found'),
-      );
-
-    return SingleChildScrollView(
-      key: key,
-      padding: const EdgeInsets.all(8),
-      child: Column(
-        children: [
-          MasonryGridView.count(
-            crossAxisCount: 2,
-            mainAxisSpacing: 10,
-            crossAxisSpacing: 10,
-            physics: NeverScrollableScrollPhysics(),
-            itemCount: arrBusinessCategory.length,
-            itemBuilder: (context, index) {
-              var item = arrBusinessCategory[index];
-              return _businessCommonCard(item, textMaxLine: 2);
-            },
-            padding: EdgeInsets.only(bottom: SizeConfig.size16),
-            shrinkWrap: true,
+          _Section(
+            title: langController.tr('Education & Training Sectors'),
+            items: authController.businessOnboardingEducationTrainingCategories,
           ),
-
-          _otherOptionCreation()
-        ],
-      ),
-    );
-  }
-
-  Widget _individualCommonCard(
-      ProfessionTypeData category,
-      {int? textMaxLine}) {
-
-    return CommonServiceCard(
-      service: category,
-      getName: (item) => item.name ?? '',
-      getIcon: (item) => item.imageUrl ?? '',
-      iconHeight: SizeConfig.size60,
-      boxShadow: [],
-      textMaxLine: textMaxLine,
-      onTap: (category) {
-        log("---------------- LOG DATA ----------------");
-        log("${ApiKeys.argProfileType} : ${category.individualProfileType?.tagId}");
-        log("${ApiKeys.argProfessionTagId}    : ${category.tagId}");
-        log("${ApiKeys.argProfession}    : ${category.name}");
-        log("------------------------------------------");
-
-        Get.toNamed(
-          RouteHelper.getPersonalAccountNewScreenRoute(),
-          arguments: {
-            ApiKeys.argAccountType: AppConstants.individual,
-            ApiKeys.argProfileType: category.individualProfileType,
-            ApiKeys.argProfessionTagId: category.tagId,
-            ApiKeys.argProfession: category.name,
-          },
-        );
-      },
-    );
-  }
-
-
-  Widget _businessOtherServiceContent({Key? key}) {
-    final Map<String, List<CategoryData>> onboardingBusinessMap = {
-      'Automotive Services': authController.businessOnboardingAutomotiveServicesCategories,
-      'Health Care': authController.businessOnboardingHealthcareSectorsCategories,
-      'Hospitality & Stay': authController.businessOnboardingHospitalityStayCategories,
-      'Education & Training Sectors': authController.businessOnboardingEducationTrainingCategories,
-      'Financial Sectors': authController.businessOnboardingFinancialSectorsCategories,
-    };
-
-    return SingleChildScrollView(
-      key: key,
-      padding: EdgeInsets.symmetric(
-          horizontal: SizeConfig.size8,
-          vertical: SizeConfig.size10,
-      ),
-      child: Column(
-        children: onboardingBusinessMap.entries.map((entry) {
-          return Padding(
-            padding: EdgeInsets.only(bottom: SizeConfig.size10),
-            child: CustomFormCard(
-              padding: EdgeInsets.all(SizeConfig.paddingXSL),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CustomText(
-                    langController.tr(entry.key),
-                    fontSize: SizeConfig.medium,
-                    color: AppColors.mainTextColor,
-                    fontWeight: FontWeight.w600,
-                  ),
-
-                  SizedBox(height: SizeConfig.paddingXSL),
-
-                  MasonryGridView.count(
-                    shrinkWrap: true,
-                    primary: false,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: entry.value.length,
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 6,
-                    mainAxisSpacing: 6,
-                    padding: EdgeInsets.zero,
-                    itemBuilder: (context, index) {
-                      var category = entry.value[index];
-                      return _businessCommonCard(category);
-                    },
-                  )
-
-                ],
-              ),
-            ),
-          );
-        }).toList(),
-      ),
-    );
-  }
-
-
-  Widget _businessCommonCard(
-      CategoryData category,
-      {int? textMaxLine}) {
-    return CommonServiceCard(
-      service: category,
-      getName: (item) => item.name ?? '',
-      getIcon: (item) => item.imageUrl ?? '',
-      iconHeight: SizeConfig.size60,
-      boxShadow: [],
-      textMaxLine: textMaxLine,
-      onTap: (category) {
-        if(category.businessType == BusinessType.Manufacturing){
-          if(category.businessType == null) return;
-          navigateToGstScreen(
-            context,
-            businessType: category.businessType!,
-            categorySlugId: category.tagId!,
-            categoryName: category.name!,
-          );
-        }
-        else{
-          _showBusinessSubCategoryDialog(
-            businessType: category.businessType!,
-            categorySlugId: category.tagId!,
-            categoryName: category.name!,
-          );
-        }
-      },
-    );
-  }
-
-  Widget _otherOptionCreation(){
-    return CustomFormCard(
-      padding: EdgeInsets.all(SizeConfig.size10),
-      margin: EdgeInsets.only(bottom: SizeConfig.paddingL),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          CustomText(
-              langController.tr('Others'),
-              fontSize: SizeConfig.small,
-              fontWeight: FontWeight.w600,
-              color: AppColors.mainTextColor
+          _Section(
+            title: langController.tr('Financial Sectors'),
+            items: authController.businessOnboardingFinancialSectorsCategories,
           ),
-          SizedBox(
-            height: SizeConfig.size6,
+        ]);
+      case _AccountTab.manufacturing:
+        return _sectionedBusinessBody([
+          _Section(
+            title: langController.tr('Manufacturing'),
+            items: authController.businessOnboardingManufacturingCategories,
           ),
-          CustomText(
-              langController.tr('If you do not find a suitable option, you can create one here. Please proceed without concern'),
-              fontSize: SizeConfig.extraSmall,
-              fontWeight: FontWeight.w400,
-              color: AppColors.secondaryTextColor
+        ]);
+      case _AccountTab.professional:
+        return _sectionedIndividualBody([
+          _IndividualSection(
+            title: langController.tr('Skill Work'),
+            items: authController.individualOnboardingSkillWorkList,
           ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _showBusinessSubCategoryDialog({
-    required BusinessType businessType,
-    required String categorySlugId,
-    required String categoryName
-  }) async {
-
-    // 1. Show the Dialog and wait for result
-    final SubCategories? selected = await showDialog<SubCategories>(
-      context: context,
-      builder: (context) {
-        return BusinessSubCategorySelectionDialog(
-          authController: authController,
-          businessType: businessType,
-          categorySlugId: categorySlugId,
-          categoryName: categoryName
-        );
-      },
-    );
-
-    // 2. If user selected something and clicked Next
-    if (selected != null) {
-      navigateToGstScreen(
-          context,
-          businessType: businessType,
-          categorySlugId: categorySlugId,
-          categoryName: categoryName,
-          subCategory: selected
-       );
-     }
+          _IndividualSection(
+            title: langController.tr('Self Employed'),
+            items: authController.individualOnboardingGigWorkList,
+          ),
+          _IndividualSection(
+            title: langController.tr('Consultant'),
+            items: authController.individualOnboardingConsultationList,
+          ),
+          _IndividualSection(
+            title: langController.tr('Social Profile'),
+            items: authController.individualOnboardingSocialProfileList,
+          ),
+        ]);
     }
+  }
+
+  Widget _sectionedBusinessBody(List<_Section> sections) {
+    final nonEmpty = sections.where((s) => s.items.isNotEmpty).toList();
+    if (nonEmpty.isEmpty) {
+      return EmptyStateWidget(message: langController.tr('No category found'));
+    }
+    return SingleChildScrollView(
+      padding: EdgeInsets.symmetric(
+        horizontal: SizeConfig.size16,
+        vertical: SizeConfig.size20,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          for (final section in nonEmpty) ...[
+            CustomText(
+              section.title,
+              fontSize: SizeConfig.size20,
+              fontWeight: FontWeight.w700,
+              color: AppColors.mainTextColor,
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: SizeConfig.size16),
+            Wrap(
+              alignment: WrapAlignment.center,
+              spacing: SizeConfig.size10,
+              runSpacing: SizeConfig.size12,
+              children:
+                  section.items.map((c) => _businessPill(c)).toList(),
+            ),
+            SizedBox(height: SizeConfig.size24),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _sectionedIndividualBody(List<_IndividualSection> sections) {
+    final nonEmpty = sections.where((s) => s.items.isNotEmpty).toList();
+    if (nonEmpty.isEmpty) {
+      return EmptyStateWidget(message: langController.tr('No profession found'));
+    }
+    return SingleChildScrollView(
+      padding: EdgeInsets.symmetric(
+        horizontal: SizeConfig.size16,
+        vertical: SizeConfig.size20,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          for (final section in nonEmpty) ...[
+            CustomText(
+              section.title,
+              fontSize: SizeConfig.size20,
+              fontWeight: FontWeight.w700,
+              color: AppColors.mainTextColor,
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: SizeConfig.size16),
+            Wrap(
+              alignment: WrapAlignment.center,
+              spacing: SizeConfig.size10,
+              runSpacing: SizeConfig.size12,
+              children: section.items.map(_individualPill).toList(),
+            ),
+            SizedBox(height: SizeConfig.size24),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _businessPill(CategoryData c) {
+    final selected = identical(selectedItem.value, c);
+    return _pill(
+      label: c.name ?? '',
+      selected: selected,
+      onTap: () => _onBusinessPillTap(c),
+    );
+  }
+
+  Widget _individualPill(ProfessionTypeData p) {
+    final selected = identical(selectedItem.value, p);
+    return _pill(
+      label: p.name ?? '',
+      selected: selected,
+      onTap: () {
+        selectedItem.value = p;
+        selectedSubCategory.value = null;
+      },
+    );
+  }
+
+  Future<void> _onBusinessPillTap(CategoryData c) async {
+    // Manufacturing has no sub-categories — select directly.
+    if (c.businessType == BusinessType.Manufacturing) {
+      selectedItem.value = c;
+      selectedSubCategory.value = null;
+      return;
+    }
+    final tagId = c.tagId;
+    if (tagId == null) {
+      selectedItem.value = c;
+      selectedSubCategory.value = null;
+      return;
+    }
+    final picked = await showModalBottomSheet<_SubCategoryPickResult>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => BusinessSubCategoryBottomSheet(
+        authController: authController,
+        categorySlugId: tagId,
+        categoryName: c.name ?? '',
+      ),
+    );
+    if (picked == null) return; // dismissed
+    selectedItem.value = c;
+    selectedSubCategory.value = picked.subCategory;
+  }
+
+  Widget _pill({
+    required String label,
+    required bool selected,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(SizeConfig.size30),
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.symmetric(
+          horizontal: SizeConfig.size16,
+          vertical: SizeConfig.size10,
+        ),
+        decoration: BoxDecoration(
+          color: selected ? AppColors.primaryColor : AppColors.white,
+          borderRadius: BorderRadius.circular(SizeConfig.size30),
+          boxShadow: selected
+              ? null
+              : [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.06),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+        ),
+        child: CustomText(
+          label,
+          fontSize: SizeConfig.medium,
+          fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+          color: selected ? AppColors.white : AppColors.mainTextColor,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBottomNext() {
+    return Material(
+      color: AppColors.white,
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: SizeConfig.size20,
+            vertical: SizeConfig.size12,
+          ),
+          child: Obx(() {
+            final canProceed = selectedItem.value != null;
+            return CustomBtn(
+              radius: SizeConfig.size30,
+              isValidate: canProceed,
+              bgColor: canProceed ? AppColors.primaryColor : AppColors.whiteF3,
+              textColor: canProceed ? AppColors.white : AppColors.grey9B,
+              title: 'Next',
+              onTap: canProceed ? _onNext : null,
+            );
+          }),
+        ),
+      ),
+    );
+  }
+
+  void _onNext() {
+    final item = selectedItem.value;
+    if (item == null) return;
+    if (item is CategoryData) {
+      final type = item.businessType;
+      final tagId = item.tagId;
+      final name = item.name;
+      if (type == null || tagId == null || name == null) return;
+      navigateToGstScreen(
+        context,
+        businessType: type,
+        categorySlugId: tagId,
+        categoryName: name,
+        subCategory: selectedSubCategory.value,
+      );
+    } else if (item is ProfessionTypeData) {
+      log('---------------- LOG DATA ----------------');
+      log('${ApiKeys.argProfileType} : ${item.individualProfileType?.tagId}');
+      log('${ApiKeys.argProfessionTagId}    : ${item.tagId}');
+      log('${ApiKeys.argProfession}    : ${item.name}');
+
+      Get.toNamed(
+        RouteHelper.getPersonalAccountNewScreenRoute(),
+        arguments: {
+          ApiKeys.argAccountType: AppConstants.individual,
+          ApiKeys.argProfileType: item.individualProfileType,
+          ApiKeys.argProfessionTagId: item.tagId,
+          ApiKeys.argProfession: item.name,
+        },
+      );
+    }
+  }
 
   void navigateToGstScreen(
-      BuildContext context, {
-        required BusinessType businessType,
-        required String categorySlugId,
-        required String categoryName,
-        SubCategories? subCategory,
-      }) {
+    BuildContext context, {
+    required BusinessType businessType,
+    required String categorySlugId,
+    required String categoryName,
+    SubCategories? subCategory,
+  }) {
     Navigator.pushNamed(
       context,
       RouteHelper.getGstNumberScreenRoute(),
@@ -767,7 +514,211 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen> {
       },
     );
   }
-
-
 }
 
+class _Section {
+  final String title;
+  final List<CategoryData> items;
+  _Section({required this.title, required this.items});
+}
+
+class _IndividualSection {
+  final String title;
+  final List<ProfessionTypeData> items;
+  _IndividualSection({required this.title, required this.items});
+}
+
+class _SubCategoryPickResult {
+  final SubCategories? subCategory;
+  _SubCategoryPickResult(this.subCategory);
+}
+
+class BusinessSubCategoryBottomSheet extends StatefulWidget {
+  final AuthController authController;
+  final String categorySlugId;
+  final String categoryName;
+
+  const BusinessSubCategoryBottomSheet({
+    super.key,
+    required this.authController,
+    required this.categorySlugId,
+    required this.categoryName,
+  });
+
+  @override
+  State<BusinessSubCategoryBottomSheet> createState() =>
+      _BusinessSubCategoryBottomSheetState();
+}
+
+class _BusinessSubCategoryBottomSheetState
+    extends State<BusinessSubCategoryBottomSheet> {
+  final LanguageListController langController =
+      Get.find<LanguageListController>();
+  SubCategories? _selectedSubCat;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.authController
+        .fetchBusinessSubCategories(categorySlugId: widget.categorySlugId);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return DraggableScrollableSheet(
+      initialChildSize: 0.6,
+      minChildSize: 0.3,
+      maxChildSize: 0.9,
+      expand: false,
+      builder: (context, scrollController) {
+        return Container(
+          decoration: BoxDecoration(
+            color: AppColors.white,
+            borderRadius: BorderRadius.vertical(
+              top: Radius.circular(SizeConfig.size16),
+            ),
+          ),
+          child: Column(
+            children: [
+              SizedBox(height: SizeConfig.size8),
+              Container(
+                width: SizeConfig.size40,
+                height: SizeConfig.size4,
+                decoration: BoxDecoration(
+                  color: AppColors.greyE5,
+                  borderRadius: BorderRadius.circular(SizeConfig.size4),
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: SizeConfig.size16,
+                  vertical: SizeConfig.size12,
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: CustomText(
+                        widget.categoryName.replaceAll('\n', ' '),
+                        color: AppColors.mainTextColor,
+                        fontWeight: FontWeight.w700,
+                        fontSize: SizeConfig.size16,
+                      ),
+                    ),
+                    InkWell(
+                      onTap: () => Navigator.of(context).pop(),
+                      borderRadius: BorderRadius.circular(SizeConfig.size20),
+                      child: Padding(
+                        padding: EdgeInsets.all(SizeConfig.size4),
+                        child: Icon(
+                          Icons.close,
+                          size: SizeConfig.size20,
+                          color: AppColors.secondaryTextColor,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Divider(height: 1, color: AppColors.greyE5),
+              Expanded(
+                child: Obx(() {
+                  if (widget.authController
+                      .isBusinessSubCategoriesLoading.value) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (widget.authController.subCategoryErrorMessage.value !=
+                      null) {
+                    return Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(SizeConfig.size20),
+                        child: CustomText(
+                          widget.authController.subCategoryErrorMessage.value!,
+                          color: AppColors.red,
+                          fontSize: SizeConfig.medium,
+                          fontWeight: FontWeight.w600,
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    );
+                  }
+                  final subs =
+                      widget.authController.businessSubCategoriesList;
+                  if (subs.isEmpty) {
+                    return Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(SizeConfig.size20),
+                        child: CustomText(
+                          langController.tr('No sub-categories found.'),
+                          fontSize: SizeConfig.medium,
+                          color: AppColors.secondaryTextColor,
+                        ),
+                      ),
+                    );
+                  }
+                  return ListView.separated(
+                    controller: scrollController,
+                    padding: EdgeInsets.symmetric(vertical: SizeConfig.size8),
+                    itemCount: subs.length,
+                    separatorBuilder: (_, __) =>
+                        Divider(height: 1, color: AppColors.greyE5),
+                    itemBuilder: (context, index) {
+                      final item = subs[index];
+                      final isSelected = _selectedSubCat?.sId == item.sId;
+                      return ListTile(
+                        dense: true,
+                        title: CustomText(
+                          item.name ?? AppStrings.unknown,
+                          fontWeight:
+                              isSelected ? FontWeight.w600 : FontWeight.w400,
+                          fontSize: SizeConfig.size15,
+                          color: AppColors.mainTextColor,
+                        ),
+                        trailing: isSelected
+                            ? Icon(Icons.check_circle,
+                                color: AppColors.primaryColor,
+                                size: SizeConfig.size22)
+                            : null,
+                        onTap: () => setState(() => _selectedSubCat = item),
+                      );
+                    },
+                  );
+                }),
+              ),
+              SafeArea(
+                top: false,
+                child: Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: SizeConfig.size20,
+                    vertical: SizeConfig.size12,
+                  ),
+                  child: Obx(() {
+                    final subs =
+                        widget.authController.businessSubCategoriesList;
+                    final loading = widget
+                        .authController.isBusinessSubCategoriesLoading.value;
+                    final canConfirm = !loading &&
+                        (subs.isEmpty || _selectedSubCat != null);
+                    return CustomBtn(
+                      radius: SizeConfig.size30,
+                      isValidate: canConfirm,
+                      bgColor: canConfirm
+                          ? AppColors.primaryColor
+                          : AppColors.whiteF3,
+                      textColor:
+                          canConfirm ? AppColors.white : AppColors.grey9B,
+                      title: 'Done',
+                      onTap: canConfirm
+                          ? () => Navigator.of(context)
+                              .pop(_SubCategoryPickResult(_selectedSubCat))
+                          : null,
+                    );
+                  }),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}

@@ -4,7 +4,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
-import 'package:BlueEra/features/common/Discover/view/book_your_transport/search_transport_address.dart';
+import 'package:BlueEra/features/common/Discover/view/book_your_transport/parcel_pickup_drop_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/discover_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:BlueEra/widgets/common_horizontal_divider.dart';
@@ -20,9 +20,7 @@ class TransportServiceWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () {
-        Get.to(() => SearchTransportAddress(
-          onPlaceSelected: () {},
-        ));
+        Get.to(() => const ParcelPickupDropScreen());
       },
       child: CustomFormCard(
         color: AppColors.white,
@@ -155,10 +153,9 @@ class TransportServiceWidget extends StatelessWidget {
                             getName: (i) => i.name,
                             getIcon: (i) => i.icon ?? "",
                             onTap: (_) {
-                              Get.to(() => SearchTransportAddress(
-                                onPlaceSelected: () {},
-                                vehicleType: item.slugId,
-                              ));
+                              Get.to(() => ParcelPickupDropScreen(
+                                    vehicleType: item.slugId,
+                                  ));
                             },
                           ),
                         );

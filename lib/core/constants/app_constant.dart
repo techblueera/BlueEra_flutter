@@ -9,6 +9,7 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
 import 'package:BlueEra/features/common/auth/model/mixed_profile_categrory.dart';
@@ -576,7 +577,9 @@ String getInitials(String? name) {
 }
 
 Future createProfileScreen() async {
-  Get.to(() => const ChooseAccountTypeScreen());
+  Get.toNamed(RouteHelper.getCreateAccountTypeScreenRoute());
+
+  // Get.to(() => const ChooseAccountTypeScreen());
 }
 
 void navigatePushTo(BuildContext context, Widget destination) {

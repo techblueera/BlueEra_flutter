@@ -33,6 +33,12 @@ import 'package:BlueEra/features/me/product/view/my_product_products_screen.dart
 import 'package:share_handler/share_handler.dart';
 import 'package:BlueEra/features/business/business_verification/view/business_verification_screen.dart';
 import 'package:BlueEra/features/business/business_verification/view/ownership_verification_screen.dart';
+import 'package:BlueEra/features/business/onboarding/view/business_onboarding_address_screen.dart';
+import 'package:BlueEra/features/business/onboarding/view/business_onboarding_category_screen.dart';
+import 'package:BlueEra/features/business/onboarding/view/business_onboarding_description_screen.dart';
+import 'package:BlueEra/features/business/onboarding/view/business_onboarding_hours_type_screen.dart';
+import 'package:BlueEra/features/business/onboarding/view/business_onboarding_photo_screen.dart';
+import 'package:BlueEra/features/business/onboarding/view/business_onboarding_select_hours_screen.dart';
 import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
 import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
 import 'package:BlueEra/features/common/auth/model/personal_profession_model.dart';
@@ -615,6 +621,25 @@ class RouteHelper {
 
   static String getYourCartScreenRoute() => RouteConstant.yourCartScreen;
 
+  // Business onboarding (WhatsApp-style) routes
+  static String getBusinessOnboardingCategoryScreenRoute() =>
+      RouteConstant.BusinessOnboardingCategoryScreen;
+
+  static String getBusinessOnboardingHoursTypeScreenRoute() =>
+      RouteConstant.BusinessOnboardingHoursTypeScreen;
+
+  static String getBusinessOnboardingSelectHoursScreenRoute() =>
+      RouteConstant.BusinessOnboardingSelectHoursScreen;
+
+  static String getBusinessOnboardingPhotoScreenRoute() =>
+      RouteConstant.BusinessOnboardingPhotoScreen;
+
+  static String getBusinessOnboardingAddressScreenRoute() =>
+      RouteConstant.BusinessOnboardingAddressScreen;
+
+  static String getBusinessOnboardingDescriptionScreenRoute() =>
+      RouteConstant.BusinessOnboardingDescriptionScreen;
+
   ///REDIRECT ROUTING SETUP.....
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -682,6 +707,49 @@ class RouteHelper {
       //   return MaterialPageRoute(builder: (_) => BusinessDetailsEditPageOne());
       case RouteConstant.BusinessOwnProfileScreen:
         return MaterialPageRoute(builder: (_) => BusinessOwnProfileScreen());
+
+      case RouteConstant.BusinessOnboardingCategoryScreen:
+        return MaterialPageRoute(
+          builder: (_) => const BusinessOnboardingCategoryScreen(),
+          settings: RouteSettings(
+            name: RouteHelper.getBusinessOnboardingCategoryScreenRoute(),
+          ),
+        );
+      case RouteConstant.BusinessOnboardingHoursTypeScreen:
+        return MaterialPageRoute(
+          builder: (_) => BusinessOnboardingHoursTypeScreen(),
+          settings: RouteSettings(
+            name: RouteHelper.getBusinessOnboardingHoursTypeScreenRoute(),
+          ),
+        );
+      case RouteConstant.BusinessOnboardingSelectHoursScreen:
+        return MaterialPageRoute(
+          builder: (_) => BusinessOnboardingSelectHoursScreen(),
+          settings: RouteSettings(
+            name: RouteHelper.getBusinessOnboardingSelectHoursScreenRoute(),
+          ),
+        );
+      case RouteConstant.BusinessOnboardingPhotoScreen:
+        return MaterialPageRoute(
+          builder: (_) => BusinessOnboardingPhotoScreen(),
+          settings: RouteSettings(
+            name: RouteHelper.getBusinessOnboardingPhotoScreenRoute(),
+          ),
+        );
+      case RouteConstant.BusinessOnboardingAddressScreen:
+        return MaterialPageRoute(
+          builder: (_) => const BusinessOnboardingAddressScreen(),
+          settings: RouteSettings(
+            name: RouteHelper.getBusinessOnboardingAddressScreenRoute(),
+          ),
+        );
+      case RouteConstant.BusinessOnboardingDescriptionScreen:
+        return MaterialPageRoute(
+          builder: (_) => BusinessOnboardingDescriptionScreen(),
+          settings: RouteSettings(
+            name: RouteHelper.getBusinessOnboardingDescriptionScreenRoute(),
+          ),
+        );
 
       case RouteConstant.FeedScreen:
         final args = settings.arguments as Map<String, dynamic>;

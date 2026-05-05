@@ -8,6 +8,7 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
+import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/view/discover_banner_slider.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/automotive_service_card_widget.dart';
@@ -123,6 +124,12 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
           statusBarBrightness: Brightness.dark,
         ),
         child: Scaffold(
+          // floatingActionButton: FloatingActionButton(onPressed: (){
+          //   // Get.toNamed(getCreateAccountTypeScreenRoute());
+          //   Get.toNamed(RouteHelper.getCreateAccountTypeScreenRoute());
+          //
+          //   // Get.to(BusinessOwnProfileScreen());
+          // }),
           body: SafeArea(
             top: false,
             child: BottomNavHideOnScroll(

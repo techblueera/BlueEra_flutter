@@ -545,6 +545,7 @@ abstract class BaseService {
   final String rentalService = "booking-enquiry-service/rentals";
   String updateRentalService(String rentalId) => "booking-enquiry-service/rentals/$rentalId";
   final String getBookingRiders = "rider-service/fare/riders";
+  final String favoriteLocations = "rider-service/favorite-locations";
   String uploadRentalImages(String rentalId) => "booking-enquiry-service/rentals/$rentalId/upload-images";
   String deleteRentalService(String rentalId) => "booking-enquiry-service/rentals/$rentalId";
   final String generateHomeDescription = "ai-service/api/ai-property/generate-description";
@@ -858,7 +859,7 @@ abstract class BaseService {
 
   /// Emergency Service (User)
   final String emergencyBasicInfo = 'emergency-service/basic-info';
-  final String emergencyContacts = 'emergency-service/emergency-contacts';
+  final String emergencyContacts = 'rider-service/emergency-contacts';
   final String emergencyPrivacyAlerts = 'emergency-service/privacy-alerts';
   String get emergencyProfile => 'emergency-service/emergency-profile/$userId';
 
