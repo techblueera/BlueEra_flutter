@@ -201,6 +201,7 @@ abstract class BaseService {
   final String messageLikeUnlike = 'chat-service/chat/message-like-unlike';
   String checkTrackOrderStatus(String orderId) => 'rider-service/fare/orders/${orderId}/status';
   final String getChatRequest = 'chat-service/connections/requests';
+  final String getChatRequestsList = 'chat-service/chat/requests';
   final String getLatestChat = 'chat-service/chat/latest-chat';
   final String getChatExportAll = 'chat-service/chat/export-all';
   final String reactChatRequest = 'chat-service/connections/respond';

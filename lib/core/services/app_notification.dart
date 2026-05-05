@@ -272,6 +272,7 @@ Future<void> _handleBackgroundNotificationResponse(
     final senderId = data['senderId'] ?? '';
     if (senderId.isNotEmpty) {
       final chatViewController = getOrPut(() => ChatViewController());
+
       chatViewController.connectSocket();
       Future.delayed(const Duration(milliseconds: 200), () {
         chatViewController.checkChatConnectionAndOpenChat(userId: senderId);
