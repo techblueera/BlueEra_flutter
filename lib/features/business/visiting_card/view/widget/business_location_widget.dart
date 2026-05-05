@@ -2,6 +2,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
@@ -96,67 +97,57 @@ class _BusinessLocationWidgetState extends State<BusinessLocationWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return CommonCardWidget(
-      cardMargin: 0,
-      child: Card(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(SizeConfig.size10),
-        ),
-        elevation: 0,
-        color: AppColors.white,
-        child: Padding(
-          padding: EdgeInsets.all(widget.padding ?? SizeConfig.size10),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (widget.locationText?.isNotEmpty ?? false)
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Icon(Icons.location_on_outlined, color: AppColors.black1A),
-                    SizedBox(width: SizeConfig.size6),
-                    Expanded(
-                      child: CustomText(
-                        widget.locationText ?? "",
-                        fontSize: SizeConfig.size14,
-                        fontWeight: FontWeight.w400,
-                        color: AppColors.black1A,
-                        maxLines: 3,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-              SizedBox(height: SizeConfig.size8),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 180,
-                  child: Stack(
-                    children: [
-                      GoogleMap(
-                        onMapCreated: _onMapCreated,
-                        initialCameraPosition: CameraPosition(
-                          target: LatLng(widget.latitude, widget.longitude),
-                          zoom: 14.0,
-                        ),
-                        markers: _markers,
-                        myLocationEnabled: false,
-                        compassEnabled: false,
-                        // Fix for iOS gesture conflicts
-                        // gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>{
-                        //   Factory<OneSequenceGestureRecognizer>(() => EagerGestureRecognizer()),
-                        // },
-                      ),
-                      // ... rest of your UI (Send button)
-                    ],
+    return CustomFormCard(
+      padding: EdgeInsets.all(widget.padding ?? SizeConfig.size10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (widget.locationText?.isNotEmpty ?? false)
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Icon(Icons.location_on_outlined, color: AppColors.black1A),
+                SizedBox(width: SizeConfig.size6),
+                Expanded(
+                  child: CustomText(
+                    widget.locationText ?? "",
+                    fontSize: SizeConfig.size14,
+                    fontWeight: FontWeight.w400,
+                    color: AppColors.black1A,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
-              )
-            ],
-          ),
-        ),
+              ],
+            ),
+          SizedBox(height: SizeConfig.size8),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: SizedBox(
+              width: double.infinity,
+              height: 180,
+              child: Stack(
+                children: [
+                  GoogleMap(
+                    onMapCreated: _onMapCreated,
+                    initialCameraPosition: CameraPosition(
+                      target: LatLng(widget.latitude, widget.longitude),
+                      zoom: 14.0,
+                    ),
+                    markers: _markers,
+                    myLocationEnabled: false,
+                    compassEnabled: false,
+                    // Fix for iOS gesture conflicts
+                    // gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>{
+                    //   Factory<OneSequenceGestureRecognizer>(() => EagerGestureRecognizer()),
+                    // },
+                  ),
+                  // ... rest of your UI (Send button)
+                ],
+              ),
+            ),
+          )
+        ],
       ),
     );
   }

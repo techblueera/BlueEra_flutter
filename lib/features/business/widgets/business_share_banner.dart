@@ -37,7 +37,30 @@ import 'package:share_plus/share_plus.dart';
 ///   • **Annotate** – opens a full-screen finger-drawing editor where
 ///     users can sketch on top of the captured banner and share.
 class BusinessShareBanner extends StatefulWidget {
-  const BusinessShareBanner({super.key});
+  /// Optional override — display name on the banner. When omitted the
+  /// widget falls back to the registered business profile (legacy
+  /// behavior). Pass this from individual / professional dashboards
+  /// so the banner can render without a business profile.
+  final String? overrideName;
+
+  /// Optional override — profile image URL.
+  final String? overridePhoto;
+
+  /// Optional override — sub-category / designation pill text.
+  final String? overrideSubCategory;
+
+  /// Account type used in the share-message deep link. Pass
+  /// [AppConstants.individual] for personal/professional profiles;
+  /// defaults to the global `accountTypeGlobal`.
+  final String? accountType;
+
+  const BusinessShareBanner({
+    super.key,
+    this.overrideName,
+    this.overridePhoto,
+    this.overrideSubCategory,
+    this.accountType,
+  });
 
   @override
   State<BusinessShareBanner> createState() => _BusinessShareBannerState();
@@ -49,37 +72,63 @@ class _BusinessShareBannerState extends State<BusinessShareBanner> {
 
   @override
   Widget build(BuildContext context) {
+    final hasOverride = (widget.overrideName?.trim().isNotEmpty ?? false) ||
+        (widget.overridePhoto?.trim().isNotEmpty ?? false) ||
+        (widget.overrideSubCategory?.trim().isNotEmpty ?? false);
+
+    // Override path — caller supplied the data, no observable to
+    // listen to here, so render directly. Wrapping in Obx without
+    // touching any .value would trip the "improper Obx use" check.
+    if (hasOverride) {
+      final shopName = (widget.overrideName?.trim().isNotEmpty ?? false)
+          ? widget.overrideName!
+          : 'My Profile';
+      final shopPhoto = (widget.overridePhoto?.trim().isNotEmpty ?? false)
+          ? widget.overridePhoto
+          : null;
+      final subCategory =
+          (widget.overrideSubCategory?.trim().isNotEmpty ?? false)
+              ? widget.overrideSubCategory
+              : null;
+      return _buildBannerCard(shopName, shopPhoto, subCategory);
+    }
+
+    // Legacy business path — observe the registered business profile
+    // so the banner repaints when business details load / change.
     return Obx(() {
       final details = _safeBusinessDetails();
       if (details == null) return const SizedBox.shrink();
-      final shopName =
-          (details.businessName?.trim().isNotEmpty ?? false)
-              ? details.businessName!
-              : 'My Shop';
+      final shopName = (details.businessName?.trim().isNotEmpty ?? false)
+          ? details.businessName!
+          : 'My Shop';
       final shopPhoto =
           (details.logo?.trim().isNotEmpty ?? false) ? details.logo : null;
-      final subCategory = details.subCategoryDetails?.name ??
-          details.subCategoryOfBusiness;
-
-      return CustomFormCard(
-        padding: const EdgeInsets.all(10.0),
-        margin: const EdgeInsets.only(top: 10.0),
-        child: Column(
-          children: [
-            RepaintBoundary(
-              key: _bannerKey,
-              child: _BannerArt(
-                shopName: shopName,
-                shopPhoto: shopPhoto,
-                subCategory: subCategory,
-              ),
-            ),
-            SizedBox(height: SizeConfig.size12),
-            _buildActions(shopName),
-          ],
-        ),
-      );
+      final subCategory =
+          details.subCategoryDetails?.name ?? details.subCategoryOfBusiness;
+      return _buildBannerCard(shopName, shopPhoto, subCategory);
     });
+  }
+
+  Widget _buildBannerCard(
+      String shopName, String? shopPhoto, String? subCategory) {
+    return CustomFormCard(
+      padding: const EdgeInsets.all(10.0),
+      margin: const EdgeInsets.only(top: 10.0),
+      child: Column(
+        children: [
+          RepaintBoundary(
+            key: _bannerKey,
+            child: _BannerArt(
+              shopName: shopName,
+              shopPhoto: shopPhoto,
+              subCategory: subCategory,
+            ),
+          ),
+          SizedBox(height: SizeConfig.size12),
+          _buildActions(shopName),
+        ],
+      ),
+    );
   }
 
   BusinessProfileDetails? _safeBusinessDetails() {
@@ -184,11 +233,13 @@ class _BusinessShareBannerState extends State<BusinessShareBanner> {
   /// Builds the deep-link caption attached to every shared artefact.
   /// Matches the visiting-card share helper.
   String _buildShareMessage(String shopName) {
+    final accountType = widget.accountType ??
+        (accountTypeGlobal == AppConstants.business
+            ? AppConstants.business
+            : AppConstants.individual);
     final link = profileDeepLink(
       userId: userId,
-      accountType: accountTypeGlobal == AppConstants.business
-          ? AppConstants.business
-          : AppConstants.individual,
+      accountType: accountType,
     );
     return 'Visit $shopName on BlueEra:\n$link\n';
   }

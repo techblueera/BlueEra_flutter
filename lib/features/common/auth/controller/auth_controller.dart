@@ -38,6 +38,7 @@ import 'package:geocoding/geocoding.dart';
 import 'package:BlueEra/features/me/laboratory/controller/lab_service_ai_controller.dart';
 import 'package:BlueEra/features/me/others/controller/business_profile_full_controller.dart';
 import 'package:BlueEra/features/me/professionals_consultant/controller/ai_professionals_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/self_employed/controller/self_work_service_controller.dart';
 import 'package:BlueEra/features/me/school/controller/school_controller.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:flutter/material.dart';
@@ -316,7 +317,7 @@ class AuthController extends GetxController {
           final dobMap = jsonDecode(dobJsonString);
 
           ///FOR PROFESSIONAL....
-          if (reqData?['profileType'] == "PROFESSIONAL") {
+          if (reqData?['profileType'] == PROFESSIONAL) {
             final controller = getOrPut(() => AiProfessionalsController());
 
             Map<String, dynamic> data = {
@@ -331,6 +332,19 @@ class AuthController extends GetxController {
             };
 
             await controller.createServiceController(reqParm: data);
+          }
+
+          ///FOR SELF_EMPLOYED — create a placeholder earn-service row
+          /// with just the minimum required fields. The user fills in
+          /// price / service type / description / etc. one by one from
+          /// the Service tab's section cards after onboarding.
+          if (reqData?['profileType'] == SELF_EMPLOYED) {
+            final controller = getOrPut(() => SelfWorkServiceController());
+            controller.designation = reqData?['designation'];
+            await controller.createMinimalEarnService(
+              serviceSubType: 'selfWork',
+              designationOverride: reqData?['designation'],
+            );
           }
 
           if (Get.isRegistered<BottomBarController>()) {

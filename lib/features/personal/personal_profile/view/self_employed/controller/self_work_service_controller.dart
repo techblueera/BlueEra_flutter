@@ -214,6 +214,51 @@ class SelfWorkServiceController extends GetxController{
   }
 
   RxBool isCreateServiceLoading = false.obs;
+
+  /// Minimal earn-service creation — posts only the four core fields
+  /// so a placeholder row exists in the backend. The user then fills
+  /// in the rest (price, service type, description, hours, expertise,
+  /// etc.) one by one from the Service tab's section cards.
+  ///
+  /// Called from two places:
+  ///   • SELF_EMPLOYED registration flow ([AuthController.addIndividualUser])
+  ///   • Empty-state CTA in [SelfProfessionHomeScreen] for users who
+  ///     registered before this method existed and never created an
+  ///     earn service.
+  Future<void> createMinimalEarnService({
+    required String serviceSubType,
+    String? designationOverride,
+  }) async {
+    try {
+      isCreateServiceLoading.value = true;
+      final cat = (designationOverride?.trim().isNotEmpty ?? false)
+          ? designationOverride!
+          : (designation ?? ELECTRICIAN);
+      final params = <String, dynamic>{
+        ApiKeys.type: AppConstants.service,
+        ApiKeys.providerType: ProviderType.user.title,
+        ApiKeys.subType: serviceSubType,
+        ApiKeys.category: cat,
+      };
+      final ResponseModel responseModel =
+          await EarnServiceRepo().addServiceRepo(params: params);
+      if (responseModel.isSuccess) {
+        createServiceResponse.value = ApiResponse.complete(responseModel);
+        // Refresh profession data so the Service tab swaps from the
+        // empty placeholder to the section cards.
+        await fetchSelfProfessionData(isLoading: false);
+      } else {
+        createServiceResponse.value = ApiResponse.error('error');
+        commonSnackBar(message: responseModel.message);
+      }
+    } catch (e, s) {
+      log('createMinimalEarnService stack: $s');
+      createServiceResponse.value = ApiResponse.error('error');
+    } finally {
+      isCreateServiceLoading.value = false;
+    }
+  }
+
   /// Create Self Service
   Future<void> createEarnServiceApi({
     required String serviceSubType
@@ -389,48 +434,6 @@ class SelfWorkServiceController extends GetxController{
     try {
 
       isUpdateServiceLoading.value = true;
-
-      // Map<String, dynamic> params = {
-      //   ApiKeys.type: AppConstants.service,
-      //   ApiKeys.providerType: ProviderType.user.title,
-      //   ApiKeys.subType: serviceSubType.label,
-      //   ApiKeys.category: designation ?? ELECTRICIAN,
-      //   ApiKeys.serviceType: selectedServiceTypes[0],
-      //   // ApiKeys.serviceType: selectedServiceTypes,
-      //   ApiKeys.description: aboutController.text.trim(),
-      //   ApiKeys.experience: {
-      //     ApiKeys.years: selectedExperienceYear.value,
-      //     ApiKeys.months:selectedExperienceMonth.value,
-      //   },
-      //   // ApiKeys.priceType: 'range',
-      //   // ApiKeys.min: int.tryParse(minPriceCtrl.text.trim()),
-      //   // ApiKeys.max: int.tryParse(maxPriceCtrl.text.trim()),
-      // };
-      // if (selectedServices.isNotEmpty) params[ApiKeys.serviceOffered] = selectedServices;
-      // if (selectedInstallations.isNotEmpty) params[ApiKeys.typesOfWork] = selectedInstallations;
-      // if (selectedExpertise.isNotEmpty) params[ApiKeys.expertise] = selectedExpertise;
-      // if (selectedWorkCategories.isNotEmpty) params[ApiKeys.workCategories] = selectedWorkCategories;
-      // if (selectedWhyChooseMe.isNotEmpty) params[ApiKeys.whyChooseMe] = selectedWhyChooseMe;
-      //
-      //
-      // // Prepare images
-      // List<UploadS3ImageModel> images = [];
-      // for (var imagePath in selectedImages) {
-      //   final imageInfo = getFileInfo(File(imagePath));
-      //   if (imageInfo.isNotEmpty) {
-      //     images.add(
-      //       UploadS3ImageModel(
-      //           path: imagePath,
-      //           mimeType: imageInfo['mimeType']!
-      //       ),
-      //     );
-      //   }
-      // }
-      //
-      // if (images.isNotEmpty) {
-      //   params[ApiKeys.imageContentTypes] =
-      //       images.map((img) => img.mimeType).toList();
-      // }
 
       if(serviceId == null) return;
       final ResponseModel responseModel = await EarnServiceRepo().updateServiceRepo(serviceId: serviceId!, params: params);

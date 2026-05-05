@@ -645,7 +645,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
 
       default:
         return const SizedBox();
-        // return const PersonalProfileSetupNewScreen();
+        // return const SelfEmployeeScreen(fromBottomNavBar: true);
     }
   }
 

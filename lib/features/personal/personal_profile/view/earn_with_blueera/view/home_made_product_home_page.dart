@@ -3,6 +3,7 @@ import 'dart:ui';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
@@ -10,7 +11,6 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
-import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/delivery_partner/widget/common_image_upload_section.dart';
 import 'package:BlueEra/features/me/product/widget/own_product_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/controller/earn_profile_controller.dart';
@@ -55,13 +55,17 @@ class _HomeMadeProductHomePageState extends State<HomeMadeProductHomePage> {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: EdgeInsets.symmetric(
-        vertical: SizeConfig.size15,
-        horizontal: SizeConfig.size8,
+      padding: EdgeInsets.fromLTRB(
+        20,
+        SizeConfig.size12,
+        20,
+        4 * kBottomNavigationBarHeight,
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           _buildProductSection(),
+          SizedBox(height: SizeConfig.size12),
           Obx(() => EarnServiceGalleryCard(
                 gallery: earnProfileController.earnProfile.value?.galleryImages,
                 onAddImage: _pickAndUploadGalleryImage,
@@ -70,87 +74,51 @@ class _HomeMadeProductHomePageState extends State<HomeMadeProductHomePage> {
           EarnServiceTestimonialCard(testimonials: const []),
           EarnServiceContactMapCard(controller: earnProfileController),
           EarnServiceQrCodeWidget(controller: earnProfileController),
-          SizedBox(height: SizeConfig.size150),
         ],
       ),
     );
   }
 
-  // ─── Product Section ──────────────────────────────────────────
+  // ─── Product Section — numbered section card matching the v2
+  // editorial spec-sheet style used by self_profession_home_screen.
   Widget _buildProductSection() {
-    return CustomFormCard(
-      padding: EdgeInsets.all(SizeConfig.size10),
-      child: Obx(() {
-        final isLoading = earnServiceController.isOwnProductDataFirstLoading.value;
-        final products = earnServiceController.ownProductDataList;
-        final hasProducts = products.isNotEmpty;
+    return Obx(() {
+      final isLoading = earnServiceController.isOwnProductDataFirstLoading.value;
+      final products = earnServiceController.ownProductDataList;
+      final hasProducts = products.isNotEmpty;
 
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: CustomText(
-                    'Home Made Product',
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.mainTextColor,
-                  ),
-                ),
-                if (hasProducts) ...[
-                  InkWell(
+      return _sectionCard(
+        index: 1,
+        title: 'Home Made Product',
+        trailing: hasProducts
+            ? Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _editChip(
                     onTap: _onAddProductTap,
-                    child: Container(
-                      padding: EdgeInsets.symmetric(
-                          horizontal: SizeConfig.size8,
-                          vertical: SizeConfig.size4),
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryColor.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.add,
-                              size: 14, color: AppColors.primaryColor),
-                          const SizedBox(width: 4),
-                          CustomText('Add',
-                              fontSize: SizeConfig.small,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.primaryColor),
-                        ],
-                      ),
-                    ),
+                    label: 'Add',
+                    icon: Icons.add,
                   ),
-                  SizedBox(width: SizeConfig.size8),
-                  InkWell(
-                    onTap: () => Get.to(
-                        () => const HomeMadeProductsViewAllScreen()),
-                    child: CustomText(
-                      'View All',
-                      fontSize: SizeConfig.medium,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.primaryColor,
-                    ),
+                  SizedBox(width: SizeConfig.size6),
+                  _editChip(
+                    onTap: () =>
+                        Get.to(() => const HomeMadeProductsViewAllScreen()),
+                    label: 'View All',
+                    icon: Icons.arrow_forward_rounded,
                   ),
                 ],
-              ],
-            ),
-            SizedBox(height: SizeConfig.size10),
-            if (isLoading)
-              const SizedBox(
+              )
+            : null,
+        child: isLoading
+            ? const SizedBox(
                 height: 200,
                 child: Center(child: CircularProgressIndicator()),
               )
-            else if (!hasProducts)
-              _buildEmptyProductState()
-            else
-              _buildProductList(products.take(20).toList()),
-          ],
-        );
-      }),
-    );
+            : !hasProducts
+                ? _buildEmptyProductState()
+                : _buildProductList(products.take(20).toList()),
+      );
+    });
   }
 
   Widget _buildProductList(List products) {
@@ -305,5 +273,155 @@ class _HomeMadeProductHomePageState extends State<HomeMadeProductHomePage> {
     );
     if (path == null || path.isEmpty) return;
     await earnProfileController.addGalleryImage(File(path));
+  }
+
+  // ─────────────────────────────────────────────
+  // SECTION SHELL — numbered card with a primary-colored vertical
+  // accent bar on the left edge, a tracked-uppercase title, and an
+  // optional trailing slot for action chips.
+  // ─────────────────────────────────────────────
+  Widget _sectionCard({
+    required int index,
+    required String title,
+    required Widget child,
+    Widget? trailing,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFEDEFF4), width: 1),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x14001120),
+            blurRadius: 14,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Stack(
+        children: [
+          Positioned(
+            top: 0,
+            bottom: 0,
+            left: 0,
+            width: 3,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    AppColors.primaryColor,
+                    AppColors.primaryColor.withValues(alpha: 0.45),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.fromLTRB(
+              SizeConfig.size14 + 3,
+              SizeConfig.size14,
+              SizeConfig.size12,
+              SizeConfig.size14,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    _indexBadge(index),
+                    SizedBox(width: SizeConfig.size10),
+                    Expanded(
+                      child: Text(
+                        title.toUpperCase(),
+                        style: TextStyle(
+                          fontFamily: AppConstants.OpenSans,
+                          fontSize: SizeConfig.medium,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.mainTextColor,
+                          letterSpacing: 0.7,
+                        ),
+                      ),
+                    ),
+                    if (trailing != null) trailing,
+                  ],
+                ),
+                SizedBox(height: SizeConfig.size12),
+                child,
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _indexBadge(int index) {
+    return Container(
+      width: 26,
+      height: 26,
+      decoration: BoxDecoration(
+        color: AppColors.primaryColor.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(7),
+        border: Border.all(
+          color: AppColors.primaryColor.withValues(alpha: 0.20),
+          width: 0.6,
+        ),
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        index.toString().padLeft(2, '0'),
+        style: TextStyle(
+          fontFamily: AppConstants.OpenSans,
+          fontSize: 11,
+          fontWeight: FontWeight.w800,
+          color: AppColors.primaryColor,
+          letterSpacing: 0.4,
+        ),
+      ),
+    );
+  }
+
+  Widget _editChip({
+    required VoidCallback onTap,
+    required String label,
+    required IconData icon,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: EdgeInsets.symmetric(
+          horizontal: SizeConfig.size10,
+          vertical: SizeConfig.size4,
+        ),
+        decoration: BoxDecoration(
+          color: AppColors.primaryColor.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: AppColors.primaryColor.withValues(alpha: 0.25),
+            width: 0.6,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 12, color: AppColors.primaryColor),
+            const SizedBox(width: 4),
+            CustomText(
+              label,
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: AppColors.primaryColor,
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

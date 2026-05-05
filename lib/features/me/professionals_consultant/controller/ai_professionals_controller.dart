@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
@@ -71,6 +72,40 @@ class AiProfessionalsController extends GetxController {
       // TODO
       createProfProfileResponse.value =
           ApiResponse.error(AppStrings.somethingWentWrong);
+    }
+  }
+
+  /// Loading flag for [createMinimalProfessionalProfile]; the empty-
+  /// state CTA on the professionals Service tab binds its spinner /
+  /// disabled-state to this.
+  RxBool isCreatingProfile = false.obs;
+
+  /// Minimal AI-professional profile creation — builds the request
+  /// from whatever the user already has on their personal profile
+  /// (name / email / gender / profession / designation / pincode /
+  /// address) so existing users who registered before the
+  /// SELF_EMPLOYED-style auto-create branch existed can spin up a
+  /// placeholder professional profile in one tap. The user then
+  /// fills in the rest (services, portfolio, certificates, gallery,
+  /// hours, etc.) one by one from the section cards.
+  Future<void> createMinimalProfessionalProfile({
+    required Map<String, dynamic> userProfile,
+  }) async {
+    try {
+      isCreatingProfile.value = true;
+      final reqParm = <String, dynamic>{
+        'name': userProfile['name'],
+        'email': userProfile['email'],
+        'gender': userProfile['gender'],
+        'profileType': PROFESSIONAL,
+        'profession': userProfile['profession'],
+        'designation': userProfile['designation'],
+        'pincode': userProfile['pincode'],
+        'address': userProfile['address'],
+      };
+      await createServiceController(reqParm: reqParm);
+    } finally {
+      isCreatingProfile.value = false;
     }
   }
 

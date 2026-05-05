@@ -34,12 +34,6 @@ class ProfessionalsHomeScreen extends StatelessWidget {
 
   final controller = Get.find<AiProfessionalsController>();
 
-  // Dummy placeholder colors
-  static const _dummyCardBg = Color(0xFFEEEEEE);
-  static const _dummyTextColor = Color(0xFFBDBDBD);
-  static const _dummyDarkText = Color(0xFF9E9E9E);
-  static const _dummyBorderColor = Color(0xFFE0E0E0);
-
   void _navigateToEdit(Widget screen) async {
     await Get.to(() => screen);
     controller.professionalsFullDetailsController();
@@ -47,72 +41,60 @@ class ProfessionalsHomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: AppColors.appBackgroundColor,
-      child: Obx(() {
-        final data = controller.getProfessionalServiceRes?.value.data;
-        if (data == null) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
+    // No Material / SingleChildScrollView here — this screen is
+    // embedded inside the parent professionals dashboard's
+    // CustomScrollView, so its sections need to flow into the parent
+    // scroll. Wrapping its own scrollable would (a) bound the inner
+    // content to a fixed height and (b) prevent the parent's sticky-
+    // tab overlay from engaging on scroll.
+    return Obx(() {
+      final data = controller.getProfessionalServiceRes?.value.data;
+      if (data == null) {
         return Padding(
-          padding: EdgeInsets.all(SizeConfig.paddingXS),
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Expertise
-                _buildExpertiseSection(data),
-                SizedBox(height: SizeConfig.size14),
-
-                // Our Services
-                _buildServicesSection(data),
-                SizedBox(height: SizeConfig.size14),
-
-                // Portfolio / Case Studies
-                _buildPortfolioSection(data),
-                SizedBox(height: SizeConfig.size14),
-
-                // Certificate & Awards
-                _buildCertificatesSection(data),
-                SizedBox(height: SizeConfig.size14),
-
-                // Gallery
-                _buildGallerySection(data, context),
-                SizedBox(height: SizeConfig.size14),
-
-                // // Testimonials
-                // _buildTestimonialsSection(),
-                // SizedBox(height: SizeConfig.size14),
-
-                // Contact Us
-                _buildContactSection(data),
-                SizedBox(height: SizeConfig.size12),
-
-                // Map
-                BusinessLocationWidget(
-                  locationText: data.basicDetails?.fullName,
-                  latitude: double.parse(
-                      data.contact?.location?.coordinates?[0].toString() ??
-                          "0.0"),
-                  longitude: double.parse(
-                      data.contact?.location?.coordinates?[1].toString() ??
-                          "0.0"),
-                  businessName: "",
-                  padding: 10,
-                  isTitleShow: true,
-                ),
-                SizedBox(height: SizeConfig.size14),
-
-                // Working Hours
-                _buildTimingsSection(data),
-                SizedBox(height: SizeConfig.size100),
-              ],
-            ),
-          ),
+          padding: EdgeInsets.symmetric(vertical: SizeConfig.size40),
+          child: const Center(child: CircularProgressIndicator()),
         );
-      }),
-    );
+      }
+
+      return Padding(
+        padding: EdgeInsets.all(SizeConfig.paddingXS),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Expertise
+            _buildExpertiseSection(data),
+            SizedBox(height: SizeConfig.size14),
+
+            // Our Services
+            _buildServicesSection(data),
+            SizedBox(height: SizeConfig.size14),
+
+            // Portfolio / Case Studies
+            _buildPortfolioSection(data),
+            SizedBox(height: SizeConfig.size14),
+
+            // Certificate & Awards
+            _buildCertificatesSection(data),
+            SizedBox(height: SizeConfig.size14),
+
+            // Gallery
+            _buildGallerySection(data, context),
+            SizedBox(height: SizeConfig.size14),
+
+            // // Testimonials
+            // _buildTestimonialsSection(),
+            // SizedBox(height: SizeConfig.size14),
+
+            // Contact Us + Map (merged into a single card)
+            _buildContactSection(data),
+            SizedBox(height: SizeConfig.size14),
+
+            // Working Hours
+            _buildTimingsSection(data),
+          ],
+        ),
+      );
+    });
   }
 
   // ============================================================
@@ -131,8 +113,12 @@ class ProfessionalsHomeScreen extends StatelessWidget {
               borderRadius: BorderRadius.circular(20),
               child: Padding(
                 padding: const EdgeInsets.all(4),
-                child: Icon(Icons.edit_outlined,
-                    size: 18, color: AppColors.primaryColor),
+                child: LocalAssets(
+                  imagePath: AppIconAssets.pen_line,
+                  imgColor: AppColors.primaryColor,
+                  height: 18,
+                  width: 18,
+                ),
               ),
             ),
         ],
@@ -141,51 +127,133 @@ class ProfessionalsHomeScreen extends StatelessWidget {
   }
 
   // ============================================================
-  // DUMMY OVERLAY
+  // EMPTY-STATE CARD
   // ============================================================
+  // Refined empty card used by every section instead of a greyscaled
+  // dummy preview + harsh "NA" badge. Soft primary-tinted gradient
+  // backdrop, a contextual circular icon, helpful section-specific
+  // copy, and an inline filled "Add" pill that fires the same edit
+  // flow the section header's pencil triggers — so the entire card
+  // becomes the call-to-action instead of a "no data" placeholder.
 
-  Widget _dummyOverlay({required Widget child}) {
-    return Stack(
-      children: [
-        ColorFiltered(
-          colorFilter: const ColorFilter.matrix(<double>[
-            0.2126, 0.7152, 0.0722, 0, 0,
-            0.2126, 0.7152, 0.0722, 0, 0,
-            0.2126, 0.7152, 0.0722, 0, 0,
-            0, 0, 0, 0.45, 0,
-          ]),
-          child: child,
-        ),
-        Positioned(
-          top: 8,
-          right: 8,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.5),
-              borderRadius: BorderRadius.circular(6),
+  Widget _emptyStateCard({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required String actionLabel,
+    required VoidCallback onAdd,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        onTap: onAdd,
+        borderRadius: BorderRadius.circular(14),
+        child: Ink(
+          padding:
+              const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(14),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                AppColors.primaryColor.withValues(alpha: 0.07),
+                AppColors.primaryColor.withValues(alpha: 0.02),
+              ],
             ),
-            child: const Text(
-              'NA',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 10,
-                fontWeight: FontWeight.w500,
-              ),
+            border: Border.all(
+              color: AppColors.primaryColor.withValues(alpha: 0.18),
+              width: 1,
             ),
           ),
+          child: Row(
+            children: [
+              // Contextual icon disc — primary-tinted circle that
+              // anchors the card and gives each section its own
+              // visual cue (briefcase / certificate / camera etc.).
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.primaryColor.withValues(alpha: 0.10),
+                  border: Border.all(
+                    color: AppColors.primaryColor.withValues(alpha: 0.22),
+                    width: 1,
+                  ),
+                ),
+                child: Icon(icon, size: 22, color: AppColors.primaryColor),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontFamily: AppConstants.OpenSans,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.mainTextColor,
+                        letterSpacing: -0.1,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.secondaryTextColor,
+                        height: 1.4,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              // Filled "Add" pill — same primary color as the card's
+              // accent so it reads as a single design system, not a
+              // floating button on a placeholder.
+              Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryColor,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primaryColor.withValues(alpha: 0.22),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.add_rounded,
+                        size: 14, color: Colors.white),
+                    const SizedBox(width: 4),
+                    Text(
+                      actionLabel,
+                      style: const TextStyle(
+                        fontFamily: AppConstants.OpenSans,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                        letterSpacing: 0.3,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
-      ],
-    );
-  }
-
-  Widget _dummyTextLine({required double width, double height = 12}) {
-    return Container(
-      height: height,
-      width: width,
-      decoration: BoxDecoration(
-        color: _dummyDarkText.withValues(alpha: 0.25),
-        borderRadius: BorderRadius.circular(height / 2),
       ),
     );
   }
@@ -234,23 +302,13 @@ class ProfessionalsHomeScreen extends StatelessWidget {
                   .toList(),
             )
           else
-            _dummyOverlay(
-              child: Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: List.generate(
-                  4,
-                  (_) => Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: _dummyCardBg,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: _dummyTextLine(width: 70, height: 10),
-                  ),
-                ),
-              ),
+            _emptyStateCard(
+              icon: Icons.psychology_alt_rounded,
+              title: 'Showcase your expertise',
+              subtitle:
+                  'List the skills clients should know you for.',
+              actionLabel: 'Add',
+              onAdd: () => _navigateToEdit(ProfessionalProfileScreen()),
             ),
         ],
       ),
@@ -292,23 +350,12 @@ class ProfessionalsHomeScreen extends StatelessWidget {
                   ),
                 ))
           else
-            _dummyOverlay(
-              child: Column(
-                children: List.generate(
-                  3,
-                  (_) => Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4),
-                    child: Row(
-                      children: [
-                        Icon(Icons.check_circle_outline,
-                            size: 18, color: _dummyTextColor),
-                        const SizedBox(width: 8),
-                        _dummyTextLine(width: 150),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
+            _emptyStateCard(
+              icon: Icons.checklist_rounded,
+              title: 'List the services you offer',
+              subtitle: 'Tell clients what they can hire you for.',
+              actionLabel: 'Add',
+              onAdd: () => _navigateToEdit(ProfessionalServiceOffered()),
             ),
         ],
       ),
@@ -350,19 +397,13 @@ class ProfessionalsHomeScreen extends StatelessWidget {
               ),
             )
           else
-            _dummyOverlay(
-              child: Container(
-                height: 140,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: _dummyCardBg,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Center(
-                  child: Icon(Icons.work_outline,
-                      size: 40, color: _dummyTextColor),
-                ),
-              ),
+            _emptyStateCard(
+              icon: Icons.collections_bookmark_rounded,
+              title: 'Showcase your work',
+              subtitle:
+                  'Add case studies clients can browse before reaching out.',
+              actionLabel: 'Add',
+              onAdd: () => _navigateToEdit(PortfolioScreen()),
             ),
         ],
       ),
@@ -477,28 +518,14 @@ class ProfessionalsHomeScreen extends StatelessWidget {
               ),
             )
           else
-            _dummyOverlay(
-              child: SizedBox(
-                height: 160,
-                child: Row(
-                  children: List.generate(
-                    2,
-                    (_) => Expanded(
-                      child: Container(
-                        margin: const EdgeInsets.only(right: 8),
-                        decoration: BoxDecoration(
-                          color: _dummyCardBg,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Center(
-                          child: Icon(Icons.emoji_events,
-                              size: 36, color: _dummyTextColor),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
+            _emptyStateCard(
+              icon: Icons.emoji_events_rounded,
+              title: 'Highlight your credentials',
+              subtitle:
+                  'Add certifications and awards to build trust at a glance.',
+              actionLabel: 'Add',
+              onAdd: () =>
+                  _navigateToEdit(ProfessionalsCertificatesScreen()),
             ),
         ],
       ),
@@ -526,28 +553,14 @@ class ProfessionalsHomeScreen extends StatelessWidget {
           if (hasData)
             _buildGalleryGrid(urls, context)
           else
-            _dummyOverlay(
-              child: GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: 6,
-                gridDelegate:
-                    const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 3,
-                  mainAxisSpacing: 6,
-                  crossAxisSpacing: 6,
-                ),
-                itemBuilder: (_, __) => Container(
-                  decoration: BoxDecoration(
-                    color: _dummyCardBg,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Center(
-                    child: Icon(Icons.image,
-                        size: 28, color: _dummyTextColor),
-                  ),
-                ),
-              ),
+            _emptyStateCard(
+              icon: Icons.photo_library_rounded,
+              title: 'Build your gallery',
+              subtitle:
+                  'Upload photos that show your craft in action.',
+              actionLabel: 'Add',
+              onAdd: () =>
+                  _navigateToEdit(ProfessionalsCertificatesScreen()),
             ),
         ],
       ),
@@ -717,6 +730,13 @@ class ProfessionalsHomeScreen extends StatelessWidget {
             (contact.phone ?? '').isNotEmpty ||
             (contact.email ?? '').isNotEmpty);
 
+    final lat = double.tryParse(
+            data.contact?.location?.coordinates?[0].toString() ?? '') ??
+        0.0;
+    final lng = double.tryParse(
+            data.contact?.location?.coordinates?[1].toString() ?? '') ??
+        0.0;
+
     return CommonCardWidget(
       cardMargin: 0,
       padding: 10,
@@ -754,23 +774,26 @@ class ProfessionalsHomeScreen extends StatelessWidget {
               ),
             )
           else
-            _dummyOverlay(
-              child: Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  border: Border.all(color: _dummyBorderColor),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Column(
-                  children: [
-                    _dummyContactItem(Icons.language),
-                    _dummyContactItem(Icons.phone),
-                    _dummyContactItem(Icons.email_outlined),
-                    _dummyContactItem(Icons.location_on_outlined),
-                  ],
-                ),
-              ),
+            _emptyStateCard(
+              icon: Icons.contact_mail_rounded,
+              title: 'Add your contact details',
+              subtitle:
+                  'Make it easy for clients to reach you by phone, email or web.',
+              actionLabel: 'Add',
+              onAdd: () => _navigateToEdit(ProfessionalContactUsScreen()),
             ),
+          // Map sits inside the same card so contact details and the
+          // pin read as one unified block instead of two separated
+          // sheets.
+          SizedBox(height: SizeConfig.size8),
+          BusinessLocationWidget(
+            locationText: data.basicDetails?.fullName,
+            latitude: lat,
+            longitude: lng,
+            businessName: '',
+            padding: 0,
+            isTitleShow: false,
+          ),
         ],
       ),
     );
@@ -807,19 +830,6 @@ class ProfessionalsHomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _dummyContactItem(IconData icon) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Row(
-        children: [
-          Icon(icon, size: 20, color: _dummyTextColor),
-          const SizedBox(width: 12),
-          _dummyTextLine(width: 160, height: 10),
-        ],
-      ),
-    );
-  }
-
   // ============================================================
   // WORKING HOURS
   // ============================================================
@@ -840,31 +850,13 @@ class ProfessionalsHomeScreen extends StatelessWidget {
           if (hasData)
             _buildTimingsGrid(timings!)
           else
-            _dummyOverlay(
-              child: Column(
-                children: [
-                  "Monday",
-                  "Tuesday",
-                  "Wednesday",
-                  "Thursday",
-                  "Friday",
-                  "Saturday",
-                  "Sunday"
-                ]
-                    .map((day) => Padding(
-                          padding:
-                              const EdgeInsets.symmetric(vertical: 4),
-                          child: Row(
-                            mainAxisAlignment:
-                                MainAxisAlignment.spaceBetween,
-                            children: [
-                              _dummyTextLine(width: 80),
-                              _dummyTextLine(width: 100, height: 10),
-                            ],
-                          ),
-                        ))
-                    .toList(),
-              ),
+            _emptyStateCard(
+              icon: Icons.schedule_rounded,
+              title: 'Set your working hours',
+              subtitle:
+                  'Tell clients when you\'re available so bookings come at the right time.',
+              actionLabel: 'Add',
+              onAdd: () => _navigateToEdit(ProfessionalsTimingScreen()),
             ),
         ],
       ),

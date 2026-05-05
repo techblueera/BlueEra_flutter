@@ -9,7 +9,6 @@ import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/me/grocery/widget/discount_badge.dart';
 import 'package:BlueEra/features/common/delivery_partner/widget/common_image_upload_section.dart';
 import 'package:BlueEra/features/me/grocery/widget/food_type_indicator.dart';
@@ -74,11 +73,19 @@ class _HomeMadeFoodHomePageState extends State<HomeMadeFoodHomePage> {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 15.0),
+      padding: EdgeInsets.fromLTRB(
+        20,
+        SizeConfig.size12,
+        20,
+        4 * kBottomNavigationBarHeight,
+      ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           _buildTiffinSection(),
+          SizedBox(height: SizeConfig.size12),
           _buildHomeMadeFoodSection(),
+          SizedBox(height: SizeConfig.size12),
           Obx(() => EarnServiceGalleryCard(
                 gallery: earnProfileController.earnProfile.value?.galleryImages,
                 onAddImage: _pickAndUploadGalleryImage,
@@ -89,13 +96,12 @@ class _HomeMadeFoodHomePageState extends State<HomeMadeFoodHomePage> {
             controller: earnProfileController,
           ),
           EarnServiceQrCodeWidget(controller: earnProfileController),
-          SizedBox(height: SizeConfig.size100),
         ],
       ),
     );
   }
 
-  // ─── Tiffin Section ────────────────────────────────────────────
+  // ─── Tiffin Section — numbered v2 section card.
   Widget _buildTiffinSection() {
     return Obx(() {
       if (tiffinController.isLoading.value) {
@@ -105,34 +111,17 @@ class _HomeMadeFoodHomePageState extends State<HomeMadeFoodHomePage> {
         );
       }
 
-      return CustomFormCard(
-        padding: EdgeInsets.all(SizeConfig.size10),
-        margin: EdgeInsets.only(top: 10),
-        child: Column(
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: CustomText(
-                    'Tiffin',
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.mainTextColor,
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: SizeConfig.size10),
-            SizedBox(
-              height: 290,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                itemCount: _tiffinSlots.length,
-                separatorBuilder: (_, __) => SizedBox(width: 10),
-                itemBuilder: (_, i) => _buildTiffinSlotCard(_tiffinSlots[i]),
-              ),
-            ),
-          ],
+      return _sectionCard(
+        index: 1,
+        title: 'Tiffin',
+        child: SizedBox(
+          height: 290,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: _tiffinSlots.length,
+            separatorBuilder: (_, __) => SizedBox(width: 10),
+            itemBuilder: (_, i) => _buildTiffinSlotCard(_tiffinSlots[i]),
+          ),
         ),
       );
     });
@@ -550,7 +539,7 @@ class _HomeMadeFoodHomePageState extends State<HomeMadeFoodHomePage> {
     );
   }
 
-  // ─── Home Made Food Section ────────────────────────────────────
+  // ─── Home Made Food Section — numbered v2 section card.
   Widget _buildHomeMadeFoodSection() {
     return Obx(() {
       if (foodController.isLoading.value) {
@@ -560,25 +549,12 @@ class _HomeMadeFoodHomePageState extends State<HomeMadeFoodHomePage> {
         );
       }
 
-      return CustomFormCard(
-        padding: EdgeInsets.all(SizeConfig.size10),
-        margin: EdgeInsets.only(top: 10),
+      return _sectionCard(
+        index: 2,
+        title: 'Home Made Food',
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Expanded(
-                  child: CustomText(
-                    'Home Made Food',
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.mainTextColor,
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: SizeConfig.size10),
             _buildFoodCategoryTabs(),
             SizedBox(height: SizeConfig.size10),
             _buildFoodItems(),
@@ -862,6 +838,116 @@ class _HomeMadeFoodHomePageState extends State<HomeMadeFoodHomePage> {
     );
     if (path == null || path.isEmpty) return;
     await earnProfileController.addGalleryImage(File(path));
+  }
+
+  // ─────────────────────────────────────────────
+  // SECTION SHELL — numbered card with a primary-colored vertical
+  // accent bar on the left edge and a tracked-uppercase title. Same
+  // style as self_profession_home_screen's _sectionCard.
+  // ─────────────────────────────────────────────
+  Widget _sectionCard({
+    required int index,
+    required String title,
+    required Widget child,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFEDEFF4), width: 1),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x14001120),
+            blurRadius: 14,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Stack(
+        children: [
+          Positioned(
+            top: 0,
+            bottom: 0,
+            left: 0,
+            width: 3,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    AppColors.primaryColor,
+                    AppColors.primaryColor.withValues(alpha: 0.45),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.fromLTRB(
+              SizeConfig.size14 + 3,
+              SizeConfig.size14,
+              SizeConfig.size12,
+              SizeConfig.size14,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    _indexBadge(index),
+                    SizedBox(width: SizeConfig.size10),
+                    Expanded(
+                      child: Text(
+                        title.toUpperCase(),
+                        style: TextStyle(
+                          fontFamily: AppConstants.OpenSans,
+                          fontSize: SizeConfig.medium,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.mainTextColor,
+                          letterSpacing: 0.7,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: SizeConfig.size12),
+                child,
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _indexBadge(int index) {
+    return Container(
+      width: 26,
+      height: 26,
+      decoration: BoxDecoration(
+        color: AppColors.primaryColor.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(7),
+        border: Border.all(
+          color: AppColors.primaryColor.withValues(alpha: 0.20),
+          width: 0.6,
+        ),
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        index.toString().padLeft(2, '0'),
+        style: TextStyle(
+          fontFamily: AppConstants.OpenSans,
+          fontSize: 11,
+          fontWeight: FontWeight.w800,
+          color: AppColors.primaryColor,
+          letterSpacing: 0.4,
+        ),
+      ),
+    );
   }
 }
 
