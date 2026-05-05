@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:developer';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -186,7 +187,7 @@ class _SymbolFullscreenViewerState extends State<SymbolFullscreenViewer>
     final user = _currentGroup.user ?? symbol.user;
     final String? profileImage = user?.profileImage;
     final totalSymbols = _currentGroup.symbols.length;
-
+    log("symbol Link : ${user?.id}");
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,

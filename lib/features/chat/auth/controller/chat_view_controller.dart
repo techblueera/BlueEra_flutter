@@ -38,6 +38,7 @@ import '../../view/personal_chat/personal_chat_screen.dart';
 import '../model/Generate_Upload_Ulr_Model.dart';
 import '../model/GetChatListModel.dart';
 import '../model/GetChatListModel.dart' as chatListModel;
+import '../model/ChatRequestsListModel.dart';
 import '../model/GetChatRequestListModel.dart';
 import '../model/GetListOfMessageData.dart';
 import '../model/GetListOfMessageData.dart' as messageModel;
@@ -88,6 +89,12 @@ class ChatViewController extends GetxController {
   RxInt unreadNewMessageCount = 0.obs;
   Rx<GetChatRequestListModel>? getChatRequestListModel =
       GetChatRequestListModel().obs;
+
+  /// Symbol-reply chat requests — `GET chat-service/chat/requests`.
+  Rx<ChatRequestsListModel> chatRequestsListModel =
+      ChatRequestsListModel().obs;
+  Rx<ApiResponse> chatRequestsListResponse =
+      ApiResponse.initial('Initial').obs;
   Rx<GetChatRequestProfileDetailsModel>? getChatRequestProfileDetailsModel =
       GetChatRequestProfileDetailsModel().obs;
   RxBool showMentionList = false.obs;
@@ -2091,6 +2098,26 @@ class ChatViewController extends GetxController {
     }
   }
 
+  /// Fetch symbol-reply chat requests from `GET chat-service/chat/requests`.
+  Future<void> getChatRequestsList(
+      {int limit = 20, String? nextCursor}) async {
+    try {
+      chatRequestsListResponse.value = ApiResponse.loading();
+      final responseModel = await ChatViewRepo()
+          .getChatRequestsListApi(limit: limit, nextCursor: nextCursor);
+      if (responseModel.isSuccess) {
+        chatRequestsListModel.value =
+            ChatRequestsListModel.fromJson(responseModel.response);
+        chatRequestsListResponse.value = ApiResponse.complete(responseModel);
+      } else {
+        chatRequestsListResponse.value = ApiResponse.error(
+            responseModel.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e) {
+      chatRequestsListResponse.value = ApiResponse.error('error');
+    }
+  }
+
   /// One-time hydration of every conversation + its message history into
   /// local storage. Runs on the very first app open after install (guarded by
   /// [SharedPreferenceUtils.hasInitialChatExport]) and never again. After it
@@ -2632,12 +2659,11 @@ class ChatViewController extends GetxController {
 
           final alreadyExists = message.id != null &&
               (getListOfMessageData?.any((m) => m.id == message.id) ?? false);
-          if (!alreadyExists) {
-            getListOfMessageData?.add(message);
-
-
-          }
-          // Single rebuild: removes loading placeholder + adds real message at once
+          // if (!alreadyExists) {
+          //   getListOfMessageData?.add(message);
+          //
+          //
+          // }
           getListOfMessageResponse.value =
               ApiResponse.complete(getListOfMessageData);
           saveSingleMessageToLocal(

@@ -127,6 +127,23 @@ class ChatViewRepo extends BaseService {
     return response;
   }
 
+  /// `GET chat-service/chat/requests` — symbol-reply originated chat requests.
+  Future<ResponseModel> getChatRequestsListApi(
+      {int limit = 20, String? nextCursor}) async {
+    final response = await ApiBaseHelper().getHTTP(
+      getChatRequestsList,
+      showProgress: false,
+      params: {
+        'limit': limit,
+        if (nextCursor != null && nextCursor.isNotEmpty)
+          'next_cursor': nextCursor,
+      },
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
   Future<ResponseModel> getChatExportAllApi() async {
     final response = await ApiBaseHelper().getHTTP(
       getChatExportAll,
