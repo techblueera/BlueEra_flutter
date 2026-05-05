@@ -41,6 +41,7 @@ import 'package:flutter_upgrade_version/flutter_upgrade_version.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:share_handler/share_handler.dart';
 
+import '../../../../core/routes/route_helper.dart';
 import '../../../chat/auth/controller/chat_flag_controller.dart';
 import '../../../chat/auth/controller/chat_pin_archive_controller.dart';
 import '../../../chat/auth/controller/chat_view_controller.dart';
@@ -350,7 +351,9 @@ class _ConnectMainPageState extends State<ConnectMainPage>
 
   /// Action row for the Inquiry / Orders tabs — the flag / wallet / rider
   /// icons that previously lived in `OrderMainChatScreen`'s header.
+  /// Card + rider icons are Orders-only; Inquiry shows just the flag.
   Widget _buildOrdersTabActions() {
+    final bool isInquiryTab = selectedIndex == 1;
     return Padding(
       padding: const EdgeInsets.only(top: 10, right: 14.0),
       child: Row(
@@ -362,20 +365,22 @@ class _ConnectMainPageState extends State<ConnectMainPage>
             child: const Icon(Icons.flag_outlined,
                 size: 24, color: Colors.black),
           ),
-          const SizedBox(width: 14),
-          InkWell(
-            onTap: () => commonSnackBar(message: "Coming soon...."),
-            borderRadius: BorderRadius.circular(20),
-            child: const Icon(Icons.credit_card,
-                size: 24, color: Colors.black),
-          ),
-          const SizedBox(width: 14),
-          InkWell(
-            onTap: () => commonSnackBar(message: "Coming soon...."),
-            borderRadius: BorderRadius.circular(20),
-            child: const Icon(Icons.delivery_dining,
-                size: 24, color: Colors.black),
-          ),
+          if (!isInquiryTab) ...[
+            // const SizedBox(width: 14),
+            // InkWell(
+            //   onTap: () => commonSnackBar(message: "Coming soon...."),
+            //   borderRadius: BorderRadius.circular(20),
+            //   child: const Icon(Icons.credit_card,
+            //       size: 24, color: Colors.black),
+            // ),
+            const SizedBox(width: 14),
+            InkWell(
+              onTap: () => commonSnackBar(message: "Coming soon...."),
+              borderRadius: BorderRadius.circular(20),
+              child: const Icon(Icons.delivery_dining,
+                  size: 24, color: AppColors.primaryColor),
+            ),
+          ],
         ],
       ),
     );
@@ -392,16 +397,6 @@ class _ConnectMainPageState extends State<ConnectMainPage>
             borderRadius: BorderRadius.circular(20),
             child: const Icon(
               Icons.search,
-              size: 24,
-              color: Colors.black,
-            ),
-          ),
-          const SizedBox(width: 14),
-          InkWell(
-            onTap: () => Get.to(() => const CallHistoryScreen()),
-            borderRadius: BorderRadius.circular(20),
-            child: const Icon(
-              Icons.call_outlined,
               size: 24,
               color: Colors.black,
             ),
@@ -465,6 +460,19 @@ class _ConnectMainPageState extends State<ConnectMainPage>
             return true;
           },
           child: Scaffold(
+            floatingActionButton: SafeArea(
+              child: Padding(
+                  padding:
+                  const EdgeInsets.only(bottom: kBottomNavigationBarHeight),
+                  child: FloatingActionButton(
+                    child: Icon(Icons.add),
+                    backgroundColor: AppColors.primaryColor,
+                    foregroundColor: Colors.white,
+                    onPressed: () {
+                      Get.toNamed(RouteHelper.getChatContactsRoute());
+                    },
+                  )),
+            ),
             body: BottomNavHideOnScroll(
               child: NestedScrollView(
                 headerSliverBuilder: (context, innerBoxIsScrolled) {

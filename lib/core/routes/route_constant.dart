@@ -193,4 +193,18 @@ class RouteConstant {
   static const String IncomingRiderOrderScreen = "/IncomingRiderOrderScreen";
   static const String RiderPickupNavigationScreen = "/RiderPickupNavigationScreen";
   static const String RiderRideNavigationScreen = "/RiderRideNavigationScreen";
+
+  // Business onboarding (WhatsApp-style)
+  static const String BusinessOnboardingCategoryScreen =
+      "/BusinessOnboardingCategoryScreen";
+  static const String BusinessOnboardingHoursTypeScreen =
+      "/BusinessOnboardingHoursTypeScreen";
+  static const String BusinessOnboardingSelectHoursScreen =
+      "/BusinessOnboardingSelectHoursScreen";
+  static const String BusinessOnboardingPhotoScreen =
+      "/BusinessOnboardingPhotoScreen";
+  static const String BusinessOnboardingAddressScreen =
+      "/BusinessOnboardingAddressScreen";
+  static const String BusinessOnboardingDescriptionScreen =
+      "/BusinessOnboardingDescriptionScreen";
 }

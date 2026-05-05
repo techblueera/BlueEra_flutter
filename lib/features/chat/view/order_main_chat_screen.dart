@@ -6,6 +6,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/chat/auth/controller/call_controller.dart';
 import 'package:BlueEra/features/chat/view/add_symbol/add_symbol_screen.dart';
+import 'package:BlueEra/features/chat/view/personal_chat/chat_requests_screen.dart';
 import 'package:BlueEra/features/common/channel_feed_view/channel_feed_screen.dart';
 import 'package:BlueEra/features/common/feed/view/home_feed_screen_new.dart';
 import 'package:BlueEra/widgets/bottom_nav_hide_on_scroll.dart';
@@ -362,6 +363,18 @@ class _OrderMainChatScreenState extends State<OrderMainChatScreen>
           ),
         ),
         const SizedBox(width: 8),
+        InkWell(
+          onTap: () => Get.to(() => const ChatRequestsScreen()),
+          borderRadius: BorderRadius.circular(20),
+          child: const Padding(
+            padding: EdgeInsets.only(right: 14.0),
+            child: Icon(
+              Icons.mail_outline,
+              size: 24,
+              color: Colors.black,
+            ),
+          ),
+        ),
         // Mirrors `CommonBackAppBar`'s `isMore == true` slot — same "+" icon,
         // same PostCreationMenu popup with message/poll/job-post/symbol.
         PopupMenuButton<PostCreationMenu>(
@@ -393,7 +406,7 @@ class _OrderMainChatScreenState extends State<OrderMainChatScreen>
           },
           itemBuilder: (context) => PopupMenuBuilders.popupMenuItems(),
           child: Padding(
-            padding: const EdgeInsets.only(right: 14.0),
+            padding: const EdgeInsets.only(right: 6.0),
             child: LocalAssets(
               imagePath: AppIconAssets.addOutlinedIcon,
               imgColor: AppColors.primaryColor,

@@ -1,8 +1,10 @@
 import 'package:BlueEra/core/api/model/tab_model.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/widgets/business_profile_widget.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/me/product/controller/inventory_controller.dart';
@@ -199,6 +201,7 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
       case 'Profile':
         return Column(
           children: [
+            _ProfileSetupBanner(details: details),
             BusinessProfileHeader(
               details: details,
               controller: viewBusinessDetailsController,
@@ -217,5 +220,90 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
       default:
         return const Center(child: CustomText('Coming soon'));
     }
+  }
+}
+
+class _ProfileSetupBanner extends StatelessWidget {
+  final BusinessProfileDetails? details;
+
+  const _ProfileSetupBanner({required this.details});
+
+  bool get _isIncomplete {
+    final d = details;
+    if (d == null) return false;
+    final missingDesc = (d.businessDescription ?? '').trim().isEmpty;
+    final missingSchedule = (d.availability?.schedule ?? const []).isEmpty;
+    final missingLogo = (d.logo ?? '').isEmpty;
+    final missingCategory =
+        (d.categoryDetails?.name ?? '').isEmpty;
+    return missingDesc || missingSchedule || missingLogo || missingCategory;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_isIncomplete) return const SizedBox.shrink();
+    return Container(
+      margin: EdgeInsets.only(bottom: SizeConfig.size12),
+      padding: EdgeInsets.symmetric(
+        horizontal: SizeConfig.size12,
+        vertical: SizeConfig.size12,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.primaryColor.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(SizeConfig.size10),
+        border: Border.all(
+          color: AppColors.primaryColor.withValues(alpha: 0.3),
+        ),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.storefront_outlined,
+              color: AppColors.primaryColor),
+          SizedBox(width: SizeConfig.size10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CustomText(
+                  'Complete your business profile',
+                  fontSize: SizeConfig.medium,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.mainTextColor,
+                ),
+                SizedBox(height: SizeConfig.size2),
+                CustomText(
+                  'Add categories, hours, photo, address & description',
+                  fontSize: SizeConfig.small,
+                  color: AppColors.secondaryTextColor,
+                ),
+              ],
+            ),
+          ),
+          SizedBox(width: SizeConfig.size8),
+          InkWell(
+            borderRadius: BorderRadius.circular(SizeConfig.size20),
+            onTap: () => Get.toNamed(
+              RouteHelper.getBusinessOnboardingCategoryScreenRoute(),
+            ),
+            child: Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: SizeConfig.size12,
+                vertical: SizeConfig.size6,
+              ),
+              decoration: BoxDecoration(
+                color: AppColors.primaryColor,
+                borderRadius: BorderRadius.circular(SizeConfig.size20),
+              ),
+              child: CustomText(
+                'Setup',
+                fontSize: SizeConfig.small,
+                color: AppColors.white,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

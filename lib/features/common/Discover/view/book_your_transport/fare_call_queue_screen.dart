@@ -572,7 +572,10 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
       },
       child: Scaffold(
         backgroundColor: const Color(0xFF0B141A),
-        body: Obx(() => _riderAccepted.value ? _buildMapScreen() : _buildCallingScreen()),
+        body: SafeArea(
+          child: Obx(() =>
+              _riderAccepted.value ? _buildMapScreen() : _buildCallingScreen()),
+        ),
       ),
     );
   }
