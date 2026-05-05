@@ -9,8 +9,12 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/environment_config.dart';
+import 'package:BlueEra/features/common/Discover/repo/favorite_location_repo.dart';
+import 'package:BlueEra/features/common/Discover/view/book_your_transport/map_pick_address_screen.dart';
+import 'package:BlueEra/features/common/Discover/view/book_your_transport/search_address_screen.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_drop_down.dart';
@@ -73,6 +77,8 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
   LatLng? _pickedLatLng;
   String? _pickedAddress;
   bool _isResolvingPickedAddress = false;
+  bool _isPinDragging = false; // pin lifts while the user pans the map
+  String? _favoriteSavingTag; // 'home' | 'office' | 'hostel' while saving
 
   LatLng get _currentLatLng {
     final lat = LocationService.lat;
@@ -82,6 +88,14 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
   }
 
   bool get _isSearching => _activeField != _ActiveField.none;
+
+  // Listens for any change to the from/to lat or lng on the shared
+  // controller and re-syncs the map (markers + camera + route).
+  Worker? _fromLatWorker;
+  Worker? _fromLngWorker;
+  Worker? _toLatWorker;
+  Worker? _toLngWorker;
+  Timer? _syncDebounce;
 
   @override
   void initState() {
@@ -94,12 +108,43 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _initializeLocations();
       authController.isSearchOpen.value = true;
+      _attachLocationWorkers();
     });
+  }
+
+  void _attachLocationWorkers() {
+    void scheduleSync() {
+      // Coalesce burst updates (lat + lng + address are written back to
+      // back when a search prediction is selected) into a single map
+      // re-render, so the camera lands on the final position instead of
+      // an interim half-updated one.
+      _syncDebounce?.cancel();
+      _syncDebounce = Timer(const Duration(milliseconds: 60), () {
+        if (!mounted || _isPickingOnMap) return;
+        _updateMarkersAndRoute();
+      });
+    }
+
+    _fromLatWorker = ever(
+        discoverController.selectedFromLat ?? RxDouble(0.0),
+        (_) => scheduleSync());
+    _fromLngWorker = ever(
+        discoverController.selectedFromLong ?? RxDouble(0.0),
+        (_) => scheduleSync());
+    _toLatWorker = ever(discoverController.selectedToLat ?? RxDouble(0.0),
+        (_) => scheduleSync());
+    _toLngWorker = ever(discoverController.selectedToLong ?? RxDouble(0.0),
+        (_) => scheduleSync());
   }
 
   @override
   void dispose() {
     _debounce?.cancel();
+    _syncDebounce?.cancel();
+    _fromLatWorker?.dispose();
+    _fromLngWorker?.dispose();
+    _toLatWorker?.dispose();
+    _toLngWorker?.dispose();
     _searchController.dispose();
     _searchFocusNode.dispose();
     super.dispose();
@@ -291,8 +336,12 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
   void _updateMarkersAndRoute() {
     discoverController.markers.clear();
 
-    if (discoverController.selectedFromLat?.value != 0.0 &&
-        discoverController.selectedFromLong?.value != 0.0) {
+    final hasFrom = discoverController.selectedFromLat?.value != 0.0 &&
+        discoverController.selectedFromLong?.value != 0.0;
+    final hasTo = discoverController.selectedToLat?.value != 0.0 &&
+        discoverController.selectedToLong?.value != 0.0;
+
+    if (hasFrom) {
       fromLatLng = LatLng(
         discoverController.selectedFromLat!.value,
         discoverController.selectedFromLong!.value,
@@ -305,10 +354,11 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
               BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
         ),
       );
+    } else {
+      fromLatLng = null;
     }
 
-    if (discoverController.selectedToLat?.value != 0.0 &&
-        discoverController.selectedToLong?.value != 0.0) {
+    if (hasTo) {
       toLatLng = LatLng(
         discoverController.selectedToLat!.value,
         discoverController.selectedToLong!.value,
@@ -321,8 +371,25 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
               BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
         ),
       );
-      if (fromLatLng != null) {
-        _getRoutePolyline(fromLatLng!, toLatLng!);
+    } else {
+      toLatLng = null;
+    }
+
+    // Mirror the change on the map: if both ends are set, draw + fit the
+    // route; otherwise animate the camera to whichever single pin exists
+    // so any address change (search pick / map tap / favourite, etc.)
+    // visibly moves the map.
+    if (hasFrom && hasTo) {
+      _getRoutePolyline(fromLatLng!, toLatLng!);
+    } else {
+      _polylines.clear();
+      _distanceText = null;
+      discoverController.roadDistanceKm.value = 0.0;
+      final target = fromLatLng ?? toLatLng;
+      if (target != null) {
+        mapController?.animateCamera(
+          CameraUpdate.newLatLngZoom(target, 15.0),
+        );
       }
     }
     if (mounted) setState(() {});
@@ -330,28 +397,45 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
 
   // ─── Inline search ──────────────────────────────────────────────────────
 
-  void _openSearchForPickup() {
-    setState(() {
-      _activeField = _ActiveField.pickup;
-      _searchController.text = '';
-      _searchQuery = '';
-      _predictions = [];
-    });
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _searchFocusNode.requestFocus();
-    });
+  Future<void> _openSearchForPickup() async {
+    _activeField = _ActiveField.pickup;
+    await _pushSearchAddressScreen(isPickup: true);
   }
 
-  void _openSearchForDrop() {
-    setState(() {
-      _activeField = _ActiveField.drop;
-      _searchController.text = '';
-      _searchQuery = '';
-      _predictions = [];
-    });
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _searchFocusNode.requestFocus();
-    });
+  Future<void> _openSearchForDrop() async {
+    _activeField = _ActiveField.drop;
+    await _pushSearchAddressScreen(isPickup: false);
+  }
+
+  Future<void> _pushSearchAddressScreen({required bool isPickup}) async {
+    final start = isPickup
+        ? (fromLatLng ?? _currentLatLng)
+        : (toLatLng ?? fromLatLng ?? _currentLatLng);
+    final result = await Navigator.of(context).push<Map<String, dynamic>>(
+      MaterialPageRoute(
+        builder: (_) => SearchAddressScreen(
+          isPickup: isPickup,
+          initialMapCenter: start,
+        ),
+      ),
+    );
+    if (!mounted) {
+      _activeField = _ActiveField.none;
+      return;
+    }
+    if (result == null) {
+      // Back/cancel — clear active field so the bottom UI restores.
+      setState(() => _activeField = _ActiveField.none);
+      return;
+    }
+    final lat = (result['lat'] as num?)?.toDouble();
+    final lng = (result['lng'] as num?)?.toDouble();
+    final address = (result['address'] as String?) ?? '';
+    if (lat == null || lng == null) {
+      setState(() => _activeField = _ActiveField.none);
+      return;
+    }
+    await _applySelectedLocation(lat, lng, address);
   }
 
   void _closeSearch() {
@@ -496,8 +580,23 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
       ),
     );
 
+    // Cancel the worker debounce — we already know the final position
+    // and want the map to land on it deterministically, without waiting
+    // for the next worker tick.
+    _syncDebounce?.cancel();
+
     _closeSearch();
     _updateMarkersAndRoute();
+
+    // Force the camera to the freshly picked point. _updateMarkersAndRoute
+    // also tries to animate, but only when a single end is set; when both
+    // are set it fits to a route polyline that's still being fetched. This
+    // guarantees the map visibly moves to the just-selected address even
+    // in the both-set case, then the route fit will follow once it loads.
+    final newPoint = LatLng(lat, lng);
+    mapController?.animateCamera(
+      CameraUpdate.newLatLngZoom(newPoint, 15.0),
+    );
   }
 
   void _useCurrentLocation() {
@@ -515,16 +614,40 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
     final start = _activeField == _ActiveField.pickup
         ? (fromLatLng ?? _currentLatLng)
         : (toLatLng ?? fromLatLng ?? _currentLatLng);
+    _enterPickOnMapModeAt(start, field: _activeField);
+  }
+
+  /// Push the dedicated Rapido-style map picker. The active field
+  /// (pickup/drop) is locked in for the trip there + back, so we apply
+  /// the result to the right side on return.
+  Future<void> _enterPickOnMapModeAt(LatLng start,
+      {required _ActiveField field}) async {
+    final resolvedField =
+        field == _ActiveField.none ? _ActiveField.pickup : field;
     setState(() {
-      _isPickingOnMap = true;
-      _pickedLatLng = start;
-      _pickedAddress = null;
+      _activeField = resolvedField;
     });
     _searchFocusNode.unfocus();
-    _resolvePickedAddress(start);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      mapController?.animateCamera(CameraUpdate.newLatLngZoom(start, 16));
-    });
+
+    final isPickup = resolvedField == _ActiveField.pickup;
+    final otherEnd = isPickup ? toLatLng : fromLatLng;
+
+    final result = await Navigator.of(context).push<Map<String, dynamic>>(
+      MaterialPageRoute(
+        builder: (_) => MapPickAddressScreen(
+          initialLatLng: start,
+          isPickup: isPickup,
+          otherEndLatLng: otherEnd,
+        ),
+      ),
+    );
+
+    if (!mounted || result == null) return;
+    final lat = (result['lat'] as num?)?.toDouble();
+    final lng = (result['lng'] as num?)?.toDouble();
+    final address = (result['address'] as String?) ?? '';
+    if (lat == null || lng == null) return;
+    await _applySelectedLocation(lat, lng, address);
   }
 
   /// While picking on the map, keep the *other* already-selected marker
@@ -559,6 +682,7 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
       _isPickingOnMap = false;
       _pickedLatLng = null;
       _pickedAddress = null;
+      _isPinDragging = false;
     });
   }
 
@@ -595,6 +719,51 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
     _applySelectedLocation(lat, lng, address);
   }
 
+  Future<void> _saveFavoriteFromPickedPin(String tag) async {
+    if (_pickedLatLng == null || _isResolvingPickedAddress) return;
+    final address = _pickedAddress ?? '';
+    if (address.isEmpty) {
+      commonSnackBar(message: 'Address is still loading, try again.');
+      return;
+    }
+    setState(() => _favoriteSavingTag = tag);
+    try {
+      final res = await FavoriteLocationRepo().addFavoriteLocation(
+        address: address,
+        latitude: _pickedLatLng!.latitude,
+        longitude: _pickedLatLng!.longitude,
+        tag: tag,
+      );
+      if (!mounted) return;
+      if (res.isSuccess) {
+        commonSnackBar(message: 'Saved to ${_favoriteLabelFor(tag)}');
+      } else {
+        commonSnackBar(
+          message: res.message ?? 'Could not save favourite',
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      commonSnackBar(message: 'Could not save favourite');
+      log('addFavoriteLocation error: $e');
+    } finally {
+      if (mounted) setState(() => _favoriteSavingTag = null);
+    }
+  }
+
+  String _favoriteLabelFor(String tag) {
+    switch (tag) {
+      case 'home':
+        return 'Home';
+      case 'office':
+        return 'Office';
+      case 'hostel':
+        return 'Hostel';
+      default:
+        return tag;
+    }
+  }
+
   // ─── Build ──────────────────────────────────────────────────────────────
 
   @override
@@ -611,8 +780,9 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
       },
       child: Scaffold(
         appBar: const CommonBackAppBar(),
-        body: Stack(
-          children: [
+        body: SafeArea(
+          child: Stack(
+            children: [
             /// Full-screen map
             Positioned.fill(
               child: GoogleMap(
@@ -625,10 +795,29 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
                 myLocationButtonEnabled: false,
                 compassEnabled: false,
                 zoomControlsEnabled: false,
+                // Always hand the GoogleMap a fresh Set instance so any
+                // change in the underlying marker/polyline collections
+                // re-renders the map immediately.
                 markers: _isPickingOnMap
                     ? _referenceMarkersWhilePicking()
-                    : discoverController.markers,
-                polylines: _isPickingOnMap ? const {} : _polylines,
+                    : Set<Marker>.from(discoverController.markers),
+                polylines: _isPickingOnMap
+                    ? const {}
+                    : Set<Polyline>.from(_polylines),
+                onCameraMoveStarted: _isPickingOnMap
+                    ? () {
+                        // Lift the pin + clear stale address as soon as
+                        // the user starts panning, so the header reads
+                        // "Fetching address..." in real time.
+                        if (!_isPinDragging) {
+                          setState(() {
+                            _isPinDragging = true;
+                            _isResolvingPickedAddress = true;
+                            _pickedAddress = null;
+                          });
+                        }
+                      }
+                    : null,
                 onCameraMove: _isPickingOnMap
                     ? (pos) {
                         _pickedLatLng = pos.target;
@@ -636,110 +825,111 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
                     : null,
                 onCameraIdle: _isPickingOnMap
                     ? () {
+                        if (_isPinDragging) {
+                          setState(() => _isPinDragging = false);
+                        }
                         if (_pickedLatLng != null) {
                           _resolvePickedAddress(_pickedLatLng!);
                         }
                       }
                     : null,
+                // Any tap on the map enters pick-on-map mode at that
+                // point — same Submit-button confirm flow as the Choose
+                // on Map button. Auto-decides which field to fill: drop
+                // first if pickup is already set, otherwise pickup.
                 onTap: _isPickingOnMap || _isSearching
                     ? null
-                    : (LatLng latLng) async {
-                        // Case 1: From already selected -> set To
-                        if (discoverController.selectedFromLat?.value != 0.0 &&
-                            discoverController.selectedFromLong?.value != 0.0 &&
-                            (discoverController.selectedToLat?.value == 0.0 ||
-                                discoverController.selectedToLong?.value ==
-                                    0.0)) {
-                          discoverController.selectedToLat?.value =
-                              latLng.latitude;
-                          discoverController.selectedToLong?.value =
-                              latLng.longitude;
-                          toLatLng = latLng;
-                        }
-                        // Case 2: From not selected -> set From
-                        else if (discoverController.selectedFromLat?.value ==
-                                0.0 ||
-                            discoverController.selectedFromLong?.value == 0.0) {
-                          discoverController.selectedFromLat?.value =
-                              latLng.latitude;
-                          discoverController.selectedFromLong?.value =
-                              latLng.longitude;
-                          fromLatLng = latLng;
-                          discoverController.markers.clear();
-                          _polylines.clear();
-                          _distanceText = null;
-                          discoverController.roadDistanceKm.value = 0.0;
-                        }
-                        // Case 3: Both selected -> reset (Uber behaviour)
-                        else {
-                          discoverController.selectedFromLat?.value =
-                              latLng.latitude;
-                          discoverController.selectedFromLong?.value =
-                              latLng.longitude;
-                          discoverController.selectedToLat?.value = 0.0;
-                          discoverController.selectedToLong?.value = 0.0;
-                          fromLatLng = latLng;
-                          toLatLng = null;
-                          discoverController.markers.clear();
-                          _polylines.clear();
-                          _distanceText = null;
-                          discoverController.roadDistanceKm.value = 0.0;
-                        }
-
-                        String address =
-                            await LocationService.getAddressUsingLatLng(
-                          latitude: latLng.latitude,
-                          longitude: latLng.longitude,
-                        );
-
-                        if (toLatLng == latLng) {
-                          discoverController.selectedToAddress?.value = address;
-                        } else {
-                          discoverController.selectedFromAddress?.value =
-                              address;
-                        }
-
-                        _updateMarkersAndRoute();
+                    : (LatLng latLng) {
+                        final hasFrom =
+                            (discoverController.selectedFromLat?.value ??
+                                        0.0) !=
+                                    0.0 &&
+                                (discoverController.selectedFromLong?.value ??
+                                        0.0) !=
+                                    0.0;
+                        final hasTo =
+                            (discoverController.selectedToLat?.value ?? 0.0) !=
+                                    0.0 &&
+                                (discoverController.selectedToLong?.value ??
+                                        0.0) !=
+                                    0.0;
+                        final target = (hasFrom && !hasTo)
+                            ? _ActiveField.drop
+                            : _ActiveField.pickup;
+                        _enterPickOnMapModeAt(latLng, field: target);
                       },
               ),
             ),
 
-            /// Center pin overlay (pick-on-map)
+            /// Animated centre pin (Rapido / Uber-style: lifts while
+            /// dragging, drops back when idle, with a fixed ground-shadow
+            /// at the actual map point so the user always sees where the
+            /// pin will land).
             if (_isPickingOnMap)
               IgnorePointer(
                 child: Center(
-                  child: Padding(
-                    padding: const EdgeInsets.only(bottom: 36),
-                    child: Icon(
-                      Icons.location_on,
-                      color: _activeField == _ActiveField.drop
-                          ? AppColors.red00
-                          : AppColors.primaryColor,
-                      size: 48,
-                      shadows: const [
-                        Shadow(
-                            color: Colors.black26,
-                            blurRadius: 6,
-                            offset: Offset(0, 2)),
+                  child: SizedBox(
+                    width: 60,
+                    height: 80,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        // Ground shadow — stays fixed at the map target.
+                        Positioned(
+                          bottom: 28,
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 180),
+                            curve: Curves.easeOut,
+                            width: _isPinDragging ? 16 : 10,
+                            height: _isPinDragging ? 6 : 4,
+                            decoration: BoxDecoration(
+                              color: Colors.black
+                                  .withValues(alpha: _isPinDragging ? 0.18 : 0.30),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                        ),
+                        // Pin — lifts up while panning.
+                        AnimatedPositioned(
+                          duration: const Duration(milliseconds: 180),
+                          curve: Curves.easeOut,
+                          bottom: _isPinDragging ? 48 : 32,
+                          child: Icon(
+                            Icons.location_on,
+                            color: _activeField == _ActiveField.drop
+                                ? AppColors.red00
+                                : AppColors.primaryColor,
+                            size: 48,
+                            shadows: const [
+                              Shadow(
+                                  color: Colors.black26,
+                                  blurRadius: 6,
+                                  offset: Offset(0, 2)),
+                            ],
+                          ),
+                        ),
                       ],
                     ),
                   ),
                 ),
               ),
 
-            /// Top section: address card OR inline search panel
-            if (!_isPickingOnMap)
-              Positioned(
-                top: 0,
-                left: 0,
-                right: 0,
-                child: _isSearching
-                    ? _buildInlineSearchPanel()
-                    : _buildAddressCard(),
-              ),
+            /// Top section: address card OR inline search panel OR
+            /// live picked-address header (in pick-on-map mode).
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: _isPickingOnMap
+                  ? _buildPickedAddressHeader()
+                  : (_isSearching
+                      ? _buildInlineSearchPanel()
+                      : _buildAddressCard()),
+            ),
 
-            /// My-location button (hidden in search/pick mode top-right interaction)
-            if (!_isSearching)
+            /// My-location button (hidden only while the inline search
+            /// panel is active; stays visible in pick-on-map mode).
+            if (!_isSearching || _isPickingOnMap)
               Positioned(
                 right: 16,
                 bottom: (_isPickingOnMap ? 140 : _bottomSheetHeight) + 16,
@@ -759,8 +949,12 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
                 ),
               ),
 
-            /// Bottom: pick-on-map confirm bar OR ride booking bottom sheet
-            if (!_isSearching)
+            /// Bottom: pick-on-map confirm bar OR ride booking bottom
+            /// sheet. Pick-on-map keeps `_activeField` set to pickup/drop
+            /// (so we know which field to fill on submit), which makes
+            /// `_isSearching` true — but we still need the Submit button
+            /// visible, so allow this branch in pick-on-map mode too.
+            if (!_isSearching || _isPickingOnMap)
               Positioned(
                 bottom: 0,
                 left: 0,
@@ -770,6 +964,7 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
                     : _rideBookingBottomSheet(),
               ),
           ],
+        ),
         ),
       ),
     );
@@ -1340,6 +1535,180 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
     );
   }
 
+  // ─── Pick-on-map: live header showing picked address ────────────────────
+
+  Widget _buildPickedAddressHeader() {
+    final isPickup = _activeField == _ActiveField.pickup;
+    return Material(
+      color: AppColors.white,
+      elevation: 0,
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: (isPickup ? AppColors.primaryColor : AppColors.red00)
+                      .withValues(alpha: 0.10),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.location_on,
+                  size: 18,
+                  color:
+                      isPickup ? AppColors.primaryColor : AppColors.red00,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CustomText(
+                      isPickup ? 'Set pickup location 123' : 'Set drop location',
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.grayText,
+                    ),
+                    const SizedBox(height: 2),
+                    _isResolvingPickedAddress
+                        ? Row(
+                            children: const [
+                              SizedBox(
+                                width: 12,
+                                height: 12,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                      AppColors.primaryColor),
+                                ),
+                              ),
+                              SizedBox(width: 8),
+                              CustomText(
+                                'Fetching address...',
+                                fontSize: 13,
+                                color: AppColors.grayText,
+                              ),
+                            ],
+                          )
+                        : CustomText(
+                            (_pickedAddress?.isNotEmpty ?? false)
+                                ? _pickedAddress!
+                                : 'Move map to pin the location',
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ─── Pick-on-map: Add to favourites chip row ────────────────────────────
+
+  Widget _buildAddToFavouritesRow() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Row(
+            children: [
+              const Icon(Icons.bookmark_outline,
+                  size: 16, color: AppColors.primaryColor),
+              const SizedBox(width: 6),
+              CustomText(
+                'Add to favourites',
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: AppColors.black,
+              ),
+            ],
+          ),
+        ),
+        SizedBox(
+          height: 38,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            padding: EdgeInsets.zero,
+            children: [
+              _buildFavouriteChip(
+                  tag: 'home', label: 'Home', icon: Icons.home_outlined),
+              const SizedBox(width: 8),
+              _buildFavouriteChip(
+                  tag: 'office',
+                  label: 'Office',
+                  icon: Icons.business_center_outlined),
+              const SizedBox(width: 8),
+              _buildFavouriteChip(
+                  tag: 'hostel',
+                  label: 'Hostel',
+                  icon: Icons.apartment_outlined),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFavouriteChip({
+    required String tag,
+    required String label,
+    required IconData icon,
+  }) {
+    final isSaving = _favoriteSavingTag == tag;
+    final disabled = _favoriteSavingTag != null ||
+        _isResolvingPickedAddress ||
+        _pickedLatLng == null;
+    return InkWell(
+      borderRadius: BorderRadius.circular(24),
+      onTap: disabled ? null : () => _saveFavoriteFromPickedPin(tag),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: AppColors.grayText.withValues(alpha: 0.25)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (isSaving)
+              const SizedBox(
+                width: 14,
+                height: 14,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor:
+                      AlwaysStoppedAnimation<Color>(AppColors.primaryColor),
+                ),
+              )
+            else
+              Icon(icon, size: 16, color: AppColors.primaryColor),
+            const SizedBox(width: 6),
+            CustomText(
+              label,
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: AppColors.black,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   // ─── Pick-on-map confirm bar ────────────────────────────────────────────
 
   Widget _buildPickOnMapConfirmBar() {
@@ -1366,100 +1735,13 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Container(
-                  width: 10,
-                  height: 10,
-                  decoration: BoxDecoration(
-                    color: isPickup
-                        ? AppColors.primaryColor
-                        : AppColors.red00,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                CustomText(
-                  isPickup ? 'Set pickup location' : 'Set drop location',
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.grayText,
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                const Icon(Icons.location_on,
-                    color: AppColors.primaryColor, size: 20),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: _isResolvingPickedAddress
-                      ? Row(
-                          children: const [
-                            SizedBox(
-                              width: 14,
-                              height: 14,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                    AppColors.primaryColor),
-                              ),
-                            ),
-                            SizedBox(width: 8),
-                            CustomText(
-                              'Fetching address...',
-                              fontSize: 13,
-                              color: AppColors.grayText,
-                            ),
-                          ],
-                        )
-                      : CustomText(
-                          (_pickedAddress?.isNotEmpty ?? false)
-                              ? _pickedAddress!
-                              : 'Move map to pin the location',
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                ),
-              ],
-            ),
+            _buildAddToFavouritesRow(),
             const SizedBox(height: 14),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: _exitPickOnMapMode,
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      side: const BorderSide(color: AppColors.primaryColor),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                    child: const CustomText(
-                      'Cancel',
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.primaryColor,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  flex: 2,
-                  child: CustomBtn(
-                    isValidate: !_isResolvingPickedAddress &&
-                        _pickedLatLng != null,
-                    onTap: _confirmPickedLocation,
-                    title: isPickup
-                        ? 'Confirm Pickup'
-                        : 'Confirm Drop',
-                  ),
-                ),
-              ],
+            CustomBtn(
+              isValidate:
+                  !_isResolvingPickedAddress && _pickedLatLng != null,
+              onTap: _confirmPickedLocation,
+              title: isPickup ? 'Confirm Pickup' : 'Confirm Drop',
             ),
           ],
         ),

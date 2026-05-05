@@ -153,10 +153,11 @@ class _BookTransportMainState extends State<BookTransportMain> {
                 title: AppStrings.callToRider.tr),
           ),
         ),
-        body: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14),
-            child: Column(
+        body: SafeArea(
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 10),
@@ -479,6 +480,7 @@ class _BookTransportMainState extends State<BookTransportMain> {
               ],
             ),
           ),
+        ),
         ),
       );
     });

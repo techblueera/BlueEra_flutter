@@ -60,6 +60,14 @@ class _BusinessOwnProfileScreenState extends State<BusinessOwnProfileScreen> {
           isLeading: true,
           isLogout: true,
           title: AppStrings.yourBusinessProfile,
+          showRightTextButton: true,
+          rightTextButtonText: 'Setup',
+          rightTextButtonColor: AppColors.primaryColor,
+          onRightTextButtonTap: () {
+            Get.toNamed(
+              RouteHelper.getBusinessOnboardingCategoryScreenRoute(),
+            );
+          },
           onBackTap: (){
             backClick();
           },
