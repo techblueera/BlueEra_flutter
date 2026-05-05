@@ -1465,7 +1465,7 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
           Expanded(
             child: _actionPill(
               icon: Icons.contact_page_outlined,
-              label: 'Business Card',
+              label: 'Personal Cards',
               filled: true,
               onTap: () => Get.to(() => AllPersonalVisitingCards(
                     personalDetails: _viewCtrl.personalProfileDetails.value,

@@ -1,4 +1,5 @@
-import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/language_localization_service/language_controller_new.dart';
@@ -10,7 +11,6 @@ import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart'
 import 'package:BlueEra/features/chat/auth/service/location_update_service.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/widgets/app_loader.dart';
-import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
@@ -19,20 +19,42 @@ import 'package:path_provider/path_provider.dart';
 class LogoutHelper {
   LogoutHelper._();
 
-  /// Shows the logout confirmation dialog. On confirm, clears all local
-  /// data and navigates to the login screen.
+  /// Shows a refined logout confirmation dialog. The dialog leans
+  /// into a "soft farewell" tone — floating waving-hand disc, a
+  /// brief reassuring message, and a clear stay/sign-out action
+  /// pair — so the moment of leaving feels like a polite handshake
+  /// rather than a system alert.
   static Future<void> showLogoutDialog(BuildContext context) async {
-    await showCommonDialog(
+    await showGeneralDialog<void>(
       context: context,
-      text: AppStrings.logoutConfirmationMessage.tr,
-      confirmCallback: () async {
-        await _performLogout();
+      barrierDismissible: true,
+      barrierLabel: 'logout',
+      barrierColor: Colors.black.withValues(alpha: 0.45),
+      transitionDuration: const Duration(milliseconds: 220),
+      pageBuilder: (_, __, ___) => const SizedBox.shrink(),
+      transitionBuilder: (ctx, anim, __, ___) {
+        // Soft scale-in (0.92 → 1.0) with the standard ease-out-back
+        // curve, paired with a fade. Snappy enough to feel responsive
+        // but loose enough to read as a moment of pause.
+        final eased = Curves.easeOutBack.transform(
+          anim.value.clamp(0.0, 1.0),
+        );
+        final scale = 0.92 + (eased.clamp(0.0, 1.0)) * 0.08;
+        return Opacity(
+          opacity: anim.value,
+          child: Transform.scale(
+            scale: scale,
+            child: _LogoutDialog(
+              onConfirm: () async {
+                Navigator.of(ctx, rootNavigator: true).pop();
+                await _performLogout();
+              },
+              onCancel: () =>
+                  Navigator.of(ctx, rootNavigator: true).pop(),
+            ),
+          ),
+        );
       },
-      cancelCallback: () {
-        Navigator.of(context).pop();
-      },
-      confirmText: AppStrings.yes,
-      cancelText: AppStrings.no,
     );
   }
 
@@ -89,5 +111,277 @@ class LogoutHelper {
       final dir = await getApplicationDocumentsDirectory();
       if (dir.existsSync()) await dir.delete(recursive: true);
     } catch (_) {}
+  }
+}
+
+// ─────────────────────────────────────────────
+// LOGOUT DIALOG — refined card with a soft-farewell tone.
+// Floating waving-hand disc bleeds above the card edge; tracked
+// "SIGN OUT" eyebrow over a display headline + 28-px accent rule;
+// reassuring two-line body; ghost-vs-filled action pair where the
+// safer "Stay" is the prominent (filled) action and the destructive
+// "Sign me out" is the deliberate ghost button.
+// ─────────────────────────────────────────────
+class _LogoutDialog extends StatelessWidget {
+  final VoidCallback onConfirm;
+  final VoidCallback onCancel;
+
+  const _LogoutDialog({
+    required this.onConfirm,
+    required this.onCancel,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 28),
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(
+                color: const Color(0xFFEDEFF4),
+                width: 1,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.18),
+                  blurRadius: 32,
+                  offset: const Offset(0, 14),
+                ),
+              ],
+            ),
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                // Floating waving-hand disc — overflows above the card so
+                // the eye lands on the icon first (the "human" cue),
+                // then the headline.
+                Positioned(
+                  top: -32,
+                  left: 0,
+                  right: 0,
+                  child: Center(child: _IconDisc()),
+                ),
+
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 60, 24, 22),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Tracked eyebrow.
+                      Text(
+                        'SIGN OUT',
+                        style: TextStyle(
+                          fontFamily: AppConstants.OpenSans,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.primaryColor,
+                          letterSpacing: 2,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      // Display headline — bigger, slightly negative
+                      // tracking for a refined feel.
+                      Text(
+                        'Signing off?',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontFamily: AppConstants.OpenSans,
+                          fontSize: 24,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.mainTextColor,
+                          letterSpacing: -0.4,
+                          height: 1.1,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      // Accent rule — tiny brand stroke that anchors
+                      // the headline like an editorial flourish.
+                      Container(
+                        width: 28,
+                        height: 2,
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryColor,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      // Reassuring body copy. Two short lines that say
+                      // "we'll be here when you come back".
+                      Text(
+                        "We'll keep your seat warm. Sign back in "
+                        "whenever you're ready.",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.secondaryTextColor,
+                          height: 1.55,
+                        ),
+                      ),
+                      const SizedBox(height: 22),
+                      // Action pair — filled "Stay" leads (safer path),
+                      // ghost "Sign me out" is the deliberate exit.
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _GhostButton(
+                              label: 'Sign me out',
+                              onTap: onConfirm,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: _PrimaryButton(
+                              label: 'Stay',
+                              onTap: onCancel,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _IconDisc extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 68,
+      height: 68,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: Colors.white,
+        border: Border.all(
+          color: AppColors.primaryColor.withValues(alpha: 0.18),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primaryColor.withValues(alpha: 0.22),
+            blurRadius: 24,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Center(
+        child: Container(
+          width: 52,
+          height: 52,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                AppColors.primaryColor,
+                AppColors.primaryColor.withValues(alpha: 0.78),
+              ],
+            ),
+          ),
+          child: const Icon(
+            Icons.waving_hand_rounded,
+            size: 24,
+            color: Colors.white,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _GhostButton extends StatelessWidget {
+  final String label;
+  final VoidCallback onTap;
+
+  const _GhostButton({required this.label, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        height: 48,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: AppColors.primaryColor.withValues(alpha: 0.30),
+            width: 1,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontFamily: AppConstants.OpenSans,
+            fontSize: 13,
+            fontWeight: FontWeight.w700,
+            color: AppColors.primaryColor,
+            letterSpacing: 0.2,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PrimaryButton extends StatelessWidget {
+  final String label;
+  final VoidCallback onTap;
+
+  const _PrimaryButton({required this.label, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        height: 48,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              AppColors.primaryColor,
+              AppColors.primaryColor.withValues(alpha: 0.82),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primaryColor.withValues(alpha: 0.32),
+              blurRadius: 14,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Text(
+          label,
+          style: const TextStyle(
+            fontFamily: AppConstants.OpenSans,
+            fontSize: 13,
+            fontWeight: FontWeight.w800,
+            color: Colors.white,
+            letterSpacing: 0.2,
+          ),
+        ),
+      ),
+    );
   }
 }
