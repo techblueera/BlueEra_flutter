@@ -1963,7 +1963,7 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
   }
 
   // ─── ACTION ROW ────────────────────────────────────────────────
-  // Two equal-width pills: Share (outlined) and Business Card
+  // Two equal-width pills: Share (outlined) and Personal Cards
   // (filled primary). Replaces the trio of tiny floating buttons
   // that used to clutter the cover photo.
   Widget _buildActionRow() {
@@ -1983,7 +1983,7 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
           Expanded(
             child: _actionPill(
               icon: Icons.contact_page_outlined,
-              label: 'Business Card',
+              label: 'Personal Cards',
               filled: true,
               onTap: () => Get.to(() => AllPersonalVisitingCards(
                     personalDetails: _viewCtrl.personalProfileDetails.value,
