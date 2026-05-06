@@ -46,9 +46,34 @@ class MyFoodProductData {
   MyFoodProductData({this.productDetails});
 
   MyFoodProductData.fromJson(Map<String, dynamic> json) {
-    productDetails = json['productDetails'] != null
-        ? CategoryFoodProductData.fromJson(json['productDetails'])
-        : null;
+    if (json['productDetails'] != null) {
+      productDetails = CategoryFoodProductData.fromJson(json['productDetails']);
+
+      // The kitchen-inventory search API wraps each product in an inventory document.
+      // We must propagate the wrapper's ID (the inventoryId) to the variants.
+      final String? wrapperInventoryId =
+          (json['_id'] ?? json['inventoryId'] ?? json['id'])?.toString();
+      final String? coveredVariantId =
+          (json['productVariant'] ?? json['variant'])?.toString();
+
+      if (wrapperInventoryId != null &&
+          wrapperInventoryId.isNotEmpty &&
+          productDetails!.variants != null) {
+        productDetails!.variants = productDetails!.variants!.map((v) {
+          // If the wrapper specifies a variant, match it.
+          // Otherwise, if it's a single-variant product or we're missing the match key,
+          // inject into any variant that is missing an inventoryId.
+          final bool isMatch = coveredVariantId != null
+              ? v.id == coveredVariantId
+              : (v.inventoryId == null || v.inventoryId!.isEmpty);
+
+          if (isMatch && (v.inventoryId == null || v.inventoryId!.isEmpty)) {
+            return v.copyWith(inventoryId: wrapperInventoryId);
+          }
+          return v;
+        }).toList();
+      }
+    }
   }
 
   Map<String, dynamic> toJson() {

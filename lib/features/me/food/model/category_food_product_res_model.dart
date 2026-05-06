@@ -1,45 +1,54 @@
 import 'dart:convert';
 
-CategoryFoodProductData dataFromJson(String str) => CategoryFoodProductData.fromJson(json.decode(str));
+CategoryFoodProductData dataFromJson(String str) =>
+    CategoryFoodProductData.fromJson(json.decode(str));
 String dataToJson(CategoryFoodProductData data) => json.encode(data.toJson());
+
 class CategoryFoodProductData {
   CategoryFoodProductData({
-      this.id,
-      this.name, 
-      this.images, 
-      this.category, 
-      this.dietaryType, 
-      this.description,
-      this.cookingMethod,
-      this.ingredients, 
-      this.servingInfo, 
-      this.nutritionalInfo, 
-      this.tags, 
-      this.isActive, 
-      this.createdAt, 
-      this.updatedAt, 
-      this.v, 
-      this.displayPrice, 
-      this.displayMrp, 
-      this.variants,
-      this.variantId,});
+    this.id,
+    this.name,
+    this.images,
+    this.category,
+    this.dietaryType,
+    this.description,
+    this.cookingMethod,
+    this.ingredients,
+    this.servingInfo,
+    this.nutritionalInfo,
+    this.tags,
+    this.isActive,
+    this.createdAt,
+    this.updatedAt,
+    this.v,
+    this.displayPrice,
+    this.displayMrp,
+    this.variants,
+    this.variantId,
+  });
 
   CategoryFoodProductData.fromJson(dynamic json) {
     id = json['_id'];
     name = json['name'];
     images = json['images'] != null ? json['images'].cast<String>() : [];
-    category = json['category'] != null ? Category.fromJson(json['category']) : null;
+    category =
+        json['category'] != null ? Category.fromJson(json['category']) : null;
     dietaryType = json['dietaryType'];
     description = json['description'];
-    cookingMethod = json['cookingMethod'] != null ? json['cookingMethod'].cast<String>() : [];
-    ingredients = json['ingredients'] != null ? json['ingredients'].cast<String>() : [];
+    cookingMethod = json['cookingMethod'] != null
+        ? json['cookingMethod'].cast<String>()
+        : [];
+    ingredients =
+        json['ingredients'] != null ? json['ingredients'].cast<String>() : [];
     if (json['servingInfo'] != null) {
       servingInfo = [];
       json['servingInfo'].forEach((v) {
         // servingInfo?.add(Dynamic.fromJson(v));
       });
     }
-    nutritionalInfo = json['nutritionalInfo'] != null ? NutritionalInfo.fromJson(json['nutritionalInfo']) : null;
+    nutritionalInfo = json['nutritionalInfo'] != null
+        ? NutritionalInfo.fromJson(json['nutritionalInfo'])
+        : null;
     if (json['tags'] != null) {
       tags = [];
       json['tags'].forEach((v) {
@@ -157,18 +166,21 @@ class CategoryFoodProductData {
       variants: variants ?? this.variants,
     );
   }
-
 }
 
-NutritionalInfo nutritionalInfoFromJson(String str) => NutritionalInfo.fromJson(json.decode(str));
-String nutritionalInfoToJson(NutritionalInfo data) => json.encode(data.toJson());
+NutritionalInfo nutritionalInfoFromJson(String str) =>
+    NutritionalInfo.fromJson(json.decode(str));
+String nutritionalInfoToJson(NutritionalInfo data) =>
+    json.encode(data.toJson());
+
 class NutritionalInfo {
   NutritionalInfo({
-      this.calories, 
-      this.protein, 
-      this.carbs, 
-      this.fats, 
-      this.fiber,});
+    this.calories,
+    this.protein,
+    this.carbs,
+    this.fats,
+    this.fiber,
+  });
 
   NutritionalInfo.fromJson(dynamic json) {
     calories = json['calories'];
@@ -192,15 +204,16 @@ class NutritionalInfo {
     map['fiber'] = fiber;
     return map;
   }
-
 }
 
 Category categoryFromJson(String str) => Category.fromJson(json.decode(str));
 String categoryToJson(Category data) => json.encode(data.toJson());
+
 class Category {
   Category({
-      this.id, 
-      this.name,});
+    this.id,
+    this.name,
+  });
 
   Category.fromJson(dynamic json) {
     id = json['_id'];
@@ -215,11 +228,12 @@ class Category {
     map['name'] = name;
     return map;
   }
-
 }
 
-FoodVariants variantsFromJson(String str) => FoodVariants.fromJson(json.decode(str));
+FoodVariants variantsFromJson(String str) =>
+    FoodVariants.fromJson(json.decode(str));
 String variantsToJson(FoodVariants data) => json.encode(data.toJson());
+
 class FoodVariants {
   FoodVariants({
     this.id,
@@ -233,7 +247,8 @@ class FoodVariants {
     this.createdAt,
     this.inventoryId,
     this.updatedAt,
-    this.v,});
+    this.v,
+  });
 
   FoodVariants.fromJson(dynamic json) {
     id = json['_id'];
@@ -292,6 +307,7 @@ class FoodVariants {
     String? createdAt,
     String? updatedAt,
     int? v,
+    String? inventoryId,
   }) {
     return FoodVariants(
       id: id ?? this.id,
@@ -305,7 +321,7 @@ class FoodVariants {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       v: v ?? this.v,
+      inventoryId: inventoryId ?? this.inventoryId,
     );
   }
-
 }
