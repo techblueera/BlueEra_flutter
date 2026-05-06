@@ -639,7 +639,6 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
   // the Order tab actually builds.
   List<Widget> _buildOrderTab() {
     final contributionController = getOrPut(() => ContributionController());
-    final screenHeight = MediaQuery.of(context).size.height;
     return [
       Padding(
         padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
@@ -658,18 +657,18 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
           }),
         ),
       ),
-      SizedBox(height: SizeConfig.size12),
+      SizedBox(height: SizeConfig.size20),
       // Incoming inquiries — only chats whose latest message was
       // authored by *someone else*. Mirror of the Connect Inquiry tab,
-      // which keeps the user's own outgoing inquiries (`onlySenderId`).
-      // Wrapped in a SizedBox because BusinessChatsList uses an
-      // Expanded ListView internally and needs a bounded height.
-      SizedBox(
-        height: screenHeight * 0.75,
-        child: BusinessChatsList(
-          isForwardUI: false,
-          excludeSenderId: userId,
-        ),
+      // which keeps the user's own outgoing inquiries. `isInParentScroll`
+      // makes BusinessChatsList drop its inner `Expanded` and switch
+      // the chat ListView to NeverScrollableScrollPhysics so the
+      // surrounding CustomScrollView owns the scroll — no fixed
+      // SizedBox height required.
+      BusinessChatsList(
+        isForwardUI: false,
+        excludeSenderId: userId,
+        isInParentScroll: true,
       ),
     ];
   }

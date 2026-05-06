@@ -27,6 +27,7 @@ class BusinessChatsList extends StatefulWidget {
     this.isNewGroupUI,
     this.excludeSenderId,
     this.onlySenderId,
+    this.isInParentScroll = false,
   });
   final bool? isForwardUI;
   final bool? isNewGroupUI;
@@ -42,6 +43,15 @@ class BusinessChatsList extends StatefulWidget {
   /// Inquiry tab so the user sees only their own outgoing inquiries.
   /// Null = no inclusion filter.
   final String? onlySenderId;
+
+  /// Embed-in-parent-scroll mode. When `true`, the inner chat list is
+  /// not wrapped in `Expanded` and its `ListView` switches to
+  /// `NeverScrollableScrollPhysics`, so the widget sizes to its
+  /// content under an unbounded sliver/nested scroll surface (the
+  /// self-employed / professionals "Order" tab). Defaults to `false`
+  /// — the Connect screen and forward / group-add flows continue to
+  /// rely on the bounded `Expanded` layout, unchanged.
+  final bool isInParentScroll;
 
   @override
   State<BusinessChatsList> createState() => _BusinessChatsListState();
@@ -77,10 +87,11 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(height: 16),
+              if (!widget.isInParentScroll) const SizedBox(height: 16),
               HorizontalTabSelector(
                 horizontalMargin: 14,
                 horizontalPadding: 10,
+                verticalMargin: widget.isInParentScroll ? 0 : null,
                 tabs: ['All', "Pinned", "Reminder", "Flagged", "Records"],
                 selectedIndex:
                     chatViewController.businessChatTabSelectedIndex.value,
@@ -89,9 +100,12 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
                 },
                 labelBuilder: (value) => value,
               ),
-              SizedBox(height: 12),
+
+              const SizedBox(height: 12),
               if (chatViewController.businessChatTabSelectedIndex.value == 0)
-                Expanded(child: _businessChatListWidget(data, theme))
+                widget.isInParentScroll
+                    ? _businessChatListWidget(data, theme)
+                    : Expanded(child: _businessChatListWidget(data, theme))
               else if (chatViewController.businessChatTabSelectedIndex.value == 1)
                 const BusinessPinChatList()
               else if (chatViewController.businessChatTabSelectedIndex.value == 2)
@@ -189,15 +203,6 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
       return chat == null || !archivedIds.contains(chat.conversationId);
     }).toList();
 
-    // Optional sender-id scopes — match the order-tab filter shape:
-    //  • excludeSenderId → drop chats where I sent the last message
-    //    (used by the self-employed / professionals "Order" tabs to
-    //    surface only incoming inquiries).
-    //  • onlySenderId    → keep only chats where I sent the last
-    //    message (used by the Connect Inquiry tab so the user sees
-    //    only their own outgoing inquiries).
-    // Both null on every existing call site, so behaviour is preserved
-    // anywhere this widget is reused without an explicit filter.
     if (widget.excludeSenderId != null) {
       chatList = chatList
           .where((c) =>
@@ -234,6 +239,10 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
           : ListView.builder(
               itemCount: chatList.length + topRowCount,
               shrinkWrap: true,
+              padding: EdgeInsets.zero,
+              physics: widget.isInParentScroll
+                  ? const NeverScrollableScrollPhysics()
+                  : null,
               itemBuilder: (context, index) {
                 // Records row at very top
                 if (hasArchived && index == 0) {

@@ -1720,7 +1720,6 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
   // ─── ORDER TAB ─────────────────────────────────────────────────
   List<Widget> _buildOrderTab() {
     final contributionController = getOrPut(() => ContributionController());
-    final screenHeight = MediaQuery.of(context).size.height;
     return [
       Padding(
         padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
@@ -1739,18 +1738,11 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
           }),
         ),
       ),
-      SizedBox(height: SizeConfig.size12),
-      // Incoming inquiries — only chats whose latest message was
-      // authored by *someone else*. Mirror of the Connect Inquiry tab,
-      // which keeps the user's own outgoing inquiries (`onlySenderId`).
-      // Wrapped in a SizedBox because BusinessChatsList uses an
-      // Expanded ListView internally and needs a bounded height.
-      SizedBox(
-        height: screenHeight * 0.75,
-        child: BusinessChatsList(
-          isForwardUI: false,
-          excludeSenderId: userId,
-        ),
+      SizedBox(height: SizeConfig.size20),
+      BusinessChatsList(
+        isForwardUI: false,
+        excludeSenderId: userId,
+        isInParentScroll: true,
       ),
     ];
   }
