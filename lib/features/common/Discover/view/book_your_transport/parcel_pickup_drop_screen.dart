@@ -349,7 +349,7 @@ class _ParcelHeroBanner extends StatelessWidget {
               left: 8,
               child: IconButton(
                 onPressed: onBack,
-                icon: const Icon(Icons.arrow_back,
+                icon: const Icon(Icons.arrow_back_ios_new,
                     color: AppColors.black, size: 22),
               ),
             ),

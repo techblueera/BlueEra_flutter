@@ -53,6 +53,7 @@ class SchoolController extends GetxController {
         ApiKeys.nature_of_business: reqData[ ApiKeys.nature_of_business],
         ApiKeys.date_of_incorporation: reqData[ ApiKeys.date_of_incorporation],
         ApiKeys.category_Of_Business: reqData[ ApiKeys.category_Of_Business],
+        ApiKeys.type: reqData[ ApiKeys.category_Of_Business],
         ApiKeys.sub_category_Of_Business: reqData[ ApiKeys.sub_category_Of_Business],
         ApiKeys.number_of_Employees: reqData[ ApiKeys.number_of_Employees],
         ApiKeys.number_of_branch: reqData[ ApiKeys.number_of_branch],
