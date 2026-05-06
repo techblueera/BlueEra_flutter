@@ -42,4 +42,29 @@ class HospitalRepo extends BaseService {
     );
     return response;
   }
+
+  /// LIST: Hospitals via the shared business-filter endpoint —
+  /// `GET user-service/business/filter?category=...&page=...&limit=...`
+  ///
+  /// Used by the hospital listing pipeline (`HospitalServiceAiController._fetch`)
+  /// in place of `listHospitalProfiles`. Mirrors the same call shape as
+  /// `MedicalRepo.fetchFilteredBusinessRepo` and `DiscoverRepo.fetchBusinessFilterRepo`.
+  Future<ResponseModel> fetchHospitalsBusinessFilterRepo({
+    required String category,
+    required int page,
+    required int limit,
+  }) async {
+    final response = await ApiBaseHelper().getHTTP(
+      'user-service/business/filter',
+      showProgress: false,
+      params: {
+        'category': category,
+        'page': page,
+        'limit': limit,
+      },
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
 }

@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
@@ -5,10 +6,13 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
+import 'package:BlueEra/features/chat/auth/controller/chat_flag_controller.dart';
+import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_service_ai_controller.dart';
 import 'package:BlueEra/features/me/hospital/view/v2/tabs/hospital_departments_tab_v2.dart';
 import 'package:BlueEra/features/me/hospital/view/v2/tabs/hospital_facilities_tab_v2.dart';
+import 'package:BlueEra/features/me/hospital/view/v2/tabs/hospital_inquiry_tab_v2.dart';
 import 'package:BlueEra/features/me/hospital/view/v2/tabs/hospital_overview_tab_v2.dart';
 import 'package:BlueEra/features/me/hospital/view/v2/tabs/hospital_posts_tab_v2.dart';
 import 'package:BlueEra/features/me/hospital/view/v2/tabs/hospital_stats_tab_v2.dart';
@@ -35,12 +39,28 @@ class _HospitalHomeScreenV2State extends State<HospitalHomeScreenV2> {
   int _selectedTab = 0;
 
   static const _tabs = [
+    'Inquiry',
+
     'Overview',
     'Departments',
     'Facilities',
     'Posts',
     'Stats',
   ];
+
+  // Drives the inquiry list shown under the Inquiry tab — same controller
+  // the Connect screen uses, so socket-driven updates land on both.
+  // Mirrors `_chatViewController` in `professionals_main.dart`.
+  final ChatViewController _chatViewController =
+      getOrPut(() => ChatViewController());
+
+  // Pre-registered so the Flagged sub-tab inside `BusinessChatsList`
+  // (`BusinessFlagChatList` → `Get.find<ChatFlagController>()`) doesn't
+  // crash when this is the first screen the user touches.
+  // Mirrors `connect_main_page.dart`'s top-level `chatFlagController`.
+  // ignore: unused_field
+  final ChatFlagController _chatFlagController =
+      getOrPut(() => ChatFlagController());
 
   @override
   void initState() {
@@ -54,6 +74,13 @@ class _HospitalHomeScreenV2State extends State<HospitalHomeScreenV2> {
     if (_businessController.businessProfileDetails.value?.data == null) {
       _businessController.viewBusinessProfile();
     }
+    // Hydrate the business chat list so the Inquiry tab has data ready
+    // when the user switches to it. Mirrors what `professionals_main.dart`
+    // does for its Order tab and `ConnectMainPage` does for its Inquiry tab.
+    _chatViewController.emitEvent(
+      ChatEmitEvents.ChatList,
+      {ApiKeys.type: AppConstants.business_Chat_Type},
+    );
   }
 
   @override
@@ -106,15 +133,18 @@ class _HospitalHomeScreenV2State extends State<HospitalHomeScreenV2> {
   Widget _buildTabContent() {
     switch (_selectedTab) {
       case 0:
-        return HospitalOverviewTabV2(controller: _hospitalController);
+        return const HospitalInquiryTabV2();
       case 1:
-        return HospitalDepartmentsTabV2(controller: _hospitalController);
+        return HospitalOverviewTabV2(controller: _hospitalController);
       case 2:
-        return HospitalFacilitiesTabV2(controller: _hospitalController);
+        return HospitalDepartmentsTabV2(controller: _hospitalController);
       case 3:
-        return const HospitalPostsTabV2();
+        return HospitalFacilitiesTabV2(controller: _hospitalController);
       case 4:
+        return const HospitalPostsTabV2();
+      case 5:
         return const HospitalStatsTabV2();
+
       default:
         return const SizedBox.shrink();
     }

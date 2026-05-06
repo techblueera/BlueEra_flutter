@@ -98,8 +98,11 @@ import 'package:BlueEra/features/common/reel/view/video/full_video_preview_scree
 import 'package:BlueEra/features/common/reel/view/video/video_player_screen.dart';
 import 'package:BlueEra/features/common/reel/view/video/video_recorder_screen.dart';
 import 'package:BlueEra/features/common/service/view/service_upload_screen.dart';
+import 'package:BlueEra/features/common/Discover/view/vehicle/vehicle_detail_screen.dart';
+import 'package:BlueEra/features/common/Discover/view/vehicle/vehicle_listing_screen.dart';
 import 'package:BlueEra/features/journey/view/journey_planning_screen.dart';
 import 'package:BlueEra/features/journey/view/update_journy_screen.dart';
+import 'package:BlueEra/features/me/vehicle/view/v2/vehicle_home_screen_v2.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
 import 'package:BlueEra/features/me/grocery/view/add_grocery_variant_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/grocery_via_rider/grocery_cart_screen.dart';
@@ -445,6 +448,14 @@ class RouteHelper {
 
   static String getRentalServiceFullDetailsScreenRoute() =>
       RouteConstant.rentalServiceFullDetailsScreen;
+
+  // ── be_vehicle_service routes ────────────────────────────────────
+  static String getVehicleHomeScreenRoute() =>
+      RouteConstant.vehicleHomeScreen;
+  static String getVehicleListingScreenRoute() =>
+      RouteConstant.vehicleListingScreen;
+  static String getVehicleDetailScreenRoute() =>
+      RouteConstant.vehicleDetailScreen;
 
   // static String getCreateNewAccountScreenRoute() =>
   //     RouteConstant.createNewAccountScreen;
@@ -2040,6 +2051,29 @@ class RouteHelper {
         return MaterialPageRoute(
           builder: (_) => const IncomingRiderOrderScreen(),
           settings: const RouteSettings(name: '/IncomingRiderOrderScreen'),
+        );
+
+      // ── be_vehicle_service screens ──────────────────────────────
+      case RouteConstant.vehicleHomeScreen:
+        return MaterialPageRoute(
+          builder: (_) => const VehicleHomeScreenV2(),
+          settings: RouteSettings(name: getVehicleHomeScreenRoute()),
+        );
+      case RouteConstant.vehicleListingScreen:
+        final args = settings.arguments as Map<String, dynamic>?;
+        return MaterialPageRoute(
+          builder: (_) => VehicleListingScreen(
+            initialCategory: args?['category'] as String?,
+            initialSubCategory: args?['sub_category'] as String?,
+          ),
+          settings: RouteSettings(name: getVehicleListingScreenRoute()),
+        );
+      case RouteConstant.vehicleDetailScreen:
+        final args = settings.arguments as Map<String, dynamic>;
+        return MaterialPageRoute(
+          builder: (_) =>
+              VehicleDetailScreen(vehicleId: args['vehicleId'] as String),
+          settings: RouteSettings(name: getVehicleDetailScreenRoute()),
         );
       // case RouteConstant.yourCartScreen:
       //   return MaterialPageRoute(

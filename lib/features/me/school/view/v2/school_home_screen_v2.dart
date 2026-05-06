@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
@@ -5,9 +6,12 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
+import 'package:BlueEra/features/chat/auth/controller/chat_flag_controller.dart';
+import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
 import 'package:BlueEra/features/me/school/controller/school_about_us_controller.dart';
 import 'package:BlueEra/features/me/school/view/v2/tabs/school_academics_tab_v2.dart';
+import 'package:BlueEra/features/me/school/view/v2/tabs/school_inquiry_tab_v2.dart';
 import 'package:BlueEra/features/me/school/view/v2/tabs/school_overview_tab_v2.dart';
 import 'package:BlueEra/features/me/school/view/v2/tabs/school_posts_tab_v2.dart';
 import 'package:BlueEra/features/me/school/view/v2/tabs/school_stats_tab_v2.dart';
@@ -35,11 +39,27 @@ class _SchoolHomeScreenV2State extends State<SchoolHomeScreenV2> {
   int _selectedTab = 0;
 
   static const _tabs = [
+    'Inquiry',
     'Overview',
     'Academics',
     'Posts',
     'Stats',
   ];
+
+  // Drives the inquiry list shown under the Inquiry tab — same controller
+  // the Connect screen uses, so socket-driven updates land on both.
+  // Mirrors the wiring used by `HospitalHomeScreenV2` and the Order tab in
+  // `professionals_main.dart`.
+  final ChatViewController _chatViewController =
+      getOrPut(() => ChatViewController());
+
+  // Pre-registered so the Flagged sub-tab inside `BusinessChatsList`
+  // (`BusinessFlagChatList` → `Get.find<ChatFlagController>()`) doesn't
+  // crash when this is the first screen the user touches. Mirrors the
+  // top-level registration in `connect_main_page.dart`.
+  // ignore: unused_field
+  final ChatFlagController _chatFlagController =
+      getOrPut(() => ChatFlagController());
 
   @override
   void initState() {
@@ -51,6 +71,13 @@ class _SchoolHomeScreenV2State extends State<SchoolHomeScreenV2> {
     if (_businessController.businessProfileDetails.value?.data == null) {
       _businessController.viewBusinessProfile();
     }
+    // Hydrate the business chat list so the Inquiry tab has data ready
+    // when the user switches to it. Mirrors what `HospitalHomeScreenV2`
+    // and `professionals_main.dart` do for their inquiry/order tabs.
+    _chatViewController.emitEvent(
+      ChatEmitEvents.ChatList,
+      {ApiKeys.type: AppConstants.business_Chat_Type},
+    );
   }
 
   @override
@@ -97,12 +124,14 @@ class _SchoolHomeScreenV2State extends State<SchoolHomeScreenV2> {
   Widget _buildTabContent() {
     switch (_selectedTab) {
       case 0:
-        return SchoolOverviewTabV2(controller: _schoolController);
+        return const SchoolInquiryTabV2();
       case 1:
-        return SchoolAcademicsTabV2(controller: _schoolController);
+        return SchoolOverviewTabV2(controller: _schoolController);
       case 2:
-        return const SchoolPostsTabV2();
+        return SchoolAcademicsTabV2(controller: _schoolController);
       case 3:
+        return const SchoolPostsTabV2();
+      case 4:
         return const SchoolStatsTabV2();
       default:
         return const SizedBox.shrink();

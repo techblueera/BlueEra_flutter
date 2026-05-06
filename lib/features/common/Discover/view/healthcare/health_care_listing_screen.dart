@@ -133,12 +133,14 @@ class _HealthCareListingScreenState extends State<HealthCareListingScreen> {
         return LabProfilesListScreen(key: ValueKey('lab_$v'));
       } else if (slug == HOSPITAL) {
         return HospitalListScreen(
-          serviceType: 'hospital',
+          serviceType: 'HOSPITAL_SECTOR',
+          // serviceType: 'hospital',
           key: ValueKey('hospital_$v'),
         );
       } else if (slug == CLINIC_DOCTORS) {
         return HospitalListScreen(
-          serviceType: 'clinic',
+          serviceType: 'CLINIC_DOCTORS',
+          // serviceType: 'clinic',
           key: ValueKey('clinic_$v'),
         );
       } else if (slug == ALTERNATIVE_WELLNESS) {

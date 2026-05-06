@@ -5,6 +5,8 @@ import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/features/common/Discover/model/business_filter_res_model.dart';
+import 'package:BlueEra/features/me/hospital/model/business_filter_to_hospital_adapter.dart';
 import 'package:BlueEra/features/me/hospital/model/hospital_full_details_res_model.dart';
 import 'package:BlueEra/features/me/hospital/repo/hospital_repo.dart';
 import 'package:BlueEra/features/me/school/repo/upload_file_to_s3.dart';
@@ -224,16 +226,38 @@ class HospitalServiceAiController extends GetxController {
       }
       error.value = '';
 
+      // Switched from `hospital-service/hospitals` to the shared
+      // `user-service/business/filter` endpoint:
+      //   GET user-service/business/filter?category=<type>&page=<p>&limit=<limit>
+      // (e.g. category=HOSPITAL_SECTOR). Records come back in the
+      // generic `BusinessFilterResModel` shape, so we adapt each
+      // record to `HospitalFullData` to preserve `_HospitalCard`'s
+      // existing field reads (logo/cover/gallery/address/phone/etc.).
       final ResponseModel res =
-          await HospitalRepo().listHospitalProfiles(page: p, limit: limit,type:type );
+          await HospitalRepo().fetchHospitalsBusinessFilterRepo(
+        category: type,
+        page: p,
+        limit: limit,
+      );
 
       if (res.isSuccess) {
-        final List data = res.response?.data['data'] ?? [];
-        final items = data.map((e) => HospitalFullData.fromJson(e)).toList();
+        final parsed = BusinessFilterResModel.fromJson(res.response?.data);
+        final records = parsed.data ?? <BusinessFilterData>[];
+        final items = records.map((e) => e.toHospitalFullData()).toList();
+
         if (items.isEmpty) {
           hasMore.value = false;
         } else {
           profiles.addAll(items);
+        }
+
+        // Prefer the server's pagination metadata when present — more
+        // reliable than waiting for an empty page to flip `hasMore`.
+        final pagination = parsed.pagination;
+        final totalPages = pagination?.totalPages;
+        final currentPage = pagination?.page ?? p;
+        if (totalPages != null && currentPage >= totalPages) {
+          hasMore.value = false;
         }
       } else {
         hasMore.value = false;

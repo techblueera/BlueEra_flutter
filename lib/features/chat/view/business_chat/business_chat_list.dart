@@ -90,14 +90,21 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
                 labelBuilder: (value) => value,
               ),
               SizedBox(height: 12),
+              // Every sub-tab body needs to be wrapped in `Expanded` so the
+              // inner `ListView`s get a bounded height inside this Column.
+              // Without it, Pinned / Reminder / Flagged trigger a `RenderFlex`
+              // overflow (~99k px) when this widget is hosted inside a
+              // bounded parent (`SizedBox(height: ...)` in the Hospital,
+              // Self-Employed and Professionals tabs). Tab 0 and tab 4
+              // already had this; tabs 1/2/3 were missing it.
               if (chatViewController.businessChatTabSelectedIndex.value == 0)
                 Expanded(child: _businessChatListWidget(data, theme))
               else if (chatViewController.businessChatTabSelectedIndex.value == 1)
-                const BusinessPinChatList()
+                const Expanded(child: BusinessPinChatList())
               else if (chatViewController.businessChatTabSelectedIndex.value == 2)
-                ReminderChatList()
+                Expanded(child: ReminderChatList())
               else if (chatViewController.businessChatTabSelectedIndex.value == 3)
-                const BusinessFlagChatList()
+                const Expanded(child: BusinessFlagChatList())
               else if (chatViewController.businessChatTabSelectedIndex.value == 4)
                 _buildArchiveTab(),
             ],
