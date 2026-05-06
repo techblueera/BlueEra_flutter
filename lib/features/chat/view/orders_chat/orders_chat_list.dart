@@ -212,7 +212,7 @@ class _OrdersTabViewState extends State<OrdersTabView> {
                 // Last 7 days / Last 30 days) + a trailing calendar icon
                 // that opens a date-range picker for `_OrderDateFilter.custom`.
                 _buildDateFilterRow(),
-                SizedBox(height: 10),
+                const SizedBox(height: 8),
                 // Orders List — bounded mode (Connect screen) wraps in
                 // Expanded so the list fills its TabBarView slot;
                 // parent-scroll mode (grocery / food / inventory Order

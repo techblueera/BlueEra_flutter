@@ -328,19 +328,15 @@ class _InventoryScreenState extends State<InventoryScreen>
       // ConnectMainPage. `excludeSenderId: userId` hides chats whose
       // last message was authored by the merchant, leaving only
       // incoming order pings — same approach as the Grocery screen.
-      Transform.translate(
-        offset: const Offset(-20, 0),
-        child: SizedBox(
-          width: MediaQuery.of(context).size.width,
-          // `isInParentScroll: true` makes OrdersTabView drop its inner
-          // `Expanded` and switch the orders ListView to
-          // NeverScrollableScrollPhysics so the surrounding
-          // CustomScrollView owns the scroll — no fixed height needed.
-          child: OrdersTabView(
-            excludeSenderId: userId,
-            isInParentScroll: true,
-          ),
-        ),
+      // `isInParentScroll: true` makes OrdersTabView drop its inner
+      // `Expanded` and switch the orders ListView to
+      // NeverScrollableScrollPhysics so the surrounding
+      // CustomScrollView owns the scroll — no fixed height needed.
+      // The parent SliverToBoxAdapter's left: 20 padding insets the
+      // orders list naturally — no Transform needed.
+      OrdersTabView(
+        excludeSenderId: userId,
+        isInParentScroll: true,
       ),
     ];
   }

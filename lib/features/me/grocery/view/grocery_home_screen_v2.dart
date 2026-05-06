@@ -378,35 +378,15 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
           }),
         ),
       ),
-      SizedBox(height: SizeConfig.size12),
-      // Orders list — same widget the Connect screen renders under its
-      // Orders tab. Wrapped in a SizedBox because OrdersTabView uses
-      // an Expanded ListView internally and needs a bounded height.
-      // Translated -20 on x (and given matching width) to neutralise
-      // the parent SliverToBoxAdapter's left:20 padding so filter pills
-      // and chat tiles align edge-to-edge like on ConnectMainPage.
-      Transform.translate(
-        offset: const Offset(-20, 0),
-        child: SizedBox(
-          width: MediaQuery.of(context).size.width,
-          // Hide self-conversations — the order chat `sender` is the
-          // *other* party (customer / business), so passing the global
-          // `userId` here only filters out chats with yourself. Connect
-          // screen passes nothing and keeps showing every order chat.
-          // `isInParentScroll: true` makes OrdersTabView drop its inner
-          // `Expanded` and switch the orders ListView to
-          // NeverScrollableScrollPhysics so the surrounding
-          // CustomScrollView owns the scroll — no fixed height needed.
-          child: Builder(builder: (_) {
-            debugPrint('[GroceryHomeV2] excludeSenderId(userId) = "$userId" '
-                '| businessId="${widget.businessId}"');
-            return OrdersTabView(
-              excludeSenderId: userId,
-              isInParentScroll: true,
-            );
-          }),
-        ),
-      ),
+      SizedBox(height: SizeConfig.size16),
+      Builder(builder: (_) {
+        debugPrint('[GroceryHomeV2] excludeSenderId(userId) = "$userId" '
+            '| businessId="${widget.businessId}"');
+        return OrdersTabView(
+          excludeSenderId: userId,
+          isInParentScroll: true,
+        );
+      }),
     ];
   }
 
