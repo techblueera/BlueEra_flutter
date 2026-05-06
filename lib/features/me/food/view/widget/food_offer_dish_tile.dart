@@ -1,4 +1,3 @@
-
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -23,8 +22,7 @@ class FoodOfferDishInfoSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool hasVariants =
-        item.variants != null && item.variants!.isNotEmpty;
+    final bool hasVariants = item.variants != null && item.variants!.isNotEmpty;
     final int variantCount = item.variants?.length ?? 0;
     final bool isMultiVariant = variantCount > 1;
 
@@ -43,7 +41,7 @@ class FoodOfferDishInfoSection extends StatelessWidget {
             CustomText(
               item.name ?? "",
               fontWeight: FontWeight.w600,
-              maxLines: 2,
+              maxLines: 1,
               fontSize: 13,
               color: AppColors.mainTextColor,
               overflow: TextOverflow.ellipsis,
@@ -93,8 +91,7 @@ class FoodOfferDishInfoSection extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(top: 8.0),
               child: Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 6, vertical: 2),
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
                   color: AppColors.primaryColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(4),
@@ -116,8 +113,7 @@ class FoodOfferDishInfoSection extends StatelessWidget {
   }
 
   void _showDetailsDialog(BuildContext context) {
-    final bool hasVariants =
-        item.variants != null && item.variants!.isNotEmpty;
+    final bool hasVariants = item.variants != null && item.variants!.isNotEmpty;
     final int variantCount = item.variants?.length ?? 0;
     final bool isMultiVariant = variantCount > 1;
 
@@ -149,11 +145,10 @@ class FoodOfferDishInfoSection extends StatelessWidget {
                   child: Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(4),
-                      border: Border.all(
-                          width: 0.5, color: AppColors.greyE5),
+                      border: Border.all(width: 0.5, color: AppColors.greyE5),
                     ),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 4, vertical: 2),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
                     child: CustomText(
                       '${item.category?.name}',
                       fontSize: 12,
@@ -189,8 +184,7 @@ class FoodOfferDishInfoSection extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Container(
-            padding: const EdgeInsets.symmetric(
-                horizontal: 6, vertical: 2),
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
             decoration: BoxDecoration(
               color: AppColors.primaryColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(4),

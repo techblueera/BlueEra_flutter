@@ -283,7 +283,6 @@ class FoodSelfPickupController extends GetxController {
   List<Map<String, dynamic>> buildBulkOrderItems() {
     final items = <Map<String, dynamic>>[];
     for (final variant in selectedFoodVariants) {
-      log("sdljclkcsd ${variant.toJson()}");
       final qty = cartQuantities[variant.id] ?? 0;
       if (qty <= 0) continue;
 
@@ -291,7 +290,12 @@ class FoodSelfPickupController extends GetxController {
       final sp = (variant.baseSellingPrice ?? 0).toDouble();
 
       items.add({
-        'inventory': variant.inventoryId ?? '',
+        // Sending an empty string for an ObjectId field causes a BSON validation
+        // error on the server. Fall back to the variant ID if inventoryId is
+        // missing to ensure the payload is at least valid.
+        'inventory': (variant.inventoryId != null && variant.inventoryId!.isNotEmpty)
+            ? variant.inventoryId
+            : (variant.id ?? ''),
         'productVariant': variant.id ?? '',
         'quantity': qty,
         'mrp': mrp,
@@ -338,7 +342,10 @@ class FoodSelfPickupController extends GetxController {
 
       ChatViewController chatViewController =
           getOrPut(() => ChatViewController());
-      chatViewController.emitEvent(ChatEmitEvents.ChatList, {ApiKeys.type: AppConstants.order_Chat_Type},);
+      chatViewController.emitEvent(
+        ChatEmitEvents.ChatList,
+        {ApiKeys.type: AppConstants.order_Chat_Type},
+      );
       chatViewController.onSelectChatTab(2);
 
       Get.until((route) =>
