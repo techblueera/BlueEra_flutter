@@ -105,17 +105,31 @@ class _ConnectMainPageState extends State<ConnectMainPage>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: postTab.length, vsync: this);
+    // Honour any pending tab request set by another flow before
+    // navigating here — e.g. food / grocery `placeBulkOrderApi` calls
+    // `chatViewController.onSelectChatTab(2)` so the Connect screen
+    // opens directly on the Orders tab. Clamp to the valid range and
+    // clear the flag afterwards so subsequent opens default back to
+    // Chat unless explicitly requested again.
+    final pendingTab = chatViewController.selectedChatTabIndex.value;
+    final initialTab =
+        (pendingTab >= 0 && pendingTab < postTab.length) ? pendingTab : 0;
+    selectedIndex = initialTab;
+    chatViewController.selectedChatTabIndex.value = 0;
+
+    _tabController = TabController(
+      length: postTab.length,
+      vsync: this,
+      initialIndex: initialTab,
+    );
     _tabController.addListener(_handleTabChange);
     initPlatformState();
     getPackageData();
 
-    // Boot the personal chat list. Without this socket emit, the Chat tab
-    // renders blank on first open until the user navigates away and back.
-    chatViewController.emitEvent(
-      ChatEmitEvents.ChatList,
-      {ApiKeys.type: AppConstants.personal_Chat_Type},
-    );
+    // Boot the chat list for whichever tab we're landing on. Without
+    // this socket emit, the tab renders blank on first open until the
+    // user navigates away and back.
+    _emitChatListForTab(initialTab);
     // Fire-and-forget: fetch the full chat export once on home entry.
     // Response is only logged right now (see ChatViewController.getChatExportAll).
     chatViewController.getChatExportAll();

@@ -17,12 +17,16 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class _ProductCardPalette {
+  final Color cardBg;
   final Color cardBorder;
+  final Color tileBg;
   final Color tileBorder;
   final Color dividerLine;
 
   const _ProductCardPalette({
+    required this.cardBg,
     required this.cardBorder,
+    required this.tileBg,
     required this.tileBorder,
     required this.dividerLine,
   });
@@ -30,12 +34,20 @@ class _ProductCardPalette {
 
 const _palettes = <_ProductCardPalette>[
   _ProductCardPalette(
+    cardBg: Color(0xFFEDFDFF),
     cardBorder: Color(0xFFC0DDE1),
+    // CSS #13DBF414 (RGBA) → Flutter ARGB 0x1413DBF4 — translucent
+    // teal wash so the card's footer tints with the card's identity.
+    tileBg: Color(0x1413DBF4),
     tileBorder: Color(0xFFD0EEF2),
     dividerLine: Color(0xFFBBE3E8),
   ),
   _ProductCardPalette(
+    cardBg: Color(0xFFFCF5FF),
     cardBorder: Color(0xFFECD3F6),
+    // CSS #BE26FF14 (RGBA) → Flutter ARGB 0x14BE26FF — same low-alpha
+    // tint, violet to match the second card's outer shell.
+    tileBg: Color(0x14BE26FF),
     tileBorder: Color(0xFFF7E3FF),
     dividerLine: Color(0xFFE3D4E9),
   ),
@@ -45,19 +57,24 @@ class ProductStoreCard extends StatelessWidget {
   final GetAllStoreResModel? getAllStoreResData;
   final double Function(double) ds;
 
+  /// Card position in the list — drives palette selection so the cards
+  /// alternate (palette 0 → palette 1 → palette 0 …) instead of being
+  /// picked by a hash of `store.id`, which produced unpredictable
+  /// runs of the same palette.
+  final int index;
+
   const ProductStoreCard({
     super.key,
     required this.ds,
+    required this.index,
     this.getAllStoreResData,
   });
 
   GetAllStoreResModel get _store =>
       getAllStoreResData ?? GetAllStoreResModel();
 
-  _ProductCardPalette get _palette {
-    final key = (_store.id ?? _store.userId ?? '').hashCode;
-    return _palettes[key.abs() % _palettes.length];
-  }
+  _ProductCardPalette get _palette =>
+      _palettes[index.abs() % _palettes.length];
 
   @override
   Widget build(BuildContext context) {
@@ -80,7 +97,7 @@ class ProductStoreCard extends StatelessWidget {
         margin: EdgeInsets.only(bottom: SizeConfig.size10),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12.0),
-          color: AppColors.white,
+          color: palette.cardBg,
           border: Border.all(color: palette.cardBorder, width: 1),
           boxShadow: [
             BoxShadow(
@@ -468,7 +485,7 @@ class ProductStoreCard extends StatelessWidget {
         padding: EdgeInsets.symmetric(
             vertical: SizeConfig.size10, horizontal: SizeConfig.size12),
         decoration: BoxDecoration(
-          color: Colors.transparent,
+          color: palette.tileBg,
           border: Border(
             top: BorderSide(color: palette.cardBorder, width: 1),
           ),
