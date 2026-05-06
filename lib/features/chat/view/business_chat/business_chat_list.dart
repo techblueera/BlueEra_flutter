@@ -27,6 +27,7 @@ class BusinessChatsList extends StatefulWidget {
     this.isNewGroupUI,
     this.excludeSenderId,
     this.onlySenderId,
+    this.isInParentScroll = false,
   });
   final bool? isForwardUI;
   final bool? isNewGroupUI;
@@ -42,6 +43,15 @@ class BusinessChatsList extends StatefulWidget {
   /// Inquiry tab so the user sees only their own outgoing inquiries.
   /// Null = no inclusion filter.
   final String? onlySenderId;
+
+  /// Embed-in-parent-scroll mode. When `true`, the inner chat list is
+  /// not wrapped in `Expanded` and its `ListView` switches to
+  /// `NeverScrollableScrollPhysics`, so the widget sizes to its
+  /// content under an unbounded sliver/nested scroll surface (the
+  /// self-employed / professionals "Order" tab). Defaults to `false`
+  /// — the Connect screen and forward / group-add flows continue to
+  /// rely on the bounded `Expanded` layout, unchanged.
+  final bool isInParentScroll;
 
   @override
   State<BusinessChatsList> createState() => _BusinessChatsListState();
@@ -77,36 +87,32 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(height: 16),
+              if (!widget.isInParentScroll) const SizedBox(height: 16),
               HorizontalTabSelector(
                 horizontalMargin: 14,
                 horizontalPadding: 10,
+                verticalMargin: widget.isInParentScroll ? 0 : null,
                 tabs: ['All', "Pinned", "Reminder", "Flagged", "Records"],
                 selectedIndex:
-                    chatViewController.businessChatTabSelectedIndex.value,
+                chatViewController.businessChatTabSelectedIndex.value,
                 onTabSelected: (index, val) {
                   chatViewController.businessChatTabSelectedIndex.value = index;
                 },
                 labelBuilder: (value) => value,
               ),
-              SizedBox(height: 12),
-              // Every sub-tab body needs to be wrapped in `Expanded` so the
-              // inner `ListView`s get a bounded height inside this Column.
-              // Without it, Pinned / Reminder / Flagged trigger a `RenderFlex`
-              // overflow (~99k px) when this widget is hosted inside a
-              // bounded parent (`SizedBox(height: ...)` in the Hospital,
-              // Self-Employed and Professionals tabs). Tab 0 and tab 4
-              // already had this; tabs 1/2/3 were missing it.
+              const SizedBox(height: 8),
               if (chatViewController.businessChatTabSelectedIndex.value == 0)
-                Expanded(child: _businessChatListWidget(data, theme))
+                widget.isInParentScroll
+                    ? _businessChatListWidget(data, theme)
+                    : Expanded(child: _businessChatListWidget(data, theme))
               else if (chatViewController.businessChatTabSelectedIndex.value == 1)
-                const Expanded(child: BusinessPinChatList())
+                const BusinessPinChatList()
               else if (chatViewController.businessChatTabSelectedIndex.value == 2)
-                Expanded(child: ReminderChatList())
-              else if (chatViewController.businessChatTabSelectedIndex.value == 3)
-                const Expanded(child: BusinessFlagChatList())
-              else if (chatViewController.businessChatTabSelectedIndex.value == 4)
-                _buildArchiveTab(),
+                  ReminderChatList()
+                else if (chatViewController.businessChatTabSelectedIndex.value == 3)
+                    const BusinessFlagChatList()
+                  else if (chatViewController.businessChatTabSelectedIndex.value == 4)
+                      _buildArchiveTab(),
             ],
           ),
         );
@@ -151,7 +157,7 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
             child: Container(
               margin: const EdgeInsets.symmetric(horizontal: 14),
               padding:
-                  const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+              const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
               decoration: BoxDecoration(
                 color: Colors.grey.shade50,
                 borderRadius: BorderRadius.circular(10),
@@ -196,25 +202,16 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
       return chat == null || !archivedIds.contains(chat.conversationId);
     }).toList();
 
-    // Optional sender-id scopes — match the order-tab filter shape:
-    //  • excludeSenderId → drop chats where I sent the last message
-    //    (used by the self-employed / professionals "Order" tabs to
-    //    surface only incoming inquiries).
-    //  • onlySenderId    → keep only chats where I sent the last
-    //    message (used by the Connect Inquiry tab so the user sees
-    //    only their own outgoing inquiries).
-    // Both null on every existing call site, so behaviour is preserved
-    // anywhere this widget is reused without an explicit filter.
     if (widget.excludeSenderId != null) {
       chatList = chatList
           .where((c) =>
-              (c?.lastMessageSenderId ?? '') != widget.excludeSenderId)
+      (c?.lastMessageSenderId ?? '') != widget.excludeSenderId)
           .toList();
     }
     if (widget.onlySenderId != null) {
       chatList = chatList
           .where((c) =>
-              (c?.lastMessageSenderId ?? '') == widget.onlySenderId)
+      (c?.lastMessageSenderId ?? '') == widget.onlySenderId)
           .toList();
     }
 
@@ -239,93 +236,97 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
       child: (chatList.isEmpty && !hasArchived)
           ? noChatsFound()
           : ListView.builder(
-              itemCount: chatList.length + topRowCount,
-              shrinkWrap: true,
-              itemBuilder: (context, index) {
-                // Records row at very top
-                if (hasArchived && index == 0) {
-                  return _buildRecordsRow();
+        itemCount: chatList.length + topRowCount,
+        shrinkWrap: true,
+        padding: EdgeInsets.zero,
+        physics: widget.isInParentScroll
+            ? const NeverScrollableScrollPhysics()
+            : null,
+        itemBuilder: (context, index) {
+          // Records row at very top
+          if (hasArchived && index == 0) {
+            return _buildRecordsRow();
+          }
+
+          // AI chat right after Records row
+          if (index == recordsOffset) {
+            final chat = ChatViewController.businessAiChatModule;
+            final isInSelectionMode =
+                chatViewController.isChatListSelectionMode.value;
+            final isChatSelected = chatViewController
+                .selectedConversationIds
+                .contains(chat?.conversationId ?? '');
+
+            return ChatListTile(
+              onTab: () {
+                if (isInSelectionMode) {
+                  chatViewController.toggleChatListSelection(chat);
+                  setState(() {});
+                  return;
                 }
-
-                // AI chat right after Records row
-                if (index == recordsOffset) {
-                  final chat = ChatViewController.businessAiChatModule;
-                  final isInSelectionMode =
-                      chatViewController.isChatListSelectionMode.value;
-                  final isChatSelected = chatViewController
-                      .selectedConversationIds
-                      .contains(chat?.conversationId ?? '');
-
-                  return ChatListTile(
-                    onTab: () {
-                      if (isInSelectionMode) {
-                        chatViewController.toggleChatListSelection(chat);
-                        setState(() {});
-                        return;
-                      }
-                      Get.to(() => AiChatScreen(
-                            profileImage: chat?.sender?.profileImage,
-                            name: chat?.sender?.name,
-                            type: chat?.sender?.accountType,
-                          ));
-                    },
-                    isFromGroupSelect: widget.isNewGroupUI,
-                    onLongPress: () {
-                      if (!isInSelectionMode) {
-                        chatViewController.isChatListSelectionMode.value =
-                            true;
-                        chatViewController.toggleChatListSelection(chat);
-                        setState(() {});
-                      }
-                    },
-                    isChatListSelected: isChatSelected,
-                    onSelect: () => setState(() {}),
-                    type:
-                        chat?.sender?.accountType ?? AppConstants.business,
-                    index: -1,
-                    chatViewController: chatViewController,
-                    chat: chat,
-                    theme: theme,
-                    isForwardUI: widget.isForwardUI,
-                    showFlagBadge: true,
-                    context: context,
-                  );
-                }
-
-                final chatIndex = index - topRowCount;
-                final chat = chatList[chatIndex];
-                final isInSelectionMode =
-                    chatViewController.isChatListSelectionMode.value;
-                final isChatSelected = chatViewController
-                    .selectedConversationIds
-                    .contains(chat?.conversationId ?? '');
-                final isPinned =
-                    pinnedIds.contains(chat?.conversationId);
-
-                return ChatListTile(
-                  isFromGroupSelect: widget.isNewGroupUI,
-                  onLongPress: () {
-                    if (!isInSelectionMode) {
-                      chatViewController.isChatListSelectionMode.value =
-                          true;
-                      chatViewController.toggleChatListSelection(chat);
-                      setState(() {});
-                    }
-                  },
-                  isChatListSelected: isChatSelected,
-                  isPinned: isPinned,
-                  onSelect: () => setState(() {}),
-                  type: chat?.sender?.accountType ?? AppConstants.business,
-                  index: chatIndex,
-                  chatViewController: chatViewController,
-                  chat: chat,
-                  theme: theme,
-                  isForwardUI: widget.isForwardUI,
-                  showFlagBadge: true,
-                  context: context,
-                );
+                Get.to(() => AiChatScreen(
+                  profileImage: chat?.sender?.profileImage,
+                  name: chat?.sender?.name,
+                  type: chat?.sender?.accountType,
+                ));
               },
-            ),
+              isFromGroupSelect: widget.isNewGroupUI,
+              onLongPress: () {
+                if (!isInSelectionMode) {
+                  chatViewController.isChatListSelectionMode.value =
+                  true;
+                  chatViewController.toggleChatListSelection(chat);
+                  setState(() {});
+                }
+              },
+              isChatListSelected: isChatSelected,
+              onSelect: () => setState(() {}),
+              type:
+              chat?.sender?.accountType ?? AppConstants.business,
+              index: -1,
+              chatViewController: chatViewController,
+              chat: chat,
+              theme: theme,
+              isForwardUI: widget.isForwardUI,
+              showFlagBadge: true,
+              context: context,
+            );
+          }
+
+          final chatIndex = index - topRowCount;
+          final chat = chatList[chatIndex];
+          final isInSelectionMode =
+              chatViewController.isChatListSelectionMode.value;
+          final isChatSelected = chatViewController
+              .selectedConversationIds
+              .contains(chat?.conversationId ?? '');
+          final isPinned =
+          pinnedIds.contains(chat?.conversationId);
+
+          return ChatListTile(
+            isFromGroupSelect: widget.isNewGroupUI,
+            onLongPress: () {
+              if (!isInSelectionMode) {
+                chatViewController.isChatListSelectionMode.value =
+                true;
+                chatViewController.toggleChatListSelection(chat);
+                setState(() {});
+              }
+            },
+            isChatListSelected: isChatSelected,
+            isPinned: isPinned,
+            onSelect: () => setState(() {}),
+            type: chat?.sender?.accountType ?? AppConstants.business,
+            index: chatIndex,
+            chatViewController: chatViewController,
+            chat: chat,
+            theme: theme,
+            isForwardUI: widget.isForwardUI,
+            showFlagBadge: true,
+            context: context,
+          );
+        },
+      ),
     );
   }
 
