@@ -1738,7 +1738,7 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
           }),
         ),
       ),
-      SizedBox(height: SizeConfig.size20),
+      SizedBox(height: SizeConfig.size16),
       BusinessChatsList(
         isForwardUI: false,
         excludeSenderId: userId,

@@ -297,7 +297,6 @@ class _InventoryScreenState extends State<InventoryScreen>
     // existing instance, so the calls fire at most once per session.
     final contributionController = getOrPut(() => ContributionController());
 
-    final screenHeight = MediaQuery.of(context).size.height;
     return [
       Padding(
         padding: EdgeInsets.only(right: SizeConfig.size12),
@@ -333,8 +332,14 @@ class _InventoryScreenState extends State<InventoryScreen>
         offset: const Offset(-20, 0),
         child: SizedBox(
           width: MediaQuery.of(context).size.width,
-          height: screenHeight * 0.75,
-          child: OrdersTabView(excludeSenderId: userId),
+          // `isInParentScroll: true` makes OrdersTabView drop its inner
+          // `Expanded` and switch the orders ListView to
+          // NeverScrollableScrollPhysics so the surrounding
+          // CustomScrollView owns the scroll — no fixed height needed.
+          child: OrdersTabView(
+            excludeSenderId: userId,
+            isInParentScroll: true,
+          ),
         ),
       ),
     ];

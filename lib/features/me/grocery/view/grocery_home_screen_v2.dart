@@ -360,7 +360,6 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
     // existing instance, so the calls fire at most once per session.
     final contributionController = getOrPut(() => ContributionController());
 
-    final screenHeight = MediaQuery.of(context).size.height;
     return [
       Padding(
         padding: EdgeInsets.only(right: SizeConfig.size12),
@@ -390,15 +389,21 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
         offset: const Offset(-20, 0),
         child: SizedBox(
           width: MediaQuery.of(context).size.width,
-          height: screenHeight * 0.75,
           // Hide self-conversations — the order chat `sender` is the
           // *other* party (customer / business), so passing the global
           // `userId` here only filters out chats with yourself. Connect
           // screen passes nothing and keeps showing every order chat.
+          // `isInParentScroll: true` makes OrdersTabView drop its inner
+          // `Expanded` and switch the orders ListView to
+          // NeverScrollableScrollPhysics so the surrounding
+          // CustomScrollView owns the scroll — no fixed height needed.
           child: Builder(builder: (_) {
             debugPrint('[GroceryHomeV2] excludeSenderId(userId) = "$userId" '
                 '| businessId="${widget.businessId}"');
-            return OrdersTabView(excludeSenderId: userId);
+            return OrdersTabView(
+              excludeSenderId: userId,
+              isInParentScroll: true,
+            );
           }),
         ),
       ),

@@ -657,7 +657,7 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
           }),
         ),
       ),
-      SizedBox(height: SizeConfig.size20),
+      SizedBox(height: SizeConfig.size16),
       // Incoming inquiries — only chats whose latest message was
       // authored by *someone else*. Mirror of the Connect Inquiry tab,
       // which keeps the user's own outgoing inquiries. `isInParentScroll`

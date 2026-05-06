@@ -53,10 +53,20 @@ class OrdersTabView extends StatefulWidget {
   /// if both are provided, both predicates apply.
   final String? onlySenderId;
 
+  /// Embed-in-parent-scroll mode. When `true`, the inner orders list is
+  /// not wrapped in `Expanded` and its `ListView` switches to
+  /// `NeverScrollableScrollPhysics`, so the widget sizes to its
+  /// content under an unbounded sliver/nested scroll surface (the
+  /// grocery / food / inventory "Order" tabs). Defaults to `false` —
+  /// the Connect screen continues to rely on the bounded `Expanded`
+  /// layout, unchanged.
+  final bool isInParentScroll;
+
   const OrdersTabView({
     super.key,
     this.excludeSenderId,
     this.onlySenderId,
+    this.isInParentScroll = false,
   });
 
   @override
@@ -203,15 +213,34 @@ class _OrdersTabViewState extends State<OrdersTabView> {
                 // that opens a date-range picker for `_OrderDateFilter.custom`.
                 _buildDateFilterRow(),
                 SizedBox(height: 10),
-                // Orders List
-                Expanded(
-                  child: Container(
+                // Orders List — bounded mode (Connect screen) wraps in
+                // Expanded so the list fills its TabBarView slot;
+                // parent-scroll mode (grocery / food / inventory Order
+                // tabs) drops the Expanded so the inner shrinkWrap
+                // ListView (with NeverScrollable physics applied below)
+                // can size to its content under the surrounding
+                // CustomScrollView.
+                Builder(builder: (_) {
+                  final ordersListBody = Container(
                     margin: EdgeInsets.only(bottom: SizeConfig.size70),
                     child: visibleChats.isEmpty
                         ? noChatsFound()
                         : ListView.builder(
                       itemCount: visibleChats.length,
                       shrinkWrap: true,
+                      // Default ListView padding is `null`, which
+                      // triggers an implicit `MediaQuery.removePadding`
+                      // cycle that can leak inherited top padding into
+                      // the first row when the list isn't the screen's
+                      // top-most scrollable. Pin to zero.
+                      padding: EdgeInsets.zero,
+                      // In parent-scroll mode the surrounding
+                      // CustomScrollView owns the scroll — turn this
+                      // list inert so it doesn't fight the parent for
+                      // drag events.
+                      physics: widget.isInParentScroll
+                          ? const NeverScrollableScrollPhysics()
+                          : null,
                       itemBuilder: (context, index) {
                         final chat = visibleChats[index];
                         final isInSelectionMode = chatViewController
@@ -266,8 +295,11 @@ class _OrdersTabViewState extends State<OrdersTabView> {
                         );
                       },
                     ),
-                  ),
-                )
+                  );
+                  return widget.isInParentScroll
+                      ? ordersListBody
+                      : Expanded(child: ordersListBody);
+                })
                 // Expanded(
                 //   child: ListView.builder(
                 //     padding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),

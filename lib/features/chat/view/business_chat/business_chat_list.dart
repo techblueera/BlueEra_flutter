@@ -101,7 +101,7 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
                 labelBuilder: (value) => value,
               ),
 
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
               if (chatViewController.businessChatTabSelectedIndex.value == 0)
                 widget.isInParentScroll
                     ? _businessChatListWidget(data, theme)
