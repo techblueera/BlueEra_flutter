@@ -31,12 +31,16 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 class _RestaurantCardPalette {
+  final Color cardBg;
   final Color cardBorder;
+  final Color tileBg;
   final Color tileBorder;
   final Color dividerLine;
 
   const _RestaurantCardPalette({
+    required this.cardBg,
     required this.cardBorder,
+    required this.tileBg,
     required this.tileBorder,
     required this.dividerLine,
   });
@@ -44,12 +48,20 @@ class _RestaurantCardPalette {
 
 const _restaurantPalettes = <_RestaurantCardPalette>[
   _RestaurantCardPalette(
+    cardBg: Color(0xFFEDFDFF),
     cardBorder: Color(0xFFC0DDE1),
+    // CSS #13DBF414 (RGBA) → Flutter ARGB 0x1413DBF4 — translucent
+    // teal wash so the card's footer tints with the card's identity.
+    tileBg: Color(0x1413DBF4),
     tileBorder: Color(0xFFD0EEF2),
     dividerLine: Color(0xFFBBE3E8),
   ),
   _RestaurantCardPalette(
+    cardBg: Color(0xFFFCF5FF),
     cardBorder: Color(0xFFECD3F6),
+    // CSS #BE26FF14 (RGBA) → Flutter ARGB 0x14BE26FF — same low-alpha
+    // tint, violet to match the second card's outer shell.
+    tileBg: Color(0x14BE26FF),
     tileBorder: Color(0xFFF7E3FF),
     dividerLine: Color(0xFFE3D4E9),
   ),
@@ -318,7 +330,7 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
               ),
             );
           }
-          return _buildRestaurantCard(storeController.allStore[index]);
+          return _buildRestaurantCard(storeController.allStore[index], index);
         },
       );
     });
@@ -432,9 +444,11 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
     );
   }
 
-  _RestaurantCardPalette _paletteFor(GetAllStoreResModel store) {
-    final key = (store.id ?? store.userId ?? '').hashCode;
-    return _restaurantPalettes[key.abs() % _restaurantPalettes.length];
+  /// Card palette is now index-based so cards alternate (palette 0 →
+  /// palette 1 → palette 0 …) instead of being picked by a hash of
+  /// `store.id`, which produced unpredictable runs of the same palette.
+  _RestaurantCardPalette _paletteFor(int index) {
+    return _restaurantPalettes[index.abs() % _restaurantPalettes.length];
   }
 
   String _formatCount(int n) {
@@ -451,7 +465,7 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
 
   // ── Restaurant Card ─────────────────────────────────────────────────────
 
-  Widget _buildRestaurantCard(GetAllStoreResModel store) {
+  Widget _buildRestaurantCard(GetAllStoreResModel store, int index) {
     final livePhotos = (store.livePhotos ?? const <String>[])
         .where((p) => p.trim().isNotEmpty)
         .toList();
@@ -460,7 +474,7 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
     final heroImage =
         livePhotos.isNotEmpty ? livePhotos.first : (hasLogo ? logo : '');
     final extraPhotos = livePhotos.length > 1 ? livePhotos.length - 1 : 0;
-    final palette = _paletteFor(store);
+    final palette = _paletteFor(index);
 
     return InkWell(
       onTap: () => _navigateToDetail(store),
@@ -469,7 +483,7 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
         margin: EdgeInsets.only(bottom: SizeConfig.size10),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12.0),
-          color: AppColors.white,
+          color: palette.cardBg,
           border: Border.all(color: palette.cardBorder, width: 1),
           boxShadow: [
             BoxShadow(
@@ -898,7 +912,7 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
         padding: EdgeInsets.symmetric(
             vertical: SizeConfig.size10, horizontal: SizeConfig.size12),
         decoration: BoxDecoration(
-          color: Colors.transparent,
+          color: palette.tileBg,
           border: Border(
             top: BorderSide(color: palette.cardBorder, width: 1),
           ),

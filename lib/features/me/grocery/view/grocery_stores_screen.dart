@@ -67,11 +67,6 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
     return list;
   }
 
-  final List<Color> cardColors = [
-    const Color(0xFFEDFDFF),
-    const Color(0xFFFCF5FF),
-  ];
-
   int _locationVersion = 0;
 
   final List<String> _bannerImages = const [
@@ -315,9 +310,6 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
                   bottom: SizeConfig.paddingL + 70,
                 ),
                 itemBuilder: (context, index) {
-                  final Color bgColor =
-                      cardColors[index % cardColors.length];
-
                   if (index == controller.allStore.length) {
                     return Padding(
                       padding: const EdgeInsets.symmetric(vertical: 20),
@@ -336,9 +328,15 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
 
                   var store = controller.allStore[index];
 
+                  // Card visuals are driven entirely by
+                  // `_GroceryCardPalette` inside `GroceryStoreCard` —
+                  // bg, border, tile bg, tile border, divider all
+                  // come from a single palette. Pass the row index so
+                  // cards alternate (teal → violet → teal …) instead
+                  // of being picked by a hash of `store.id`.
                   return GroceryStoreCard(
                     store: store,
-                    bgColor: bgColor,
+                    index: index,
                   );
                 },
               ),
@@ -373,7 +371,12 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
         physics: const NeverScrollableScrollPhysics(),
         itemCount: 4,
         itemBuilder: (_, index) {
-          final Color bgColor = cardColors[index % cardColors.length];
+          // Mirror the two card backgrounds the real cards use (now
+          // driven by `_GroceryCardPalette.cardBg` inside the card
+          // widget) so the skeleton previews match the eventual look.
+          final Color bgColor = index.isEven
+              ? const Color(0xFFEDFDFF)
+              : const Color(0xFFFCF5FF);
           return Container(
             margin: EdgeInsets.only(bottom: SizeConfig.size10),
             padding: EdgeInsets.all(SizeConfig.size10),

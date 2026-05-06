@@ -335,6 +335,7 @@ class _ProductsStoreScreenState extends State<ProductsStoreScreen> {
                     padding: EdgeInsets.only(bottom: dynamicSize(10)),
                     child: ProductStoreCard(
                       ds: dynamicSize,
+                      index: index,
                       getAllStoreResData: storeData,
                     ),
                   ),

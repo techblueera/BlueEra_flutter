@@ -199,6 +199,7 @@ class _ServicesNearMeScreenState extends State<ServicesNearMeScreen> {
                     padding: EdgeInsets.only(bottom: dynamicSize(10)),
                     child: ProductStoreCard(
                       ds: dynamicSize,
+                      index: index,
                       getAllStoreResData: storeData,
                     ),
                   ),
