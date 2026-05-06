@@ -16,6 +16,8 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
+import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
+import 'package:BlueEra/features/chat/view/orders_chat/orders_chat_list.dart';
 import 'package:BlueEra/features/business/widgets/business_verify_now_button.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
@@ -72,10 +74,22 @@ class _InventoryScreenState extends State<InventoryScreen>
   final viewBusinessDetailsController =
       Get.find<ViewBusinessDetailsController>();
 
+  // Drives the orders list shown under the Order tab. Same controller
+  // the Connect screen uses, so socket-driven updates land on both.
+  final ChatViewController _chatViewController =
+      getOrPut(() => ChatViewController());
+
   @override
   void initState() {
     super.initState();
     _initializeData();
+    // Hydrate the order chat list so the Order tab's incoming-orders
+    // list has data ready when the user switches to it. Mirrors what
+    // ConnectMainPage does for its Order tab.
+    _chatViewController.emitEvent(
+      ChatEmitEvents.ChatList,
+      {ApiKeys.type: AppConstants.order_Chat_Type},
+    );
   }
 
   void _initializeData() {
@@ -283,6 +297,7 @@ class _InventoryScreenState extends State<InventoryScreen>
     // existing instance, so the calls fire at most once per session.
     final contributionController = getOrPut(() => ContributionController());
 
+    final screenHeight = MediaQuery.of(context).size.height;
     return [
       Padding(
         padding: EdgeInsets.only(right: SizeConfig.size12),
@@ -302,6 +317,24 @@ class _InventoryScreenState extends State<InventoryScreen>
             }
             return _contributeNowBanner();
           }),
+        ),
+      ),
+      SizedBox(height: SizeConfig.size12),
+      // Incoming orders — same widget the Connect screen renders under
+      // its Orders tab. Wrapped in a SizedBox because OrdersTabView
+      // uses an Expanded ListView internally and needs a bounded
+      // height. Translated -20 on x (and given matching width) to
+      // neutralise the parent SliverToBoxAdapter's left:20 padding so
+      // the filter pills and chat tiles align edge-to-edge like on
+      // ConnectMainPage. `excludeSenderId: userId` hides chats whose
+      // last message was authored by the merchant, leaving only
+      // incoming order pings — same approach as the Grocery screen.
+      Transform.translate(
+        offset: const Offset(-20, 0),
+        child: SizedBox(
+          width: MediaQuery.of(context).size.width,
+          height: screenHeight * 0.75,
+          child: OrdersTabView(excludeSenderId: userId),
         ),
       ),
     ];

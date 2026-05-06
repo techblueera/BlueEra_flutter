@@ -27,7 +27,7 @@ class GroceryOrderCard extends StatefulWidget {
 }
 
 class _GroceryOrderCardState extends State<GroceryOrderCard> {
-  final controller = getOrPut(() => MyMedicalOrdersController());
+  final controller = getOrPut(() => MyGroceryOrdersController());
   late GroceryOrdersModel _order;
 
   @override

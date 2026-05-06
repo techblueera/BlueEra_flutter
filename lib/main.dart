@@ -766,7 +766,8 @@ Future<void> main() async {
     };
   }
 // This hides both the status bar and the navigation bar
-  SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+//   SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+
 // IMPORTANT: do NOT wrap runApp in runZonedGuarded.
 // runZonedGuarded creates a new Zone, and GetX translations registered
 // in the root zone via Get.addTranslations(...) are not visible to the

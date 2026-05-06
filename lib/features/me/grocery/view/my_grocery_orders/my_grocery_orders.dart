@@ -18,7 +18,7 @@ class MyGroceryOrders extends StatefulWidget {
 }
 
 class _MyGroceryOrdersState extends State<MyGroceryOrders> {
-  final controller = getOrPut(() => MyMedicalOrdersController());
+  final controller = getOrPut(() => MyGroceryOrdersController());
 
   @override
   Widget build(BuildContext context) {

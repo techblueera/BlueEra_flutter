@@ -1,37 +1,157 @@
 
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_icon_assets.dart';
-import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 
 import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/constants/app_constant.dart';
-import 'package:BlueEra/core/constants/popup_menu_builders.dart';
 import '../../../../core/constants/size_config.dart';
 import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/model/GetChatListModel.dart';
 import '../widget/component_widgets.dart';
 import 'order_chat_screen.dart';
 
+/// Date-range presets surfaced as filter chips above the orders list.
+/// Resolved against `chat.createdAt` (falling back to `updatedAt` when
+/// missing) by `_OrdersTabViewState._matchesDateFilter`.
+enum _OrderDateFilter { all, today, yesterday, last7Days, last30Days, custom }
+
+extension _OrderDateFilterLabel on _OrderDateFilter {
+  String get label {
+    switch (this) {
+      case _OrderDateFilter.all:
+        return 'All';
+      case _OrderDateFilter.today:
+        return 'Today';
+      case _OrderDateFilter.yesterday:
+        return 'Yesterday';
+      case _OrderDateFilter.last7Days:
+        return 'Last 7 days';
+      case _OrderDateFilter.last30Days:
+        return 'Last 30 days';
+      case _OrderDateFilter.custom:
+        return 'Custom';
+    }
+  }
+}
+
 class OrdersTabView extends StatefulWidget {
+  /// Hides chats whose `lastMessageSenderId` equals this value — i.e.
+  /// drops conversations where the most recent message was authored by
+  /// the caller. When `null`, no exclusion is applied. The Grocery
+  /// profile screen passes the logged-in user's id so the owner only
+  /// sees orders where the *last message* came from someone else (an
+  /// actual incoming order ping).
+  final String? excludeSenderId;
+
+  /// Mirror of [excludeSenderId] — when set, *only* chats whose
+  /// `lastMessageSenderId` matches this value are shown. Used by the
+  /// Connect screen's Order tab so the user sees nothing but their own
+  /// outgoing self-orders. Mutually exclusive with [excludeSenderId];
+  /// if both are provided, both predicates apply.
+  final String? onlySenderId;
+
+  const OrdersTabView({
+    super.key,
+    this.excludeSenderId,
+    this.onlySenderId,
+  });
+
   @override
   State<OrdersTabView> createState() => _OrdersTabViewState();
 }
 
 class _OrdersTabViewState extends State<OrdersTabView> {
+  // Date-range filter state. `_selectedDateFilter` drives the chip row;
+  // `_customRange` holds the result of the calendar picker when the
+  // user picks `_OrderDateFilter.custom`.
+  _OrderDateFilter _selectedDateFilter = _OrderDateFilter.all;
+  DateTimeRange? _customRange;
 
-  List<String> get filters => ['filter', AppStrings.allTab.tr, AppStrings.productLabel.tr, AppStrings.serviceLabel.tr, AppStrings.foodLabel.tr];
-
-  String seletecValue = "";
   final chatViewController = Get.find<ChatViewController>();
+
+  /// Returns true when [chat]'s creation timestamp falls inside the
+  /// currently-selected date filter window. `createdAt` is preferred —
+  /// it's the moment the order was placed, which is what the user is
+  /// usually filtering on. Falls back to `updatedAt` only when the
+  /// server omits `createdAt`. Unparseable / missing dates are dropped
+  /// for any non-`all` filter so they don't leak into narrow windows.
+  bool _matchesDateFilter(ChatList? chat) {
+    if (_selectedDateFilter == _OrderDateFilter.all) return true;
+
+    final raw = (chat?.createdAt?.isNotEmpty ?? false)
+        ? chat!.createdAt
+        : chat?.updatedAt;
+    if (raw == null || raw.isEmpty) return false;
+
+    DateTime date;
+    try {
+      date = DateTime.parse(raw).toLocal();
+    } catch (_) {
+      return false;
+    }
+
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    switch (_selectedDateFilter) {
+      case _OrderDateFilter.today:
+        final tomorrow = today.add(const Duration(days: 1));
+        return !date.isBefore(today) && date.isBefore(tomorrow);
+      case _OrderDateFilter.yesterday:
+        final yesterday = today.subtract(const Duration(days: 1));
+        return !date.isBefore(yesterday) && date.isBefore(today);
+      case _OrderDateFilter.last7Days:
+        // Inclusive of today + previous 6 days = 7-day rolling window.
+        final start = today.subtract(const Duration(days: 6));
+        return !date.isBefore(start);
+      case _OrderDateFilter.last30Days:
+        final start = today.subtract(const Duration(days: 29));
+        return !date.isBefore(start);
+      case _OrderDateFilter.custom:
+        if (_customRange == null) return true;
+        final start = DateTime(_customRange!.start.year,
+            _customRange!.start.month, _customRange!.start.day);
+        // End is inclusive of the picked day, so add one full day to
+        // make the upper bound exclusive against the local timestamp.
+        final endExclusive = DateTime(_customRange!.end.year,
+                _customRange!.end.month, _customRange!.end.day)
+            .add(const Duration(days: 1));
+        return !date.isBefore(start) && date.isBefore(endExclusive);
+      case _OrderDateFilter.all:
+        return true;
+    }
+  }
+
+  /// Opens the system date-range picker for `_OrderDateFilter.custom`.
+  /// On confirm, switches the active filter to `custom` and stores the
+  /// chosen range in `_customRange`. Cancelling leaves the previous
+  /// filter in place so a stray tap doesn't clear the user's selection.
+  Future<void> _pickCustomRange() async {
+    final now = DateTime.now();
+    final picked = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime(now.year - 5),
+      lastDate: now,
+      initialDateRange: _customRange ??
+          DateTimeRange(
+            start: now.subtract(const Duration(days: 6)),
+            end: now,
+          ),
+      helpText: 'Filter orders by date',
+      saveText: 'Apply',
+    );
+    if (picked == null) return;
+    setState(() {
+      _customRange = picked;
+      _selectedDateFilter = _OrderDateFilter.custom;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    if (seletecValue.isEmpty) seletecValue = AppStrings.allTab.tr;
     final theme = Theme.of(context);
     // Obx(() {
 
@@ -40,6 +160,36 @@ class _OrdersTabViewState extends State<OrdersTabView> {
             Status.COMPLETE){
           GetChatListModel? data =
               chatViewController.getOrderChatListModel?.value;
+          // Three filters compose:
+          //  1. `excludeSenderId` — drops chats whose `lastMessageSenderId`
+          //     matches (Grocery profile screen: hide self-authored chats).
+          //  2. `onlySenderId` — keeps only chats whose
+          //     `lastMessageSenderId` matches (Connect screen: show only
+          //     self-authored chats — the mirror of #1).
+          //  3. `_selectedDateFilter` — restricts to a date window
+          //     resolved against `chat.createdAt` / `updatedAt`.
+          // Kept as `List<ChatList?>` to match the model's nullable shape so
+          // the existing `chat?.foo` accesses below continue to compile.
+          final List<ChatList?> visibleChats =
+              (data?.chatList ?? <ChatList?>[])
+                  .where((c) =>
+                      widget.excludeSenderId == null ||
+                      (c?.lastMessageSenderId ?? '') != widget.excludeSenderId)
+                  .where((c) =>
+                      widget.onlySenderId == null ||
+                      (c?.lastMessageSenderId ?? '') == widget.onlySenderId)
+                  .where(_matchesDateFilter)
+                  .toList();
+          // Debug aid — prints the filter inputs, the raw vs filtered
+          // counts, and each chat's lastMessageSenderId. Remove once
+          // filtering is verified on both screens.
+          debugPrint(
+              '[OrdersTabView] excludeSenderId="${widget.excludeSenderId}" '
+              'onlySenderId="${widget.onlySenderId}" '
+              'dateFilter=${_selectedDateFilter.label} '
+              'raw=${data?.chatList?.length ?? 0} '
+              'visible=${visibleChats.length} '
+              'lastMessageSenderIds=${(data?.chatList ?? []).map((c) => c?.lastMessageSenderId).toList()}');
           return RefreshIndicator(
             onRefresh: () async {
               chatViewController.emitEvent(
@@ -48,68 +198,22 @@ class _OrdersTabViewState extends State<OrdersTabView> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Filter Buttons
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  padding: EdgeInsets.symmetric(horizontal: 12),
-                  child: Row(mainAxisAlignment: MainAxisAlignment.center,
-                    children: filters.map((filter) {
-                      final isSelected = filter == seletecValue;
-                      return (filter == "filter") ?
-                      PopupMenuButton<String>(
-                        padding: EdgeInsets.only(top: 18),
-                        offset: const Offset(-6, 36),
-                        color: AppColors.white,
-                        elevation: 8,
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10)),
-                        onSelected: (value) {},
-                        icon: SvgPicture.asset(AppIconAssets.mage_filter),
-                        itemBuilder: (context) => PopupMenuBuilders.popupMenuOrderTabItems(),
-                      ) : Padding(
-                        padding: EdgeInsets.only(right: 8, top: 18),
-                        child: InkWell(
-                          onTap: () {
-                            setState(() {
-                              seletecValue = filter;
-                            });
-                          },
-                          child: Container(
-                            decoration: BoxDecoration(
-                                color: isSelected
-                                    ? AppColors.buttonLiteBlue
-                                    : Colors.white,
-                                border: isSelected ? null : Border.all(
-                                    color: Colors.grey.shade300),
-                                borderRadius: BorderRadius.circular(10)
-                            ),
-                            padding: EdgeInsets.symmetric(
-                                horizontal: filter == "All" ? 13 : 8,
-                                vertical: 5),
-                            child: CustomText(
-                              filter,
-                              color: isSelected ? Colors.black : AppColors
-                                  .optionShowGray,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                ),
+                // Date filter row — preset chips (All / Today / Yesterday /
+                // Last 7 days / Last 30 days) + a trailing calendar icon
+                // that opens a date-range picker for `_OrderDateFilter.custom`.
+                _buildDateFilterRow(),
                 SizedBox(height: 10),
                 // Orders List
                 Expanded(
                   child: Container(
                     margin: EdgeInsets.only(bottom: SizeConfig.size70),
-                    child: (data?.chatList?.isEmpty ?? true)
+                    child: visibleChats.isEmpty
                         ? noChatsFound()
                         : ListView.builder(
-                      itemCount: data?.chatList?.length,
+                      itemCount: visibleChats.length,
                       shrinkWrap: true,
                       itemBuilder: (context, index) {
-                        final chat = data?.chatList?[index];
+                        final chat = visibleChats[index];
                         final isInSelectionMode = chatViewController
                             .isChatListSelectionMode.value;
                         final isChatSelected = chatViewController
@@ -249,5 +353,122 @@ class _OrdersTabViewState extends State<OrdersTabView> {
 
     // });
 
+  }
+
+  /// Renders the date-range chip strip at the top of the orders list.
+  /// Tapping a preset switches the active filter; tapping the trailing
+  /// calendar icon launches `showDateRangePicker`. The custom chip is
+  /// only shown once a range has been chosen so the strip stays compact.
+  Widget _buildDateFilterRow() {
+    // Order matters — drives the visual layout of the chips.
+    final presets = const [
+      _OrderDateFilter.all,
+      _OrderDateFilter.today,
+      _OrderDateFilter.yesterday,
+      _OrderDateFilter.last7Days,
+      _OrderDateFilter.last30Days,
+    ];
+
+    String _formatRange(DateTimeRange r) {
+      String two(int n) => n.toString().padLeft(2, '0');
+      final s = r.start, e = r.end;
+      final sameYear = s.year == e.year;
+      final left = '${two(s.day)}/${two(s.month)}'
+          '${sameYear ? '' : '/${s.year}'}';
+      final right = '${two(e.day)}/${two(e.month)}/${e.year}';
+      return '$left – $right';
+    }
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      child: Row(
+        children: [
+          for (final f in presets) ...[
+            _filterChip(
+              label: f.label,
+              selected: _selectedDateFilter == f,
+              onTap: () => setState(() => _selectedDateFilter = f),
+            ),
+            const SizedBox(width: 8),
+          ],
+          // Custom-range pill — only appears once the user picks a range
+          // via the calendar icon. Shows the picked range and clears on
+          // its own trailing close affordance.
+          if (_customRange != null) ...[
+            _filterChip(
+              label: _formatRange(_customRange!),
+              selected: _selectedDateFilter == _OrderDateFilter.custom,
+              onTap: () =>
+                  setState(() => _selectedDateFilter = _OrderDateFilter.custom),
+              trailing: InkWell(
+                onTap: () => setState(() {
+                  _customRange = null;
+                  if (_selectedDateFilter == _OrderDateFilter.custom) {
+                    _selectedDateFilter = _OrderDateFilter.all;
+                  }
+                }),
+                borderRadius: BorderRadius.circular(12),
+                child: const Padding(
+                  padding: EdgeInsets.only(left: 6),
+                  child: Icon(Icons.close, size: 14, color: Colors.black54),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+          ],
+          // Calendar icon — opens the date-range picker. Highlighted when
+          // the active filter is `custom` so it doubles as a status cue.
+          InkWell(
+            onTap: _pickCustomRange,
+            borderRadius: BorderRadius.circular(10),
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: _selectedDateFilter == _OrderDateFilter.custom
+                    ? AppColors.buttonLiteBlue
+                    : Colors.white,
+                border: Border.all(color: Colors.grey.shade300),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(Icons.date_range,
+                  size: 18, color: Colors.black87),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _filterChip({
+    required String label,
+    required bool selected,
+    required VoidCallback onTap,
+    Widget? trailing,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        decoration: BoxDecoration(
+          color: selected ? AppColors.buttonLiteBlue : Colors.white,
+          border: selected ? null : Border.all(color: Colors.grey.shade300),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CustomText(
+              label,
+              color: selected ? Colors.black : AppColors.optionShowGray,
+              fontSize: 14,
+            ),
+            if (trailing != null) trailing,
+          ],
+        ),
+      ),
+    );
   }
 }

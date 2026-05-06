@@ -39,7 +39,7 @@ class GroceryBillDetailsSheet extends StatefulWidget {
 }
 
 class _GroceryBillDetailsSheetState extends State<GroceryBillDetailsSheet> {
-  final controller = getOrPut(() => MyMedicalOrdersController());
+  final controller = getOrPut(() => MyGroceryOrdersController());
 
   @override
   void initState(){
@@ -262,7 +262,7 @@ class _GroceryBillDetailsSheetState extends State<GroceryBillDetailsSheet> {
   }
 
   // --- Helper: Payment Selection Chip ---
-  Widget _buildPaymentChip(MyMedicalOrdersController controller, GroceryPaymentMode paymentMode) {
+  Widget _buildPaymentChip(MyGroceryOrdersController controller, GroceryPaymentMode paymentMode) {
     return Expanded(
       child: Obx(() {
         final isSelected = controller.selectedPaymentMode.value == paymentMode;

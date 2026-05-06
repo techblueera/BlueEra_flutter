@@ -66,6 +66,7 @@ class ChatList {
     this.groupName,
     this.groupProfileImage,
     this.lastMessageType,
+    this.lastMessageSenderId,
     this.createdAt,
     this.tagged,
     this.updatedAt,
@@ -86,6 +87,11 @@ class ChatList {
     groupName = json['group_name']?.toString();
     groupProfileImage = json['group_profile_image']?.toString();
     lastMessageType = json['last_message_type'];
+    // ID of the user who authored `last_message`. Server sends this key
+    // in camelCase (unlike the rest of the payload which is snake_case).
+    // Used by callers that need to distinguish "I sent the last message"
+    // from "they did" without parsing the embedded sender map.
+    lastMessageSenderId = json['lastMessageSenderId']?.toString();
     createdAt = json['created_at'];
     updatedAt = json['updated_at'];
     unreadCount = json['unread_count'];
@@ -118,6 +124,9 @@ class ChatList {
   bool? isGroup;
   String? lastMessage;
   String? lastMessageType;
+  /// User id of the author of `lastMessage`. Parsed from
+  /// `last_message_sender_id` on the server payload.
+  String? lastMessageSenderId;
   String? createdAt;
   String? updatedAt;
   String? groupName;
@@ -148,6 +157,8 @@ class ChatList {
     map['is_group'] = isGroup;
     map['last_message'] = lastMessage;
     map['last_message_type'] = lastMessageType;
+    // Echo the server's camelCase key shape so a re-parse round-trips.
+    map['lastMessageSenderId'] = lastMessageSenderId;
     map['created_at'] = createdAt;
     map['group_name'] = groupName;
     map['group_profile_image'] = groupProfileImage;

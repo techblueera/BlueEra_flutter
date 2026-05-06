@@ -518,8 +518,21 @@ class _ConnectMainPageState extends State<ConnectMainPage>
                     controller: _tabController,
                     children: [
                       PersonalChatsList(isForwardUI: false),
-                      const BusinessChatsList(isForwardUI: false),
-                      OrdersTabView(),
+                      // Inquiry tab: show only outgoing inquiries (chats
+                      // where the user sent the latest message). Inverse
+                      // of the self-employed / professionals "Order" tab
+                      // which uses `excludeSenderId: userId` to surface
+                      // received inquiries.
+                      BusinessChatsList(
+                        isForwardUI: false,
+                        onlySenderId: userId,
+                      ),
+                      // Mirror of the Grocery screen's `excludeSenderId`:
+                      // here we *only* show chats where the last message
+                      // was authored by the logged-in user — the Connect
+                      // Order tab is the user's own outgoing-orders view,
+                      // while the Grocery owner sees the inverse.
+                      OrdersTabView(onlySenderId: userId),
                       // CallHistoryScreen has its own NestedScrollView; nesting
                       // it inside the parent NestedScrollView lets the parent's
                       // _NestedScrollController recursively try to attach to

@@ -41,7 +41,7 @@ class GroceryOrderDetailsSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // 1. Find the Controller
-    final controller = getOrPut(() => MyMedicalOrdersController());
+    final controller = getOrPut(() => MyGroceryOrdersController());
 
     return CommonDraggableBottomSheet(
       initialChildSize: 0.6,
@@ -77,7 +77,7 @@ class GroceryOrderDetailsSheet extends StatelessWidget {
   }
 
   // --- 1. Order List Widget ---
-  Widget _buildReceivedOrdersList(MyMedicalOrdersController controller) {
+  Widget _buildReceivedOrdersList(MyGroceryOrdersController controller) {
     return ListView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -91,7 +91,7 @@ class GroceryOrderDetailsSheet extends StatelessWidget {
   }
 
   // --- 2. Single Order Item ---
-  Widget _buildOrderItem(GroceryItem groceryItems, MyMedicalOrdersController controller) {
+  Widget _buildOrderItem(GroceryItem groceryItems, MyGroceryOrdersController controller) {
     return Container(
       margin: EdgeInsets.only(bottom: SizeConfig.size10),
       padding: EdgeInsets.all(SizeConfig.size10),
@@ -225,7 +225,7 @@ class GroceryOrderDetailsSheet extends StatelessWidget {
   }
 
   // --- 3. Footer Action (Submit & Select All) ---
-  Widget _buildSubmitFooter(MyMedicalOrdersController controller, BuildContext context) {
+  Widget _buildSubmitFooter(MyGroceryOrdersController controller, BuildContext context) {
     return Container(
       padding: EdgeInsets.all(SizeConfig.size14),
       decoration: BoxDecoration(

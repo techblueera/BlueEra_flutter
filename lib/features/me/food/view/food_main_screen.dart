@@ -27,7 +27,9 @@ import 'package:BlueEra/features/business/widgets/business_share_banner.dart';
 import 'package:BlueEra/features/business/widgets/business_verify_now_button.dart';
 import 'package:BlueEra/widgets/business_live_photo_bottom_sheet.dart';
 import 'package:BlueEra/widgets/common_business_live_photo.dart';
+import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/view/add_symbol/add_symbol_screen.dart';
+import 'package:BlueEra/features/chat/view/orders_chat/orders_chat_list.dart';
 import 'package:BlueEra/features/common/Discover/model/service_model_response.dart';
 import 'package:BlueEra/features/common/Discover/view/self_profession_screen_preview.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
@@ -84,6 +86,11 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
   late final RestaurantController _foodController;
   late final ViewBusinessDetailsController _businessController;
 
+  // Drives the orders list shown under the Order tab. Same controller
+  // the Connect screen uses, so socket-driven updates land on both.
+  final ChatViewController _chatViewController =
+      getOrPut(() => ChatViewController());
+
   static const _tabs = [
     'Order',
     'Overview',
@@ -101,6 +108,13 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
     _businessController =
         getOrPut(() => ViewBusinessDetailsController(), permanent: true);
     _loadInitialData();
+    // Hydrate the order chat list so the Order tab's incoming-orders
+    // list has data ready when the user switches to it. Mirrors what
+    // ConnectMainPage does for its Order tab.
+    _chatViewController.emitEvent(
+      ChatEmitEvents.ChatList,
+      {ApiKeys.type: AppConstants.order_Chat_Type},
+    );
     // Mirrors grocery: prompt the live-photos upload sheet on first
     // paint when the business has no live photos yet.
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -286,6 +300,7 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
     // existing instance, so the calls fire at most once per session.
     final contributionController = getOrPut(() => ContributionController());
 
+    final screenHeight = MediaQuery.of(context).size.height;
     return [
       Padding(
         padding: EdgeInsets.only(right: SizeConfig.size12),
@@ -302,6 +317,24 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
             }
             return _contributeNowBanner();
           }),
+        ),
+      ),
+      SizedBox(height: SizeConfig.size12),
+      // Incoming orders — same widget the Connect screen renders under
+      // its Orders tab. Wrapped in a SizedBox because OrdersTabView
+      // uses an Expanded ListView internally and needs a bounded
+      // height. Translated -20 on x (and given matching width) to
+      // neutralise the parent SliverToBoxAdapter's left:20 padding so
+      // the filter pills and chat tiles align edge-to-edge like on
+      // ConnectMainPage. `excludeSenderId: userId` hides chats whose
+      // last message was authored by the merchant, leaving only
+      // incoming order pings — same approach as the Grocery screen.
+      Transform.translate(
+        offset: const Offset(-20, 0),
+        child: SizedBox(
+          width: MediaQuery.of(context).size.width,
+          height: screenHeight * 0.75,
+          child: OrdersTabView(excludeSenderId: userId),
         ),
       ),
     ];

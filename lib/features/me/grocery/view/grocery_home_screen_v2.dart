@@ -23,7 +23,9 @@ import 'package:BlueEra/features/business/widgets/business_qrcode_widget.dart';
 import 'package:BlueEra/features/business/widgets/business_share_banner.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/common_business_live_photo.dart';
+import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/view/add_symbol/add_symbol_screen.dart';
+import 'package:BlueEra/features/chat/view/orders_chat/orders_chat_list.dart';
 import 'package:BlueEra/features/common/Discover/model/service_model_response.dart';
 import 'package:BlueEra/features/common/Discover/view/self_profession_screen_preview.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
@@ -74,6 +76,12 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
   late final GroceryController _groceryController;
   final _businessController =
   getOrPut(() => ViewBusinessDetailsController(), permanent: true);
+  // Chat controller drives the Orders list shown under the Order tab.
+  // Mirrors `ConnectMainPage._emitChatListForTab(2)` — same controller,
+  // same event, so the data is shared with the Connect screen and
+  // receives socket-driven updates while the user is on this screen.
+  final ChatViewController _chatViewController =
+      getOrPut(() => ChatViewController());
 
   static const _tabs = [
     'Order',
@@ -88,6 +96,13 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
     super.initState();
     _groceryController = getOrPut(() => GroceryController());
     _groceryController.fetchAllGroceryData(widget.businessId, otherStore: false);
+    // Hydrate the order chat list so the Orders section under the Order
+    // tab has data ready when the user switches to it. Same emit shape
+    // used by `ConnectMainPage` for its Orders tab.
+    _chatViewController.emitEvent(
+      ChatEmitEvents.ChatList,
+      {ApiKeys.type: AppConstants.order_Chat_Type},
+    );
   }
 
   Future<void> _refresh() async {
@@ -364,10 +379,28 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
           }),
         ),
       ),
-      SizedBox(height: SizeConfig.paddingM),
-      SizedBox(
-        height: screenHeight * 0.85,
-        child: const MyGroceryOrders(),
+      SizedBox(height: SizeConfig.size12),
+      // Orders list — same widget the Connect screen renders under its
+      // Orders tab. Wrapped in a SizedBox because OrdersTabView uses
+      // an Expanded ListView internally and needs a bounded height.
+      // Translated -20 on x (and given matching width) to neutralise
+      // the parent SliverToBoxAdapter's left:20 padding so filter pills
+      // and chat tiles align edge-to-edge like on ConnectMainPage.
+      Transform.translate(
+        offset: const Offset(-20, 0),
+        child: SizedBox(
+          width: MediaQuery.of(context).size.width,
+          height: screenHeight * 0.75,
+          // Hide self-conversations — the order chat `sender` is the
+          // *other* party (customer / business), so passing the global
+          // `userId` here only filters out chats with yourself. Connect
+          // screen passes nothing and keeps showing every order chat.
+          child: Builder(builder: (_) {
+            debugPrint('[GroceryHomeV2] excludeSenderId(userId) = "$userId" '
+                '| businessId="${widget.businessId}"');
+            return OrdersTabView(excludeSenderId: userId);
+          }),
+        ),
       ),
     ];
   }

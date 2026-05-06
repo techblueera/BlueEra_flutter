@@ -2,21 +2,25 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/food/controller/food_selfpickup_controller.dart';
 import 'package:BlueEra/features/me/food/model/category_food_product_res_model.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/dashed_border_container.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-/// Self-pickup cart for the food flow. Same structure as
-/// [GrocerySelfPickUpCartScreen] — items are grouped by store, each store
-/// can be toggled via checkbox on the bottom summary bar, and the submit
-/// button fires a bulk food order call on [FoodSelfPickupController].
+/// Self-pickup cart for the food flow. Mirrors the grocery cart screen
+/// (`GrocerySelfPickUpCartScreen`) — items are grouped by store, each
+/// product row carries a per-variant checkbox and qty stepper, and the
+/// bottom summary bar exposes per-shop checkboxes + a grand total +
+/// Place Order button. Submitting fires a bulk food order on
+/// [FoodSelfPickupController] which then hops the user to the chat
+/// Orders tab.
 class FoodSelfPickUpCartScreen extends StatefulWidget {
   const FoodSelfPickUpCartScreen({super.key});
 
@@ -26,13 +30,22 @@ class FoodSelfPickUpCartScreen extends StatefulWidget {
 }
 
 class _FoodSelfPickUpCartScreenState extends State<FoodSelfPickUpCartScreen> {
+  // Card backgrounds rotated by store index so the multi-shop list
+  // reads as discrete cards. Same palette idea as grocery, swapped to
+  // warmer hues to suit the food context.
   static const List<Color> _cardColors = [
     Color(0xFFFFFEF7),
     Color(0xFFFFF9F3),
     Color(0xFFFFF5F5),
   ];
 
+  /// Stores the user has opted-into for the order.
   final RxSet<String> selectedBusinessIds = <String>{}.obs;
+
+  /// Variants the user wants in the order — defaulted to "all" on first
+  /// build; the user can deselect individual rows from the store card.
+  final RxSet<String> selectedVariantIds = <String>{}.obs;
+
   bool _initialized = false;
 
   Map<String, List<FoodVariants>> _groupByBusiness(
@@ -45,6 +58,10 @@ class _FoodSelfPickUpCartScreenState extends State<FoodSelfPickUpCartScreen> {
     }
     if (!_initialized && grouped.isNotEmpty) {
       selectedBusinessIds.addAll(grouped.keys);
+      for (final v in controller.selectedFoodVariants) {
+        final id = v.id;
+        if (id != null) selectedVariantIds.add(id);
+      }
       _initialized = true;
     }
     return grouped;
@@ -54,6 +71,7 @@ class _FoodSelfPickUpCartScreenState extends State<FoodSelfPickUpCartScreen> {
       List<FoodVariants> items, FoodSelfPickupController controller) {
     double total = 0;
     for (var v in items) {
+      if (!selectedVariantIds.contains(v.id)) continue;
       final qty = controller.getQuantity(v.id);
       final sp = (v.baseSellingPrice ?? 0).toDouble();
       total += sp * qty;
@@ -65,9 +83,60 @@ class _FoodSelfPickUpCartScreenState extends State<FoodSelfPickUpCartScreen> {
       List<FoodVariants> items, FoodSelfPickupController controller) {
     int count = 0;
     for (var v in items) {
+      if (!selectedVariantIds.contains(v.id)) continue;
       count += controller.getQuantity(v.id);
     }
     return count;
+  }
+
+  /// Average discount % across the store's variants — used by the
+  /// corner ribbon. Variants with no MRP / no selling price are skipped.
+  double _calcAverageDiscount(List<FoodVariants> items) {
+    double total = 0;
+    int count = 0;
+    for (var v in items) {
+      final mrp = (v.mrp ?? 0).toDouble();
+      final sp = (v.baseSellingPrice ?? 0).toDouble();
+      if (mrp <= 0 || sp <= 0 || sp >= mrp) continue;
+      total += ((mrp - sp) / mrp) * 100;
+      count++;
+    }
+    return count == 0 ? 0 : total / count;
+  }
+
+  void _toggleVariant(String? id) {
+    if (id == null) return;
+    if (selectedVariantIds.contains(id)) {
+      selectedVariantIds.remove(id);
+    } else {
+      selectedVariantIds.add(id);
+    }
+  }
+
+  /// Strip variants the user has unchecked (per-product OR whole-shop)
+  /// from the controller's cart, then place the order. Without this,
+  /// the API would receive every variant in the cart regardless of
+  /// checkbox state. Same approach as the grocery cart.
+  void _placeOrder(FoodSelfPickupController controller,
+      Map<String, List<FoodVariants>> grouped) {
+    final toDrop = <FoodVariants>[];
+    for (final entry in grouped.entries) {
+      final shopChecked = selectedBusinessIds.contains(entry.key);
+      for (final v in entry.value) {
+        final variantChecked = selectedVariantIds.contains(v.id);
+        if (!shopChecked || !variantChecked) toDrop.add(v);
+      }
+    }
+
+    // removeFromCart decrements by 1 per call; loop until qty hits 0
+    // so the variant is fully evicted before the order goes out.
+    for (final v in toDrop) {
+      while (controller.getQuantity(v.id) > 0) {
+        controller.removeFromCart(v);
+      }
+    }
+
+    controller.placeFoodOrderApi();
   }
 
   @override
@@ -133,26 +202,18 @@ class _FoodSelfPickUpCartScreenState extends State<FoodSelfPickUpCartScreen> {
                       controller.cartBusinessInfo[items.first.id] ?? {};
                   final Color bgColor =
                       _cardColors[index % _cardColors.length];
-                  final int productCount = _calcItemCount(items, controller);
-                  final double storeTotal = _calcTotal(items, controller);
 
                   return _StoreCard(
-                    businessName:
-                        businessInfo['businessName'] ?? 'Unknown Store',
+                    businessName: businessInfo['businessName'] ??
+                        AppStrings.groceryViewUnknownStore.tr,
                     businessLogo: businessInfo['logo'] ?? '',
                     businessAddress: businessInfo['address'] ?? '',
-                    productCount: productCount,
-                    storeTotal: storeTotal,
+                    items: items,
+                    controller: controller,
                     bgColor: bgColor,
-                    onManageProducts: () {
-                      _showProductsBottomSheet(
-                        context,
-                        businessName:
-                            businessInfo['businessName'] ?? 'Unknown Store',
-                        items: items,
-                        controller: controller,
-                      );
-                    },
+                    selectedVariantIds: selectedVariantIds,
+                    onVariantToggle: _toggleVariant,
+                    averageDiscount: _calcAverageDiscount(items),
                   );
                 },
               ),
@@ -163,42 +224,781 @@ class _FoodSelfPickUpCartScreenState extends State<FoodSelfPickUpCartScreen> {
               calcTotal: _calcTotal,
               calcItemCount: _calcItemCount,
               selectedBusinessIds: selectedBusinessIds,
+              onPlaceOrder: () => _placeOrder(controller, grouped),
             ),
           ],
         );
       }),
     );
   }
+}
 
-  void _showProductsBottomSheet(
-    BuildContext context, {
-    required String businessName,
-    required List<FoodVariants> items,
-    required FoodSelfPickupController controller,
-  }) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => _ProductsBottomSheet(
-        businessName: businessName,
-        items: items,
-        controller: controller,
+// ═══════════════════════════════════════════════════════════════════
+//  STORE CARD — header + inline product list
+// ═══════════════════════════════════════════════════════════════════
+
+class _StoreCard extends StatelessWidget {
+  final String businessName;
+  final String businessLogo;
+  final String businessAddress;
+  final List<FoodVariants> items;
+  final FoodSelfPickupController controller;
+  final Color bgColor;
+  final RxSet<String> selectedVariantIds;
+  final void Function(String?) onVariantToggle;
+  final double averageDiscount;
+
+  const _StoreCard({
+    required this.businessName,
+    required this.businessLogo,
+    required this.businessAddress,
+    required this.items,
+    required this.controller,
+    required this.bgColor,
+    required this.selectedVariantIds,
+    required this.onVariantToggle,
+    required this.averageDiscount,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: EdgeInsets.only(bottom: SizeConfig.size12),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.greyE5, width: 0.5),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildHeader(),
+            if (businessAddress.isNotEmpty) _buildAddressRow(),
+            ...List.generate(items.length, (i) {
+              final v = items[i];
+              // Food variants don't carry their own image list. The
+              // controller stashes the parent product's image at
+              // add-to-cart time in `cartProductImages` keyed by
+              // variant id, so use that as the thumbnail source.
+              final fallbackImage = controller.cartProductImages[v.id] ?? '';
+              return _ProductRow(
+                variant: v,
+                fallbackImage: fallbackImage,
+                controller: controller,
+                isSelected: selectedVariantIds.contains(v.id),
+                onToggle: () => onVariantToggle(v.id),
+              );
+            }),
+            const SizedBox(height: 4),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String? get _distanceLabel {
+    // Compute live distance from the user's current location to the
+    // business lat/lng stashed at add-to-cart time. Returns null if
+    // either side is missing/zero (cartBusinessInfo on food may not
+    // carry coords yet, in which case the pill simply hides).
+    final lat =
+        double.tryParse(businessInfo['lat']?.toString() ?? '') ?? 0.0;
+    final lng =
+        double.tryParse(businessInfo['lng']?.toString() ?? '') ?? 0.0;
+    if (lat == 0 && lng == 0) return null;
+    final km = calculateDistance(lat, lng);
+    if (km == null) return null;
+    return '${km.toStringAsFixed(km == km.roundToDouble() ? 0 : 1)} km Away';
+  }
+
+  String? get _shopTypeLabel {
+    final raw = (businessInfo['shopType'] ??
+            businessInfo['categoryName'] ??
+            businessInfo['category'] ??
+            businessInfo['natureOfBusiness'])
+        ?.toString();
+    if (raw == null || raw.trim().isEmpty) return null;
+    return raw;
+  }
+
+  // The card needs the businessInfo map for distance / shop-type lookup;
+  // it lives on the parent Map but we want it accessible in the helpers
+  // without threading another constructor arg. Read it lazily off the
+  // controller using the first variant's id as the join key (same way
+  // the parent screen does).
+  Map get businessInfo {
+    final id = items.isNotEmpty ? items.first.id : null;
+    if (id == null) return const {};
+    return controller.cartBusinessInfo[id] ?? const {};
+  }
+
+  Widget _buildHeader() {
+    final distance = _distanceLabel;
+    final shopType = _shopTypeLabel;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 12, 0, 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          CachedAvatarWidget(
+            imageUrl: businessLogo,
+            size: SizeConfig.size40,
+            borderColor: Colors.white,
+            borderRadius: SizeConfig.size20,
+          ),
+          SizedBox(width: SizeConfig.size10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CustomText(
+                  businessName,
+                  fontSize: SizeConfig.medium,
+                  color: AppColors.mainTextColor,
+                  fontWeight: FontWeight.w800,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                if (distance != null || shopType != null) ...[
+                  SizedBox(height: SizeConfig.size4),
+                  Row(
+                    children: [
+                      if (distance != null) ...[
+                        _DistancePill(label: distance),
+                        const SizedBox(width: 6),
+                      ],
+                      if (shopType != null)
+                        Flexible(child: _ShopTypePill(label: shopType)),
+                    ],
+                  ),
+                ],
+              ],
+            ),
+          ),
+          if (averageDiscount > 0) _DiscountRibbon(percent: averageDiscount),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAddressRow() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+      child: Row(
+        children: [
+          Icon(Icons.location_on_outlined,
+              size: 12, color: AppColors.secondaryTextColor),
+          const SizedBox(width: 3),
+          Expanded(
+            child: CustomText(
+              businessAddress,
+              fontSize: 11,
+              color: AppColors.secondaryTextColor,
+              fontWeight: FontWeight.w500,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Single-column vertical dashed line — short segments with a gap
+/// between them along the Y-axis, antialiased on a 1-px stroke.
+class _VerticalDashedLine extends StatelessWidget {
+  final double height;
+  const _VerticalDashedLine({required this.height});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 1,
+      height: height,
+      child: CustomPaint(painter: _VerticalDashedLinePainter()),
+    );
+  }
+}
+
+class _VerticalDashedLinePainter extends CustomPainter {
+  static const double _dash = 4;
+  static const double _gap = 3;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = AppColors.greyE5
+      ..strokeWidth = 1
+      ..strokeCap = StrokeCap.round;
+    double y = 0;
+    while (y < size.height) {
+      final endY = (y + _dash).clamp(0.0, size.height);
+      canvas.drawLine(
+        Offset(size.width / 2, y),
+        Offset(size.width / 2, endY),
+        paint,
+      );
+      y += _dash + _gap;
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _VerticalDashedLinePainter old) => false;
+}
+
+class _ShopTypePill extends StatelessWidget {
+  final String label;
+  const _ShopTypePill({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: const Color(0xFFE7F8E8),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(
+          color: const Color(0xFF1FB35A).withValues(alpha: 0.35),
+          width: 0.6,
+        ),
+      ),
+      child: CustomText(
+        label,
+        fontSize: 10,
+        fontWeight: FontWeight.w700,
+        color: const Color(0xFF1FB35A),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+    );
+  }
+}
+
+/// Mirrors the shop-type pill but tinted neutral so the two chips read
+/// as a pair instead of competing for color emphasis. Pin icon + text
+/// in the same secondary-text color the row already uses.
+class _DistancePill extends StatelessWidget {
+  final String label;
+  const _DistancePill({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(
+          color: AppColors.greyE5,
+          width: 0.6,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.location_on_outlined,
+              size: 12, color: AppColors.secondaryTextColor),
+          const SizedBox(width: 3),
+          CustomText(
+            label,
+            fontSize: 10,
+            fontWeight: FontWeight.w700,
+            color: AppColors.secondaryTextColor,
+            maxLines: 1,
+          ),
+        ],
       ),
     );
   }
 }
 
 // ═══════════════════════════════════════════════════════════════════
-//  BOTTOM SUMMARY BAR
+//  PRODUCT ROW
+// ═══════════════════════════════════════════════════════════════════
+
+class _ProductRow extends StatelessWidget {
+  final FoodVariants variant;
+  final String fallbackImage;
+  final FoodSelfPickupController controller;
+  final bool isSelected;
+  final VoidCallback onToggle;
+
+  const _ProductRow({
+    required this.variant,
+    required this.fallbackImage,
+    required this.controller,
+    required this.isSelected,
+    required this.onToggle,
+  });
+
+  void _handleRemove(BuildContext context) {
+    final qty = controller.getQuantity(variant.id);
+    if (qty > 1) {
+      controller.removeFromCart(variant);
+      return;
+    }
+    // qty is about to drop to 0 — confirm with the user before evicting
+    // the variant from the cart.
+    Get.dialog(
+      Dialog(
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 22, 20, 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 36,
+                    height: 36,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: AppColors.red.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(Icons.delete_outline_rounded,
+                        color: AppColors.red, size: 20),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: CustomText(
+                      'Remove from cart?',
+                      fontSize: SizeConfig.medium,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.mainTextColor,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              CustomText(
+                '"${variant.variantName ?? 'This product'}" will be removed from your cart.',
+                fontSize: SizeConfig.small,
+                fontWeight: FontWeight.w500,
+                color: AppColors.secondaryTextColor,
+              ),
+              const SizedBox(height: 18),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Get.back(),
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(color: AppColors.greyE5),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: CustomText(
+                        'Cancel',
+                        color: AppColors.secondaryTextColor,
+                        fontSize: SizeConfig.small,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Get.back();
+                        controller.removeFromCart(variant);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.red,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: CustomText(
+                        'Remove',
+                        color: AppColors.white,
+                        fontSize: SizeConfig.small,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final sellingPrice = variant.baseSellingPrice ?? 0;
+    final mrp = variant.mrp ?? 0;
+    // Food variants have no per-variant image list, so the only
+    // source is the parent-product image stashed on cartProductImages.
+    final imageUrl = fallbackImage;
+
+    return Container(
+      margin: const EdgeInsets.fromLTRB(10, 4, 10, 4),
+      padding: const EdgeInsets.fromLTRB(8, 10, 10, 10),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: isSelected
+              ? AppColors.primaryColor.withValues(alpha: 0.25)
+              : AppColors.greyE5,
+          width: 0.6,
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Checkbox
+          InkWell(
+            onTap: onToggle,
+            borderRadius: BorderRadius.circular(4),
+            child: Padding(
+              padding: const EdgeInsets.all(2),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 160),
+                width: 18,
+                height: 18,
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? AppColors.primaryColor
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(4),
+                  border: Border.all(
+                    color: isSelected
+                        ? AppColors.primaryColor
+                        : AppColors.greyCA,
+                    width: 1.5,
+                  ),
+                ),
+                child: isSelected
+                    ? const Icon(Icons.check_rounded,
+                        size: 13, color: Colors.white)
+                    : null,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          // Thumbnail
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: SizedBox(
+              width: SizeConfig.size50,
+              height: SizeConfig.size50,
+              child: imageUrl.isEmpty
+                  ? LocalAssets(
+                      imagePath: AppIconAssets.place_holder_image,
+                      boxFix: BoxFit.cover,
+                    )
+                  : CachedNetworkImage(
+                      imageUrl: imageUrl,
+                      fit: BoxFit.cover,
+                      placeholder: (_, __) =>
+                          Container(color: Colors.grey.shade200),
+                      errorWidget: (_, __, ___) => LocalAssets(
+                        imagePath: AppIconAssets.place_holder_image,
+                        boxFix: BoxFit.cover,
+                      ),
+                    ),
+            ),
+          ),
+          const SizedBox(width: 10),
+          // Title + unit-price line
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CustomText(
+                  variant.variantName ?? '',
+                  fontSize: SizeConfig.small,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.mainTextColor,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    CustomText(
+                      '${variant.quantityLabel ?? ''}',
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.secondaryTextColor,
+                    ),
+                    if ((variant.quantityLabel ?? '').isNotEmpty &&
+                        sellingPrice != 0) ...[
+                      const SizedBox(width: 4),
+                      Container(
+                        width: 0.6,
+                        height: 10,
+                        color: AppColors.greyCA,
+                      ),
+                      const SizedBox(width: 4),
+                    ],
+                    if (sellingPrice != 0)
+                      Flexible(
+                        child: CustomText(
+                          // Food has no `unit` field on the variant —
+                          // omit it from the unit-price line instead
+                          // of leaving a trailing slash.
+                          '${AppConstants.rupeeSymbol}$sellingPrice',
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.secondaryTextColor,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          // Vertical dashed divider — separates product details (left)
+          // from the price + qty controls (right). Custom-painted so
+          // the dashes run cleanly down a 1-px column.
+          const _VerticalDashedLine(height: 56),
+          const SizedBox(width: 8),
+          // Right column: price + qty stepper
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CustomText(
+                    '${AppConstants.rupeeSymbol}$sellingPrice',
+                    fontSize: SizeConfig.medium,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.mainTextColor,
+                  ),
+                  if (mrp > sellingPrice && mrp != 0) ...[
+                    const SizedBox(width: 4),
+                    CustomText(
+                      '${AppConstants.rupeeSymbol}$mrp',
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.secondaryTextColor,
+                      decoration: TextDecoration.lineThrough,
+                      decorationColor: AppColors.secondaryTextColor,
+                    ),
+                  ],
+                ],
+              ),
+              const SizedBox(height: 6),
+              // Why: Obx so the quantity number repaints when add/remove
+              // mutates controller.cartQuantities — without this the
+              // stepper text stays frozen at the build-time value.
+              Obx(() => _QtyStepper(
+                    quantity: controller.getQuantity(variant.id),
+                    onAdd: () => controller.addToCart(variant),
+                    onRemove: () => _handleRemove(context),
+                  )),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  QTY STEPPER  ( - N + )
+// ═══════════════════════════════════════════════════════════════════
+
+class _QtyStepper extends StatelessWidget {
+  final int quantity;
+  final VoidCallback onAdd;
+  final VoidCallback onRemove;
+
+  const _QtyStepper({
+    required this.quantity,
+    required this.onAdd,
+    required this.onRemove,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // Mirrors the qty stepper used in the grocery cart — outlined
+    // rounded box, no internal dividers, 30×30 tap targets with a
+    // 12-px icon. Keeps the look identical across the cart UIs.
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8.0),
+        color: AppColors.white,
+        border: Border.all(color: AppColors.greyE5),
+        boxShadow: [AppShadows.textFieldShadow],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(2.0),
+            child: InkWell(
+              onTap: onRemove,
+              borderRadius: BorderRadius.circular(20),
+              child: SizedBox(
+                width: 30,
+                height: 30,
+                child: Center(
+                  child: Icon(Icons.remove,
+                      color: AppColors.secondaryTextColor,
+                      size: SizeConfig.size12),
+                ),
+              ),
+            ),
+          ),
+          CustomText(
+            '$quantity',
+            fontSize: SizeConfig.small,
+            fontWeight: FontWeight.w400,
+            color: AppColors.secondaryTextColor,
+          ),
+          Padding(
+            padding: const EdgeInsets.all(2.0),
+            child: InkWell(
+              onTap: onAdd,
+              borderRadius: BorderRadius.circular(20),
+              child: SizedBox(
+                width: 30,
+                height: 30,
+                child: Center(
+                  child: Icon(Icons.add,
+                      size: SizeConfig.size12,
+                      color: AppColors.secondaryTextColor),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  DISCOUNT RIBBON ( top-right of store card )
+// ═══════════════════════════════════════════════════════════════════
+
+class _DiscountRibbon extends StatelessWidget {
+  final double percent;
+  const _DiscountRibbon({required this.percent});
+
+  String get _label {
+    final clamped = percent > 99 ? 99 : percent;
+    final isWhole = clamped == clamped.roundToDouble();
+    return isWhole
+        ? clamped.toStringAsFixed(0)
+        : clamped.toStringAsFixed(1);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 10),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          // Why: radial gradient (lime center → deep-green edge) gives
+          // the badge the "stamped" feel from the grocery mockup, and
+          // the 2-px yellow ring frames it like a sticker on the card
+          // corner.
+          gradient: const RadialGradient(
+            center: Alignment(-0.2, -0.4),
+            radius: 1.1,
+            colors: [Color(0xFFB5D147), Color(0xFF0D8A47)],
+            stops: [0.0, 1.0],
+          ),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: const Color(0xFFFFD83D),
+            width: 2,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF15A352).withValues(alpha: 0.28),
+              blurRadius: 10,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // "20% Off" laid out as a single row so the % and word
+            // read together — matches the grocery hierarchy.
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  '$_label%',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    color: Colors.white,
+                    fontWeight: FontWeight.w900,
+                    height: 1.0,
+                    letterSpacing: 0.3,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                const Padding(
+                  padding: EdgeInsets.only(bottom: 1),
+                  child: Text(
+                    'Off',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.white,
+                      fontWeight: FontWeight.w800,
+                      height: 1.0,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'On All Items',
+              style: TextStyle(
+                fontSize: 9,
+                color: Colors.white.withValues(alpha: 0.95),
+                fontWeight: FontWeight.w700,
+                height: 1.0,
+                letterSpacing: 0.2,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  BOTTOM SUMMARY BAR (per-shop checkboxes + grand total + Place Order)
 // ═══════════════════════════════════════════════════════════════════
 
 class _BottomSummaryBar extends StatelessWidget {
   final Map<String, List<FoodVariants>> grouped;
   final FoodSelfPickupController controller;
   final double Function(List<FoodVariants>, FoodSelfPickupController) calcTotal;
-  final int Function(List<FoodVariants>, FoodSelfPickupController) calcItemCount;
+  final int Function(List<FoodVariants>, FoodSelfPickupController)
+      calcItemCount;
   final RxSet<String> selectedBusinessIds;
+  final VoidCallback onPlaceOrder;
 
   const _BottomSummaryBar({
     required this.grouped,
@@ -206,11 +1006,17 @@ class _BottomSummaryBar extends StatelessWidget {
     required this.calcTotal,
     required this.calcItemCount,
     required this.selectedBusinessIds,
+    required this.onPlaceOrder,
   });
 
   @override
   Widget build(BuildContext context) {
     return Obx(() {
+      // Force subscription to qty changes — calcTotal reads
+      // cartQuantities indirectly via getQuantity, but touching the
+      // map's length here guarantees this Obx rebuilds on every +/− tap.
+      // ignore: unused_local_variable
+      final _ = controller.cartQuantities.length;
       double grandTotal = 0;
       int grandItemCount = 0;
       int selectedShopCount = 0;
@@ -243,17 +1049,17 @@ class _BottomSummaryBar extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Per-shop breakdown with checkboxes
                 ...grouped.entries.map((entry) {
                   final businessId = entry.key;
                   final items = entry.value;
                   final businessInfo =
                       controller.cartBusinessInfo[items.first.id] ?? {};
-                  final shopName =
-                      businessInfo['businessName'] ?? 'Unknown Store';
+                  final shopName = businessInfo['businessName'] ??
+                      AppStrings.groceryViewUnknownStore.tr;
                   final shopTotal = calcTotal(items, controller);
                   final shopItems = calcItemCount(items, controller);
-                  final isChecked = selectedBusinessIds.contains(businessId);
+                  final isChecked =
+                      selectedBusinessIds.contains(businessId);
 
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 4),
@@ -280,6 +1086,7 @@ class _BottomSummaryBar extends StatelessWidget {
                                 }
                               },
                               activeColor: AppColors.primaryColor,
+                              checkColor: AppColors.white,
                               materialTapTargetSize:
                                   MaterialTapTargetSize.shrinkWrap,
                               visualDensity: VisualDensity.compact,
@@ -294,9 +1101,9 @@ class _BottomSummaryBar extends StatelessWidget {
                               '$shopName ($shopItems ${shopItems == 1 ? AppStrings.foodItemSingular.tr : AppStrings.foodItemPlural.tr})',
                               fontSize: SizeConfig.small,
                               color: isChecked
-                                  ? AppColors.secondaryTextColor
+                                  ? AppColors.primaryColor
                                   : AppColors.greyCA,
-                              fontWeight: FontWeight.w500,
+                              fontWeight: FontWeight.w600,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -307,17 +1114,14 @@ class _BottomSummaryBar extends StatelessWidget {
                             color: isChecked
                                 ? AppColors.mainTextColor
                                 : AppColors.greyCA,
-                            fontWeight: FontWeight.w600,
+                            fontWeight: FontWeight.w700,
                           ),
                         ],
                       ),
                     ),
                   );
                 }),
-
                 const Divider(height: 16, color: AppColors.greyE5),
-
-                // Grand total + Submit
                 Row(
                   children: [
                     Expanded(
@@ -335,47 +1139,53 @@ class _BottomSummaryBar extends StatelessWidget {
                             '${AppConstants.rupeeSymbol}${grandTotal.toStringAsFixed(2)}',
                             fontSize: SizeConfig.extraLarge,
                             color: AppColors.mainTextColor,
-                            fontWeight: FontWeight.w700,
+                            fontWeight: FontWeight.w800,
                           ),
                         ],
                       ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
-                      child: InkWell(
-                        onTap: selectedShopCount > 0
-                            ? () {
-                                controller.placeFoodOrderApi();
-                              }
-                            : null,
-                        borderRadius: BorderRadius.circular(12),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          decoration: BoxDecoration(
-                            color: selectedShopCount > 0
-                                ? AppColors.primaryColor
-                                : AppColors.greyCA,
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: selectedShopCount > 0
-                                ? [
-                                    BoxShadow(
-                                      color: AppColors.primaryColor
-                                          .withValues(alpha: 0.3),
-                                      blurRadius: 8,
-                                      offset: const Offset(0, 3),
-                                    ),
-                                  ]
-                                : [],
+                      // Why: gate on grandItemCount (counts only variants
+                      // whose shop AND variant checkbox are both on),
+                      // not selectedShopCount. So a single-shop cart
+                      // with every product unchecked correctly disables
+                      // the button, while multi-shop carts stay
+                      // actionable as long as ANY shop still has
+                      // checked items.
+                      child: Builder(builder: (_) {
+                        final canOrder = grandItemCount > 0;
+                        return InkWell(
+                          onTap: canOrder ? onPlaceOrder : null,
+                          borderRadius: BorderRadius.circular(12),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            decoration: BoxDecoration(
+                              color: canOrder
+                                  ? AppColors.primaryColor
+                                  : AppColors.greyCA,
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: canOrder
+                                  ? [
+                                      BoxShadow(
+                                        color: AppColors.primaryColor
+                                            .withValues(alpha: 0.3),
+                                        blurRadius: 8,
+                                        offset: const Offset(0, 3),
+                                      ),
+                                    ]
+                                  : [],
+                            ),
+                            alignment: Alignment.center,
+                            child: CustomText(
+                              AppStrings.foodPlaceOrderLabel.tr,
+                              fontSize: SizeConfig.medium,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.white,
+                            ),
                           ),
-                          alignment: Alignment.center,
-                          child: CustomText(
-                            AppStrings.foodPlaceOrderLabel.tr,
-                            fontSize: SizeConfig.medium,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.white,
-                          ),
-                        ),
-                      ),
+                        );
+                      }),
                     ),
                   ],
                 ),
@@ -385,517 +1195,5 @@ class _BottomSummaryBar extends StatelessWidget {
         ),
       );
     });
-  }
-}
-
-// ═══════════════════════════════════════════════════════════════════
-//  STORE CARD
-// ═══════════════════════════════════════════════════════════════════
-
-class _StoreCard extends StatelessWidget {
-  final String businessName;
-  final String businessLogo;
-  final String businessAddress;
-  final int productCount;
-  final double storeTotal;
-  final Color bgColor;
-  final VoidCallback onManageProducts;
-
-  const _StoreCard({
-    required this.businessName,
-    required this.businessLogo,
-    required this.businessAddress,
-    required this.productCount,
-    required this.storeTotal,
-    required this.bgColor,
-    required this.onManageProducts,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: EdgeInsets.only(bottom: SizeConfig.size10),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10.0),
-        color: bgColor,
-        border: Border.all(color: AppColors.greyE5, width: 0.5),
-      ),
-      child: Padding(
-        padding: EdgeInsets.all(SizeConfig.size10),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CachedAvatarWidget(
-                  imageUrl: businessLogo,
-                  size: SizeConfig.size40,
-                  borderColor: Colors.white,
-                  borderRadius: SizeConfig.size20,
-                ),
-                SizedBox(width: SizeConfig.size8),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      CustomText(
-                        businessName,
-                        fontSize: SizeConfig.medium,
-                        color: AppColors.mainTextColor,
-                        fontWeight: FontWeight.w700,
-                      ),
-                      SizedBox(height: SizeConfig.size6),
-                      Row(
-                        children: [
-                          _buildBadge(
-                            '$productCount ${productCount == 1 ? AppStrings.foodProductSingular.tr : AppStrings.foodProductPlural.tr}',
-                            AppColors.lightYellowShade,
-                            AppColors.blue2D,
-                          ),
-                          const SizedBox(width: 8),
-                          _buildBadge(
-                            '${AppConstants.rupeeSymbol}${storeTotal.toStringAsFixed(2)}',
-                            const Color(0xFFE8F5E9),
-                            AppColors.green1A,
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            if (businessAddress.isNotEmpty) ...[
-              SizedBox(height: SizeConfig.paddingXSL),
-              Container(
-                padding: const EdgeInsets.all(8.0),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10.0),
-                  border: Border.all(color: AppColors.greyE5, width: 0.5),
-                  color: AppColors.white,
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(6.0),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(6.0),
-                        color: AppColors.white,
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.black.withValues(alpha: 0.08),
-                            offset: const Offset(0, 1),
-                            blurRadius: 2.0,
-                          )
-                        ],
-                      ),
-                      child: LocalAssets(
-                        imagePath: AppIconAssets.location_outline,
-                        imgColor: AppColors.secondaryTextColor,
-                        height: 24,
-                        width: 20,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: CustomText(
-                        businessAddress,
-                        fontSize: 11.0,
-                        color: AppColors.secondaryTextColor,
-                        fontWeight: FontWeight.w400,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-            SizedBox(height: SizeConfig.paddingXSL),
-            SizedBox(
-              width: double.infinity,
-              child: InkWell(
-                onTap: onManageProducts,
-                borderRadius: BorderRadius.circular(8),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                      vertical: 10, horizontal: 16),
-                  decoration: BoxDecoration(
-                    color: AppColors.white,
-                    border: Border.all(color: AppColors.green1A, width: 1.2),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.edit_outlined,
-                          size: 16, color: AppColors.green1A),
-                      const SizedBox(width: 8),
-                      CustomText(
-                        AppStrings.foodManageProducts.tr,
-                        fontSize: SizeConfig.medium,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.green1A,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBadge(String text, Color bgColor, Color textColor) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 6),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10.0),
-        color: bgColor,
-        border: Border.all(color: bgColor, width: 0.5),
-      ),
-      child: CustomText(text,
-          fontSize: 10, color: textColor, fontWeight: FontWeight.w600),
-    );
-  }
-}
-
-// ═══════════════════════════════════════════════════════════════════
-//  PRODUCTS BOTTOM SHEET
-// ═══════════════════════════════════════════════════════════════════
-
-class _ProductsBottomSheet extends StatelessWidget {
-  final String businessName;
-  final List<FoodVariants> items;
-  final FoodSelfPickupController controller;
-
-  const _ProductsBottomSheet({
-    required this.businessName,
-    required this.items,
-    required this.controller,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: MediaQuery.of(context).size.height * 0.70,
-      decoration: const BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      child: Column(
-        children: [
-          const SizedBox(height: 12),
-          Container(
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: AppColors.greyCA,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          const SizedBox(height: 16),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              children: [
-                Expanded(
-                  child: CustomText(
-                    businessName,
-                    fontSize: SizeConfig.large,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.mainTextColor,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                InkWell(
-                  onTap: () => Navigator.pop(context),
-                  borderRadius: BorderRadius.circular(8),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryColor,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: CustomText(
-                      'Save',
-                      fontSize: SizeConfig.medium,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.white,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 8),
-          Container(height: 1, color: AppColors.appBackgroundColor),
-          Expanded(
-            child: Obx(() {
-              final activeItems = items
-                  .where((v) => controller.selectedFoodVariants
-                      .any((sv) => sv.id == v.id))
-                  .toList();
-
-              if (activeItems.isEmpty) {
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  if (Navigator.canPop(context)) Navigator.pop(context);
-                });
-                return const SizedBox.shrink();
-              }
-
-              int totalProducts = 0;
-              double totalAmount = 0;
-              for (var v in activeItems) {
-                final qty = controller.getQuantity(v.id);
-                totalProducts += qty;
-                final sp = (v.baseSellingPrice ?? 0).toDouble();
-                totalAmount += sp * qty;
-              }
-
-              return ListView.builder(
-                padding: EdgeInsets.symmetric(
-                  horizontal: SizeConfig.size15,
-                  vertical: SizeConfig.size8,
-                ),
-                itemCount: activeItems.length + 1,
-                itemBuilder: (context, index) {
-                  if (index == activeItems.length) {
-                    return Container(
-                      margin: const EdgeInsets.only(top: 4, bottom: 16),
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryColor.withValues(alpha: 0.06),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(
-                          color: AppColors.primaryColor
-                              .withValues(alpha: 0.15),
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
-                            children: [
-                              Icon(Icons.shopping_cart_outlined,
-                                  size: 18, color: AppColors.primaryColor),
-                              const SizedBox(width: 8),
-                              CustomText(
-                                '$totalProducts ${totalProducts == 1 ? 'Product' : 'Products'}',
-                                fontSize: SizeConfig.medium,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.primaryColor,
-                              ),
-                            ],
-                          ),
-                          CustomText(
-                            '${AppConstants.rupeeSymbol}${totalAmount.toStringAsFixed(2)}',
-                            fontSize: SizeConfig.large,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.primaryColor,
-                          ),
-                        ],
-                      ),
-                    );
-                  }
-
-                  return _VariantItem(
-                    variant: activeItems[index],
-                    controller: controller,
-                  );
-                },
-              );
-            }),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ═══════════════════════════════════════════════════════════════════
-//  VARIANT ITEM
-// ═══════════════════════════════════════════════════════════════════
-
-class _VariantItem extends StatelessWidget {
-  final FoodVariants variant;
-  final FoodSelfPickupController controller;
-
-  const _VariantItem({
-    required this.variant,
-    required this.controller,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final sellingPrice = variant.baseSellingPrice ?? 0;
-    final mrp = variant.mrp ?? 0;
-
-    return Container(
-      padding: EdgeInsets.all(SizeConfig.size10),
-      margin: EdgeInsets.only(bottom: SizeConfig.size10),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.greyE5),
-        boxShadow: [AppShadows.textFieldShadow],
-      ),
-      child: Row(
-        children: [
-          // Food variants don't carry their own image list; fall back to
-          // the placeholder (the dish image is shown on the product tile
-          // where the user added it from).
-          ClipRRect(
-            borderRadius: BorderRadius.circular(6),
-            child: LocalAssets(
-              imagePath: AppIconAssets.place_holder_image,
-              boxFix: BoxFit.fill,
-              width: SizeConfig.size50,
-              height: SizeConfig.size50,
-            ),
-          ),
-          SizedBox(width: SizeConfig.paddingXSL),
-          // Details
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CustomText(variant.variantName ?? '',
-                    fontWeight: FontWeight.w600),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    if ((variant.quantityLabel ?? '').isNotEmpty) ...[
-                      CustomText(
-                        variant.quantityLabel ?? '',
-                        fontSize: SizeConfig.small,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.mainTextColor,
-                      ),
-                      SizedBox(width: SizeConfig.size6),
-                      Container(
-                        width: 0.5,
-                        height: SizeConfig.size12,
-                        color: AppColors.secondaryTextColor,
-                      ),
-                      SizedBox(width: SizeConfig.size6),
-                    ],
-                    CustomText(
-                      '${AppConstants.rupeeSymbol}$sellingPrice',
-                      fontSize: SizeConfig.medium,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.mainTextColor,
-                    ),
-                    SizedBox(width: SizeConfig.size6),
-                    if (mrp > sellingPrice)
-                      CustomText(
-                        '${AppConstants.rupeeSymbol}$mrp',
-                        fontSize: SizeConfig.small,
-                        fontWeight: FontWeight.w400,
-                        color: AppColors.secondaryTextColor,
-                        decoration: TextDecoration.lineThrough,
-                        decorationColor: AppColors.secondaryTextColor,
-                      ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          SizedBox(width: SizeConfig.paddingXSL),
-          // Dashed divider
-          DashedBorderContainer(
-            borderColor: AppColors.greyE5,
-            strokeWidth: 1,
-            dashLength: 2,
-            child: SizedBox(height: SizeConfig.size50, width: 1),
-          ),
-          SizedBox(width: SizeConfig.size10),
-          // Qty controls
-          Obx(() {
-            return Column(
-              children: [
-                Row(
-                  children: [
-                    CustomText(
-                      '${AppConstants.rupeeSymbol}$sellingPrice',
-                      fontSize: SizeConfig.medium,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.mainTextColor,
-                    ),
-                    SizedBox(width: SizeConfig.size4),
-                    if (mrp > sellingPrice)
-                      CustomText(
-                        '${AppConstants.rupeeSymbol}$mrp',
-                        fontSize: SizeConfig.small,
-                        fontWeight: FontWeight.w400,
-                        color: AppColors.secondaryTextColor,
-                        decoration: TextDecoration.lineThrough,
-                        decorationColor: AppColors.secondaryTextColor,
-                      ),
-                  ],
-                ),
-                SizedBox(height: SizeConfig.size4),
-                Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8.0),
-                    color: AppColors.white,
-                    border: Border.all(color: AppColors.greyE5),
-                    boxShadow: [AppShadows.textFieldShadow],
-                  ),
-                  child: Row(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(2.0),
-                        child: InkWell(
-                          onTap: () => controller.removeFromCart(variant),
-                          borderRadius: BorderRadius.circular(20),
-                          child: SizedBox(
-                            width: 30,
-                            height: 30,
-                            child: Center(
-                              child: Icon(Icons.remove,
-                                  color: AppColors.secondaryTextColor,
-                                  size: SizeConfig.size12),
-                            ),
-                          ),
-                        ),
-                      ),
-                      CustomText(
-                        '${controller.getQuantity(variant.id)}',
-                        fontSize: SizeConfig.small,
-                        fontWeight: FontWeight.w400,
-                        color: AppColors.secondaryTextColor,
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(2.0),
-                        child: InkWell(
-                          onTap: () => controller.addToCart(variant),
-                          borderRadius: BorderRadius.circular(20),
-                          child: SizedBox(
-                            width: 30,
-                            height: 30,
-                            child: Center(
-                              child: Icon(Icons.add,
-                                  size: SizeConfig.size12,
-                                  color: AppColors.secondaryTextColor),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            );
-          }),
-        ],
-      ),
-    );
   }
 }

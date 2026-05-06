@@ -16,7 +16,7 @@ class MyMedicalPendingScreen extends StatefulWidget {
 }
 
 class _MyMedicalPendingScreenState extends State<MyMedicalPendingScreen> {
-  final controller = getOrPut(() => MyMedicalOrdersController());
+  final controller = getOrPut(() => MyGroceryOrdersController());
 
   @override
   void initState() {

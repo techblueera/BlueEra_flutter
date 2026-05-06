@@ -17,7 +17,9 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/multipart_image_service.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/widgets/business_share_banner.dart';
+import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/view/add_symbol/add_symbol_screen.dart';
+import 'package:BlueEra/features/chat/view/business_chat/business_chat_list.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
@@ -81,11 +83,23 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
 
   static const _tabs = ['Order', 'Overview', 'Service', 'Post', 'Statics'];
 
+  // Drives the inquiry list shown under the Order tab — same controller
+  // the Connect screen uses, so socket-driven updates land on both.
+  final ChatViewController _chatViewController =
+      getOrPut(() => ChatViewController());
+
   @override
   void initState() {
     super.initState();
     _ctrl.professionalsFullDetailsController();
     _viewCtrl.UserFollowersAndPostsCount(userId);
+    // Hydrate the business chat list so the Order tab's inquiry list
+    // has data ready when the user switches to it. Mirrors what
+    // ConnectMainPage does for its Inquiry tab.
+    _chatViewController.emitEvent(
+      ChatEmitEvents.ChatList,
+      {ApiKeys.type: AppConstants.business_Chat_Type},
+    );
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _viewCtrl.shopStatusOpenClose.value =
           serviceProviderStatusGlobal.toUpperCase() ==
@@ -1706,6 +1720,7 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
   // ─── ORDER TAB ─────────────────────────────────────────────────
   List<Widget> _buildOrderTab() {
     final contributionController = getOrPut(() => ContributionController());
+    final screenHeight = MediaQuery.of(context).size.height;
     return [
       Padding(
         padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
@@ -1722,6 +1737,19 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
             }
             return _contributeNowBanner();
           }),
+        ),
+      ),
+      SizedBox(height: SizeConfig.size12),
+      // Incoming inquiries — only chats whose latest message was
+      // authored by *someone else*. Mirror of the Connect Inquiry tab,
+      // which keeps the user's own outgoing inquiries (`onlySenderId`).
+      // Wrapped in a SizedBox because BusinessChatsList uses an
+      // Expanded ListView internally and needs a bounded height.
+      SizedBox(
+        height: screenHeight * 0.75,
+        child: BusinessChatsList(
+          isForwardUI: false,
+          excludeSenderId: userId,
         ),
       ),
     ];

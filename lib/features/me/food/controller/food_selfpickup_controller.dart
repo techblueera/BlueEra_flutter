@@ -309,14 +309,13 @@ class FoodSelfPickupController extends GetxController {
         return;
       }
 
-      placeFoodOrderResponse.value = ApiResponse.complete(response);
-      AppLoader.hide();
-      selectedFoodVariants.clear();
-      cartQuantities.clear();
-      cartBusinessInfo.clear();
-      cartProductIds.clear();
-
-      // Navigate to chat Orders tab
+      // Navigate FIRST, clear the cart afterwards — mirrors the
+      // grocery flow. Clearing before navigation triggers an Obx
+      // rebuild on the cart screen (selectedFoodVariants empties →
+      // empty-state widget mounts) which on some routes interferes
+      // with `Get.until` resolving to BottomNavigationBarScreen, so
+      // the chat hand-off never fired in food. Doing it in the same
+      // order grocery does keeps the navigation deterministic.
       final bottomController = getOrPut(() => BottomBarController());
       bottomController.onChangeIndex(2);
 
@@ -325,9 +324,18 @@ class FoodSelfPickupController extends GetxController {
       chatViewController.emitEvent(ChatEmitEvents.ChatList, {ApiKeys.type: AppConstants.order_Chat_Type},);
       chatViewController.onSelectChatTab(2);
 
-
       Get.until((route) =>
           route.settings.name == RouteConstant.BottomNavigationBarScreen);
+
+      placeFoodOrderResponse.value = ApiResponse.complete(response);
+      AppLoader.hide();
+      selectedFoodVariants.clear();
+      cartQuantities.clear();
+      cartBusinessInfo.clear();
+      cartProductIds.clear();
+      // Was missing — left the variant→thumbnail map populated
+      // across sessions, leaking memory and stale image refs.
+      cartProductImages.clear();
     } catch (e) {
       AppLoader.hide();
       placeFoodOrderResponse.value = ApiResponse.error('error');

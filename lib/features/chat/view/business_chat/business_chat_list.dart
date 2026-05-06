@@ -21,9 +21,28 @@ import '../reminder_chat/reminder_chat_list.dart';
 import '../widget/component_widgets.dart';
 
 class BusinessChatsList extends StatefulWidget {
-  const BusinessChatsList({super.key, this.isForwardUI, this.isNewGroupUI});
+  const BusinessChatsList({
+    super.key,
+    this.isForwardUI,
+    this.isNewGroupUI,
+    this.excludeSenderId,
+    this.onlySenderId,
+  });
   final bool? isForwardUI;
   final bool? isNewGroupUI;
+
+  /// Hides chats whose `lastMessageSenderId` equals this value — used
+  /// by the self-employed / professionals "Order" tabs to surface only
+  /// incoming inquiries (where the *other* party sent the latest msg).
+  /// Null = no exclusion.
+  final String? excludeSenderId;
+
+  /// Mirror of [excludeSenderId] — keeps only chats whose
+  /// `lastMessageSenderId` matches. Used by the Connect screen's
+  /// Inquiry tab so the user sees only their own outgoing inquiries.
+  /// Null = no inclusion filter.
+  final String? onlySenderId;
+
   @override
   State<BusinessChatsList> createState() => _BusinessChatsListState();
 }
@@ -169,6 +188,28 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
     chatList = chatList.where((chat) {
       return chat == null || !archivedIds.contains(chat.conversationId);
     }).toList();
+
+    // Optional sender-id scopes — match the order-tab filter shape:
+    //  • excludeSenderId → drop chats where I sent the last message
+    //    (used by the self-employed / professionals "Order" tabs to
+    //    surface only incoming inquiries).
+    //  • onlySenderId    → keep only chats where I sent the last
+    //    message (used by the Connect Inquiry tab so the user sees
+    //    only their own outgoing inquiries).
+    // Both null on every existing call site, so behaviour is preserved
+    // anywhere this widget is reused without an explicit filter.
+    if (widget.excludeSenderId != null) {
+      chatList = chatList
+          .where((c) =>
+              (c?.lastMessageSenderId ?? '') != widget.excludeSenderId)
+          .toList();
+    }
+    if (widget.onlySenderId != null) {
+      chatList = chatList
+          .where((c) =>
+              (c?.lastMessageSenderId ?? '') == widget.onlySenderId)
+          .toList();
+    }
 
     // Sort pinned to top
     chatList.sort((a, b) {

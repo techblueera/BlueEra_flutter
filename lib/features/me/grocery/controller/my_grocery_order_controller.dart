@@ -8,7 +8,7 @@ import 'package:BlueEra/features/me/grocery/model/grocery_order_model.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class MyMedicalOrdersController extends GetxController{
+class MyGroceryOrdersController extends GetxController{
   Rx<ApiResponse> myGroceryOrdersResponse =
       ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> submitCustomerOrderResponse =
@@ -31,7 +31,6 @@ class MyMedicalOrdersController extends GetxController{
   void selectMode(GroceryPaymentMode mode) {
     selectedPaymentMode.value = mode;
   }
-
 
   var selectedGroceryIds = <String>{}.obs;
   void toggleSelection(GroceryItem item) {
