@@ -27,7 +27,6 @@ class BusinessChatsList extends StatefulWidget {
     this.isNewGroupUI,
     this.excludeSenderId,
     this.onlySenderId,
-    this.isInParentScroll = false,
   });
   final bool? isForwardUI;
   final bool? isNewGroupUI;
@@ -43,15 +42,6 @@ class BusinessChatsList extends StatefulWidget {
   /// Inquiry tab so the user sees only their own outgoing inquiries.
   /// Null = no inclusion filter.
   final String? onlySenderId;
-
-  /// Embed-in-parent-scroll mode. When `true`, the inner chat list is
-  /// not wrapped in `Expanded` and its `ListView` switches to
-  /// `NeverScrollableScrollPhysics`, so the widget sizes to its
-  /// content under an unbounded sliver/nested scroll surface (the
-  /// self-employed / professionals "Order" tab). Defaults to `false`
-  /// — the Connect screen and forward / group-add flows continue to
-  /// rely on the bounded `Expanded` layout, unchanged.
-  final bool isInParentScroll;
 
   @override
   State<BusinessChatsList> createState() => _BusinessChatsListState();
@@ -87,11 +77,10 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (!widget.isInParentScroll) const SizedBox(height: 16),
+              SizedBox(height: 16),
               HorizontalTabSelector(
                 horizontalMargin: 14,
                 horizontalPadding: 10,
-                verticalMargin: widget.isInParentScroll ? 0 : null,
                 tabs: ['All', "Pinned", "Reminder", "Flagged", "Records"],
                 selectedIndex:
                     chatViewController.businessChatTabSelectedIndex.value,
@@ -100,17 +89,22 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
                 },
                 labelBuilder: (value) => value,
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: 12),
+              // Every sub-tab body needs to be wrapped in `Expanded` so the
+              // inner `ListView`s get a bounded height inside this Column.
+              // Without it, Pinned / Reminder / Flagged trigger a `RenderFlex`
+              // overflow (~99k px) when this widget is hosted inside a
+              // bounded parent (`SizedBox(height: ...)` in the Hospital,
+              // Self-Employed and Professionals tabs). Tab 0 and tab 4
+              // already had this; tabs 1/2/3 were missing it.
               if (chatViewController.businessChatTabSelectedIndex.value == 0)
-                widget.isInParentScroll
-                    ? _businessChatListWidget(data, theme)
-                    : Expanded(child: _businessChatListWidget(data, theme))
+                Expanded(child: _businessChatListWidget(data, theme))
               else if (chatViewController.businessChatTabSelectedIndex.value == 1)
-                const BusinessPinChatList()
+                const Expanded(child: BusinessPinChatList())
               else if (chatViewController.businessChatTabSelectedIndex.value == 2)
-                ReminderChatList()
+                Expanded(child: ReminderChatList())
               else if (chatViewController.businessChatTabSelectedIndex.value == 3)
-                const BusinessFlagChatList()
+                const Expanded(child: BusinessFlagChatList())
               else if (chatViewController.businessChatTabSelectedIndex.value == 4)
                 _buildArchiveTab(),
             ],
@@ -202,6 +196,15 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
       return chat == null || !archivedIds.contains(chat.conversationId);
     }).toList();
 
+    // Optional sender-id scopes — match the order-tab filter shape:
+    //  • excludeSenderId → drop chats where I sent the last message
+    //    (used by the self-employed / professionals "Order" tabs to
+    //    surface only incoming inquiries).
+    //  • onlySenderId    → keep only chats where I sent the last
+    //    message (used by the Connect Inquiry tab so the user sees
+    //    only their own outgoing inquiries).
+    // Both null on every existing call site, so behaviour is preserved
+    // anywhere this widget is reused without an explicit filter.
     if (widget.excludeSenderId != null) {
       chatList = chatList
           .where((c) =>
@@ -238,10 +241,6 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
           : ListView.builder(
               itemCount: chatList.length + topRowCount,
               shrinkWrap: true,
-              padding: EdgeInsets.zero,
-              physics: widget.isInParentScroll
-                  ? const NeverScrollableScrollPhysics()
-                  : null,
               itemBuilder: (context, index) {
                 // Records row at very top
                 if (hasArchived && index == 0) {

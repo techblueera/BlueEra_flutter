@@ -15,6 +15,9 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/multipart_image_service.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_verfication.dart';
+import 'package:BlueEra/features/chat/auth/controller/chat_flag_controller.dart';
+import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
+import 'package:BlueEra/features/chat/view/business_chat/business_chat_list.dart';
 import 'package:BlueEra/features/common/Discover/model/service_model_response.dart';
 import 'package:BlueEra/features/common/Discover/view/self_profession_screen_preview.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
@@ -61,16 +64,35 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2> {
   MedicalHomeResponseModel? _data;
   bool _isLoading = true;
   bool _isGoLive = false;
-  int _selectedTab = 1;
+  // Default landing tab unchanged: Overview. The previous code used index
+  // `1` for Overview; after inserting `Inquiry` at index `0`, every other
+  // tab shifts by `+1`, so Overview is now `2`.
+  int _selectedTab = 2;
 
   late final MedicalGalleryController _galleryController;
   late final MedicalController _medicalController;
   final _businessController =
       getOrPut(() => ViewBusinessDetailsController(), permanent: true);
 
+  // Drives the inquiry list shown under the Inquiry tab — same controller
+  // the Connect screen uses, so socket-driven updates land on both.
+  // Mirrors the wiring used by `HospitalHomeScreenV2`, `SchoolHomeScreenV2`
+  // and the Order tab in `professionals_main.dart`.
+  final ChatViewController _chatViewController =
+      getOrPut(() => ChatViewController());
+
+  // Pre-registered so the Flagged sub-tab inside `BusinessChatsList`
+  // (`BusinessFlagChatList` → `Get.find<ChatFlagController>()`) doesn't
+  // crash when this is the first screen the user touches. Mirrors the
+  // top-level registration in `connect_main_page.dart`.
+  // ignore: unused_field
+  final ChatFlagController _chatFlagController =
+      getOrPut(() => ChatFlagController());
+
   bool _productsFetched = false;
 
   static const _tabs = [
+    'Inquiry',
     'Order',
     'Overview',
     'Products',
@@ -83,6 +105,13 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2> {
     super.initState();
     _galleryController = Get.put(MedicalGalleryController());
     _medicalController = getOrPut(() => MedicalController());
+    // Hydrate the business chat list so the Inquiry tab has data ready
+    // when the user switches to it. Mirrors what `HospitalHomeScreenV2`,
+    // `SchoolHomeScreenV2` and `professionals_main.dart` do.
+    _chatViewController.emitEvent(
+      ChatEmitEvents.ChatList,
+      {ApiKeys.type: AppConstants.business_Chat_Type},
+    );
     _fetchData();
   }
 
@@ -174,23 +203,52 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2> {
 
   // ─────────────────────────────────────────────
   // TAB CONTENT — switches body by _selectedTab
-  //   0 Order, 1 Overview, 2 Products, 3 Post, 4 Statics
+  //   0 Inquiry, 1 Order, 2 Overview, 3 Products, 4 Post, 5 Statics
+  //
+  // Inquiry was inserted at index `0`; every other tab's case shifted
+  // by `+1`. The legacy `Order` placeholder still surfaces stats (kept
+  // identical to before — same `MedicalStatisticsScreen` body), just
+  // at its new index `1` so the existing flow stays intact.
   // ─────────────────────────────────────────────
   List<Widget> _buildTabContent() {
     switch (_selectedTab) {
-      case 1:
-        return _buildOverviewSlivers();
+      case 0:
+        return _buildInquiryTab();
       case 2:
+        return _buildOverviewSlivers();
+      case 3:
         _ensureProductsLoaded();
         return _buildProductsTab();
-      case 3:
-        return _buildPostTab();
-      case 0:
       case 4:
+        return _buildPostTab();
+      case 1:
+      case 5:
         return [MedicalStatisticsScreen(businessId: userId)];
       default:
         return [_buildComingSoon()];
     }
+  }
+
+  // ─────────────────────────────────────────────
+  // INQUIRY TAB — incoming inquiries only (chats whose latest message
+  // was authored by *someone else*). Mirrors `HospitalInquiryTabV2` /
+  // `SchoolInquiryTabV2` and the Order tab in `professionals_main.dart`.
+  //
+  // `BusinessChatsList` ships an Expanded `ListView` internally, so
+  // it must live inside a bounded box; we use a fraction of the
+  // screen height to play nicely with the parent SingleChildScrollView.
+  // ─────────────────────────────────────────────
+  List<Widget> _buildInquiryTab() {
+    final screenHeight = MediaQuery.of(context).size.height;
+    return [
+      SizedBox(
+        height: screenHeight * 0.75,
+        child: BusinessChatsList(
+          isForwardUI: false,
+          excludeSenderId: userId,
+        ),
+      ),
+    ];
   }
 
   List<Widget> _buildOverviewSlivers() {
