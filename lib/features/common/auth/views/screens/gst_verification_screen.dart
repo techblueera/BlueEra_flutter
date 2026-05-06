@@ -12,6 +12,7 @@ import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 import '../../../../personal/personal_profile/controller/languge_list_controller.dart';
@@ -136,6 +137,16 @@ class _GstNumberScreenState extends State<GstNumberScreen> {
                         isValidate: false,
                         autovalidateMode:
                             AutovalidateMode.onUserInteraction,
+                        inputFormatters: [
+                          LengthLimitingTextInputFormatter(15),
+                          FilteringTextInputFormatter.allow(
+                              RegExp(r'[a-zA-Z0-9]')),
+                          TextInputFormatter.withFunction(
+                            (oldValue, newValue) => newValue.copyWith(
+                              text: newValue.text.toUpperCase(),
+                            ),
+                          ),
+                        ],
                         onChange: (_) => _validateAll(),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
@@ -254,7 +265,15 @@ class _GstNumberScreenState extends State<GstNumberScreen> {
     authController.isValidate.value = _gstRegExp.hasMatch(gst);
   }
 
+  // GSTIN format (15 chars):
+  //  [0-9]{2}     state code
+  //  [A-Z]{5}     PAN first 5 chars
+  //  [0-9]{4}     PAN next 4 digits
+  //  [A-Z]{1}     PAN last char
+  //  [1-9A-Z]{1}  entity number
+  //  [A-Z]{1}     defaults to 'Z' but spec allows any uppercase letter
+  //  [0-9A-Z]{1}  checksum
   static final RegExp _gstRegExp = RegExp(
-    r'^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$',
+    r'^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}[A-Z]{1}[0-9A-Z]{1}$',
   );
 }

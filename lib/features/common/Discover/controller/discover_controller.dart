@@ -11,7 +11,7 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/hive_services.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
-import 'package:BlueEra/features/common/Discover/model/all_education_res_model.dart';
+import 'package:BlueEra/features/common/Discover/model/business_filter_res_model.dart';
 import 'package:BlueEra/features/common/Discover/model/food_restaurant_service_model.dart';
 import 'package:BlueEra/features/common/Discover/model/hotel_search_model.dart';
 import 'package:BlueEra/features/common/Discover/model/profe_cons_res_model.dart';
@@ -613,6 +613,15 @@ class DiscoverController extends GetxController {
     }
   }
 
+  /// Fetches education-category businesses (colleges, schools, etc.) using the
+  /// shared `business/filter` endpoint. The category slug
+  /// (e.g. `COLLEGE_UNIVERSITY`) comes from [selectedEducationServiceData].
+  ///
+  /// The endpoint returns business records (see [BusinessFilterResModel]).
+  /// Each is adapted into a [SchoolDetailsData] via [_businessToSchoolDetail]
+  /// so the existing UI (`AllEducationServiceScreen`, `DiscoverSchoolHomeScreen`,
+  /// `SchoolAboutUsController`) keeps working without a parallel rewrite —
+  /// they all consume `schoolDetailsDataDataList`.
   Future<void> fetchEducationServiceServices({bool isLoadMore = false}) async {
     if (isLoadMore) {
       if (isEducationServiceLoadingMore.value || !hasMoreEducationServiceData) {
@@ -628,22 +637,32 @@ class DiscoverController extends GetxController {
 
     final Map<String, dynamic> queryParams = {
       if (selectedEducationServiceData.value?.slugId != null)
-        "search": selectedEducationServiceData.value?.slugId,
+        ApiKeys.category: selectedEducationServiceData.value?.slugId,
       ApiKeys.page: educationServicePage,
       ApiKeys.limit: limit,
     };
 
-    ResponseModel response =
-        await SchoolRepo().getSearchSchoolRepo(reqParm: queryParams);
-
     try {
-      if (response.isSuccess) {
-        // educationServiceResponse.value = ApiResponse.complete(response);
-        final responseModel =
-            AllEducationResModel.fromJson(response.response?.data);
+      final ResponseModel response = await DiscoverRepo()
+          .fetchBusinessFilterRepo(queryParams: queryParams);
 
-        List<SchoolDetailsData> tempNewItems = responseModel.data ?? [];
-        if (tempNewItems.length < limit) {
+      if (response.isSuccess) {
+        final responseModel =
+            BusinessFilterResModel.fromJson(response.response?.data);
+
+        final List<BusinessFilterData> rawItems = responseModel.data ?? [];
+        final List<SchoolDetailsData> tempNewItems =
+            rawItems.map((b) => b.toSchoolDetail()).toList();
+
+        // Pagination: prefer the server's totalPages signal when available,
+        // and fall back to the page-size heuristic used elsewhere in this
+        // controller for consistency.
+        final pagination = responseModel.pagination;
+        if (pagination?.totalPages != null && pagination?.page != null) {
+          if (pagination!.page! >= pagination.totalPages!) {
+            hasMoreEducationServiceData = false;
+          }
+        } else if (tempNewItems.length < limit) {
           hasMoreEducationServiceData = false;
         }
 
@@ -656,14 +675,9 @@ class DiscoverController extends GetxController {
         if (tempNewItems.isNotEmpty) {
           educationServicePage++;
         }
-      } else {
-        if (!isLoadMore) {
-          // educationServiceResponse.value = ApiResponse.error('error');
-        }
       }
     } catch (e, s) {
       print('stack trace --> $s');
-      // educationServiceResponse.value = ApiResponse.error('error');
     } finally {
       if (isLoadMore) {
         isEducationServiceLoadingMore.value = false;
@@ -672,6 +686,7 @@ class DiscoverController extends GetxController {
       }
     }
   }
+
 
   Future<void> fetchProfessionalConsultantServices(
       {bool isLoadMore = false}) async {

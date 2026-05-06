@@ -630,6 +630,7 @@ class _CreateBusinessAccountNewStepOneState extends State<CreateBusinessAccountN
         ApiKeys.address: locationData.fullAddress,
         ApiKeys.type_of_business: authController.selectedTypeOfBusiness?.name,
         ApiKeys.nature_of_business: authController.selectedNatureOfBusiness?.name,
+        ApiKeys.type: authController.selectedCategorySlugId,
         ApiKeys.date_of_incorporation: {
           ApiKeys.date: authController.selectedDay?.value,
           ApiKeys.month: authController.selectedMonth?.value,

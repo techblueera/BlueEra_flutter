@@ -72,5 +72,22 @@ class DiscoverRepo extends BaseService {
     return response;
   }
 
+  /// GET: Filter businesses by category. Used by the education / school
+  /// listing screens to fetch college-, university-, school-type providers
+  /// (e.g. `category=COLLEGE_UNIVERSITY`). Backed by:
+  /// `GET user-service/business/filter?category=...&page=...&limit=...`
+  Future<ResponseModel> fetchBusinessFilterRepo({
+    required Map<String, dynamic> queryParams,
+  }) async {
+    final response = await ApiBaseHelper().getHTTP(
+      'user-service/business/filter',
+      showProgress: false,
+      params: queryParams,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
 }
 

@@ -1667,7 +1667,6 @@ businessOnboardingEducationTrainingCategories = [
       slugId: COLLEGE_UNIVERSITY,
       icon: OnboardingBusinessAssets.EduUniversity,
       accountType: AppConstants.business,
-
       businessType: BusinessType.Siksha),
   OnboardingCategoryModel(
       name: 'Coaching/\nInstitute',
