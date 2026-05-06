@@ -290,12 +290,7 @@ class FoodSelfPickupController extends GetxController {
       final sp = (variant.baseSellingPrice ?? 0).toDouble();
 
       items.add({
-        // Sending an empty string for an ObjectId field causes a BSON validation
-        // error on the server. Fall back to the variant ID if inventoryId is
-        // missing to ensure the payload is at least valid.
-        'inventory': (variant.inventoryId != null && variant.inventoryId!.isNotEmpty)
-            ? variant.inventoryId
-            : (variant.id ?? ''),
+        'inventory': variant.inventoryId ?? '',
         'productVariant': variant.id ?? '',
         'quantity': qty,
         'mrp': mrp,
