@@ -13,7 +13,7 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/me/food/model/food_snap_search_response.dart';
 import 'package:BlueEra/features/me/food/model/food_product_response_model.dart';
-import 'package:BlueEra/features/me/food/controller/home_food_controller.dart';
+import 'package:BlueEra/features/me/food/controller/restaurant_controller.dart';
 import 'package:BlueEra/features/me/food/repo/food_repo.dart';
 import 'package:BlueEra/features/me/food/model/category_food_product_res_model.dart';
 import 'package:BlueEra/features/me/food/model/food_gen_ai_res_model.dart';

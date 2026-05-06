@@ -16,7 +16,7 @@ import 'package:BlueEra/features/business/widgets/business_profile_header_view.d
 import 'package:BlueEra/features/business/widgets/business_qrcode_widget.dart';
 import 'package:BlueEra/features/business/widgets/business_share_banner.dart';
 import 'package:BlueEra/features/business/widgets/business_stats.dart';
-import 'package:BlueEra/features/me/food/controller/home_food_controller.dart';
+import 'package:BlueEra/features/me/food/controller/restaurant_controller.dart';
 import 'package:BlueEra/features/me/food/model/food_home_res_model.dart';
 import 'package:BlueEra/features/me/food/view/discount_food_products_screen.dart';
 import 'package:BlueEra/features/me/food/view/food_service_gallery/food_service_photos_screen.dart';

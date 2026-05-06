@@ -104,12 +104,23 @@ class RestaurantController extends GetxController {
         var foodProductResponseModel =
             FoodProductResponseModel.fromJson(response.response?.data);
 
+        // Same outer-`inventoryId` → variant copy used by the category
+        // listing flow. Discount API embeds the id at the variant
+        // level so the `??=` is usually a no-op here, but doing the
+        // propagation defensively keeps the two flows in sync.
         List<CategoryFoodProductData> newItems =
             (foodProductResponseModel.data ?? [])
-                .where((item) =>
-                    item.productDetails != null) // Filter out nulls for safety
-                .map((item) =>
-                    item.productDetails!) // Extract the internal productDetails
+                .where((item) => item.productDetails != null)
+                .map((item) {
+                  final pd = item.productDetails!;
+                  final outerInv = item.inventoryId;
+                  if (outerInv != null && outerInv.isNotEmpty) {
+                    for (final v in pd.variants ?? const <FoodVariants>[]) {
+                      v.inventoryId ??= outerInv;
+                    }
+                  }
+                  return pd;
+                })
                 .toList();
 
         if (newItems.isNotEmpty) {

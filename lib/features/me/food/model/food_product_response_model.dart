@@ -43,12 +43,27 @@ class FoodProductResponseModel {
 
 class MyFoodProductData {
   CategoryFoodProductData? productDetails;
-  MyFoodProductData({this.productDetails});
+
+  /// Outer-level inventory identifier returned by the food category
+  /// listing API alongside `productDetails`. The variants nested inside
+  /// `productDetails` don't carry their own `inventoryId` on this
+  /// endpoint (only the discount-products endpoint embeds it at the
+  /// variant level), so consumers (`getCustomerFoodProductByCategoryIdApi`)
+  /// read this and copy it down into each variant before exposing the
+  /// list — that way `buildBulkOrderItems` can keep reading
+  /// `variant.inventoryId` uniformly across both flows.
+  String? inventoryId;
+
+  MyFoodProductData({this.productDetails, this.inventoryId});
 
   MyFoodProductData.fromJson(Map<String, dynamic> json) {
     productDetails = json['productDetails'] != null
         ? CategoryFoodProductData.fromJson(json['productDetails'])
         : null;
+    // Some backend variants of this payload key the inventory id as
+    // `inventoryId`, others as `_id` of the inventory record. Try
+    // both — falls back to null if neither is present.
+    inventoryId = (json['inventoryId'] ?? json['_id'])?.toString();
   }
 
   Map<String, dynamic> toJson() {
@@ -56,6 +71,7 @@ class MyFoodProductData {
     if (productDetails != null) {
       data['productDetails'] = productDetails!.toJson();
     }
+    data['inventoryId'] = inventoryId;
     return data;
   }
 }

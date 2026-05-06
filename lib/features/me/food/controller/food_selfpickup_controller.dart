@@ -230,10 +230,27 @@ class FoodSelfPickupController extends GetxController {
         final foodProductResponseModel =
             FoodProductResponseModel.fromJson(response.response?.data);
 
+        // The category-listing API returns the inventory id at the
+        // OUTER level (`MyFoodProductData.inventoryId`) — variants
+        // nested in `productDetails.variants` don't carry their own
+        // `inventoryId` on this endpoint. Copy the outer id down into
+        // each variant so the cart's `buildBulkOrderItems` (which
+        // reads `variant.inventoryId`) sends a non-empty inventory
+        // ref and the place-order API succeeds. `??=` so we never
+        // overwrite a variant that already has its own.
         final List<CategoryFoodProductData> newItems =
             (foodProductResponseModel.data ?? [])
                 .where((item) => item.productDetails != null)
-                .map((item) => item.productDetails!)
+                .map((item) {
+                  final pd = item.productDetails!;
+                  final outerInv = item.inventoryId;
+                  if (outerInv != null && outerInv.isNotEmpty) {
+                    for (final v in pd.variants ?? const <FoodVariants>[]) {
+                      v.inventoryId ??= outerInv;
+                    }
+                  }
+                  return pd;
+                })
                 .toList();
 
         if (newItems.isNotEmpty) {

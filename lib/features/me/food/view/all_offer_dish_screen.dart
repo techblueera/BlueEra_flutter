@@ -6,7 +6,7 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/me/food/controller/food_selfpickup_controller.dart';
-import 'package:BlueEra/features/me/food/controller/home_food_controller.dart';
+import 'package:BlueEra/features/me/food/controller/restaurant_controller.dart';
 import 'package:BlueEra/features/me/food/model/category_food_product_res_model.dart';
 import 'package:BlueEra/features/me/food/view/widget/food_self_pickup_cart.dart';
 import 'package:BlueEra/features/me/food/view/widget/food_offer_dish_tile.dart';
