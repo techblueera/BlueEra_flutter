@@ -473,6 +473,7 @@ class _ConnectMainPageState extends State<ConnectMainPage>
             }
             return true;
           },
+
           child: Scaffold(
             floatingActionButton: SafeArea(
               child: Padding(
