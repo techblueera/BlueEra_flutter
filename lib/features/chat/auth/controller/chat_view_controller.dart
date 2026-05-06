@@ -2107,7 +2107,7 @@ class ChatViewController extends GetxController {
           .getChatRequestsListApi(limit: limit, nextCursor: nextCursor);
       if (responseModel.isSuccess) {
         chatRequestsListModel.value =
-            ChatRequestsListModel.fromJson(responseModel.response);
+            ChatRequestsListModel.fromJson(responseModel.response!.data);
         chatRequestsListResponse.value = ApiResponse.complete(responseModel);
       } else {
         chatRequestsListResponse.value = ApiResponse.error(
