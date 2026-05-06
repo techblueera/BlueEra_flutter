@@ -2659,11 +2659,11 @@ class ChatViewController extends GetxController {
 
           final alreadyExists = message.id != null &&
               (getListOfMessageData?.any((m) => m.id == message.id) ?? false);
-          // if (!alreadyExists) {
-          //   getListOfMessageData?.add(message);
-          //
-          //
-          // }
+          if (!alreadyExists) {
+            getListOfMessageData?.add(message);
+
+
+          }
           getListOfMessageResponse.value =
               ApiResponse.complete(getListOfMessageData);
           saveSingleMessageToLocal(
@@ -3367,6 +3367,7 @@ class ChatViewController extends GetxController {
   /// For each message with media URLs, checks if the file was already downloaded
   /// locally and replaces the remote URL with the local path so widgets show
   /// the file instantly without network loading.
+  ///
   Future<void> _resolveLocalMediaPaths(List<Messages> messages) async {
     final mediaTypes = {'image', 'video', 'audio', 'document'};
     for (final msg in messages) {
@@ -3561,9 +3562,9 @@ class ChatViewController extends GetxController {
             // up twice in the conversation.
             final alreadyExists = message.id != null &&
                 (getListOfMessageData?.any((m) => m.id == message.id) ?? false);
-            if (!alreadyExists) {
-              getListOfMessageData?.add(message);
-            }
+            // if (!alreadyExists) {
+            //   getListOfMessageData?.add(message);
+            // }
             getListOfMessageResponse.value =
                 ApiResponse.complete(getListOfMessageData);
             await localStorageHelper.replacePendingWithServerMessage(
