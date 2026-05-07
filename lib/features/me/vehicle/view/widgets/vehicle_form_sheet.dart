@@ -5,12 +5,13 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/vehicle/model/vehicle_models.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 
 /// Result returned from [VehicleFormSheet] when the user submits the
-/// form. Held in a public class (vs. anonymous record) so the home
-/// screen can declare `showModalBottomSheet<VehicleFormResult>` and
-/// pass the captured local-file picks through to [VehicleController]
+/// form. Held in a public class (vs. anonymous record) so the caller
+/// can declare `Navigator.push<VehicleFormResult>` and pass the
+/// captured local-file picks through to [VehicleController]
 /// for the two-step S3 upload.
 class VehicleFormResult {
   final Vehicle draft;
@@ -24,14 +25,14 @@ class VehicleFormResult {
   });
 }
 
-/// Add / edit form for a vehicle, presented as a draggable bottom
-/// sheet. Pops with [VehicleFormResult] on submit, `null` on cancel.
+/// Add / edit form for a vehicle, presented as a full-screen page.
+/// Pops with [VehicleFormResult] on submit, `null` on cancel.
 ///
-/// When [initial] is null we render the "Add" copy and the picked
-/// images are uploaded after the create call in the parent. When
-/// [initial] is supplied we pre-populate every field; the parent
-/// converts the patched draft back into a partial `toCreateJson` for
-/// the PUT update.
+/// Earlier this widget rendered as a draggable bottom sheet — it's now
+/// a Scaffold-based screen so long forms scroll comfortably on small
+/// devices, the keyboard never collapses the form, and there's room
+/// for per-field validation messages. The class name is kept
+/// (`VehicleFormSheet`) so existing imports continue to compile.
 class VehicleFormSheet extends StatefulWidget {
   final Vehicle? initial;
 
@@ -44,6 +45,7 @@ class VehicleFormSheet extends StatefulWidget {
 class _VehicleFormSheetState extends State<VehicleFormSheet> {
   final _formKey = GlobalKey<FormState>();
   final _picker = ImagePicker();
+  final _scrollController = ScrollController();
 
   late final TextEditingController _nameCtrl;
   late final TextEditingController _descCtrl;
@@ -55,13 +57,12 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
   late final TextEditingController _seatsCtrl;
   late final TextEditingController _mileageCtrl;
   late final TextEditingController _priceCtrl;
-  late final TextEditingController _cityCtrl;
-  late final TextEditingController _stateCtrl;
-  late final TextEditingController _pincodeCtrl;
-  late final TextEditingController _addressCtrl;
+  // Stable controller for sub-category — the previous version recreated
+  // a TextEditingController on every build, which silently lost the
+  // user's cursor position whenever any other field caused a setState.
+  late final TextEditingController _subCategoryCtrl;
 
   String? _category;
-  String? _subCategory;
   VehicleFuelType? _fuel;
   VehicleTransmission? _transmission;
 
@@ -86,13 +87,8 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
     _mileageCtrl = TextEditingController(text: v?.mileage ?? '');
     _priceCtrl =
         TextEditingController(text: v?.price?.toStringAsFixed(0) ?? '');
-    _cityCtrl = TextEditingController(text: v?.location?.city ?? '');
-    _stateCtrl = TextEditingController(text: v?.location?.state ?? '');
-    _pincodeCtrl =
-        TextEditingController(text: v?.location?.pincode?.toString() ?? '');
-    _addressCtrl = TextEditingController(text: v?.location?.address ?? '');
+    _subCategoryCtrl = TextEditingController(text: v?.subCategory ?? '');
     _category = v?.category;
-    _subCategory = v?.subCategory;
     _fuel = v?.fuelType;
     _transmission = v?.transmission;
   }
@@ -110,18 +106,47 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
       _seatsCtrl,
       _mileageCtrl,
       _priceCtrl,
-      _cityCtrl,
-      _stateCtrl,
-      _pincodeCtrl,
-      _addressCtrl,
+      _subCategoryCtrl,
     ]) {
       c.dispose();
     }
+    _scrollController.dispose();
     super.dispose();
   }
 
+  // ─── Validators ───────────────────────────────────────────────────
+  // All non-required fields short-circuit to `null` when empty so the
+  // user is never forced to fill optional inputs.
+
+  String? _vName(String? v) =>
+      (v == null || v.trim().isEmpty) ? 'Name is required' : null;
+
+  String? _vYear(String? v) {
+    if (v == null || v.trim().isEmpty) return null;
+    final n = int.tryParse(v.trim());
+    final maxYear = DateTime.now().year + 1;
+    if (n == null) return 'Enter a valid year';
+    if (n < 1900 || n > maxYear) return 'Year must be 1900–$maxYear';
+    return null;
+  }
+
+  String? _vSeats(String? v) {
+    if (v == null || v.trim().isEmpty) return null;
+    final n = int.tryParse(v.trim());
+    if (n == null || n <= 0 || n > 100) return 'Enter 1–100';
+    return null;
+  }
+
+  String? _vPrice(String? v) {
+    if (v == null || v.trim().isEmpty) return null;
+    final n = double.tryParse(v.trim());
+    if (n == null || n < 0) return 'Enter a valid price';
+    return null;
+  }
+
   Future<void> _pickCover() async {
-    final x = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
+    final x =
+        await _picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
     if (x != null) {
       setState(() => _coverFile = File(x.path));
     }
@@ -140,7 +165,9 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
       name: _nameCtrl.text.trim(),
       description: _descCtrl.text.trim().isEmpty ? null : _descCtrl.text.trim(),
       category: _category,
-      subCategory: _subCategory,
+      subCategory: _subCategoryCtrl.text.trim().isEmpty
+          ? null
+          : _subCategoryCtrl.text.trim(),
       brand: _brandCtrl.text.trim().isEmpty ? null : _brandCtrl.text.trim(),
       model: _modelCtrl.text.trim().isEmpty ? null : _modelCtrl.text.trim(),
       year: int.tryParse(_yearCtrl.text.trim()),
@@ -154,13 +181,11 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
           _mileageCtrl.text.trim().isEmpty ? null : _mileageCtrl.text.trim(),
       price: double.tryParse(_priceCtrl.text.trim()),
       currency: 'INR',
-      location: VehicleLocation(
-        address:
-            _addressCtrl.text.trim().isEmpty ? null : _addressCtrl.text.trim(),
-        city: _cityCtrl.text.trim().isEmpty ? null : _cityCtrl.text.trim(),
-        state: _stateCtrl.text.trim().isEmpty ? null : _stateCtrl.text.trim(),
-        pincode: int.tryParse(_pincodeCtrl.text.trim()),
-      ),
+      // Location section removed from the form intentionally —
+      // `toCreateJson()` is `if (location != null) ...` so passing
+      // null here means the partial PUT for an existing vehicle
+      // keeps any prior city / state / pincode the server holds.
+      location: null,
       coverImage: widget.initial?.coverImage,
       images: widget.initial?.images ?? const [],
     );
@@ -176,58 +201,33 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final maxHeight = MediaQuery.of(context).size.height * 0.92;
-    return ConstrainedBox(
-      constraints: BoxConstraints(maxHeight: maxHeight),
-      child: Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    final media = MediaQuery.of(context);
+    // Tablets / landscape phones get the form capped at 640 dp wide
+    // and centered. Phones fall through to the natural full width —
+    // wrapping with `Center` + `ConstrainedBox(maxWidth: ∞)` was
+    // pushing unbounded horizontal constraints into the form's
+    // `SingleChildScrollView`, and the inner `Row + Expanded` rows
+    // need a finite width to allocate flex space, so the form was
+    // failing to lay out correctly on phones.
+    final isWide = media.size.width >= 720;
+
+    final body = Scrollbar(
+      controller: _scrollController,
+      thumbVisibility: true,
+      child: SingleChildScrollView(
+        controller: _scrollController,
+        padding: EdgeInsets.fromLTRB(
+          SizeConfig.size16,
+          SizeConfig.size12,
+          SizeConfig.size16,
+          SizeConfig.size16,
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 40,
-              height: 4,
-              margin: const EdgeInsets.symmetric(vertical: 10),
-              decoration: BoxDecoration(
-                color: Colors.grey.shade300,
-                borderRadius: BorderRadius.circular(4),
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: SizeConfig.size16,
-                vertical: SizeConfig.size4,
-              ),
-              child: Row(
-                children: [
-                  CustomText(
-                    _isEdit ? 'Edit vehicle' : 'Add vehicle',
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.mainTextColor,
-                  ),
-                  const Spacer(),
-                  IconButton(
-                    icon: const Icon(Icons.close_rounded),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                ],
-              ),
-            ),
-            const Divider(height: 1),
-            Flexible(
-              child: SingleChildScrollView(
-                padding: EdgeInsets.fromLTRB(
-                  SizeConfig.size16,
-                  SizeConfig.size12,
-                  SizeConfig.size16,
-                  SizeConfig.size16,
-                ),
-                child: Form(
+        child: Form(
                   key: _formKey,
+                  // onUserInteraction so the user sees the validation
+                  // message inline as they type (after the first attempt)
+                  // rather than only after pressing the submit button.
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -239,9 +239,8 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
                       _field(
                         controller: _nameCtrl,
                         label: 'Name *',
-                        validator: (v) => (v == null || v.trim().isEmpty)
-                            ? 'Name is required'
-                            : null,
+                        validator: _vName,
+                        textInputAction: TextInputAction.next,
                       ),
                       _field(
                         controller: _descCtrl,
@@ -253,16 +252,21 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
                           child: _dropdown<String>(
                             label: 'Category',
                             value: _category,
-                            items: const ['CAR', 'BIKE', 'TRUCK', 'BUS', 'OTHER'],
+                            items: const [
+                              'CAR',
+                              'BIKE',
+                              'TRUCK',
+                              'BUS',
+                              'OTHER'
+                            ],
                             onChanged: (v) => setState(() => _category = v),
                           ),
                         ),
                         SizedBox(width: SizeConfig.size10),
                         Expanded(
                           child: _field(
-                            controller: TextEditingController(text: _subCategory ?? ''),
+                            controller: _subCategoryCtrl,
                             label: 'Sub-category',
-                            onChanged: (v) => _subCategory = v,
                           ),
                         ),
                       ]),
@@ -287,6 +291,11 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
                             controller: _yearCtrl,
                             label: 'Year',
                             keyboardType: TextInputType.number,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly,
+                              LengthLimitingTextInputFormatter(4),
+                            ],
+                            validator: _vYear,
                           ),
                         ),
                         SizedBox(width: SizeConfig.size10),
@@ -297,9 +306,17 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
                           ),
                         ),
                       ]),
+                      // Registration no. — explicitly NOT mandatory.
+                      // Auto-upper-cased so RC numbers display
+                      // consistently in lists ("MH02AB1234").
                       _field(
                         controller: _regCtrl,
-                        label: 'Registration no.',
+                        label: 'Registration no. (optional)',
+                        textCapitalization: TextCapitalization.characters,
+                        inputFormatters: [
+                          LengthLimitingTextInputFormatter(20),
+                          _UpperCaseFormatter(),
+                        ],
                       ),
                       SizedBox(height: SizeConfig.size12),
                       _label('Specs'),
@@ -333,6 +350,11 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
                             controller: _seatsCtrl,
                             label: 'Seats',
                             keyboardType: TextInputType.number,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly,
+                              LengthLimitingTextInputFormatter(3),
+                            ],
+                            validator: _vSeats,
                           ),
                         ),
                         SizedBox(width: SizeConfig.size10),
@@ -346,90 +368,105 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
                       _field(
                         controller: _priceCtrl,
                         label: 'Price (INR)',
-                        keyboardType: TextInputType.number,
+                        keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true),
+                        inputFormatters: [
+                          // Up to 2 decimal places — matches
+                          // `price.toStringAsFixed(0)` echo on edit.
+                          FilteringTextInputFormatter.allow(
+                              RegExp(r'^\d*\.?\d{0,2}')),
+                        ],
+                        validator: _vPrice,
                       ),
-                      SizedBox(height: SizeConfig.size12),
-                      _label('Location'),
-                      _field(controller: _addressCtrl, label: 'Address'),
-                      Row(children: [
-                        Expanded(
-                          child: _field(
-                            controller: _cityCtrl,
-                            label: 'City',
-                          ),
-                        ),
-                        SizedBox(width: SizeConfig.size10),
-                        Expanded(
-                          child: _field(
-                            controller: _stateCtrl,
-                            label: 'State',
-                          ),
-                        ),
-                      ]),
-                      _field(
-                        controller: _pincodeCtrl,
-                        label: 'Pincode',
-                        keyboardType: TextInputType.number,
-                      ),
+                      SizedBox(height: SizeConfig.size20),
                     ],
                   ),
                 ),
               ),
+            );
+
+    final actionBar = Row(
+      children: [
+        Expanded(
+          child: OutlinedButton(
+            onPressed: () => Navigator.pop(context),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
             ),
-            Container(
-              padding: EdgeInsets.fromLTRB(
-                SizeConfig.size16,
-                SizeConfig.size10,
-                SizeConfig.size16,
-                SizeConfig.size16 + MediaQuery.of(context).padding.bottom,
-              ),
-              decoration: const BoxDecoration(
+            child: CustomText(
+              'Cancel',
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: AppColors.secondaryTextColor,
+            ),
+          ),
+        ),
+        SizedBox(width: SizeConfig.size12),
+        Expanded(
+          child: ElevatedButton(
+            onPressed: _submit,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primaryColor,
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
+              elevation: 0,
+            ),
+            child: Text(
+              _isEdit ? 'Save changes' : 'Create vehicle',
+              style: const TextStyle(
                 color: Colors.white,
-                border: Border(top: BorderSide(color: Color(0xFFEDEFF4))),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => Navigator.pop(context),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
-                      ),
-                      child: CustomText(
-                        'Cancel',
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.secondaryTextColor,
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: SizeConfig.size12),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: _submit,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primaryColor,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
-                        elevation: 0,
-                      ),
-                      child: Text(
-                        _isEdit ? 'Save changes' : 'Create vehicle',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+                fontSize: 14,
+                fontWeight: FontWeight.w800,
               ),
             ),
-          ],
+          ),
+        ),
+      ],
+    );
+
+    // Helper that wraps `child` in a topCenter Align + ConstrainedBox
+    // only on wide layouts, so phones never end up with unbounded
+    // horizontal constraints reaching the form/action-bar.
+    Widget capWidth(Widget child) => isWide
+        ? Align(
+            alignment: Alignment.topCenter,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 640),
+              child: child,
+            ),
+          )
+        : child;
+
+    return Scaffold(
+      backgroundColor: const Color(0xFFF8FAFD),
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0.5,
+        iconTheme: IconThemeData(color: AppColors.mainTextColor),
+        title: CustomText(
+          _isEdit ? 'Edit vehicle' : 'Add vehicle',
+          fontSize: 18,
+          fontWeight: FontWeight.w800,
+          color: AppColors.mainTextColor,
+        ),
+      ),
+      body: SafeArea(child: capWidth(body)),
+      bottomNavigationBar: SafeArea(
+        child: Container(
+          padding: EdgeInsets.fromLTRB(
+            SizeConfig.size16,
+            SizeConfig.size10,
+            SizeConfig.size16,
+            SizeConfig.size16,
+          ),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            border: Border(top: BorderSide(color: Color(0xFFEDEFF4))),
+          ),
+          child: capWidth(actionBar),
         ),
       ),
     );
@@ -466,7 +503,8 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
               right: 8,
               bottom: 8,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
                   color: Colors.black.withValues(alpha: 0.55),
                   borderRadius: BorderRadius.circular(20),
@@ -474,7 +512,8 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
                 child: const Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.camera_alt_rounded, size: 14, color: Colors.white),
+                    Icon(Icons.camera_alt_rounded,
+                        size: 14, color: Colors.white),
                     SizedBox(width: 6),
                     Text('Cover photo',
                         style: TextStyle(
@@ -619,6 +658,9 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
     TextInputType? keyboardType,
     String? Function(String?)? validator,
     void Function(String)? onChanged,
+    List<TextInputFormatter>? inputFormatters,
+    TextInputAction? textInputAction,
+    TextCapitalization textCapitalization = TextCapitalization.none,
   }) {
     return Padding(
       padding: EdgeInsets.symmetric(vertical: SizeConfig.size6),
@@ -628,9 +670,14 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
         keyboardType: keyboardType,
         validator: validator,
         onChanged: onChanged,
+        inputFormatters: inputFormatters,
+        textInputAction: textInputAction,
+        textCapitalization: textCapitalization,
         decoration: InputDecoration(
           labelText: label,
           isDense: true,
+          filled: true,
+          fillColor: Colors.white,
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
         ),
       ),
@@ -658,9 +705,24 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
         decoration: InputDecoration(
           labelText: label,
           isDense: true,
+          filled: true,
+          fillColor: Colors.white,
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
         ),
       ),
     );
+  }
+}
+
+/// Inline TextInputFormatter that upper-cases incoming text. Used for
+/// the registration number so the captured value matches the typical
+/// Indian RC display format ("MH02AB1234") regardless of how the user
+/// typed it. Kept private to this file because it has no other caller.
+class _UpperCaseFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+      TextEditingValue oldValue, TextEditingValue newValue) {
+    if (newValue.text == newValue.text.toUpperCase()) return newValue;
+    return newValue.copyWith(text: newValue.text.toUpperCase());
   }
 }

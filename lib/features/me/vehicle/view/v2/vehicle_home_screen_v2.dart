@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -14,13 +16,16 @@ import 'package:BlueEra/features/common/home/widgets/drawer.dart';
 import 'package:BlueEra/features/me/vehicle/controller/vehicle_controller.dart';
 import 'package:BlueEra/features/me/vehicle/model/vehicle_models.dart';
 import 'package:BlueEra/features/me/vehicle/view/widgets/vehicle_card.dart';
+import 'package:BlueEra/features/me/vehicle/view/widgets/vehicle_contact_form_sheet.dart';
 import 'package:BlueEra/features/me/vehicle/view/widgets/vehicle_form_sheet.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 /// Vehicle "me" profile home (v2) — owner-side dashboard for the
 /// `vehicle-service` microservice documented in
@@ -76,6 +81,7 @@ class _VehicleHomeScreenV2State extends State<VehicleHomeScreenV2> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFEAF2FB),
+
       body: SafeArea(
         top: false,
         child: Stack(
@@ -84,9 +90,20 @@ class _VehicleHomeScreenV2State extends State<VehicleHomeScreenV2> {
             Column(
               children: [
                 _buildTopBar(),
+
                 Expanded(
                   child: RefreshIndicator(
-                    onRefresh: () => _ctrl.fetchMyVehicles(showProgress: false),
+                    // Pull-to-refresh hydrates fleet + gallery + contacts
+                    // in parallel — gallery and contacts both render
+                    // inside the Overview tab so every section the user
+                    // can see must refresh on every pull.
+                    onRefresh: () async {
+                      await Future.wait([
+                        _ctrl.fetchMyVehicles(showProgress: false),
+                        _ctrl.fetchMyGallery(showProgress: false),
+                        _ctrl.fetchMyContacts(showProgress: false),
+                      ]);
+                    },
                     child: SingleChildScrollView(
                       physics: const AlwaysScrollableScrollPhysics(),
                       padding: EdgeInsets.only(
@@ -119,7 +136,11 @@ class _VehicleHomeScreenV2State extends State<VehicleHomeScreenV2> {
                 fontSize: 13,
                 fontWeight: FontWeight.w700,
               ),
-              onPressed: _onAddVehicle,
+              onPressed: (){
+                Get.to(VehicleContactFormSheet());
+
+              },
+              // onPressed: _onAddVehicle,
             )
           : null,
     );
@@ -134,7 +155,15 @@ class _VehicleHomeScreenV2State extends State<VehicleHomeScreenV2> {
           child: const BusinessChatsList(),
         );
       case 1:
-        return _OverviewTab(controller: _ctrl, onAdd: _onAddVehicle);
+        return _OverviewTab(
+          controller: _ctrl,
+          onAdd: _onAddVehicle,
+          onAddGalleryPhoto: _onAddGalleryPhoto,
+          onDeleteGalleryItem: _confirmDeleteGalleryItem,
+          onAddContact: _onAddContact,
+          onEditContact: _onEditContact,
+          onDeleteContact: _confirmDeleteContact,
+        );
       case 2:
         return _VehiclesTab(
           controller: _ctrl,
@@ -341,16 +370,15 @@ class _VehicleHomeScreenV2State extends State<VehicleHomeScreenV2> {
   }
 
   // ─── Add / edit / delete handlers ───────────────────────────────
+  // The vehicle form was previously a `showModalBottomSheet` — it's
+  // now a full-screen page (`VehicleFormSheet` renders as a Scaffold)
+  // so long forms scroll comfortably and the keyboard never collapses
+  // the form on small devices.
   Future<void> _onAddVehicle() async {
-    final result = await showModalBottomSheet<VehicleFormResult>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
-        ),
-        child: VehicleFormSheet(),
+    final result = await Navigator.of(context).push<VehicleFormResult>(
+      MaterialPageRoute(
+        builder: (_) => const VehicleFormSheet(),
+        fullscreenDialog: true,
       ),
     );
     if (result == null) return;
@@ -362,15 +390,10 @@ class _VehicleHomeScreenV2State extends State<VehicleHomeScreenV2> {
   }
 
   Future<void> _onEditVehicle(Vehicle v) async {
-    final result = await showModalBottomSheet<VehicleFormResult>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
-        ),
-        child: VehicleFormSheet(initial: v),
+    final result = await Navigator.of(context).push<VehicleFormResult>(
+      MaterialPageRoute(
+        builder: (_) => VehicleFormSheet(initial: v),
+        fullscreenDialog: true,
       ),
     );
     if (result == null || v.id == null) return;
@@ -387,6 +410,110 @@ class _VehicleHomeScreenV2State extends State<VehicleHomeScreenV2> {
         id: v.id!,
         files: result.imageFiles,
       );
+    }
+  }
+
+  // ─── Gallery actions ────────────────────────────────────────────
+  /// Pick a single image from the gallery and upload it to the
+  /// vehicle service via the controller's existing 2-step flow
+  /// (S3 presigned PUT → POST gallery item). Reused image_picker
+  /// instance is fine — `pickImage` is stateless on the plugin side.
+  Future<void> _onAddGalleryPhoto() async {
+    try {
+      final picker = ImagePicker();
+      final picked = await picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 85,
+      );
+      if (picked == null) return;
+      await _ctrl.addGalleryFromFile(File(picked.path));
+    } catch (_) {
+      // The controller already surfaces a snackbar on failure; we just
+      // need to swallow PlatformExceptions (permission denial etc.) so
+      // they don't crash the screen.
+    }
+  }
+
+  Future<void> _confirmDeleteGalleryItem(VehicleGalleryItem g) async {
+    if (g.id == null) return;
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Remove photo'),
+        content: const Text(
+          'This photo will be removed from your public gallery.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Remove', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+    if (ok == true) {
+      await _ctrl.deleteGalleryItem(g.id!);
+    }
+  }
+
+  // ─── Contact-us actions ─────────────────────────────────────────
+  /// Open the contact form with no initial value, then POST to the
+  /// vehicle service via the controller. The controller refreshes
+  /// `myContacts` on success so the list updates without us having to
+  /// touch local state.
+  Future<void> _onAddContact() async {
+    final draft = await Navigator.of(context).push<VehicleContact>(
+      MaterialPageRoute(
+        // builder: (_) => const HomeD(),
+        builder: (_) => const VehicleContactFormSheet(),
+        fullscreenDialog: false,
+      ),
+    );
+    if (draft == null) return;
+    await _ctrl.addContact(draft);
+  }
+
+  /// Edit existing contact. We submit a partial PATCH (`toCreateJson`
+  /// drops null fields) so the server retains anything the form
+  /// doesn't expose (e.g. lat/lon picked from a future map widget).
+  Future<void> _onEditContact(VehicleContact c) async {
+    final patched = await Navigator.of(context).push<VehicleContact>(
+      MaterialPageRoute(
+        builder: (_) => VehicleContactFormSheet(initial: c),
+        fullscreenDialog: true,
+      ),
+    );
+    if (patched == null || c.id == null) return;
+    await _ctrl.updateContact(id: c.id!, patch: patched.toCreateJson());
+  }
+
+  Future<void> _confirmDeleteContact(VehicleContact c) async {
+    if (c.id == null) return;
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Remove contact'),
+        content: Text(
+          'Remove ${c.locationName.isNotEmpty ? c.locationName : "this contact"}? This cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Remove', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+    if (ok == true) {
+      await _ctrl.deleteContact(c.id!);
     }
   }
 
@@ -423,8 +550,26 @@ class _VehicleHomeScreenV2State extends State<VehicleHomeScreenV2> {
 class _OverviewTab extends StatelessWidget {
   final VehicleController controller;
   final VoidCallback onAdd;
+  // Gallery hooks live on the parent State (it owns the BuildContext
+  // for `showDialog` + the ImagePicker invocation) and are forwarded
+  // here so the embedded gallery section can fire them directly.
+  final Future<void> Function() onAddGalleryPhoto;
+  final Future<void> Function(VehicleGalleryItem) onDeleteGalleryItem;
+  // Contact-us hooks — same reasoning as gallery: routed back to the
+  // parent state so navigation + dialogs use the screen's BuildContext.
+  final Future<void> Function() onAddContact;
+  final Future<void> Function(VehicleContact) onEditContact;
+  final Future<void> Function(VehicleContact) onDeleteContact;
 
-  const _OverviewTab({required this.controller, required this.onAdd});
+  const _OverviewTab({
+    required this.controller,
+    required this.onAdd,
+    required this.onAddGalleryPhoto,
+    required this.onDeleteGalleryItem,
+    required this.onAddContact,
+    required this.onEditContact,
+    required this.onDeleteContact,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -499,6 +644,672 @@ class _OverviewTab extends StatelessWidget {
               ),
             );
           }),
+          SizedBox(height: SizeConfig.size16),
+          // Gallery section — embedded inside Overview (no separate
+          // tab) using the same 1 / 2 / 3 / 4+ collage layout the
+          // hospital overview uses (`HospitalHomeGalleryWidget`):
+          //   • 1 photo  → full-width single tile
+          //   • 2 photos → side-by-side
+          //   • 3 photos → 1 large left, 2 stacked right
+          //   • 4+ photos → 2×2 grid with `+N` overlay on the last cell
+          _OverviewGallerySection(
+            controller: controller,
+            onAdd: onAddGalleryPhoto,
+            onDelete: onDeleteGalleryItem,
+          ),
+          SizedBox(height: SizeConfig.size16),
+          // Contact-us section — modelled after `HospitalContactUsView`
+          // (same title row + edit affordance, per-contact expansion
+          // tile with website / phone / email / address). Sourced from
+          // `controller.myContacts`, mutated via the parent state's
+          // add / edit / delete handlers wired to the controller's
+          // existing contact CRUD methods.
+          _OverviewContactUsSection(
+            controller: controller,
+            onAdd: onAddContact,
+            onEdit: onEditContact,
+            onDelete: onDeleteContact,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Vehicle-side echo of `HospitalHomeGalleryWidget`. Renders the
+/// gallery photos with the same 1/2/3/4+ collage rules so the owner's
+/// dashboard reads consistently across services. Tap any tile to open
+/// a full-screen pinch-zoom viewer; tap the small × on a tile to
+/// remove it (with a confirm dialog handled by the parent state).
+class _OverviewGallerySection extends StatelessWidget {
+  final VehicleController controller;
+  final Future<void> Function() onAdd;
+  final Future<void> Function(VehicleGalleryItem) onDelete;
+
+  const _OverviewGallerySection({
+    required this.controller,
+    required this.onAdd,
+    required this.onDelete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            CustomText(
+              'Gallery',
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: AppColors.mainTextColor,
+            ),
+            // Edit affordance on the right side of the header — same
+            // `add_circle_outline` / `edit_outlined` swap the hospital
+            // gallery uses, so the icon hints at "fresh upload" when
+            // empty and "manage" when there's already content.
+            Obx(() {
+              final empty = controller.myGallery.isEmpty;
+              return IconButton(
+                onPressed: onAdd,
+                tooltip: empty ? 'Add photo' : 'Add more',
+                icon: Icon(
+                  empty ? Icons.add_circle_outline : Icons.add_a_photo_rounded,
+                  size: 22,
+                  color: AppColors.primaryColor,
+                ),
+              );
+            }),
+          ],
+        ),
+        SizedBox(height: SizeConfig.size8),
+        Obx(() {
+          // Show a spinner while the very first upload is in flight
+          // — `isUploadingMedia` flips inside `addGalleryFromFile`.
+          if (controller.isUploadingMedia.value &&
+              controller.myGallery.isEmpty) {
+            return const Padding(
+              padding: EdgeInsets.symmetric(vertical: 30),
+              child: Center(child: CircularProgressIndicator()),
+            );
+          }
+          if (controller.myGallery.isEmpty) {
+            return _EmptyState(
+              title: 'No photos yet',
+              subtitle:
+                  'Add photos of your vehicles, livery and workspace to make your public profile stand out.',
+              cta: 'Add a photo',
+              onTap: onAdd,
+            );
+          }
+          return _GalleryCollage(
+            items: controller.myGallery,
+            onDelete: onDelete,
+          );
+        }),
+      ],
+    );
+  }
+}
+
+/// Vehicle-side echo of `HospitalContactUsView`. Shows the contact
+/// list as a card with a section header (edit/add icon on the right)
+/// followed by an `ExpansionTile` per contact carrying website /
+/// phone / email / address / hours rows. Rows that look like links
+/// (`url`, `mailto:`, `tel:`) are tap-launchable via `url_launcher`.
+class _OverviewContactUsSection extends StatelessWidget {
+  final VehicleController controller;
+  final Future<void> Function() onAdd;
+  final Future<void> Function(VehicleContact) onEdit;
+  final Future<void> Function(VehicleContact) onDelete;
+
+  const _OverviewContactUsSection({
+    required this.controller,
+    required this.onAdd,
+    required this.onEdit,
+    required this.onDelete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            CustomText(
+              'Contact us',
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: AppColors.mainTextColor,
+            ),
+            // Mirrors `HospitalContactUsView`'s icon affordance —
+            // `add_circle_outline` when empty, `edit_outlined` when
+            // there's at least one contact already saved.
+            Obx(() {
+              final empty = controller.myContacts.isEmpty;
+              return IconButton(
+                onPressed: onAdd,
+                tooltip: empty ? 'Add contact' : 'Add another',
+                icon: Icon(
+                  empty
+                      ? Icons.add_circle_outline
+                      : Icons.add_location_alt_outlined,
+                  size: 22,
+                  color: AppColors.primaryColor,
+                ),
+              );
+            }),
+          ],
+        ),
+        SizedBox(height: SizeConfig.size8),
+        Obx(() {
+          if (controller.myContacts.isEmpty) {
+            return _EmptyState(
+              title: 'No contact info yet',
+              subtitle:
+                  'Add your branch address, phone and email so customers can reach you.',
+              cta: 'Add a contact',
+              onTap: onAdd,
+            );
+          }
+          // Sort: primary contact first, then preserve server order —
+          // matches the public discover view's expectation.
+          final contacts = controller.myContacts.toList()
+            ..sort((a, b) {
+              final aP = a.isPrimary ?? false;
+              final bP = b.isPrimary ?? false;
+              if (aP == bP) return 0;
+              return aP ? -1 : 1;
+            });
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: contacts
+                .map((c) => _ContactCard(
+                      contact: c,
+                      onEdit: () => onEdit(c),
+                      onDelete: () => onDelete(c),
+                    ))
+                .toList(),
+          );
+        }),
+      ],
+    );
+  }
+}
+
+class _ContactCard extends StatelessWidget {
+  final VehicleContact contact;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+
+  const _ContactCard({
+    required this.contact,
+    required this.onEdit,
+    required this.onDelete,
+  });
+
+  String? _addressLine() {
+    final parts = <String>[
+      if ((contact.address ?? '').trim().isNotEmpty) contact.address!.trim(),
+      if ((contact.city ?? '').trim().isNotEmpty) contact.city!.trim(),
+      if ((contact.state ?? '').trim().isNotEmpty) contact.state!.trim(),
+      if (contact.pincode != null) contact.pincode!.toString(),
+      if ((contact.country ?? '').trim().isNotEmpty) contact.country!.trim(),
+    ];
+    if (parts.isEmpty) return null;
+    return parts.join(', ');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isPrimary = contact.isPrimary ?? false;
+    final address = _addressLine();
+    final phone = contact.phoneNumber?.number;
+    final altPhone = contact.alternatePhoneNumber?.number;
+    final email = contact.email;
+    final website = contact.website;
+    final hours = contact.openingHours;
+    final mapLink = contact.mapLink;
+
+    return Container(
+      margin: EdgeInsets.only(bottom: SizeConfig.size10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFEDEFF4)),
+      ),
+      child: Theme(
+        // ExpansionTile shows a divider above/below by default — kill
+        // it so the card edge stays clean.
+        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          initiallyExpanded: isPrimary,
+          shape: const RoundedRectangleBorder(side: BorderSide.none),
+          tilePadding:
+              EdgeInsets.symmetric(horizontal: SizeConfig.size12),
+          childrenPadding: EdgeInsets.fromLTRB(
+            SizeConfig.size12,
+            0,
+            SizeConfig.size12,
+            SizeConfig.size12,
+          ),
+          title: Row(
+            children: [
+              Expanded(
+                child: CustomText(
+                  contact.locationName.isNotEmpty
+                      ? contact.locationName
+                      : 'Branch',
+                  fontWeight: FontWeight.w800,
+                  fontSize: 14,
+                  color: AppColors.mainTextColor,
+                ),
+              ),
+              if (isPrimary)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: CustomText(
+                    'Primary',
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.primaryColor,
+                  ),
+                ),
+              IconButton(
+                onPressed: onEdit,
+                icon: const Icon(Icons.edit_outlined, size: 18),
+                tooltip: 'Edit',
+              ),
+              InkWell(
+                onTap: onDelete,
+                customBorder: const CircleBorder(),
+                child: const Padding(
+                  padding: EdgeInsets.all(8),
+                  child: Icon(
+                    Icons.delete_outline,
+                    size: 18,
+                    color: Colors.redAccent,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          children: [
+            if (address != null)
+              _ContactRow(
+                icon: Icons.place_outlined,
+                text: address,
+                onTap: mapLink != null && mapLink.isNotEmpty
+                    ? () => _launchUrl(mapLink)
+                    : null,
+              ),
+            if (website != null && website.isNotEmpty)
+              _ContactRow(
+                icon: Icons.language_outlined,
+                text: website,
+                isLink: true,
+                onTap: () => _launchUrl(website),
+              ),
+            if (phone != null && phone.isNotEmpty)
+              _ContactRow(
+                icon: Icons.phone_outlined,
+                text: _formattedPhone(contact.phoneNumber),
+                isLink: true,
+                onTap: () => _launchPhone(phone),
+              ),
+            if (altPhone != null && altPhone.isNotEmpty)
+              _ContactRow(
+                icon: Icons.phone_in_talk_outlined,
+                text: _formattedPhone(contact.alternatePhoneNumber),
+                isLink: true,
+                onTap: () => _launchPhone(altPhone),
+              ),
+            if (email != null && email.isNotEmpty)
+              _ContactRow(
+                icon: Icons.email_outlined,
+                text: email,
+                isLink: true,
+                onTap: () => _launchEmail(email),
+              ),
+            if (hours != null && hours.isNotEmpty)
+              _ContactRow(
+                icon: Icons.access_time_outlined,
+                text: hours,
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _formattedPhone(VehiclePhoneNumber? p) {
+    if (p == null) return '';
+    final pre = p.pre;
+    final num = p.number ?? '';
+    if (pre == null || num.isEmpty) return num;
+    return '+$pre $num';
+  }
+
+  Future<void> _launchUrl(String url) async {
+    var finalUrl = url.trim();
+    if (!finalUrl.startsWith('http://') && !finalUrl.startsWith('https://')) {
+      finalUrl = 'https://$finalUrl';
+    }
+    try {
+      await launchUrl(Uri.parse(finalUrl), mode: LaunchMode.externalApplication);
+    } catch (_) {}
+  }
+
+  Future<void> _launchEmail(String email) async {
+    try {
+      await launchUrl(Uri(scheme: 'mailto', path: email.trim()));
+    } catch (_) {}
+  }
+
+  Future<void> _launchPhone(String phone) async {
+    final clean = phone.replaceAll(RegExp(r'\s+'), '');
+    try {
+      await launchUrl(Uri(scheme: 'tel', path: clean));
+    } catch (_) {}
+  }
+}
+
+class _ContactRow extends StatelessWidget {
+  final IconData icon;
+  final String text;
+  final bool isLink;
+  final VoidCallback? onTap;
+
+  const _ContactRow({
+    required this.icon,
+    required this.text,
+    this.isLink = false,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              icon,
+              size: 18,
+              color: isLink
+                  ? AppColors.primaryColor
+                  : AppColors.secondaryTextColor,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: CustomText(
+                text,
+                color: isLink
+                    ? AppColors.primaryColor
+                    : AppColors.mainTextColor,
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                decoration:
+                    isLink ? TextDecoration.underline : TextDecoration.none,
+                decorationColor: isLink ? AppColors.primaryColor : null,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Pure-layout widget — given a list of gallery items, renders the
+/// 1/2/3/4+ collage. Kept stateless / Rx-free so its rebuilds are
+/// cheap and the surrounding Obx is the only reactive boundary.
+class _GalleryCollage extends StatelessWidget {
+  final List<VehicleGalleryItem> items;
+  final Future<void> Function(VehicleGalleryItem) onDelete;
+
+  const _GalleryCollage({required this.items, required this.onDelete});
+
+  @override
+  Widget build(BuildContext context) {
+    final display = items.length > 4 ? items.sublist(0, 4) : items;
+    final extra = items.length > 4 ? items.length - 4 : 0;
+
+    Widget tile(int index, {bool showOverlay = false}) {
+      final item = display[index];
+      final url = (item.thumbnailUrl?.isNotEmpty ?? false)
+          ? item.thumbnailUrl!
+          : item.mediaUrl;
+      return GestureDetector(
+        onTap: () => _openViewer(context, items, index),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(10),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              url.isNotEmpty
+                  ? Image.network(
+                      url,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Container(
+                        color: Colors.grey[300],
+                        child: const Icon(Icons.broken_image),
+                      ),
+                    )
+                  : Container(
+                      color: Colors.grey[300],
+                      child: const Icon(Icons.broken_image),
+                    ),
+              // +N overlay on the 4th tile when there are more than 4
+              // photos — tap-through still opens the viewer at the
+              // same index (which lets the user swipe through all).
+              if (showOverlay && extra > 0)
+                IgnorePointer(
+                  child: Container(
+                    color: Colors.black.withValues(alpha: 0.5),
+                    alignment: Alignment.center,
+                    child: Text(
+                      '+$extra',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 26,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              // Per-tile delete affordance — only shown when there's
+              // no `+N` overlay on this same tile (otherwise the X
+              // would compete with the overlay number for the corner).
+              if (!(showOverlay && extra > 0) && item.id != null)
+                Positioned(
+                  top: 4,
+                  right: 4,
+                  child: InkWell(
+                    onTap: () => onDelete(item),
+                    customBorder: const CircleBorder(),
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.55),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.close_rounded,
+                        size: 14,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    const double height = 220;
+    const double gap = 4;
+
+    // 1 photo — full-width single tile
+    if (display.length == 1) {
+      return SizedBox(
+        height: height,
+        width: double.infinity,
+        child: tile(0),
+      );
+    }
+
+    // 2 photos — side by side
+    if (display.length == 2) {
+      return SizedBox(
+        height: height,
+        child: Row(
+          children: [
+            Expanded(child: tile(0)),
+            const SizedBox(width: gap),
+            Expanded(child: tile(1)),
+          ],
+        ),
+      );
+    }
+
+    // 3 photos — 1 large left, 2 stacked right
+    if (display.length == 3) {
+      return SizedBox(
+        height: height,
+        child: Row(
+          children: [
+            Expanded(child: tile(0)),
+            const SizedBox(width: gap),
+            Expanded(
+              child: Column(
+                children: [
+                  Expanded(child: tile(1)),
+                  const SizedBox(height: gap),
+                  Expanded(child: tile(2)),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // 4+ photos — 2×2 grid with +N overlay on the last cell
+    return SizedBox(
+      height: height,
+      child: Column(
+        children: [
+          Expanded(
+            child: Row(
+              children: [
+                Expanded(child: tile(0)),
+                const SizedBox(width: gap),
+                Expanded(child: tile(1)),
+              ],
+            ),
+          ),
+          const SizedBox(height: gap),
+          Expanded(
+            child: Row(
+              children: [
+                Expanded(child: tile(2)),
+                const SizedBox(width: gap),
+                Expanded(child: tile(3, showOverlay: extra > 0)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _openViewer(
+    BuildContext context,
+    List<VehicleGalleryItem> all,
+    int initialIndex,
+  ) {
+    showDialog(
+      context: context,
+      barrierColor: Colors.black87,
+      builder: (_) => _GalleryPhotoViewer(
+        items: all,
+        initialIndex: initialIndex,
+      ),
+    );
+  }
+}
+
+/// Lightweight pinch-zoom + swipe full-screen viewer. Backed by
+/// `PageView` so the user can flick through the entire gallery
+/// (not just the four collage tiles).
+class _GalleryPhotoViewer extends StatefulWidget {
+  final List<VehicleGalleryItem> items;
+  final int initialIndex;
+  const _GalleryPhotoViewer({
+    required this.items,
+    required this.initialIndex,
+  });
+
+  @override
+  State<_GalleryPhotoViewer> createState() => _GalleryPhotoViewerState();
+}
+
+class _GalleryPhotoViewerState extends State<_GalleryPhotoViewer> {
+  late final PageController _page =
+      PageController(initialPage: widget.initialIndex);
+
+  @override
+  void dispose() {
+    _page.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      insetPadding: const EdgeInsets.all(12),
+      child: Stack(
+        children: [
+          PageView.builder(
+            controller: _page,
+            itemCount: widget.items.length,
+            itemBuilder: (_, i) => InteractiveViewer(
+              child: Center(
+                child: Image.network(
+                  widget.items[i].mediaUrl,
+                  errorBuilder: (_, __, ___) => const Icon(
+                    Icons.broken_image_rounded,
+                    color: Colors.white,
+                    size: 48,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            top: 8,
+            right: 8,
+            child: IconButton(
+              onPressed: () => Navigator.of(context).pop(),
+              icon: const Icon(Icons.close, color: Colors.white),
+            ),
+          ),
         ],
       ),
     );
