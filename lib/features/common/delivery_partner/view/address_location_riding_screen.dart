@@ -33,22 +33,10 @@ class _AddressLocationRidingScreenState
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar:widget.screeName != "from_tab_view"
-          ? CommonBackAppBar(
-        title: AppStrings.addressAndLocation,
-        // onBackTap: onBackPressed,
-        buildCustomActionWidget: () => Padding(
-          padding: const EdgeInsets.only(right: 16),
-          child: Center(
-            child: CustomText("${AppStrings.stepLabel.tr}2/3",
-                fontWeight: FontWeight.w600),
-          ),
-        ),
-      ):null,
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(SizeConfig.size15),
-        child: CustomFormCard(
+    final isFromTab = widget.screeName == "from_tab_view";
+    final content = Padding(
+      padding: EdgeInsets.all(SizeConfig.size15),
+      child: CustomFormCard(
           child: Form(
             key: controller.formKeyStep2,
             child: Obx(
@@ -211,7 +199,8 @@ class _AddressLocationRidingScreenState
                         title: controller.isRidersAddressLoading.value
                             ? null
                             : AppStrings.nextButton,
-                        onTap: () => controller.ridersOnboardingAddressApi(),
+                        onTap: () => controller.ridersOnboardingAddressApi(
+                            screenName: widget.screeName),
                         radius: 10.0,
                         bgColor: AppColors.primaryColor,
                         isLoading: controller.isRidersAddressLoading.value,
@@ -221,7 +210,20 @@ class _AddressLocationRidingScreenState
             ),
           ),
         ),
+      );
+    if (isFromTab) return content;
+    return Scaffold(
+      appBar: CommonBackAppBar(
+        title: AppStrings.addressAndLocation,
+        buildCustomActionWidget: () => Padding(
+          padding: const EdgeInsets.only(right: 16),
+          child: Center(
+            child: CustomText("${AppStrings.stepLabel.tr}2/3",
+                fontWeight: FontWeight.w600),
+          ),
+        ),
       ),
+      body: SingleChildScrollView(child: content),
     );
   }
 }

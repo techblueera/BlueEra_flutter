@@ -13,20 +13,19 @@ import 'package:BlueEra/features/common/delivery_partner/view/pan_card_widget.da
 import 'package:BlueEra/features/common/delivery_partner/view/rc_book_card_widget.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/vehicle_images_riding_widget.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/vehicle_information_widget.dart';
-import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+/// Rider/Delivery KYC status surface — always embedded inside a
+/// bottom-nav tab body now (Riders & Cab/Transport partner tabs).
+/// No more Scaffold/AppBar shell or `screeName` flag — those existed
+/// only for the legacy standalone-page path.
 class RiderProfileStatusScreen extends StatefulWidget {
-  RiderProfileStatusScreen({
-    super.key,
-    required this.screeName,
-  });
-
-  final String screeName;
+  RiderProfileStatusScreen({super.key});
 
   @override
   State<RiderProfileStatusScreen> createState() =>
@@ -44,21 +43,9 @@ class _RiderProfileStatusScreenState extends State<RiderProfileStatusScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return widget.screeName != "from_tab_view"
-        ? Scaffold(
-            appBar: CommonBackAppBar(
-              title: AppStrings.deliveryPartner,
-            ),
-            body: RiderFormWidget(
-              deliveryPartnerController: controller,
-            ),
-          )
-        : Material(
-            color: AppColors.appBackgroundColor,
-            child: RiderFormWidget(
-              deliveryPartnerController: controller,
-              isEmbeddedInTabView: true,
-            ));
+    return RiderFormWidget(
+      deliveryPartnerController: controller,
+    );
   }
 }
 
@@ -66,11 +53,9 @@ class RiderFormWidget extends StatefulWidget {
   RiderFormWidget({
     super.key,
     required this.deliveryPartnerController,
-    this.isEmbeddedInTabView = false,
   });
 
   final DeliveryPartnerController deliveryPartnerController;
-  final bool isEmbeddedInTabView;
 
   @override
   State<RiderFormWidget> createState() => _RiderFormWidgetState();
@@ -107,91 +92,83 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Obx(() {
-        if (widget.deliveryPartnerController.isRiderStatusLoading.value) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        riderOnboardingStatusData =
-            widget.deliveryPartnerController.riderOnboardingStatusData.value ??
-                RiderOnboardingStatusData();
-
-        final state = widget.deliveryPartnerController.riderVerificationState;
-        final allCompleted = widget.deliveryPartnerController.stepStatus.values
-            .every((s) => s == true);
-
-        final completedCount = _getCompletedCount();
-        const totalSteps = 6;
-
-        // Show submitted success screen
-        if (_isSubmitted.value || (allCompleted && state == RiderVerificationState.pending)) {
-          return _buildSubmittedSuccessView();
-        }
-
-        // Show verified screen
-        if (allCompleted && state == RiderVerificationState.completed) {
-          if (!_hasShownRiderTypePopup) {
-            _hasShownRiderTypePopup = true;
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              _showRiderTypeSelectionPopup();
-            });
-          }
-          return _buildVerifiedView();
-        }
-
-        return Stack(
-          children: [
-            SingleChildScrollView(
-              padding: EdgeInsets.symmetric(
-                horizontal: SizeConfig.size10,
-                vertical: SizeConfig.size10,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Rejected banner
-                  if (allCompleted && state == RiderVerificationState.rejected)
-                    _buildRejectedBanner(),
-
-                  // Progress Header
-                  if (!allCompleted) ...[
-                    _buildProgressHeader(completedCount, totalSteps),
-                    SizedBox(height: SizeConfig.size10),
-                  ],
-
-                  // Document Cards
-                  ..._buildDocumentCards(context),
-
-                  // Submit Button (when all completed & not yet submitted)
-                  if (allCompleted && state != RiderVerificationState.completed) ...[
-                    SizedBox(height: SizeConfig.size20),
-                    _buildSubmitButton(),
-                  ],
-
-                  // Contact Us
-                  SizedBox(height: SizeConfig.size20),
-                  _buildContactUsCard(),
-
-                  SizedBox(height: SizeConfig.size100),
-                ],
-              ),
-            ),
-          ],
+    // No SafeArea / Scaffold here — the parent tab body already lives
+    // inside the bottom-nav scaffold's SafeArea, and the surrounding
+    // Padding above this widget supplies the top breathing room.
+    return Obx(() {
+      if (widget.deliveryPartnerController.isRiderStatusLoading.value) {
+        return const Padding(
+          padding: EdgeInsets.symmetric(vertical: 60),
+          child: Center(child: CircularProgressIndicator()),
         );
-      }),
-    );
-  }
+      }
 
-  int _getCompletedCount() {
-    int count = 0;
-    if (riderOnboardingStatusData.vehicleInformation ?? false) count++;
-    if (riderOnboardingStatusData.aadhar ?? false) count++;
-    if (riderOnboardingStatusData.pan ?? false) count++;
-    if (riderOnboardingStatusData.dl ?? false) count++;
-    if (riderOnboardingStatusData.rc ?? false) count++;
-    if (riderOnboardingStatusData.vehicleImages ?? false) count++;
-    return count;
+      riderOnboardingStatusData =
+          widget.deliveryPartnerController.riderOnboardingStatusData.value ??
+              RiderOnboardingStatusData();
+
+      final state = widget.deliveryPartnerController.riderVerificationState;
+      final allCompleted = widget.deliveryPartnerController.stepStatus.values
+          .every((s) => s == true);
+
+      // Show submitted success screen
+      if (_isSubmitted.value ||
+          (allCompleted && state == RiderVerificationState.pending)) {
+        return _buildSubmittedSuccessView();
+      }
+
+      // Show verified screen
+      if (allCompleted && state == RiderVerificationState.completed) {
+        if (!_hasShownRiderTypePopup) {
+          _hasShownRiderTypePopup = true;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _showRiderTypeSelectionPopup();
+          });
+        }
+        return _buildVerifiedView();
+      }
+
+      return SingleChildScrollView(
+        // Left inset is bumped to 24 px so the outside-left status
+        // badges (red ?/green ✓) and the cards beside them sit well
+        // inside the tab body rather than hugging the screen edge.
+        padding: EdgeInsets.fromLTRB(
+          SizeConfig.size40,
+          SizeConfig.size4,
+          SizeConfig.size12,
+          SizeConfig.size20,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Rejected banner
+            if (allCompleted && state == RiderVerificationState.rejected)
+              _buildRejectedBanner(),
+
+            // "Joined" pill — centered above the document list,
+            // matches the new design spec.
+            if (!allCompleted) ...[
+              _buildJoinedPill(),
+              SizedBox(height: SizeConfig.size16),
+            ],
+
+            // Document Cards
+            ..._buildDocumentCards(context),
+
+            // Submit Button (when all completed & not yet submitted)
+            if (allCompleted &&
+                state != RiderVerificationState.completed) ...[
+              SizedBox(height: SizeConfig.size16),
+              _buildSubmitButton(),
+            ],
+
+            // Contact Us
+            SizedBox(height: SizeConfig.size4),
+            _buildContactUsCard(),
+          ],
+        ),
+      );
+    });
   }
 
   // ─── SUBMITTED SUCCESS VIEW ───────────────────────────────────────
@@ -329,18 +306,7 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
           // Contact Us card
           _buildContactUsCard(),
 
-          const SizedBox(height: 20),
-
-          // Go Back button — hide when embedded in tab view
-          if (!widget.isEmbeddedInTabView)
-            CustomBtn(
-              onTap: () => Get.back(),
-              title: 'Go to Home',
-              bgColor: AppColors.primaryColor,
-              radius: 12,
-            ),
-
-          SizedBox(height: SizeConfig.size60),
+          SizedBox(height: SizeConfig.size20),
         ],
       ),
     );
@@ -586,18 +552,7 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
           // Contact Us
           _buildContactUsCard(),
 
-          const SizedBox(height: 16),
-
-          // Go to Home — hide when embedded in tab view
-          if (!widget.isEmbeddedInTabView)
-            CustomBtn(
-              onTap: () => Get.back(),
-              title: 'Go to Home',
-              bgColor: AppColors.primaryColor,
-              radius: 12,
-            ),
-
-          SizedBox(height: SizeConfig.size60),
+          SizedBox(height: SizeConfig.size20),
         ],
       ),
     );
@@ -662,65 +617,35 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
     );
   }
 
-  // ─── PROGRESS HEADER ──────────────────────────────────────────────
-
-  Widget _buildProgressHeader(int completed, int total) {
-    final progress = total > 0 ? completed / total : 0.0;
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha(8),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              CustomText(
-                'Complete Your Profile',
-                fontSize: SizeConfig.medium,
-                fontWeight: FontWeight.w600,
-                color: AppColors.mainTextColor,
-              ),
-              CustomText(
-                '$completed / $total',
-                fontSize: SizeConfig.small,
-                fontWeight: FontWeight.w600,
-                color: AppColors.primaryColor,
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(6),
-            child: LinearProgressIndicator(
-              value: progress,
-              minHeight: 8,
-              backgroundColor: const Color(0xFFE8EAF0),
-              valueColor:
-                  AlwaysStoppedAnimation<Color>(AppColors.primaryColor),
+  // ─── "JOINED" PILL ────────────────────────────────────────────────
+  // Small white capsule centered above the document list, e.g.
+  // "Joined - 1/05/2026". Replaces the earlier progress header so the
+  // chrome above the cards is calmer and matches the new spec.
+  Widget _buildJoinedPill() {
+    final today = DateTime.now();
+    final formatted =
+        '${today.day}/${today.month.toString().padLeft(2, '0')}/${today.year}';
+    return Center(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: const Color(0xFFE5E5E5)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withAlpha(8),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
             ),
-          ),
-          const SizedBox(height: 8),
-          CustomText(
-            completed == 0
-                ? 'Upload your documents to get started'
-                : '$completed of $total steps completed',
-            fontSize: SizeConfig.small,
-            color: AppColors.secondaryTextColor,
-          ),
-        ],
+          ],
+        ),
+        child: CustomText(
+          'Joined - $formatted',
+          fontSize: SizeConfig.small,
+          fontWeight: FontWeight.w500,
+          color: AppColors.mainTextColor,
+        ),
       ),
     );
   }
@@ -1287,10 +1212,9 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
       _DocumentItem(
         stepNumber: 1,
         icon: Icons.directions_car_rounded,
-        title: AppStrings.vehicleInformation,
-        value: (riderOnboardingStatusData.vehicleNo?.isNotEmpty ?? false)
-            ? riderOnboardingStatusData.vehicleNo ?? ""
-            : 'E.g. WB5454',
+        title: 'Add Your Vehicle Info',
+        example: 'E.g. WB40 5566',
+        currentValue: riderOnboardingStatusData.vehicleNo ?? '',
         isCompleted: riderOnboardingStatusData.vehicleInformation ?? false,
         onTap: () {
           Get.bottomSheet(
@@ -1309,11 +1233,12 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
       _DocumentItem(
         stepNumber: 2,
         icon: Icons.badge_rounded,
-        title: AppStrings.aadharNumber,
-        value: (riderOnboardingStatusData.aadharNo?.isNotEmpty ?? false)
-            ? riderOnboardingStatusData.aadharNo ?? ""
-            : 'E.g. 5678 1234 6679 9012',
+        title: 'Add Your Aadhar Number',
+        dialogTitle: 'Aadhar Card',
+        example: 'E.g. 1233 1236 1233',
+        currentValue: riderOnboardingStatusData.aadharNo ?? '',
         isCompleted: riderOnboardingStatusData.aadhar ?? false,
+        imageUrl: riderOnboardingStatusData.aadharImage,
         onTap: () {
           Get.bottomSheet(
             CommonBottomSheet(
@@ -1329,11 +1254,12 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
       _DocumentItem(
         stepNumber: 3,
         icon: Icons.credit_card_rounded,
-        title: AppStrings.panNumber,
-        value: (riderOnboardingStatusData.panNo?.isNotEmpty ?? false)
-            ? riderOnboardingStatusData.panNo ?? ""
-            : 'E.g. ABCDE1234F',
+        title: 'Add Your Pan Number',
+        dialogTitle: 'PAN Card',
+        example: 'E.g. ABCDE1234F',
+        currentValue: riderOnboardingStatusData.panNo ?? '',
         isCompleted: riderOnboardingStatusData.pan ?? false,
+        imageUrl: riderOnboardingStatusData.panImage,
         onTap: () {
           Get.bottomSheet(
             CommonBottomSheet(
@@ -1349,11 +1275,12 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
       _DocumentItem(
         stepNumber: 4,
         icon: Icons.card_membership_rounded,
-        title: AppStrings.drivingLicenceNumber,
-        value: (riderOnboardingStatusData.dlNo?.isNotEmpty ?? false)
-            ? riderOnboardingStatusData.dlNo ?? ""
-            : 'E.g. DL0120110012345',
+        title: 'Add Your Driving Licence Number',
+        dialogTitle: 'Driving Licence',
+        example: 'E.g. DL01201110012345',
+        currentValue: riderOnboardingStatusData.dlNo ?? '',
         isCompleted: riderOnboardingStatusData.dl ?? false,
+        imageUrl: riderOnboardingStatusData.dlImage,
         onTap: () {
           Get.bottomSheet(
             CommonBottomSheet(
@@ -1369,11 +1296,12 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
       _DocumentItem(
         stepNumber: 5,
         icon: Icons.description_rounded,
-        title: AppStrings.rcNumber,
-        value: (riderOnboardingStatusData.rcNo?.isNotEmpty ?? false)
-            ? riderOnboardingStatusData.rcNo ?? ""
-            : 'E.g. WB12 AB 1234',
+        title: 'Add Your RC Number',
+        dialogTitle: 'RC Book',
+        example: 'E.g. WB12kmxl',
+        currentValue: riderOnboardingStatusData.rcNo ?? '',
         isCompleted: riderOnboardingStatusData.rc ?? false,
+        imageUrl: riderOnboardingStatusData.rcImage,
         onTap: () {
           Get.bottomSheet(
             CommonBottomSheet(
@@ -1389,8 +1317,9 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
       _DocumentItem(
         stepNumber: 6,
         icon: Icons.photo_camera_rounded,
-        title: AppStrings.vehicleImages,
-        value: 'Upload Vehicle image',
+        title: 'Vehicle Images',
+        example: 'Upload Vehicle Image',
+        currentValue: '',
         isCompleted: riderOnboardingStatusData.vehicleImages ?? false,
         onTap: () {
           Get.bottomSheet(
@@ -1411,94 +1340,633 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
 
   Widget _buildDocumentCard(_DocumentItem item) {
     final state = widget.deliveryPartnerController.riderVerificationState;
-    // Allow re-upload when rejected, even if document was previously completed
-    final canTap = !item.isCompleted || state == RiderVerificationState.rejected;
-    return GestureDetector(
-      onTap: canTap ? item.onTap : null,
+    // The card has three interactive states:
+    //   1. Uploaded WITH image  → whole card opens the view dialog,
+    //      from which the user can also Replace (which routes back
+    //      to the existing upload bottom sheet).
+    //   2. Pending (or rejected) → whole card opens the upload sheet.
+    //   3. Completed without an image URL → fallback "Done" pill,
+    //      not tappable (preserves the original behavior until the
+    //      backend returns image URLs).
+    final hasUploadedImage = item.isCompleted &&
+        (item.imageUrl?.isNotEmpty ?? false);
+    final allowUpload =
+        !item.isCompleted || state == RiderVerificationState.rejected;
+    final VoidCallback? onCardTap = hasUploadedImage
+        ? () => _showDocumentViewDialog(
+              context,
+              title: item.dialogTitle ?? item.title,
+              imageUrl: item.imageUrl!,
+              onReplace: item.onTap,
+            )
+        : (allowUpload ? item.onTap : null);
+
+    return Padding(
+      padding: EdgeInsets.only(bottom: SizeConfig.size12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          _buildStatusBadge(item.isCompleted),
+          const SizedBox(width: 10),
+          Expanded(
+            child: GestureDetector(
+              onTap: onCardTap,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: const Color(0xFFE5E5E5)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withAlpha(6),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(14),
+                  child: IntrinsicHeight(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _buildIconColumn(
+                          item,
+                          showThumbnail: hasUploadedImage,
+                        ),
+                        Expanded(
+                          child: _buildContentColumn(
+                            item,
+                            showViewDocument: hasUploadedImage,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ─── LEFT COLUMN — icon/thumbnail (top) + saved value (bottom) ────
+  // Pale primary-tint panel inset 10 px inside the white card, with
+  // its own rounded corners so it reads as a panel-within-panel.
+  // [showThumbnail] swaps the generic Material icon for a clipped
+  // thumbnail of the uploaded document (with a tiny green check
+  // overlay) — so the panel itself communicates "this document is
+  // on file."
+  Widget _buildIconColumn(_DocumentItem item, {bool showThumbnail = false}) {
+    return Padding(
+      padding: const EdgeInsets.all(10),
       child: Container(
-        margin: EdgeInsets.only(bottom: SizeConfig.size10),
-        padding: const EdgeInsets.all(14),
+        width: 66,
+        padding:
+            const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+        decoration: BoxDecoration(
+          color: AppColors.primaryColor.withValues(alpha: 0.06),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            showThumbnail
+                ? _buildDocumentThumbnail(item)
+                : _buildDocumentIconTile(item.icon),
+            // Always-rendered slot — keeps the icon pinned to the top
+            // even when the user hasn't entered a value yet.
+            CustomText(
+              item.currentValue,
+              fontSize: SizeConfig.small,
+              color: const Color(0xFF8A8F9C),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Generic icon tile shown when the document hasn't been uploaded
+  // yet (or there's no image URL on file). Outlined white box with
+  // a darkish glyph — the original calm-but-empty cue.
+  Widget _buildDocumentIconTile(IconData icon) {
+    return Container(
+      width: 48,
+      height: 48,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: const Color(0xFFE5E7EB),
+          width: 1,
+        ),
+      ),
+      child: Icon(
+        icon,
+        color: const Color(0xFF1F2937),
+        size: 24,
+      ),
+    );
+  }
+
+  // Thumbnail tile shown in the uploaded state. The image is
+  // clipped to a 10-radius square inside a primary-tinted border
+  // (so the verified-state cue is unambiguous), with a small green
+  // check chip overlapping the bottom-right corner. Falls back to
+  // the generic icon tile if the image fails to load.
+  Widget _buildDocumentThumbnail(_DocumentItem item) {
+    return SizedBox(
+      width: 48,
+      height: 48,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: AppColors.primaryColor.withValues(alpha: 0.35),
+                  width: 1,
+                ),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: CachedNetworkImage(
+                  imageUrl: item.imageUrl ?? '',
+                  fit: BoxFit.cover,
+                  placeholder: (_, __) => Container(
+                    color: const Color(0xFFF1F4F9),
+                    child: Center(
+                      child: SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 1.6,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            AppColors.primaryColor,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  errorWidget: (_, __, ___) =>
+                      _buildDocumentIconTile(item.icon),
+                ),
+              ),
+            ),
+          ),
+          // Tiny green check overlay — confirmation cue.
+          Positioned(
+            right: -4,
+            bottom: -4,
+            child: Container(
+              width: 18,
+              height: 18,
+              decoration: BoxDecoration(
+                color: const Color(0xFF4CAF50),
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white, width: 1.5),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF4CAF50).withAlpha(60),
+                    blurRadius: 4,
+                    offset: const Offset(0, 1),
+                  ),
+                ],
+              ),
+              child: const Icon(
+                Icons.check_rounded,
+                color: Colors.white,
+                size: 12,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ─── RIGHT COLUMN — title, example, divider, centered CTA ─────────
+  // Three states for the bottom CTA:
+  //   • [showViewDocument] true  → "View Document" with eye icon
+  //     (uploaded with image — taps open the view dialog).
+  //   • [item.isCompleted] true  → "Done" pill (uploaded but no
+  //     image URL on file yet — preserves prior behavior).
+  //   • Otherwise                → "+ Add Now" primary CTA.
+  Widget _buildContentColumn(
+    _DocumentItem item, {
+    bool showViewDocument = false,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          CustomText(
+            item.title,
+            fontSize: SizeConfig.medium,
+            fontWeight: FontWeight.w700,
+            color: AppColors.mainTextColor,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 4),
+          CustomText(
+            showViewDocument ? 'Document received' : item.example,
+            fontSize: SizeConfig.small,
+            color: showViewDocument
+                ? AppColors.primaryColor
+                : const Color(0xFFB0B4BF),
+            fontWeight:
+                showViewDocument ? FontWeight.w600 : FontWeight.w400,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          SizedBox(height: SizeConfig.size12),
+          Container(
+            height: 1,
+            color: const Color(0xFFEDEFF4),
+          ),
+          SizedBox(height: SizeConfig.size10),
+          Center(
+            child: showViewDocument
+                ? _buildViewDocumentCta()
+                : item.isCompleted
+                    ? _buildDoneChip()
+                    : _buildAddNowCta(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ─── "View Document" CTA — uploaded-state right-column action ─────
+  Widget _buildViewDocumentCta() {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          Icons.remove_red_eye_outlined,
+          color: AppColors.primaryColor,
+          size: 16,
+        ),
+        const SizedBox(width: 6),
+        CustomText(
+          'View Document',
+          fontSize: SizeConfig.small,
+          fontWeight: FontWeight.w600,
+          color: AppColors.primaryColor,
+        ),
+      ],
+    );
+  }
+
+  // ─── STATUS BADGE (outside left of each card) ─────────────────────
+  Widget _buildStatusBadge(bool isCompleted) {
+    return Container(
+      width: 30,
+      height: 30,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: isCompleted
+            ? const Color(0xFFE8F5E9)
+            : const Color(0xFFFFEAEC),
+        border: Border.all(
+          color: isCompleted
+              ? const Color(0xFF4CAF50).withAlpha(80)
+              : const Color(0xFFE57373).withAlpha(110),
+          width: 1,
+        ),
+      ),
+      child: Icon(
+        isCompleted ? Icons.check_rounded : Icons.help_outline_rounded,
+        color: isCompleted
+            ? const Color(0xFF4CAF50)
+            : const Color(0xFFE57373),
+        size: 16,
+      ),
+    );
+  }
+
+  // ─── "+ Add Now" CTA (right side, pending state) ──────────────────
+  Widget _buildAddNowCta() {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          Icons.add_circle_outline_rounded,
+          color: AppColors.primaryColor,
+          size: 16,
+        ),
+        const SizedBox(width: 4),
+        CustomText(
+          'Add Now',
+          fontSize: SizeConfig.small,
+          fontWeight: FontWeight.w600,
+          color: AppColors.primaryColor,
+        ),
+      ],
+    );
+  }
+
+  // ─── VIEW DOCUMENT DIALOG ─────────────────────────────────────────
+  // Polished modal that surfaces the uploaded document at full
+  // legibility. Three sections inside a 18-radius rounded sheet
+  // with a soft drop shadow:
+  //   1. HEADER  — uppercase tracked title on the left, primary-
+  //               tinted close button on the right, hairline below.
+  //   2. BODY    — InteractiveViewer wrapping a CachedNetworkImage
+  //               (BoxFit.contain) so users can pinch to zoom into
+  //               the document. Capped at 55 % of the screen height
+  //               so the dialog never overflows.
+  //   3. ACTIONS — Replace (outlined primary) closes the dialog and
+  //               re-opens the upload bottom sheet; Done (filled
+  //               primary) just closes.
+  void _showDocumentViewDialog(
+    BuildContext context, {
+    required String title,
+    required String imageUrl,
+    required VoidCallback onReplace,
+  }) {
+    final maxImageHeight = MediaQuery.of(context).size.height * 0.55;
+    Get.dialog(
+      Dialog(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        insetPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 28),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(18),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.primaryColor.withValues(alpha: 0.10),
+                blurRadius: 32,
+                offset: const Offset(0, 14),
+              ),
+              const BoxShadow(
+                color: Color(0x14001120),
+                blurRadius: 8,
+                offset: Offset(0, 2),
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(18),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildDialogHeader(title),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxHeight: maxImageHeight,
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: InteractiveViewer(
+                        minScale: 1.0,
+                        maxScale: 4.0,
+                        child: CachedNetworkImage(
+                          imageUrl: imageUrl,
+                          fit: BoxFit.contain,
+                          placeholder: (_, __) => _buildDialogImageFallback(
+                            const CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                          errorWidget: (_, __, ___) =>
+                              _buildDialogImageFallback(
+                            Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.broken_image_rounded,
+                                  size: 44,
+                                  color:
+                                      AppColors.secondaryTextColor,
+                                ),
+                                const SizedBox(height: 8),
+                                CustomText(
+                                  'Could not load image',
+                                  fontSize: SizeConfig.small,
+                                  color: AppColors.secondaryTextColor,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding:
+                      const EdgeInsets.fromLTRB(16, 6, 16, 4),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.zoom_in_rounded,
+                        size: 14,
+                        color: AppColors.secondaryTextColor,
+                      ),
+                      const SizedBox(width: 4),
+                      CustomText(
+                        'Pinch to zoom',
+                        fontSize: SizeConfig.small,
+                        color: AppColors.secondaryTextColor,
+                      ),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: _buildDialogReplaceBtn(onReplace),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildDialogDoneBtn(),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+      barrierColor: Colors.black.withValues(alpha: 0.55),
+    );
+  }
+
+  Widget _buildDialogHeader(String title) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(18, 14, 12, 14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border(
+          bottom: BorderSide(
+            color: AppColors.primaryColor.withValues(alpha: 0.15),
+            width: 1,
+          ),
+        ),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: CustomText(
+              title.toUpperCase(),
+              fontSize: SizeConfig.medium,
+              fontWeight: FontWeight.w800,
+              color: AppColors.mainTextColor,
+              letterSpacing: 0.6,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          GestureDetector(
+            onTap: () => Get.back(),
+            child: Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color: AppColors.primaryColor.withValues(alpha: 0.08),
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color:
+                      AppColors.primaryColor.withValues(alpha: 0.22),
+                  width: 0.6,
+                ),
+              ),
+              child: Icon(
+                Icons.close_rounded,
+                size: 18,
+                color: AppColors.primaryColor,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Wraps the placeholder/error content inside a soft neutral card so
+  // those states match the in-frame aesthetic instead of bleeding a
+  // raw spinner across the dialog.
+  Widget _buildDialogImageFallback(Widget child) {
+    return Container(
+      height: 200,
+      width: double.infinity,
+      color: const Color(0xFFF5F7FA),
+      child: Center(child: child),
+    );
+  }
+
+  Widget _buildDialogReplaceBtn(VoidCallback onReplace) {
+    return InkWell(
+      onTap: () {
+        Get.back();
+        onReplace();
+      },
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: item.isCompleted
-                ? const Color(0xFF4CAF50).withAlpha(60)
-                : const Color(0xFFE5E5E5),
+            color: AppColors.primaryColor.withValues(alpha: 0.45),
+            width: 1.2,
           ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withAlpha(6),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
         ),
         child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: item.isCompleted
-                    ? const Color(0xFFE8F5E9)
-                    : AppColors.primaryColor.withAlpha(15),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                item.icon,
-                color: item.isCompleted
-                    ? const Color(0xFF4CAF50)
-                    : AppColors.primaryColor,
-                size: 22,
-              ),
+            Icon(
+              Icons.refresh_rounded,
+              size: 16,
+              color: AppColors.primaryColor,
             ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CustomText(
-                    item.title,
-                    fontSize: SizeConfig.medium,
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.mainTextColor,
-                  ),
-                  const SizedBox(height: 4),
-                  CustomText(
-                    item.value,
-                    fontSize: SizeConfig.small,
-                    color: item.isCompleted
-                        ? AppColors.secondaryTextColor
-                        : const Color(0xFFB0B4BF),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
+            const SizedBox(width: 6),
+            CustomText(
+              'Replace',
+              fontSize: SizeConfig.small,
+              fontWeight: FontWeight.w700,
+              color: AppColors.primaryColor,
             ),
-            if (item.isCompleted)
-              Container(
-                width: 28,
-                height: 28,
-                decoration: const BoxDecoration(
-                  color: Color(0xFF4CAF50),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.check_rounded,
-                  color: Colors.white,
-                  size: 18,
-                ),
-              )
-            else
-              Icon(
-                Icons.chevron_right_rounded,
-                color: AppColors.primaryColor,
-                size: 24,
-              ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildDialogDoneBtn() {
+    return InkWell(
+      onTap: () => Get.back(),
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: AppColors.primaryColor,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primaryColor.withValues(alpha: 0.30),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Center(
+          child: CustomText(
+            'Done',
+            fontSize: SizeConfig.small,
+            fontWeight: FontWeight.w700,
+            color: Colors.white,
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ─── "Done" chip (right side, completed state) ────────────────────
+  Widget _buildDoneChip() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: const Color(0xFFE8F5E9),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(
+            Icons.check_rounded,
+            color: Color(0xFF4CAF50),
+            size: 14,
+          ),
+          const SizedBox(width: 4),
+          CustomText(
+            'Done',
+            fontSize: SizeConfig.small,
+            fontWeight: FontWeight.w600,
+            color: const Color(0xFF4CAF50),
+          ),
+        ],
       ),
     );
   }
@@ -1508,16 +1976,35 @@ class _DocumentItem {
   final int stepNumber;
   final IconData icon;
   final String title;
-  final String value;
+  // The "E.g. …" format hint shown under the title in the top row.
+  // Always rendered, even when [currentValue] is also present.
+  final String example;
+  // The user's actual saved value, shown in the bottom-left of the
+  // card under the divider. Empty when the document hasn't been
+  // filled in yet.
+  final String currentValue;
   final bool isCompleted;
   final VoidCallback onTap;
+  // URL of the uploaded document image. When present alongside
+  // [isCompleted], the card upgrades from the "Done" pill state
+  // to a richer "thumbnail + View Document" presentation, and the
+  // whole card opens the view dialog instead of the upload sheet.
+  // Null/empty for documents that don't have a single-image preview
+  // (Vehicle Information, Vehicle Images).
+  final String? imageUrl;
+  // Clean title shown at the top of the view dialog. Falls back to
+  // [title] when null.
+  final String? dialogTitle;
 
   _DocumentItem({
     required this.stepNumber,
     required this.icon,
     required this.title,
-    required this.value,
+    required this.example,
+    required this.currentValue,
     required this.isCompleted,
     required this.onTap,
+    this.imageUrl,
+    this.dialogTitle,
   });
 }

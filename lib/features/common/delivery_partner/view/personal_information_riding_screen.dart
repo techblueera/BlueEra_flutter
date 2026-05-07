@@ -80,22 +80,10 @@ class _PersonalInformationRidingScreenState
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        appBar: widget.screeName != "from_tab_view"
-            ? CommonBackAppBar(
-                title: AppStrings.personalInformation,
-                buildCustomActionWidget: () => Padding(
-                  padding: const EdgeInsets.only(right: 16),
-                  child: Center(
-                    child: CustomText("${AppStrings.stepLabel.tr}1/3",
-                        fontWeight: FontWeight.w600),
-                  ),
-                ),
-              )
-            : null,
-        body: SingleChildScrollView(
-          padding: EdgeInsets.all(SizeConfig.size16),
-          child: Obx(() {
+    final isFromTab = widget.screeName == "from_tab_view";
+    final content = Padding(
+      padding: EdgeInsets.all(SizeConfig.size16),
+      child: Obx(() {
             if (viewProfileController.viewPersonalResponse.value.status ==
                 Status.COMPLETE) {
               return CustomFormCard(
@@ -254,6 +242,7 @@ class _PersonalInformationRidingScreenState
                         textEditController: controller.emailController,
                         validationType: ValidationTypeEnum.email,
                         autoFillType: AutoFillType.email,
+                        isValidate: false,
                         onChange: (val) {
                           // filedValidation();
                         },
@@ -298,8 +287,9 @@ class _PersonalInformationRidingScreenState
                         title: controller.isPersonalInformationLoading.value
                             ? null
                             : AppStrings.nextButton,
-                        onTap: () =>
-                            controller.ridersOnboardingPersonalInformationApi(),
+                        onTap: () => controller
+                            .ridersOnboardingPersonalInformationApi(
+                                screenName: widget.screeName),
                         radius: 10.0,
                         bgColor: AppColors.primaryColor,
                         isLoading:
@@ -315,6 +305,20 @@ class _PersonalInformationRidingScreenState
               child: CircularProgressIndicator(),
             );
           }),
-        ));
+        );
+    if (isFromTab) return content;
+    return Scaffold(
+      appBar: CommonBackAppBar(
+        title: AppStrings.personalInformation,
+        buildCustomActionWidget: () => Padding(
+          padding: const EdgeInsets.only(right: 16),
+          child: Center(
+            child: CustomText("${AppStrings.stepLabel.tr}1/3",
+                fontWeight: FontWeight.w600),
+          ),
+        ),
+      ),
+      body: SingleChildScrollView(child: content),
+    );
   }
 }

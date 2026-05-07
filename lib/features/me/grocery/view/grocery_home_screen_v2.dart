@@ -113,7 +113,7 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
   // ─────────────────────────────────────────────
   // BUILD — fixed header (top bar + profile row + tabs row) with only
   // the tab content scrolling underneath it. Mirrors the reference
-  // mock at assets/img.png: the chrome stays put while content moves.
+  // mock at assets/img1.png: the chrome stays put while content moves.
   // ─────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
@@ -728,7 +728,7 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
   }
 
   // ─────────────────────────────────────────────
-  // CONTRIBUTE-NOW BANNER — frosted lavender CTA per assets/img.png.
+  // CONTRIBUTE-NOW BANNER — frosted lavender CTA per assets/img1.png.
   //   • Border: #844CD5 / 0.5 px
   //   • Gradient: #FAF3FF → #E7C8FF
   //   • Backdrop blur: 100
@@ -1726,7 +1726,7 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
   }
 
   // ─────────────────────────────────────────────
-  // PROFILE ROW — owner-identity strip per assets/img.png:
+  // PROFILE ROW — owner-identity strip per assets/img1.png:
   // [logo] businessName [+1]   [edit] [eye]
   //        typeOfBusiness
   // Fixed at top — does NOT scroll with the content.

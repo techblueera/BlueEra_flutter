@@ -14,7 +14,14 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class DeliveryPartnerOrders extends StatefulWidget {
-  const DeliveryPartnerOrders({super.key});
+  /// When true, this widget is being embedded inside a parent
+  /// [CustomScrollView] (e.g. the rider service screen tab body) and
+  /// should NOT introduce its own [Scaffold]/[Expanded] chrome — the
+  /// inner [PickupOrderScreen] will run in shrink-wrap mode so the
+  /// parent owns the scroll. Defaults to `false` for standalone use.
+  final bool isInParentScroll;
+
+  const DeliveryPartnerOrders({super.key, this.isInParentScroll = false});
 
   @override
   State<DeliveryPartnerOrders> createState() => _DeliveryPartnerOrdersState();
@@ -45,8 +52,7 @@ class _DeliveryPartnerOrdersState extends State<DeliveryPartnerOrders> {
   @override
   Widget build(BuildContext context) {
 
-    return Scaffold(
-        body: (userProfessionGlobal == BIKE_RIDER||userProfessionGlobal == CAR_TAXI_DRIVER)
+    final body = (userProfessionGlobal == BIKE_RIDER||userProfessionGlobal == CAR_TAXI_DRIVER)
             ? Obx(() => deliveryPartnerController.isRiderStatusLoading.value
                 ? Center(
                     child: CircularProgressIndicator(),
@@ -119,28 +125,22 @@ class _DeliveryPartnerOrdersState extends State<DeliveryPartnerOrders> {
                               labelBuilder: (value) => value.label,
                             ),
                           ),
-                          Expanded(
-                            child: Builder(
-                              builder: (context) {
-                                switch (controller
-                                    .selectedDeliveryPartnerOrderIndex.value) {
-                                  case 0:
-                                    return PickupOrderScreen();
-                                  case 1:
-                                    return CustomText(AppStrings.comingSoon);
-                                  // return GroceryOrderScreen();
-                                  case 2:
-                                    return CustomText(AppStrings.comingSoon);
-                                  // return ParcelOrderScreen();
-                                  case 3:
-                                    return CustomText(AppStrings.comingSoon);
-                                  // return IncomeScreen();
-                                  default:
-                                    return SizedBox.shrink(); // fallback
-                                }
-                              },
+                          // Embedded mode: parent owns the scroll, so we
+                          // can't use `Expanded` (unbounded constraints).
+                          // Standalone mode keeps `Expanded` so the tab
+                          // body fills the remaining Scaffold height.
+                          if (widget.isInParentScroll)
+                            Builder(
+                              builder: (context) =>
+                                  _buildSelectedOrdersTab(),
+                            )
+                          else
+                            Expanded(
+                              child: Builder(
+                                builder: (context) =>
+                                    _buildSelectedOrdersTab(),
+                              ),
                             ),
-                          ),
                         ],
                       );
                     }
@@ -204,7 +204,34 @@ class _DeliveryPartnerOrdersState extends State<DeliveryPartnerOrders> {
                     textAlign: TextAlign.center,
                   ),
                 ),
-              ));
+              );
+
+    return widget.isInParentScroll ? body : Scaffold(body: body);
+  }
+
+  /// Resolves which order subtab body to render based on
+  /// [controller.selectedDeliveryPartnerOrderIndex]. Extracted so the
+  /// build method can reuse the same switch in both
+  /// `isInParentScroll: true` (no `Expanded`) and standalone
+  /// (`Expanded`) layouts.
+  Widget _buildSelectedOrdersTab() {
+    switch (controller.selectedDeliveryPartnerOrderIndex.value) {
+      case 0:
+        return PickupOrderScreen(
+          isInParentScroll: widget.isInParentScroll,
+        );
+      case 1:
+        return CustomText(AppStrings.comingSoon);
+      // return GroceryOrderScreen();
+      case 2:
+        return CustomText(AppStrings.comingSoon);
+      // return ParcelOrderScreen();
+      case 3:
+        return CustomText(AppStrings.comingSoon);
+      // return IncomeScreen();
+      default:
+        return SizedBox.shrink(); // fallback
+    }
   }
 
   void showStatusDialog(BuildContext context, String title, String message) {

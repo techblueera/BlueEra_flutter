@@ -215,9 +215,7 @@ class _GigWorkServiceGuideBottomSheetState extends State<GigWorkServiceGuideBott
     } else if (firstIncompleteEntry.key == RiderProfileStep.addressInfo) {
       Get.toNamed(RouteHelper.getAddressLocationRidingScreenRoute());
     } else {
-      Get.to(RiderProfileStatusScreen(
-        screeName: '',
-      ));
+      Get.to(RiderProfileStatusScreen());
       // Get.toNamed(RouteHelper.getRiderProfileStatusScreenRoute());
     }
 

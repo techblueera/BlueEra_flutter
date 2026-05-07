@@ -37,25 +37,13 @@ class _VehicleInformationRidingScreenState extends State<VehicleInformationRidin
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: widget.screeName != "from_tab_view"
-          ? CommonBackAppBar(
-        title: AppStrings.vehicleInformation,
-        // onBackTap: onBackPressed,
-        buildCustomActionWidget: ()=> Padding(
-          padding: const EdgeInsets.only(right: 16),
-          child: Center(
-            child: Text(
-              "${AppStrings.stepLabel.tr}3/3",
-              style: const TextStyle(fontWeight: FontWeight.w600),
-            ),
-          ),
-        ),
-      ) : null,
-      body: SafeArea(
-        child: Obx(()=> controller.isVehicleDataEnumLoading.value ?
-            Center(child: CircularProgressIndicator())
-            : SingleChildScrollView(
+    final isFromTab = widget.screeName == "from_tab_view";
+    final content = Obx(() => controller.isVehicleDataEnumLoading.value
+        ? const Padding(
+            padding: EdgeInsets.symmetric(vertical: 80),
+            child: Center(child: CircularProgressIndicator()),
+          )
+        : Padding(
           padding: EdgeInsets.all(SizeConfig.size16),
           child: CustomFormCard(
             child: Form(
@@ -274,15 +262,28 @@ class _VehicleInformationRidingScreenState extends State<VehicleInformationRidin
                       bgColor: AppColors.primaryColor,
                       isLoading: controller.isRiderVehicleInformationLoading.value,
                     ),
-        
+
                   ],
                 ),
               ),
             ),
           ),
-        )
+        ));
+    if (isFromTab) return content;
+    return Scaffold(
+      appBar: CommonBackAppBar(
+        title: AppStrings.vehicleInformation,
+        buildCustomActionWidget: () => Padding(
+          padding: const EdgeInsets.only(right: 16),
+          child: Center(
+            child: Text(
+              "${AppStrings.stepLabel.tr}3/3",
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
+          ),
         ),
       ),
+      body: SafeArea(child: SingleChildScrollView(child: content)),
     );
   }
 }

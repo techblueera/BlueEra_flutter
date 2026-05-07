@@ -19,7 +19,15 @@ import '../../controller/pip_floating_page_controller.dart';
 
 
 class PickupOrderScreen extends StatefulWidget {
-  const PickupOrderScreen({super.key});
+  /// When true, the widget skips its [Scaffold] chrome, drops the
+  /// inner [Expanded] around the tab body, and switches its
+  /// [ListView]s to `shrinkWrap: true` + `NeverScrollableScrollPhysics`
+  /// so the parent (a `CustomScrollView` / unbounded scroll surface)
+  /// owns the scroll. Defaults to `false` — the standalone use stays
+  /// bounded and fills the screen via `Expanded`.
+  final bool isInParentScroll;
+
+  const PickupOrderScreen({super.key, this.isInParentScroll = false});
 
   @override
   State<PickupOrderScreen> createState() => _PickupOrderScreenState();
@@ -30,15 +38,17 @@ class _PickupOrderScreenState extends State<PickupOrderScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _filterButtons(),
-          _buildTabViews(),
-        ],
-      ),
+    final body = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: widget.isInParentScroll
+          ? MainAxisSize.min
+          : MainAxisSize.max,
+      children: [
+        _filterButtons(),
+        _buildTabViews(),
+      ],
     );
+    return widget.isInParentScroll ? body : Scaffold(body: body);
   }
 
   Widget _filterButtons() {
@@ -84,42 +94,44 @@ class _PickupOrderScreenState extends State<PickupOrderScreen> {
   }
 
   Widget _buildTabViews(){
-    return Expanded(
-      child: Obx(() {
-        if (controller.ordersListResponse.value.status ==
-            Status.COMPLETE) {
-          switch (controller.selectedPickUp.value) {
+    final body = Obx(() {
+      if (controller.ordersListResponse.value.status ==
+          Status.COMPLETE) {
+        switch (controller.selectedPickUp.value) {
 
-            case PickUpTab.orders:
-              // Show merged new + ongoing orders as default view
-              if (controller.newOrders.isNotEmpty || controller.onGoingOrders.isNotEmpty) {
-                return _buildMergedOrderList(
-                  onGoing: controller.onGoingOrders,
-                  newOrders: controller.newOrders,
-                );
-              }
-              return _buildOngoingRideOrEmpty();
+          case PickUpTab.orders:
+            // Show merged new + ongoing orders as default view
+            if (controller.newOrders.isNotEmpty || controller.onGoingOrders.isNotEmpty) {
+              return _buildMergedOrderList(
+                onGoing: controller.onGoingOrders,
+                newOrders: controller.newOrders,
+              );
+            }
+            return _buildOngoingRideOrEmpty();
 
-            case PickUpTab.newOrder:
-              return _buildOrderList(controller.newOrders);
+          case PickUpTab.newOrder:
+            return _buildOrderList(controller.newOrders);
 
-            case PickUpTab.onGoing:
-              return _buildOrderList(controller.onGoingOrders);
+          case PickUpTab.onGoing:
+            return _buildOrderList(controller.onGoingOrders);
 
-            case PickUpTab.completed:
-              return _buildOrderList(controller.completedOrders);
+          case PickUpTab.completed:
+            return _buildOrderList(controller.completedOrders);
 
-            case PickUpTab.cancel:
-              return _buildOrderList(controller.cancelledOrders);
+          case PickUpTab.cancel:
+            return _buildOrderList(controller.cancelledOrders);
 
-            case PickUpTab.rejected:
-              return _buildOrderList(controller.rejectedOrders);
-          }
-        } else {
-          return const NoOrdersWidget();
+          case PickUpTab.rejected:
+            return _buildOrderList(controller.rejectedOrders);
         }
-      }),
-    );
+      } else {
+        return const NoOrdersWidget();
+      }
+    });
+    // In parent-scroll mode the surrounding `CustomScrollView` already
+    // owns vertical layout, so we must NOT wrap with `Expanded`
+    // (it would try to fill an unbounded constraint).
+    return widget.isInParentScroll ? body : Expanded(child: body);
   }
 
   Widget _buildOngoingRideOrEmpty() {
@@ -146,6 +158,10 @@ class _PickupOrderScreenState extends State<PickupOrderScreen> {
       final paymentMethod = p['paymentMethod'] ?? 'Cash';
 
       return ListView(
+        shrinkWrap: widget.isInParentScroll,
+        physics: widget.isInParentScroll
+            ? const NeverScrollableScrollPhysics()
+            : null,
         padding: EdgeInsets.only(
           top: SizeConfig.size10,
           // Match the other order ListViews so the ongoing-ride card
@@ -416,6 +432,10 @@ class _PickupOrderScreenState extends State<PickupOrderScreen> {
     }
 
     return ListView(
+      shrinkWrap: widget.isInParentScroll,
+      physics: widget.isInParentScroll
+          ? const NeverScrollableScrollPhysics()
+          : null,
       padding: EdgeInsets.only(
         top: SizeConfig.size10,
         bottom: kBottomNavigationBarHeight + SizeConfig.size40,
@@ -463,6 +483,7 @@ class _PickupOrderScreenState extends State<PickupOrderScreen> {
       ordersList.isEmpty
         ? const NoOrdersWidget()
         : ListView.builder(
+        shrinkWrap: widget.isInParentScroll,
         padding: EdgeInsets.only(
           top: SizeConfig.size10,
           bottom: kBottomNavigationBarHeight + SizeConfig.size40,
