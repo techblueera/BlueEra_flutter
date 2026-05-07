@@ -128,8 +128,11 @@ class ChatViewRepo extends BaseService {
   }
 
   /// `GET chat-service/chat/requests` — symbol-reply originated chat requests.
+  ///
+  /// [role]: `"incoming"` (default — caller is the recipient) or `"sent"`
+  /// (caller is the initiator and wants their durable Sent view). v1.1+.
   Future<ResponseModel> getChatRequestsListApi(
-      {int limit = 20, String? nextCursor}) async {
+      {int limit = 20, String? nextCursor, String? role}) async {
     final response = await ApiBaseHelper().getHTTP(
       getChatRequestsList,
       showProgress: false,
@@ -137,7 +140,57 @@ class ChatViewRepo extends BaseService {
         'limit': limit,
         if (nextCursor != null && nextCursor.isNotEmpty)
           'next_cursor': nextCursor,
+        if (role != null && role.isNotEmpty) 'role': role,
       },
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
+  /// `POST chat-service/chat/requests/respond` — recipient-only.
+  /// [action] is `"accept"` or `"decline"`. When declining, optionally
+  /// pass [blockInitiator] = true to silently drop future requests from
+  /// the same sender (`block_initiator`).
+  Future<ResponseModel> respondChatRequestApi({
+    required String conversationId,
+    required String action,
+    bool? blockInitiator,
+  }) async {
+    final response = await ApiBaseHelper().postHTTP(
+      chatRequestRespond,
+      params: {
+        'conversation_id': conversationId,
+        'action': action,
+        if (blockInitiator == true) 'block_initiator': true,
+      },
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
+  /// `POST chat-service/chat/requests/cancel` — initiator-only. Withdraws
+  /// a still-pending request before the recipient acts.
+  Future<ResponseModel> cancelChatRequestApi(String conversationId) async {
+    final response = await ApiBaseHelper().postHTTP(
+      chatRequestCancel,
+      params: {'conversation_id': conversationId},
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
+  /// `GET chat-service/chat/requests/{id}` — fetches a single request and
+  /// its message history. Either party (initiator OR recipient) can read
+  /// while the request is still pending.
+  Future<ResponseModel> getChatRequestByIdApi(String conversationId) async {
+    final response = await ApiBaseHelper().getHTTP(
+      chatRequestById(conversationId),
+      showProgress: false,
       onError: (error) {},
       onSuccess: (data) {},
     );

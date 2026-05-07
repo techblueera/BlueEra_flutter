@@ -202,6 +202,11 @@ abstract class BaseService {
   String checkTrackOrderStatus(String orderId) => 'rider-service/fare/orders/${orderId}/status';
   final String getChatRequest = 'chat-service/connections/requests';
   final String getChatRequestsList = 'chat-service/chat/requests';
+  // v1.1: consent-gated symbol-reply request endpoints. See
+  // lib/docs/symbol-reply-request-integration-guide.md §2.3–2.5.
+  final String chatRequestRespond = 'chat-service/chat/requests/respond';
+  final String chatRequestCancel = 'chat-service/chat/requests/cancel';
+  String chatRequestById(String id) => 'chat-service/chat/requests/$id';
   final String getLatestChat = 'chat-service/chat/latest-chat';
   final String getChatExportAll = 'chat-service/chat/export-all';
   final String reactChatRequest = 'chat-service/connections/respond';

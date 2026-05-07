@@ -138,15 +138,10 @@ class _PersonalChatsListState extends State<PersonalChatsList> {
   }
 
 Widget personalChatListWidget(GetChatListModel? data,ThemeData theme ){
-    // Filter out archived chats and sort pinned to top
+    // Sort pinned to top — archived chats are no longer filtered out here.
     List<ChatList?> chatList = data?.chatList ?? [];
     final archivedIds = pinArchiveController.personalArchivedIds;
     final pinnedIds = pinArchiveController.personalPinnedIds;
-
-    // Remove archived chats from the main list
-    chatList = chatList.where((chat) {
-      return chat == null || !archivedIds.contains(chat.conversationId);
-    }).toList();
 
     // Sort: pinned chats first, then unpinned
     chatList.sort((a, b) {

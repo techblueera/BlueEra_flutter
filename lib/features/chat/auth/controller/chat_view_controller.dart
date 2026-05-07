@@ -91,9 +91,21 @@ class ChatViewController extends GetxController {
       GetChatRequestListModel().obs;
 
   /// Symbol-reply chat requests — `GET chat-service/chat/requests`.
+  ///
+  /// Incoming view (default `role=incoming`) — caller is the **recipient**.
   Rx<ChatRequestsListModel> chatRequestsListModel =
       ChatRequestsListModel().obs;
   Rx<ApiResponse> chatRequestsListResponse =
+      ApiResponse.initial('Initial').obs;
+
+  /// Sent view (`role=sent`) — caller is the **initiator**, surfaces the
+  /// durable list of outgoing requests they're still waiting on. Without
+  /// this view there is no server-backed way for the initiator to recover
+  /// their pending requests after a reload (they're filtered out of
+  /// `latestChat`). See guide §2.2.
+  Rx<ChatRequestsListModel> sentChatRequestsListModel =
+      ChatRequestsListModel().obs;
+  Rx<ApiResponse> sentChatRequestsListResponse =
       ApiResponse.initial('Initial').obs;
   Rx<GetChatRequestProfileDetailsModel>? getChatRequestProfileDetailsModel =
       GetChatRequestProfileDetailsModel().obs;
@@ -250,6 +262,12 @@ class ChatViewController extends GetxController {
   Rx<GetChatListModel>? getPersonalChatListModel = GetChatListModel().obs;
   Rx<GetChatListModel>? getOrderChatListModel = GetChatListModel().obs;
   Rx<GetChatListModel>? getBusinessChatListModel = GetChatListModel().obs;
+
+  /// Type of the most recent `ChatList` socket emit (`personal` |
+  /// `business` | `order` | `group`). Used as a fallback when the server
+  /// response omits `type` so we can still route the payload into the
+  /// correct Rx model. Set inside [emitEvent] right before the socket emit.
+  String? _pendingChatListType;
   Rx<GetChatListModel>? getGroupChatListModel = GetChatListModel().obs;
   Rx<GetChatListModel>? getPersonalFilteredChatListModel =
       GetChatListModel().obs;
@@ -800,10 +818,27 @@ class ChatViewController extends GetxController {
     if (socketConnected.value == false) {
       socketConnected.value = true;
       chatSocket.listenEvent(ChatEmitEvents.ChatList, (data) async {
+        log("dcskdjcskdjcnsdc ${data}");
         //1200000039
         final parsedData = GetChatListModel.fromJson(data);
+        // The server doesn't always echo `type` back in the ChatList
+        // response. When that happens, fall back to the type we asked for
+        // in the most recent emit — otherwise `loadChatListWithType`
+        // misroutes business/order data into the personal model and the
+        // Inquiry / Orders tabs stay stuck on "No chats found" while their
+        // data quietly lands in the personal Rx instead.
+        if ((parsedData.type ?? '').isEmpty &&
+            (_pendingChatListType ?? '').isNotEmpty) {
+          parsedData.type = _pendingChatListType;
+        }
         loadChatListWithType(chatListModel: parsedData);
-        getPersonalFilteredChatListModel?.value = parsedData;
+        // Only mirror personal payloads into the filtered-personal Rx —
+        // unconditionally assigning every list (business/order/group) here
+        // used to clobber the personal tab whenever the user visited
+        // another tab.
+        if (parsedData.type == AppConstants.personal_Chat_Type) {
+          getPersonalFilteredChatListModel?.value = parsedData;
+        }
         // Persist server-authoritative chat list for offline render on next open.
         if ((parsedData.type ?? '').isNotEmpty) {
           await localStorageHelper.saveChatList(
@@ -1850,6 +1885,13 @@ class ChatViewController extends GetxController {
     }
     if (event == ChatEmitEvents.ChatList) {
       final type = data[ApiKeys.type];
+      // Stash the requested type so the listener can fall back to it when
+      // the server response omits `type` — otherwise business/order
+      // payloads silently get routed into the personal Rx and the
+      // Inquiry / Orders tabs stay on "No chats found".
+      if (type is String && type.isNotEmpty) {
+        _pendingChatListType = type;
+      }
       // Local-first: paint cached chat list instantly so offline users still
       // see their history. The socket response will overwrite this once it
       // arrives with authoritative data.
@@ -2099,22 +2141,91 @@ class ChatViewController extends GetxController {
   }
 
   /// Fetch symbol-reply chat requests from `GET chat-service/chat/requests`.
+  ///
+  /// [role] selects the view:
+  ///   • `"incoming"` (default) — populates [chatRequestsListModel] with
+  ///     requests where the caller is the recipient (Accept/Decline).
+  ///   • `"sent"` — populates [sentChatRequestsListModel] with the
+  ///     initiator's outgoing pending requests (Cancel-only).
   Future<void> getChatRequestsList(
-      {int limit = 20, String? nextCursor}) async {
+      {int limit = 20, String? nextCursor, String role = 'incoming'}) async {
+    final isSent = role == 'sent';
+    final responseRx =
+        isSent ? sentChatRequestsListResponse : chatRequestsListResponse;
+    final modelRx = isSent ? sentChatRequestsListModel : chatRequestsListModel;
     try {
-      chatRequestsListResponse.value = ApiResponse.loading();
-      final responseModel = await ChatViewRepo()
-          .getChatRequestsListApi(limit: limit, nextCursor: nextCursor);
+      responseRx.value = ApiResponse.loading();
+      final responseModel = await ChatViewRepo().getChatRequestsListApi(
+          limit: limit, nextCursor: nextCursor, role: isSent ? 'sent' : null);
       if (responseModel.isSuccess) {
-        chatRequestsListModel.value =
+        modelRx.value =
             ChatRequestsListModel.fromJson(responseModel.response!.data);
-        chatRequestsListResponse.value = ApiResponse.complete(responseModel);
+        responseRx.value = ApiResponse.complete(responseModel);
       } else {
-        chatRequestsListResponse.value = ApiResponse.error(
+        responseRx.value = ApiResponse.error(
             responseModel.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
-      chatRequestsListResponse.value = ApiResponse.error('error');
+      responseRx.value = ApiResponse.error('error');
+    }
+  }
+
+  /// Recipient-only: accept or decline a pending request.
+  /// Returns true on 2xx so the caller can optimistically remove the row.
+  /// On accept, the conversation type flips to `personal` server-side and
+  /// history is preserved; the initiator can then send freely. On decline,
+  /// the conversation + messages are deleted server-side.
+  Future<bool> respondToChatRequest({
+    required String conversationId,
+    required String action,
+    bool blockInitiator = false,
+  }) async {
+    try {
+      final responseModel = await ChatViewRepo().respondChatRequestApi(
+        conversationId: conversationId,
+        action: action,
+        blockInitiator: blockInitiator,
+      );
+      if (responseModel.isSuccess) {
+        // Drop the row from the in-memory incoming list immediately —
+        // socket reconnect will reconcile if anything is stale.
+        final list = chatRequestsListModel.value.data;
+        if (list != null) {
+          list.removeWhere((r) => r.conversationId == conversationId);
+          chatRequestsListModel.refresh();
+        }
+        return true;
+      }
+      commonSnackBar(
+          message: responseModel.message ?? AppStrings.somethingWentWrong);
+      return false;
+    } catch (e) {
+      commonSnackBar(message: e.toString());
+      return false;
+    }
+  }
+
+  /// Initiator-only: withdraw a still-pending request before the recipient
+  /// acts. Server deletes the conversation and emits `requestDeclined` to
+  /// the recipient with `reason: "cancelled_by_initiator"`.
+  Future<bool> cancelChatRequest(String conversationId) async {
+    try {
+      final responseModel =
+          await ChatViewRepo().cancelChatRequestApi(conversationId);
+      if (responseModel.isSuccess) {
+        final list = sentChatRequestsListModel.value.data;
+        if (list != null) {
+          list.removeWhere((r) => r.conversationId == conversationId);
+          sentChatRequestsListModel.refresh();
+        }
+        return true;
+      }
+      commonSnackBar(
+          message: responseModel.message ?? AppStrings.somethingWentWrong);
+      return false;
+    } catch (e) {
+      commonSnackBar(message: e.toString());
+      return false;
     }
   }
 
