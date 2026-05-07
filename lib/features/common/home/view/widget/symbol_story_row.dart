@@ -80,7 +80,9 @@ class SymbolStoryRow extends StatelessWidget {
               return _AddSymbolCard(onTap: openAddSymbol);
             }
 
-            final group = raw[index - (userId.isNotEmpty ? 1 : 0)];
+            final int rowOffset = userId.isNotEmpty ? 1 : 0;
+            final int rawIdx = index - rowOffset;
+            final group = raw[rawIdx];
             return _StatusCard(
               group: group,
               isSelf: false,
@@ -89,8 +91,13 @@ class SymbolStoryRow extends StatelessWidget {
                   if (selfGroup != null) selfGroup,
                   ...raw,
                 ];
-                final viewerIndex =
-                    selfGroup != null ? index : index - 0;
+                // `ordered` prepends self only when selfGroup != null. Row
+                // offset (the add-card placeholder slot) is independent of
+                // that, so derive the viewer index from rawIdx instead of
+                // the row index — otherwise tapping otherN opens otherN+1
+                // when the placeholder occupies row 0.
+                final int viewerIndex =
+                    (selfGroup != null ? 1 : 0) + rawIdx;
                 _openFullscreen(context, ordered, viewerIndex);
               },
             );

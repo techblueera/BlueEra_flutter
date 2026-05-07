@@ -206,8 +206,14 @@ class _SymbolFullscreenViewerState extends State<SymbolFullscreenViewer>
           },
           child: Stack(
             children: [
-              /// Background content
-              _buildContent(symbol, bgColor),
+              /// Background content. Keyed by symbol id so transitioning
+              /// between two image/text symbols (or the same widget type
+              /// in adjacent stories) forces a fresh subtree instead of
+              /// reusing the previous element's State.
+              KeyedSubtree(
+                key: ValueKey('symbol-bg-${symbol.id ?? symbol.content}'),
+                child: _buildContent(symbol, bgColor),
+              ),
 
               /// Top gradient
               Positioned(
@@ -385,6 +391,13 @@ class _SymbolFullscreenViewerState extends State<SymbolFullscreenViewer>
                               ),
                               clipBehavior: Clip.antiAlias,
                               child: AnyLinkPreview.builder(
+                                // Key by the link itself so advancing to the
+                                // next link-preview story builds a fresh
+                                // AnyLinkPreview State and re-fetches
+                                // metadata, instead of showing the previous
+                                // symbol's cached title/image/host until
+                                // the new fetch eventually replaces it.
+                                key: ValueKey('lp-${symbol.id ?? symbol.content}'),
                                 link: symbol.content!,
                                 cache: const Duration(days: 7),
                                 placeholderWidget:

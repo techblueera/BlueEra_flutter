@@ -107,17 +107,47 @@ class CallController extends GetxController {
   // regardless of whether the call screen widget is mounted or disposed.
   final AudioPlayer _ringtonePlayer = AudioPlayer();
 
+  // Caller-side ringback player — plays a "phone ringing" tone to the caller
+  // while we wait for the receiver to pick up. Kept as a separate instance
+  // from `_ringtonePlayer` so caller and receiver tones can never tangle.
+  final AudioPlayer _outgoingRingbackPlayer = AudioPlayer();
+
   /// Start the incoming-call ringtone (loops until stopped).
   void startRingtone() {
     _ringtonePlayer.setReleaseMode(ReleaseMode.loop);
     _ringtonePlayer.play(AssetSource('sound/hangouts_call.mp3'));
   }
 
+  /// Start the outgoing-call ringback for the caller (loops until stopped).
+  /// Plays from the moment the call is dialed until the receiver accepts,
+  /// declines, the caller cancels, or the ring window times out.
+  void startOutgoingRingback() {
+    try {
+      _outgoingRingbackPlayer.setReleaseMode(ReleaseMode.loop);
+      _outgoingRingbackPlayer.play(AssetSource('sound/old_phone_ring.mp3'));
+    } catch (e) {
+      if (kDebugMode) print('startOutgoingRingback error: $e');
+    }
+  }
+
+  /// Stop only the caller-side ringback. Used when the receiver picks up and
+  /// the call transitions outgoing → connecting (which does NOT flow through
+  /// the cleanup chain, so `stopRingtone` is not invoked otherwise).
+  void stopOutgoingRingback() {
+    try {
+      _outgoingRingbackPlayer.stop();
+    } catch (_) {}
+  }
+
   /// Stop all incoming-call ringtones immediately — covers both:
   /// - In-app AudioPlayer ringtone (regular voice/video calls)
   /// - Native system ringtone via DefaultRingtone (rider/fare-call)
+  /// Also silences the caller-side outgoing ringback so every existing
+  /// teardown path (decline / cancel / end / answered-elsewhere / cleanup)
+  /// stops the caller's tone without needing per-site changes.
   void stopRingtone() {
     _ringtonePlayer.stop();
+    stopOutgoingRingback();
     // DefaultRingtone.stop() is async — a sync try/catch misses the
     // MissingPluginException that fires when this engine (e.g. CallActivity
     // before a full Kotlin rebuild) hasn't registered the channel. Without
@@ -457,6 +487,12 @@ class CallController extends GetxController {
     // Reset ringing state once we have a callId — subsequent `call:ringing`
     // events with this callId will drive the outgoing-call label.
     _attachRingingState();
+
+    // Caller-side ringback: loops until the receiver accepts/declines, the
+    // caller cancels, or the 30s ring timer expires. Stopped by either
+    // `stopOutgoingRingback()` in `_handleCallAccepted`, or `stopRingtone()`
+    // (which also silences the ringback) in every other teardown path.
+    startOutgoingRingback();
 
     print('[CALL_DEBUG] initiateCall → API SUCCESS, callId=${callId.value}, roomId=${roomId.value}');
 
@@ -1185,6 +1221,10 @@ class CallController extends GetxController {
     }
 
     _ringTimer?.cancel();
+    // Receiver picked up — silence the caller-side ringback. This path does
+    // NOT go through `_cleanup` (that runs only on terminal states), so the
+    // ringback would otherwise keep looping until the call ends.
+    stopOutgoingRingback();
     callStatus.value = CallStatus.connecting;
     final acceptedBy = data['accepted_by'] ?? '';
     _remoteUserId = acceptedBy;
