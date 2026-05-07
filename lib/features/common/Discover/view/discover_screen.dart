@@ -126,7 +126,8 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
         child: Scaffold(
           // floatingActionButton: FloatingActionButton(onPressed: (){
           //   // Get.toNamed(getCreateAccountTypeScreenRoute());
-          //   Get.toNamed(RouteHelper.getCreateAccountTypeScreenRoute());
+          //
+          //   Get.toNamed(RouteHelper.getVehicleHomeScreenRoute());
           //
           //   // Get.to(BusinessOwnProfileScreen());
           // }),

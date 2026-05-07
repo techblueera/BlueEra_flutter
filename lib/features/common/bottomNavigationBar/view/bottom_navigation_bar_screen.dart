@@ -31,6 +31,7 @@ import 'package:BlueEra/features/me/others/others_main.dart';
 import 'package:BlueEra/features/me/professionals_consultant/view/professionals_main.dart';
 import 'package:BlueEra/features/me/school/view/school_main.dart';
 import 'package:BlueEra/features/me/social/view/social_main.dart';
+import 'package:BlueEra/features/me/vehicle/view/v2/vehicle_home_screen_v2.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/gig_work_options_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/self_employee_screen.dart';
@@ -588,7 +589,9 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       // return const ManufactureMain();
       return const InventoryScreen(fromBottomNavBar: true);
     } else if (_isSpecificServiceAutomotive()) {
-      return const OthersMain();
+      return const VehicleHomeScreenV2();
+      Get.toNamed(RouteHelper.getVehicleHomeScreenRoute());
+
     }  else if (_isSpecificProductAutomotive()) {
       return const InventoryScreen();
     } else {
@@ -603,9 +606,13 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     // 1. Define the Automotive sectors that count as "Others"
     final automotiveOthersSectors = {
       AppConstants.RENTAL_SECTOR.toUpperCase(),
-      AppConstants.SERVICE_SECTOR.toUpperCase(),
+      // AppConstants.SERVICE_SECTOR.toUpperCase(),
       AppConstants.SUPPORT_SECTOR.toUpperCase(),
       AppConstants.TRANSPORT_LOGISTIC.toUpperCase(),
+      "AUTOMOTIVE_SERVICES",
+      "Vehicle_Sales",
+      "Vehicle_parts",
+      "VEHICLE_SERVICE",
     };
 
     // 2. Check if it's Automotive AND in one of those sectors
