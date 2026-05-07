@@ -10,7 +10,9 @@ class SchoolRepo extends BaseService {
       {required Map<String, dynamic> reqBody}) async {
     final response = await ApiBaseHelper().postHTTP(aiInstitutionFetchDetails,
         showProgress: true,
-        params: reqBody, onError: (error) {}, onSuccess: (data) {});
+        params: reqBody,
+        onError: (error) {},
+        onSuccess: (data) {});
     return response;
   }
 
@@ -29,20 +31,24 @@ class SchoolRepo extends BaseService {
         onError: (error) {}, onSuccess: (data) {});
     return response;
   }
+
   ///GET SCHOOL/UNIVERSITY DETAILS...
-  Future<ResponseModel> getSearchSchoolRepo({required Map<String, dynamic> reqParm}) async {
+  Future<ResponseModel> getSearchSchoolRepo(
+      {required Map<String, dynamic> reqParm}) async {
     // education-service/schools?page=1&limit=10&search=computer%20science
-    final response = await ApiBaseHelper().getHTTP("education-service/schools",params: reqParm,
-        onError: (error) {}, onSuccess: (data) {});
+    final response = await ApiBaseHelper().getHTTP("education-service/schools",
+        params: reqParm, onError: (error) {}, onSuccess: (data) {});
     return response;
   }
 
   // Future<ResponseModel> getSearchFoodRepo({required Map<String, dynamic> reqParm}) async {
   Future<ResponseModel> getSearchFoodRepo({required String reqParm}) async {
-    final response = await ApiBaseHelper().getHTTP("food-service/api/home/category-page/${reqParm}",
-        // params: reqParm,
-        showProgress: false,
-        onError: (error) {}, onSuccess: (data) {});
+    final response = await ApiBaseHelper()
+        .getHTTP("food-service/api/home/category-page/${reqParm}",
+            // params: reqParm,
+            showProgress: false,
+            onError: (error) {},
+            onSuccess: (data) {});
     return response;
   }
 
@@ -67,9 +73,8 @@ class SchoolRepo extends BaseService {
 
   ///UPDATE SCHOOL/UNIVERSITY DETAILS...
   Future<ResponseModel> updateSchoolManagementAboutUsRepo(
-      {
-        required String aboutUsID,
-        required int managementIndex,
+      {required String aboutUsID,
+      required int managementIndex,
       required Map<String, dynamic> reqBODY}) async {
     final response = await ApiBaseHelper().putHTTP(
         "${schoolAboutUsUpdate}$aboutUsID/management/$managementIndex",
@@ -80,15 +85,23 @@ class SchoolRepo extends BaseService {
   }
 
   Future<ResponseModel> updateSchoolAboutUsRepo(
-      {
-        required String aboutUsID,
+      {required String aboutUsID,
       required Map<String, dynamic> reqBODY}) async {
-    final response = await ApiBaseHelper().putHTTP(
-        "${schoolAboutUsUpdate}$aboutUsID",
-        onError: (error) {},
-        params: reqBODY,
-        onSuccess: (data) {});
-    return response;
+    if (aboutUsID.isNotEmpty) {
+      final response = await ApiBaseHelper().putHTTP(
+          "${schoolAboutUsUpdate}$aboutUsID",
+          onError: (error) {},
+          params: reqBODY,
+          onSuccess: (data) {});
+      return response;
+    } else {
+      final response = await ApiBaseHelper().postHTTP(
+          "${schoolAboutUsUpdate}$aboutUsID",
+          onError: (error) {},
+          params: reqBODY,
+          onSuccess: (data) {});
+      return response;
+    }
   }
 
   ///UPLOAD INTRO VIDEO INIT...
@@ -143,10 +156,13 @@ class SchoolRepo extends BaseService {
         onError: (error) {}, onSuccess: (data) {});
     return response;
   }
+
   ///GET SCHOOL CONTACT REPO....
   Future<ResponseModel> getSchoolByIDRepo() async {
-    final response = await ApiBaseHelper().getHTTP("${schoolUserID}$schoolIDGlobal",
-        onError: (error) {}, onSuccess: (data) {});
+    final response = await ApiBaseHelper().getHTTP(
+        "${schoolUserID}$schoolIDGlobal",
+        onError: (error) {},
+        onSuccess: (data) {});
     return response;
   }
 
@@ -454,8 +470,8 @@ class SchoolRepo extends BaseService {
   ///CREATE CAMPUS REPO....
   Future<ResponseModel> createCampusLifeRepo(
       {required Map<String, dynamic> reqBody}) async {
-    final response = await ApiBaseHelper()
-        .postHTTP("${campusLife}",params: reqBody, onError: (error) {}, onSuccess: (data) {});
+    final response = await ApiBaseHelper().postHTTP("${campusLife}",
+        params: reqBody, onError: (error) {}, onSuccess: (data) {});
     return response;
   }
 
@@ -478,12 +494,10 @@ class SchoolRepo extends BaseService {
   // }
 
   ///UPDATE CAMPUS CATEGORY LIFE REPO....
-  Future<ResponseModel> updateCampusCategoryLifeRepo({
-    required String campusId,
-    required Map<String, dynamic> reqBody
-  }) async {
-    final response = await ApiBaseHelper().putHTTP("${campusLife}/${campusId}",params: reqBody,
-        onError: (error) {}, onSuccess: (data) {});
+  Future<ResponseModel> updateCampusCategoryLifeRepo(
+      {required String campusId, required Map<String, dynamic> reqBody}) async {
+    final response = await ApiBaseHelper().putHTTP("${campusLife}/${campusId}",
+        params: reqBody, onError: (error) {}, onSuccess: (data) {});
     return response;
   }
 
@@ -499,10 +513,10 @@ class SchoolRepo extends BaseService {
     return response;
   }
 
-
   ///PUT  COURSE....
-  Future<ResponseModel> updateSchoolInfoRepo(
-      {required Map<String, dynamic> reqBODY,}) async {
+  Future<ResponseModel> updateSchoolInfoRepo({
+    required Map<String, dynamic> reqBODY,
+  }) async {
     final response = await ApiBaseHelper().putHTTP(
         "${schoolUserID}$schoolIDGlobal",
         params: reqBODY,

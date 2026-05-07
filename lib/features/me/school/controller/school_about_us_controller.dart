@@ -68,9 +68,17 @@ class SchoolAboutUsController extends GetxController {
         getAboutUsSchoolResponse.value =
             ApiResponse.complete(schoolAboutUsModel);
       } else {
-        commonSnackBar(message: AppStrings.somethingWentWrong);
-        getAboutUsSchoolResponse.value =
-            ApiResponse.error(AppStrings.somethingWentWrong);
+        if (response.response?.data['message'] ==
+            "About section not found for this school") {
+          // Handle new schools gracefully
+          aboutUsData?.value = AboutUsData();
+          getAboutUsSchoolResponse.value = ApiResponse.complete(
+              SchoolAboutUsModel(data: aboutUsData?.value));
+        } else {
+          commonSnackBar(message: AppStrings.somethingWentWrong);
+          getAboutUsSchoolResponse.value =
+              ApiResponse.error(AppStrings.somethingWentWrong);
+        }
       }
       aboutUsData?.refresh();
     } on Exception catch (e) {
@@ -128,7 +136,10 @@ class SchoolAboutUsController extends GetxController {
     try {
       ResponseModel response = await SchoolRepo().updateSchoolAboutUsRepo(
           aboutUsID: aboutUsData?.value.id ?? "",
-          reqBODY: {ApiKeys.visionAndMission: visionMissionText});
+          reqBODY: {
+            ApiKeys.visionAndMission: visionMissionText,
+            "schoolId": schoolIDGlobal
+          });
 
       if (response.isSuccess) {
         Get.back();
@@ -238,7 +249,8 @@ class SchoolAboutUsController extends GetxController {
             "history": {
               ApiKeys.history: historyText.value,
               ApiKeys.photo: uploadInit.publicUrl ?? ""
-            }
+            },
+            "schoolId": schoolIDGlobal
           });
 
       if (response.isSuccess) {
@@ -444,7 +456,8 @@ class SchoolAboutUsController extends GetxController {
               "principalMessage": {
                 ApiKeys.photo: result?.url,
                 ApiKeys.message: directorMessageText.value,
-              }
+              },
+              "schoolId": schoolIDGlobal
             });
       } else {
         response = await SchoolRepo().updateSchoolAboutUsRepo(
@@ -452,11 +465,14 @@ class SchoolAboutUsController extends GetxController {
             reqBODY: {
               "principalMessage": {
                 ApiKeys.message: directorMessageText.value,
-              }
+              },
+              "schoolId": schoolIDGlobal
             });
       }
 
       if (response.isSuccess) {
+        isDirectorImageUpdate.value = false;
+        directorMessageImageFile.value = null;
         Get.back();
         commonSnackBar(
             message:
@@ -543,8 +559,8 @@ class SchoolAboutUsController extends GetxController {
     required String uploadPhoto,
     required String noticeDescription,
   }) {
-    // Condition: All text fields not empty AND at least 1 image
-    isFormValid.value = noticeDescription.isNotEmpty && uploadPhoto.isNotEmpty;
+    // Message should be required, photo is optional
+    isFormValid.value = noticeDescription.isNotEmpty;
   }
 
   // Logic to check if user changed anything

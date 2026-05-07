@@ -233,9 +233,7 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
 
     return Container(
       margin: EdgeInsets.only(bottom: SizeConfig.size70),
-      child: (chatList.isEmpty && !hasArchived)
-          ? noChatsFound()
-          : ListView.builder(
+      child:  ListView.builder(
         itemCount: chatList.length + topRowCount,
         shrinkWrap: true,
         padding: EdgeInsets.zero,

@@ -128,7 +128,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       onTap: schoolAboutUsController.isFormValid.value
                           ? () => _handleSubmit()
                           : null,
-                      title: AppStrings.submit,
+                      title: (schoolAboutUsController
+                                  .aboutUsData?.value.id?.isNotEmpty ??
+                              false)
+                          ? "Update"
+                          : AppStrings.submit,
                       isValidate: schoolAboutUsController.isFormValid.value,
                     ),
                   ],

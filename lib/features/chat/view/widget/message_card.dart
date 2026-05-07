@@ -1100,78 +1100,88 @@ class _MessageCardState extends State<MessageCard>
     return Color(int.parse(h, radix: 16));
   }
 
-  Widget _buildSymbolPreviewThumb(SymbolDetailsModel symbol) {
+  Widget _buildSymbolPreviewThumb(SymbolDetailsModel symbol, {double size = 40}) {
     final type = symbol.type;
     final content = symbol.content ?? '';
-    const double size = 52;
 
+    Widget inner;
     if (type == 'photo' ||
         (type == 'video' && !content.toLowerCase().contains('.mp4'))) {
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(6),
-        child: Container(
-          width: size,
-          height: size,
-          color: Colors.black12,
-          child: content.isNotEmpty
-              ? Image.network(
-                  content,
-                  width: size,
-                  height: size,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) =>
-                      const Icon(Icons.image_outlined, color: Colors.white),
-                )
-              : const Icon(Icons.image_outlined, color: Colors.white),
+      inner = Container(
+        width: size,
+        height: size,
+        color: Colors.black12,
+        child: content.isNotEmpty
+            ? Image.network(
+                content,
+                width: size,
+                height: size,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) =>
+                    const Icon(Icons.image_outlined, color: Colors.white, size: 18),
+              )
+            : const Icon(Icons.image_outlined, color: Colors.white, size: 18),
+      );
+    } else if (type == 'video') {
+      inner = Container(
+        width: size,
+        height: size,
+        color: Colors.black54,
+        alignment: Alignment.center,
+        child: const Icon(Icons.play_circle_outline,
+            color: Colors.white, size: 22),
+      );
+    } else if (type == 'text') {
+      inner = Container(
+        width: size,
+        height: size,
+        color: _hexToColor(symbol.backgroundColor),
+        alignment: Alignment.center,
+        padding: const EdgeInsets.all(3),
+        child: CustomText(
+          content,
+          color: Colors.white,
+          fontSize: 8,
+          fontWeight: FontWeight.w600,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          textAlign: TextAlign.center,
         ),
       );
+    } else if (type == 'embeddedUrl') {
+      inner = Container(
+        width: size,
+        height: size,
+        color: AppColors.primaryColor.withValues(alpha: 0.15),
+        alignment: Alignment.center,
+        child: const Icon(Icons.link, color: AppColors.primaryColor, size: 20),
+      );
+    } else {
+      return const SizedBox.shrink();
     }
-    if (type == 'video') {
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(6),
-        child: Container(
+
+    // WhatsApp-style status ring around the thumbnail.
+    return Container(
+      padding: const EdgeInsets.all(1.5),
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: const LinearGradient(
+          colors: [
+            Color(0xFF25D366),
+            Color(0xFF128C7E),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: ClipOval(
+        child: SizedBox(
           width: size,
           height: size,
-          color: Colors.black54,
-          alignment: Alignment.center,
-          child: const Icon(Icons.play_circle_outline, color: Colors.white, size: 28),
+          child: inner,
         ),
-      );
-    }
-    if (type == 'text') {
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(6),
-        child: Container(
-          width: size,
-          height: size,
-          color: _hexToColor(symbol.backgroundColor),
-          alignment: Alignment.center,
-          padding: const EdgeInsets.all(4),
-          child: CustomText(
-            content,
-            color: Colors.white,
-            fontSize: 9,
-            fontWeight: FontWeight.w600,
-            maxLines: 3,
-            overflow: TextOverflow.ellipsis,
-            textAlign: TextAlign.center,
-          ),
-        ),
-      );
-    }
-    if (type == 'embeddedUrl') {
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(6),
-        child: Container(
-          width: size,
-          height: size,
-          color: AppColors.primaryColor.withValues(alpha: 0.15),
-          alignment: Alignment.center,
-          child: const Icon(Icons.link, color: AppColors.primaryColor),
-        ),
-      );
-    }
-    return const SizedBox.shrink();
+      ),
+    );
   }
 
   Widget _buildReplyToSymbolMessage(
@@ -1188,152 +1198,183 @@ class _MessageCardState extends State<MessageCard>
         ? symbol.caption!
         : (symbol.type == 'text' || symbol.type == 'embeddedUrl')
             ? (symbol.content ?? '')
-            : (symbol.type ?? '');
+            : _humanReadableSymbolType(symbol.type);
+
+    // WhatsApp-style status reply header:
+    //   ↩  "Replied to <name>'s status"  (or "your status" when I'm the author)
+    final isMine = message.myMessage ?? false;
+    final headerLabel = isReceive
+        ? "Replied to your symbol"
+        : "You replied to ${isMine ? '' : authorName + "'s "}symbol".trim();
 
     return Container(
-      width: SizeConfig.screenWidth * 0.85,
-      color: Colors.transparent,
-      child: Container(
-        width: 254,
-        margin: EdgeInsets.only(
-            left: isReceive ? 0 : 50, right: isReceive ? 50 : 0),
-        child: Align(
-          alignment:
-              isReceive ? Alignment.centerLeft : Alignment.centerRight,
-          child: IntrinsicWidth(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
-              decoration: BoxDecoration(
-                color: isReceive
-                    ? chatThemeController.receiveMessageBgColor.value
-                    : chatThemeController.myMessageBgColor.value,
-                borderRadius: BorderRadius.only(
-                  topLeft: const Radius.circular(12),
-                  topRight: const Radius.circular(12),
-                  bottomRight: Radius.circular(isReceive ? 12 : 0),
-                  bottomLeft: Radius.circular(isReceive ? 0 : 12),
-                ),
+      // Compact, status-reply style (smaller than a normal text bubble).
+      constraints: BoxConstraints(maxWidth: SizeConfig.screenWidth * 0.72),
+      margin: EdgeInsets.only(
+          left: isReceive ? 0 : 40, right: isReceive ? 40 : 0),
+      child: Align(
+        alignment: isReceive ? Alignment.centerLeft : Alignment.centerRight,
+        child: IntrinsicWidth(
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(8, 6, 8, 6),
+            decoration: BoxDecoration(
+              color: isReceive
+                  ? chatThemeController.receiveMessageBgColor.value
+                  : chatThemeController.myMessageBgColor.value,
+              borderRadius: BorderRadius.only(
+                topLeft: const Radius.circular(12),
+                topRight: const Radius.circular(12),
+                bottomRight: Radius.circular(isReceive ? 12 : 2),
+                bottomLeft: Radius.circular(isReceive ? 2 : 12),
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Quoted symbol card
-                  Container(
-                    margin: const EdgeInsets.only(bottom: 6),
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(0),
-                        topRight: Radius.circular(8),
-                        bottomRight: Radius.circular(8),
-                        bottomLeft: Radius.circular(0),
-                      ),
-                      color: isReceive
-                          ? AppColors.primaryColor.withValues(alpha: 0.08)
-                          : Colors.grey.withValues(alpha: 0.15),
-                      border: Border(
-                        left: BorderSide(
-                          color: isReceive
-                              ? AppColors.primaryColor
-                              : Colors.grey,
-                          width: 3,
-                        ),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // "Replied to status" indicator row (curved arrow + label).
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.reply,
+                      size: 12,
+                      color: chatThemeController.isDarkMode.value
+                          ? Colors.white70
+                          : Colors.black54,
+                    ),
+                    const SizedBox(width: 4),
+                    Flexible(
+                      child: CustomText(
+                        headerLabel,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                        color: chatThemeController.isDarkMode.value
+                            ? Colors.white70
+                            : Colors.black54,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        _buildSymbolPreviewThumb(symbol),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              CustomText(
-                                authorName,
-                                fontWeight: FontWeight.w600,
-                                color: isReceive
-                                    ? AppColors.primaryColor
-                                    : AppColors.grayText,
-                                fontSize: 13,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              const SizedBox(height: 2),
-                              Row(
-                                children: [
-                                  Icon(
-                                    _iconForSymbolType(symbol.type),
-                                    size: 13,
-                                    color: AppColors.grayText,
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Expanded(
-                                    child: CustomText(
-                                      subtitle,
-                                      color: AppColors.grayText,
-                                      fontSize: 12,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
+                  ],
+                ),
+                const SizedBox(height: 4),
+                // Quoted status snippet — compact pill with status-ring thumb.
+                Container(
+                  padding: const EdgeInsets.fromLTRB(6, 5, 8, 5),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    color: isReceive
+                        ? Colors.black.withValues(alpha: 0.05)
+                        : Colors.white.withValues(alpha: 0.18),
+                    border: Border(
+                      left: BorderSide(
+                        color: isReceive
+                            ? AppColors.primaryColor
+                            : Colors.white70,
+                        width: 3,
+                      ),
                     ),
                   ),
-                  // Link preview for the quoted symbol when it's a link
-                  // (embeddedUrl type, or any symbol whose content is a URL).
-                  if ((symbol.type == 'embeddedUrl' ||
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      _buildSymbolPreviewThumb(symbol, size: 36),
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            CustomText(
+                              authorName,
+                              fontWeight: FontWeight.w600,
+                              color: isReceive
+                                  ? AppColors.primaryColor
+                                  : Colors.white,
+                              fontSize: 12,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 1),
+
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  _iconForSymbolType(symbol.type),
+                                  size: 11,
+                                  color: isReceive
+                                      ? AppColors.grayText
+                                      : Colors.white70,
+                                ),
+                                const SizedBox(width: 3),
+                                Flexible(
+                                  child: CustomText(
+                                    subtitle,
+                                    color: isReceive
+                                        ? AppColors.grayText
+                                        : Colors.white70,
+                                    fontSize: 11,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                // Compact link preview — shown when the quoted symbol is a
+                // link (embeddedUrl or content with http), otherwise when the
+                // reply text itself contains a URL. Symbol takes precedence.
+                Builder(builder: (_) {
+                  final symbolHasLink = (symbol.type == 'embeddedUrl' ||
                           (symbol.content?.contains('http') ?? false)) &&
-                      (symbol.content?.isNotEmpty ?? false))
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 6),
-                      child: _buildReplyLinkPreview(symbol.content!),
-                    ),
-                  // Link preview if the reply text itself contains a URL
-                  if (text.contains("http"))
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 6),
-                      child: _buildReplyLinkPreview(text),
-                    ),
-                  // Reply text + time
-                  Row(
+                      (symbol.content?.isNotEmpty ?? false);
+                  final String? previewUrl = symbolHasLink
+                      ? _firstUrl(symbol.content!)
+                      : (text.contains('http') ? _firstUrl(text) : null);
+                  if (previewUrl == null) return const SizedBox.shrink();
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 5),
+                    child: _buildCompactLinkPreview(previewUrl, isReceive),
+                  );
+                }),
+                // Reply text + time
+                Padding(
+                  padding: const EdgeInsets.only(top: 5),
+                  child: Row(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      Expanded(
+                      Flexible(
                         child: CustomText(
                           text,
                           fontWeight: FontWeight.w500,
-                          fontSize: 14,
+                          fontSize: 13.5,
                           color: chatThemeController.isDarkMode.value
                               ? Colors.white
                               : Colors.black,
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      Align(
-                        alignment: Alignment.bottomRight,
-                        child: timeAndReadInfoWidget(
-                          indicateColor: chatThemeController.isDarkMode.value
-                              ? const Color(0xFFE9EDEF)
-                              : Colors.black,
-                          message: message,
-                          isMyMessage: message.myMessage ?? false,
-                          time: time,
-                          timeColor:
-                              chatThemeController.chatTimeColor.value,
-                        ),
+                      const SizedBox(width: 6),
+                      timeAndReadInfoWidget(
+                        indicateColor: chatThemeController.isDarkMode.value
+                            ? const Color(0xFFE9EDEF)
+                            : Colors.black,
+                        message: message,
+                        isMyMessage: message.myMessage ?? false,
+                        time: time,
+                        timeColor: chatThemeController.chatTimeColor.value,
                       ),
                     ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
@@ -1341,16 +1382,26 @@ class _MessageCardState extends State<MessageCard>
     );
   }
 
-  Widget _buildReplyLinkPreview(String message) {
-    if (!message.contains("http")) return const SizedBox.shrink();
-    final match = RegExp(r'(https?:\/\/[^\s]+)').firstMatch(message);
-    if (match == null) return const SizedBox.shrink();
-    final link = match.group(0)!;
+  /// Extracts the first http(s) URL from [text], or null when none exists.
+  String? _firstUrl(String text) {
+    final match = RegExp(r'(https?:\/\/[^\s]+)').firstMatch(text);
+    return match?.group(0);
+  }
+
+  /// Compact, single-row link card sized for the narrow status-reply bubble.
+  /// ~56 px tall with a small thumb on the left and title/domain stacked.
+  Widget _buildCompactLinkPreview(String link, bool isReceive) {
     String domain = link;
     try {
       domain = Uri.parse(link).host;
       if (domain.startsWith('www.')) domain = domain.substring(4);
     } catch (_) {}
+
+    final bgColor = isReceive
+        ? Colors.white
+        : Colors.white.withValues(alpha: 0.92);
+    final titleColor = Colors.black87;
+    final domainColor = Colors.grey.shade600;
 
     return GestureDetector(
       onTap: () {
@@ -1361,85 +1412,156 @@ class _MessageCardState extends State<MessageCard>
                 : LaunchMode.inAppWebView);
       },
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(8),
         child: Container(
           decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(10),
+            color: bgColor,
+            borderRadius: BorderRadius.circular(8),
             border: Border.all(color: Colors.grey.shade200),
           ),
           child: AnyLinkPreview.builder(
             link: link,
             cache: const Duration(days: 7),
-            placeholderWidget: Container(
-              height: 180,
-              color: Colors.grey.shade100,
-              child: const Center(
-                child: CircularProgressIndicator(
-                    strokeWidth: 2, color: AppColors.primaryColor),
-              ),
-            ),
-            errorWidget: const SizedBox.shrink(),
-            itemBuilder: (context, metadata, imageProvider, svgImage) {
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
+            placeholderWidget: SizedBox(
+              height: 88,
+              child: Row(
                 children: [
-                  if (imageProvider != null)
-                    SizedBox(
-                      height: 180,
-                      width: double.infinity,
-                      child: Image(image: imageProvider, fit: BoxFit.cover),
-                    )
-                  else if (svgImage != null)
-                    SizedBox(
-                        height: 160, width: double.infinity, child: svgImage),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (metadata.title != null &&
-                            metadata.title!.isNotEmpty)
-                          CustomText(
-                            metadata.title!,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.black87,
-                            height: 1.3,
-                          ),
-                        if (metadata.desc != null &&
-                            metadata.desc!.isNotEmpty) ...[
-                          const SizedBox(height: 3),
-                          CustomText(
-                            metadata.desc!,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            fontSize: 11,
-                            color: Colors.black54,
-                            height: 1.3,
-                          ),
-                        ],
-                        const SizedBox(height: 4),
-                        CustomText(
-                          domain,
-                          fontSize: 11,
-                          color: Colors.grey,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ],
+                  Container(
+                    width: 88,
+                    height: 88,
+                    color: Colors.grey.shade100,
+                    alignment: Alignment.center,
+                    child: const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: AppColors.primaryColor),
                     ),
                   ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: CustomText(
+                      domain,
+                      fontSize: 12,
+                      color: domainColor,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
                 ],
+              ),
+            ),
+            errorWidget: SizedBox(
+              height: 48,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                child: Row(
+                  children: [
+                    Icon(Icons.link, size: 18, color: domainColor),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: CustomText(
+                        domain,
+                        fontSize: 12,
+                        color: domainColor,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            itemBuilder: (context, metadata, imageProvider, svgImage) {
+              final title = (metadata.title?.isNotEmpty ?? false)
+                  ? metadata.title!
+                  : domain;
+              final desc = metadata.desc;
+              return SizedBox(
+                height: 88,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    SizedBox(
+                      width: 88,
+                      height: 88,
+                      child: imageProvider != null
+                          ? Image(image: imageProvider, fit: BoxFit.cover)
+                          : svgImage ??
+                              Container(
+                                color: Colors.grey.shade100,
+                                alignment: Alignment.center,
+                                child: Icon(Icons.link,
+                                    color: domainColor, size: 26),
+                              ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            CustomText(
+                              title,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: titleColor,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              height: 1.25,
+                            ),
+                            if (desc != null && desc.isNotEmpty) ...[
+                              const SizedBox(height: 2),
+                              CustomText(
+                                desc,
+                                fontSize: 11,
+                                color: Colors.black54,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                height: 1.25,
+                              ),
+                            ],
+                            const SizedBox(height: 2),
+                            CustomText(
+                              domain,
+                              fontSize: 10.5,
+                              color: domainColor,
+                              fontWeight: FontWeight.w500,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                  ],
+                ),
               );
             },
           ),
         ),
       ),
     );
+  }
+
+  String _humanReadableSymbolType(String? type) {
+    switch (type) {
+      case 'photo':
+        return 'Photo';
+      case 'video':
+        return 'Video';
+      case 'text':
+        return 'Text';
+      case 'embeddedUrl':
+        return 'Link';
+      default:
+        return 'Status';
+    }
   }
 
   IconData _iconForSymbolType(String? type) {
