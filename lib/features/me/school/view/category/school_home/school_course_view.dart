@@ -115,7 +115,7 @@ class SchoolCourseSection extends StatelessWidget {
 
           // Horizontal List of Course Cards
           SizedBox(
-            height: 160,
+            height: 200,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -176,7 +176,7 @@ class SchoolCourseSection extends StatelessWidget {
                       const SizedBox(width: 8),
                       Flexible(
                           child: _buildBadge(
-                              "${AppStrings.courseDuration.tr}: ${course.duration} ${AppStrings.years.tr}",
+                              "${AppStrings.courseDuration.tr}: ${course.duration}${course.duration?.toLowerCase().contains('year') == true ? '' : ' ${AppStrings.years.tr}'}",
                               Colors.green.shade50,
                               Colors.green.shade800)),
                     ],

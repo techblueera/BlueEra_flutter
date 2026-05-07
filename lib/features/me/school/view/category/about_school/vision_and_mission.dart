@@ -149,7 +149,11 @@ class _VisionAndMissionState extends State<VisionAndMission> {
                                   });
                                 }
                               : null,
-                          title: AppStrings.submit,
+                          title: (schoolAboutUsController
+                                      .aboutUsData?.value.id?.isNotEmpty ??
+                                  false)
+                              ? "Update"
+                              : AppStrings.submit,
                           isValidate: isEnabled,
                         );
                       }),
