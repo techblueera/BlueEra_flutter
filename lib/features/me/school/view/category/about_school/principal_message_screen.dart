@@ -31,6 +31,9 @@ class _PrincipalMessageScreenState extends State<PrincipalMessageScreen> {
   void initState() {
     // TODO: implement initState
     schoolAboutUsController.isFormValid.value = false;
+    schoolAboutUsController.directorMessageImageFile.value = null;
+    schoolAboutUsController.isDirectorImageUpdate.value = false;
+    schoolAboutUsController.directorProfile.value = "";
     schoolAboutUsController.getSchoolAboutUsController();
 
     // Listen for data load
@@ -155,7 +158,11 @@ class _PrincipalMessageScreenState extends State<PrincipalMessageScreen> {
                                       .updateDirectMessageController();
                                 }
                               : null,
-                          title: AppStrings.submit,
+                          title: (schoolAboutUsController
+                                      .aboutUsData?.value.id?.isNotEmpty ??
+                                  false)
+                              ? "Update"
+                              : AppStrings.submit,
                           // Pass the validation state to change button color/opacity
                           isValidate: schoolAboutUsController.isFormValid.value,
                         )),
@@ -174,14 +181,11 @@ class _PrincipalMessageScreenState extends State<PrincipalMessageScreen> {
     if (schoolAboutUsController.directorMessageImageFile.value != null) {
       return CommonProfileImageUpload(
         imageFile: schoolAboutUsController.directorMessageImageFile,
-        imgUrl: schoolAboutUsController
-                .aboutUsData?.value.principalMessage?.photo ??
-            "",
+        imgUrl: "",
         onImageRemove: () {
           schoolAboutUsController.directorMessageImageFile.value = null;
-          schoolAboutUsController.directorProfile.value =
-              schoolAboutUsController.directorMessageImageFile.value?.path ??
-                  "";
+          schoolAboutUsController.isDirectorImageUpdate.value = false;
+          schoolAboutUsController.directorProfile.value = "";
           _runValidation();
         },
         onImageSelected: () {},

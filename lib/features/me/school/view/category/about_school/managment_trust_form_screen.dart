@@ -122,6 +122,7 @@ class _ManagementTrustFormScreenState extends State<ManagementTrustFormScreen> {
                                     child: TextFormField(
                                       controller: schoolAboutUsController
                                           .qualifications[index],
+                                      onChanged: (_) => _runValidation(),
                                       decoration: InputDecoration(
                                         hintText: "E.g. PhD in Geography",
                                       ),
@@ -179,21 +180,23 @@ class _ManagementTrustFormScreenState extends State<ManagementTrustFormScreen> {
                     CustomText(AppStrings.visionMission,
                         fontWeight: FontWeight.bold),
                     // The Reusable AI Widget
-                    AIGeneratorButton(
-                      type: "Management,Trust",
-                      data: {
-                        "name": nameEditController.text,
-                        "profession": professionEditController.text,
-                        "qualification":
-                            schoolAboutUsController.qualifications.join(","),
-                      },
-                      onSelected: (generatedText) {
-                        schoolAboutUsController
-                            .managementDescriptionText.value = generatedText;
-                        messageEditController.text = generatedText;
-                        _runValidation();
-                      },
-                    ),
+                    Obx(() => AIGeneratorButton(
+                          type: "Management,Trust",
+                          data: {
+                            "name": nameEditController.text,
+                            "profession": professionEditController.text,
+                            "qualification": schoolAboutUsController
+                                .qualifications
+                                .map((e) => e.text)
+                                .join(","),
+                          },
+                          onSelected: (generatedText) {
+                            schoolAboutUsController.managementDescriptionText
+                                .value = generatedText;
+                            messageEditController.text = generatedText;
+                            _runValidation();
+                          },
+                        )),
                   ],
                 ),
                 CommonTextField(
@@ -313,6 +316,7 @@ class _ManagementTrustFormScreenState extends State<ManagementTrustFormScreen> {
 
 // Helper to trigger validation
   void _runValidation() {
+    setState(() {});
     schoolAboutUsController.managementValidateForm(
         managementName: nameEditController.text,
         profession: professionEditController.text,

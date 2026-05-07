@@ -12,11 +12,13 @@ abstract class BaseService {
   final String verifyOtp = 'auth-service/verify-otp';
   final String addUser = 'user-service/user/add-user';
   final String accountDeletionInit = 'user-service/user/account/deletion/init';
-  final String accountDeletionStatus = 'user-service/user/account/deletion/status';
+  final String accountDeletionStatus =
+      'user-service/user/account/deletion/status';
   final String getAllcategories = 'user-service/business/getAllcategories';
   final String getAllcategoriesByType = 'user-service/business/by-type/';
   final String viewBusinessProfile = '/user-service/business/$businessId';
-  final String updateBusinessProfile = '/user-service/business/updateBusinessProfile';
+  final String updateBusinessProfile =
+      '/user-service/business/updateBusinessProfile';
   final String subcategories = '/user-service/business/getAllSubcategories';
   final String channels = 'channel-service/channels';
   final String socialLinks = 'channel-service/channels/$channelId/social-links';
@@ -39,23 +41,23 @@ abstract class BaseService {
   String channelStats(String channelId) =>
       'channel-service/channels/$channelId/stats';
   final String bookings = 'booking-enquiry-service/bookings';
-   String receivedBooking(String channelId) =>
-       'booking-enquiry-service/bookings/summary/by-videos?channelId=$channelId';
-   String  receivedEnquiry(String channelId) =>
-       'booking-enquiry-service/inquiries/summary/by-videos?channelId=$channelId';
-   String receivedVideoBooking(String channelId,String videoId)=>
-       'booking-enquiry-service/bookings?channelId=$channelId&videoId=$videoId';
-      String receivedVideoEnquiry(String channelId,String videoId)=>''
-          'booking-enquiry-service/inquiries?channelId=$channelId&videoId=$videoId';
-   String getBookingById(String bookingId)=>
-       'booking-enquiry-service/bookings/$bookingId';
-   String updateBookingStatus(String id)=>
-       'booking-enquiry-service/bookings/$id';
-      String enquiryBookingStatus(String id)=>
-          'booking-enquiry-service/inquiries/$id/status';
+  String receivedBooking(String channelId) =>
+      'booking-enquiry-service/bookings/summary/by-videos?channelId=$channelId';
+  String receivedEnquiry(String channelId) =>
+      'booking-enquiry-service/inquiries/summary/by-videos?channelId=$channelId';
+  String receivedVideoBooking(String channelId, String videoId) =>
+      'booking-enquiry-service/bookings?channelId=$channelId&videoId=$videoId';
+  String receivedVideoEnquiry(String channelId, String videoId) => ''
+      'booking-enquiry-service/inquiries?channelId=$channelId&videoId=$videoId';
+  String getBookingById(String bookingId) =>
+      'booking-enquiry-service/bookings/$bookingId';
+  String updateBookingStatus(String id) =>
+      'booking-enquiry-service/bookings/$id';
+  String enquiryBookingStatus(String id) =>
+      'booking-enquiry-service/inquiries/$id/status';
   final String MyBookingList = 'booking-enquiry-service/bookings/my-bookings';
   final String myInquiries = 'booking-enquiry-service/inquiries/my-inquiries';
-  final String  Inquiries = 'booking-enquiry-service/inquiries';
+  final String Inquiries = 'booking-enquiry-service/inquiries';
   final String allUsers = 'user-service/user/getAllKindOfUser';
   final String songs = 'video-service/songs';
   final String favourite = 'video-service/favorites';
@@ -186,7 +188,8 @@ abstract class BaseService {
   final String getGroupDetails = 'chat-service/group/details';
   final String getGroupMembersChat = 'chat-service/group/members';
   final String addGroupMember = "chat-service/group/add-members";
-  final String checkChatConnection = 'chat-service/connections/check-connection';
+  final String checkChatConnection =
+      'chat-service/connections/check-connection';
   final String getGroupMembers = 'chat-service/chat/get-group-members';
   final String deleteChatList = 'chat-service/chat/delete-chatlist';
   final String clearAllChat = 'chat-service/chat/clear-all-chat';
@@ -199,7 +202,8 @@ abstract class BaseService {
   final String getOneToOneMedia = 'chat-service/chat/get-one-to-one-media';
   final String addToArchive = 'chat-service/chat/add-to-archive';
   final String messageLikeUnlike = 'chat-service/chat/message-like-unlike';
-  String checkTrackOrderStatus(String orderId) => 'rider-service/fare/orders/${orderId}/status';
+  String checkTrackOrderStatus(String orderId) =>
+      'rider-service/fare/orders/${orderId}/status';
   final String getChatRequest = 'chat-service/connections/requests';
   final String getChatRequestsList = 'chat-service/chat/requests';
   // v1.1: consent-gated symbol-reply request endpoints. See
@@ -211,7 +215,8 @@ abstract class BaseService {
   final String getChatExportAll = 'chat-service/chat/export-all';
   final String reactChatRequest = 'chat-service/connections/respond';
   final String connectionsSync = 'chat-service/connections/sync';
-  final String findServiceByContact = 'chat-service/connections/filter-by-profileType';
+  final String findServiceByContact =
+      'chat-service/connections/filter-by-profileType';
   final String myconnectionsSync = 'chat-service/connections/my';
   final String requestForPersonalChat = 'chat-service/connections/request';
   final String updateMessageOrderStatus = 'chat-service/chat/order-status';
@@ -221,20 +226,22 @@ abstract class BaseService {
 
   // ── E2E Encryption API (Phase 1–4) ──────────────────────────────────────
   // Phase 1: Protocol versioning
-  String e2eCapability(String userId) => 'chat-service/protocol/capability/$userId';
+  String e2eCapability(String userId) =>
+      'chat-service/protocol/capability/$userId';
 
   // Phase 2: Key infrastructure
   final String e2eKeysRegister = 'chat-service/keys/register';
-  final String e2eKeysOpks     = 'chat-service/keys/opks';
+  final String e2eKeysOpks = 'chat-service/keys/opks';
   String e2eKeysBundle(String userId) => 'chat-service/keys/bundle/$userId';
   String e2eKeysDevice(String deviceId) => 'chat-service/keys/device/$deviceId';
 
   // Phase 3: Encrypted media
-  final String e2eEncryptedMediaUploadUrl = 'chat-service/encrypted-media/upload-url';
+  final String e2eEncryptedMediaUploadUrl =
+      'chat-service/encrypted-media/upload-url';
 
   // Phase 4: Sync engine
   final String e2eSyncMessages = 'chat-service/sync/messages';
-  final String e2eSyncAck      = 'chat-service/sync/ack';
+  final String e2eSyncAck = 'chat-service/sync/ack';
 
   /// Shorts-feed service
   final String feedPersonalized = "videofeed-service/feeds/personalized";
@@ -266,12 +273,12 @@ abstract class BaseService {
   final String songsSearchSongPost = 'post-service/songs/search';
   final String favouriteSearchSongPost = 'post-service/favorites/search';
   final String cardCategories = 'post-service/categories';
-  final String cardCategoriesSortByDate = 'post-service/categories/sorted/by-date';
+  final String cardCategoriesSortByDate =
+      'post-service/categories/sorted/by-date';
   final String allCardCategories = 'post-service/categories/cards/all';
 
   /// Comment
-  String postComments(String postId) =>
-      "post-service/post/comments/$postId";
+  String postComments(String postId) => "post-service/post/comments/$postId";
   final String postComment = "post-service/post/comment";
   final String postCommentLike = "post-service/post/comment/like";
   String videoComments(String videoId) =>
@@ -279,10 +286,8 @@ abstract class BaseService {
   String videoCommentLike(String commentId) =>
       "video-service/comments/$commentId/like";
   final String videoAddComment = "video-service/comments";
-  String videos(String videoId) =>
-      "video-service/videos/$videoId";
-  String videosMetaData(String videoId) =>
-      "video-service/videos/$videoId";
+  String videos(String videoId) => "video-service/videos/$videoId";
+  String videosMetaData(String videoId) => "video-service/videos/$videoId";
 
   final String getSocialMediaHandlers = "user-service/user/getSMediaHandlers";
   final String addSocialMediaHandler = "user-service/user/addSMediaHandler";
@@ -294,30 +299,21 @@ abstract class BaseService {
 
   //JOB POST
   final String jobPost = "job-service/jobs";
-  String jobPostStep2(String jobId) =>
-      "job-service/jobs/$jobId/step2";
-  String jobPostStep3(String jobId) =>
-      "job-service/jobs/$jobId/step3";
-  String jobPostStep4(String jobId) =>
-      "job-service/jobs/$jobId/step4";
-  String publishJob(String jobId) =>
-      "job-service/jobs/$jobId/publish";
-  String updateJobDetails(String jobId) =>
-      "job-service/jobs/$jobId";
+  String jobPostStep2(String jobId) => "job-service/jobs/$jobId/step2";
+  String jobPostStep3(String jobId) => "job-service/jobs/$jobId/step3";
+  String jobPostStep4(String jobId) => "job-service/jobs/$jobId/step4";
+  String publishJob(String jobId) => "job-service/jobs/$jobId/publish";
+  String updateJobDetails(String jobId) => "job-service/jobs/$jobId";
   String getJobByLat(String lat, lng) =>
       "map-service/api/jobs?lat=$lat&lng=$lng&radius=25";
   String getStoreByLat(String lat, lng) =>
       "map-service/api/stores?lat=$lat&lng=$lng&radius=25";
 
-  String getJobDetails(String jobId) =>
-      "job-service/jobs/$jobId";
-  String getResumeById(String resumeId) =>
-      "job-service/resumes/$resumeId";
-  String getPlaceById(String placeId) =>
-      "map-service/api/places/$placeId";
-  String getStoreById(String storeId) =>
-      "map-service/api/stores/$storeId";
-  String getPlaceByLat(double lat,double lng) =>
+  String getJobDetails(String jobId) => "job-service/jobs/$jobId";
+  String getResumeById(String resumeId) => "job-service/resumes/$resumeId";
+  String getPlaceById(String placeId) => "map-service/api/places/$placeId";
+  String getStoreById(String storeId) => "map-service/api/stores/$storeId";
+  String getPlaceByLat(double lat, double lng) =>
       "map-service/api/places?lat=$lat&lng=$lng&radius=25";
   // final String servicesByLatLng = "map-service/api/services/live";
   // final String servicesByLatLng = "map-service/api/services";
@@ -337,8 +333,8 @@ abstract class BaseService {
       "booking-enquiry-service/availability/$id";
   String setUserAvailability(String id) =>
       "booking-enquiry-service/availability/user/$id";
- String getcalender(String channelId) =>
-     "booking-enquiry-service/availability/calendar/$channelId";
+  String getcalender(String channelId) =>
+      "booking-enquiry-service/availability/calendar/$channelId";
 //  String getReceivedBooking (String channelId,String videoId)=>"booking-enquiry-service/bookings/$channelId/$videoId";
   ///TRAVEL
   final String addPlace = "travel-service/places/add";
@@ -434,10 +430,7 @@ abstract class BaseService {
   final String WithdrawalApi = "wallet-service/withdrawals";
   final String WalletApi = "wallet-service/wallet";
   final String walletWithdrawalMethod = "wallet-service/withdrawal-methods";
-  final String WalletTransctionApi =
-      "wallet-service/transactions?";
-
-
+  final String WalletTransctionApi = "wallet-service/transactions?";
 
   // Notification
 
@@ -449,27 +442,34 @@ abstract class BaseService {
   final String notificationSettingsApi =
       'notification-service/notifications/settings';
 
-
-
   final String individualProfessions = 'user-service/individual-professions';
   final String deletePostCommentById = 'post-service/post/delete-comment/';
   final String deleteVideoServiceCommentById = 'video-service/comments/';
 
   //categories
-  final String toplevelcategoriesApi = "/inventory-service/product/categories/top-level";
+  final String toplevelcategoriesApi =
+      "/inventory-service/product/categories/top-level";
   final String createGuestAccount = "/user-service/user/create-guest-account";
   final String updateGuestAccount = "/user-service/user/update-guest-account";
   final String userFeedReport = "userfeed-service/report/add-reports";
-  final String updateIndividualAccountUser = "user-service/user/updateIndividualAccountUser/";
-  final String updateBusinessAccount = "user-service/user/updateBusinessAccount/";
-  final String getCountRating="user-service/business/getCountOfRating/";
-  String getRattingSummary(String userID)=>"user-service/business/rating/$userID/summary";
-  String userGetRattingSummary(String userID)=>"user-service/user/$userID/ratings";
-  String userGetRattingDetails(String userID)=>"user-service/user/$userID/rating-details";
-  String businessRattingSummary(String businessId)=>"user-service/business/$businessId/ratings";
+  final String updateIndividualAccountUser =
+      "user-service/user/updateIndividualAccountUser/";
+  final String updateBusinessAccount =
+      "user-service/user/updateBusinessAccount/";
+  final String getCountRating = "user-service/business/getCountOfRating/";
+  String getRattingSummary(String userID) =>
+      "user-service/business/rating/$userID/summary";
+  String userGetRattingSummary(String userID) =>
+      "user-service/user/$userID/ratings";
+  String userGetRattingDetails(String userID) =>
+      "user-service/user/$userID/rating-details";
+  String businessRattingSummary(String businessId) =>
+      "user-service/business/$businessId/ratings";
 
-  final String subchildORRootCategroy = "product-service/api/categories/getSubchildORRootCategroy";
-  final String searchProductCategory = "product-service/api/categories/searchCategories";
+  final String subchildORRootCategroy =
+      "product-service/api/categories/getSubchildORRootCategroy";
+  final String searchProductCategory =
+      "product-service/api/categories/searchCategories";
   final String createProduct = "product-service/api/product/create-product";
   String updateProductFeature(String productId) =>
       'product-service/api/product/updateProductFeature/$productId';
@@ -477,158 +477,234 @@ abstract class BaseService {
       'product-service/api/product/updatePriceAndWarranty/$productId';
   final String createService = "services-service/services";
   final String generateAiContent = "ai-service/api/ai-product/generate-content";
-  final String createProductViaAi = "product-service/api/product/createProductAI";
-  final String addProductToInventory = "inventory-service/products/addProductToInventory";
+  final String createProductViaAi =
+      "product-service/api/product/createProductAI";
+  final String addProductToInventory =
+      "inventory-service/products/addProductToInventory";
   String updateProductInventoryVariant(String inventoryId, String variantId) =>
       "inventory-service/products/inventory/$inventoryId/variants/$variantId";
-  final String getOwnDraftedAndPublicProducts = 'inventory-service/products/getOwnDraftedAndPublicProducts';
-  final String getInventoryBasedSearchProduct = 'product-service/api/product/getInventoryBasedSearchProduct';
-  final String getListOfSearchProduct = 'product-service/product/getListOfSearchProduct';
-  final String cloneProductInventory = 'inventory-service/products/cloneProductInventory';
-  String addUpdateProductVariant(String productId)=> 'product-service/api/product/$productId';
-  String getProductById(String productId)=> 'product-service/api/product/get-product-by-id/$productId';
+  final String getOwnDraftedAndPublicProducts =
+      'inventory-service/products/getOwnDraftedAndPublicProducts';
+  final String getInventoryBasedSearchProduct =
+      'product-service/api/product/getInventoryBasedSearchProduct';
+  final String getListOfSearchProduct =
+      'product-service/product/getListOfSearchProduct';
+  final String cloneProductInventory =
+      'inventory-service/products/cloneProductInventory';
+  String addUpdateProductVariant(String productId) =>
+      'product-service/api/product/$productId';
+  String getProductById(String productId) =>
+      'product-service/api/product/get-product-by-id/$productId';
   final String productNestedCategory = 'product-service/api/categories/nested';
-  String productInventoryByCategory(String businessId) => 'product-service/api/product/business/$businessId/inventoryByCategory';
+  String productInventoryByCategory(String businessId) =>
+      'product-service/api/product/business/$businessId/inventoryByCategory';
   final String productSnapSearch = 'product-service/api/ai-search/snap-search';
 
   final String homeFeed = 'userfeed-service/feed';
-  final String aiFoodGenerateContent = 'ai-service/api/ai-food/generate-content';
+  final String aiFoodGenerateContent =
+      'ai-service/api/ai-food/generate-content';
   final String homePageProduct = 'inventory-service/products/homePageProduct';
   final String businessServices = 'services-service/services';
   final String callUser = 'chat-service/call/user';
-  final String aiServiceGenerateContent = 'ai-service/api/ai-service/generate-content';
+  final String aiServiceGenerateContent =
+      'ai-service/api/ai-service/generate-content';
   final String postRepost = 'post-service/post/repost';
   final String videoUploadStatus = 'video-service/videos/upload-status';
-  final String aiGenerateBusinessDescription = 'ai-service/api/ai-business/generate-description';
+  final String aiGenerateBusinessDescription =
+      'ai-service/api/ai-business/generate-description';
   final String appMaintenance = 'ai-service/api/maintenance';
-  String businessServicesByUserId(String userId) => 'services-service/services/user/$userId';
+  String businessServicesByUserId(String userId) =>
+      'services-service/services/user/$userId';
   final String aiGenerateBio = 'ai-service/api/ai-profile/generate-bio';
   final String storesFeed = "map-service/api/feed";
   final String mapServiceProviderStatus = "map-service/api/provider/status";
   final String mapServiceLocationProvider = "map-service/api/provider/location";
   final String serviceExistsStatus = "services-service/services/exists";
-  final String serviceExistenceStatus = "services-service/services/all/check-existence";
+  final String serviceExistenceStatus =
+      "services-service/services/all/check-existence";
   final String messageToOrderTab = "chat-service/order/send-message";
   final String verifyPaymentApi = "order-service/api/orders/verify-payment";
-  final String initPostServiceUpload = "post-service/post/generate-presigned-url";
+  final String initPostServiceUpload =
+      "post-service/post/generate-presigned-url";
 
-  String businessServicesById(String serviceId) => 'services-service/services/$serviceId';
+  String businessServicesById(String serviceId) =>
+      'services-service/services/$serviceId';
   final String aiSocialPostGenerate = "ai-service/api/ai-social-post/generate";
   final String getAddressApi = "user-service/addresses";
-  String updateExistingAddress(String addressId)  => "user-service/addresses/$addressId";
+  String updateExistingAddress(String addressId) =>
+      "user-service/addresses/$addressId";
   final String userFeedServiceVideo = "userfeed-service/feed/videos?";
   String videoCategories = "post-service/nature-of-posts";
-  String businessViews(String businessId) => "user-service//business/$businessId/view";
+  String businessViews(String businessId) =>
+      "user-service//business/$businessId/view";
   String earnServices = "earn-service/services";
-  String earnServicesById(String serviceId) => 'earn-service/services/$serviceId';
-  String earnServicesImages(String serviceId) => 'earn-service/services/$serviceId/images';
+  String earnServicesById(String serviceId) =>
+      'earn-service/services/$serviceId';
+  String earnServicesImages(String serviceId) =>
+      'earn-service/services/$serviceId/images';
   String channelFollowingMe = "channel-service/follower/following/me";
   String channel_service_follower = "channel-service/follower/";
   String getNearByRiderApi = "rider-service/riders/nearby";
   final String servicesByLatLng = "earn-service/services/all/map";
-  String earnServiceByUserID(String userId) => 'earn-service/services/user/$userId';
+  String earnServiceByUserID(String userId) =>
+      'earn-service/services/user/$userId';
 
-  final String ridersOnboardingPersonalInformation = "rider-service/riders/onboarding/personal-information";            // Onboarding rider (step 1)
-  final String ridersOnboardingAddress = "rider-service/riders/onboarding/address";                                     // Onboarding rider (step 2)
-  final String ridersOnboardingPersonalIdentification = "rider-service/riders/onboarding/personal-identification";      // Onboarding rider (step 3)
-  final String ridersOnboardingDrivingVerification = "rider-service/riders/onboarding/driving-verification";            // Onboarding rider (step 4)
-  final String ridersOnboardingVehicleImages = "rider-service/riders/onboarding/vehicle-images";                        // Onboarding rider (step 5)
-  final String vehicleEnums = "rider-service/riders/onboarding/vehicle-enums";                        // Onboarding rider (step 5)
-  final String ridersOnboardingVehicleInformation = "rider-service/riders/onboarding/vehicle-information";              // Onboarding rider (step 6)
-  final String ridersOnboardingStatus = "rider-service/riders/onboarding/status"; // Fetch onboarding rider status
+  final String ridersOnboardingPersonalInformation =
+      "rider-service/riders/onboarding/personal-information"; // Onboarding rider (step 1)
+  final String ridersOnboardingAddress =
+      "rider-service/riders/onboarding/address"; // Onboarding rider (step 2)
+  final String ridersOnboardingPersonalIdentification =
+      "rider-service/riders/onboarding/personal-identification"; // Onboarding rider (step 3)
+  final String ridersOnboardingDrivingVerification =
+      "rider-service/riders/onboarding/driving-verification"; // Onboarding rider (step 4)
+  final String ridersOnboardingVehicleImages =
+      "rider-service/riders/onboarding/vehicle-images"; // Onboarding rider (step 5)
+  final String vehicleEnums =
+      "rider-service/riders/onboarding/vehicle-enums"; // Onboarding rider (step 5)
+  final String ridersOnboardingVehicleInformation =
+      "rider-service/riders/onboarding/vehicle-information"; // Onboarding rider (step 6)
+  final String ridersOnboardingStatus =
+      "rider-service/riders/onboarding/status"; // Fetch onboarding rider status
   final String initRiderServiceUpload = "rider-service/s3/presigned-url";
-  final String ridersAssociatedShops = "rider-service/riders/associations/shops";
-  final String ridersAssociationRequest = "rider-service/riders/associations/request";
-  final String ridersAssociationRespond = "rider-service/riders/associations"; // append /:id/respond
-  final String aiCommentSuggestion = "ai-service/api/ai-comment/generate-suggestions";
+  final String ridersAssociatedShops =
+      "rider-service/riders/associations/shops";
+  final String ridersAssociationRequest =
+      "rider-service/riders/associations/request";
+  final String ridersAssociationRespond =
+      "rider-service/riders/associations"; // append /:id/respond
+  final String aiCommentSuggestion =
+      "ai-service/api/ai-comment/generate-suggestions";
   final String sendOrderReqToRider = "rider-service/riders/orders";
   final String getOrderFare = "rider-service/riders/fare";
-  final String aiCommentReplySuggestion = "ai-service/api/ai-reply/generate-suggestions";
+  final String aiCommentReplySuggestion =
+      "ai-service/api/ai-reply/generate-suggestions";
   final String bookingGetRentalServiceMap = "booking-enquiry-service/rentals";
-  final String channelsRecommendations = "channel-service/channels/recommendations/";
+  final String channelsRecommendations =
+      "channel-service/channels/recommendations/";
   final String channelServiceFollower = "channel-service/follower/";
 
   final String rentalService = "booking-enquiry-service/rentals";
-  String updateRentalService(String rentalId) => "booking-enquiry-service/rentals/$rentalId";
+  String updateRentalService(String rentalId) =>
+      "booking-enquiry-service/rentals/$rentalId";
   final String getBookingRiders = "rider-service/fare/riders";
   final String favoriteLocations = "rider-service/favorite-locations";
-  String uploadRentalImages(String rentalId) => "booking-enquiry-service/rentals/$rentalId/upload-images";
-  String deleteRentalService(String rentalId) => "booking-enquiry-service/rentals/$rentalId";
-  final String generateHomeDescription = "ai-service/api/ai-property/generate-description";
+  String uploadRentalImages(String rentalId) =>
+      "booking-enquiry-service/rentals/$rentalId/upload-images";
+  String deleteRentalService(String rentalId) =>
+      "booking-enquiry-service/rentals/$rentalId";
+  final String generateHomeDescription =
+      "ai-service/api/ai-property/generate-description";
 
   final String getRiderBookingList = "rider-service/riders/orders/requested";
   final String getRiderRejectOrder = "rider-service/riders/orders/rejected";
-  String updateOrderStatusFromPialot(String orderId) => 'rider-service/riders/orders/$orderId/status';
-  String updateRideOrParcelOrderStatus(String orderId) => 'rider-service/fare/orders/${orderId}/status';
-  String verifyPickupOtpRideOrParcel(String orderId) => 'rider-service/fare/orders/${orderId}/start';
-  String completePickupRider(String orderId) => 'rider-service/fare/orders/${orderId}/complete';
-  String rideAction(String orderId) => 'rider-service/fare/orders/${orderId}/ride-action';
-  String cancelFareCallQueue(String orderId) => 'rider-service/fare/orders/${orderId}/cancel-queue';
-  String updatePaymentStaus(String orderId) => 'rider-service/riders/orders/$orderId/confirm-payment';
-  String cancelOrderForceFully(String orderId) => 'rider-service/riders/orders/$orderId/admin/status';
-  String deliverOtpVerify(String orderId) => "rider-service/riders/orders/$orderId/deliver";
-  String updateOrderStatusFromAdmin(String orderId) => "rider-service/riders/orders/$orderId/admin/status";
-  String updateThePickupOtpUrl(String orderId) => "rider-service/riders/orders/$orderId/pickup";
+  String updateOrderStatusFromPialot(String orderId) =>
+      'rider-service/riders/orders/$orderId/status';
+  String updateRideOrParcelOrderStatus(String orderId) =>
+      'rider-service/fare/orders/${orderId}/status';
+  String verifyPickupOtpRideOrParcel(String orderId) =>
+      'rider-service/fare/orders/${orderId}/start';
+  String completePickupRider(String orderId) =>
+      'rider-service/fare/orders/${orderId}/complete';
+  String rideAction(String orderId) =>
+      'rider-service/fare/orders/${orderId}/ride-action';
+  String cancelFareCallQueue(String orderId) =>
+      'rider-service/fare/orders/${orderId}/cancel-queue';
+  String updatePaymentStaus(String orderId) =>
+      'rider-service/riders/orders/$orderId/confirm-payment';
+  String cancelOrderForceFully(String orderId) =>
+      'rider-service/riders/orders/$orderId/admin/status';
+  String deliverOtpVerify(String orderId) =>
+      "rider-service/riders/orders/$orderId/deliver";
+  String updateOrderStatusFromAdmin(String orderId) =>
+      "rider-service/riders/orders/$orderId/admin/status";
+  String updateThePickupOtpUrl(String orderId) =>
+      "rider-service/riders/orders/$orderId/pickup";
 
   final String productSearchFilter = 'product-service/api/product/sort/filter';
   final String checkAnyEarnServiceCreated = 'earn-service/services/any/check';
-  final String requestMobileUpdateOtp = 'user-service/user/request-mobile-update-otp';
-  final String verifyMobileUpdateOtp = 'user-service/user/verify-mobile-update-otp';
+  final String requestMobileUpdateOtp =
+      'user-service/user/request-mobile-update-otp';
+  final String verifyMobileUpdateOtp =
+      'user-service/user/verify-mobile-update-otp';
   final String storesByCategory = 'map-service/api/stores/inventory/category';
   final String userFeedPost = 'userfeed-service/feed/posts';
   final String aiInventoryAsk = 'ai-service/api/ai-inventory/ask';
   final String ottChannelVideo = 'video-service/ott/channel/';
   final String channelSearch = 'channel-service/channels/search/search';
 
-
   final String searchGroceryCategory = 'grocery-service/api/products/search';
-  String GroceryCategoryOfChildren(String key) => 'grocery-service/api/categories/key/$key/children';
-  String GroceryCategoryOfChildrenWithInventory(String key) => 'grocery-service/api/categories/key/$key/children/with-inventory';
-  final String userSearchGroceryCategory = 'grocery-service/api/products/user/search';
-  String createNewProductVariant(String productId) => 'grocery-service/api/products/$productId/variants';
+  String GroceryCategoryOfChildren(String key) =>
+      'grocery-service/api/categories/key/$key/children';
+  String GroceryCategoryOfChildrenWithInventory(String key) =>
+      'grocery-service/api/categories/key/$key/children/with-inventory';
+  final String userSearchGroceryCategory =
+      'grocery-service/api/products/user/search';
+  String createNewProductVariant(String productId) =>
+      'grocery-service/api/products/$productId/variants';
   final String groceryProducts = 'grocery-service/api/inventory/my-products';
-  final String globalGroceryProducts = 'grocery-service/api/inventory/public/global-grocery-products';
+  final String globalGroceryProducts =
+      'grocery-service/api/inventory/public/global-grocery-products';
   final String addGroceryProductVariant = 'grocery-service/api/inventory';
   final String categoryTree = 'food-service/api/categories/tree';
   final String productCategoryTree = 'product-service/api/categories/all/tree';
   final String createSymbolApi = 'symbols-service/symbols';
   final String symbolFeedApi = 'symbols-service/symbols/feed';
-  String getAllSymbolOneUser(String orderId) => "symbols-service/symbols/user/$orderId";
-  String deleteSymbolApi(String symbolId) => "symbols-service/symbols/$symbolId";
-  String symbolViewApi(String symbolId) => "symbols-service/symbols/$symbolId/view";
-  String symbolLikeApi(String symbolId) => "symbols-service/symbols/$symbolId/like";
-  String symbolAddCommentApi(String symbolId) => "symbols-service/symbols/$symbolId/comment";
-  String symbolGetCommentsApi(String symbolId) => "symbols-service/symbols/$symbolId/comments";
-  String symbolEditCommentApi(String commentId) => "symbols-service/symbols/comment/$commentId";
-  String symbolDeleteCommentApi(String commentId) => "symbols-service/symbols/comment/$commentId";
-  final String groceryCategoryWithInventory = 'grocery-service/api/categories/with-inventory';
-  final String publicGroceryCategoryWithInventory = 'grocery-service/api/categories/public/with-inventory';
-  final String groceryBusinessProducts = 'grocery-service/api/inventory/business-products';
-  final String publicGroceryBusinessProducts = 'grocery-service/api/inventory/public/business-products';
+  String getAllSymbolOneUser(String orderId) =>
+      "symbols-service/symbols/user/$orderId";
+  String deleteSymbolApi(String symbolId) =>
+      "symbols-service/symbols/$symbolId";
+  String symbolViewApi(String symbolId) =>
+      "symbols-service/symbols/$symbolId/view";
+  String symbolLikeApi(String symbolId) =>
+      "symbols-service/symbols/$symbolId/like";
+  String symbolAddCommentApi(String symbolId) =>
+      "symbols-service/symbols/$symbolId/comment";
+  String symbolGetCommentsApi(String symbolId) =>
+      "symbols-service/symbols/$symbolId/comments";
+  String symbolEditCommentApi(String commentId) =>
+      "symbols-service/symbols/comment/$commentId";
+  String symbolDeleteCommentApi(String commentId) =>
+      "symbols-service/symbols/comment/$commentId";
+  final String groceryCategoryWithInventory =
+      'grocery-service/api/categories/with-inventory';
+  final String publicGroceryCategoryWithInventory =
+      'grocery-service/api/categories/public/with-inventory';
+  final String groceryBusinessProducts =
+      'grocery-service/api/inventory/business-products';
+  final String publicGroceryBusinessProducts =
+      'grocery-service/api/inventory/public/business-products';
   final String grocerySnapSearch = 'grocery-service/api/smart-cart/snap-search';
-  final String grocerySnapSearchWithInventory = 'grocery-service/api/ai-inventory/snap-search';
+  final String grocerySnapSearchWithInventory =
+      'grocery-service/api/ai-inventory/snap-search';
   final String foodSnapSearch = 'food-service/api/smart-cart/snap-search';
-  final String missingGroceryProductRequests = 'grocery-service/api/missing-product-requests/bulk';
+  final String missingGroceryProductRequests =
+      'grocery-service/api/missing-product-requests/bulk';
   final String groceryNestedCategory = 'grocery-service/api/categories/nested';
-  final String groceryNestedCategoryWithInventory = 'grocery-service/api/categories/nested/with-inventory';
+  final String groceryNestedCategoryWithInventory =
+      'grocery-service/api/categories/nested/with-inventory';
   final String getMedicalCategoryApi = "medical-service/categories";
   String getMedicalAdminProduct(String orderId) => "medical-service/products";
   String postMedicalAddProduct = "medical-service/products";
 
-  String getProductVarient(String productId) => "medical-service/product-variants/product/$productId";
+  String getProductVarient(String productId) =>
+      "medical-service/product-variants/product/$productId";
   String addProductVarient = "medical-service/product-variants";
-  String putProductVarient(String varientId) => "medical-service/product-variants/$varientId";
-
+  String putProductVarient(String varientId) =>
+      "medical-service/product-variants/$varientId";
 
   final String updateLiveLocation = 'map-service/api/provider/location';
   final String documents = 'document-service/documents';
   final String documentsStatus = 'document-service/documents/status';
   final String initDocumentServiceUpload = "document-service/s3/presigned-url";
   final String groceryOrder = "grocery-service/api/orders";
-  String updateGroceryOrder(String orderId) => "grocery-service/api/orders/$orderId";
-  String selfPickupOrderReady(String orderId) => "grocery-service/api/orders/$orderId/ready";
-  static final String groceryRiderOrderStream = "riders/orders/stream/grocery/$userId";
-  final String aiInstitutionFetchDetails = 'ai-service/api/ai-institution/fetch-details';
+  String updateGroceryOrder(String orderId) =>
+      "grocery-service/api/orders/$orderId";
+  String selfPickupOrderReady(String orderId) =>
+      "grocery-service/api/orders/$orderId/ready";
+  static final String groceryRiderOrderStream =
+      "riders/orders/stream/grocery/$userId";
+  final String aiInstitutionFetchDetails =
+      'ai-service/api/ai-institution/fetch-details';
   final String aiCreateSchool = 'education-service/ai/create-school';
   final String schoolAboutUs = 'education-service/about/school';
   final String schoolAboutUsUpdate = 'education-service/about/';
@@ -642,42 +718,64 @@ abstract class BaseService {
   final String educationDepartments = 'education-service/departments';
   final String educationCourses = 'education-service/courses';
   final String ridersGroceryOrders = 'rider-service/riders/orders/grocery/';
-  String groceryServiceOrder(String orderId) =>  'grocery-service/api/orders/$orderId/alternatives';
-  String groceryServiceOrderAccept(String rideOrderId) =>  'rider-service/riders/orders/grocery/$rideOrderId/accept';
+  String groceryServiceOrder(String orderId) =>
+      'grocery-service/api/orders/$orderId/alternatives';
+  String groceryServiceOrderAccept(String rideOrderId) =>
+      'rider-service/riders/orders/grocery/$rideOrderId/accept';
   final String educationServiceContact = 'education-service/contact';
   final String educationServiceAcademics = 'education-service/academics';
-  String getGroceryAvailableShops({required String orderId,required String latitude,required String longitude})
-  =>  'grocery-service/api/orders/${orderId}/alternatives?filter=suggested&latitude=$latitude&longitude=$longitude';
+  String getGroceryAvailableShops(
+          {required String orderId,
+          required String latitude,
+          required String longitude}) =>
+      'grocery-service/api/orders/${orderId}/alternatives?filter=suggested&latitude=$latitude&longitude=$longitude';
 
-  final String educationServiceStudentCorner = 'education-service/student-corner';
+  final String educationServiceStudentCorner =
+      'education-service/student-corner';
   final String educationServiceFaculty = 'education-service/faculty';
-  final String campusLifeCategories = 'education-service/campus-life-categories';
+  final String campusLifeCategories =
+      'education-service/campus-life-categories';
   final String campusLife = 'education-service/campus-life';
   final String hotelServiceCategory = 'hotel-service/api/categories/nested';
-  String groceryAcceptOrder(String orderId) => 'rider-service/riders/orders/grocery/${orderId}/accept';
-  String groceryRejectOrder(String orderId) => 'rider-service/riders/orders/grocery/${orderId}/reject';
-  String enableHotelServiceStatus(String categoryId) =>  'health-service/api/hp/categories/$categoryId/status';
+  String groceryAcceptOrder(String orderId) =>
+      'rider-service/riders/orders/grocery/${orderId}/accept';
+  String groceryRejectOrder(String orderId) =>
+      'rider-service/riders/orders/grocery/${orderId}/reject';
+  String enableHotelServiceStatus(String categoryId) =>
+      'health-service/api/hp/categories/$categoryId/status';
   final String fetchHotelFromAi = 'ai-service/api/ai-hotel/fetch-details';
   final String createHotelService = 'hotel-service/api/hotel-profile';
-  final String hotelBulkStatus = 'hotel-service/api/hotels//offerings/bulk-toggle';
-  final String hotelBulkCatalogStatus = 'hotel-service/api/businesses/hotels//catalog';
-  final String createGroceryOrderConvoApi = 'chat-service/grocery-order/send-message';
+  final String hotelBulkStatus =
+      'hotel-service/api/hotels//offerings/bulk-toggle';
+  final String hotelBulkCatalogStatus =
+      'hotel-service/api/businesses/hotels//catalog';
+  final String createGroceryOrderConvoApi =
+      'chat-service/grocery-order/send-message';
   final String schoolUserID = 'education-service/schools/';
   final String myGroceryOrders = 'rider-service/grocery/orders/business';
-  final String groceryOrderItemAvailability = 'rider-service/grocery/orders/item-availability';
-  final String groceryOrderAvailableItem = 'rider-service/grocery/orders/available-items';
-  final String groceryOrderUpdatePaymentStatus = 'rider-service/grocery/orders/payment-status';
-  String predefinedServiceCategory(String category) => 'earn-service/predefined/$category';
+  final String groceryOrderItemAvailability =
+      'rider-service/grocery/orders/item-availability';
+  final String groceryOrderAvailableItem =
+      'rider-service/grocery/orders/available-items';
+  final String groceryOrderUpdatePaymentStatus =
+      'rider-service/grocery/orders/payment-status';
+  String predefinedServiceCategory(String category) =>
+      'earn-service/predefined/$category';
   final String hotelsOfferings = 'hotel-service/api/hotels/offerings';
-  final String hotelsContactUsGet = 'hotel-service/api/businesses/profile/about-us';
+  final String hotelsContactUsGet =
+      'hotel-service/api/businesses/profile/about-us';
   final String foodAiGenerate = 'ai-service/api/ai-food/generate';
-  final String aiGenerateSelfProfession = 'ai-service/api/ai-earn/generate-about';
+  final String aiGenerateSelfProfession =
+      'ai-service/api/ai-earn/generate-about';
   final String healthAndServiceImageUpload = 'health-service/api/upload/init';
-  String getBusinessSubCategory(String tagId) => 'user-service/business/by-tag/$tagId/subcategories';
-  String getIndividualFields(String tagId) => 'user-service/individual-professions/$tagId/designation';
-  String getBusinessCategoryByType(String type) => 'user-service/business/by-type/$type';
-  String predefinedProfessionServices(String professionSlugId) => 'earn-service/predefined-professional/$professionSlugId';
-
+  String getBusinessSubCategory(String tagId) =>
+      'user-service/business/by-tag/$tagId/subcategories';
+  String getIndividualFields(String tagId) =>
+      'user-service/individual-professions/$tagId/designation';
+  String getBusinessCategoryByType(String type) =>
+      'user-service/business/by-type/$type';
+  String predefinedProfessionServices(String professionSlugId) =>
+      'earn-service/predefined-professional/$professionSlugId';
 
   ///HOTEL....
   final String hotelAmenities = 'hotel-service/api/hotel-amenities';
@@ -692,42 +790,50 @@ abstract class BaseService {
   final String hotelHomeFull = 'hotel-service/api/hotels/full';
   final String hotelSearch = 'hotel-service/api/hotels/Search';
   final String foodCategory = 'food-service/api/categories';
-  final String foodProduct= 'food-service/api/foodProduct';
-  final String generateAIDescription= 'ai-service/api/ai-description/generate-description';
-  final String foodServiceProduct= 'food-service/api/foodProduct';
+  final String foodProduct = 'food-service/api/foodProduct';
+  final String generateAIDescription =
+      'ai-service/api/ai-description/generate-description';
+  final String foodServiceProduct = 'food-service/api/foodProduct';
   final String createAboutOrganisation = "other-service/about-organisation";
   final String management = "other-service/management";
   final String staff = "other-service/staff";
   final String otherBlogs = "other-service/blogs";
   final String otherNews = "other-service/news";
-  final String otherDownloads= "other-service/downloads";
-  final String otherTNC= "other-service/terms-and-conditions";
-  final String otherTimings= "other-service/timings";
-  final String otherGallery= "other-service/gallery";
-  final String otherBusinessProfile= "other-service/business-profile";
-  final String generateOtherService= "ai-service/api/ai-other/generate-other-service";
+  final String otherDownloads = "other-service/downloads";
+  final String otherTNC = "other-service/terms-and-conditions";
+  final String otherTimings = "other-service/timings";
+  final String otherGallery = "other-service/gallery";
+  final String otherBusinessProfile = "other-service/business-profile";
+  final String generateOtherService =
+      "ai-service/api/ai-other/generate-other-service";
 
   final String adminVideos = 'video-service/admin-videos';
   final String otherContactUsService = 'other-service/contact';
   final String kitchenInventory = 'food-service/api/kitchen-inventory';
-  final String foodCustomerSearch = 'food-service/api/kitchen-inventory/all/search';
+  final String foodCustomerSearch =
+      'food-service/api/kitchen-inventory/all/search';
   final String home = 'food-service/api/home/';
-  String discountFoodProducts(String businessId) => 'food-service/api/home/$businessId/discountProducts';
-  String nestedCategoryWithInventory(String userId) => 'food-service/api/home/$userId';
+  String discountFoodProducts(String businessId) =>
+      'food-service/api/home/$businessId/discountProducts';
+  String nestedCategoryWithInventory(String userId) =>
+      'food-service/api/home/$userId';
   final String homeFoodContactUs = 'food-service/api/contact';
   final String homeFoodGallery = 'food-service/api/gallery';
 
   final String productBusinessProfile = "product-service/api/business-profile";
-  final String generateProductBusiness = "ai-service/api/ai-store/generate-store";
+  final String generateProductBusiness =
+      "ai-service/api/ai-store/generate-store";
 
   //help and support
   final String getFaqs = 'earn-service/help-support/faqs';
   final String createQueries = 'earn-service/help-support/queries';
   final String mediaUploadUrlEarn = 'earn-service/s3/generate-upload-urls?';
-  String getQueriesById(String QueriesId) => 'earn-service/help-support/queries/$QueriesId';
+  String getQueriesById(String QueriesId) =>
+      'earn-service/help-support/queries/$QueriesId';
   final String professionalsFull = 'earn-service/professional/full';
-  final String professionalsUpdate= 'earn-service/professional/update';
-  final String professionalsCertificate = 'earn-service/professional/certificate';
+  final String professionalsUpdate = 'earn-service/professional/update';
+  final String professionalsCertificate =
+      'earn-service/professional/certificate';
   final String professionalsContactUs = 'earn-service/professional/contact';
   final String professionalsContactUsById = 'earn-service/professional/';
   final String professionalsTiming = 'earn-service/professional';
@@ -741,40 +847,59 @@ abstract class BaseService {
   final String makeTransportBookOrder = 'rider-service/fare/orders';
 
   final String searchMedicalCategory = 'medical-service/products/search';
-  final String userSearchMedicalCategory = 'medical-service/products/user/search';
-  String createNewMedicalProductVariant(String productId) => 'medical-service/products/$productId/variants';
+  final String userSearchMedicalCategory =
+      'medical-service/products/user/search';
+  String createNewMedicalProductVariant(String productId) =>
+      'medical-service/products/$productId/variants';
   final String myMedicalProducts = 'medical-service/inventory/my-products';
   final String addMedicalProductVariant = 'medical-service/inventory';
-  final String medicalCategoryWithVariant = 'medical-service/categories/with-inventory';
+  final String medicalCategoryWithVariant =
+      'medical-service/categories/with-inventory';
   final String medicalOrder = "medical-service/orders";
-  String updateMedicalOrder(String orderId) => "medical-service/orders/$orderId";
-  String medicalServiceOrder(String orderId) => 'medical-service/orders/$orderId/alternatives';
+  String updateMedicalOrder(String orderId) =>
+      "medical-service/orders/$orderId";
+  String medicalServiceOrder(String orderId) =>
+      'medical-service/orders/$orderId/alternatives';
   final String medicalNestedCategory = 'medical-service/categories/nested';
   // String medicalProfileFd(String businessId) => 'medical-service/profile/home/69ce088dde2705587c143d6c';
-  String medicalProfileFd(String businessId) => 'medical-service/profile/home/$businessId';
-  final String medicalOrderUpdatePaymentStatus = 'rider-service/medical/orders/payment-status';
-  final String medicalOrderAvailableItem = 'rider-service/medical/orders/available-items';
+  String medicalProfileFd(String businessId) =>
+      'medical-service/profile/home/$businessId';
+  final String medicalOrderUpdatePaymentStatus =
+      'rider-service/medical/orders/payment-status';
+  final String medicalOrderAvailableItem =
+      'rider-service/medical/orders/available-items';
   final String myMedicalOrders = 'rider-service/medical/orders/business';
   final String ridersMedicalOrders = 'rider-service/riders/orders/medical/';
-  static final String medicalRiderOrderStream = "riders/orders/stream/medical/$userId";
+  static final String medicalRiderOrderStream =
+      "riders/orders/stream/medical/$userId";
 
   /// Medical - Inventory CRUD
-  String updateMedicalInventory(String inventoryId) => 'medical-service/inventory/$inventoryId';
-  String deleteMedicalInventory(String inventoryId) => 'medical-service/inventory/$inventoryId';
+  String updateMedicalInventory(String inventoryId) =>
+      'medical-service/inventory/$inventoryId';
+  String deleteMedicalInventory(String inventoryId) =>
+      'medical-service/inventory/$inventoryId';
 
   /// Medical - Variant Update/Delete
-  String updateMedicalVariant(String variantId) => 'medical-service/products/variants/$variantId';
-  String deleteMedicalVariant(String variantId) => 'medical-service/products/variants/$variantId';
+  String updateMedicalVariant(String variantId) =>
+      'medical-service/products/variants/$variantId';
+  String deleteMedicalVariant(String variantId) =>
+      'medical-service/products/variants/$variantId';
 
   /// Medical - Change Requests
-  final String medicalChangeRequests = 'medical-service/products/variants/change-requests';
-  String approveMedicalChangeRequest(String requestId) => 'medical-service/products/variants/change-requests/$requestId/approve';
-  String rejectMedicalChangeRequest(String requestId) => 'medical-service/products/variants/change-requests/$requestId/reject';
+  final String medicalChangeRequests =
+      'medical-service/products/variants/change-requests';
+  String approveMedicalChangeRequest(String requestId) =>
+      'medical-service/products/variants/change-requests/$requestId/approve';
+  String rejectMedicalChangeRequest(String requestId) =>
+      'medical-service/products/variants/change-requests/$requestId/reject';
 
   /// Medical - Missing Product Requests
-  final String medicalMissingProductRequests = 'medical-service/missing-product-requests';
-  final String medicalMissingProductRequestsBulk = 'medical-service/missing-product-requests/bulk';
-  final String medicalMissingProductRequestsMy = 'medical-service/missing-product-requests/my';
+  final String medicalMissingProductRequests =
+      'medical-service/missing-product-requests';
+  final String medicalMissingProductRequestsBulk =
+      'medical-service/missing-product-requests/bulk';
+  final String medicalMissingProductRequestsMy =
+      'medical-service/missing-product-requests/my';
 
   /// Medical - Smart Cart
   final String medicalSnapSearch = 'medical-service/smart-cart/snap-search';
@@ -782,12 +907,17 @@ abstract class BaseService {
   /// Medical - Profile
   final String medicalProfileAboutUs = 'medical-service/profile/about-us';
   final String medicalProfileContact = 'medical-service/profile/contact';
-  final String medicalProfileTestimonials = 'medical-service/profile/testimonials';
-  String medicalProfileTestimonialById(String id) => 'medical-service/profile/testimonials/$id';
-  String medicalProfileTestimonialToggle(String id) => 'medical-service/profile/testimonials/$id/toggle-status';
+  final String medicalProfileTestimonials =
+      'medical-service/profile/testimonials';
+  String medicalProfileTestimonialById(String id) =>
+      'medical-service/profile/testimonials/$id';
+  String medicalProfileTestimonialToggle(String id) =>
+      'medical-service/profile/testimonials/$id/toggle-status';
   final String medicalProfileGallery = 'medical-service/profile/gallery';
-  String medicalProfileGalleryById(String id) => 'medical-service/profile/gallery/$id';
-  String medicalProfileGalleryDeleteImage(String id) => 'medical-service/profile/gallery/$id/images';
+  String medicalProfileGalleryById(String id) =>
+      'medical-service/profile/gallery/$id';
+  String medicalProfileGalleryDeleteImage(String id) =>
+      'medical-service/profile/gallery/$id/images';
   final String medicalProfileNearest = 'medical-service/profile/nearest';
 
   /// Medical - Upload
@@ -797,71 +927,89 @@ abstract class BaseService {
   final String medicalOrdersStatusMe = 'medical-service/orders/status/me';
   final String medicalOrdersMe = 'medical-service/orders/me';
 
-  final String  labServiceGallery= 'lab-service/gallery';
-  final String  labServiceContactUs= 'lab-service/contact-us';
-  final String  labServiceProcessResponse= 'lab-service/ai/process-response';
-  final String  labFullDetails= 'lab-service/laboratory-profiles/full-details/$userId';
-  final String  labFacilities= 'lab-service/facilities';
+  final String labServiceGallery = 'lab-service/gallery';
+  final String labServiceContactUs = 'lab-service/contact-us';
+  final String labServiceProcessResponse = 'lab-service/ai/process-response';
+  final String labFullDetails =
+      'lab-service/laboratory-profiles/full-details/$userId';
+  final String labFacilities = 'lab-service/facilities';
   final String labHealthCamps = 'lab-service/health-camps';
   final String labHealthCampsFd = 'lab-service/health-camps';
   final String labHealthCampsByLab = 'lab-service/health-camps/laboratory';
-  final String  labProfiles= 'lab-service/laboratory-profiles';
+  final String labProfiles = 'lab-service/laboratory-profiles';
   final String testCategories = 'lab-service/test-categories';
   final String testParameters = 'lab-service/test-parameters';
-  final String  testPathology= 'lab-service/pathology-tests';
+  final String testPathology = 'lab-service/pathology-tests';
   // Test catalog (predefined tests)
   final String testCatalog = 'lab-service/test-catalog';
   final String testCatalogSelect = 'lab-service/test-catalog/select';
-  final String  testLabServiceFullDetails= 'lab-service/laboratory-profiles/full-details';
-  final String  professionalSearch= 'earn-service/professional/search';
+  final String testLabServiceFullDetails =
+      'lab-service/laboratory-profiles/full-details';
+  final String professionalSearch = 'earn-service/professional/search';
   // final String  joinAsBdm= 'wallet-service/bdm';
-  final String  getBdm= 'wallet-service/bdm';
+  final String getBdm = 'wallet-service/bdm';
   // final String  saveNewReferralCode= 'wallet-service/referral/save';
-  final String  bdmRegisterStepOne = 'wallet-service/bdm/register/step1';
-  final String  bdmRegisterStepTwo = 'wallet-service/bdm/register/step2';
-  final String  getBdmStatus = 'wallet-service/bdm/status';
-  final String  walletReferralStats = 'wallet-service/wallet/referral-stats';
-  final String  walletReferralHistory = 'wallet-service//wallet/referral-history';
-  final String  BdmDocumentsUpload= 'wallet-service/bdm/documents/upload';
-  String checkReferral(String referralCode) => 'wallet-service/wallet/check-referral/$referralCode';
-  final String  referralSuggestions = 'wallet-service/bdm/referral-suggestions';
+  final String bdmRegisterStepOne = 'wallet-service/bdm/register/step1';
+  final String bdmRegisterStepTwo = 'wallet-service/bdm/register/step2';
+  final String getBdmStatus = 'wallet-service/bdm/status';
+  final String walletReferralStats = 'wallet-service/wallet/referral-stats';
+  final String walletReferralHistory =
+      'wallet-service//wallet/referral-history';
+  final String BdmDocumentsUpload = 'wallet-service/bdm/documents/upload';
+  String checkReferral(String referralCode) =>
+      'wallet-service/wallet/check-referral/$referralCode';
+  final String referralSuggestions = 'wallet-service/bdm/referral-suggestions';
 
   ///HOSPITAL NEW...
-  final String  aiCreateHospital= 'hospital-service/ai/create-hospital';
-  final String  userSelfHospital= 'hospital-service/hospitals/user/hospitals';
+  final String aiCreateHospital = 'hospital-service/ai/create-hospital';
+  final String userSelfHospital = 'hospital-service/hospitals/user/hospitals';
   final String hospitalVisionMissionBase = 'hospital-service/vision-mission';
-  final String hospitalVisionMissionByHospital= 'hospital-service/vision-mission/hospital/$hospitalIDGlobal';
-  String hospitalVisionMissionById(String id) => 'hospital-service/vision-mission/$id';
+  final String hospitalVisionMissionByHospital =
+      'hospital-service/vision-mission/hospital/$hospitalIDGlobal';
+  String hospitalVisionMissionById(String id) =>
+      'hospital-service/vision-mission/$id';
   final String hospitalHistoryBase = 'hospital-service/history';
-  final String hospitalHistoryGet = 'hospital-service/history/hospital/$hospitalIDGlobal';
+  final String hospitalHistoryGet =
+      'hospital-service/history/hospital/$hospitalIDGlobal';
   String hospitalHistoryById(String id) => 'hospital-service/history/$id';
 
   /// Hospital Management (Doctors/Leadership)
   final String hospitalManagementBase = 'hospital-service/management';
-  String hospitalManagementByHospital = 'hospital-service/management/hospital/$hospitalIDGlobal';
+  String hospitalManagementByHospital =
+      'hospital-service/management/hospital/$hospitalIDGlobal';
   String hospitalManagementById(String id) => 'hospital-service/management/$id';
 
   /// Hospital Departments
   final String hospitalDepartmentsBase = 'hospital-service/departments';
-  String hospitalDepartmentsByHospital = 'hospital-service/departments/hospital/$hospitalIDGlobal';
-  String hospitalDepartmentById(String id) => 'hospital-service/departments/$id';
+  String hospitalDepartmentsByHospital =
+      'hospital-service/departments/hospital/$hospitalIDGlobal';
+  String hospitalDepartmentById(String id) =>
+      'hospital-service/departments/$id';
+
   /// Hospital IPD
   final String hospitalIpdBase = 'hospital-service/ipd';
-  String hospitalIpdByDepartment(String departmentId) => 'hospital-service/ipd/department/$departmentId';
+  String hospitalIpdByDepartment(String departmentId) =>
+      'hospital-service/ipd/department/$departmentId';
   String hospitalIpdById(String id) => 'hospital-service/ipd/$id';
+
   /// Hospital OPD
   final String hospitalOpdBase = 'hospital-service/opd';
-  String hospitalOpdByDepartment(String departmentId) => 'hospital-service/opd/department/$departmentId';
+  String hospitalOpdByDepartment(String departmentId) =>
+      'hospital-service/opd/department/$departmentId';
   String hospitalOpdById(String id) => 'hospital-service/opd/$id';
 
   /// Emergency & Critical Care
   final String emergencyCareBase = 'hospital-service/emergency-care';
-  String emergencyCareByHospital= 'hospital-service/emergency-care/hospital/$hospitalIDGlobal';
-  String emergencyCareById = 'hospital-service/emergency-care/status/$hospitalIDGlobal';
+  String emergencyCareByHospital =
+      'hospital-service/emergency-care/hospital/$hospitalIDGlobal';
+  String emergencyCareById =
+      'hospital-service/emergency-care/status/$hospitalIDGlobal';
 
   /// Emergency Contact
-  final String hospitalEmergencyContactBase = 'hospital-service/emergency-contact';
-  String hospitalEmergencyContactByHospital = 'hospital-service/emergency-contact/hospital/$hospitalIDGlobal';
+  final String hospitalEmergencyContactBase =
+      'hospital-service/emergency-contact';
+  String hospitalEmergencyContactByHospital =
+      'hospital-service/emergency-contact/hospital/$hospitalIDGlobal';
 
   /// Emergency Service (User)
   final String emergencyBasicInfo = 'emergency-service/basic-info';
@@ -871,16 +1019,18 @@ abstract class BaseService {
 
   /// Other Facilities
   final String otherFacilitiesBase = 'hospital-service/other-facilities';
-  String otherFacilitiesByHospital = 'hospital-service/other-facilities/hospital/$hospitalIDGlobal';
-  String otherFacilitiesById(String id) => 'hospital-service/other-facilities/status/$hospitalIDGlobal';
-
+  String otherFacilitiesByHospital =
+      'hospital-service/other-facilities/hospital/$hospitalIDGlobal';
+  String otherFacilitiesById(String id) =>
+      'hospital-service/other-facilities/status/$hospitalIDGlobal';
 
   String hospitalUpdate = '/hospital-service/hospitals/';
   String hospitalContact = 'hospital-service/contact';
   String hospitalDepartmentContact = 'hospital-service/contact/';
   final String hospitalPhotos = 'hospital-service/gallery';
   final String hospitalRemovePhotos = 'hospital-service/gallery/';
-  final String hospitalGetAllPhotos = 'hospital-service/gallery/hospital/$hospitalIDGlobal';
+  final String hospitalGetAllPhotos =
+      'hospital-service/gallery/hospital/$hospitalIDGlobal';
   final String aiExpertise = 'ai-service/api/ai-expertise/generate';
   final String clearChatHistory = 'chat-service/group/clear';
   final String setReminder = 'chat-service/reminders/set-reminder';
@@ -890,12 +1040,13 @@ abstract class BaseService {
 
   // Food self-pickup orders
   final String placeBulkFoodOrder = 'food-service/api/orders';
-  String foodOrderReady(String orderId) => 'food-service/api/orders/$orderId/ready';
+  String foodOrderReady(String orderId) =>
+      'food-service/api/orders/$orderId/ready';
 
   // Product self-pickup orders
   final String placeBulkProductOrder = 'inventory-service/orders';
-  String productOrderReady(String orderId) => 'inventory-service/orders/$orderId/ready';
-
+  String productOrderReady(String orderId) =>
+      'inventory-service/orders/$orderId/ready';
 
   /// Tiffin
   final String tiffins = "earn-service/tiffins";
@@ -932,7 +1083,8 @@ abstract class BaseService {
   String vehiclesUpdate(String id) => 'vehicle-service/vehicles/update/$id';
   String vehiclesDelete(String id) => 'vehicle-service/vehicles/delete/$id';
   String vehiclesImagesAdd(String id) => 'vehicle-service/vehicles/$id/images';
-  String vehiclesImagesRemove(String id) => 'vehicle-service/vehicles/$id/images';
+  String vehiclesImagesRemove(String id) =>
+      'vehicle-service/vehicles/$id/images';
 
   // Facilities
   final String vehicleFacilitiesCreate = 'vehicle-service/facilities/create';
@@ -947,7 +1099,8 @@ abstract class BaseService {
   // Live photos
   final String vehicleLivePhotosAdd = 'vehicle-service/live-photos/add';
   final String vehicleLivePhotosBulk = 'vehicle-service/live-photos/bulk';
-  final String vehicleLivePhotosMineList = 'vehicle-service/live-photos/me/list';
+  final String vehicleLivePhotosMineList =
+      'vehicle-service/live-photos/me/list';
   String vehicleLivePhotosPublic(String userId) =>
       'vehicle-service/live-photos/public/$userId';
   String vehicleLivePhotosDelete(String id) =>
