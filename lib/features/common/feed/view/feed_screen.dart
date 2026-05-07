@@ -13,6 +13,7 @@ import 'package:BlueEra/features/common/feed/widget/feed_card.dart';
 import 'package:BlueEra/features/common/home/controller/home_screen_controller.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/load_error_widget.dart';
+import 'package:BlueEra/widgets/post_via_dialog.dart';
 import 'package:BlueEra/widgets/setup_scroll_visibility_notification.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -194,6 +195,15 @@ class _FeedScreenState extends State<FeedScreen> {
                   feedController.getListByType(widget.postFilterType);
 
               if (posts.isEmpty) {
+                // Polished "draft on a stack" empty state when the user
+                // is looking at their own posts list. Three skeleton
+                // post cards drift behind a primary-edged draft card,
+                // with a single confident CTA. We gate on myPosts so
+                // we never show "Write a post" on someone else's
+                // profile or in the global feed.
+                if (widget.postFilterType == PostType.myPosts) {
+                  return const _CreatePostEmptyState();
+                }
                 return Center(
                   child: EmptyStateWidget(
                     message: widget.postFilterType == PostType.saved
@@ -294,6 +304,505 @@ class _FeedScreenState extends State<FeedScreen> {
     );
   }
 }
+
+// ────────────────────────────────────────────────────────────────
+// "Draft on a stack" empty state — shown when the current user's
+// post list is empty. The metaphor: three skeleton post cards
+// drift behind a primary-edged draft card, with a soft primary
+// halo radiating from beneath the stack. A single confident CTA
+// sits below, opening the lekha (text) post composer via the
+// shared [postVia] dialog. The composition fades in over ~900 ms
+// in five staggered windows so the surface feels alive on land.
+// ────────────────────────────────────────────────────────────────
+class _CreatePostEmptyState extends StatelessWidget {
+  const _CreatePostEmptyState();
+
+  @override
+  Widget build(BuildContext context) {
+    return TweenAnimationBuilder<double>(
+      duration: const Duration(milliseconds: 900),
+      curve: Curves.easeOutCubic,
+      tween: Tween(begin: 0.0, end: 1.0),
+      builder: (context, t, _) {
+        // Stagger helper: returns a 0..1 fade-in for a sub-window
+        // [start..end] of the overall animation timeline. Lets each
+        // element appear in its own slot without a separate
+        // controller per piece.
+        double slot(double start, double end) =>
+            ((t - start) / (end - start)).clamp(0.0, 1.0);
+
+        return Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 380),
+            child: SingleChildScrollView(
+              physics: const NeverScrollableScrollPhysics(),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 24, vertical: 16),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _Stack(slot: slot),
+                  const SizedBox(height: 14),
+                  Opacity(
+                    opacity: slot(0.40, 0.65),
+                    child: Transform.translate(
+                      offset: Offset(0, (1 - slot(0.40, 0.65)) * 8),
+                      child: const _Copy(),
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  Opacity(
+                    opacity: slot(0.55, 0.80),
+                    child: Transform.translate(
+                      offset: Offset(0, (1 - slot(0.55, 0.80)) * 8),
+                      child: const _PrimaryCta(),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+// ─── STACK — three skeleton cards behind a primary-edged draft.
+class _Stack extends StatelessWidget {
+  final double Function(double, double) slot;
+  const _Stack({required this.slot});
+
+  @override
+  Widget build(BuildContext context) {
+    // Heights tuned to the actual artwork: tallest card bottoms out
+    // around y=110, and the box leaves ~25 px of room beneath for
+    // the soft drop shadows to bleed.
+    return SizedBox(
+      width: 300,
+      height: 135,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          // Soft primary halo sits behind the cards. Radial gradient
+          // with no hard edge so it reads as warmth, not a shape.
+          // Allowed to bleed past the SizedBox via Clip.none.
+          Positioned(
+            left: 0,
+            right: 0,
+            top: -50,
+            child: Center(
+              child: Opacity(
+                opacity: slot(0.0, 0.45) * 0.85,
+                child: Container(
+                  width: 240,
+                  height: 240,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [
+                        AppColors.primaryColor.withValues(alpha: 0.22),
+                        AppColors.primaryColor.withValues(alpha: 0.06),
+                        AppColors.primaryColor.withValues(alpha: 0.0),
+                      ],
+                      stops: const [0.0, 0.55, 1.0],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          // Furthest skeleton card — tilted left, faintest.
+          Positioned(
+            left: 18,
+            top: 18,
+            child: Opacity(
+              opacity: slot(0.05, 0.30),
+              child: Transform.rotate(
+                angle: -0.06,
+                child: const _SkeletonCard(width: 220, alphaScale: 0.55),
+              ),
+            ),
+          ),
+          // Middle skeleton card — tilted right, brighter.
+          Positioned(
+            right: 14,
+            top: 8,
+            child: Opacity(
+              opacity: slot(0.15, 0.40),
+              child: Transform.rotate(
+                angle: 0.05,
+                child: const _SkeletonCard(width: 240, alphaScale: 0.85),
+              ),
+            ),
+          ),
+          // Active "draft" card — primary-edged, sits on top, slides
+          // up slightly during reveal so the eye lands on it.
+          Positioned(
+            top: 30,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: Opacity(
+                opacity: slot(0.25, 0.55),
+                child: Transform.translate(
+                  offset: Offset(0, (1 - slot(0.25, 0.55)) * 14),
+                  child: const _DraftCard(),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── A faint skeleton placeholder card (avatar dot + content
+// bars). The [alphaScale] dials the entire card's opacity so the
+// further-back cards read as a softer ghost.
+class _SkeletonCard extends StatelessWidget {
+  final double width;
+  final double alphaScale;
+  const _SkeletonCard({required this.width, required this.alphaScale});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: width,
+      padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: alphaScale),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: const Color(0xFFE6E8EE).withValues(alpha: alphaScale),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0x14001120)
+                .withValues(alpha: alphaScale * 0.6),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 22,
+                height: 22,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: const Color(0xFFE6E8EE)
+                      .withValues(alpha: alphaScale),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                width: 70,
+                height: 7,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE6E8EE)
+                      .withValues(alpha: alphaScale),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Container(
+            height: 7,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: const Color(0xFFEFF1F5).withValues(alpha: alphaScale),
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Container(
+            height: 7,
+            width: width * 0.7,
+            decoration: BoxDecoration(
+              color: const Color(0xFFEFF1F5).withValues(alpha: alphaScale),
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Container(
+            height: 7,
+            width: 90,
+            decoration: BoxDecoration(
+              color: const Color(0xFFEFF1F5).withValues(alpha: alphaScale),
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── The active "draft" card on top of the stack: a primary-tinted
+// edit tile + a small headline + two primary-tinted bars suggesting
+// in-progress writing. Reads instantly as "your unfinished post".
+class _DraftCard extends StatelessWidget {
+  const _DraftCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 270,
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppColors.primaryColor.withValues(alpha: 0.45),
+          width: 1.2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primaryColor.withValues(alpha: 0.22),
+            blurRadius: 28,
+            offset: const Offset(0, 10),
+          ),
+          BoxShadow(
+            color: const Color(0x1A001120),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  AppColors.primaryColor,
+                  Color.lerp(
+                          AppColors.primaryColor, Colors.black, 0.22) ??
+                      AppColors.primaryColor,
+                ],
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primaryColor.withValues(alpha: 0.45),
+                  blurRadius: 14,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: const Icon(
+              Icons.edit_rounded,
+              color: Colors.white,
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Draft something',
+                  style: TextStyle(
+                    fontFamily: AppConstants.OpenSans,
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.mainTextColor,
+                    letterSpacing: -0.2,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Container(
+                  height: 6,
+                  width: 120,
+                  decoration: BoxDecoration(
+                    color:
+                        AppColors.primaryColor.withValues(alpha: 0.22),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+                const SizedBox(height: 5),
+                Container(
+                  height: 6,
+                  width: 78,
+                  decoration: BoxDecoration(
+                    color:
+                        AppColors.primaryColor.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── COPY block: tracked primary eyebrow → display heading →
+// supportive body line. Centered. Heading uses a hard newline so
+// the two-line rhythm reads editorial rather than headline-y.
+class _Copy extends StatelessWidget {
+  const _Copy();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Primary-color eyebrow with two short hairlines flanking
+        // the label. The hairlines anchor the eyebrow visually
+        // without a heavy divider.
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 18,
+              height: 1.4,
+              color: AppColors.primaryColor.withValues(alpha: 0.55),
+            ),
+            const SizedBox(width: 10),
+            Text(
+              'YOUR FIRST POST',
+              style: TextStyle(
+                fontFamily: AppConstants.OpenSans,
+                fontSize: 10.5,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 2.4,
+                color: AppColors.primaryColor,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Container(
+              width: 18,
+              height: 1.4,
+              color: AppColors.primaryColor.withValues(alpha: 0.55),
+            ),
+          ],
+        ),
+        const SizedBox(height: 14),
+        Text(
+          "Share what's on\nyour mind.",
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontFamily: AppConstants.OpenSans,
+            fontSize: 26,
+            fontWeight: FontWeight.w800,
+            color: AppColors.mainTextColor,
+            height: 1.12,
+            letterSpacing: -0.6,
+          ),
+        ),
+        const SizedBox(height: 12),
+        Text(
+          'Your followers are listening. A line, a poll,\na photo — start the conversation.',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontFamily: AppConstants.OpenSans,
+            fontSize: 13.5,
+            fontWeight: FontWeight.w500,
+            color: AppColors.secondaryTextColor,
+            height: 1.5,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ─── PRIMARY CTA — filled gradient pill with a soft primary glow
+// underneath. Tap routes through the shared [postVia] dialog with
+// the lekha (message) entry, matching how the global app bar
+// kicks off a text post.
+//
+// The shadow lives on an *outer* Container, NOT on the Ink's
+// decoration. Putting a shadow on Ink paints it onto the parent
+// Material's rectangular canvas — which renders as a square blue
+// halo regardless of the borderRadius we set. The canonical fix is
+// shadow → outer container, gradient → Ink, splash → InkWell, all
+// clipped to the same pill shape.
+class _PrimaryCta extends StatelessWidget {
+  const _PrimaryCta();
+
+  @override
+  Widget build(BuildContext context) {
+    final radius = BorderRadius.circular(28);
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: radius,
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primaryColor.withValues(alpha: 0.45),
+            blurRadius: 24,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: radius,
+        clipBehavior: Clip.antiAlias,
+        child: Ink(
+          decoration: BoxDecoration(
+            borderRadius: radius,
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                AppColors.primaryColor,
+                Color.lerp(AppColors.primaryColor, Colors.black, 0.18) ??
+                    AppColors.primaryColor,
+              ],
+            ),
+          ),
+          child: InkWell(
+            borderRadius: radius,
+            onTap: () => postVia(context, PostCreationMenu.message),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 24, vertical: 14),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.edit_rounded,
+                      color: Colors.white, size: 17),
+                  const SizedBox(width: 9),
+                  Text(
+                    'Write a post',
+                    style: TextStyle(
+                      fontFamily: AppConstants.OpenSans,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                      letterSpacing: 0.3,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 /*class FeedScreen extends StatefulWidget {
   final PostType postFilterType;
   final String? id;

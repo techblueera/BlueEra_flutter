@@ -72,9 +72,14 @@ class _CreateBusinessAccountNewStepTwoState
     viewBusinessDetailsController.listingDescriptionController.value
         .addListener(_validateForm);
     picCodeController.addListener(_validateForm);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      updateAddressFromLocation();
-      _showReferralDialog();
+    // Show the referral / promo-code dialog first, then fetch the
+    // user's live location only after the dialog is dismissed. Running
+    // them in parallel made the location-permission prompt collide
+    // with the modal dialog and steal focus.
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await _showReferralDialog();
+      if (!mounted) return;
+      await updateAddressFromLocation();
     });
   }
 

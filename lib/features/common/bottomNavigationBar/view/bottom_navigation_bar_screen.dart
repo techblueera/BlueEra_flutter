@@ -392,6 +392,13 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Capture keyboard state at the top of build, before the Scaffold's
+    // `resizeToAvoidBottomInset: true` strips viewInsets from the
+    // MediaQuery handed to its body. The build method depends on
+    // MediaQuery (we just read it), so it re-runs whenever the keyboard
+    // shows or hides — propagating the new value through the closures
+    // below.
+    final keyboardOpen = MediaQuery.of(context).viewInsets.bottom > 0;
     return Scaffold(
       key: _scaffoldKey,
       body: ValueListenableBuilder(
@@ -436,12 +443,18 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
 
                 // Bottom Nav Animation using ValueListenableBuilder (Bottom tabs)
                 Obx(() {
+                  // Hide the bar whenever the soft keyboard is up,
+                  // otherwise it floats above the keyboard and covers
+                  // the focused text field. `keyboardOpen` is captured
+                  // at the top of `build` (above the Scaffold) so the
+                  // viewInsets are still intact there.
+                  final showBar = isVisible && !keyboardOpen;
                   return Positioned(
                     bottom: 0,
                     left: 0,
                     right: 0,
                     child: AnimatedSlide(
-                      offset: isVisible ? Offset.zero : const Offset(0, 1),
+                      offset: showBar ? Offset.zero : const Offset(0, 1),
                       duration: const Duration(milliseconds: 300),
                       curve: Curves.easeInOut,
                       child: BottomNavigationBarWidget(

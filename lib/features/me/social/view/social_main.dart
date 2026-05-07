@@ -4,6 +4,7 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/model/personal_profile_details_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
@@ -16,6 +17,8 @@ import 'package:BlueEra/core/services/multipart_image_service.dart';
 import 'package:BlueEra/widgets/bottom_nav_hide_on_scroll.dart';
 import 'package:BlueEra/features/business/widgets/business_card_ui.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
+import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
+import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
 import 'package:BlueEra/features/common/reel/view/channel/follower_following_screen.dart';
 import 'package:BlueEra/features/common/visiting_card/view/all_personal_visiting_cards.dart';
@@ -60,11 +63,15 @@ class _SocialMainScreenState extends State<SocialMainScreen>
   void initState() {
     super.initState();
     _lastHasWebsite = _hasWebsite;
+    // Tabs: Post · Profile · [Website?] · Statistics
     _tabController = TabController(
-      length: _lastHasWebsite ? 3 : 2,
+      length: _lastHasWebsite ? 4 : 3,
       vsync: this,
     );
     _viewCtrl.UserFollowersAndPostsCount(userId);
+    if (!Get.isRegistered<FeedController>()) {
+      Get.put(FeedController());
+    }
   }
 
   bool get _hasWebsite =>
@@ -79,7 +86,7 @@ class _SocialMainScreenState extends State<SocialMainScreen>
       _lastHasWebsite = current;
       final oldIndex = _tabController?.index ?? 0;
       _tabController?.dispose();
-      final newLength = current ? 3 : 2;
+      final newLength = current ? 4 : 3;
       _tabController = TabController(
         length: newLength,
         vsync: this,
@@ -143,7 +150,8 @@ class _SocialMainScreenState extends State<SocialMainScreen>
                   unselectedLabelStyle: const TextStyle(
                     fontWeight: FontWeight.w400, fontSize: 14),
                   tabs: [
-                    Tab(text: AppStrings.home.tr),
+                    const Tab(text: 'Post'),
+                    const Tab(text: 'Profile'),
                     if (_lastHasWebsite)
                       Tab(text: AppStrings.website.tr),
                     Tab(text: AppStrings.statistics.tr),
@@ -155,6 +163,11 @@ class _SocialMainScreenState extends State<SocialMainScreen>
           body: TabBarView(
             controller: tabCtrl,
             children: [
+              FeedScreen(
+                key: const ValueKey('social_main_my_posts'),
+                postFilterType: PostType.myPosts,
+                id: userId,
+              ),
               SocialHomeScreen(),
               if (_lastHasWebsite)
                 CommonWebView(
@@ -559,7 +572,7 @@ class _SocialMainScreenState extends State<SocialMainScreen>
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 6),
                     child: CustomText(
-                      "\u2022",
+                      "•",
                       fontSize: SizeConfig.small,
                       color: AppColors.secondaryTextColor,
                     ),
@@ -880,5 +893,7 @@ class _GlassClipper extends CustomClipper<Path> {
       oldClipper.shape != shape || oldClipper.borderRadius != borderRadius;
 }
 
-
-
+// ════════════════════════════════════════════════════════════════
+// (removed) Wrapper-era _ProfileTab / _ProfileHero / _AnimatedStat
+// classes — interactivity now lives inside SocialHomeScreen itself.
+// ════════════════════════════════════════════════════════════════

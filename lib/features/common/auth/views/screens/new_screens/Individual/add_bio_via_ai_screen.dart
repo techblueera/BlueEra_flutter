@@ -64,8 +64,15 @@ class _AddBioViaAiScreenState extends State<AddBioViaAiScreen> {
             "Month: ${widget.selectedMonth}, "
             "Day: ${widget.selectedDay}"
     );
-    apiCalling();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _showReferralDialog());
+    // Show the referral / promo-code dialog first, then kick off the
+    // AI bio generation only after the user dismisses or submits it.
+    // Running the API in parallel made the inline AI loader compete
+    // with the modal dialog for the user's attention.
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await _showReferralDialog();
+      if (!mounted) return;
+      await apiCalling();
+    });
     super.initState();
   }
 

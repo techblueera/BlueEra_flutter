@@ -326,7 +326,13 @@ class DeliveryPartnerController extends GetxController {
   RxBool isPersonalInformationLoading = false.obs;
 
   /// ridersOnboardingPersonalInformationApi (Step 1)
-  Future<void> ridersOnboardingPersonalInformationApi() async {
+  ///
+  /// When [screenName] is `'from_tab_view'` the screen is hosted inside
+  /// the rider/cab-partner dashboard tab — we must not push a new route.
+  /// Instead we just refresh the onboarding status so the parent `Obx`
+  /// can swap the tab body to the next incomplete step.
+  Future<void> ridersOnboardingPersonalInformationApi(
+      {String? screenName}) async {
     if (formKeyStep1.currentState!.validate()) {
       try {
         isPersonalInformationLoading.value = true;
@@ -334,9 +340,9 @@ class DeliveryPartnerController extends GetxController {
           ApiKeys.name: fullNameController.text,
           ApiKeys.gender: selectedGender.value?.name,
           ApiKeys.dob: '${selectedYear}-${selectedMonth}-${selectedDay}',
-          ApiKeys.contactNo: mobileNumberController.text,
-          ApiKeys.email: emailController.text,
+          ApiKeys.contactNo: mobileNumberController.text
         };
+        if(emailController.text.trim().isNotEmpty) params[ApiKeys.email] = emailController.text;
 
         ResponseModel response =
             await DeliveryPartnerRepo().ridersOnboardingPersonalInformationRepo(
@@ -346,7 +352,11 @@ class DeliveryPartnerController extends GetxController {
         if (response.isSuccess) {
           ridersOnboardingPersonalInformationResponse.value =
               ApiResponse.complete(response);
-          Get.toNamed(RouteHelper.getAddressLocationRidingScreenRoute());
+          if (screenName == 'from_tab_view') {
+            await ridersOnboardingStatusRepoApi();
+          } else {
+            Get.toNamed(RouteHelper.getAddressLocationRidingScreenRoute());
+          }
         } else {
           ridersOnboardingPersonalInformationResponse.value =
               ApiResponse.error('error');
@@ -366,7 +376,11 @@ class DeliveryPartnerController extends GetxController {
   RxBool isRidersAddressLoading = false.obs;
 
   /// ridersOnboardingPersonalInformationApi (Step 2)
-  Future<void> ridersOnboardingAddressApi() async {
+  ///
+  /// See [ridersOnboardingPersonalInformationApi] — the same tab-view
+  /// guard applies here so completing the address form inside the
+  /// dashboard tab refreshes status instead of pushing a new route.
+  Future<void> ridersOnboardingAddressApi({String? screenName}) async {
     if (formKeyStep2.currentState!.validate()) {
       try {
         isRidersAddressLoading.value = true;
@@ -391,7 +405,11 @@ class DeliveryPartnerController extends GetxController {
         if (response.isSuccess) {
           ridersOnboardingAddressResponse.value =
               ApiResponse.complete(response);
-          Get.toNamed(RouteHelper.getVehicleInformationRidingScreenRoute());
+          if (screenName == 'from_tab_view') {
+            await ridersOnboardingStatusRepoApi();
+          } else {
+            Get.toNamed(RouteHelper.getVehicleInformationRidingScreenRoute());
+          }
         } else {
           ridersOnboardingAddressResponse.value = ApiResponse.error('error');
           commonSnackBar(
@@ -451,20 +469,16 @@ class DeliveryPartnerController extends GetxController {
           ridersOnboardingVehicleInformationResponse.value =
               ApiResponse.complete(response);
 
-          // if(screenName == 'from_tab_view'){
-          // await setRiderServiceOptData(true);
-          // await getRiderServiceOptData();
-
           await ridersOnboardingStatusRepoApi();
-
-          Get.until((route) =>
-              route.settings.name ==
-              RouteHelper.getBottomNavigationBarScreenRoute());
-          // }
-
-          // else {
-          //   Get.back();
-          // }
+          // From the tab view we're already on the bottom-nav route, so
+          // there's nothing to pop — refreshing status is enough for the
+          // parent Obx to swap the tab body to RiderProfileStatusScreen
+          // (or DeliveryPartnerOrders once approved).
+          if (screenName != 'from_tab_view') {
+            Get.until((route) =>
+                route.settings.name ==
+                RouteHelper.getBottomNavigationBarScreenRoute());
+          }
         } else {
           ridersOnboardingVehicleInformationResponse.value =
               ApiResponse.error('error');
@@ -866,7 +880,7 @@ class DeliveryPartnerController extends GetxController {
         if (response.isSuccess) {
           ridersOnboardingDrivingVerificationResponse.value =
               ApiResponse.complete(response);
-          Get.toNamed(RouteHelper.getVehicleImagesRidingScreenRoute());
+          // Get.toNamed(RouteHelper.getVehicleImagesRidingScreenRoute());
         } else {
           ridersOnboardingDrivingVerificationResponse.value =
               ApiResponse.error('error');

@@ -1,11 +1,11 @@
-
 import 'dart:ui';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
-import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
@@ -13,36 +13,48 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/multipart_image_service.dart';
-import 'package:BlueEra/features/business/widgets/business_card_ui.dart';
+import 'package:BlueEra/core/widgets/custom_form_card.dart';
+import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
+import 'package:BlueEra/features/business/widgets/business_share_banner.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
-import 'package:BlueEra/features/common/home/widgets/drawer.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/choose_earn_service_screen.dart';
-import 'package:BlueEra/features/common/delivery_partner/view/address_location_riding_screen.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/delivery_partner_orders/delivery_partner_orders.dart';
-import 'package:BlueEra/features/common/delivery_partner/view/personal_information_riding_screen.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/rider_profile_status_screen.dart';
-import 'package:BlueEra/features/common/delivery_partner/view/vehicle_information_riding_screen.dart';
+import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
+import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
+import 'package:BlueEra/features/common/home/widgets/drawer.dart';
 import 'package:BlueEra/features/common/reel/view/channel/follower_following_screen.dart';
 import 'package:BlueEra/features/common/visiting_card/view/all_personal_visiting_cards.dart';
-import 'package:BlueEra/features/me/me_tab_registry.dart';
+import 'package:BlueEra/features/me/medical_new/view/medical_statistics_screen.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/choose_earn_service_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/edit_profile_bottom_sheet.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/profile_designation_bottom_sheet.dart';
-import 'package:BlueEra/features/contribution/view/contribution_status_view.dart';
-import 'package:BlueEra/widgets/common_card_widget.dart';
+import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/common_circular_profile_image.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:croppy/croppy.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 
-
+/// Rider/Delivery dashboard — mirrors the self-employee v2 layout so the
+/// rider sees the same modern shell across me-section surfaces. Floating
+/// glassmorphic top bar, animated tab strip with a sticky overlay, and
+/// four tab bodies:
+///   • Order / Document — single tab whose label flips between
+///     "Document" (verification pending) and "My Order" (approved).
+///     Body shows [DeliveryPartnerOrders] when approved, otherwise
+///     [RiderProfileStatusScreen] handles every other state.
+///   • Overview — personal profile (cover + identity + stats + actions)
+///   • Post     — embedded [FeedScreen] filtered to the user's posts
+///   • Statics  — chat-click analytics
 class RiderServiceScreen extends StatefulWidget {
   final bool fromBottomNavBar;
 
@@ -53,32 +65,30 @@ class RiderServiceScreen extends StatefulWidget {
 }
 
 class _RiderServiceScreenState extends State<RiderServiceScreen>
-    with SingleTickerProviderStateMixin, RouteAware {
-  late TabController _tabController;
-  int _currentTabIndex = 0;
-
+    with RouteAware {
   final controller = getOrPut(() => DeliveryPartnerController());
   final _viewCtrl =
       getOrPut(() => ViewPersonalDetailsController(), permanent: true);
   final _personalCtrl = getOrPut(() => PersonalCreateProfileController());
-  bool allCompleted = false;
-  bool allStepsCompleted = false;
+
+  int _selectedTab = 0;
+  bool _showStickyTabs = false;
+
+  static const _orderIndex = 0;
+  static const _overviewIndex = 1;
+  static const _postIndex = 2;
+  static const _staticsIndex = 3;
 
   @override
   void initState() {
-    _checkRiderStatus();
-    _tabController = TabController(length: 2, vsync: this);
-    _tabController.addListener(_onTabChanged);
-    MeTabRegistry.register(_tabController);
-    _viewCtrl.UserFollowersAndPostsCount(userId);
     super.initState();
-  }
-
-  void _onTabChanged() {
-    if (_tabController.indexIsChanging) return;
-    if (_currentTabIndex != _tabController.index) {
-      setState(() => _currentTabIndex = _tabController.index);
-    }
+    _checkRiderStatus();
+    _viewCtrl.UserFollowersAndPostsCount(userId);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _viewCtrl.shopStatusOpenClose.value =
+          serviceProviderStatusGlobal.toUpperCase() ==
+              AppConstants.OPEN.toUpperCase();
+    });
   }
 
   @override
@@ -98,9 +108,6 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
   @override
   void dispose() {
     deleteIfRegistered<DeliveryPartnerController>();
-    _tabController.removeListener(_onTabChanged);
-    MeTabRegistry.unregister(_tabController);
-    _tabController.dispose();
     RouteHelper.routeObserver.unsubscribe(this);
     super.dispose();
   }
@@ -109,619 +116,360 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
     controller.ridersOnboardingStatusRepoApi();
   }
 
-  String _capitalizeFirst(String text) {
-    if (text.isEmpty) return '';
-    return text[0].toUpperCase() + text.substring(1).toLowerCase();
-  }
-
-  String _formatCount(int count) {
-    if (count >= 1000000) return "${(count / 1000000).toStringAsFixed(1)}M";
-    if (count >= 1000) return "${(count / 1000).toStringAsFixed(1)}k";
-    return "$count";
-  }
-
-  String _formatJoinedDate(String dateStr) {
-    try {
-      final date = DateTime.parse(dateStr);
-      return DateFormat('MMMM yyyy').format(date);
-    } catch (_) {
-      return '';
-    }
-  }
-
-  String _extractCityState(String address) {
-    if (address.isEmpty) return '';
-    final parts = address.split(',').map((e) => e.trim()).toList();
-    if (parts.length >= 3) {
-      final statePart =
-          parts[parts.length - 2].replaceAll(RegExp(r'\d{5,6}'), '').trim();
-      final city = parts[parts.length - 3].trim();
-      if (city.isNotEmpty && statePart.isNotEmpty) return "$city, $statePart";
-      return city.isNotEmpty ? city : statePart;
-    }
-    return address;
-  }
-
-
+  // ─────────────────────────────────────────────
+  // BUILD
+  // ─────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
-    return Obx(() {
-      if (controller.ridersOnboardingStatusResponse.value.status ==
-          Status.COMPLETE) {
-        final stepStatus = controller.stepStatus;
-        allCompleted = controller
-                .riderOnboardingStatusData.value?.verificationStatus ==
-            "approved";
-        allStepsCompleted =
-            stepStatus.values.every((status) => status == true);
-        return _buildRiderEnabled(context);
-      }
-      return const SizedBox.shrink();
-    });
+    return _buildScaffold(context);
   }
 
-  Widget _buildRiderEnabled(BuildContext context) {
-    final stepStatus = controller.stepStatus;
-    final firstIncompleteEntry = stepStatus.entries
-        .where((entry) => entry.value == false)
-        .cast<MapEntry<RiderProfileStep, bool>>()
-        .toList()
-        .firstOrNull;
-
+  // Scaffold mirrors self-employee v2: glassmorphic top bar, an
+  // in-flow tab card, and a sticky tab overlay that engages once
+  // the in-flow tabs scroll past the top bar.
+  Widget _buildScaffold(BuildContext context) {
+    final topInset = MediaQuery.of(context).padding.top;
+    final topBarHeight = topInset + 56;
     return Scaffold(
       body: SafeArea(
-        // Keep bottom safe-area padding so the tab content doesn't get
-        // clipped by the device's system gesture/nav area.
-        bottom: true,
-        child: NestedScrollView(
-        headerSliverBuilder: (context, innerBoxIsScrolled) => [
-          // Cover section
-          SliverToBoxAdapter(child: _buildCoverSection(context)),
-          // Profile info
-          SliverToBoxAdapter(child: _buildProfileInfoSection()),
-          // Stats
-          SliverToBoxAdapter(child: _buildStatsRow()),
-          // Pinned tabs
-          SliverAppBar(
-            pinned: true,
-            floating: false,
-            primary: false,
-            automaticallyImplyLeading: false,
-            toolbarHeight: 0,
-            collapsedHeight: 0,
-            expandedHeight: 0,
-            backgroundColor: Colors.white,
-            surfaceTintColor: Colors.white,
-            bottom: TabBar(
-              controller: _tabController,
-              labelColor: AppColors.primaryColor,
-              unselectedLabelColor: AppColors.secondaryTextColor,
-              indicatorColor: AppColors.primaryColor,
-              indicatorWeight: 2,
-              indicatorPadding: EdgeInsets.zero,
-              labelPadding: EdgeInsets.zero,
-              tabAlignment: TabAlignment.fill,
-              indicatorSize: TabBarIndicatorSize.tab,
-              labelStyle: const TextStyle(
-                  fontWeight: FontWeight.w600, fontSize: 14),
-              unselectedLabelStyle: const TextStyle(
-                  fontWeight: FontWeight.w400, fontSize: 14),
-              tabs: [
-                Tab(
-                    text: allCompleted
-                        ? AppStrings.myOrder.tr
-                        : AppStrings.document.tr),
-                // Tab(text: AppStrings.myStore.tr),
-                Tab(text: AppStrings.statistics.tr),
-              ],
+        top: false,
+        child: Stack(
+          children: [
+            _buildPatternBackground(),
+            NotificationListener<ScrollNotification>(
+              onNotification: (n) {
+                if (n.depth != 0) return false;
+                if (n.metrics.axis != Axis.vertical) return false;
+                final shouldShow = n.metrics.pixels > topBarHeight;
+                if (shouldShow != _showStickyTabs) {
+                  setState(() => _showStickyTabs = shouldShow);
+                }
+                return false;
+              },
+              child: CustomScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                slivers: [
+                  SliverAppBar(
+                    primary: false,
+                    pinned: false,
+                    floating: true,
+                    snap: true,
+                    backgroundColor: Colors.transparent,
+                    elevation: 0,
+                    scrolledUnderElevation: 0,
+                    surfaceTintColor: Colors.transparent,
+                    automaticallyImplyLeading: false,
+                    toolbarHeight: topBarHeight,
+                    flexibleSpace: _buildTopBar(),
+                  ),
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      child: _buildTabsCard(),
+                    ),
+                  ),
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: EdgeInsets.only(
+                        top: SizeConfig.size10,
+                        bottom: kBottomNavigationBarHeight + 30,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: _buildTabContent(),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
-        body: Padding(
-          // Extra breathing room so UI at the very bottom of each tab
-          // (action buttons, list tails) isn't clipped by the system
-          // gesture area / bottom nav bar on smaller devices.
-          padding: const EdgeInsets.only(bottom: 80),
-          child: TabBarView(
-            controller: _tabController,
-            children: [
-              (firstIncompleteEntry?.key == RiderProfileStep.personalInfo)
-                  ? PersonalInformationRidingScreen(
-                      screeName: 'from_tab_view')
-                  : (firstIncompleteEntry?.key ==
-                          RiderProfileStep.addressInfo)
-                      ? AddressLocationRidingScreen(
-                          screeName: 'from_tab_view')
-                      : (firstIncompleteEntry?.key ==
-                              RiderProfileStep.vehicleInfo)
-                          ? VehicleInformationRidingScreen(
-                              screeName: 'from_tab_view')
-                          : controller.riderOnboardingStatusData.value
-                                      ?.verificationStatus ==
-                                  "approved"
-                              ? DeliveryPartnerOrders()
-                              : RiderProfileStatusScreen(
-                                  screeName: 'from_tab_view'),
-              // const RiderMyStoreTab(),
-              const ContributionStatusView(),
-            ],
-          ),
+            if (_showStickyTabs)
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                child: ClipRect(
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                    child: Container(
+                      padding: EdgeInsets.only(top: topInset + 10, bottom: 10),
+                      decoration: const BoxDecoration(
+                        color: Color(0x66FFFFFF),
+                        border: Border(
+                          bottom: BorderSide(color: Colors.white, width: 1),
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Color(0x42001120),
+                            blurRadius: 16,
+                            offset: Offset(0, 4),
+                            blurStyle: BlurStyle.outer,
+                          ),
+                        ],
+                      ),
+                      child: _buildTabsCard(),
+                    ),
+                  ),
+                ),
+              ),
+          ],
         ),
-      )),
+      ),
     );
   }
 
-  // ============================================================
-  // COVER SECTION
-  // ============================================================
+  // ─────────────────────────────────────────────
+  // BACKGROUND
+  // ─────────────────────────────────────────────
+  Widget _buildPatternBackground() {
+    return Positioned.fill(
+      child: Image.asset(
+        AppImageAssets.chatDefaultBg,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) =>
+            Container(color: const Color(0xFFEAF2FB)),
+      ),
+    );
+  }
 
-  Widget _buildCoverSection(BuildContext context) {
-    const bannerHeight = 260.0;
-    return Container(
-      color: AppColors.white,
-      height: bannerHeight + 40,
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Obx(() {
-            final banner = _personalCtrl.coverImagePath?.value ?? '';
-            return SizedBox(
-              height: bannerHeight,
-              width: double.infinity,
-              child: banner.isNotEmpty
-                  ? Image.network(banner, fit: BoxFit.cover)
-                  : CachedNetworkImage(
-                      imageUrl: _personalCtrl.imagePath?.value ?? '',
-                      fit: BoxFit.cover,
-                      placeholder: (_, __) => Container(
-                        decoration: const BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [Color(0xFFE8EAF6), Color(0xFFC5CAE9)],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                        ),
-                      ),
-                      errorWidget: (_, __, ___) => Container(
-                        decoration: const BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [Color(0xFFE8EAF6), Color(0xFFC5CAE9)],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                        ),
-                      ),
-                    ),
-            );
-          }),
-          // Single glassmorphic header row sitting on the banner.
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: _buildGlassHeaderRow(context),
+  // ─────────────────────────────────────────────
+  // TOP BAR — glassmorphic strip:
+  //   [drawer] [Earn]   …   [bell] [Go Live]
+  // ─────────────────────────────────────────────
+  Widget _buildTopBar() {
+    final topInset = MediaQuery.of(context).padding.top;
+    return DecoratedBox(
+      decoration: const BoxDecoration(
+        boxShadow: [
+          BoxShadow(
+            color: Color(0x42001120),
+            blurRadius: 16,
+            offset: Offset(0, 0),
+            blurStyle: BlurStyle.outer,
           ),
-          // Banner-edit camera — bottom-right of the banner image.
-          Positioned(
-            right: 8,
-            top: bannerHeight - 44,
-            child: _coverIconButton(
-              icon: Icons.camera_alt_outlined,
-              onTap: () => _onCoverImageEdit(context),
+        ],
+      ),
+      child: ClipRect(
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 50, sigmaY: 50),
+          child: Container(
+            width: double.infinity,
+            padding: EdgeInsets.fromLTRB(
+              SizeConfig.size12,
+              topInset + SizeConfig.size8,
+              SizeConfig.size12,
+              SizeConfig.size10,
             ),
-          ),
-          Positioned(
-            left: 16,
-            bottom: 0,
-            right: 16,
+            decoration: BoxDecoration(
+              color: const Color(0x33FFFFFF),
+              border: Border.all(color: Colors.white, width: 1.0),
+            ),
             child: Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Container(
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 4),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.1),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Obx(() {
-                    return CommonProfileImage(
-                      imagePath: _personalCtrl.imagePath?.value ?? "",
-                      onImageUpdate: (image) async {
-                        _personalCtrl.imagePath?.value = image;
-                        dynamic dataImage =
-                            await multiPartImage(imagePath: image);
-                        var reqProfile = {ApiKeys.profile_image: dataImage};
-                        await _personalCtrl.updateUserProfileDetails(
-                            params: reqProfile, isFromProfileOnly: true);
-                      },
-                      dialogTitle: AppStrings.uploadProfilePicture,
-                      showProfileBorder: false,
-                    );
-                  }),
+                _circleIconButton(
+                  icon: Icons.menu,
+                  onTap: () => _openDrawer(context),
                 ),
-                const Spacer(),
-                GestureDetector(
-                  onTap: () async {
-                    final link = profileDeepLink(
-                      userId: userId,
-                      accountType: AppConstants.individual,
-                    );
-                    final userName =
-                        _viewCtrl.personalProfileDetails.value.user?.name ??
-                            '';
-                    await SharePlus.instance.share(
-                      ShareParams(
-                        text: "See my profile on BlueEra:\n$link\n",
-                        subject: userName,
-                      ),
-                    );
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: AppColors.white,
-                      border:
-                          Border.all(color: AppColors.greyE5, width: 1.5),
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          offset: const Offset(0, 1),
-                          blurRadius: 2,
-                          color: AppColors.black.withValues(alpha: 0.08),
-                        ),
-                      ],
-                    ),
-                    child: LocalAssets(
-                      imagePath: AppIconAssets.profile_share,
-                      width: 16,
-                      height: 16,
-                      imgColor: AppColors.secondaryTextColor,
+                SizedBox(width: SizeConfig.size8),
+                Expanded(child: _buildEarnSlot()),
+                SizedBox(width: SizeConfig.size8),
+                if (!isGuestUser()) ...[
+                  _circleIconButton(
+                    icon: Icons.notifications_none,
+                    onTap: () => Navigator.pushNamed(
+                      context,
+                      RouteHelper.getNotificationScreenRoute(),
                     ),
                   ),
-                ),
-                const SizedBox(width: 8),
-                BusinessCardUi(
-                  onTap: () => Get.to(() => AllPersonalVisitingCards(
-                        personalDetails:
-                            _viewCtrl.personalProfileDetails.value,
-                      )),
-                ),
+                  SizedBox(width: SizeConfig.size8),
+                ],
+                _goLivePill(),
               ],
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ============================================================
-  // PROFILE INFO SECTION
-  // ============================================================
-
-  Widget _buildProfileInfoSection() {
-    final user = _viewCtrl.personalProfileDetails.value.user;
-    final name = _capitalizeFirst(user?.name ?? '');
-    final username = user?.username ?? '';
-    final designation = user?.designation ?? '';
-    final location = _extractCityState(user?.address ?? '');
-    final email = user?.email ?? '';
-    final createdAt = user?.createdAt ?? '';
-
-    return Container(
-      color: Colors.white,
-      padding: const EdgeInsets.fromLTRB(16, 10, 16, 6),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (name.isNotEmpty)
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Expanded(
-                        child: CustomText(
-                          name,
-                          fontSize: SizeConfig.extraLarge22,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.mainTextColor,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      _buildEditProfileChip(),
-                    ],
-                  ),
-                if (username.isNotEmpty || createdAt.isNotEmpty) ...[
-                  const SizedBox(height: 2),
-                  Row(
-                    children: [
-                      if (username.isNotEmpty)
-                        CustomText(
-                          "@$username",
-                          fontSize: SizeConfig.medium,
-                          color: AppColors.secondaryTextColor,
-                          fontWeight: FontWeight.w400,
-                        ),
-                      if (username.isNotEmpty && createdAt.isNotEmpty)
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 6),
-                          child: CustomText(
-                            "\u2022",
-                            fontSize: SizeConfig.small,
-                            color: AppColors.secondaryTextColor,
-                          ),
-                        ),
-                      if (createdAt.isNotEmpty)
-                        CustomText(
-                          "Joined ${_formatJoinedDate(createdAt)}",
-                          fontSize: SizeConfig.small,
-                          color: AppColors.secondaryTextColor,
-                          fontWeight: FontWeight.w400,
-                        ),
-                    ],
-                  ),
-                ],
-                const SizedBox(height: 8),
-                _buildDesignationChip(designation),
-                if (location.isNotEmpty || email.isNotEmpty) ...[
-                  const SizedBox(height: 10),
-                  if (location.isNotEmpty) ...[
-                    _infoRow(Icons.location_on_outlined, location),
-                    const SizedBox(height: 6),
-                  ],
-                  if (email.isNotEmpty)
-                    _infoRow(Icons.email_outlined, email),
-                ],
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-
-  Widget _infoRow(IconData icon, String text) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, size: 16, color: AppColors.secondaryTextColor),
-        const SizedBox(width: 5),
-        Flexible(
-          child: CustomText(
-            text,
-            fontSize: SizeConfig.medium15,
-            color: AppColors.secondaryTextColor,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
           ),
         ),
-      ],
+      ),
     );
   }
 
-  // ============================================================
-  // STATS ROW
-  // ============================================================
-
-  Widget _buildStatsRow() {
-    return CommonCardWidget(
-      cardMargin: 0,
-      padding: 0,
-      child: Obx(() {
-        final followers = _viewCtrl.followersCount.value;
-        final following = _viewCtrl.followingCount.value;
-        final posts = _viewCtrl.postsCount.value;
-
-        return Container(
+  Widget _buildEarnSlot() {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: GestureDetector(
+        onTap: () => Get.to(() => const chooseEarnServiceScreen()),
+        child: Container(
           padding: EdgeInsets.symmetric(
-              horizontal: SizeConfig.size14, vertical: SizeConfig.size8),
-          margin: const EdgeInsets.fromLTRB(16, 10, 16, 0),
+              horizontal: SizeConfig.size12, vertical: SizeConfig.size6),
           decoration: BoxDecoration(
-            color: AppColors.white,
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: Colors.grey.shade200),
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(
+              color: const Color(0xFFC9CDD5),
+              width: 1,
+            ),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x1A000000),
+                blurRadius: 3,
+                offset: Offset(0, -1),
+              ),
+            ],
           ),
           child: Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Expanded(child: _statItem("Posts", "$posts")),
-              _statDivider(),
-              Expanded(
-                child: GestureDetector(
-                  onTap: () => Get.to(() => FollowersFollowingPage(
-                      tabIndex: 1, userID: userId)),
-                  child: _statItem("Followers", _formatCount(followers)),
+              LocalAssets(
+                imagePath: AppIconAssets.earnWithBEIcon,
+                imgColor: AppColors.primaryColor,
+                height: 16,
+                width: 16,
+              ),
+              SizedBox(width: SizeConfig.size6),
+              CustomText('Earn',
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.primaryColor),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _circleIconButton({
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      customBorder: const CircleBorder(),
+      child: Container(
+        decoration: const BoxDecoration(
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: Color(0x1A000000),
+              blurRadius: 3,
+              offset: Offset(0, -1),
+            ),
+          ],
+        ),
+        child: ClipPath(
+          clipper: const ShapeBorderClipper(shape: CircleBorder()),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+            child: Container(
+              height: SizeConfig.size36,
+              width: SizeConfig.size36,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white,
+                border: Border.all(
+                  color: const Color(0xFFC9CDD5),
+                  width: 1,
                 ),
               ),
-              _statDivider(),
-              Expanded(
-                child: GestureDetector(
-                  onTap: () => Get.to(() => FollowersFollowingPage(
-                      tabIndex: 0, userID: userId)),
-                  child: _statItem("Following", _formatCount(following)),
-                ),
+              child: Icon(icon,
+                  size: 20, color: AppColors.secondaryTextColor),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _goLivePill() {
+    return Obx(() {
+      final isOn = _viewCtrl.shopStatusOpenClose.value;
+      final isUpdating = _viewCtrl.isShopStatusUpdating.value;
+      return GestureDetector(
+        onTap: isUpdating ? null : () => _viewCtrl.toggleShopStatus(),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x1A000000),
+                blurRadius: 3,
+                offset: Offset(0, -1),
               ),
             ],
           ),
-        );
-      }),
-    );
-  }
-
-  Widget _statItem(String label, String value) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        CustomText(value,
-            fontSize: SizeConfig.medium,
-            fontWeight: FontWeight.bold,
-            color: AppColors.mainTextColor),
-        const SizedBox(height: 4),
-        CustomText(label,
-            fontSize: SizeConfig.small,
-            color: AppColors.secondaryTextColor,
-            fontWeight: FontWeight.w400),
-      ],
-    );
-  }
-
-  Widget _statDivider() {
-    return Container(height: 30, width: 1, color: Colors.grey.shade200);
-  }
-
-
-  Widget _buildEditProfileChip() {
-    return InkWell(
-      onTap: _openEditProfile,
-      borderRadius: BorderRadius.circular(20),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(
-          color: AppColors.primaryColor.withValues(alpha: 0.08),
-          border: Border.all(
-            color: AppColors.primaryColor.withValues(alpha: 0.3),
-            width: 0.6,
-          ),
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.edit_outlined,
-                size: 14, color: AppColors.primaryColor),
-            const SizedBox(width: 4),
-            CustomText(
-              'Edit',
-              fontSize: SizeConfig.extraSmall,
-              color: AppColors.primaryColor,
-              fontWeight: FontWeight.w600,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _openEditProfile() {
-    EditProfileBottomSheet.show(Get.context!);
-  }
-
-  Widget _buildDesignationChip(String designation) {
-    final hasDesignation = designation.trim().isNotEmpty;
-    return InkWell(
-      onTap: () => showProfileDesignationSheet(Get.context!),
-      borderRadius: BorderRadius.circular(20),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
-        decoration: BoxDecoration(
-          color: AppColors.primaryColor.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: AppColors.primaryColor.withValues(alpha: 0.3),
-            width: 0.5,
-          ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Flexible(
-              child: CustomText(
-                hasDesignation ? designation : 'Add designation',
-                color: AppColors.primaryColor,
-                fontSize: SizeConfig.small,
-                fontWeight: FontWeight.w500,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            SizedBox(width: SizeConfig.size10),
-            LocalAssets(
-              imagePath: AppIconAssets.editIcon,
-              height: SizeConfig.size12,
-              width: SizeConfig.size12,
-              imgColor: AppColors.primaryColor,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // ============================================================
-  // GLASS HEADER
-  // ============================================================
-
-  Widget _buildGlassHeaderRow(BuildContext context) {
-    return Stack(
-      children: [
-        Positioned.fill(
-          child: ClipRect(
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(24),
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-              child: DecoratedBox(
+              child: Container(
+                padding: EdgeInsets.symmetric(
+                    horizontal: SizeConfig.size10,
+                    vertical: SizeConfig.size6),
                 decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.25),
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(
+                    color: const Color(0xFFC9CDD5),
+                    width: 1,
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CustomText('Go live',
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.secondaryTextColor),
+                    SizedBox(width: SizeConfig.size6),
+                    if (isUpdating)
+                      SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                              AppColors.primaryColor),
+                        ),
+                      )
+                    else
+                      Container(
+                        width: 30,
+                        height: 18,
+                        padding: const EdgeInsets.all(2),
+                        decoration: BoxDecoration(
+                          color: isOn
+                              ? AppColors.primaryColor
+                              : Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: AppColors.secondaryTextColor
+                                .withValues(alpha: 0.4),
+                            width: 0.5,
+                          ),
+                        ),
+                        child: AnimatedAlign(
+                          duration: const Duration(milliseconds: 180),
+                          alignment: isOn
+                              ? Alignment.centerRight
+                              : Alignment.centerLeft,
+                          child: Container(
+                            height: 14,
+                            width: 14,
+                            decoration: BoxDecoration(
+                              color: isOn
+                                  ? Colors.white
+                                  : AppColors.secondaryTextColor,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
               ),
             ),
           ),
         ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              _GlassPill(
-                onTap: () => _openDrawer(context),
-                padding: const EdgeInsets.all(8),
-                shape: BoxShape.circle,
-                dark: true,
-                child: LocalAssets(
-                  imagePath: AppIconAssets.drawer_more,
-                  width: 18,
-                  height: 18,
-                  imgColor: Colors.white,
-                ),
-              ),
-              const SizedBox(width: 8),
-              _EarnActionPill(
-                onTap: () => Get.to(() => const chooseEarnServiceScreen()),
-              ),
-              const Spacer(),
-              if (!isGuestUser()) ...[
-                _GlassPill(
-                  onTap: () => Navigator.pushNamed(
-                    context,
-                    RouteHelper.getNotificationScreenRoute(),
-                  ),
-                  padding: const EdgeInsets.all(8),
-                  shape: BoxShape.circle,
-                  dark: true,
-                  child: LocalAssets(
-                    imagePath: AppIconAssets.notificationOutlineIcon,
-                    width: 18,
-                    height: 18,
-                    imgColor: Colors.white,
-                  ),
-                ),
-                const SizedBox(width: 8),
-              ],
-              _buildGoLiveChip(),
-            ],
-          ),
-        ),
-      ],
-    );
+      );
+    });
   }
 
   void _openDrawer(BuildContext context) {
@@ -730,122 +478,302 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
       barrierColor: Colors.black.withValues(alpha: 0.3),
       useSafeArea: false,
       context: context,
-      builder: (BuildContext context) {
-        return Align(
-          alignment: Alignment.centerLeft,
-          child: SizedBox(
-            height: double.infinity,
-            child: Drawer(backgroundColor: Colors.transparent, elevation: 0, child: ProfileMenuDrawer()),
+      builder: (_) => Align(
+        alignment: Alignment.centerLeft,
+        child: SizedBox(
+          height: double.infinity,
+          child: Drawer(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            child: ProfileMenuDrawer(),
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 
-  Widget _coverIconButton({
-    required IconData icon,
-    required VoidCallback onTap,
-  }) {
-    return _GlassPill(
-      onTap: onTap,
-      padding: const EdgeInsets.all(8),
-      shape: BoxShape.circle,
-      dark: true,
-      child: Icon(icon, color: Colors.white, size: 18),
-    );
-  }
-
-  Widget _buildGoLiveChip() {
-    final statusData = serviceProviderStatusGlobal.toUpperCase();
-    final isOpenInitial = statusData == AppConstants.OPEN.toUpperCase();
-    if (_viewCtrl.shopStatusOpenClose.value != isOpenInitial) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _viewCtrl.shopStatusOpenClose.value = isOpenInitial;
-      });
-    }
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(100),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-        child: Container(
-          height: SizeConfig.size36,
-          decoration: BoxDecoration(
-            color: Colors.black.withValues(alpha: 0.35),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.18),
-              width: 0.6,
+  // ─────────────────────────────────────────────
+  // TABS — solid white card with an animated underline that slides
+  // beneath the selected tab. The first tab label flips between
+  // "Order" and "Document" depending on verification status, mirroring
+  // the original rider screen's behaviour.
+  // ─────────────────────────────────────────────
+  Widget _buildTabsCard() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 14),
+      child: Container(
+        height: 48,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: const Color(0xFFE6E8EE), width: 1),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x1A001120),
+              blurRadius: 16,
+              offset: Offset(0, 6),
             ),
-            borderRadius: BorderRadius.circular(100),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              SizedBox(width: SizeConfig.size10),
-              CustomText(
-                AppStrings.goLive,
-                fontSize: SizeConfig.small,
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-              ),
-              SizedBox(width: SizeConfig.size8),
-              Obx(() {
-                if (_viewCtrl.isShopStatusUpdating.value) {
-                  return Padding(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: SizeConfig.size10,
-                      vertical: SizeConfig.size6,
-                    ),
-                    child: SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                            AppColors.primaryColor),
-                      ),
-                    ),
-                  );
-                }
-                final isOn = _viewCtrl.shopStatusOpenClose.value;
-                return GestureDetector(
-                  onTap: () => _viewCtrl.toggleShopStatus(),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(100),
-                    child: BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 180),
-                        width: 38,
-                        height: 22,
-                        padding: const EdgeInsets.all(3),
-                        decoration: BoxDecoration(
-                          color: isOn
-                              ? AppColors.primaryColor
-                              : Colors.black.withValues(alpha: 0.25),
-                          borderRadius: BorderRadius.circular(100),
-                          border: Border.all(
-                            color: isOn
-                                ? AppColors.primaryColor
-                                : Colors.white.withValues(alpha: 0.18),
-                            width: 0.6,
+          ],
+        ),
+        child: Obx(() {
+          final approved = controller.riderOnboardingStatusData.value
+                  ?.verificationStatus ==
+              "approved";
+          final tabs = <String>[
+            approved ? AppStrings.myOrder.tr : AppStrings.document.tr,
+            'Overview',
+            'Post',
+            'Statics',
+          ];
+          return LayoutBuilder(
+            builder: (context, constraints) {
+              final tabWidth = constraints.maxWidth / tabs.length;
+              const indicatorWidth = 28.0;
+              final indicatorLeft =
+                  tabWidth * _selectedTab + (tabWidth - indicatorWidth) / 2;
+              return Stack(
+                children: [
+                  Row(
+                    children: List.generate(tabs.length, (i) {
+                      final selected = _selectedTab == i;
+                      return Expanded(
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () => setState(() => _selectedTab = i),
+                          child: Center(
+                            child: AnimatedDefaultTextStyle(
+                              duration: const Duration(milliseconds: 220),
+                              curve: Curves.easeOutCubic,
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: selected
+                                    ? FontWeight.w700
+                                    : FontWeight.w500,
+                                letterSpacing: 0.2,
+                                color: selected
+                                    ? AppColors.primaryColor
+                                    : AppColors.mainTextColor,
+                              ),
+                              child: Text(tabs[i]),
+                            ),
                           ),
                         ),
-                        alignment:
-                            isOn ? Alignment.centerRight : Alignment.centerLeft,
-                        child: Container(
-                          width: 14,
-                          height: 14,
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
+                      );
+                    }),
+                  ),
+                  AnimatedPositioned(
+                    duration: const Duration(milliseconds: 280),
+                    curve: Curves.easeOutCubic,
+                    left: indicatorLeft,
+                    bottom: 6,
+                    child: Container(
+                      width: indicatorWidth,
+                      height: 3,
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryColor,
+                        borderRadius: BorderRadius.circular(3),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primaryColor
+                                .withValues(alpha: 0.4),
+                            blurRadius: 6,
+                            offset: const Offset(0, 2),
                           ),
-                        ),
+                        ],
                       ),
                     ),
                   ),
-                );
-              }),
-              SizedBox(width: SizeConfig.size6),
+                ],
+              );
+            },
+          );
+        }),
+      ),
+    );
+  }
+
+  // ─────────────────────────────────────────────
+  // TAB CONTENT
+  // ─────────────────────────────────────────────
+  List<Widget> _buildTabContent() {
+    switch (_selectedTab) {
+      case _orderIndex:
+        return _buildOrderTab();
+      case _overviewIndex:
+        return _buildOverviewTab();
+      case _postIndex:
+        return _buildPostTab();
+      case _staticsIndex:
+        return _buildStaticsTab();
+      default:
+        return const [SizedBox.shrink()];
+    }
+  }
+
+  // Order / Document tab — single source of truth: verification
+  // status. When approved we show the delivery-partner orders list;
+  // otherwise [RiderProfileStatusScreen] handles every other state
+  // (loading, pending review, rejected, etc.) on its own surface.
+  //
+  // [DeliveryPartnerOrders] is Scaffold-rooted with Column +
+  // Expanded inside, so it needs a bounded height when embedded in
+  // our CustomScrollView/Column layout. We carve out the visible
+  // tab body height for that branch so it can lay out correctly.
+  List<Widget> _buildOrderTab() {
+    final mq = MediaQuery.of(context);
+    final tabBodyHeight = mq.size.height -
+        mq.padding.top -
+        56 - // top bar toolbar
+        68 - // tabs card (48) + its vertical padding (20)
+        10 - // tab content top padding
+        kBottomNavigationBarHeight -
+        30; // breathing room above the bottom nav
+    final ordersHeight = tabBodyHeight.clamp(420.0, double.infinity);
+    return [
+      Obx(() {
+        final approved = controller
+                .riderOnboardingStatusData.value?.verificationStatus ==
+            "approved";
+        if (approved) {
+          return SizedBox(
+            height: ordersHeight,
+            child: DeliveryPartnerOrders(),
+          );
+        }
+        return RiderProfileStatusScreen();
+      }),
+    ];
+  }
+
+  // Post tab — embeds FeedScreen filtered to the user's posts.
+  // Mirrors self-employee v2 so creators see the same CTA + feed
+  // treatment across me-section dashboards.
+  List<Widget> _buildPostTab() {
+    if (!Get.isRegistered<FeedController>()) {
+      Get.put(FeedController());
+    }
+    return [
+      FeedScreen(
+        key: const ValueKey('rider_service_my_posts'),
+        postFilterType: PostType.myPosts,
+        id: userId,
+        isInParentScroll: true,
+        horizontalPaddingChannel: SizeConfig.size12,
+      ),
+    ];
+  }
+
+  // Statics tab — chat-click analytics, same component grocery /
+  // medical / self-employee dashboards use. Riders don't have a
+  // separate businessId so the analytics key is the user id.
+  List<Widget> _buildStaticsTab() {
+    return [
+      MedicalStatisticsScreen(businessId: userId),
+    ];
+  }
+
+  // ─────────────────────────────────────────────
+  // OVERVIEW TAB — refined editorial identity dossier (mirrors
+  // self_employee / social_main):
+  //   1. Identity card (cover + avatar + identity block).
+  //   2. Stats card with hero-typed numerals.
+  //   3. Action row with Share + Personal Cards pills.
+  //   4. Contact + map card (bio / website / phone / address / map).
+  //   5. QR card with the profile deep link.
+  //   6. Share banner.
+  // ─────────────────────────────────────────────
+  List<Widget> _buildOverviewTab() {
+    return [
+      _buildIdentityCard(context),
+      SizedBox(height: SizeConfig.size12),
+      _buildStatsCard(),
+      SizedBox(height: SizeConfig.size12),
+      _buildActionRow(),
+      SizedBox(height: SizeConfig.size12),
+      _buildContactMapCard(),
+      SizedBox(height: SizeConfig.size12),
+      _buildQrCard(),
+      SizedBox(height: SizeConfig.size12),
+      _buildShareBanner(),
+      SizedBox(height: SizeConfig.size16),
+    ];
+  }
+
+  // ─── IDENTITY CARD ──────────────────────────────────────────────
+  Widget _buildIdentityCard(BuildContext context) {
+    const bannerHeight = 200.0;
+    const avatarSize = 88.0;
+    const avatarOverlap = avatarSize / 2;
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 14),
+      child: CustomFormCard(
+        padding: EdgeInsets.zero,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFFEDEFF4), width: 1),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(10),
+          child: Column(
+            children: [
+              SizedBox(
+                height: bannerHeight + avatarOverlap,
+                width: double.infinity,
+                child: Stack(
+                  children: [
+                    Positioned(
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      height: bannerHeight,
+                      child: Stack(
+                        children: [
+                          Positioned.fill(child: _bannerImage()),
+                          Positioned.fill(
+                            child: DecoratedBox(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topRight,
+                                  end: Alignment.bottomLeft,
+                                  colors: [
+                                    Colors.black.withValues(alpha: 0.18),
+                                    Colors.transparent,
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          Positioned(
+                            top: 12,
+                            right: 12,
+                            child: _glassActionPill(
+                              icon: Icons.camera_alt_rounded,
+                              label: 'Edit cover',
+                              onTap: () => _onCoverImageEdit(context),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Positioned(
+                      left: 20,
+                      right: 20,
+                      bottom: 0,
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          _avatarFrame(avatarSize),
+                          SizedBox(width: SizeConfig.size12),
+                          Padding(
+                            padding:
+                                EdgeInsets.only(bottom: avatarOverlap - 4),
+                            child: _memberSincePill(),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              _buildIdentityBlock(),
             ],
           ),
         ),
@@ -853,10 +781,942 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
     );
   }
 
+  Widget _bannerImage() {
+    return Obx(() {
+      final banner = _personalCtrl.coverImagePath?.value ?? '';
+      if (banner.isNotEmpty) {
+        return Image.network(banner, fit: BoxFit.cover);
+      }
+      final fallback = _personalCtrl.imagePath?.value ?? '';
+      if (fallback.isNotEmpty) {
+        return CachedNetworkImage(
+          imageUrl: fallback,
+          fit: BoxFit.cover,
+          placeholder: (_, __) => _coverFallback(),
+          errorWidget: (_, __, ___) => _coverFallback(),
+        );
+      }
+      return _coverFallback();
+    });
+  }
+
+  Widget _coverFallback() => Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              AppColors.primaryColor.withValues(alpha: 0.18),
+              AppColors.primaryColor.withValues(alpha: 0.05),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+      );
+
+  Widget _buildIdentityBlock() {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        20,
+        SizeConfig.size8,
+        20,
+        SizeConfig.size20,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Obx(() {
+            final user = _viewCtrl.personalProfileDetails.value.user;
+            final name = _capitalizeFirst(user?.name ?? '');
+            final username = user?.username ?? '';
+            final designation = user?.designation ?? '';
+            final location = _extractCityState(user?.address ?? '');
+            final email = user?.email ?? '';
+
+            final hasDesignation = designation.trim().isNotEmpty;
+            final hasName = name.isNotEmpty;
+            final hasUsername = username.isNotEmpty;
+            final hasLocation = location.isNotEmpty;
+            final hasEmail = email.isNotEmpty;
+            final hasContact = hasLocation || hasEmail;
+            final hasAnyIdentity =
+                hasDesignation || hasName || hasUsername || hasContact;
+
+            final children = <Widget>[];
+
+            if (hasDesignation) {
+              children.add(_designationEyebrow(designation));
+            }
+
+            if (hasName) {
+              if (children.isNotEmpty) {
+                children.add(SizedBox(height: SizeConfig.size6));
+              }
+              children.add(_nameRow(name));
+            } else if (hasAnyIdentity) {
+              if (children.isNotEmpty) {
+                children.add(SizedBox(height: SizeConfig.size8));
+              }
+              children.add(
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: _editChip(
+                    onTap: () => EditProfileBottomSheet.show(Get.context!),
+                    label: 'Edit',
+                    icon: Icons.edit_outlined,
+                  ),
+                ),
+              );
+            }
+
+            if (hasUsername) {
+              children.add(const SizedBox(height: 4));
+              children.add(_usernameText(username));
+            }
+
+            if (hasContact) {
+              children.add(SizedBox(height: SizeConfig.size12));
+              children.add(Container(
+                height: 1,
+                color: const Color(0xFFEDEFF4),
+              ));
+              children.add(SizedBox(height: SizeConfig.size12));
+              if (hasLocation) {
+                children
+                    .add(_infoRow(Icons.location_on_rounded, location));
+                if (hasEmail) {
+                  children.add(SizedBox(height: SizeConfig.size8));
+                }
+              }
+              if (hasEmail) {
+                children.add(_infoRow(Icons.alternate_email_rounded, email));
+              }
+            }
+
+            if (children.isEmpty) {
+              return _completeProfileCta();
+            }
+
+            return Padding(
+              padding: EdgeInsets.only(top: SizeConfig.size12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: children,
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  Widget _avatarFrame(double size) {
+    return SizedBox(
+      width: size,
+      height: size,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white, width: 4),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.10),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Obx(() {
+                return CommonProfileImage(
+                  imagePath: _personalCtrl.imagePath?.value ?? '',
+                  onImageUpdate: (image) async {
+                    _personalCtrl.imagePath?.value = image;
+                    dynamic dataImage =
+                        await multiPartImage(imagePath: image);
+                    var reqProfile = {ApiKeys.profile_image: dataImage};
+                    await _personalCtrl.updateUserProfileDetails(
+                        params: reqProfile, isFromProfileOnly: true);
+                  },
+                  dialogTitle: AppStrings.uploadProfilePicture,
+                  showProfileBorder: false,
+                );
+              }),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _memberSincePill() {
+    return Obx(() {
+      final createdAt =
+          _viewCtrl.personalProfileDetails.value.user?.createdAt ?? '';
+      if (createdAt.isEmpty) return const SizedBox.shrink();
+      final since = _formatJoinedDate(createdAt);
+      if (since.isEmpty) return const SizedBox.shrink();
+      return Container(
+        padding: EdgeInsets.symmetric(
+          horizontal: SizeConfig.size10,
+          vertical: SizeConfig.size4,
+        ),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.95),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: const Color(0xFFE4D2A6),
+            width: 0.6,
+          ),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x14001120),
+              blurRadius: 8,
+              offset: Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.workspace_premium_rounded,
+              size: 12,
+              color: const Color(0xFFB7781F),
+            ),
+            const SizedBox(width: 4),
+            Text(
+              'Member · $since',
+              style: TextStyle(
+                fontFamily: AppConstants.OpenSans,
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+                color: const Color(0xFF6B3A00),
+                letterSpacing: 0.3,
+              ),
+            ),
+          ],
+        ),
+      );
+    });
+  }
+
+  Widget _designationEyebrow(String designation) {
+    return InkWell(
+      onTap: () => showProfileDesignationSheet(Get.context!),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 16,
+            height: 1.5,
+            color: AppColors.primaryColor,
+          ),
+          SizedBox(width: SizeConfig.size8),
+          Flexible(
+            child: Text(
+              designation.toUpperCase(),
+              style: TextStyle(
+                fontFamily: AppConstants.OpenSans,
+                fontSize: 11,
+                fontWeight: FontWeight.w800,
+                color: AppColors.primaryColor,
+                letterSpacing: 1.4,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _nameRow(String name) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Expanded(
+          child: Text(
+            name,
+            style: TextStyle(
+              fontFamily: AppConstants.OpenSans,
+              fontSize: 26,
+              fontWeight: FontWeight.w800,
+              color: AppColors.mainTextColor,
+              height: 1.1,
+              letterSpacing: -0.4,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        SizedBox(width: SizeConfig.size8),
+        _editChip(
+          onTap: () => EditProfileBottomSheet.show(Get.context!),
+          label: 'Edit',
+          icon: Icons.edit_outlined,
+        ),
+      ],
+    );
+  }
+
+  Widget _usernameText(String username) {
+    return Text(
+      '@$username',
+      style: TextStyle(
+        fontSize: 13,
+        fontWeight: FontWeight.w500,
+        color: AppColors.secondaryTextColor,
+        letterSpacing: 0.1,
+      ),
+    );
+  }
+
+  Widget _completeProfileCta() {
+    return Padding(
+      padding: EdgeInsets.only(top: SizeConfig.size12),
+      child: InkWell(
+        onTap: () => EditProfileBottomSheet.show(Get.context!),
+        borderRadius: BorderRadius.circular(14),
+        child: Container(
+          width: double.infinity,
+          padding: EdgeInsets.symmetric(
+            horizontal: SizeConfig.size14,
+            vertical: SizeConfig.size12,
+          ),
+          decoration: BoxDecoration(
+            color: AppColors.primaryColor.withValues(alpha: 0.06),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: AppColors.primaryColor.withValues(alpha: 0.25),
+              width: 0.8,
+            ),
+          ),
+          child: Row(
+            children: [
+              Icon(Icons.account_circle_outlined,
+                  size: 20, color: AppColors.primaryColor),
+              SizedBox(width: SizeConfig.size10),
+              Expanded(
+                child: Text(
+                  'Complete your profile',
+                  style: TextStyle(
+                    fontFamily: AppConstants.OpenSans,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.primaryColor,
+                  ),
+                ),
+              ),
+              Icon(Icons.arrow_forward_rounded,
+                  size: 16, color: AppColors.primaryColor),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _editChip({
+    required VoidCallback onTap,
+    required String label,
+    required IconData icon,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          color: AppColors.primaryColor.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: AppColors.primaryColor.withValues(alpha: 0.25),
+            width: 0.6,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 12, color: AppColors.primaryColor),
+            const SizedBox(width: 4),
+            Text(
+              label,
+              style: TextStyle(
+                fontFamily: AppConstants.OpenSans,
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                color: AppColors.primaryColor,
+                letterSpacing: 0.2,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _infoRow(IconData icon, String text) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 28,
+          height: 28,
+          decoration: BoxDecoration(
+            color: AppColors.primaryColor.withValues(alpha: 0.08),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, size: 15, color: AppColors.primaryColor),
+        ),
+        SizedBox(width: SizeConfig.size10),
+        Flexible(
+          child: Text(
+            text,
+            style: TextStyle(
+              fontSize: 13.5,
+              fontWeight: FontWeight.w500,
+              color: AppColors.mainTextColor,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _glassActionPill({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(100),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+          child: Container(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.40),
+              borderRadius: BorderRadius.circular(100),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.30),
+                width: 0.6,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, color: Colors.white, size: 14),
+                const SizedBox(width: 6),
+                Text(
+                  label,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                    letterSpacing: 0.3,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ─── STATS CARD ────────────────────────────────────────────────
+  Widget _buildStatsCard() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 14),
+      child: CustomFormCard(
+        padding: EdgeInsets.symmetric(
+          horizontal: SizeConfig.size16,
+          vertical: SizeConfig.size16,
+        ),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFFEDEFF4), width: 1),
+        child: Obx(() {
+          final followers = _viewCtrl.followersCount.value;
+          final following = _viewCtrl.followingCount.value;
+          final posts = _viewCtrl.postsCount.value;
+          return Row(
+            children: [
+              Expanded(child: _statTile(label: 'Posts', value: '$posts')),
+              _statSeam(),
+              Expanded(
+                child: _statTile(
+                  label: 'Followers',
+                  value: _formatCount(followers),
+                  onTap: () => Get.to(() => FollowersFollowingPage(
+                      tabIndex: 1, userID: userId)),
+                ),
+              ),
+              _statSeam(),
+              Expanded(
+                child: _statTile(
+                  label: 'Following',
+                  value: _formatCount(following),
+                  onTap: () => Get.to(() => FollowersFollowingPage(
+                      tabIndex: 0, userID: userId)),
+                ),
+              ),
+            ],
+          );
+        }),
+      ),
+    );
+  }
+
+  Widget _statTile({
+    required String label,
+    required String value,
+    VoidCallback? onTap,
+  }) {
+    final tile = Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          value,
+          style: TextStyle(
+            fontFamily: AppConstants.OpenSans,
+            fontSize: 22,
+            fontWeight: FontWeight.w800,
+            color: AppColors.mainTextColor,
+            letterSpacing: -0.4,
+            height: 1.0,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          label.toUpperCase(),
+          style: TextStyle(
+            fontFamily: AppConstants.OpenSans,
+            fontSize: 10,
+            fontWeight: FontWeight.w700,
+            color: AppColors.secondaryTextColor,
+            letterSpacing: 1.2,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          width: 18,
+          height: 2,
+          decoration: BoxDecoration(
+            color: AppColors.primaryColor,
+            borderRadius: BorderRadius.circular(2),
+          ),
+        ),
+      ],
+    );
+    if (onTap == null) return tile;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: tile,
+      ),
+    );
+  }
+
+  Widget _statSeam() {
+    return Container(
+      height: 36,
+      width: 1,
+      color: const Color(0xFFEDEFF4),
+    );
+  }
+
+  // ─── ACTION ROW ────────────────────────────────────────────────
+  Widget _buildActionRow() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 14),
+      child: Row(
+        children: [
+          Expanded(
+            child: _actionPill(
+              icon: Icons.share_outlined,
+              label: 'Share Profile',
+              filled: false,
+              onTap: _onShareProfile,
+            ),
+          ),
+          SizedBox(width: SizeConfig.size10),
+          Expanded(
+            child: _actionPill(
+              icon: Icons.contact_page_outlined,
+              label: 'Personal Cards',
+              filled: true,
+              onTap: () => Get.to(() => AllPersonalVisitingCards(
+                    personalDetails: _viewCtrl.personalProfileDetails.value,
+                  )),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _actionPill({
+    required IconData icon,
+    required String label,
+    required bool filled,
+    required VoidCallback onTap,
+  }) {
+    final fg = filled ? Colors.white : AppColors.primaryColor;
+    final bg = filled ? AppColors.primaryColor : Colors.white;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
+        decoration: BoxDecoration(
+          color: bg,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color:
+                AppColors.primaryColor.withValues(alpha: filled ? 1 : 0.30),
+            width: filled ? 0 : 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: filled
+                  ? AppColors.primaryColor.withValues(alpha: 0.30)
+                  : const Color(0x14001120),
+              blurRadius: filled ? 14 : 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 16, color: fg),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: TextStyle(
+                fontFamily: AppConstants.OpenSans,
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: fg,
+                letterSpacing: 0.2,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _onShareProfile() async {
+    final link = profileDeepLink(
+      userId: userId,
+      accountType: AppConstants.individual,
+    );
+    final userName = _viewCtrl.personalProfileDetails.value.user?.name ?? '';
+    await SharePlus.instance.share(
+      ShareParams(
+        text: 'See my profile on BlueEra:\n$link\n',
+        subject: userName,
+      ),
+    );
+  }
+
+  // ─── CONTACT + MAP CARD (Overview tab) ─────────────────────────
+  // Surfaces fields the identity block doesn't already render — bio,
+  // website, phone, full address, plus the user's mapped location.
+  // The whole card collapses when none of those are set.
+  Widget _buildContactMapCard() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 14),
+      child: Obx(() {
+        final user = _viewCtrl.personalProfileDetails.value.user;
+        final bio = user?.bio ?? '';
+        final website = _viewCtrl.website.value;
+        final phone = user?.contactNo ?? '';
+        final address = user?.address ?? '';
+        final lat = user?.userLocation?.lat ?? 0.0;
+        final lon = user?.userLocation?.lon ?? 0.0;
+        final name = _capitalizeFirst(user?.name ?? '');
+
+        final hasBio = bio.trim().isNotEmpty;
+        final hasWebsite = website.trim().isNotEmpty;
+        final hasPhone = phone.trim().isNotEmpty;
+        final hasAddress = address.trim().isNotEmpty;
+        final hasMap = lat != 0.0 && lon != 0.0;
+
+        if (!hasBio && !hasWebsite && !hasPhone && !hasAddress && !hasMap) {
+          return const SizedBox.shrink();
+        }
+
+        return CustomFormCard(
+          padding: EdgeInsets.all(SizeConfig.size10),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: const Color(0xFFEDEFF4), width: 1),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: CustomText(
+                      AppStrings.contactUs.tr,
+                      fontSize: SizeConfig.large,
+                      color: AppColors.mainTextColor,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  InkWell(
+                    onTap: () => EditProfileBottomSheet.show(Get.context!),
+                    child: LocalAssets(
+                      height: 16,
+                      imagePath: AppIconAssets.pen_line,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              if (hasBio || hasWebsite || hasPhone || hasAddress)
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: AppColors.white,
+                    border: Border.all(color: AppColors.greyE5),
+                    borderRadius: BorderRadius.circular(10),
+                    boxShadow: [AppShadows.textFieldShadow],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (hasBio)
+                        ExpandableText(
+                          text: bio,
+                          trimLines: 3,
+                          isReadMoreNewLine: false,
+                          expandMode: ExpandMode.dialog,
+                          style: TextStyle(
+                            color: AppColors.secondaryTextColor,
+                            fontSize: SizeConfig.medium,
+                            fontWeight: FontWeight.w400,
+                            fontFamily: AppConstants.OpenSans,
+                          ),
+                        ),
+                      if (hasBio &&
+                          (hasWebsite || hasPhone || hasAddress))
+                        const Divider(color: AppColors.greyE5, height: 30),
+                      if (hasWebsite)
+                        _contactItem(
+                          AppIconAssets.website_click,
+                          website,
+                          AppColors.primaryColor,
+                        ),
+                      if (hasPhone)
+                        _contactItem(
+                          AppIconAssets.phone_outline,
+                          phone,
+                          AppColors.secondaryTextColor,
+                        ),
+                      if (hasAddress)
+                        _contactItem(
+                          AppIconAssets.location_new,
+                          address,
+                          AppColors.secondaryTextColor,
+                        ),
+                    ],
+                  ),
+                ),
+              if (hasMap) ...[
+                if (hasBio || hasWebsite || hasPhone || hasAddress)
+                  const SizedBox(height: 10),
+                BusinessLocationMapWidget(
+                  latitude: lat,
+                  longitude: lon,
+                  businessName: name,
+                ),
+              ],
+            ],
+          ),
+        );
+      }),
+    );
+  }
+
+  Widget _contactItem(String icon, String label, Color iconColor) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12.0),
+      child: Row(
+        children: [
+          LocalAssets(imagePath: icon, imgColor: iconColor),
+          const SizedBox(width: 12),
+          Expanded(
+            child: CustomText(label,
+                fontSize: 15, color: AppColors.mainTextColor),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ─── QR CODE CARD (Overview tab) ──────────────────────────────
+  Widget _buildQrCard() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 14),
+      child: CustomFormCard(
+        padding: EdgeInsets.symmetric(
+            horizontal: SizeConfig.size16, vertical: SizeConfig.size16),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFFEDEFF4), width: 1),
+        child: Obx(() {
+          final user = _viewCtrl.personalProfileDetails.value.user;
+          final name = _capitalizeFirst(user?.name ?? 'Profile');
+          final designation = user?.designation ?? '';
+          final link = profileDeepLink(
+            userId: userId,
+            accountType: AppConstants.individual,
+          );
+
+          return Column(
+            children: [
+              Text(
+                'SCAN TO VIEW PROFILE',
+                style: TextStyle(
+                  fontFamily: AppConstants.OpenSans,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.secondaryTextColor,
+                  letterSpacing: 1.4,
+                ),
+              ),
+              SizedBox(height: SizeConfig.size12),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: AppColors.primaryColor.withValues(alpha: 0.18),
+                    width: 1,
+                  ),
+                ),
+                child: QrImageView(
+                  data: link,
+                  version: QrVersions.auto,
+                  size: 160,
+                  backgroundColor: Colors.white,
+                  eyeStyle: QrEyeStyle(
+                    eyeShape: QrEyeShape.square,
+                    color: AppColors.primaryColor,
+                  ),
+                  dataModuleStyle: QrDataModuleStyle(
+                    dataModuleShape: QrDataModuleShape.square,
+                    color: AppColors.mainTextColor,
+                  ),
+                ),
+              ),
+              SizedBox(height: SizeConfig.size12),
+              Text(
+                name,
+                style: TextStyle(
+                  fontFamily: AppConstants.OpenSans,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.mainTextColor,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              if (designation.trim().isNotEmpty) ...[
+                const SizedBox(height: 2),
+                Text(
+                  designation,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.secondaryTextColor,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+              SizedBox(height: SizeConfig.size12),
+              GestureDetector(
+                onTap: _onShareProfile,
+                child: Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: SizeConfig.size12,
+                    vertical: SizeConfig.size6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryColor.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: AppColors.primaryColor.withValues(alpha: 0.25),
+                      width: 0.6,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.share_outlined,
+                          size: 14, color: AppColors.primaryColor),
+                      SizedBox(width: SizeConfig.size6),
+                      Text(
+                        'Share QR',
+                        style: TextStyle(
+                          fontFamily: AppConstants.OpenSans,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.primaryColor,
+                          letterSpacing: 0.2,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          );
+        }),
+      ),
+    );
+  }
+
+  // ─── SHARE BANNER (Overview tab) ──────────────────────────────
+  Widget _buildShareBanner() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 14),
+      child: Obx(() {
+        final user = _viewCtrl.personalProfileDetails.value.user;
+        final name = _capitalizeFirst(user?.name ?? '');
+        final photo =
+            (_personalCtrl.imagePath?.value.trim().isNotEmpty ?? false)
+                ? _personalCtrl.imagePath?.value
+                : user?.profileImage;
+        final designation = user?.designation ?? '';
+        return BusinessShareBanner(
+          overrideName: name,
+          overridePhoto: photo,
+          overrideSubCategory: designation,
+          accountType: AppConstants.individual,
+        );
+      }),
+    );
+  }
+
   // ============================================================
   // COVER IMAGE EDIT
   // ============================================================
-
   Future<void> _onCoverImageEdit(BuildContext context) async {
     final String? newPath = await SelectProfilePictureDialog.showLogoDialog(
       context,
@@ -869,107 +1729,40 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
     await _personalCtrl.updateUserProfileDetails(
         params: reqProfile, isFromProfileOnly: true);
   }
-}
 
-class _EarnActionPill extends StatelessWidget {
-  final VoidCallback onTap;
-
-  const _EarnActionPill({required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return _GlassPill(
-      onTap: onTap,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      dark: true,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          LocalAssets(
-            imagePath: AppIconAssets.earnWithBEIcon,
-            imgColor: Colors.white,
-            width: 16,
-            height: 16,
-          ),
-          const SizedBox(width: 4),
-          const Text(
-            'Earn',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
-    );
+  // ============================================================
+  // TEXT HELPERS
+  // ============================================================
+  String _capitalizeFirst(String text) {
+    if (text.isEmpty) return '';
+    return text[0].toUpperCase() + text.substring(1).toLowerCase();
   }
-}
 
-class _GlassPill extends StatelessWidget {
-  final Widget child;
-  final VoidCallback onTap;
-  final EdgeInsets padding;
-  final BoxShape shape;
-  final bool dark;
-
-  const _GlassPill({
-    required this.child,
-    required this.onTap,
-    required this.padding,
-    this.shape = BoxShape.rectangle,
-    this.dark = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final borderRadius =
-        shape == BoxShape.circle ? null : BorderRadius.circular(100);
-    final fill = dark
-        ? Colors.black.withValues(alpha: 0.35)
-        : Colors.white.withValues(alpha: 0.35);
-    final border = dark
-        ? Colors.white.withValues(alpha: 0.18)
-        : Colors.white.withValues(alpha: 0.5);
-    return GestureDetector(
-      onTap: onTap,
-      child: ClipPath(
-        clipper: _GlassClipper(shape: shape, borderRadius: borderRadius),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-          child: Container(
-            padding: padding,
-            decoration: BoxDecoration(
-              color: fill,
-              borderRadius: borderRadius,
-              shape: shape,
-              border: Border.all(color: border, width: 0.6),
-            ),
-            child: child,
-          ),
-        ),
-      ),
-    );
+  String _formatCount(int count) {
+    if (count >= 1000000) return '${(count / 1000000).toStringAsFixed(1)}M';
+    if (count >= 1000) return '${(count / 1000).toStringAsFixed(1)}k';
+    return '$count';
   }
-}
 
-class _GlassClipper extends CustomClipper<Path> {
-  final BoxShape shape;
-  final BorderRadius? borderRadius;
-
-  _GlassClipper({required this.shape, this.borderRadius});
-
-  @override
-  Path getClip(Size size) {
-    final rect = Offset.zero & size;
-    if (shape == BoxShape.circle) {
-      return Path()..addOval(rect);
+  String _extractCityState(String address) {
+    if (address.isEmpty) return '';
+    final parts = address.split(',').map((e) => e.trim()).toList();
+    if (parts.length >= 3) {
+      final statePart =
+          parts[parts.length - 2].replaceAll(RegExp(r'\d{5,6}'), '').trim();
+      final city = parts[parts.length - 3].trim();
+      if (city.isNotEmpty && statePart.isNotEmpty) return '$city, $statePart';
+      return city.isNotEmpty ? city : statePart;
     }
-    return Path()
-      ..addRRect((borderRadius ?? BorderRadius.circular(100)).toRRect(rect));
+    return address;
   }
 
-  @override
-  bool shouldReclip(covariant _GlassClipper oldClipper) =>
-      oldClipper.shape != shape || oldClipper.borderRadius != borderRadius;
+  String _formatJoinedDate(String dateStr) {
+    try {
+      final date = DateTime.parse(dateStr);
+      return DateFormat('MMMM yyyy').format(date);
+    } catch (_) {
+      return '';
+    }
+  }
 }

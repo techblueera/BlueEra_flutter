@@ -34,7 +34,12 @@ class RiderOnboardingStatusData {
     this.panNo,
     this.rcNo,
     this.vehicleNo,
-    this.dlNo,});
+    this.dlNo,
+    this.aadharImage,
+    this.panImage,
+    this.dlImage,
+    this.rcImage,
+  });
 
   RiderOnboardingStatusData.fromJson(dynamic json) {
     personalInformation = json['personalInformation'];
@@ -54,6 +59,31 @@ class RiderOnboardingStatusData {
     rcNo = json['rcNo'];
     dlNo = json['dlNo'];
     vehicleNo = json['vehicleInformationData']?['registrationNo'] ?? '';
+    // Document image URLs — the rider screen renders a thumbnail +
+    // pinch-zoom view dialog when these are present. The keys here
+    // accept either a flat top-level field (e.g. `aadharImage`) or
+    // the nested `{front, back}` shape the upload payload uses; the
+    // front image is preferred when both are available.
+    aadharImage = (json['aadharImageFront'] as String?) ??
+        (json['aadharImages'] is Map
+            ? (json['aadharImages']['front'] as String?)
+            : null) ??
+        (json['aadharImage'] as String?);
+    panImage = (json['panImageFront'] as String?) ??
+        (json['panImages'] is Map
+            ? (json['panImages']['front'] as String?)
+            : null) ??
+        (json['panImage'] as String?);
+    dlImage = (json['dlImageFront'] as String?) ??
+        (json['dlImages'] is Map
+            ? (json['dlImages']['front'] as String?)
+            : null) ??
+        (json['dlImage'] as String?);
+    rcImage = (json['rcImageFront'] as String?) ??
+        (json['rcImages'] is Map
+            ? (json['rcImages']['front'] as String?)
+            : null) ??
+        (json['rcImage'] as String?);
   }
   bool? personalInformation;
   bool? address;
@@ -72,6 +102,14 @@ class RiderOnboardingStatusData {
   String? rcNo;
   String? dlNo;
   String? vehicleNo;
+  // Front-side image URLs for the four ID documents that have a
+  // single-image preview slot. Vehicle Information (just text) and
+  // Vehicle Images (multiple images, separate flow) deliberately
+  // don't get a single-URL field here.
+  String? aadharImage;
+  String? panImage;
+  String? dlImage;
+  String? rcImage;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
@@ -91,6 +129,10 @@ class RiderOnboardingStatusData {
     map['panNo'] = panNo;
     map['rcNo'] = rcNo;
     map['dlNo'] = dlNo;
+    map['aadharImage'] = aadharImage;
+    map['panImage'] = panImage;
+    map['dlImage'] = dlImage;
+    map['rcImage'] = rcImage;
     return map;
   }
 

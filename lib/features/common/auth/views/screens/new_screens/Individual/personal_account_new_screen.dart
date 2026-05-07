@@ -331,7 +331,7 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                       regularExpression: RegularExpressionUtils.emailPattern,
                       title: AppStrings.email,
                       hintText: AppStrings.emailHint,
-                      isValidate: true,
+                      isValidate: false,
                       validationType: ValidationTypeEnum.email,
                       autoFillType: AutoFillType.email,
                     ),
@@ -407,8 +407,7 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                     //   height: SizeConfig.size20,
                     // ),
 
-                    if ((_selectedProfileTypeTagId == SELF_EMPLOYED ||
-                        _selectedProfileTypeTagId == GIG_WORKER)) ...[
+                    if (_selectedProfileTypeTagId == SELF_EMPLOYED) ...[
                       SizedBox(
                         height: SizeConfig.paddingL,
                       ),
@@ -1218,17 +1217,12 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
           ApiKeys.profileType: _selectedProfileTypeTagId,
           ApiKeys.profession: _selectedProfessionTagId,
           ApiKeys.designation: designation,
-          if (_selectedProfessionTagId == PRIVATE_JOB)
-            ApiKeys.sector: _sectorTextController.text.trim(),
-          if (_selectedProfileTypeTagId == SELF_EMPLOYED ||
-              _selectedProfileTypeTagId == GIG_WORKER)
-            ApiKeys.specilization: specializationController.text.trim(),
+          if (_selectedProfessionTagId == PRIVATE_JOB) ApiKeys.sector: _sectorTextController.text.trim(),
+          if (_selectedProfileTypeTagId == SELF_EMPLOYED) ApiKeys.specilization: specializationController.text.trim(),
           // if (_selectedProfessionTagId == SKILLED_WORKER)
           //   ApiKeys.specilization: _skillWorkerSpecificationTextController.text,
-          if (_selectedProfessionTagId == CONTENT_CREATOR)
-            ApiKeys.specilization: _selectedContentCreatorField?.name,
-          if (_selectedProfessionTagId == GOVERNMENT_JOB)
-            ApiKeys.department: _governmentNameController.text.trim(),
+          if (_selectedProfessionTagId == CONTENT_CREATOR) ApiKeys.specilization: _selectedContentCreatorField?.name,
+          if (_selectedProfessionTagId == GOVERNMENT_JOB)  ApiKeys.department: _governmentNameController.text.trim(),
 
           ///USER NAME
           if ((_selectedProfessionTagId == CONTENT_CREATOR) ||

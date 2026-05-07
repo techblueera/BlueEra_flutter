@@ -51,27 +51,27 @@ class CommonMultipleImageUploadSection extends StatelessWidget {
               ),
             ),
 
-          // Row(
-          //   children: [
-          //     Expanded(
-          //       child: CustomText(
-          //         title,
-          //         fontSize: SizeConfig.medium,
-          //         color: AppColors.mainTextColor,
-          //       ),
-          //     ),
-          //     if (minImages != null)
-          //       Padding(
-          //         padding: EdgeInsets.only(left: SizeConfig.size8),
-          //         child: CustomText(
-          //             "${AppStrings.min.tr} $minImages ${AppStrings.images.tr}",
-          //             // "Min-$minImages Images/Max-${maxImages}Images",
-          //             fontSize: SizeConfig.medium,
-          //             color: AppColors.mainTextColor,
-          //             fontWeight: FontWeight.w400),
-          //       ),
-          //   ],
-          // ),
+          Row(
+            children: [
+              Expanded(
+                child: CustomText(
+                  title,
+                  fontSize: SizeConfig.medium,
+                  color: AppColors.mainTextColor,
+                ),
+              ),
+              if (minImages != null)
+                Padding(
+                  padding: EdgeInsets.only(left: SizeConfig.size8),
+                  child: CustomText(
+                      "${AppStrings.min.tr} $minImages ${AppStrings.images.tr}",
+                      // "Min-$minImages Images/Max-${maxImages}Images",
+                      fontSize: SizeConfig.medium,
+                      color: AppColors.mainTextColor,
+                      fontWeight: FontWeight.w400),
+                ),
+            ],
+          ),
 
           const SizedBox(height: 10),
           LayoutBuilder(

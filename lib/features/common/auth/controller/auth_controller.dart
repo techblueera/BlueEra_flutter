@@ -355,10 +355,7 @@ class AuthController extends GetxController {
           }
 
           Get.offAllNamed(RouteHelper.getBottomNavigationBarScreenRoute(),
-
-
             arguments: {ApiKeys.initialIndex: 1},
-
           );
           Get.toNamed(
             RouteHelper.getAddBioViaAiScreenRoute(),
