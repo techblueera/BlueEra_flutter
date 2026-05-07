@@ -587,7 +587,7 @@ Widget  ChatListTile({
                         ),
                         errorWidget: (_, __, ___) => Center(
                           child: CustomText(
-                            senderName?.substring(0, 1) ?? '',
+                            (senderName?.isNotEmpty ?? false) ? senderName!.substring(0, 1).toUpperCase() : '',
                             color: Colors.white,
                             fontWeight: FontWeight.w800,
                             fontSize: SizeConfig.size18,
@@ -605,7 +605,7 @@ Widget  ChatListTile({
                     )
                         : Center(
                       child: CustomText(
-                        senderName?.substring(0, 1) ?? '',
+                        (senderName?.isNotEmpty ?? false) ? senderName!.substring(0, 1).toUpperCase() : '',
                           color: Colors.white,
                           fontWeight: FontWeight.w800,
                           fontSize: SizeConfig.size18,

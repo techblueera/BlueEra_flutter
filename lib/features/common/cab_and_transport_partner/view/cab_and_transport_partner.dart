@@ -16,6 +16,7 @@ import 'package:BlueEra/core/services/multipart_image_service.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/business/widgets/business_share_banner.dart';
+import 'package:BlueEra/features/chat/view/orders_chat/orders_chat_list.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import 'package:BlueEra/features/common/cab_and_transport_partner/view/widgets/cab_transport_orders_widget.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
@@ -48,11 +49,14 @@ import 'package:share_plus/share_plus.dart';
 /// Cab & Transport Partner dashboard — mirrors the self-employee v2 layout
 /// so cab/auto/taxi drivers see the same modern shell as riders. Floating
 /// glassmorphic top bar, animated tab strip with sticky overlay, and
-/// four tab bodies:
+/// five tab bodies:
 ///   • Order / Document — single tab whose label flips between
 ///     "Document" (verification pending) and "My Order" (approved).
 ///     Body shows [CabsAndTransportPartnerOrders] when approved,
 ///     otherwise [RiderProfileStatusScreen] handles every other state.
+///   • Chat     — incoming order inquiries via [OrdersTabView] with
+///     `excludeSenderId: userId` so the partner only sees conversations
+///     awaiting a reply.
 ///   • Overview — personal profile (cover + identity + stats + actions)
 ///   • Post     — embedded [FeedScreen] filtered to the user's posts
 ///   • Statics  — chat-click analytics
@@ -78,11 +82,13 @@ class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
 
   // Order/Document share a single tab — its label flips between
   // "Document" (KYC pending) and "My Order" (approved), matching
-  // RiderServiceScreen's pattern.
+  // RiderServiceScreen's pattern. Chat sits adjacent so incoming
+  // order inquiries are one tap away from the orders list.
   static const _orderIndex = 0;
-  static const _overviewIndex = 1;
-  static const _postIndex = 2;
-  static const _staticsIndex = 3;
+  static const _chatIndex = 1;
+  static const _overviewIndex = 2;
+  static const _postIndex = 3;
+  static const _staticsIndex = 4;
 
   @override
   void initState() {
@@ -524,6 +530,7 @@ class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
               "approved";
           final tabs = <String>[
             approved ? AppStrings.myOrder.tr : AppStrings.document.tr,
+            'Chat',
             'Overview',
             'Post',
             'Statics',
@@ -531,7 +538,7 @@ class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
           return LayoutBuilder(
             builder: (context, constraints) {
               final tabWidth = constraints.maxWidth / tabs.length;
-              const indicatorWidth = 28.0;
+              const indicatorWidth = 24.0;
               final indicatorLeft =
                   tabWidth * _selectedTab + (tabWidth - indicatorWidth) / 2;
               return Stack(
@@ -548,7 +555,7 @@ class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
                               duration: const Duration(milliseconds: 220),
                               curve: Curves.easeOutCubic,
                               style: TextStyle(
-                                fontSize: 13,
+                                fontSize: 12,
                                 fontWeight: selected
                                     ? FontWeight.w700
                                     : FontWeight.w500,
@@ -606,6 +613,8 @@ class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
     switch (_selectedTab) {
       case _orderIndex:
         return _buildOrderTab();
+      case _chatIndex:
+        return _buildChatTab();
       case _overviewIndex:
         return _buildOverviewTab();
       case _postIndex:
@@ -617,35 +626,39 @@ class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
     }
   }
 
+  // Chat tab — incoming order inquiries. `excludeSenderId: userId`
+  // hides chats whose latest message was authored by the partner
+  // themselves, so only conversations needing a reply surface here.
+  // `isInParentScroll: true` makes the inner ListView shrink-wrap and
+  // hand its scroll over to our outer CustomScrollView, so no bounded
+  // height is required.
+  List<Widget> _buildChatTab() {
+    return [
+      OrdersTabView(
+        excludeSenderId: userId,
+        isInParentScroll: true,
+      ),
+    ];
+  }
+
   // Order / Document tab — single source of truth: verification
   // status. When approved we show [CabsAndTransportPartnerOrders];
   // otherwise [RiderProfileStatusScreen] handles every other state
   // (loading, KYC steps, pending review, rejected) on its own surface.
   //
-  // [CabsAndTransportPartnerOrders] is Scaffold-rooted with Column +
-  // Expanded inside, so it needs a bounded height when embedded in
-  // our CustomScrollView/Column layout. We carve out the visible
-  // tab body height for that branch so it can lay out correctly.
+  // [CabsAndTransportPartnerOrders] runs in `isInParentScroll: true`
+  // mode so its inner Scaffold/Expanded chrome and the
+  // [PickupOrderScreen] ListViews collapse into shrink-wrap mode —
+  // letting our parent CustomScrollView/Column own the vertical
+  // scroll without needing to carve out a fixed pixel height.
   List<Widget> _buildOrderTab() {
-    final mq = MediaQuery.of(context);
-    final tabBodyHeight = mq.size.height -
-        mq.padding.top -
-        56 - // top bar toolbar
-        68 - // tabs card (48) + its vertical padding (20)
-        10 - // tab content top padding
-        kBottomNavigationBarHeight -
-        30; // breathing room above the bottom nav
-    final ordersHeight = tabBodyHeight.clamp(420.0, double.infinity);
     return [
       Obx(() {
         final approved = deliveryPartnerController
                 .riderOnboardingStatusData.value?.verificationStatus ==
             "approved";
         if (approved) {
-          return SizedBox(
-            height: ordersHeight,
-            child: CabsAndTransportPartnerOrders(),
-          );
+          return CabsAndTransportPartnerOrders(isInParentScroll: true);
         }
         return RiderProfileStatusScreen();
       }),

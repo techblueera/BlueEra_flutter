@@ -16,6 +16,7 @@ import 'package:BlueEra/core/services/multipart_image_service.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/business/widgets/business_share_banner.dart';
+import 'package:BlueEra/features/chat/view/orders_chat/orders_chat_list.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/delivery_partner_orders/delivery_partner_orders.dart';
@@ -44,17 +45,6 @@ import 'package:intl/intl.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 
-/// Rider/Delivery dashboard — mirrors the self-employee v2 layout so the
-/// rider sees the same modern shell across me-section surfaces. Floating
-/// glassmorphic top bar, animated tab strip with a sticky overlay, and
-/// four tab bodies:
-///   • Order / Document — single tab whose label flips between
-///     "Document" (verification pending) and "My Order" (approved).
-///     Body shows [DeliveryPartnerOrders] when approved, otherwise
-///     [RiderProfileStatusScreen] handles every other state.
-///   • Overview — personal profile (cover + identity + stats + actions)
-///   • Post     — embedded [FeedScreen] filtered to the user's posts
-///   • Statics  — chat-click analytics
 class RiderServiceScreen extends StatefulWidget {
   final bool fromBottomNavBar;
 
@@ -74,10 +64,13 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
   int _selectedTab = 0;
   bool _showStickyTabs = false;
 
+  // Chat sits adjacent to Order/Document so incoming inquiries are
+  // one tap away from the orders list.
   static const _orderIndex = 0;
-  static const _overviewIndex = 1;
-  static const _postIndex = 2;
-  static const _staticsIndex = 3;
+  static const _chatIndex = 1;
+  static const _overviewIndex = 2;
+  static const _postIndex = 3;
+  static const _staticsIndex = 4;
 
   @override
   void initState() {
@@ -521,6 +514,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
               "approved";
           final tabs = <String>[
             approved ? AppStrings.myOrder.tr : AppStrings.document.tr,
+            'Chat',
             'Overview',
             'Post',
             'Statics',
@@ -528,7 +522,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
           return LayoutBuilder(
             builder: (context, constraints) {
               final tabWidth = constraints.maxWidth / tabs.length;
-              const indicatorWidth = 28.0;
+              const indicatorWidth = 24.0;
               final indicatorLeft =
                   tabWidth * _selectedTab + (tabWidth - indicatorWidth) / 2;
               return Stack(
@@ -545,7 +539,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
                               duration: const Duration(milliseconds: 220),
                               curve: Curves.easeOutCubic,
                               style: TextStyle(
-                                fontSize: 13,
+                                fontSize: 12,
                                 fontWeight: selected
                                     ? FontWeight.w700
                                     : FontWeight.w500,
@@ -554,7 +548,11 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
                                     ? AppColors.primaryColor
                                     : AppColors.mainTextColor,
                               ),
-                              child: Text(tabs[i]),
+                              child: Text(
+                                tabs[i],
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
                           ),
                         ),
@@ -599,6 +597,8 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
     switch (_selectedTab) {
       case _orderIndex:
         return _buildOrderTab();
+      case _chatIndex:
+        return _buildChatTab();
       case _overviewIndex:
         return _buildOverviewTab();
       case _postIndex:
@@ -610,35 +610,39 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
     }
   }
 
+  // Chat tab — incoming order inquiries. `excludeSenderId: userId`
+  // hides chats whose latest message was authored by the rider
+  // themselves, so only conversations needing a reply surface here.
+  // `isInParentScroll: true` makes the inner ListView shrink-wrap and
+  // hand its scroll over to our outer CustomScrollView, so no bounded
+  // height is required.
+  List<Widget> _buildChatTab() {
+    return [
+      OrdersTabView(
+        excludeSenderId: userId,
+        isInParentScroll: true,
+      ),
+    ];
+  }
+
   // Order / Document tab — single source of truth: verification
   // status. When approved we show the delivery-partner orders list;
   // otherwise [RiderProfileStatusScreen] handles every other state
   // (loading, pending review, rejected, etc.) on its own surface.
   //
-  // [DeliveryPartnerOrders] is Scaffold-rooted with Column +
-  // Expanded inside, so it needs a bounded height when embedded in
-  // our CustomScrollView/Column layout. We carve out the visible
-  // tab body height for that branch so it can lay out correctly.
+  // [DeliveryPartnerOrders] runs in `isInParentScroll: true` mode so
+  // its inner Scaffold/Expanded chrome and the [PickupOrderScreen]
+  // ListViews collapse into shrink-wrap mode — letting our parent
+  // CustomScrollView/Column own the vertical scroll without needing
+  // to carve out a fixed pixel height.
   List<Widget> _buildOrderTab() {
-    final mq = MediaQuery.of(context);
-    final tabBodyHeight = mq.size.height -
-        mq.padding.top -
-        56 - // top bar toolbar
-        68 - // tabs card (48) + its vertical padding (20)
-        10 - // tab content top padding
-        kBottomNavigationBarHeight -
-        30; // breathing room above the bottom nav
-    final ordersHeight = tabBodyHeight.clamp(420.0, double.infinity);
     return [
       Obx(() {
         final approved = controller
                 .riderOnboardingStatusData.value?.verificationStatus ==
             "approved";
         if (approved) {
-          return SizedBox(
-            height: ordersHeight,
-            child: DeliveryPartnerOrders(),
-          );
+          return DeliveryPartnerOrders(isInParentScroll: true);
         }
         return RiderProfileStatusScreen();
       }),

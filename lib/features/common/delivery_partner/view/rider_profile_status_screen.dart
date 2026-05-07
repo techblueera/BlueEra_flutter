@@ -163,7 +163,7 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
             ],
 
             // Contact Us
-            SizedBox(height: SizeConfig.size16),
+            SizedBox(height: SizeConfig.size4),
             _buildContactUsCard(),
           ],
         ),
@@ -1338,23 +1338,6 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
     return items.map((item) => _buildDocumentCard(item)).toList();
   }
 
-  // New card layout per spec — split into a tall LEFT column (icon
-  // + saved-value, with a pale primary-tint background) and a RIGHT
-  // content column (title + example, hairline divider, centered
-  // "+ Add Now" CTA below):
-  //
-  //   [status]   ┌──────────┬──────────────────────────────────┐
-  //    badge     │ ┌──────┐ │   Add Your X                     │
-  //   (outside)  │ │ icon │ │   E.g. example                   │
-  //              │ └──────┘ │  ─────────────────────────────   │
-  //              │          │           ⊕ Add Now              │
-  //              │ value …  │                                  │
-  //              └──────────┴──────────────────────────────────┘
-  //
-  // The two columns share a single card chrome (white, rounded 14,
-  // soft shadow). `IntrinsicHeight` lets the LEFT column stretch
-  // to match the RIGHT column's natural height so the primary-tinted
-  // panel fills the full card from top to bottom.
   Widget _buildDocumentCard(_DocumentItem item) {
     final state = widget.deliveryPartnerController.riderVerificationState;
     // The card has three interactive states:

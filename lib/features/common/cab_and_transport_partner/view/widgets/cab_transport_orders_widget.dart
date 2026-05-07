@@ -8,7 +8,14 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 
 class CabsAndTransportPartnerOrders extends StatefulWidget {
-  const CabsAndTransportPartnerOrders({super.key});
+  /// When true, this widget is being embedded inside a parent
+  /// [CustomScrollView] (e.g. the cab/transport partner tab body) and
+  /// should NOT introduce its own [Scaffold]/[Expanded] chrome — the
+  /// inner [PickupOrderScreen] will run in shrink-wrap mode so the
+  /// parent owns the scroll. Defaults to `false` for standalone use.
+  final bool isInParentScroll;
+
+  const CabsAndTransportPartnerOrders({super.key, this.isInParentScroll = false});
 
   @override
   State<CabsAndTransportPartnerOrders> createState() => _CabsAndTransportPartnerOrdersState();
@@ -38,49 +45,44 @@ class _CabsAndTransportPartnerOrdersState extends State<CabsAndTransportPartnerO
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        body: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Padding(
-            //   padding: EdgeInsets.all(SizeConfig.size15),
-            //   child: HorizontalTabSelector(
-            //     tabs: controller.deliveryPartnerOrdersTabs,
-            //     selectedIndex: controller
-            //         .selectedDeliveryPartnerOrderIndex.value,
-            //     onTabSelected: (index, value) {
-            //       if (mounted) {
-            //         controller.selectedDeliveryPartnerOrderIndex
-            //             .value = index;
-            //       }
-            //     },
-            //     labelBuilder: (value) => value.label,
-            //   ),
-            // ),
-            Expanded(
-              child: Builder(
-                builder: (context) {
-                  switch (controller
-                      .selectedDeliveryPartnerOrderIndex.value) {
-                    case 0:
-                      return PickupOrderScreen();
-                    case 1:
-                      return CustomText(AppStrings.comingSoon);
-                  // return GroceryOrderScreen();
-                    case 2:
-                      return CustomText(AppStrings.comingSoon);
-                  // return ParcelOrderScreen();
-                    case 3:
-                      return CustomText(AppStrings.comingSoon);
-                  // return IncomeScreen();
-                    default:
-                      return SizedBox.shrink(); // fallback
-                  }
-                },
-              ),
-            ),
-          ],
-        )
+    final tabBody = Builder(
+      builder: (context) {
+        switch (controller.selectedDeliveryPartnerOrderIndex.value) {
+          case 0:
+            return PickupOrderScreen(
+              isInParentScroll: widget.isInParentScroll,
+            );
+          case 1:
+            return CustomText(AppStrings.comingSoon);
+          // return GroceryOrderScreen();
+          case 2:
+            return CustomText(AppStrings.comingSoon);
+          // return ParcelOrderScreen();
+          case 3:
+            return CustomText(AppStrings.comingSoon);
+          // return IncomeScreen();
+          default:
+            return SizedBox.shrink(); // fallback
+        }
+      },
+    );
+
+    final body = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: widget.isInParentScroll
+          ? MainAxisSize.min
+          : MainAxisSize.max,
+      children: [
+        // In embedded mode the parent owns the scroll, so we cannot use
+        // `Expanded` (it requires a bounded vertical constraint).
+        widget.isInParentScroll ? tabBody : Expanded(child: tabBody),
+      ],
+    );
+
+    return widget.isInParentScroll
+        ? body
+        : Scaffold(
+            body: body
 
         // (userProfessionGlobal == BIKE_RIDER)
         //     ? Obx(() => deliveryPartnerController.isRiderStatusLoading.value
