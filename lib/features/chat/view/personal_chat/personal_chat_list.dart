@@ -62,7 +62,7 @@ class _PersonalChatsListState extends State<PersonalChatsList> {
           crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               if(widget.isForwardUI==false && widget.hideSubTabs != true)
-              SizedBox(height: 16,),
+              // SizedBox(height: 10,),
               if(widget.isForwardUI==false && widget.hideSubTabs != true)
               HorizontalTabSelector(horizontalMargin: 14,
                 horizontalPadding: 10,

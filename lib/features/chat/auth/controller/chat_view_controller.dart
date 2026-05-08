@@ -818,7 +818,6 @@ class ChatViewController extends GetxController {
     if (socketConnected.value == false) {
       socketConnected.value = true;
       chatSocket.listenEvent(ChatEmitEvents.ChatList, (data) async {
-        log("dcskdjcskdjcnsdc ${data}");
         //1200000039
         final parsedData = GetChatListModel.fromJson(data);
         // The server doesn't always echo `type` back in the ChatList

@@ -87,7 +87,7 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (!widget.isInParentScroll) const SizedBox(height: 16),
+              // if (!widget.isInParentScroll) const SizedBox(height: 10),
               HorizontalTabSelector(
                 horizontalMargin: 14,
                 horizontalPadding: 10,
