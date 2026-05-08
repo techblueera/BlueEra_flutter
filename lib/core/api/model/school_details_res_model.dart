@@ -2,16 +2,29 @@ import 'dart:convert';
 
 import 'package:BlueEra/core/api/model/school_about_us_model.dart';
 import 'package:BlueEra/core/api/model/school_contact_us_res_model.dart';
-SchoolDetailsResModel schoolDetailsResModelFromJson(String str) => SchoolDetailsResModel.fromJson(json.decode(str));
-String schoolDetailsResModelToJson(SchoolDetailsResModel data) => json.encode(data.toJson());
+
+SchoolDetailsResModel schoolDetailsResModelFromJson(String str) =>
+    SchoolDetailsResModel.fromJson(json.decode(str));
+String schoolDetailsResModelToJson(SchoolDetailsResModel data) =>
+    json.encode(data.toJson());
+
 class SchoolDetailsResModel {
   SchoolDetailsResModel({
-      this.success, 
-      this.data,});
+    this.success,
+    this.data,
+  });
 
   SchoolDetailsResModel.fromJson(dynamic json) {
     success = json['success'];
-    data = json['data'] != null ? SchoolDetailsData.fromJson(json['data']) : null;
+    if (json['data'] != null) {
+      if (json['data'] is List) {
+        data = (json['data'] as List).isNotEmpty
+            ? SchoolDetailsData.fromJson(json['data'][0])
+            : null;
+      } else {
+        data = SchoolDetailsData.fromJson(json['data']);
+      }
+    }
   }
   bool? success;
   SchoolDetailsData? data;
@@ -24,33 +37,34 @@ class SchoolDetailsResModel {
     }
     return map;
   }
-
 }
 
-SchoolDetailsData dataFromJson(String str) => SchoolDetailsData.fromJson(json.decode(str));
+SchoolDetailsData dataFromJson(String str) =>
+    SchoolDetailsData.fromJson(json.decode(str));
 String dataToJson(SchoolDetailsData data) => json.encode(data.toJson());
+
 class SchoolDetailsData {
   SchoolDetailsData({
-      this.id, 
-      this.name, 
-      this.type, 
-      this.description, 
-      this.establishmentYear, 
-      this.logo, 
-      this.bannerUrl,
-      this.career,
-      this.contacts,
-      this.ownerId,
-      this.isActive,
-      this.createdAt,
-      this.updatedAt,
-      this.v,
-      this.aboutId,
-      this.courses,
+    this.id,
+    this.name,
+    this.type,
+    this.description,
+    this.establishmentYear,
+    this.logo,
+    this.bannerUrl,
+    this.career,
+    this.contacts,
+    this.ownerId,
+    this.isActive,
+    this.createdAt,
+    this.updatedAt,
+    this.v,
+    this.aboutId,
+    this.courses,
     this.campusLife,
     this.location,
     this.galleryPhotos,
- });
+  });
 
   SchoolDetailsData.fromJson(dynamic json) {
     id = json['_id'];
@@ -73,7 +87,8 @@ class SchoolDetailsData {
     createdAt = json['createdAt'];
     updatedAt = json['updatedAt'];
     v = json['__v'];
-    aboutId = json['aboutId'] != null ? AboutId.fromJson(json['aboutId']) : null;
+    aboutId =
+        json['aboutId'] != null ? AboutId.fromJson(json['aboutId']) : null;
     if (json['courses'] != null) {
       courses = [];
       json['courses'].forEach((v) {
@@ -151,28 +166,31 @@ class SchoolDetailsData {
     }
     return map;
   }
-
 }
 
 Courses coursesFromJson(String str) => Courses.fromJson(json.decode(str));
 String coursesToJson(Courses data) => json.encode(data.toJson());
+
 class Courses {
   Courses({
-      this.courseFees, 
-      this.id, 
-      this.name, 
-      this.admissionProcess, 
-      this.eligibility, 
-      this.duration, 
-      this.description, 
-      this.schoolId, 
-      this.isActive, 
-      this.createdAt, 
-      this.updatedAt, 
-      this.v,});
+    this.courseFees,
+    this.id,
+    this.name,
+    this.admissionProcess,
+    this.eligibility,
+    this.duration,
+    this.description,
+    this.schoolId,
+    this.isActive,
+    this.createdAt,
+    this.updatedAt,
+    this.v,
+  });
 
   Courses.fromJson(dynamic json) {
-    courseFees = json['courseFees'] != null ? CourseFees.fromJson(json['courseFees']) : null;
+    courseFees = json['courseFees'] != null
+        ? CourseFees.fromJson(json['courseFees'])
+        : null;
     id = json['_id'];
     name = json['name'];
     admissionProcess = json['admissionProcess'];
@@ -216,15 +234,17 @@ class Courses {
     map['__v'] = v;
     return map;
   }
-
 }
 
-CourseFees courseFeesFromJson(String str) => CourseFees.fromJson(json.decode(str));
+CourseFees courseFeesFromJson(String str) =>
+    CourseFees.fromJson(json.decode(str));
 String courseFeesToJson(CourseFees data) => json.encode(data.toJson());
+
 class CourseFees {
   CourseFees({
-      this.monthly, 
-      this.yearly,});
+    this.monthly,
+    this.yearly,
+  });
 
   CourseFees.fromJson(dynamic json) {
     monthly = json['monthly'];
@@ -239,27 +259,30 @@ class CourseFees {
     map['yearly'] = yearly;
     return map;
   }
-
 }
-
 
 AboutId aboutIdFromJson(String str) => AboutId.fromJson(json.decode(str));
 String aboutIdToJson(AboutId data) => json.encode(data.toJson());
+
 class AboutId {
   AboutId({
-      this.history, 
-      this.principalMessage, 
-      this.id, 
-      this.visionAndMission, 
-      this.management, 
-      this.schoolId, 
-      this.createdAt, 
-      this.updatedAt, 
-      this.v,});
+    this.history,
+    this.principalMessage,
+    this.id,
+    this.visionAndMission,
+    this.management,
+    this.schoolId,
+    this.createdAt,
+    this.updatedAt,
+    this.v,
+  });
 
   AboutId.fromJson(dynamic json) {
-    history = json['history'] != null ? History.fromJson(json['history']) : null;
-    principalMessage = json['principalMessage'] != null ? PrincipalMessage.fromJson(json['principalMessage']) : null;
+    history =
+        json['history'] != null ? History.fromJson(json['history']) : null;
+    principalMessage = json['principalMessage'] != null
+        ? PrincipalMessage.fromJson(json['principalMessage'])
+        : null;
     id = json['_id'];
     visionAndMission = json['visionAndMission'];
     if (json['management'] != null) {
@@ -302,18 +325,20 @@ class AboutId {
     map['__v'] = v;
     return map;
   }
-
 }
 
+PrincipalMessage principalMessageFromJson(String str) =>
+    PrincipalMessage.fromJson(json.decode(str));
+String principalMessageToJson(PrincipalMessage data) =>
+    json.encode(data.toJson());
 
-PrincipalMessage principalMessageFromJson(String str) => PrincipalMessage.fromJson(json.decode(str));
-String principalMessageToJson(PrincipalMessage data) => json.encode(data.toJson());
 class PrincipalMessage {
   PrincipalMessage({
-      this.name, 
-      this.position, 
-      this.photo, 
-      this.message,});
+    this.name,
+    this.position,
+    this.photo,
+    this.message,
+  });
 
   PrincipalMessage.fromJson(dynamic json) {
     name = json['name'];
@@ -334,15 +359,16 @@ class PrincipalMessage {
     map['message'] = message;
     return map;
   }
-
 }
 
 History historyFromJson(String str) => History.fromJson(json.decode(str));
 String historyToJson(History data) => json.encode(data.toJson());
+
 class History {
   History({
-      this.message,
-      this.photo,});
+    this.message,
+    this.photo,
+  });
 
   History.fromJson(dynamic json) {
     message = json['message'];
@@ -357,20 +383,21 @@ class History {
     map['photo'] = photo;
     return map;
   }
-
 }
 
 Contacts contactsFromJson(String str) => Contacts.fromJson(json.decode(str));
 String contactsToJson(Contacts data) => json.encode(data.toJson());
+
 class Contacts {
   Contacts({
-      this.branch,
-      this.id,
-      this.departments,
-      this.schoolId,
-      this.createdAt,
-      this.updatedAt,
-      this.v,});
+    this.branch,
+    this.id,
+    this.departments,
+    this.schoolId,
+    this.createdAt,
+    this.updatedAt,
+    this.v,
+  });
 
   Contacts.fromJson(dynamic json) {
     branch = json['branch'] != null ? Branch.fromJson(json['branch']) : null;
@@ -409,22 +436,23 @@ class Contacts {
     map['__v'] = v;
     return map;
   }
-
 }
-
 
 Location locationFromJson(String str) => Location.fromJson(json.decode(str));
 String locationToJson(Location data) => json.encode(data.toJson());
+
 class Location {
   Location({
-      this.name, 
-      this.type, 
-      this.coordinates,});
+    this.name,
+    this.type,
+    this.coordinates,
+  });
 
   Location.fromJson(dynamic json) {
     name = json['name'];
     type = json['type'];
-    coordinates = json['coordinates'] != null ? json['coordinates'].cast<num>() : [];
+    coordinates =
+        json['coordinates'] != null ? json['coordinates'].cast<num>() : [];
   }
   String? name;
   String? type;
@@ -437,13 +465,12 @@ class Location {
     map['coordinates'] = coordinates;
     return map;
   }
-
 }
 
-
-
-CampusLife campusLifeFromJson(String str) => CampusLife.fromJson(json.decode(str));
+CampusLife campusLifeFromJson(String str) =>
+    CampusLife.fromJson(json.decode(str));
 String campusLifeToJson(CampusLife data) => json.encode(data.toJson());
+
 class CampusLife {
   CampusLife({
     this.id,
@@ -454,11 +481,13 @@ class CampusLife {
     this.createdAt,
     this.updatedAt,
     this.v,
-    this.subcategoryData,});
+    this.subcategoryData,
+  });
 
   CampusLife.fromJson(dynamic json) {
     id = json['_id'];
-    category = json['category'] != null ? Category.fromJson(json['category']) : null;
+    category =
+        json['category'] != null ? Category.fromJson(json['category']) : null;
     subcategory = json['subcategory'];
     if (json['images'] != null) {
       images = [];
@@ -470,7 +499,9 @@ class CampusLife {
     createdAt = json['createdAt'];
     updatedAt = json['updatedAt'];
     v = json['__v'];
-    subcategoryData = json['subcategoryData'] != null ? SubcategoryData.fromJson(json['subcategoryData']) : null;
+    subcategoryData = json['subcategoryData'] != null
+        ? SubcategoryData.fromJson(json['subcategoryData'])
+        : null;
   }
   String? id;
   Category? category;
@@ -501,11 +532,13 @@ class CampusLife {
     }
     return map;
   }
-
 }
 
-SubcategoryData subcategoryDataFromJson(String str) => SubcategoryData.fromJson(json.decode(str));
-String subcategoryDataToJson(SubcategoryData data) => json.encode(data.toJson());
+SubcategoryData subcategoryDataFromJson(String str) =>
+    SubcategoryData.fromJson(json.decode(str));
+String subcategoryDataToJson(SubcategoryData data) =>
+    json.encode(data.toJson());
+
 class SubcategoryData {
   SubcategoryData({
     this.name,
@@ -515,7 +548,8 @@ class SubcategoryData {
     this.createdBy,
     this.id,
     this.createdAt,
-    this.updatedAt,});
+    this.updatedAt,
+  });
 
   SubcategoryData.fromJson(dynamic json) {
     name = json['name'];
@@ -548,23 +582,28 @@ class SubcategoryData {
     map['updatedAt'] = updatedAt;
     return map;
   }
-
 }
 
 Images imagesFromJson(String str) => Images.fromJson(json.decode(str));
 String imagesToJson(Images data) => json.encode(data.toJson());
+
 class Images {
   Images({
     this.url,
     this.caption,
     this.id,
-    this.createdAt,});
+    this.createdAt,
+  });
 
   Images.fromJson(dynamic json) {
-    url = json['url'];
-    caption = json['caption'];
-    id = json['_id'];
-    createdAt = json['createdAt'];
+    if (json is String) {
+      url = json;
+    } else if (json is Map) {
+      url = json['url'];
+      caption = json['caption'];
+      id = json['_id'];
+      createdAt = json['createdAt'];
+    }
   }
   String? url;
   String? caption;
@@ -579,16 +618,17 @@ class Images {
     map['createdAt'] = createdAt;
     return map;
   }
-
 }
 
 Category categoryFromJson(String str) => Category.fromJson(json.decode(str));
 String categoryToJson(Category data) => json.encode(data.toJson());
+
 class Category {
   Category({
     this.id,
     this.name,
-    this.type,});
+    this.type,
+  });
 
   Category.fromJson(dynamic json) {
     id = json['_id'];
@@ -606,5 +646,4 @@ class Category {
     map['type'] = type;
     return map;
   }
-
 }

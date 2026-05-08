@@ -36,76 +36,78 @@ class DiscoverSchoolHomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final data = schoolAboutUsController.schoolDetailsData?.value;
+    return Obx(() {
+      final data = schoolAboutUsController.schoolDetailsData?.value;
 
-    return Scaffold(
-      backgroundColor: AppColors.appBackgroundColor,
-      appBar: CommonBackAppBar(
-        title: AppStrings.school,
-      ),
-      bottomNavigationBar: _buildBottomBar(),
-      body: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            /// HEADER with rating, type, establishment
-            _SchoolHeader(controller: schoolAboutUsController),
-
-            SizedBox(height: SizeConfig.paddingXS),
-
-            /// DIRECTOR / PRINCIPAL MESSAGE
-            DirectorCard(
-              schoolAboutUsController: schoolAboutUsController,
-            ),
-
-            SizedBox(height: SizeConfig.paddingXS),
-
-            /// MANAGEMENT
-            _ManagementSection(data: data),
-
-            SizedBox(height: SizeConfig.paddingXS),
-
-            /// COURSES
-            _CoursesSection(data: data),
-
-            SizedBox(height: SizeConfig.paddingXS),
-
-            /// CAMPUS GALLERY (social-style grid)
-            _GallerySection(data: data),
-
-            SizedBox(height: SizeConfig.paddingXS),
-
-            /// QUICK LINKS (Job Vacancy, Academics, Student Corner, Notices)
-            _QuickLinksSection(),
-
-            SizedBox(height: SizeConfig.paddingXS),
-
-            /// REVIEWS (placeholder)
-            _ReviewsSection(),
-
-            SizedBox(height: SizeConfig.paddingXS),
-
-            /// CONTACT US (clickable phone, email, website)
-            _ContactUsSection(data: data),
-
-            SizedBox(height: SizeConfig.paddingXS),
-
-            /// WEBSITE PREVIEW
-            WebsitePreviewCard(
-              url: data?.contacts?.firstOrNull?.branch?.website ?? '',
-            ),
-
-            SizedBox(height: SizeConfig.paddingXS),
-
-            /// LOCATION MAP
-            _LocationSection(data: data),
-
-            SizedBox(height: kBottomNavigationBarHeight + SizeConfig.size50),
-          ],
+      return Scaffold(
+        backgroundColor: AppColors.appBackgroundColor,
+        appBar: CommonBackAppBar(
+          title: AppStrings.school,
         ),
-      ),
-    );
+        bottomNavigationBar: _buildBottomBar(),
+        body: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              /// HEADER with rating, type, establishment
+              _SchoolHeader(controller: schoolAboutUsController),
+
+              SizedBox(height: SizeConfig.paddingXS),
+
+              /// DIRECTOR / PRINCIPAL MESSAGE
+              DirectorCard(
+                schoolAboutUsController: schoolAboutUsController,
+              ),
+
+              SizedBox(height: SizeConfig.paddingXS),
+
+              /// MANAGEMENT
+              _ManagementSection(data: data),
+
+              SizedBox(height: SizeConfig.paddingXS),
+
+              /// COURSES
+              _CoursesSection(data: data),
+
+              SizedBox(height: SizeConfig.paddingXS),
+
+              /// CAMPUS GALLERY (social-style grid)
+              _GallerySection(data: data),
+
+              SizedBox(height: SizeConfig.paddingXS),
+
+              /// QUICK LINKS (Job Vacancy, Academics, Student Corner, Notices)
+              _QuickLinksSection(),
+
+              SizedBox(height: SizeConfig.paddingXS),
+
+              /// REVIEWS (placeholder)
+              _ReviewsSection(),
+
+              SizedBox(height: SizeConfig.paddingXS),
+
+              /// CONTACT US (clickable phone, email, website)
+              _ContactUsSection(data: data),
+
+              SizedBox(height: SizeConfig.paddingXS),
+
+              /// WEBSITE PREVIEW
+              WebsitePreviewCard(
+                url: data?.contacts?.firstOrNull?.branch?.website ?? '',
+              ),
+
+              SizedBox(height: SizeConfig.paddingXS),
+
+              /// LOCATION MAP
+              _LocationSection(data: data),
+
+              SizedBox(height: kBottomNavigationBarHeight + SizeConfig.size50),
+            ],
+          ),
+        ),
+      );
+    });
   }
 
   Widget? _buildBottomBar() {
@@ -138,7 +140,8 @@ class DiscoverSchoolHomeScreen extends StatelessWidget {
             SizedBox(width: SizeConfig.paddingS),
             Expanded(
               child: PositiveCustomBtn(
-                onTap: () => commonSnackBar(message: AppStrings.comingSoonLabel.tr),
+                onTap: () =>
+                    commonSnackBar(message: AppStrings.comingSoonLabel.tr),
                 title: AppStrings.bookInquiry,
               ),
             ),
@@ -463,8 +466,7 @@ class _QuickLinksSection extends StatelessWidget {
         padding: EdgeInsets.symmetric(vertical: SizeConfig.paddingS),
         child: Row(
           children: [
-            Icon(icon,
-                size: SizeConfig.size20, color: AppColors.primaryColor),
+            Icon(icon, size: SizeConfig.size20, color: AppColors.primaryColor),
             SizedBox(width: SizeConfig.paddingXS),
             Expanded(
               child: CustomText(
@@ -546,8 +548,8 @@ class _ContactUsSection extends StatelessWidget {
           fontWeight: FontWeight.w600,
           fontSize: SizeConfig.size14,
         ),
-        childrenPadding:
-            EdgeInsets.symmetric(horizontal: SizeConfig.paddingS, vertical: SizeConfig.paddingXS),
+        childrenPadding: EdgeInsets.symmetric(
+            horizontal: SizeConfig.paddingS, vertical: SizeConfig.paddingXS),
         children: [
           // Website
           if ((contact.branch?.website ?? '').isNotEmpty)
@@ -580,7 +582,8 @@ class _ContactUsSection extends StatelessWidget {
                   ),
                 Padding(
                   padding: EdgeInsets.symmetric(vertical: SizeConfig.paddingXS),
-                  child: Divider(height: 1, thickness: 0.5, color: Colors.grey.shade300),
+                  child: Divider(
+                      height: 1, thickness: 0.5, color: Colors.grey.shade300),
                 ),
               ],
             );
@@ -659,10 +662,8 @@ class _LocationSection extends StatelessWidget {
 
     return BusinessLocationWidget(
       locationText: data?.name,
-      latitude:
-          double.tryParse(coords[0].toString()) ?? 0.0,
-      longitude:
-          double.tryParse(coords[1].toString()) ?? 0.0,
+      latitude: double.tryParse(coords[0].toString()) ?? 0.0,
+      longitude: double.tryParse(coords[1].toString()) ?? 0.0,
       businessName: data?.name ?? '',
       padding: SizeConfig.paddingXSL,
       isTitleShow: true,

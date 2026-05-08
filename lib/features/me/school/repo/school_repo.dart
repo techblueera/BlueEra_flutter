@@ -26,9 +26,11 @@ class SchoolRepo extends BaseService {
   }
 
   ///GET SCHOOL/UNIVERSITY DETAILS...
-  Future<ResponseModel> getSchoolAboutUsRepo({required String schoolID}) async {
-    final response = await ApiBaseHelper().getHTTP("${schoolAboutUs}/$schoolID",
-        onError: (error) {}, onSuccess: (data) {});
+  Future<ResponseModel> getSchoolAboutUsRepo({String? schoolID}) async {
+    final response = await ApiBaseHelper().getHTTP(
+        "${schoolAboutUs}/${schoolID ?? schoolIDGlobal}",
+        onError: (error) {},
+        onSuccess: (data) {});
     return response;
   }
 
@@ -150,17 +152,19 @@ class SchoolRepo extends BaseService {
     return response;
   }
 
-  ///GET SCHOOL CONTACT REPO....
-  Future<ResponseModel> getSchoolByUserIDRepo() async {
-    final response = await ApiBaseHelper().getHTTP("${schoolUser}/$userId",
-        onError: (error) {}, onSuccess: (data) {});
+  ///GET SCHOOL BY USER ID REPO....
+  Future<ResponseModel> getSchoolByUserIDRepo({String? userID}) async {
+    final response = await ApiBaseHelper().getHTTP(
+        "${schoolUser}/${userID ?? userId}",
+        onError: (error) {},
+        onSuccess: (data) {});
     return response;
   }
 
   ///GET SCHOOL CONTACT REPO....
-  Future<ResponseModel> getSchoolByIDRepo() async {
+  Future<ResponseModel> getSchoolByIDRepo({String? schoolID}) async {
     final response = await ApiBaseHelper().getHTTP(
-        "${schoolUserID}$schoolIDGlobal",
+        "${schoolUserID}${schoolID ?? schoolIDGlobal}",
         onError: (error) {},
         onSuccess: (data) {});
     return response;
@@ -476,9 +480,9 @@ class SchoolRepo extends BaseService {
   }
 
   ///GET CAMPUS LIFE REPO....
-  Future<ResponseModel> getAllCampusLifeRepo() async {
+  Future<ResponseModel> getAllCampusLifeRepo({String? schoolID}) async {
     final response = await ApiBaseHelper().getHTTP(
-        "${campusLife}/school/${schoolIDGlobal}",
+        "${campusLife}/school/${schoolID ?? schoolIDGlobal}",
         onError: (error) {},
         onSuccess: (data) {});
     return response;
@@ -520,6 +524,25 @@ class SchoolRepo extends BaseService {
     final response = await ApiBaseHelper().putHTTP(
         "${schoolUserID}$schoolIDGlobal",
         params: reqBODY,
+        onError: (error) {},
+        onSuccess: (data) {});
+    return response;
+  }
+
+  ///GET SCHOOL COURSES REPO....
+  Future<ResponseModel> getSchoolCoursesRepo({required String schoolID}) async {
+    final response = await ApiBaseHelper().getHTTP(
+        "${educationCourses}/school/$schoolID",
+        onError: (error) {},
+        onSuccess: (data) {});
+    return response;
+  }
+
+  ///GET SCHOOL ACADEMICS REPO....
+  Future<ResponseModel> getSchoolAcademicsRepo(
+      {required String schoolID}) async {
+    final response = await ApiBaseHelper().getHTTP(
+        "${educationServiceAcademics}/school/$schoolID",
         onError: (error) {},
         onSuccess: (data) {});
     return response;

@@ -202,8 +202,18 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
       onTap: () {
         final schoolAboutUsController =
             getOrPut(() => SchoolAboutUsController());
+        // Set the basic data from the list first so the screen isn't empty
         schoolAboutUsController.schoolDetailsData?.value = service;
+
+        // Navigate immediately for better UX
         Get.to(DiscoverSchoolHomeScreen());
+
+        // Fetch full details in the background using the specific school's ID
+        // and its owner ID as a fallback.
+        schoolAboutUsController.getSchoolByIdController(
+          schoolID: service.id,
+          ownerID: service.ownerId,
+        );
       },
       child: CustomFormCard(
         padding: EdgeInsets.all(SizeConfig.size10),
