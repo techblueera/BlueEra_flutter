@@ -30,6 +30,7 @@ import 'package:BlueEra/features/me/medical_new/view/medical_statistics_screen.d
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/choose_earn_service_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/rental/widget/rental_tab_body.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/edit_profile_bottom_sheet.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/profile_designation_bottom_sheet.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
@@ -65,12 +66,15 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
   bool _showStickyTabs = false;
 
   // Chat sits adjacent to Order/Document so incoming inquiries are
-  // one tap away from the orders list.
+  // one tap away from the orders list. Rental sits between Overview
+  // and Post so identity / rental-listings / posts read as a
+  // logical group on the right side of the strip.
   static const _orderIndex = 0;
   static const _chatIndex = 1;
   static const _overviewIndex = 2;
-  static const _postIndex = 3;
-  static const _staticsIndex = 4;
+  static const _rentalIndex = 3;
+  static const _postIndex = 4;
+  static const _staticsIndex = 5;
 
   @override
   void initState() {
@@ -516,6 +520,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
             approved ? AppStrings.myOrder.tr : AppStrings.document.tr,
             'Chat',
             'Overview',
+            'Rental',
             'Post',
             'Statics',
           ];
@@ -601,6 +606,8 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
         return _buildChatTab();
       case _overviewIndex:
         return _buildOverviewTab();
+      case _rentalIndex:
+        return _buildRentalTab();
       case _postIndex:
         return _buildPostTab();
       case _staticsIndex:
@@ -608,6 +615,15 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
       default:
         return const [SizedBox.shrink()];
     }
+  }
+
+  // Rental tab — delegated to the shared [RentalTabBody] so the
+  // self-employee, professionals, rider, cab, and social
+  // dashboards all show the exact same rental UI driven by one
+  // RentalController instance (add/edit/delete from any surface
+  // mirrors here for free).
+  List<Widget> _buildRentalTab() {
+    return const [RentalTabBody()];
   }
 
   // Chat tab — incoming order inquiries. `excludeSenderId: userId`
