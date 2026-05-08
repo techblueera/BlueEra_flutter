@@ -57,24 +57,24 @@ class EarnServiceController extends GetxController{
   void handleServiceTap(BuildContext context, CollapsibleGridModel service) async {
     switch (service.slugId) {
 
-      case SELF_EMPLOYED:
-          showModalBottomSheet(
-            context: context,
-            backgroundColor: Colors.transparent,
-            isScrollControlled: true,
-            builder: (_) => SelfWorkServiceGuideBottomSheet(),
-          );
-        break;
+      // case SELF_EMPLOYED:
+      //     showModalBottomSheet(
+      //       context: context,
+      //       backgroundColor: Colors.transparent,
+      //       isScrollControlled: true,
+      //       builder: (_) => SelfWorkServiceGuideBottomSheet(),
+      //     );
+      //   break;
 
-      case GIG_WORKER:
-        showModalBottomSheet(
-          context: context,
-          backgroundColor: Colors.transparent,
-          isScrollControlled: true,
-          builder: (_) => GigWorkServiceGuideBottomSheet(),
-        );
-
-        break;
+      // case GIG_WORKER:
+      //   showModalBottomSheet(
+      //     context: context,
+      //     backgroundColor: Colors.transparent,
+      //     isScrollControlled: true,
+      //     builder: (_) => GigWorkServiceGuideBottomSheet(),
+      //   );
+      //
+      //   break;
 
       case HOME_MADE_PRODUCTS:
         Get.to(() => const HomeProfileScreen());
@@ -105,7 +105,7 @@ class EarnServiceController extends GetxController{
           builder: (_) => ConsultingServiceGuideBottomSheet(),
         );
 
-      case CONTENT_CREATOR:
+      // case CONTENT_CREATOR:
         // if(isEarnServiceOpt.value=='true' && userDesignationGlobal == CONSULTANT){
         //   commonSnackBar(message: 'You are already ${userDesignationGlobal.withArticle}');
         //   return;
@@ -121,9 +121,9 @@ class EarnServiceController extends GetxController{
         //     },
         //   ),
         // );
-        break;
+        // break;
 
-      case TUTOR:
+        // case TUTOR:
         // if(isEarnServiceOpt.value=='true' && userProfessionGlobal == TUTOR){
         //   commonSnackBar(message: 'You are already ${userProfessionGlobal.withArticle}');
         //   return;
@@ -139,7 +139,7 @@ class EarnServiceController extends GetxController{
         //     },
         //   ),
         // );
-        break;
+        // break;
 
       default:
         break;

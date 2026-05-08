@@ -88,7 +88,10 @@ Future<bool?> showProfileDesignationSheet(BuildContext context) {
 
   void initData() {
     if (authController.professionTypeDataList.isEmpty) {
-      authController.getAllIndividualProfession().then((_) {
+      // Cache-first single entry point. The cache read is synchronous so
+      // on warm starts buckets are populated before the await completes;
+      // the silent network refresh just keeps Hive up to date.
+      authController.loadCategoriesCacheFirstThenRefresh().then((_) {
         updateCategoryOfProfession(_selectedProfileType.type);
       });
     }

@@ -16,6 +16,7 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/app_notification.dart';
+import 'package:BlueEra/core/services/hive_services.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/common/auth/model/business_category_response_model.dart';
 import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
@@ -26,7 +27,6 @@ import 'package:BlueEra/features/common/auth/model/personal_profession_model.dar
 import 'package:BlueEra/features/common/auth/model/single_business_category_response.dart';
 import 'package:BlueEra/features/common/auth/model/username_res_model.dart';
 import 'package:BlueEra/features/common/auth/repo/auth_repo.dart';
-import 'package:BlueEra/features/common/auth/views/screens/choose_account_type_screen.dart';
 import 'package:BlueEra/features/common/auth/views/screens/complete_guest_profile_screen.dart';
 import 'package:BlueEra/core/services/multipart_image_service.dart';
 import 'package:BlueEra/features/common/auth/views/screens/new_screens/create_account_type_screen.dart';
@@ -34,7 +34,6 @@ import 'package:BlueEra/features/common/bottomNavigationBar/view/bottom_navigati
 import 'package:BlueEra/features/common/feed/models/block_user_response.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_service_ai_controller.dart';
 import 'package:BlueEra/features/me/hotel/controller/hotel_service_controller.dart';
-import 'package:flutter/foundation.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:BlueEra/features/me/laboratory/controller/lab_service_ai_controller.dart';
 import 'package:BlueEra/features/me/others/controller/business_profile_full_controller.dart';
@@ -44,7 +43,6 @@ import 'package:BlueEra/features/me/school/controller/school_controller.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
 import '../../bottomNavigationBar/controller/bottom_bar_controller.dart';
 
 class AuthController extends GetxController {
@@ -559,28 +557,6 @@ class AuthController extends GetxController {
     }
   }
 
-  List<CategoryData> businessCategories = [];
-
-  Future<void> getAllCategories() async {
-    try {
-      ResponseModel responseModel =
-          await AuthRepo().getBusinessCategoriesRepo();
-
-      if (responseModel.isSuccess) {
-        final data = responseModel.response?.data;
-        businessCategories = CategoryModel.fromJson(data).data ?? [];
-        businessCategoryResponse = ApiResponse.complete(responseModel);
-        update();
-      } else {
-        commonSnackBar(
-            message: responseModel.message ?? AppStrings.somethingWentWrong);
-      }
-    } catch (e) {
-      businessCategoryResponse = ApiResponse.error('error');
-      update();
-    }
-  }
-
   Rx<GstVerifyModel>? gstVerifyModel = GstVerifyModel().obs;
   RxBool isValidate = false.obs,
       isHaveGstApprove = false.obs,
@@ -662,7 +638,7 @@ class AuthController extends GetxController {
         if ((selectedCategorySlugId ?? "").isNotEmpty)
           ApiKeys.category_Of_Business: selectedCategorySlugId,
       };
-logs("bodyRequest for gst ==== ${body}");
+      logs("bodyRequest for gst ==== ${body}");
       final ResponseModel response =
           await AuthRepo().authBusinessUserRegisterRepo(bodyRequest: body);
 
@@ -789,43 +765,6 @@ logs("bodyRequest for gst ==== ${body}");
       blockUserResponse = ApiResponse.error('error');
       commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {}
-  }
-
-  var isProfessionLoading = true.obs;
-  List<ProfessionTypeData> professionTypeDataList = [];
-  List<SubcategoriesFiledName> subcategoriesFiledNameList = [];
-
-  Future<void> getAllProfessionController() async {
-    try {
-      isProfessionLoading.value = true;
-      // professionTypeDataList.clear();
-      subcategoriesFiledNameList.clear();
-
-      ResponseModel responseModel = await AuthRepo().getAllProfessionsRepo();
-
-      if (responseModel.isSuccess) {
-        final data = responseModel.response?.data;
-        professionTypeDataList =
-            PersonalProfessionModel.fromJson(data).data ?? [];
-        professionListingResponse = ApiResponse.complete(responseModel);
-        update();
-      } else {
-        commonSnackBar(
-            message: responseModel.message ?? AppStrings.somethingWentWrong);
-        professionListingResponse = ApiResponse.error('error');
-        update();
-      }
-    } catch (e) {
-      professionListingResponse = ApiResponse.error('error');
-      update();
-    } finally {
-      isProfessionLoading.value = false;
-    }
-  }
-
-  clearSubCategoryData() {
-    subcategoriesFiledNameList.clear();
-    update();
   }
 
   RxBool isCreateGuestAccountLoading = false.obs;
@@ -987,24 +926,99 @@ logs("bodyRequest for gst ==== ${body}");
     }
   }
 
+  /// Business and Personal Category
+
+  /// True until we've populated the onboarding category buckets from
+  /// either Hive or the network. Discover (and any other consumer) shows
+  /// a shimmer / spinner while this is true, then swaps to the real cards.
+  RxBool isInitialCategoriesLoading = true.obs;
+
+  /// Cache-first loader for the master onboarding lists.
+  Future<void> loadCategoriesCacheFirstThenRefresh() async {
+    final hive = HiveServices();
+
+    final cachedBusiness = hive.getAllCategories();
+    final cachedProfessions = hive.getAllProfessions();
+
+    final hasCachedBusiness = cachedBusiness != null && cachedBusiness.isNotEmpty;
+    final hasCachedProfessions =
+        cachedProfessions != null && cachedProfessions.isNotEmpty;
+
+    if (hasCachedBusiness) {
+      updateBusinessCategoriesFromApi(cachedBusiness);
+    }
+    if (hasCachedProfessions) {
+      updateIndividualCategoriesFromApi(cachedProfessions);
+    }
+
+    // If we have any cache, render immediately and let the network
+    // refresh happen silently in the background.
+    if (hasCachedBusiness || hasCachedProfessions) {
+      isInitialCategoriesLoading.value = false;
+    }
+
+    // Silent refresh — `_getAllBusinessCategories` / `_getAllIndividualProfession`
+    // both write through to Hive on success and rebuild the in-memory
+    // buckets. Consumers that are already on screen during this refresh
+    // keep showing the cached snapshot until the next natural rebuild
+    // (tab change, navigation pop, pull-to-refresh) — that's acceptable
+    // because category data changes rarely. Fresh data is always visible
+    // on the next launch via the cache hit. These two methods are private
+    // so external callers must always go through this cache-first entry
+    // point — single source of truth, no path that bypasses Hive.
+    await Future.wait<void>([
+      _getAllBusinessCategories(),
+      _getAllIndividualProfession(),
+    ]);
+
+    // First-launch path: no cache existed, so the shimmer was still
+    // visible. Drop it now that the network has filled the buckets.
+    if (isInitialCategoriesLoading.value) {
+      isInitialCategoriesLoading.value = false;
+    }
+  }
+
   List<ProfessionTypeData> individualOnboardingSocialProfileList = [];
   List<ProfessionTypeData> individualOnboardingGigWorkList = [];
   List<ProfessionTypeData> individualOnboardingSkillWorkList = [];
   List<ProfessionTypeData> individualOnboardingConsultationList = [];
 
-  Future<void> getAllIndividualProfession() async {
-    try {
-      isProfessionLoading.value = true;
-      professionTypeDataList.clear();
+  /// Derived flat master list of profession types — concatenates the four
+  /// onboarding buckets (which are the source of truth). Exposed as a
+  /// getter (not a stored field) so there's no second copy of the data
+  /// that can drift from the buckets, and so profession state stays
+  /// symmetric with business state, which has always lived as buckets
+  /// only. Callers that previously read the stored `professionTypeDataList`
+  /// field (profession-picker dialogs, `.isEmpty` guards in profile setup
+  /// screens) keep working unchanged.
+  List<ProfessionTypeData> get professionTypeDataList => [
+        ...individualOnboardingSocialProfileList,
+        ...individualOnboardingGigWorkList,
+        ...individualOnboardingSkillWorkList,
+        ...individualOnboardingConsultationList,
+      ];
 
+  /// Network-level fetch for the master profession list. Private — callers
+  /// outside this controller MUST go through `loadCategoriesCacheFirstThenRefresh`
+  /// so they can't accidentally bypass the Hive cache.
+  Future<void> _getAllIndividualProfession() async {
+    try {
       ResponseModel responseModel = await AuthRepo().getAllProfessionsRepo();
 
       if (responseModel.isSuccess) {
         professionListingResponse = ApiResponse.complete(responseModel);
         final data = responseModel.response?.data;
-        professionTypeDataList =
+        // Local var only — there is no stored master list field. The
+        // bucketing call below is the source of truth, and the
+        // `professionTypeDataList` getter on this controller derives a
+        // flat list from those buckets when consumers need one.
+        final professions =
             PersonalProfessionModel.fromJson(data).data ?? [];
-        updateIndividualCategoriesFromApi(professionTypeDataList);
+        // Persist BEFORE bucketing so each item's `individualProfileType`
+        // enum is still null at serialize time — bucketing sets that
+        // enum, and enums don't round-trip through jsonEncode.
+        await HiveServices().saveProfessionList(professions);
+        updateIndividualCategoriesFromApi(professions);
       } else {
         commonSnackBar(
             message: responseModel.message ?? AppStrings.somethingWentWrong);
@@ -1012,9 +1026,6 @@ logs("bodyRequest for gst ==== ${body}");
       }
     } catch (e) {
       professionListingResponse = ApiResponse.error('error');
-      update();
-    } finally {
-      isProfessionLoading.value = false;
     }
   }
 
@@ -1065,7 +1076,11 @@ logs("bodyRequest for gst ==== ${body}");
   List<CategoryData> businessOnboardingEducationTrainingCategories = [];
   List<CategoryData> businessOnboardingFinancialSectorsCategories = [];
 
-  Future<void> getAllBusinessCategories() async {
+  /// Network-level fetch for the master business-category list. Private —
+  /// callers outside this controller MUST go through
+  /// `loadCategoriesCacheFirstThenRefresh` so they can't accidentally
+  /// bypass the Hive cache.
+  Future<void> _getAllBusinessCategories() async {
     try {
       isAllBusinessCategoriesLoading.value = true;
 
@@ -1081,6 +1096,7 @@ logs("bodyRequest for gst ==== ${body}");
       final jsonData = response.response?.data;
       List<CategoryData> businessCategories =
           CategoryModel.fromJson(jsonData).data ?? [];
+      await HiveServices().saveCategoryList(businessCategories);
       updateBusinessCategoriesFromApi(businessCategories);
       businessCategoryResponse = ApiResponse.complete(response);
     } catch (e) {
@@ -1149,43 +1165,40 @@ logs("bodyRequest for gst ==== ${body}");
           break;
       }
     }
-
-    // 2. Call the debug printer
-    // debugPrintBusinessCategories();
   }
 
-  void debugPrintBusinessCategories() {
-    if (kDebugMode) {
-      final categoryGroups = {
-        'Services': businessOnboardingServicesCategories,
-        'Products': businessOnboardingProductsCategories,
-        'Groceries': businessOnboardingGroceriesCategories,
-        'Foods': businessOnboardingFoodsCategories,
-        'Manufacturing': businessOnboardingManufacturingCategories,
-        'Automotive': businessOnboardingAutomotiveServicesCategories,
-        'Healthcare': businessOnboardingHealthcareSectorsCategories,
-        'Hospitality': businessOnboardingHospitalityStayCategories,
-        'Education': businessOnboardingEducationTrainingCategories,
-        'Finance': businessOnboardingFinancialSectorsCategories,
-      };
-
-      log('=== BUSINESS CATEGORIES DEBUG START ===', name: 'CategorySync');
-
-      categoryGroups.forEach((name, list) {
-        if (list.isNotEmpty) {
-          log('--- $name (${list.length} items) ---', name: 'CategorySync');
-          for (var item in list) {
-            // Replace 'name' with whatever property identifies your CategoryData
-            log('  ID: ${item.id} | Title: ${item.name} | Tag Id: ${item.tagId}',
-                name: 'CategorySync');
-          }
-        } else {
-          log('--- $name (Empty) ---', name: 'CategorySync');
-        }
-      });
-
-      log('=== BUSINESS CATEGORIES DEBUG END ===', name: 'CategorySync');
-    }
-  }
+  // void debugPrintBusinessCategories() {
+  //   if (kDebugMode) {
+  //     final categoryGroups = {
+  //       'Services': businessOnboardingServicesCategories,
+  //       'Products': businessOnboardingProductsCategories,
+  //       'Groceries': businessOnboardingGroceriesCategories,
+  //       'Foods': businessOnboardingFoodsCategories,
+  //       'Manufacturing': businessOnboardingManufacturingCategories,
+  //       'Automotive': businessOnboardingAutomotiveServicesCategories,
+  //       'Healthcare': businessOnboardingHealthcareSectorsCategories,
+  //       'Hospitality': businessOnboardingHospitalityStayCategories,
+  //       'Education': businessOnboardingEducationTrainingCategories,
+  //       'Finance': businessOnboardingFinancialSectorsCategories,
+  //     };
+  //
+  //     log('=== BUSINESS CATEGORIES DEBUG START ===', name: 'CategorySync');
+  //
+  //     categoryGroups.forEach((name, list) {
+  //       if (list.isNotEmpty) {
+  //         log('--- $name (${list.length} items) ---', name: 'CategorySync');
+  //         for (var item in list) {
+  //           // Replace 'name' with whatever property identifies your CategoryData
+  //           log('  ID: ${item.id} | Title: ${item.name} | Tag Id: ${item.tagId}',
+  //               name: 'CategorySync');
+  //         }
+  //       } else {
+  //         log('--- $name (Empty) ---', name: 'CategorySync');
+  //       }
+  //     });
+  //
+  //     log('=== BUSINESS CATEGORIES DEBUG END ===', name: 'CategorySync');
+  //   }
+  // }
 
 }

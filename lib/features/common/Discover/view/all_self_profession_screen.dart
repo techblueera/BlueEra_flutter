@@ -11,7 +11,7 @@ import 'package:BlueEra/features/common/Discover/widget/discover_chat_icon.dart'
 import 'package:BlueEra/features/common/Discover/widget/discover_map_widgets.dart';
 import 'package:BlueEra/features/common/Discover/widget/sticky_category_header_delegate.dart';
 import 'package:BlueEra/features/common/Discover/model/service_model_response.dart';
-import 'package:BlueEra/features/common/Discover/view/self_profession_screen_preview.dart';
+import 'package:BlueEra/features/common/Discover/view/self_employee_view_screen.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
 import 'package:BlueEra/features/common/auth/model/personal_profession_model.dart';
@@ -112,7 +112,7 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
 
   /// Bottom sheet shown when a map marker is tapped — compact provider
   /// summary (avatar, name, rating, distance, price) with a "View Profile"
-  /// CTA into [SelfProfessionScreenPreview]. Takes the host [BuildContext]
+  /// CTA into [SelfEmployeeViewScreen]. Takes the host [BuildContext]
   /// so the sheet can render over either this screen or the dedicated
   /// [_SelfProfessionMapScreen] depending on where the marker was tapped.
   void _showServiceMapSheet(BuildContext hostContext, ServiceData service) {
@@ -252,7 +252,7 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
                     InkWell(
                       onTap: () {
                         Navigator.of(sheetCtx).pop();
-                        Get.to(() => SelfProfessionScreenPreview(
+                        Get.to(() => SelfEmployeeViewScreen(
                               service: service,
                               timingMap:
                                   getMinMaxTimings(service.service?.timings),
@@ -473,7 +473,7 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
         .where((e) => e.trim().isNotEmpty)
         .toList();
 
-    void openPreview() => Get.to(() => SelfProfessionScreenPreview(
+    void openPreview() => Get.to(() => SelfEmployeeViewScreen(
           service: service,
           timingMap: timingMap,
           priceDisplay: priceDisplay,

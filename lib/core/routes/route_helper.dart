@@ -419,20 +419,20 @@ class RouteHelper {
   static String getAddFlatRoomRentalServiceScreenRoute() =>
       RouteConstant.addFlatRoomRentalServiceScreen;
 
-  static String getPersonalInformationRidingScreenRoute() =>
-      RouteConstant.personalInformationRidingScreen;
+  // static String getPersonalInformationRidingScreenRoute() =>
+  //     RouteConstant.personalInformationRidingScreen;
 
-  static String getAddressLocationRidingScreenRoute() =>
-      RouteConstant.addressLocationRidingScreen;
+  // static String getAddressLocationRidingScreenRoute() =>
+  //     RouteConstant.addressLocationRidingScreen;
 
-  static String getPersonalIdentificationRidingScreenRoute() =>
-      RouteConstant.personalIdentificationRidingScreen;
+  // static String getPersonalIdentificationRidingScreenRoute() =>
+  //     RouteConstant.personalIdentificationRidingScreen;
 
-  static String getDrivingVerificationRidingScreenRoute() =>
-      RouteConstant.drivingVerificationRidingScreen;
-
-  static String getVehicleImagesRidingScreenRoute() =>
-      RouteConstant.vehicleImagesRidingScreen;
+  // static String getDrivingVerificationRidingScreenRoute() =>
+  //     RouteConstant.drivingVerificationRidingScreen;
+  //
+  // static String getVehicleImagesRidingScreenRoute() =>
+  //     RouteConstant.vehicleImagesRidingScreen;
 
   static String getVehicleInformationRidingScreenRoute() =>
       RouteConstant.vehicleInformationRidingScreen;
@@ -1367,34 +1367,34 @@ class RouteHelper {
             builder: (_) => AddFlatRoomRentalServiceScreen(),
             settings:
                 RouteSettings(name: getAddFlatRoomRentalServiceScreenRoute()));
-      case RouteConstant.personalInformationRidingScreen:
-        return MaterialPageRoute(
-            builder: (_) => PersonalInformationRidingScreen(
-                  screeName: '',
-                ),
-            settings:
-                RouteSettings(name: getPersonalInformationRidingScreenRoute()));
-      case RouteConstant.addressLocationRidingScreen:
-        return MaterialPageRoute(
-            builder: (_) => AddressLocationRidingScreen(
-                  screeName: '',
-                ),
-            settings:
-                RouteSettings(name: getAddressLocationRidingScreenRoute()));
-      case RouteConstant.personalIdentificationRidingScreen:
-        return MaterialPageRoute(
-            builder: (_) => PersonalIdentificationRidingScreen(),
-            settings: RouteSettings(
-                name: getPersonalIdentificationRidingScreenRoute()));
-      case RouteConstant.drivingVerificationRidingScreen:
-        return MaterialPageRoute(
-            builder: (_) => DrivingVerificationRidingScreen(),
-            settings:
-                RouteSettings(name: getDrivingVerificationRidingScreenRoute()));
-      case RouteConstant.vehicleImagesRidingScreen:
-        return MaterialPageRoute(
-            builder: (_) => VehicleImagesRidingScreen(),
-            settings: RouteSettings(name: getVehicleImagesRidingScreenRoute()));
+      // case RouteConstant.personalInformationRidingScreen:
+      //   return MaterialPageRoute(
+      //       builder: (_) => PersonalInformationRidingScreen(
+      //             screeName: '',
+      //           ),
+      //       settings:
+      //           RouteSettings(name: getPersonalInformationRidingScreenRoute()));
+      // case RouteConstant.addressLocationRidingScreen:
+      //   return MaterialPageRoute(
+      //       builder: (_) => AddressLocationRidingScreen(
+      //             screeName: '',
+      //           ),
+      //       settings:
+      //           RouteSettings(name: getAddressLocationRidingScreenRoute()));
+      // case RouteConstant.personalIdentificationRidingScreen:
+      //   return MaterialPageRoute(
+      //       builder: (_) => PersonalIdentificationRidingScreen(),
+      //       settings: RouteSettings(
+      //           name: getPersonalIdentificationRidingScreenRoute()));
+      // case RouteConstant.drivingVerificationRidingScreen:
+      //   return MaterialPageRoute(
+      //       builder: (_) => DrivingVerificationRidingScreen(),
+      //       settings:
+      //           RouteSettings(name: getDrivingVerificationRidingScreenRoute()));
+      // case RouteConstant.vehicleImagesRidingScreen:
+      //   return MaterialPageRoute(
+      //       builder: (_) => VehicleImagesRidingScreen(),
+      //       settings: RouteSettings(name: getVehicleImagesRidingScreenRoute()));
       case RouteConstant.vehicleInformationRidingScreen:
         return MaterialPageRoute(
             builder: (_) => VehicleInformationRidingScreen(

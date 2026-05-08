@@ -297,7 +297,6 @@ class _VisitGroceryStoreScreenState extends State<VisitGroceryStoreScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        SizedBox(height: SizeConfig.size4),
 
                         Expanded(
                           child: GroceryTopSellingImage(
@@ -325,7 +324,7 @@ class _VisitGroceryStoreScreenState extends State<VisitGroceryStoreScreen> {
                               // swap pops via ScaleTransition for tactile
                               // feedback. Tap again on the pill removes.
                               return Padding(
-                                padding: const EdgeInsets.all(6),
+                                padding: const EdgeInsets.all(8),
                                 child: Material(
                                   color: Colors.transparent,
                                   child: InkWell(

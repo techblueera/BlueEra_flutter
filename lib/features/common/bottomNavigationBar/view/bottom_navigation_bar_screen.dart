@@ -261,9 +261,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   }
 
   void _getAllCategories() {
-    final authController = Get.find<AuthController>();
-    authController.getAllBusinessCategories();
-    authController.getAllIndividualProfession();
+    Get.find<AuthController>().loadCategoriesCacheFirstThenRefresh();
   }
 
   void _initializeControllers() {

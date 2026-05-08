@@ -292,6 +292,11 @@ class AppStrings {
   static const workingHours = "workingHours";
   static const noWorkingHoursAddedYet = "noWorkingHoursAddedYet";
   static const closedDay = "closedDay";
+  // Visitor-side professional profile additions (DiscoverProfessionalsViewScreen).
+  static const pricingAndEngagement = "pricingAndEngagement";
+  static const introductionVideo = "introductionVideo";
+  static const watchVideo = "watchVideo";
+  static const connectLabel = "connectLabel";
   static const monday = "monday";
   static const tuesday = "tuesday";
   static const wednesday = "wednesday";

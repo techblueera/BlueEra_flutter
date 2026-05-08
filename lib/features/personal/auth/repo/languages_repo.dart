@@ -7,7 +7,7 @@ class LanguageRepo extends BaseService {
 
     return await ApiBaseHelper().getHTTP(
       languages,params: {"languages":"en,hi"},
-      showProgress: true,
+      showProgress: false,
     );
   }
 

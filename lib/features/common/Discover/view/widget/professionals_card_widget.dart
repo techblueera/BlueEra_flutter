@@ -31,8 +31,7 @@ class ProfessionalsCardWidget extends StatelessWidget {
               ViewAllButton(
                 onTap: () {
                   Get.to(() => AllProfessionConsultantScreen(
-                    professionalConsultantCategories:
-                    Get.find<AuthController>().individualOnboardingConsultationList,
+                    professionalConsultantCategories: Get.find<AuthController>().individualOnboardingConsultationList,
                   ));
                 },
               ),

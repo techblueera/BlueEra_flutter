@@ -6,7 +6,6 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_selfpickup_consumer_controller.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_product_model.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
-import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -633,8 +632,14 @@ class _ProductRow extends StatelessWidget {
     final pricing = variant.pricing?.first;
     final sellingPrice = pricing?.sellingPrice ?? 0;
     final mrp = pricing?.mrp ?? 0;
+    final hasDiscount =
+        mrp > sellingPrice && mrp != 0 && sellingPrice != 0;
+    final discountPct = hasDiscount
+        ? (((mrp - sellingPrice) / mrp) * 100).round()
+        : 0;
+
     // Image source priority: variant.images → fallbackImage (parent
-    // product image stored on cartBusinessInfo) → placeholder.
+    // product image stored on cartProductImages) → placeholder.
     final variantImage =
         (variant.images != null && variant.images!.isNotEmpty)
             ? (variant.images!.first.url ?? '')
@@ -642,23 +647,47 @@ class _ProductRow extends StatelessWidget {
     final imageUrl =
         variantImage.isNotEmpty ? variantImage : fallbackImage;
 
-    return Container(
-      margin: const EdgeInsets.fromLTRB(10, 4, 10, 4),
-      padding: const EdgeInsets.fromLTRB(8, 10, 10, 10),
+    // Selection paints in three subtle layers — bg wash, border tint,
+    // and a soft primary-tinted shadow — instead of one loud accent.
+    // Animated together so the row breathes when toggled.
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 180),
+      curve: Curves.easeOut,
+      margin: const EdgeInsets.fromLTRB(10, 5, 10, 5),
+      padding: const EdgeInsets.fromLTRB(10, 10, 12, 10),
       decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(10),
+        // Why: alphaBlend onto white so the selection wash stays opaque
+        // — a transparent tint would let the pastel store card bleed
+        // through and muddy the row's whites.
+        color: isSelected
+            ? Color.alphaBlend(
+                AppColors.primaryColor.withValues(alpha: 0.04),
+                AppColors.white,
+              )
+            : AppColors.white,
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: isSelected
-              ? AppColors.primaryColor.withValues(alpha: 0.25)
+              ? AppColors.primaryColor.withValues(alpha: 0.35)
               : AppColors.greyE5,
           width: 0.6,
         ),
+        boxShadow: isSelected
+            ? [
+                BoxShadow(
+                  color: AppColors.primaryColor.withValues(alpha: 0.06),
+                  blurRadius: 10,
+                  offset: const Offset(0, 2),
+                ),
+              ]
+            : null,
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Checkbox
+          // Checkbox — same custom animated mark used elsewhere on
+          // the screen (kept the InkWell wrapper so only the 18×18
+          // hit zone toggles, matching the original tap behavior).
           InkWell(
             onTap: onToggle,
             borderRadius: BorderRadius.circular(4),
@@ -687,32 +716,56 @@ class _ProductRow extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(width: 8),
-          // Thumbnail
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: SizedBox(
-              width: SizeConfig.size50,
-              height: SizeConfig.size50,
-              child: imageUrl.isEmpty
-                  ? LocalAssets(
-                      imagePath: AppIconAssets.place_holder_image,
-                      boxFix: BoxFit.cover,
-                    )
-                  : CachedNetworkImage(
-                      imageUrl: imageUrl,
-                      fit: BoxFit.cover,
-                      placeholder: (_, __) =>
-                          Container(color: Colors.grey.shade200),
-                      errorWidget: (_, __, ___) => LocalAssets(
-                        imagePath: AppIconAssets.place_holder_image,
-                        boxFix: BoxFit.cover,
-                      ),
-                    ),
+          const SizedBox(width: 10),
+          // Thumbnail — soft framed box with its own gentle shadow so
+          // it reads as a small product tile rather than a flat crop.
+          // Fades to 55% opacity when unchecked: a glance tells you
+          // which items the order will skip.
+          AnimatedOpacity(
+            duration: const Duration(milliseconds: 200),
+            opacity: isSelected ? 1.0 : 0.55,
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: AppColors.greyE5, width: 0.6),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.black.withValues(alpha: 0.04),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: SizedBox(
+                  width: 54,
+                  height: 54,
+                  child: imageUrl.isEmpty
+                      ? LocalAssets(
+                          imagePath: AppIconAssets.place_holder_image,
+                          boxFix: BoxFit.cover,
+                        )
+                      : CachedNetworkImage(
+                          imageUrl: imageUrl,
+                          fit: BoxFit.cover,
+                          placeholder: (_, __) =>
+                              Container(color: Colors.grey.shade200),
+                          errorWidget: (_, __, ___) => LocalAssets(
+                            imagePath: AppIconAssets.place_holder_image,
+                            boxFix: BoxFit.cover,
+                          ),
+                        ),
+                ),
+              ),
             ),
           ),
-          const SizedBox(width: 10),
-          // Title + unit-price line
+          const SizedBox(width: 12),
+          // Title + meta. Two clean tiers: variant name (bumped to
+          // weight 700 for presence), then a "qty · ₹X/unit" caption
+          // separated by a typographic middle dot — replaces the
+          // 0.6×10 pixel divider, which read as a stray artifact at
+          // small sizes.
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -721,29 +774,31 @@ class _ProductRow extends StatelessWidget {
                 CustomText(
                   variant.variantName ?? '',
                   fontSize: SizeConfig.small,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.w700,
                   color: AppColors.mainTextColor,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 5),
                 Row(
                   children: [
-                    CustomText(
-                      '${variant.quantity ?? ''}',
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.secondaryTextColor,
-                    ),
+                    if ((variant.quantity ?? '').isNotEmpty)
+                      CustomText(
+                        '${variant.quantity}',
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.secondaryTextColor,
+                      ),
                     if ((variant.quantity ?? '').isNotEmpty &&
                         sellingPrice != 0) ...[
-                      const SizedBox(width: 4),
-                      Container(
-                        width: 0.6,
-                        height: 10,
+                      const SizedBox(width: 6),
+                      CustomText(
+                        '·',
+                        fontSize: 12,
+                        fontWeight: FontWeight.w900,
                         color: AppColors.greyCA,
                       ),
-                      const SizedBox(width: 4),
+                      const SizedBox(width: 6),
                     ],
                     if (sellingPrice != 0)
                       Flexible(
@@ -761,40 +816,59 @@ class _ProductRow extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(width: 8),
-          // Vertical dashed divider — separates product details (left)
-          // from the price + qty controls (right). Custom-painted so the
-          // dashes run cleanly down a 1-px column (DashedBorderContainer
-          // would draw dashes around the perimeter of the box, which
-          // looks fuzzy on something this thin).
-          const _VerticalDashedLine(height: 56),
-          const SizedBox(width: 8),
-          // Right column: price + qty stepper
+          const SizedBox(width: 10),
+          // Vertical dashed divider — kept as the screen's signature
+          // aesthetic. Slightly taller (60) so it spans the
+          // price → discount → stepper trio cleanly when a discount
+          // chip is present.
+          const _VerticalDashedLine(height: 60),
+          const SizedBox(width: 10),
+          // Right column: selling price (dominant), strikethrough MRP
+          // + lime "% off" chip below it (only when discounted), and
+          // the qty stepper at the bottom. The chip uses the same
+          // green family as the store card's discount ribbon so the
+          // savings story stays color-consistent across the screen.
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  CustomText(
-                    '₹$sellingPrice',
-                    fontSize: SizeConfig.medium,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.mainTextColor,
-                  ),
-                  if (mrp > sellingPrice && mrp != 0) ...[
-                    const SizedBox(width: 4),
+              CustomText(
+                '₹$sellingPrice',
+                fontSize: SizeConfig.medium,
+                fontWeight: FontWeight.w800,
+                color: AppColors.mainTextColor,
+              ),
+              if (hasDiscount) ...[
+                const SizedBox(height: 3),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
                     CustomText(
                       '₹$mrp',
-                      fontSize: 11,
+                      fontSize: 10,
                       fontWeight: FontWeight.w500,
                       color: AppColors.secondaryTextColor,
                       decoration: TextDecoration.lineThrough,
                       decorationColor: AppColors.secondaryTextColor,
                     ),
+                    const SizedBox(width: 5),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 5, vertical: 1),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE7F8E8),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: CustomText(
+                        '$discountPct% off',
+                        fontSize: 9,
+                        fontWeight: FontWeight.w800,
+                        color: const Color(0xFF1FB35A),
+                      ),
+                    ),
                   ],
-                ],
-              ),
+                ),
+              ],
               const SizedBox(height: 6),
               // Why: Obx so the quantity number repaints when add/remove
               // mutates controller.cartQuantities — without this the
@@ -829,53 +903,62 @@ class _QtyStepper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Mirrors the qty stepper inside the (now-removed) variants bottom
-    // sheet — outlined rounded box, no internal dividers, 30×30 tap
-    // targets with a 12px icon. Keeps the same look across the cart UI.
+    // Sized for in-row presence: 34×34 tap targets and 16-px icons
+    // with a weight-800 qty number. Light primary wash — no border,
+    // no shadow — so the stepper sits inside the row as a tinted
+    // control rather than a floating elevated box. The +/- glyphs
+    // render in primaryColor; the minus glyph flips to a red delete
+    // icon at qty 1 so the destructive transition is telegraphed
+    // before the confirm dialog opens.
     return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8.0),
-        color: AppColors.white,
-        border: Border.all(color: AppColors.greyE5),
-        boxShadow: [AppShadows.textFieldShadow],
+        borderRadius: BorderRadius.circular(10),
+        color: AppColors.primaryColor.withValues(alpha: 0.08),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Padding(
-            padding: const EdgeInsets.all(2.0),
-            child: InkWell(
-              onTap: onRemove,
-              borderRadius: BorderRadius.circular(20),
-              child: SizedBox(
-                width: 30,
-                height: 30,
-                child: Center(
-                  child: Icon(Icons.remove,
-                      color: AppColors.secondaryTextColor,
-                      size: SizeConfig.size12),
+          InkWell(
+            onTap: onRemove,
+            borderRadius: BorderRadius.circular(10),
+            child: SizedBox(
+              width: 34,
+              height: 34,
+              child: Center(
+                child: Icon(
+                  quantity == 1 ? Icons.delete_outline : Icons.remove,
+                  color: quantity == 1
+                      ? AppColors.red
+                      : AppColors.primaryColor,
+                  size: 16,
                 ),
               ),
             ),
           ),
-          CustomText(
-            '$quantity',
-            fontSize: SizeConfig.small,
-            fontWeight: FontWeight.w400,
-            color: AppColors.secondaryTextColor,
+          // Number lane — minWidth 22 so the stepper doesn't shimmy
+          // horizontally when the qty crosses 9 → 10 (single → double
+          // digit). Centered glyph keeps the layout symmetric.
+          Container(
+            constraints: const BoxConstraints(minWidth: 22),
+            alignment: Alignment.center,
+            child: CustomText(
+              '$quantity',
+              fontSize: SizeConfig.medium,
+              fontWeight: FontWeight.w800,
+              color: AppColors.mainTextColor,
+            ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(2.0),
-            child: InkWell(
-              onTap: onAdd,
-              borderRadius: BorderRadius.circular(20),
-              child: SizedBox(
-                width: 30,
-                height: 30,
-                child: Center(
-                  child: Icon(Icons.add,
-                      size: SizeConfig.size12,
-                      color: AppColors.secondaryTextColor),
+          InkWell(
+            onTap: onAdd,
+            borderRadius: BorderRadius.circular(10),
+            child: SizedBox(
+              width: 34,
+              height: 34,
+              child: Center(
+                child: Icon(
+                  Icons.add,
+                  size: 16,
+                  color: AppColors.primaryColor,
                 ),
               ),
             ),

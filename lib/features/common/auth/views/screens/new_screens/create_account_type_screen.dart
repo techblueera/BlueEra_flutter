@@ -58,8 +58,7 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen>
   @override
   void initState() {
     super.initState();
-    authController.getAllIndividualProfession();
-    authController.getAllBusinessCategories();
+    authController.loadCategoriesCacheFirstThenRefresh();
 
     _tabs = _buildTabs();
     _tabController = TabController(
@@ -132,11 +131,6 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen>
     }
   }
 
-  bool get _isBusinessTab {
-    final tab = _tabs[_tabController.index];
-    return tab == _AccountTab.business || tab == _AccountTab.manufacturing;
-  }
-
   @override
   Widget build(BuildContext context) {
     return PopScope(
@@ -162,12 +156,12 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen>
                   width: double.infinity,
                   color: const Color(0xFFE9EFF7),
                   child: Obx(() {
-                    if (_isBusinessTab &&
-                        authController.isAllBusinessCategoriesLoading.value) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
-                    if (!_isBusinessTab &&
-                        authController.isProfessionLoading.value) {
+                    // Single unified loading state — both master lists
+                    // hydrate together (cache-first, then silent API
+                    // refresh), so we no longer split the spinner check
+                    // by tab. While neither cache nor first API call
+                    // has populated the buckets, show a spinner.
+                    if (authController.isInitialCategoriesLoading.value) {
                       return const Center(child: CircularProgressIndicator());
                     }
                     // Touch the selection Rx so the body rebuilds when a

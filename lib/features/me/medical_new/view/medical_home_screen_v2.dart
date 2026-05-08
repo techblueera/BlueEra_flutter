@@ -19,7 +19,7 @@ import 'package:BlueEra/features/chat/auth/controller/chat_flag_controller.dart'
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/view/business_chat/business_chat_list.dart';
 import 'package:BlueEra/features/common/Discover/model/service_model_response.dart';
-import 'package:BlueEra/features/common/Discover/view/self_profession_screen_preview.dart';
+import 'package:BlueEra/features/common/Discover/view/self_employee_view_screen.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/business/widgets/business_verify_now_button.dart';
 import 'package:BlueEra/features/chat/view/add_symbol/add_symbol_screen.dart';
@@ -1871,7 +1871,7 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2> {
       ..category = profile?.typeOfBusiness
       ..serviceMedia = ServiceMedia(photos: galleryPhotos);
 
-    Get.to(() => SelfProfessionScreenPreview(
+    Get.to(() => SelfEmployeeViewScreen(
           service: service,
           timingMap: const {},
           priceDisplay: '',

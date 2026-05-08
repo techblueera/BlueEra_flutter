@@ -27,7 +27,7 @@ import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart'
 import 'package:BlueEra/features/chat/view/add_symbol/add_symbol_screen.dart';
 import 'package:BlueEra/features/chat/view/orders_chat/orders_chat_list.dart';
 import 'package:BlueEra/features/common/Discover/model/service_model_response.dart';
-import 'package:BlueEra/features/common/Discover/view/self_profession_screen_preview.dart';
+import 'package:BlueEra/features/common/Discover/view/self_employee_view_screen.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
@@ -2560,7 +2560,7 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
       ..category = details?.typeOfBusiness
       ..serviceMedia = ServiceMedia(photos: List<String>.from(livePhotos));
 
-    Get.to(() => SelfProfessionScreenPreview(
+    Get.to(() => SelfEmployeeViewScreen(
       service: service,
       timingMap: const {},
       priceDisplay: '',
