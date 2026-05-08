@@ -245,7 +245,7 @@ class _AllProfessionConsultantScreenState
 
     return InkWell(
       onTap: () {
-        Get.to(DiscoverProfessionalsViewScreen(
+        Get.to(()=> DiscoverProfessionalsViewScreen(
           professionalConsData: service,
         ));
       },

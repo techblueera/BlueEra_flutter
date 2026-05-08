@@ -684,9 +684,10 @@ class _PersonalProfileSetupNewScreenState
     }
 
     void initData() {
-      // Ensure professions are loaded
+      // Ensure professions are loaded — cache-first single entry point so
+      // we hit Hive before the network and don't bypass the cache layer.
       if (authController.professionTypeDataList.isEmpty) {
-        authController.getAllIndividualProfession().then((_) {
+        authController.loadCategoriesCacheFirstThenRefresh().then((_) {
           setState(() {
             updateCategoryOfProfession(_selectedProfileType.type);
           });

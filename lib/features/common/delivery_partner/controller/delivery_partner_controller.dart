@@ -323,106 +323,186 @@ class DeliveryPartnerController extends GetxController {
     }
   }
 
-  RxBool isPersonalInformationLoading = false.obs;
+  // RxBool isPersonalInformationLoading = false.obs;
+  //
+  // /// ridersOnboardingPersonalInformationApi (Step 1)
+  // Future<void> ridersOnboardingPersonalInformationApi(
+  //     {String? screenName}) async {
+  //   if (formKeyStep1.currentState!.validate()) {
+  //     try {
+  //       isPersonalInformationLoading.value = true;
+  //       Map<String, dynamic> params = {
+  //         ApiKeys.name: fullNameController.text,
+  //         ApiKeys.gender: selectedGender.value?.name,
+  //         ApiKeys.dob: '${selectedYear}-${selectedMonth}-${selectedDay}',
+  //         ApiKeys.contactNo: mobileNumberController.text
+  //       };
+  //       if(emailController.text.trim().isNotEmpty) params[ApiKeys.email] = emailController.text;
+  //
+  //       ResponseModel response =
+  //           await DeliveryPartnerRepo().ridersOnboardingPersonalInformationRepo(
+  //         params: params,
+  //       );
+  //
+  //       if (response.isSuccess) {
+  //         ridersOnboardingPersonalInformationResponse.value =
+  //             ApiResponse.complete(response);
+  //         if (screenName == 'from_tab_view') {
+  //           await ridersOnboardingStatusRepoApi();
+  //         } else {
+  //           Get.toNamed(RouteHelper.getAddressLocationRidingScreenRoute());
+  //         }
+  //       } else {
+  //         ridersOnboardingPersonalInformationResponse.value =
+  //             ApiResponse.error('error');
+  //         commonSnackBar(
+  //             message: response.message ?? AppStrings.somethingWentWrong);
+  //       }
+  //     } catch (e) {
+  //       ridersOnboardingPersonalInformationResponse.value =
+  //           ApiResponse.error('error');
+  //       commonSnackBar(message: AppStrings.somethingWentWrong);
+  //     } finally {
+  //       isPersonalInformationLoading.value = false;
+  //     }
+  //   }
+  // }
 
-  /// ridersOnboardingPersonalInformationApi (Step 1)
-  ///
-  /// When [screenName] is `'from_tab_view'` the screen is hosted inside
-  /// the rider/cab-partner dashboard tab — we must not push a new route.
-  /// Instead we just refresh the onboarding status so the parent `Obx`
-  /// can swap the tab body to the next incomplete step.
-  Future<void> ridersOnboardingPersonalInformationApi(
-      {String? screenName}) async {
-    if (formKeyStep1.currentState!.validate()) {
-      try {
-        isPersonalInformationLoading.value = true;
-        Map<String, dynamic> params = {
-          ApiKeys.name: fullNameController.text,
-          ApiKeys.gender: selectedGender.value?.name,
-          ApiKeys.dob: '${selectedYear}-${selectedMonth}-${selectedDay}',
-          ApiKeys.contactNo: mobileNumberController.text
-        };
-        if(emailController.text.trim().isNotEmpty) params[ApiKeys.email] = emailController.text;
-
-        ResponseModel response =
-            await DeliveryPartnerRepo().ridersOnboardingPersonalInformationRepo(
-          params: params,
-        );
-
-        if (response.isSuccess) {
-          ridersOnboardingPersonalInformationResponse.value =
-              ApiResponse.complete(response);
-          if (screenName == 'from_tab_view') {
-            await ridersOnboardingStatusRepoApi();
-          } else {
-            Get.toNamed(RouteHelper.getAddressLocationRidingScreenRoute());
-          }
-        } else {
-          ridersOnboardingPersonalInformationResponse.value =
-              ApiResponse.error('error');
-          commonSnackBar(
-              message: response.message ?? AppStrings.somethingWentWrong);
-        }
-      } catch (e) {
-        ridersOnboardingPersonalInformationResponse.value =
-            ApiResponse.error('error');
-        commonSnackBar(message: AppStrings.somethingWentWrong);
-      } finally {
-        isPersonalInformationLoading.value = false;
-      }
-    }
-  }
-
-  RxBool isRidersAddressLoading = false.obs;
-
-  /// ridersOnboardingPersonalInformationApi (Step 2)
-  ///
-  /// See [ridersOnboardingPersonalInformationApi] — the same tab-view
-  /// guard applies here so completing the address form inside the
-  /// dashboard tab refreshes status instead of pushing a new route.
-  Future<void> ridersOnboardingAddressApi({String? screenName}) async {
-    if (formKeyStep2.currentState!.validate()) {
-      try {
-        isRidersAddressLoading.value = true;
-        Map<String, dynamic> params = {
-          ApiKeys.homeLocation: {
-            ApiKeys.latitude: latitude,
-            ApiKeys.longitude: longitude
-          },
-          ApiKeys.streetAddress: locationController.text,
-          ApiKeys.landmark: landmarkController.text,
-          ApiKeys.pincode: pinCodeController.text,
-          ApiKeys.city: cityController.text,
-          ApiKeys.state: stateController.text,
-          ApiKeys.locationPermission: enabledLiveLocation.value,
-        };
-
-        ResponseModel response =
-            await DeliveryPartnerRepo().ridersOnboardingAddressRepo(
-          params: params,
-        );
-
-        if (response.isSuccess) {
-          ridersOnboardingAddressResponse.value =
-              ApiResponse.complete(response);
-          if (screenName == 'from_tab_view') {
-            await ridersOnboardingStatusRepoApi();
-          } else {
-            Get.toNamed(RouteHelper.getVehicleInformationRidingScreenRoute());
-          }
-        } else {
-          ridersOnboardingAddressResponse.value = ApiResponse.error('error');
-          commonSnackBar(
-              message: response.message ?? AppStrings.somethingWentWrong);
-        }
-      } catch (e) {
-        ridersOnboardingAddressResponse.value = ApiResponse.error('error');
-        commonSnackBar(message: AppStrings.somethingWentWrong);
-      } finally {
-        isRidersAddressLoading.value = false;
-      }
-    }
-  }
+  // RxBool isRidersAddressLoading = false.obs;
+  //
+  // /// ridersOnboardingPersonalInformationApi (Step 2)
+  // Future<void> ridersOnboardingAddressApi({String? screenName}) async {
+  //   if (formKeyStep2.currentState!.validate()) {
+  //     try {
+  //       isRidersAddressLoading.value = true;
+  //       Map<String, dynamic> params = {
+  //         ApiKeys.homeLocation: {
+  //           ApiKeys.latitude: latitude,
+  //           ApiKeys.longitude: longitude
+  //         },
+  //         ApiKeys.streetAddress: locationController.text,
+  //         ApiKeys.landmark: landmarkController.text,
+  //         ApiKeys.pincode: pinCodeController.text,
+  //         ApiKeys.city: cityController.text,
+  //         ApiKeys.state: stateController.text,
+  //         ApiKeys.locationPermission: enabledLiveLocation.value,
+  //       };
+  //
+  //       ResponseModel response =
+  //           await DeliveryPartnerRepo().ridersOnboardingAddressRepo(
+  //         params: params,
+  //       );
+  //
+  //       if (response.isSuccess) {
+  //         ridersOnboardingAddressResponse.value =
+  //             ApiResponse.complete(response);
+  //         if (screenName == 'from_tab_view') {
+  //           await ridersOnboardingStatusRepoApi();
+  //         } else {
+  //           Get.toNamed(RouteHelper.getVehicleInformationRidingScreenRoute());
+  //         }
+  //       } else {
+  //         ridersOnboardingAddressResponse.value = ApiResponse.error('error');
+  //         commonSnackBar(
+  //             message: response.message ?? AppStrings.somethingWentWrong);
+  //       }
+  //     } catch (e) {
+  //       ridersOnboardingAddressResponse.value = ApiResponse.error('error');
+  //       commonSnackBar(message: AppStrings.somethingWentWrong);
+  //     } finally {
+  //       isRidersAddressLoading.value = false;
+  //     }
+  //   }
+  // }
+  //
+  //
+  // /// ridersOnboardingPersonalInformationApi (Step 3)
+  // Future<void> ridersOnboardingPersonalIdentificationApi() async {
+  //   if (formKeyStep3.currentState!.validate()) {
+  //     // ---------- 1️⃣ VALIDATION ----------
+  //     if (livePhoto.isEmpty) {
+  //       commonSnackBar(message: AppStrings.pleaseSelectYourPhoto.tr);
+  //       return;
+  //     }
+  //     if (aadharFrontImage.value == null) {
+  //       commonSnackBar(message: AppStrings.pleaseSelectAadharFrontImage.tr);
+  //       return;
+  //     }
+  //     if (aadharBackImage.value == null) {
+  //       commonSnackBar(message: AppStrings.pleaseSelectAadharBackImage.tr);
+  //       return;
+  //     }
+  //     if (panCardImage.value == null) {
+  //       commonSnackBar(message: AppStrings.pleaseSelectPanCardImage.tr);
+  //       return;
+  //     }
+  //
+  //     try {
+  //       isRiderPersonalIdentificationLoading.value = true;
+  //
+  //       // ---------- 2️⃣ INITIALIZE ----------
+  //       List<String> userPictureUrls = [];
+  //       String? aadharFrontImageUrl;
+  //       String? aadharBackImageUrl;
+  //       String? panCardImageUrl;
+  //
+  //       // ---------- 3️⃣ UPLOAD LIVE PHOTOS ----------
+  //       for (final photo in livePhoto) {
+  //         final fileUrl = await _uploadToS3(photo);
+  //         if (fileUrl != null && fileUrl.isNotEmpty) {
+  //           userPictureUrls.add(fileUrl);
+  //         }
+  //       }
+  //
+  //       // ---------- 4️⃣ UPLOAD AADHAR FRONT ----------
+  //       aadharFrontImageUrl = await _uploadToS3(aadharFrontImage.value!);
+  //
+  //       // ---------- 5️⃣ UPLOAD AADHAR BACK ----------
+  //       aadharBackImageUrl = await _uploadToS3(aadharBackImage.value!);
+  //
+  //       // ---------- 6️⃣ UPLOAD PAN CARD ----------
+  //       panCardImageUrl = await _uploadToS3(panCardImage.value!);
+  //
+  //       // ---------- 7️⃣ PREPARE PAYLOAD ----------
+  //       final params = {
+  //         ApiKeys.aadharNo: aadharController.text,
+  //         ApiKeys.panNo: panNumberController.text,
+  //         ApiKeys.userPicture: userPictureUrls,
+  //         ApiKeys.aadharImages: {
+  //           ApiKeys.front: aadharFrontImageUrl,
+  //           ApiKeys.back: aadharBackImageUrl,
+  //         },
+  //         ApiKeys.panImages: {
+  //           ApiKeys.front: panCardImageUrl,
+  //         },
+  //       };
+  //
+  //       // ---------- 8️⃣ API CALL ----------
+  //       final response = await DeliveryPartnerRepo()
+  //           .ridersOnboardingPersonalIdentificationRepo(params: params);
+  //
+  //       // ---------- 9️⃣ HANDLE RESPONSE ----------
+  //       if (response.isSuccess) {
+  //         ridersOnboardingPersonalIdentificationResponse.value =
+  //             ApiResponse.complete(response);
+  //         Get.toNamed(RouteHelper.getDrivingVerificationRidingScreenRoute());
+  //       } else {
+  //         ridersOnboardingPersonalIdentificationResponse.value =
+  //             ApiResponse.error('error');
+  //         commonSnackBar(
+  //           message: response.message ?? AppStrings.somethingWentWrong,
+  //         );
+  //       }
+  //     } catch (e, s) {
+  //       debugPrint('❌ ridersOnboardingPersonalIdentificationApi error: $e\n$s');
+  //       ridersOnboardingPersonalIdentificationResponse.value =
+  //           ApiResponse.error('error');
+  //       commonSnackBar(message: AppStrings.somethingWentWrong);
+  //     } finally {
+  //       isRiderPersonalIdentificationLoading.value = false;
+  //     }
+  //   }
+  // }
 
   /// ridersOnboardingPersonalInformationApi (Step 6)
   Future<void> ridersOnboardingVehicleInformationApi(String screenName) async {
@@ -497,94 +577,6 @@ class DeliveryPartnerController extends GetxController {
   }
 
   RxBool isRiderPersonalIdentificationLoading = false.obs;
-
-  /// ridersOnboardingPersonalInformationApi (Step 3)
-  Future<void> ridersOnboardingPersonalIdentificationApi() async {
-    if (formKeyStep3.currentState!.validate()) {
-      // ---------- 1️⃣ VALIDATION ----------
-      if (livePhoto.isEmpty) {
-        commonSnackBar(message: AppStrings.pleaseSelectYourPhoto.tr);
-        return;
-      }
-      if (aadharFrontImage.value == null) {
-        commonSnackBar(message: AppStrings.pleaseSelectAadharFrontImage.tr);
-        return;
-      }
-      if (aadharBackImage.value == null) {
-        commonSnackBar(message: AppStrings.pleaseSelectAadharBackImage.tr);
-        return;
-      }
-      if (panCardImage.value == null) {
-        commonSnackBar(message: AppStrings.pleaseSelectPanCardImage.tr);
-        return;
-      }
-
-      try {
-        isRiderPersonalIdentificationLoading.value = true;
-
-        // ---------- 2️⃣ INITIALIZE ----------
-        List<String> userPictureUrls = [];
-        String? aadharFrontImageUrl;
-        String? aadharBackImageUrl;
-        String? panCardImageUrl;
-
-        // ---------- 3️⃣ UPLOAD LIVE PHOTOS ----------
-        for (final photo in livePhoto) {
-          final fileUrl = await _uploadToS3(photo);
-          if (fileUrl != null && fileUrl.isNotEmpty) {
-            userPictureUrls.add(fileUrl);
-          }
-        }
-
-        // ---------- 4️⃣ UPLOAD AADHAR FRONT ----------
-        aadharFrontImageUrl = await _uploadToS3(aadharFrontImage.value!);
-
-        // ---------- 5️⃣ UPLOAD AADHAR BACK ----------
-        aadharBackImageUrl = await _uploadToS3(aadharBackImage.value!);
-
-        // ---------- 6️⃣ UPLOAD PAN CARD ----------
-        panCardImageUrl = await _uploadToS3(panCardImage.value!);
-
-        // ---------- 7️⃣ PREPARE PAYLOAD ----------
-        final params = {
-          ApiKeys.aadharNo: aadharController.text,
-          ApiKeys.panNo: panNumberController.text,
-          ApiKeys.userPicture: userPictureUrls,
-          ApiKeys.aadharImages: {
-            ApiKeys.front: aadharFrontImageUrl,
-            ApiKeys.back: aadharBackImageUrl,
-          },
-          ApiKeys.panImages: {
-            ApiKeys.front: panCardImageUrl,
-          },
-        };
-
-        // ---------- 8️⃣ API CALL ----------
-        final response = await DeliveryPartnerRepo()
-            .ridersOnboardingPersonalIdentificationRepo(params: params);
-
-        // ---------- 9️⃣ HANDLE RESPONSE ----------
-        if (response.isSuccess) {
-          ridersOnboardingPersonalIdentificationResponse.value =
-              ApiResponse.complete(response);
-          Get.toNamed(RouteHelper.getDrivingVerificationRidingScreenRoute());
-        } else {
-          ridersOnboardingPersonalIdentificationResponse.value =
-              ApiResponse.error('error');
-          commonSnackBar(
-            message: response.message ?? AppStrings.somethingWentWrong,
-          );
-        }
-      } catch (e, s) {
-        debugPrint('❌ ridersOnboardingPersonalIdentificationApi error: $e\n$s');
-        ridersOnboardingPersonalIdentificationResponse.value =
-            ApiResponse.error('error');
-        commonSnackBar(message: AppStrings.somethingWentWrong);
-      } finally {
-        isRiderPersonalIdentificationLoading.value = false;
-      }
-    }
-  }
 
   Future<void> ridersPanCardApi() async {
     // ---------- 1️⃣ VALIDATION ----------

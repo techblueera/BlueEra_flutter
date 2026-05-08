@@ -7,7 +7,6 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/food/controller/food_selfpickup_controller.dart';
 import 'package:BlueEra/features/me/food/model/category_food_product_res_model.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
-import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -831,53 +830,62 @@ class _QtyStepper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Mirrors the qty stepper used in the grocery cart — outlined
-    // rounded box, no internal dividers, 30×30 tap targets with a
-    // 12-px icon. Keeps the look identical across the cart UIs.
+    // Sized for in-row presence: 34×34 tap targets and 16-px icons
+    // with a weight-800 qty number. Light primary wash — no border,
+    // no shadow — so the stepper sits inside the row as a tinted
+    // control rather than a floating elevated box. The +/- glyphs
+    // render in primaryColor; the minus glyph flips to a red delete
+    // icon at qty 1 so the destructive transition is telegraphed
+    // before the confirm dialog opens. Same control vocabulary as
+    // the grocery + product carts.
     return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8.0),
-        color: AppColors.white,
-        border: Border.all(color: AppColors.greyE5),
-        boxShadow: [AppShadows.textFieldShadow],
+        borderRadius: BorderRadius.circular(10),
+        color: AppColors.primaryColor.withValues(alpha: 0.08),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Padding(
-            padding: const EdgeInsets.all(2.0),
-            child: InkWell(
-              onTap: onRemove,
-              borderRadius: BorderRadius.circular(20),
-              child: SizedBox(
-                width: 30,
-                height: 30,
-                child: Center(
-                  child: Icon(Icons.remove,
-                      color: AppColors.secondaryTextColor,
-                      size: SizeConfig.size12),
+          InkWell(
+            onTap: onRemove,
+            borderRadius: BorderRadius.circular(10),
+            child: SizedBox(
+              width: 34,
+              height: 34,
+              child: Center(
+                child: Icon(
+                  quantity == 1 ? Icons.delete_outline : Icons.remove,
+                  color: quantity == 1
+                      ? AppColors.red
+                      : AppColors.primaryColor,
+                  size: 16,
                 ),
               ),
             ),
           ),
-          CustomText(
-            '$quantity',
-            fontSize: SizeConfig.small,
-            fontWeight: FontWeight.w400,
-            color: AppColors.secondaryTextColor,
+          // Number lane — minWidth 22 keeps the stepper from
+          // shimmying when qty crosses 9 → 10 (single → double digit).
+          Container(
+            constraints: const BoxConstraints(minWidth: 22),
+            alignment: Alignment.center,
+            child: CustomText(
+              '$quantity',
+              fontSize: SizeConfig.medium,
+              fontWeight: FontWeight.w800,
+              color: AppColors.mainTextColor,
+            ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(2.0),
-            child: InkWell(
-              onTap: onAdd,
-              borderRadius: BorderRadius.circular(20),
-              child: SizedBox(
-                width: 30,
-                height: 30,
-                child: Center(
-                  child: Icon(Icons.add,
-                      size: SizeConfig.size12,
-                      color: AppColors.secondaryTextColor),
+          InkWell(
+            onTap: onAdd,
+            borderRadius: BorderRadius.circular(10),
+            child: SizedBox(
+              width: 34,
+              height: 34,
+              child: Center(
+                child: Icon(
+                  Icons.add,
+                  size: 16,
+                  color: AppColors.primaryColor,
                 ),
               ),
             ),

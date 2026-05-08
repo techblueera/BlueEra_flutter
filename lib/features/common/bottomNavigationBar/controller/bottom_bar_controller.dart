@@ -1,9 +1,11 @@
 import 'dart:developer';
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
 import 'package:BlueEra/features/common/reel/widget/auto_video_playback_manager.dart';
+import 'package:BlueEra/features/personal/personal_profile/controller/languge_list_controller.dart';
 import 'package:get/get.dart';
 
 import '../../auth/model/adminvideo_model.dart';
@@ -41,8 +43,14 @@ List<CategoryData> businessCategoriesList = [];
     try {
       adminVideoLoading.value = true;
 
+      final langCode = Get.isRegistered<LanguageListController>()
+          ? Get.find<LanguageListController>().selectedCode.value
+          : 'en';
+
       final res = await ChannelRepo().fetchAllAdminVideoRepo(
-        queryParams: {},
+        queryParams: {
+          ApiKeys.language: langCode.isEmpty ? 'en' : langCode,
+        },
       );
 
       if (res.isSuccess) {

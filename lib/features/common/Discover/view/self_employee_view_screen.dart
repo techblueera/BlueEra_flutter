@@ -20,7 +20,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 // ─── SelfProfessionScreenPreview ───
-class SelfProfessionScreenPreview extends StatelessWidget {
+class SelfEmployeeViewScreen extends StatelessWidget {
   final ServiceData service;
   final Map<String, String> timingMap;
   final String priceDisplay;
@@ -28,7 +28,7 @@ class SelfProfessionScreenPreview extends StatelessWidget {
   final Color priceBadgeColor;
   final bool isSelfPreview;
 
-  const SelfProfessionScreenPreview({
+  const SelfEmployeeViewScreen({
     super.key,
     required this.service,
     required this.timingMap,

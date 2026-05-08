@@ -1,6 +1,4 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
@@ -11,14 +9,11 @@ import 'package:BlueEra/features/me/product/model/get_product_model.dart';
 import 'package:BlueEra/features/me/product/model/product_category_with_inventory_model.dart';
 import 'package:BlueEra/features/me/product/model/product_nested_category_response.dart';
 import 'package:BlueEra/features/me/product/view/widget/product_self_pickup_cart.dart';
+import 'package:BlueEra/features/me/product/widget/product_top_selling_tile.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
-import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
-import 'package:BlueEra/widgets/local_assets.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 
 /// Category → sub-category → products listing for the product visit flow.
@@ -272,16 +267,29 @@ class _VisitProductProductsScreenState
         slivers: [
           SliverPadding(
             padding: EdgeInsets.zero,
-            sliver: SliverMasonryGrid.count(
-              crossAxisCount: 2,
-              mainAxisSpacing: 10,
-              crossAxisSpacing: 10,
-              childCount: items.length,
-              itemBuilder: (context, index) => _ProductGridTile(
-                product: items[index],
-                cartController: cartController,
-                onToggleCart: _onToggleCart,
-                firstVariantId: _firstVariantId,
+            // Why: a uniform SliverGrid (was SliverMasonryGrid) so
+            // every tile claims the same cell height — masonry let
+            // 1-line vs 2-line product names produce ragged rows.
+            // The 0.62 ratio matches the proportions of the
+            // top-selling product cards on the store-details screen so
+            // this grid and that preview present products with
+            // consistent dimensions.
+            sliver: SliverGrid(
+              gridDelegate:
+                  const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                mainAxisSpacing: 10,
+                crossAxisSpacing: 10,
+                childAspectRatio: 0.62,
+              ),
+              delegate: SliverChildBuilderDelegate(
+                (context, index) => _ProductGridTile(
+                  product: items[index],
+                  cartController: cartController,
+                  onToggleCart: _onToggleCart,
+                  firstVariantId: _firstVariantId,
+                ),
+                childCount: items.length,
               ),
             ),
           ),
@@ -318,119 +326,57 @@ class _ProductGridTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final details = product.product.details;
-    final variants = product.product.sellerClassification?.variants ?? [];
-    final img = (details?.media.isNotEmpty ?? false) ? details!.media.first : '';
-    final sellingPrice = variants.isNotEmpty ? variants.first.sellingPrice : null;
-    final mrp = variants.isNotEmpty ? variants.first.mrp : null;
-
+    // Mirrors the top-selling carousel card on
+    // visit_product_store_details_screen — same ProductTopSellingImage
+    // for the thumbnail + cart overlay, same ProductTopSellingInfoSection
+    // for the title + price block — so the entry point and the
+    // category grid present products with identical visuals.
     return Container(
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.greyE5),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Stack(
-            children: [
-              ClipRRect(
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(10),
-                  topRight: Radius.circular(10),
-                ),
-                child: AspectRatio(
-                  aspectRatio: 1.05,
-                  child: img.isNotEmpty
-                      ? CachedNetworkImage(
-                          imageUrl: img,
-                          fit: BoxFit.cover,
-                          placeholder: (_, __) =>
-                              Container(color: Colors.grey.shade200),
-                          errorWidget: (_, __, ___) => LocalAssets(
-                            imagePath: AppIconAssets.place_holder_image,
-                            boxFix: BoxFit.cover,
-                          ),
-                        )
-                      : LocalAssets(
-                          imagePath: AppIconAssets.place_holder_image,
-                          boxFix: BoxFit.cover,
-                        ),
-                ),
-              ),
-              Positioned(
-                top: 0,
-                right: 0,
-                child: Obx(() {
-                  // Subscribe to cart list — this forces a rebuild on
-                  // every add/remove so the toggle affordance stays in
-                  // sync with the cart bar.
-                  final cart = cartController.selectedProductVariants;
-                  // ignore: unused_local_variable
-                  final _ = cart.length;
-                  final id = firstVariantId(product);
-                  final added = cartController.isVariantInCart(id);
-                  return IconButton(
-                    padding: EdgeInsets.zero,
-                    constraints:
-                        const BoxConstraints(minWidth: 28, minHeight: 28),
-                    onPressed: id == null ? null : () => onToggleCart(product),
-                    icon: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        color:
-                            added ? AppColors.greenShade : AppColors.blackMite,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Icon(
-                        added ? Icons.check : Icons.add,
-                        size: SizeConfig.size16,
-                        color: AppColors.white,
-                      ),
+          SizedBox(height: SizeConfig.size4),
+          Expanded(
+            child: ProductTopSellingImage(
+              product: product,
+              cartOverlay: Obx(() {
+                // Subscribe to cart list — forces a rebuild on every
+                // add/remove so the toggle affordance stays in sync
+                // with the cart bar.
+                final cart = cartController.selectedProductVariants;
+                // ignore: unused_local_variable
+                final _ = cart.length;
+                final id = firstVariantId(product);
+                final added = cartController.isVariantInCart(id);
+                return IconButton(
+                  padding: EdgeInsets.zero,
+                  constraints:
+                      const BoxConstraints(minWidth: 28, minHeight: 28),
+                  onPressed:
+                      id == null ? null : () => onToggleCart(product),
+                  icon: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: added
+                          ? AppColors.greenShade
+                          : AppColors.blackMite,
+                      borderRadius: BorderRadius.circular(20),
                     ),
-                  );
-                }),
-              ),
-            ],
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                CustomText(
-                  details?.name ?? '',
-                  fontSize: SizeConfig.small,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.mainTextColor,
-                ),
-                SizedBox(height: SizeConfig.size4),
-                Row(
-                  children: [
-                    CustomText(
-                      '${AppConstants.rupeeSymbol}${sellingPrice ?? 0}',
-                      fontSize: SizeConfig.medium,
-                      fontWeight: FontWeight.w700,
+                    child: Icon(
+                      added ? Icons.check : Icons.add,
+                      size: SizeConfig.size16,
+                      color: AppColors.white,
                     ),
-                    if (mrp != null && sellingPrice != null && mrp > sellingPrice) ...[
-                      const SizedBox(width: 6),
-                      CustomText(
-                        '${AppConstants.rupeeSymbol}$mrp',
-                        fontSize: 11,
-                        color: AppColors.secondaryTextColor,
-                        decoration: TextDecoration.lineThrough,
-                        decorationColor: AppColors.secondaryTextColor,
-                      ),
-                    ],
-                  ],
-                ),
-              ],
+                  ),
+                );
+              }),
             ),
           ),
+          ProductTopSellingInfoSection(product: product),
         ],
       ),
     );

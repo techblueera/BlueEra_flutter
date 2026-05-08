@@ -36,6 +36,7 @@ import 'package:BlueEra/features/personal/personal_profile/controller/perosonal_
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/choose_earn_service_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_dashboard_view.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/earn_service_profile_selector.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/rental/widget/rental_tab_body.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/controller/earn_service_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/controller/self_work_service_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/edit_profile_bottom_sheet.dart';
@@ -81,7 +82,14 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
   int _selectedTab = 1; // default to Overview
   bool _showStickyTabs = false;
 
-  static const _tabs = ['Order', 'Overview', 'Service', 'Post', 'Statics'];
+  static const _tabs = [
+    'Order',
+    'Overview',
+    'Service',
+    'Rental',
+    'Post',
+    'Statics',
+  ];
 
   // Drives the inquiry list shown under the Order tab — same controller
   // the Connect screen uses, so socket-driven updates land on both.
@@ -583,7 +591,7 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
 
   // ─────────────────────────────────────────────
   // TAB CONTENT — switches body by _selectedTab.
-  //   0 Order, 1 Overview, 2 Service, 3 Post, 4 Statics
+  //   0 Order, 1 Overview, 2 Service, 3 Rental, 4 Post, 5 Statics
   // ─────────────────────────────────────────────
   List<Widget> _buildTabContent() {
     switch (_selectedTab) {
@@ -594,12 +602,22 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
       case 2:
         return _buildServiceTab();
       case 3:
-        return _buildPostTab();
+        return _buildRentalTab();
       case 4:
+        return _buildPostTab();
+      case 5:
         return _buildStaticsTab();
       default:
         return const [SizedBox.shrink()];
     }
+  }
+
+  // Rental tab — delegated to the shared [RentalTabBody]. Same
+  // RentalController instance is used across every dashboard that
+  // mounts this widget plus RentalServiceScreen, so add / delete /
+  // type-filter mirror across surfaces for free.
+  List<Widget> _buildRentalTab() {
+    return const [RentalTabBody()];
   }
 
   // ─────────────────────────────────────────────

@@ -27,7 +27,13 @@ class _ConsultingServiceGuideBottomSheetState extends State<ConsultingServiceGui
 
   @override
   void initState() {
-    authController.getAllProfessionController();
+    // Single cache-first entry point — populates
+    // `individualOnboardingConsultationList` (the bucket this sheet reads
+    // at line ~96) via the bucketing fan-out, and writes the master list
+    // back to Hive for the next launch. Calling this here is defensive in
+    // case the sheet is opened before bottom-nav has had a chance to fire
+    // it (the cache read is synchronous, so there's no flicker).
+    authController.loadCategoriesCacheFirstThenRefresh();
     super.initState();
   }
 

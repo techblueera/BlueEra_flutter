@@ -2974,6 +2974,12 @@ final List<OnboardingCategoryModel> stayHomeItemsCategories = [
       accountType: AppConstants.individual
   ),
   OnboardingCategoryModel(
+      name: 'Vehicle Rent',
+      slugId: AppConstants.vehicle,
+      icon: AppImageAssets.transportVehicle,
+      accountType: AppConstants.individual
+  ),
+  OnboardingCategoryModel(
       name: 'Other Rental',
       slugId: AppConstants.property,
       icon: AppImageAssets.homeStay,

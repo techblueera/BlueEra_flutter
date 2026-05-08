@@ -21,6 +21,22 @@ class PersonalCreateProfileController extends GetxController {
     Rx<String?> selectedSubProfession = Rx<String?>(null);
   Rx<ProfessionTypeData?> selectedProfessionObj = Rx<ProfessionTypeData?>(null);
   Rx<SubcategoriesFiledName?> selectedSubProfessionObj = Rx<SubcategoriesFiledName?>(null);
+
+  /// Sub-category filed-names that hang off the currently selected
+  /// profession. Owned here (not on AuthController) because the only
+  /// consumers are profession dialogs in this profile-edit flow — they
+  /// drive the secondary "select work type / art skill" dropdowns.
+  /// Mutated via `clearSubCategoryData()` and direct `addAll(...)` from
+  /// the dropdown's `onChanged` callbacks.
+  List<SubcategoriesFiledName> subcategoriesFiledNameList = [];
+
+  /// Clear and ping GetBuilder consumers. Plain `List` (not `RxList`) so
+  /// `Obx` won't auto-rebuild on its own — the dialogs that read it call
+  /// `setState` after each pick, which keeps things in sync.
+  void clearSubCategoryData() {
+    subcategoriesFiledNameList.clear();
+    update();
+  }
   // Rx<ProfessionType?> selectedProfession = Rx<ProfessionType?>(null);
   // Rx<SelfEmploymentType?> selectedSelfEmployment =
   //     Rx<SelfEmploymentType?>(null);

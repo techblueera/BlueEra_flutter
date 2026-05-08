@@ -27,6 +27,7 @@ import 'package:BlueEra/features/me/social/controller/social_home_controller.dar
 import 'package:BlueEra/features/me/social/view/social_home_screen.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/rental/widget/rental_tab_body.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/edit_profile_bottom_sheet.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/profile_designation_bottom_sheet.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
@@ -63,9 +64,12 @@ class _SocialMainScreenState extends State<SocialMainScreen>
   void initState() {
     super.initState();
     _lastHasWebsite = _hasWebsite;
-    // Tabs: Post · Profile · [Website?] · Statistics
+    // Tabs: Post · Profile · Rental · [Website?] · Statistics
+    // Rental sits after Profile so the identity-then-content
+    // rhythm matches the other dashboards (self-employee /
+    // professionals / rider / cab) that surface RentalTabBody.
     _tabController = TabController(
-      length: _lastHasWebsite ? 4 : 3,
+      length: _lastHasWebsite ? 5 : 4,
       vsync: this,
     );
     _viewCtrl.UserFollowersAndPostsCount(userId);
@@ -86,7 +90,7 @@ class _SocialMainScreenState extends State<SocialMainScreen>
       _lastHasWebsite = current;
       final oldIndex = _tabController?.index ?? 0;
       _tabController?.dispose();
-      final newLength = current ? 4 : 3;
+      final newLength = current ? 5 : 4;
       _tabController = TabController(
         length: newLength,
         vsync: this,
@@ -152,6 +156,7 @@ class _SocialMainScreenState extends State<SocialMainScreen>
                   tabs: [
                     const Tab(text: 'Post'),
                     const Tab(text: 'Profile'),
+                    const Tab(text: 'Rental'),
                     if (_lastHasWebsite)
                       Tab(text: AppStrings.website.tr),
                     Tab(text: AppStrings.statistics.tr),
@@ -169,6 +174,17 @@ class _SocialMainScreenState extends State<SocialMainScreen>
                 id: userId,
               ),
               SocialHomeScreen(),
+              // Rental tab — wrapped in a SingleChildScrollView so
+              // the body's MasonryGridView shrink-wraps inside the
+              // TabBarView's bounded height (no nested unbounded
+              // height assertion). Other dashboards mount this
+              // widget inside a CustomScrollView/Column flow, so
+              // the TabBarView host needs its own scroll axis.
+              SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: EdgeInsets.only(top: SizeConfig.size12),
+                child: const RentalTabBody(),
+              ),
               if (_lastHasWebsite)
                 CommonWebView(
                   urlLink: _websiteUrl,

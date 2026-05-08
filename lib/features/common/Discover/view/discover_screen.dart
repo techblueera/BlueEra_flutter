@@ -5,11 +5,13 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/core/constants/shimmer_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
+import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/Discover/view/discover_banner_slider.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/automotive_service_card_widget.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/book_home_service_widget.dart';
@@ -74,7 +76,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
       (widget: ShoppingCardWidget(), tabs: {3}),
       (widget: HomeMadeProductWidget(), tabs: {3}),
       (widget: FindServiceCardWidget(), tabs: {4}),
-      (widget: ResponsiveRentalCard(), tabs: {4}),
+      (widget: RentalCardWidget(), tabs: {4}),
       (widget: HotelStayServiceCard(isShowInGrid: inGrid), tabs: {1}),
       (widget: AutomotiveServiceCardWidget(), tabs: {4}),
       (widget: FinancialSectors(isShowInGrid: inGrid), tabs: {4}),
@@ -83,16 +85,44 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
     ];
   }
 
-  List<Widget> _buildSectionSlivers() {
+  /// Real Discover sections, stacked vertically inside a single sliver.
+  /// Gated by [_buildSectionsSliver] on the AuthController's loading flag
+  /// — when categories aren't ready yet we render shimmer placeholders of
+  /// the same shape instead.
+  Widget _buildSectionsColumn() {
     final visible = _sections
         .where((s) => _activeTabIndex == 0 || s.tabs.contains(_activeTabIndex))
         .toList();
-    final result = <Widget>[];
-    for (final s in visible) {
-      result.add(_sliverCard(child: s.widget));
-      result.add(_sliverGap());
-    }
-    return result;
+    return Column(
+      children: [
+        for (final s in visible) ...[
+          Container(
+            decoration: const BoxDecoration(color: AppColors.white),
+            child: s.widget,
+          ),
+          SizedBox(height: SizeConfig.paddingXSL),
+        ],
+      ],
+    );
+  }
+
+  /// Single sliver that swaps between shimmer and the real section column.
+  ///
+  /// We collapse what used to be N alternating SliverToBoxAdapter+gap
+  /// slivers into one because the loading state is reactive — wrapping a
+  /// list of slivers in `Obx` isn't possible (Obx returns a single
+  /// widget). The visual layout is identical: each section card still
+  /// renders inside a white container with the same vertical gap below.
+  Widget _buildSectionsSliver() {
+    return SliverToBoxAdapter(
+      child: Obx(() {
+        final auth = Get.find<AuthController>();
+        if (auth.isInitialCategoriesLoading.value) {
+          return const _DiscoverSectionsShimmer();
+        }
+        return _buildSectionsColumn();
+      }),
+    );
   }
 
   @override
@@ -224,7 +254,10 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                   _sliverGap(),
 
                   /// Sections filtered by the currently selected tab.
-                  ..._buildSectionSlivers(),
+                  /// While categories are loading (no Hive cache yet AND
+                  /// first network call still in flight) this renders a
+                  /// matching shimmer skeleton instead.
+                  _buildSectionsSliver(),
 
                   /// Emergency QR + sticker options - only on Overview tab.
                   if (_activeTabIndex == 0) ...[
@@ -281,20 +314,78 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
     );
   }
 
-  Widget _sliverCard({required Widget child}) {
-    return SliverToBoxAdapter(
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.white,
-        ),
-        child: child,
-      ),
-    );
-  }
-
   Widget _sliverGap([double? gap]) {
     return SliverToBoxAdapter(
       child: SizedBox(height: gap ?? SizeConfig.paddingXSL),
+    );
+  }
+}
+
+/// Shimmer skeleton shown in place of the Discover section cards while
+/// the AuthController is still hydrating its category buckets from Hive
+/// or the network. Mirrors the real card layout — a stack of white cards
+/// each containing a short title bar and a 3-column grid of 6 icon-sized
+/// placeholders — so the swap to real content reads as a content load,
+/// not a layout shift.
+class _DiscoverSectionsShimmer extends StatelessWidget {
+  const _DiscoverSectionsShimmer();
+
+  static const int _cardCount = 4;
+  static const int _columns = 3;
+  static const int _tilesPerCard = 6;
+  static const double _tileSpacing = 8;
+  static const double _tileHeight = 80;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        for (int i = 0; i < _cardCount; i++) ...[
+          _shimmerCard(),
+          SizedBox(height: SizeConfig.paddingXSL),
+        ],
+      ],
+    );
+  }
+
+  Widget _shimmerCard() {
+    return Container(
+      width: double.infinity,
+      decoration: const BoxDecoration(color: AppColors.white),
+      padding: EdgeInsets.all(SizeConfig.size12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Title bar placeholder — matches `titleWidget(...)` height.
+          buildLoadingShimmer(
+            child: shimmerContainer(height: 22, width: 140),
+          ),
+          SizedBox(height: SizeConfig.paddingXSL),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            child: LayoutBuilder(builder: (context, constraints) {
+              final double itemWidth =
+                  (constraints.maxWidth - _tileSpacing * (_columns - 1)) /
+                      _columns;
+              return Wrap(
+                spacing: _tileSpacing,
+                runSpacing: _tileSpacing,
+                children: List.generate(_tilesPerCard, (_) {
+                  return SizedBox(
+                    width: itemWidth,
+                    child: buildLoadingShimmer(
+                      child: shimmerContainer(
+                        height: _tileHeight,
+                        radius: 12,
+                      ),
+                    ),
+                  );
+                }),
+              );
+            }),
+          ),
+        ],
+      ),
     );
   }
 }

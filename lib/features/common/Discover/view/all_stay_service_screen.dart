@@ -6,6 +6,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/Discover/model/hotel_search_model.dart';
 import 'package:BlueEra/features/common/Discover/view/hotel_discover_home_screen.dart';
@@ -122,6 +123,27 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
       ),
       child: Scaffold(
         backgroundColor: AppColors.appBackgroundColor,
+        // Tab-aware "Add ___" CTA. Reactive to `selectedStayCategory` so
+        // the label/icon/route flip as the user moves between sticky
+        // tabs. Only shown for individual rental categories — hotel /
+        // business tabs (HOTELS_RESORT, HOSTELS_PAYING_GUEST, etc.) get
+        // no FAB because the listing-add routes don't apply to them.
+        floatingActionButton: Obx(() {
+          final spec = _addRentalSpec(controller.selectedStayCategory.value);
+          if (spec == null) return const SizedBox.shrink();
+          return FloatingActionButton.extended(
+            onPressed: () => Get.toNamed(spec.route),
+            backgroundColor: AppColors.primaryColor,
+            foregroundColor: AppColors.white,
+            icon: Icon(spec.icon),
+            label: CustomText(
+              spec.label,
+              color: AppColors.white,
+              fontWeight: FontWeight.w600,
+              fontSize: SizeConfig.medium,
+            ),
+          );
+        }),
         body: Stack(
           children: [
             CustomScrollView(
@@ -179,6 +201,36 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
         ),
       ),
     );
+  }
+
+
+  ({String label, String route, IconData icon})? _addRentalSpec(
+      OnboardingCategoryModel? cat) {
+    if (cat == null) return null;
+    if (cat.accountType.toUpperCase() != AppConstants.individual) {
+      return null;
+    }
+    switch (cat.slugId) {
+      case AppConstants.flat:
+        return (
+          label: 'Add House',
+          route: RouteHelper.getAddFlatRoomRentalServiceScreenRoute(),
+          icon: Icons.house_rounded,
+        );
+      case AppConstants.vehicle:
+        return (
+          label: 'Add Vehicle',
+          route: RouteHelper.getVehicleRentalServiceRoute(),
+          icon: Icons.directions_car_rounded,
+        );
+      case AppConstants.property:
+        return (
+          label: 'Add Other',
+          route: RouteHelper.getHomeStayRentalServiceRoute(),
+          icon: Icons.add_home_rounded,
+        );
+    }
+    return null;
   }
 
   Widget _buildListSliver() {

@@ -61,8 +61,8 @@ class _UpdatePersonalProfessionDialogState extends State<UpdatePersonalProfessio
   }
   apiCalling() {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      ///GETTING PROFESSION DATA LIST...
-      await authController.getAllProfessionController();
+      ///GETTING PROFESSION DATA LIST (cache-first; silent network refresh)...
+      await authController.loadCategoriesCacheFirstThenRefresh();
     });
   }
 
@@ -277,9 +277,9 @@ setState(() {
                       .selectedProfession.value)
                   .toList();
               if (dataList.isNotEmpty) {
-                authController.clearSubCategoryData();
+                personalCreateProfileController.clearSubCategoryData();
 
-                authController.subcategoriesFiledNameList
+                personalCreateProfileController.subcategoriesFiledNameList
                     .addAll(dataList
                     .first.subcategoriesFiledName ??
                     []);
@@ -296,7 +296,7 @@ setState(() {
                   personalCreateProfileController
                       .selectedSubProfessionObj.value = null;
 
-                  authController.clearSubCategoryData();
+                  personalCreateProfileController.clearSubCategoryData();
 
                   personalCreateProfileController
                       .selectedProfession
@@ -304,7 +304,7 @@ setState(() {
                   personalCreateProfileController
                       .selectedProfessionObj.value = value;
                   selectedProfession = value?.name?.toUpperCase();
-                  authController.subcategoriesFiledNameList
+                  personalCreateProfileController.subcategoriesFiledNameList
                       .addAll(value?.subcategoriesFiledName ??
                       []);
                   clearTextFiled();
@@ -348,7 +348,7 @@ setState(() {
           Obx(() {
             return CommonDropdownDialog<
                 SubcategoriesFiledName>(
-              items: authController
+              items: personalCreateProfileController
                   .subcategoriesFiledNameList,
               title: AppStrings.selectWorkType,
               selectedValue:
@@ -518,7 +518,7 @@ setState(() {
           ),
           CommonDropdownDialog<SubcategoriesFiledName>(
             items:
-            authController.subcategoriesFiledNameList,
+            personalCreateProfileController.subcategoriesFiledNameList,
             title: AppStrings.selectArtSkill,
             selectedValue: personalCreateProfileController
                 .selectedSubProfessionObj.value,

@@ -36,6 +36,7 @@ import 'package:BlueEra/features/personal/personal_profile/controller/perosonal_
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/choose_earn_service_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_dashboard_view.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/earn_service_profile_selector.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/rental/widget/rental_tab_body.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/controller/earn_service_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/controller/self_work_service_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/self_employee_orders.dart';
@@ -93,6 +94,7 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
     'Order',
     'Overview',
     'Service',
+    'Rental',
     'Post',
     'Statics',
   ];
@@ -621,8 +623,10 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
       case 2:
         return _buildServiceTab();
       case 3:
-        return _buildPostTab();
+        return _buildRentalTab();
       case 4:
+        return _buildPostTab();
+      case 5:
         return _buildStaticsTab();
       default:
         return const [SizedBox.shrink()];
@@ -1115,6 +1119,16 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
   // scrolls past the top bar (matches the Post tab's behavior).
   List<Widget> _buildServiceTab() {
     return const [SelfProfessionHomeScreen()];
+  }
+
+  // ─────────────────────────────────────────────
+  // RENTAL TAB — delegated to the shared [RentalTabBody] so the
+  // self-employee, professionals, rider, cab, and social
+  // dashboards all show the exact same rental UI driven by one
+  // RentalController instance.
+  // ─────────────────────────────────────────────
+  List<Widget> _buildRentalTab() {
+    return const [RentalTabBody()];
   }
 
   // ─────────────────────────────────────────────

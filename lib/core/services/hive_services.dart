@@ -5,6 +5,7 @@ import 'package:BlueEra/core/api/model/admin_video_model_response.dart';
 import 'package:BlueEra/core/api/model/get_all_store_res_model.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
+import 'package:BlueEra/features/common/auth/model/personal_profession_model.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/features/common/food/model/get_food_details_model.dart';
@@ -25,6 +26,7 @@ class HiveServices{
   static const String _savedAllNearByStoreService = 'savedAllNearByStoreService';
   static const String _savedAllNearByStoresFoodServices = 'savedAllNearByStoresFoodServices';
   static const String _savedBusinessCategoryBox = 'business_categories_box';
+  static const String _savedProfessionTypeBox = 'profession_type_box';
   static const String _savedAdminVideosBox = 'savedAdminVideosBox';
   static const String _savedGroceryNestedCategoryBox = 'savedGroceryNestedCategoryBox';
   static const String _savedMedicalNestedCategoryBox = 'savedMedicalNestedCategoryBox';
@@ -40,6 +42,7 @@ class HiveServices{
     await Hive.openBox(_savedAllNearByStoreService);
     await Hive.openBox(_savedAllNearByStoresFoodServices);
     await Hive.openBox(_savedBusinessCategoryBox);
+    await Hive.openBox(_savedProfessionTypeBox);
     await Hive.openBox(_savedAdminVideosBox);
     await Hive.openBox(_savedGroceryNestedCategoryBox);
     await Hive.openBox(_savedMedicalNestedCategoryBox);
@@ -55,6 +58,7 @@ class HiveServices{
     _savedAllNearByStoreService,
     _savedAllNearByStoresFoodServices,
     _savedBusinessCategoryBox,
+    _savedProfessionTypeBox,
     _savedAdminVideosBox,
     _savedGroceryNestedCategoryBox,
     _savedMedicalNestedCategoryBox,
@@ -494,6 +498,51 @@ class HiveServices{
 
     }catch (e) {
       print('Error loading business categories: $e');
+      return null;
+    }
+  }
+
+  /// Save the master list of profession types. Save BEFORE the controller
+  /// runs `updateIndividualCategoriesFromApi(...)` so each item's
+  /// `individualProfileType` enum is still null at serialize time — the
+  /// enum is rebuilt in memory from `profileType` on every load and is
+  /// not part of the API payload.
+  Future<void> saveProfessionList(List<ProfessionTypeData> professions) async {
+    final box = Hive.box(_savedProfessionTypeBox);
+    final String key = 'profession';
+    final List<Map<String, dynamic>> jsonList =
+        professions.map((item) => item.toJson()).toList();
+    await box.put(key, jsonList);
+  }
+
+  /// Get the cached master list of profession types. Returns null when no
+  /// cache exists yet (first launch after install) or on a parse error,
+  /// in which case callers should fall back to the network.
+  List<ProfessionTypeData>? getAllProfessions() {
+    try {
+      final box = Hive.box(_savedProfessionTypeBox);
+      final String key = 'profession';
+      final data = box.get(key);
+
+      if (data == null) {
+        print('No cached profession list found');
+        return null;
+      }
+
+      if (data is! List) {
+        print('Invalid data type in Hive: ${data.runtimeType}');
+        return null;
+      }
+
+      final List<ProfessionTypeData> professions = data
+          .map((json) => ProfessionTypeData.fromJson(
+              jsonDecode(jsonEncode(json)) as Map<String, dynamic>))
+          .toList();
+
+      print('Loaded ${professions.length} profession types');
+      return professions;
+    } catch (e) {
+      print('Error loading profession list: $e');
       return null;
     }
   }

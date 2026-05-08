@@ -101,11 +101,11 @@ class RouteConstant {
   static const String inventoryBusinessCardsScreen = "/InventoryBusinessCardsScreen";
   static const String foodUploadScreen = "/FoodUploadScreen";
   static const String addFlatRoomRentalServiceScreen = "/AddFlatRoomRentalServiceScreen";
-  static const String personalInformationRidingScreen = "/PersonalInformationRidingScreen";
-  static const String addressLocationRidingScreen = "/AddressLocationRidingScreen";
-  static const String personalIdentificationRidingScreen = "/PersonalIdentificationRidingScreen";
-  static const String drivingVerificationRidingScreen = "/DrivingVerificationRidingScreen";
-  static const String vehicleImagesRidingScreen = "/VehicleImagesRidingScreen";
+  // static const String personalInformationRidingScreen = "/PersonalInformationRidingScreen";
+  // static const String addressLocationRidingScreen = "/AddressLocationRidingScreen";
+  // static const String personalIdentificationRidingScreen = "/PersonalIdentificationRidingScreen";
+  // static const String drivingVerificationRidingScreen = "/DrivingVerificationRidingScreen";
+  // static const String vehicleImagesRidingScreen = "/VehicleImagesRidingScreen";
   static const String vehicleInformationRidingScreen = "/VehicleInformationRidingScreen";
   static const String homeStayRentalService = "/HomeStayRentalService";
   static const String vehicleRentalService = "/VehicleRentalService";

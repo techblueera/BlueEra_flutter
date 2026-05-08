@@ -8,9 +8,8 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/profe_cons_res_model.dart';
 import 'package:BlueEra/features/me/professionals_consultant/view/portfolio_project_card_widget.dart';
-import 'package:BlueEra/widgets/common_back_app_bar.dart';
+import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
-import 'package:BlueEra/widgets/common_circular_profile_image.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
@@ -37,65 +36,32 @@ class DiscoverProfessionalsViewScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: AppColors.appBackgroundColor,
-      appBar: CommonBackAppBar(
-        title: data.basicDetails?.professionalTitle,
-      ),
+      extendBodyBehindAppBar: true,
       bottomNavigationBar: _buildBottomBar(data),
       body: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            /// HEADER
-            _HeaderSection(data: data),
-
-            SizedBox(height: SizeConfig.paddingXS),
-
-            /// ABOUT / SERVICES
-            _ServicesSection(data: data),
-
-            SizedBox(height: SizeConfig.paddingXS),
-
-            /// PORTFOLIO / PROJECTS
-            _PortfolioSection(data: data),
-
-            SizedBox(height: SizeConfig.paddingXS),
-
-            /// CERTIFICATES & AWARDS
-            _CertificatesSection(data: data),
-
-            SizedBox(height: SizeConfig.paddingXS),
-
-            /// GALLERY
-            _GallerySection(data: data),
-
-            SizedBox(height: SizeConfig.paddingXS),
-
-            /// REVIEWS (placeholder)
-            _ReviewsSection(),
-
-            SizedBox(height: SizeConfig.paddingXS),
-
-            /// CONTACT US
-            _ContactSection(data: data),
-
-            SizedBox(height: SizeConfig.paddingXS),
-
-            /// WEBSITE PREVIEW
-            WebsitePreviewCard(url: data.contact?.website ?? ''),
-
-            SizedBox(height: SizeConfig.paddingXS),
-
-            /// LOCATION MAP
-            _LocationSection(data: data),
-
-            SizedBox(height: SizeConfig.paddingXS),
-
-            /// WORKING HOURS
-            _WorkingHoursSection(data: data),
-
-            SizedBox(height: SizeConfig.size100),
-          ],
+          children: _withGaps(
+            <Widget?>[
+              _HeaderSection(data: data),
+              if (_hasPricing(data)) _PricingSection(data: data),
+              if (_hasIntroVideo(data)) _IntroVideoSection(data: data),
+              _ServicesSection(data: data),
+              _PortfolioSection(data: data),
+              _CertificatesSection(data: data),
+              _GallerySection(data: data),
+              _ReviewsSection(),
+              _ContactSection(data: data),
+              if (_hasSocialLinks(data)) _SocialLinksSection(data: data),
+              if (_hasWebsite(data))
+                WebsitePreviewCard(url: data.contact!.website!),
+              if (_hasLocationCoords(data)) _LocationSection(data: data),
+              _WorkingHoursSection(data: data),
+              SizedBox(height: SizeConfig.size100),
+            ],
+            gap: SizeConfig.paddingXS,
+          ),
         ),
       ),
     );
@@ -103,14 +69,28 @@ class DiscoverProfessionalsViewScreen extends StatelessWidget {
 
   Widget? _buildBottomBar(ProfessionalConsData data) {
     if (data.userId == userId) return null;
-    return SafeArea(
-      child: Padding(
-        padding: EdgeInsets.only(
-          left: SizeConfig.paddingS,
-          right: SizeConfig.paddingS,
-          bottom: SizeConfig.paddingM,
-          top: SizeConfig.paddingXSL,
-        ),
+    return Container(
+      // Soft shadow that throws upward — visually lifts the bar off the
+      // scroll content and signals it's a fixed action surface. Same
+      // values as self_employee_view_screen's fixed bottom button so
+      // both screens share the same elevation rhythm.
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 20,
+            offset: const Offset(0, -4),
+          ),
+        ],
+      ),
+      padding: EdgeInsets.only(
+        left: SizeConfig.paddingS,
+        right: SizeConfig.paddingS,
+        bottom: SizeConfig.paddingM,
+        top: SizeConfig.paddingXSL,
+      ),
+      child: SafeArea(
         child: Row(
           children: [
             Expanded(
@@ -139,7 +119,11 @@ class DiscoverProfessionalsViewScreen extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// HEADER SECTION
+// HEADER SECTION (merged cover banner + avatar overlap + profile info)
+// Mirrors `SelfEmployeeViewScreen._buildHeaderSection`. Single banner that
+// extends behind the status bar, avatar overlaps the banner's bottom edge,
+// then name + title pill + stat chips + tagline + languages render flush
+// underneath without their own card wrapper.
 // ─────────────────────────────────────────────────────────────────────────────
 class _HeaderSection extends StatelessWidget {
   final ProfessionalConsData data;
@@ -148,139 +132,268 @@ class _HeaderSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final profileImage = data.userDetails?.profileImage ?? '';
-    final name = data.userDetails?.name ?? data.basicDetails?.fullName ?? '';
-    final title = data.basicDetails?.professionalTitle ?? '';
-    final tagline = data.basicDetails?.shortTagline ?? '';
-    final location = data.basicDetails?.location ?? '';
-    final experience = data.about?.totalExperience;
-    final expText = _formatExperience(experience);
+    final statusBarHeight = MediaQuery.of(context).padding.top;
 
-    return CommonCardWidget(
-      cardMargin: 0,
-      padding: 0,
+    Widget gradientFallback() => Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Color(0xFFE8EAF6), Color(0xFFC5CAE9)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        );
+
+    return Container(
+      color: AppColors.white,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Banner + Profile image
+          // Cover banner + overlapping avatar + top action overlay.
+          // Heights match self_employee_view_screen so both screens share
+          // the same negative-space rhythm under the status bar.
           SizedBox(
-            height: 180,
+            height: 230 + statusBarHeight,
             child: Stack(
               clipBehavior: Clip.none,
               children: [
-                // Banner
-                ClipRRect(
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(10),
-                    topRight: Radius.circular(10),
-                  ),
-                  child: Container(
-                    height: 130,
-                    width: double.infinity,
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [Color(0xFF1A1A1A), Color(0xFF2B2B2B)],
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
+                // Banner image — extends behind status bar; gradient
+                // fallback on missing/broken image.
+                SizedBox(
+                  height: 190 + statusBarHeight,
+                  width: double.infinity,
+                  child: profileImage.isEmpty
+                      ? gradientFallback()
+                      : CachedNetworkImage(
+                          imageUrl: profileImage,
+                          fit: BoxFit.cover,
+                          placeholder: (_, __) => gradientFallback(),
+                          errorWidget: (_, __, ___) => gradientFallback(),
+                        ),
+                ),
+
+                // Top bar overlay: back + share. Sits above the banner
+                // image so glyphs need a translucent dark bg to stay
+                // legible against bright photos.
+                Positioned(
+                  top: statusBarHeight + 4,
+                  left: 8,
+                  right: 8,
+                  child: Row(
+                    children: [
+                      _coverIconButton(
+                        icon: Icons.arrow_back,
+                        onTap: () => Navigator.of(context).pop(),
                       ),
-                    ),
-                    child: profileImage.isNotEmpty
-                        ? CachedNetworkImage(
-                            imageUrl: profileImage,
-                            fit: BoxFit.cover,
-                            errorWidget: (_, __, ___) =>
-                                const SizedBox.shrink(),
-                          )
-                        : null,
+                      const Spacer(),
+                      _coverIconButton(
+                        icon: Icons.share_outlined,
+                        onTap: () {
+                          // Share entry point — the discover model has no
+                          // share URL today, so this is a no-op until the
+                          // backend exposes one. Kept visible for layout
+                          // parity with self_employee_view_screen.
+                        },
+                      ),
+                    ],
                   ),
                 ),
-                // Profile avatar
+
+                // Profile avatar — overlaps the banner's bottom edge by
+                // half its height (80×80 with 2px white ring + soft
+                // shadow). Absolute positioning means the title row
+                // below starts at a fixed Y regardless of banner height.
                 Positioned(
-                  left: 20,
-                  top: 90,
-                  child: CommonProfileImage(
-                    imagePath: profileImage,
-                    onImageUpdate: (image) async {},
-                    dialogTitle: AppStrings.uploadProfilePicture,
-                    showProfileBorder: true,
-                    isOwnProfile: false,
+                  left: 16,
+                  bottom: 0,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 2),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.1),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: CachedAvatarWidget(
+                      imageUrl: profileImage,
+                      size: SizeConfig.size80,
+                      borderColor: Colors.transparent,
+                      borderRadius: SizeConfig.size40,
+                    ),
                   ),
                 ),
               ],
             ),
           ),
 
-          // Name & title
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: SizeConfig.paddingS),
-            child: Column(
+          // Profile info — flush under the cover, no card wrapper. Same
+          // 16/12/16/16 padding as self_employee_view_screen so the
+          // optical rhythm matches.
+          _buildProfileInfoContent(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProfileInfoContent() {
+    final name = data.userDetails?.name ?? data.basicDetails?.fullName ?? '';
+    final title = (data.basicDetails?.professionalTitle ?? '').trim();
+    final tagline = (data.basicDetails?.shortTagline ?? '').trim();
+    final location = (data.basicDetails?.location ?? '').trim();
+    final expText = _formatExperience(data.about?.totalExperience);
+    final languages = data.basicDetails?.languagesSpoken ?? const <String>[];
+    final hasName = name.trim().isNotEmpty;
+    final hasTitle = title.isNotEmpty;
+    final hasTagline = tagline.isNotEmpty;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Name + professional-title pill on one row. The pill mirrors
+          // `service.profession` from self_employee_view_screen.
+          Row(
+            children: [
+              if (hasName)
+                Expanded(
+                  child: CustomText(
+                    _capitalize(name),
+                    fontSize: SizeConfig.extraLarge,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.mainTextColor,
+                  ),
+                ),
+              if (hasName && hasTitle) SizedBox(width: SizeConfig.size8),
+              if (hasTitle)
+                Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: SizeConfig.size8,
+                    vertical: SizeConfig.size3,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryColor.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                        color:
+                            AppColors.primaryColor.withValues(alpha: 0.3)),
+                  ),
+                  child: CustomText(
+                    title,
+                    fontSize: SizeConfig.small,
+                    color: AppColors.primaryColor,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+            ],
+          ),
+          SizedBox(height: SizeConfig.size6),
+
+          // Stat chips — rating placeholder, experience, location. Wrap
+          // so long location strings don't force ellipsis on experience.
+          Wrap(
+            spacing: SizeConfig.size12,
+            runSpacing: SizeConfig.size4,
+            children: [
+              _statChip(
+                icon: Icons.star_rounded,
+                iconColor: Colors.amber,
+                label: AppStrings.newLabel.tr,
+              ),
+              if (expText.isNotEmpty)
+                _statChip(
+                  icon: Icons.work_outline,
+                  iconColor: AppColors.primaryColor,
+                  label: expText,
+                ),
+              if (location.isNotEmpty)
+                _statChip(
+                  icon: Icons.location_on_outlined,
+                  iconColor: AppColors.primaryColor,
+                  label: location,
+                ),
+            ],
+          ),
+
+          // Tagline — collapses to dialog on overflow, like the
+          // self_employee bio.
+          if (hasTagline) ...[
+            SizedBox(height: SizeConfig.size8),
+            ExpandableText(
+              text: tagline,
+              trimLines: 3,
+              expandMode: ExpandMode.dialog,
+              style: TextStyle(
+                color: AppColors.secondaryTextColor,
+                fontFamily: AppConstants.OpenSans,
+                fontWeight: FontWeight.w400,
+                fontSize: SizeConfig.medium,
+                height: 1.5,
+              ),
+            ),
+          ],
+
+          // Languages spoken — small primary-tinted pills with a
+          // translate glyph prefix. Skipped entirely when empty.
+          if (languages.isNotEmpty) ...[
+            SizedBox(height: SizeConfig.size10),
+            Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CustomText(
-                  _capitalize(name),
-                  fontSize: SizeConfig.size18,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.mainTextColor,
+                Icon(Icons.translate_rounded,
+                    size: SizeConfig.size14,
+                    color: AppColors.primaryColor),
+                SizedBox(width: SizeConfig.size4),
+                Expanded(
+                  child: Wrap(
+                    spacing: 4,
+                    runSpacing: 4,
+                    children: languages
+                        .map(
+                          (lang) => Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: AppColors.primaryColor
+                                  .withValues(alpha: 0.07),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: CustomText(
+                              lang,
+                              fontSize: SizeConfig.size11,
+                              color: AppColors.primaryColor,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        )
+                        .toList(),
+                  ),
                 ),
-                if (title.isNotEmpty) ...[
-                  SizedBox(height: SizeConfig.size2),
-                  CustomText(
-                    title,
-                    fontSize: SizeConfig.size14,
-                    color: AppColors.secondaryTextColor,
-                  ),
-                ],
-                if (tagline.isNotEmpty) ...[
-                  SizedBox(height: SizeConfig.size4),
-                  CustomText(
-                    tagline,
-                    fontSize: SizeConfig.size12,
-                    color: AppColors.secondaryTextColor,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
               ],
             ),
-          ),
-
-          SizedBox(height: SizeConfig.paddingS),
-
-          // Stats row: Rating, Experience, Location
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: SizeConfig.paddingS),
-            child: Row(
-              children: [
-                // Rating
-                _statChip(
-                  icon: Icons.star_rounded,
-                  iconColor: Colors.amber,
-                  label: AppStrings.newLabel.tr,
-                ),
-                SizedBox(width: SizeConfig.paddingS),
-                // Experience
-                if (expText.isNotEmpty)
-                  _statChip(
-                    icon: Icons.work_outline,
-                    iconColor: AppColors.primaryColor,
-                    label: expText,
-                  ),
-                if (expText.isNotEmpty) SizedBox(width: SizeConfig.paddingS),
-                // Location
-                if (location.isNotEmpty)
-                  Expanded(
-                    child: _statChip(
-                      icon: Icons.location_on_outlined,
-                      iconColor: AppColors.primaryColor,
-                      label: location,
-                      maxLines: 1,
-                    ),
-                  ),
-              ],
-            ),
-          ),
-
-          SizedBox(height: SizeConfig.paddingS),
+          ],
         ],
+      ),
+    );
+  }
+
+  Widget _coverIconButton({
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.black.withValues(alpha: 0.35),
+          shape: BoxShape.circle,
+        ),
+        child: Icon(icon, color: AppColors.appBackgroundColor, size: 18),
       ),
     );
   }
@@ -797,8 +910,494 @@ class _WorkingHoursSection extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// PRICING SECTION (engagement model + rate + consultation modes)
+// ─────────────────────────────────────────────────────────────────────────────
+class _PricingSection extends StatelessWidget {
+  final ProfessionalConsData data;
+  const _PricingSection({required this.data});
+
+  @override
+  Widget build(BuildContext context) {
+    final pricing = data.pricing;
+    if (pricing == null) return const SizedBox.shrink();
+
+    final amount = pricing.amount;
+    final type = (pricing.type ?? '').trim();
+    final currency = (pricing.currency ?? 'INR').trim();
+    final mode = (pricing.consultationMode ?? '').trim();
+
+    // Bail early if every field is empty — don't render an empty card.
+    if (amount == null && type.isEmpty && mode.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: SizeConfig.paddingXSL),
+      child: Container(
+        padding: EdgeInsets.all(SizeConfig.paddingS),
+        decoration: BoxDecoration(
+          // Brand-blue gradient — the only section on the page that
+          // departs from the white-card baseline. Pricing is the page's
+          // conversion anchor, so it's allowed to be louder.
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              AppColors.primaryColor.withValues(alpha: 0.10),
+              AppColors.primaryColor.withValues(alpha: 0.02),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+              color: AppColors.primaryColor.withValues(alpha: 0.18)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _sectionHeader(Icons.payments_outlined, AppStrings.pricingAndEngagement.tr),
+            SizedBox(height: SizeConfig.paddingS),
+            // Hero rate — currency glyph kept smaller than the amount
+            // so the number reads as the headline.
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                if (amount != null) ...[
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 4),
+                    child: CustomText(
+                      _currencySymbol(currency),
+                      fontSize: SizeConfig.size20,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.mainTextColor,
+                    ),
+                  ),
+                  CustomText(
+                    '$amount',
+                    fontSize: SizeConfig.size28,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.mainTextColor,
+                  ),
+                  if (type.isNotEmpty) ...[
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 6, left: 4),
+                      child: CustomText(
+                        '/${type.toLowerCase()}',
+                        fontSize: SizeConfig.size13,
+                        color: AppColors.secondaryTextColor,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ] else if (type.isNotEmpty)
+                  CustomText(
+                    type,
+                    fontSize: SizeConfig.size18,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.mainTextColor,
+                  ),
+              ],
+            ),
+            // Consultation modes as outlined pills with a glyph that
+            // matches the modality (online → camera, offline → handshake,
+            // hybrid → swap).
+            if (mode.isNotEmpty) ...[
+              SizedBox(height: SizeConfig.paddingS),
+              Wrap(
+                spacing: 8,
+                runSpacing: 6,
+                children: _splitModes(mode)
+                    .map((m) => Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: AppColors.white,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                                color: AppColors.primaryColor
+                                    .withValues(alpha: 0.25)),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(_iconForMode(m),
+                                  size: SizeConfig.size14,
+                                  color: AppColors.primaryColor),
+                              SizedBox(width: SizeConfig.size4),
+                              CustomText(
+                                m,
+                                fontSize: SizeConfig.size12,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.primaryColor,
+                              ),
+                            ],
+                          ),
+                        ))
+                    .toList(),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _currencySymbol(String currency) {
+    switch (currency.toUpperCase()) {
+      case 'INR':
+        return '₹';
+      case 'USD':
+        return '\$';
+      case 'EUR':
+        return '€';
+      case 'GBP':
+        return '£';
+      default:
+        return currency;
+    }
+  }
+
+  /// API may return one mode ("Online") or a composite ("Online/Offline",
+  /// "Online, Hybrid"). Split on `/` and `,` so each modality renders as
+  /// its own pill with its own glyph.
+  List<String> _splitModes(String mode) {
+    return mode
+        .split(RegExp(r'[/,]'))
+        .map((s) => s.trim())
+        .where((s) => s.isNotEmpty)
+        .toList();
+  }
+
+  IconData _iconForMode(String mode) {
+    final m = mode.toLowerCase();
+    if (m.contains('online')) return Icons.videocam_outlined;
+    if (m.contains('offline') || m.contains('in-person')) {
+      return Icons.handshake_outlined;
+    }
+    if (m.contains('hybrid')) return Icons.swap_horiz_rounded;
+    return Icons.business_center_outlined;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// INTRO VIDEO SECTION (cinematic 16:9 thumbnail → external launch)
+// ─────────────────────────────────────────────────────────────────────────────
+class _IntroVideoSection extends StatelessWidget {
+  final ProfessionalConsData data;
+  const _IntroVideoSection({required this.data});
+
+  @override
+  Widget build(BuildContext context) {
+    final url = (data.userDetails?.introVideo ?? '').trim();
+    if (url.isEmpty) return const SizedBox.shrink();
+
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: SizeConfig.paddingXSL),
+      child: CommonCardWidget(
+        cardMargin: 0,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _sectionHeader(
+                Icons.play_circle_outline, AppStrings.introductionVideo.tr),
+            SizedBox(height: SizeConfig.paddingXS),
+            // Tile is its own InkWell so the entire 16:9 area is the
+            // tap target (not just the play button). Opens externally so
+            // YouTube URLs hand off to the YouTube app where available.
+            Material(
+              color: Colors.transparent,
+              borderRadius: BorderRadius.circular(12),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(12),
+                onTap: () {
+                  final uri = url.startsWith('http') ? url : 'https://$url';
+                  launchUrl(Uri.parse(uri),
+                      mode: LaunchMode.externalApplication);
+                },
+                child: AspectRatio(
+                  aspectRatio: 16 / 9,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      // Gradient placeholder — diagonal brand→black so
+                      // the play button has contrast at every position.
+                      Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              AppColors.primaryColor.withValues(alpha: 0.85),
+                              Colors.black.withValues(alpha: 0.7),
+                            ],
+                          ),
+                        ),
+                      ),
+                      // Subtle vignette so the play button doesn't fight
+                      // a bright corner of the gradient on smaller screens.
+                      Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          gradient: RadialGradient(
+                            radius: 0.9,
+                            colors: [
+                              Colors.transparent,
+                              Colors.black.withValues(alpha: 0.25),
+                            ],
+                          ),
+                        ),
+                      ),
+                      Center(
+                        child: Container(
+                          padding: const EdgeInsets.all(18),
+                          decoration: BoxDecoration(
+                            color: AppColors.white,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.3),
+                                blurRadius: 14,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Icon(
+                            Icons.play_arrow_rounded,
+                            color: AppColors.primaryColor,
+                            size: 36,
+                          ),
+                        ),
+                      ),
+                      // Bottom-left affordance label so the tile reads
+                      // unambiguously as "tap to play" even when the user
+                      // is moving fast.
+                      Positioned(
+                        left: 12,
+                        bottom: 10,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.45),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.open_in_new_rounded,
+                                  color: AppColors.white,
+                                  size: SizeConfig.size12),
+                              SizedBox(width: SizeConfig.size4),
+                              CustomText(
+                                AppStrings.watchVideo.tr,
+                                color: AppColors.white,
+                                fontSize: SizeConfig.size11,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SOCIAL LINKS SECTION (branded chips → external launch)
+// ─────────────────────────────────────────────────────────────────────────────
+class _SocialLinksSection extends StatelessWidget {
+  final ProfessionalConsData data;
+  const _SocialLinksSection({required this.data});
+
+  @override
+  Widget build(BuildContext context) {
+    final s = data.userDetails?.socialLinks;
+    if (s == null) return const SizedBox.shrink();
+
+    final items = <_SocialItem>[
+      // Order: LinkedIn first because it's the primary professional
+      // signal, then content/audience platforms, then catch-all website.
+      if ((s.linkedin ?? '').trim().isNotEmpty)
+        _SocialItem(
+          icon: Icons.work_outline,
+          color: const Color(0xFF0A66C2),
+          label: 'LinkedIn',
+          url: s.linkedin!.trim(),
+        ),
+      if ((s.youtube ?? '').trim().isNotEmpty)
+        _SocialItem(
+          icon: Icons.play_circle_outline,
+          color: const Color(0xFFFF0000),
+          label: 'YouTube',
+          url: s.youtube!.trim(),
+        ),
+      if ((s.instagram ?? '').trim().isNotEmpty)
+        _SocialItem(
+          icon: Icons.camera_alt_outlined,
+          color: const Color(0xFFE4405F),
+          label: 'Instagram',
+          url: s.instagram!.trim(),
+        ),
+      if ((s.twitter ?? '').trim().isNotEmpty)
+        _SocialItem(
+          icon: Icons.alternate_email,
+          color: const Color(0xFF1DA1F2),
+          label: 'Twitter',
+          url: s.twitter!.trim(),
+        ),
+      if ((s.website ?? '').trim().isNotEmpty)
+        _SocialItem(
+          icon: Icons.public,
+          color: AppColors.primaryColor,
+          label: 'Website',
+          url: s.website!.trim(),
+        ),
+    ];
+
+    if (items.isEmpty) return const SizedBox.shrink();
+
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: SizeConfig.paddingXSL),
+      child: CommonCardWidget(
+        cardMargin: 0,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _sectionHeader(Icons.share_outlined, AppStrings.connectLabel.tr),
+            SizedBox(height: SizeConfig.paddingS),
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              children: items.map(_socialChip).toList(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Each token uses its platform's brand color at low opacity (8% fill,
+  /// 25% border) — recognizable at a glance without overwhelming the
+  /// page's primary-blue palette.
+  Widget _socialChip(_SocialItem item) {
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () {
+          final uri =
+              item.url.startsWith('http') ? item.url : 'https://${item.url}';
+          launchUrl(Uri.parse(uri), mode: LaunchMode.externalApplication);
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            color: item.color.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: item.color.withValues(alpha: 0.25)),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(item.icon, color: item.color, size: SizeConfig.size18),
+              SizedBox(width: SizeConfig.size6),
+              CustomText(
+                item.label,
+                fontSize: SizeConfig.size12,
+                fontWeight: FontWeight.w600,
+                color: item.color,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SocialItem {
+  final IconData icon;
+  final Color color;
+  final String label;
+  final String url;
+  const _SocialItem({
+    required this.icon,
+    required this.color,
+    required this.label,
+    required this.url,
+  });
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // SHARED HELPERS
 // ─────────────────────────────────────────────────────────────────────────────
+
+/// Filters out null entries from [children] and inserts a [gap] of vertical
+/// space ONLY between consecutive rendered widgets. The previous design
+/// stacked a static `SizedBox(height: paddingXS)` between every sibling,
+/// so when 2–3 conditional sections (socials / website preview / map)
+/// collapsed, an empty 2–3× paddingXS dead zone appeared between Contact
+/// Us and Working Hours. Skipping nulls eliminates that dead zone without
+/// each section having to know about its neighbours.
+List<Widget> _withGaps(List<Widget?> children, {required double gap}) {
+  final result = <Widget>[];
+  bool first = true;
+  for (final child in children) {
+    if (child == null) continue;
+    if (!first) result.add(SizedBox(height: gap));
+    result.add(child);
+    first = false;
+  }
+  return result;
+}
+
+// Per-section "should we render?" predicates. Living at file scope so the
+// build call site can use them inline as `if (_hasX(data)) _XSection(...)`.
+// They mirror the data-presence checks each section already does
+// internally — duplicated here on purpose so the parent column can omit
+// the section entry (and its gap) entirely instead of relying on the
+// section returning `SizedBox.shrink()`.
+
+bool _hasPricing(ProfessionalConsData d) {
+  final p = d.pricing;
+  if (p == null) return false;
+  return p.amount != null ||
+      (p.type ?? '').trim().isNotEmpty ||
+      (p.consultationMode ?? '').trim().isNotEmpty;
+}
+
+bool _hasIntroVideo(ProfessionalConsData d) =>
+    (d.userDetails?.introVideo ?? '').trim().isNotEmpty;
+
+bool _hasSocialLinks(ProfessionalConsData d) {
+  final s = d.userDetails?.socialLinks;
+  if (s == null) return false;
+  return (s.linkedin ?? '').trim().isNotEmpty ||
+      (s.youtube ?? '').trim().isNotEmpty ||
+      (s.instagram ?? '').trim().isNotEmpty ||
+      (s.twitter ?? '').trim().isNotEmpty ||
+      (s.website ?? '').trim().isNotEmpty;
+}
+
+bool _hasWebsite(ProfessionalConsData d) =>
+    (d.contact?.website ?? '').trim().isNotEmpty;
+
+bool _hasLocationCoords(ProfessionalConsData d) {
+  final c = d.contact?.location?.coordinates;
+  if (c == null || c.length < 2) return false;
+  final a = double.tryParse(c[0].toString()) ?? 0.0;
+  final b = double.tryParse(c[1].toString()) ?? 0.0;
+  return !(a == 0.0 && b == 0.0);
+}
 
 Widget _sectionHeader(IconData icon, String title) {
   return Row(
