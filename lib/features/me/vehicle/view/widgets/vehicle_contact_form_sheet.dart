@@ -1,19 +1,27 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_http_links_textfiled_widget.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/me/vehicle/model/vehicle_models.dart';
+import 'package:BlueEra/widgets/commom_textfield.dart';
+import 'package:BlueEra/widgets/common_back_app_bar.dart';
+import 'package:BlueEra/widgets/common_card_widget.dart';
+import 'package:BlueEra/widgets/common_location_search_field.dart';
+import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-
-/// Add / edit form for a single [VehicleContact] (a "branch" /
-/// contact entry on the Vehicle service). Presented as a full-screen
-/// page so long forms scroll comfortably and the keyboard never
-/// collapses the form on small devices — same pattern as
-/// `VehicleFormSheet`. Pops with a [VehicleContact] on submit, `null`
-/// on cancel; the caller then runs the controller's
-/// [VehicleController.addContact] / [VehicleController.updateContact]
-/// against the result.
+/// Add / edit form for a single [VehicleContact]. Presented as a full-page
+/// screen — the layout mirrors `HospitalBranchDetailsFormScreen`
+/// (CommonBackAppBar + CommonCardWidget + inline-error CommonTextFields +
+/// CustomBtn submit) so the look and feel matches the rest of the app's
+/// Contact-us flows. Pops with a [VehicleContact] on submit, `null` on
+/// cancel; the caller then runs the controller's `addContact` /
+/// `updateContact` against the result, so the surrounding screen and its
+/// existing call sites (`Navigator.push<VehicleContact>(MaterialPageRoute(…))`)
+/// keep working unchanged.
 class VehicleContactFormSheet extends StatefulWidget {
   final VehicleContact? initial;
 
@@ -25,22 +33,37 @@ class VehicleContactFormSheet extends StatefulWidget {
 }
 
 class _VehicleContactFormSheetState extends State<VehicleContactFormSheet> {
-  final _formKey = GlobalKey<FormState>();
-  final _scrollController = ScrollController();
-
-  late final TextEditingController _locationNameCtrl;
-  late final TextEditingController _addressCtrl;
-  late final TextEditingController _cityCtrl;
-  late final TextEditingController _stateCtrl;
-  late final TextEditingController _countryCtrl;
-  late final TextEditingController _pincodeCtrl;
-  late final TextEditingController _phoneCtrl;
-  late final TextEditingController _altPhoneCtrl;
-  late final TextEditingController _emailCtrl;
-  late final TextEditingController _websiteCtrl;
-  late final TextEditingController _hoursCtrl;
-  late final TextEditingController _mapLinkCtrl;
+  // ─── Field controllers ─────────────────────────────────────────────
+  final _locationNameCtrl = TextEditingController();
+  final _addressCtrl = TextEditingController();
+  final _cityCtrl = TextEditingController();
+  final _stateCtrl = TextEditingController();
+  final _countryCtrl = TextEditingController();
+  final _pincodeCtrl = TextEditingController();
+  final _phoneCtrl = TextEditingController();
+  final _altPhoneCtrl = TextEditingController();
+  final _emailCtrl = TextEditingController();
+  final _websiteCtrl = TextEditingController();
+  final _hoursCtrl = TextEditingController();
+  final _mapLinkCtrl = TextEditingController();
   bool _isPrimary = false;
+
+  // Lat/Lng captured from the location picker; pre-filled from initial so
+  // an unchanged edit preserves the originally-saved coordinates.
+  double? _selectedLat;
+  double? _selectedLng;
+
+  // ─── Per-field error messages ──────────────────────────────────────
+  // Driven by `_validate()` and rendered under each field via
+  // `_buildErrorText`, mirroring `HospitalBranchDetailsFormScreen`.
+  String _locationNameError = '';
+  String _pincodeError = '';
+  String _phoneError = '';
+  String _altPhoneError = '';
+  String _emailError = '';
+  String _websiteError = '';
+  String _mapLinkError = '';
+  bool _isFormValid = false;
 
   bool get _isEdit => widget.initial != null;
 
@@ -48,22 +71,25 @@ class _VehicleContactFormSheetState extends State<VehicleContactFormSheet> {
   void initState() {
     super.initState();
     final c = widget.initial;
-    _locationNameCtrl = TextEditingController(text: c?.locationName ?? '');
-    _addressCtrl = TextEditingController(text: c?.address ?? '');
-    _cityCtrl = TextEditingController(text: c?.city ?? '');
-    _stateCtrl = TextEditingController(text: c?.state ?? '');
-    _countryCtrl = TextEditingController(text: c?.country ?? '');
-    _pincodeCtrl =
-        TextEditingController(text: c?.pincode?.toString() ?? '');
-    _phoneCtrl =
-        TextEditingController(text: c?.phoneNumber?.number ?? '');
-    _altPhoneCtrl =
-        TextEditingController(text: c?.alternatePhoneNumber?.number ?? '');
-    _emailCtrl = TextEditingController(text: c?.email ?? '');
-    _websiteCtrl = TextEditingController(text: c?.website ?? '');
-    _hoursCtrl = TextEditingController(text: c?.openingHours ?? '');
-    _mapLinkCtrl = TextEditingController(text: c?.mapLink ?? '');
+    _locationNameCtrl.text = c?.locationName ?? '';
+    _addressCtrl.text = c?.address ?? '';
+    _cityCtrl.text = c?.city ?? '';
+    _stateCtrl.text = c?.state ?? '';
+    _countryCtrl.text = c?.country ?? '';
+    _pincodeCtrl.text = c?.pincode?.toString() ?? '';
+    _phoneCtrl.text = c?.phoneNumber?.number ?? '';
+    _altPhoneCtrl.text = c?.alternatePhoneNumber?.number ?? '';
+    _emailCtrl.text = c?.email ?? '';
+    _websiteCtrl.text = c?.website ?? '';
+    _hoursCtrl.text = c?.openingHours ?? '';
+    _mapLinkCtrl.text = c?.mapLink ?? '';
     _isPrimary = c?.isPrimary ?? false;
+    _selectedLat = c?.lat;
+    _selectedLng = c?.lon;
+
+    // Run an initial validation pass so the submit button reflects the
+    // form's pre-filled state on edit (already valid → button is active).
+    WidgetsBinding.instance.addPostFrameCallback((_) => _validate());
   }
 
   @override
@@ -84,41 +110,89 @@ class _VehicleContactFormSheetState extends State<VehicleContactFormSheet> {
     ]) {
       c.dispose();
     }
-    _scrollController.dispose();
     super.dispose();
   }
 
-  // ─── Validators ───────────────────────────────────────────────────
-  String? _vLocation(String? v) =>
-      (v == null || v.trim().isEmpty) ? 'Location name is required' : null;
+  // ─── Validation ────────────────────────────────────────────────────
+  // Runs on every keystroke (`onChange: (_) => _validate()`) so error
+  // messages and the submit button's `isValidate` colour update inline,
+  // matching the hospital flow.
+  void _validate() {
+    final emailRegex = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
+    final urlRegex =
+        RegExp(r'^https?://[\w\-]+(\.[\w\-]+)+.*$', caseSensitive: false);
 
-  String? _vEmail(String? v) {
-    if (v == null || v.trim().isEmpty) return null;
-    final ok = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(v.trim());
-    return ok ? null : 'Enter a valid email';
+    String phoneCheck(String v) {
+      if (v.trim().isEmpty) return '';
+      final digits = v.replaceAll(RegExp(r'\D'), '');
+      return (digits.length < 6 || digits.length > 15)
+          ? 'Enter a valid phone number'
+          : '';
+    }
+
+    setState(() {
+      _locationNameError = _locationNameCtrl.text.trim().isEmpty
+          ? 'Location name is required'
+          : '';
+
+      _pincodeError = _pincodeCtrl.text.trim().isNotEmpty &&
+              !RegExp(r'^\d{4,8}$').hasMatch(_pincodeCtrl.text.trim())
+          ? 'Enter a valid pincode'
+          : '';
+
+      _phoneError = phoneCheck(_phoneCtrl.text);
+      _altPhoneError = phoneCheck(_altPhoneCtrl.text);
+
+      _emailError = _emailCtrl.text.trim().isNotEmpty &&
+              !emailRegex.hasMatch(_emailCtrl.text.trim())
+          ? 'Enter a valid email'
+          : '';
+
+      _websiteError = _websiteCtrl.text.trim().isNotEmpty &&
+              !urlRegex.hasMatch(_websiteCtrl.text.trim())
+          ? 'Enter a valid website URL (e.g. https://example.com)'
+          : '';
+
+      _mapLinkError = _mapLinkCtrl.text.trim().isNotEmpty &&
+              !urlRegex.hasMatch(_mapLinkCtrl.text.trim())
+          ? 'Enter a valid map link URL'
+          : '';
+
+      _isFormValid = _locationNameError.isEmpty &&
+          _pincodeError.isEmpty &&
+          _phoneError.isEmpty &&
+          _altPhoneError.isEmpty &&
+          _emailError.isEmpty &&
+          _websiteError.isEmpty &&
+          _mapLinkError.isEmpty;
+    });
   }
 
-  String? _vPhone(String? v) {
-    if (v == null || v.trim().isEmpty) return null;
-    final digits = v.trim().replaceAll(RegExp(r'\D'), '');
-    if (digits.length < 6 || digits.length > 15) {
-      return 'Enter a valid phone';
+  /// Returns the first non-empty validation error, or null if all valid.
+  String? _firstError() {
+    for (final e in [
+      _locationNameError,
+      _pincodeError,
+      _phoneError,
+      _altPhoneError,
+      _emailError,
+      _websiteError,
+      _mapLinkError,
+    ]) {
+      if (e.isNotEmpty) return e;
     }
     return null;
   }
 
-  String? _vPincode(String? v) {
-    if (v == null || v.trim().isEmpty) return null;
-    if (!RegExp(r'^\d{4,8}$').hasMatch(v.trim())) {
-      return 'Enter a valid pincode';
+  void _handleSubmit() {
+    _validate();
+    if (!_isFormValid) {
+      final err = _firstError();
+      if (err != null) commonSnackBar(message: err);
+      return;
     }
-    return null;
-  }
 
-  void _submit() {
-    if (!(_formKey.currentState?.validate() ?? false)) return;
     String? trimOrNull(String s) => s.trim().isEmpty ? null : s.trim();
-
     final phone = trimOrNull(_phoneCtrl.text);
     final altPhone = trimOrNull(_altPhoneCtrl.text);
 
@@ -132,8 +206,8 @@ class _VehicleContactFormSheetState extends State<VehicleContactFormSheet> {
       state: trimOrNull(_stateCtrl.text),
       country: trimOrNull(_countryCtrl.text),
       pincode: int.tryParse(_pincodeCtrl.text.trim()),
-      lat: widget.initial?.lat,
-      lon: widget.initial?.lon,
+      lat: _selectedLat ?? widget.initial?.lat,
+      lon: _selectedLng ?? widget.initial?.lon,
       phoneNumber: phone == null
           ? null
           : VehiclePhoneNumber(
@@ -161,258 +235,198 @@ class _VehicleContactFormSheetState extends State<VehicleContactFormSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final media = MediaQuery.of(context);
-    final maxContentWidth = media.size.width >= 720 ? 640.0 : double.infinity;
-
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFD),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0.5,
-        iconTheme: IconThemeData(color: AppColors.mainTextColor),
-        title: CustomText(
-          _isEdit ? 'Edit contact' : 'Add contact',
-          fontSize: 18,
-          fontWeight: FontWeight.w800,
-          color: AppColors.mainTextColor,
-        ),
-      ),
-      body: SafeArea(
-        child: Center(
-          child: ConstrainedBox(
-            constraints: BoxConstraints(maxWidth: maxContentWidth),
-            child: Scrollbar(
-              controller: _scrollController,
-              thumbVisibility: true,
-              child: SingleChildScrollView(
-                controller: _scrollController,
-                padding: EdgeInsets.fromLTRB(
-                  SizeConfig.size16,
-                  SizeConfig.size12,
-                  SizeConfig.size16,
-                  SizeConfig.size16,
+      appBar: CommonBackAppBar(title: AppStrings.contactUs),
+      body: CommonCardWidget(
+        padding: 0,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              _buildHeader(AppStrings.location),
+              CommonTextField(
+                textEditController: _locationNameCtrl,
+                hintText: 'E.g. Head Office, Mumbai',
+                title: 'Location name',
+                onChange: (_) => _validate(),
+              ),
+              if (_locationNameError.isNotEmpty)
+                _buildErrorText(_locationNameError),
+              const SizedBox(height: 12),
+              CommonLocationSearchField(
+                controller: _addressCtrl,
+                title: AppStrings.location,
+                hintText: 'Search address…',
+                onSelected: (placeId, lat, lng, address) {
+                  _addressCtrl.text = address;
+                  _selectedLat = lat;
+                  _selectedLng = lng;
+                  _validate();
+                },
+              ),
+              const SizedBox(height: 12),
+              Row(children: [
+                Expanded(
+                  child: CommonTextField(
+                    textEditController: _cityCtrl,
+                    hintText: 'City',
+                    title: 'City',
+                    onChange: (_) => _validate(),
+                  ),
                 ),
-                child: Form(
-                  key: _formKey,
-                  autovalidateMode: AutovalidateMode.onUserInteraction,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _label('Location'),
-                      _field(
-                        controller: _locationNameCtrl,
-                        label: 'Location name *',
-                        validator: _vLocation,
-                      ),
-                      _field(
-                        controller: _addressCtrl,
-                        label: 'Address',
-                        maxLines: 2,
-                      ),
-                      Row(children: [
-                        Expanded(
-                          child: _field(
-                            controller: _cityCtrl,
-                            label: 'City',
-                          ),
-                        ),
-                        SizedBox(width: SizeConfig.size10),
-                        Expanded(
-                          child: _field(
-                            controller: _stateCtrl,
-                            label: 'State',
-                          ),
-                        ),
-                      ]),
-                      Row(children: [
-                        Expanded(
-                          child: _field(
-                            controller: _countryCtrl,
-                            label: 'Country',
-                          ),
-                        ),
-                        SizedBox(width: SizeConfig.size10),
-                        Expanded(
-                          child: _field(
-                            controller: _pincodeCtrl,
-                            label: 'Pincode',
-                            keyboardType: TextInputType.number,
-                            inputFormatters: [
-                              FilteringTextInputFormatter.digitsOnly,
-                              LengthLimitingTextInputFormatter(8),
-                            ],
-                            validator: _vPincode,
-                          ),
-                        ),
-                      ]),
-                      _field(
-                        controller: _mapLinkCtrl,
-                        label: 'Map link (optional)',
-                        keyboardType: TextInputType.url,
-                      ),
-                      SizedBox(height: SizeConfig.size12),
-                      _label('Reach us'),
-                      _field(
-                        controller: _phoneCtrl,
-                        label: 'Phone',
-                        keyboardType: TextInputType.phone,
-                        inputFormatters: [
-                          FilteringTextInputFormatter.allow(
-                              RegExp(r'[0-9+\-\s()]')),
-                          LengthLimitingTextInputFormatter(20),
-                        ],
-                        validator: _vPhone,
-                      ),
-                      _field(
-                        controller: _altPhoneCtrl,
-                        label: 'Alternate phone',
-                        keyboardType: TextInputType.phone,
-                        inputFormatters: [
-                          FilteringTextInputFormatter.allow(
-                              RegExp(r'[0-9+\-\s()]')),
-                          LengthLimitingTextInputFormatter(20),
-                        ],
-                        validator: _vPhone,
-                      ),
-                      _field(
-                        controller: _emailCtrl,
-                        label: 'Email',
-                        keyboardType: TextInputType.emailAddress,
-                        validator: _vEmail,
-                      ),
-                      _field(
-                        controller: _websiteCtrl,
-                        label: 'Website',
-                        keyboardType: TextInputType.url,
-                      ),
-                      _field(
-                        controller: _hoursCtrl,
-                        label: 'Opening hours (e.g. Mon–Sat · 9–7)',
-                      ),
-                      SizedBox(height: SizeConfig.size8),
-                      SwitchListTile(
-                        contentPadding: EdgeInsets.zero,
-                        value: _isPrimary,
-                        onChanged: (v) => setState(() => _isPrimary = v),
-                        title: CustomText(
-                          'Primary contact',
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.mainTextColor,
-                        ),
-                        subtitle: CustomText(
-                          'Shown first on your public profile.',
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                          color: AppColors.secondaryTextColor,
-                        ),
-                      ),
-                      SizedBox(height: SizeConfig.size20),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: CommonTextField(
+                    textEditController: _stateCtrl,
+                    hintText: 'State',
+                    title: 'State',
+                    onChange: (_) => _validate(),
+                  ),
+                ),
+              ]),
+              const SizedBox(height: 12),
+              Row(children: [
+                Expanded(
+                  child: CommonTextField(
+                    textEditController: _countryCtrl,
+                    hintText: 'Country',
+                    title: 'Country',
+                    onChange: (_) => _validate(),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: CommonTextField(
+                    textEditController: _pincodeCtrl,
+                    hintText: 'Pincode',
+                    title: 'Pincode',
+                    keyBoardType: TextInputType.number,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                      LengthLimitingTextInputFormatter(8),
                     ],
+                    onChange: (_) => _validate(),
                   ),
                 ),
+              ]),
+              if (_pincodeError.isNotEmpty) _buildErrorText(_pincodeError),
+              const SizedBox(height: 12),
+              HttpsTextField(
+                controller: _mapLinkCtrl,
+                hintText: 'https://maps.app.goo.gl/...',
+                title: 'Map link (optional)',
+                onChange: (_) => _validate(),
               ),
-            ),
-          ),
-        ),
-      ),
-      bottomNavigationBar: SafeArea(
-        child: Container(
-          padding: EdgeInsets.fromLTRB(
-            SizeConfig.size16,
-            SizeConfig.size10,
-            SizeConfig.size16,
-            SizeConfig.size16,
-          ),
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            border: Border(top: BorderSide(color: Color(0xFFEDEFF4))),
-          ),
-          child: Center(
-            child: ConstrainedBox(
-              constraints: BoxConstraints(maxWidth: maxContentWidth),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => Navigator.pop(context),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: CustomText(
-                        'Cancel',
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.secondaryTextColor,
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: SizeConfig.size12),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: _submit,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primaryColor,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        elevation: 0,
-                      ),
-                      child: Text(
-                        _isEdit ? 'Save changes' : 'Add contact',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                    ),
-                  ),
+              if (_mapLinkError.isNotEmpty) _buildErrorText(_mapLinkError),
+
+              const SizedBox(height: 24),
+              _buildHeader(AppStrings.contactUs),
+              CommonTextField(
+                textEditController: _phoneCtrl,
+                hintText: '1234567890',
+                title: AppStrings.phoneNumber,
+                keyBoardType: TextInputType.phone,
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'[0-9+\-\s()]')),
+                  LengthLimitingTextInputFormatter(20),
                 ],
+                onChange: (_) => _validate(),
               ),
-            ),
+              if (_phoneError.isNotEmpty) _buildErrorText(_phoneError),
+              const SizedBox(height: 12),
+              CommonTextField(
+                textEditController: _altPhoneCtrl,
+                hintText: '1234567890',
+                title: 'Alternate phone',
+                keyBoardType: TextInputType.phone,
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'[0-9+\-\s()]')),
+                  LengthLimitingTextInputFormatter(20),
+                ],
+                onChange: (_) => _validate(),
+              ),
+              if (_altPhoneError.isNotEmpty) _buildErrorText(_altPhoneError),
+              const SizedBox(height: 12),
+              CommonTextField(
+                textEditController: _emailCtrl,
+                hintText: 'example@gmail.com',
+                title: AppStrings.enterEmailAddress,
+                keyBoardType: TextInputType.emailAddress,
+                onChange: (_) => _validate(),
+              ),
+              if (_emailError.isNotEmpty) _buildErrorText(_emailError),
+              const SizedBox(height: 12),
+              HttpsTextField(
+                controller: _websiteCtrl,
+                hintText: 'https://example.com',
+                title: AppStrings.website,
+                onChange: (_) => _validate(),
+              ),
+              if (_websiteError.isNotEmpty) _buildErrorText(_websiteError),
+              const SizedBox(height: 12),
+              CommonTextField(
+                textEditController: _hoursCtrl,
+                hintText: 'Mon–Sat · 9–7',
+                title: 'Opening hours',
+                onChange: (_) => _validate(),
+              ),
+
+              const SizedBox(height: 8),
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                value: _isPrimary,
+                onChanged: (v) => setState(() => _isPrimary = v),
+                title: CustomText(
+                  'Primary contact',
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.mainTextColor,
+                ),
+                subtitle: CustomText(
+                  'Shown first on your public profile.',
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.secondaryTextColor,
+                ),
+              ),
+
+              const SizedBox(height: 32),
+              CustomBtn(
+                onTap: () => _handleSubmit(),
+                title: _isEdit ? 'Save changes' : AppStrings.submit,
+                isValidate: _isFormValid,
+              ),
+            ],
           ),
         ),
       ),
     );
   }
 
-  Widget _label(String text) => Padding(
-        padding: EdgeInsets.symmetric(vertical: SizeConfig.size6),
+  Widget _buildErrorText(String error) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 4, left: 4),
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: CustomText(
+          error,
+          fontSize: 12,
+          color: Colors.red,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 15),
+      child: Align(
+        alignment: Alignment.centerLeft,
         child: CustomText(
           text,
-          fontSize: 13,
-          fontWeight: FontWeight.w800,
-          color: AppColors.primaryColor,
-        ),
-      );
-
-  Widget _field({
-    required TextEditingController controller,
-    required String label,
-    int maxLines = 1,
-    TextInputType? keyboardType,
-    String? Function(String?)? validator,
-    List<TextInputFormatter>? inputFormatters,
-  }) {
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: SizeConfig.size6),
-      child: TextFormField(
-        controller: controller,
-        maxLines: maxLines,
-        keyboardType: keyboardType,
-        validator: validator,
-        inputFormatters: inputFormatters,
-        decoration: InputDecoration(
-          labelText: label,
-          isDense: true,
-          filled: true,
-          fillColor: Colors.white,
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+          fontSize: SizeConfig.large,
+          fontWeight: FontWeight.w600,
+          color: AppColors.mainTextColor,
         ),
       ),
     );
