@@ -12,17 +12,32 @@ import '../../../../../../core/api/model/school_details_res_model.dart';
 
 class CampusPhotoGallery extends StatelessWidget {
   final List<CampusLife> campusLife;
+  final List<String>? galleryPhotos;
   final bool isEdit;
 
-  const CampusPhotoGallery(
-      {super.key, required this.campusLife, this.isEdit = false});
+  const CampusPhotoGallery({
+    super.key,
+    required this.campusLife,
+    this.galleryPhotos,
+    this.isEdit = false,
+  });
 
   @override
   Widget build(BuildContext context) {
     final List<String> allImages = [];
+
+    // 1. Collect photos from the top-level gallery field
+    if (galleryPhotos != null) {
+      for (var url in galleryPhotos!) {
+        if (url.trim().isNotEmpty) allImages.add(url);
+      }
+    }
+
+    // 2. Collect photos from all campus life categories
     for (var item in campusLife) {
       for (Images img in item.images ?? []) {
-        if (img.url != null) allImages.add(img.url!);
+        final url = img.url?.trim() ?? '';
+        if (url.isNotEmpty) allImages.add(url);
       }
     }
 
@@ -64,8 +79,7 @@ class CampusPhotoGallery extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: Colors.grey[200],
                     borderRadius: BorderRadius.circular(12),
-                    border:
-                        Border.all(color: Colors.grey.shade300, width: 1.5),
+                    border: Border.all(color: Colors.grey.shade300, width: 1.5),
                   ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,

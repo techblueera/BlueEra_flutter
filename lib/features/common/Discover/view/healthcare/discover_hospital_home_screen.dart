@@ -87,8 +87,7 @@ class _DiscoverHospitalHomeScreenState
                   viewBusinessDetailsController.profileVersion.value;
                   return VisitBusinessStatsCard(
                     details: viewBusinessDetailsController
-                        .visitedBusinessProfileDetails
-                        ?.data,
+                        .visitedBusinessProfileDetails?.data,
                   );
                 }),
                 SizedBox(height: SizeConfig.paddingXS),
@@ -192,7 +191,8 @@ class _DiscoverHospitalHomeScreenState
                     Expanded(
                       child: PositiveCustomBtn(
                         onTap: () {
-                          commonSnackBar(message: AppStrings.comingSoonLabel.tr);
+                          commonSnackBar(
+                              message: AppStrings.comingSoonLabel.tr);
                         },
                         title: AppStrings.bookInquiry,
                       ),

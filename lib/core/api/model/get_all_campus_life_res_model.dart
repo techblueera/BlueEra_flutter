@@ -1,11 +1,16 @@
 import 'dart:convert';
-GetAllCampusLifeResModel getAllCampusLifeResModelFromJson(String str) => GetAllCampusLifeResModel.fromJson(json.decode(str));
-String getAllCampusLifeResModelToJson(GetAllCampusLifeResModel data) => json.encode(data.toJson());
+
+GetAllCampusLifeResModel getAllCampusLifeResModelFromJson(String str) =>
+    GetAllCampusLifeResModel.fromJson(json.decode(str));
+String getAllCampusLifeResModelToJson(GetAllCampusLifeResModel data) =>
+    json.encode(data.toJson());
+
 class GetAllCampusLifeResModel {
   GetAllCampusLifeResModel({
-      this.success,
-      this.data,
-      this.count,});
+    this.success,
+    this.data,
+    this.count,
+  });
 
   GetAllCampusLifeResModel.fromJson(dynamic json) {
     success = json['success'];
@@ -30,7 +35,6 @@ class GetAllCampusLifeResModel {
     map['count'] = count;
     return map;
   }
-
 }
 
 class GetAllCampusLifeData {
@@ -126,7 +130,7 @@ class Images {
   String? caption;
   String? id;
 
-  Images({this.id,this.url, this.caption});
+  Images({this.id, this.url, this.caption});
 
   Images.fromJson(dynamic json) {
     id = json['_id'];

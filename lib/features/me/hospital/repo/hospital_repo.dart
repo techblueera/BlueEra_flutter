@@ -4,7 +4,6 @@ import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 
 class HospitalRepo extends BaseService {
-
   Future<ResponseModel> createHospitalRepo(
       {required Map<String, dynamic> reqBody}) async {
     final response = await ApiBaseHelper().postHTTP(aiCreateHospital,
@@ -12,15 +11,16 @@ class HospitalRepo extends BaseService {
     return response;
   }
 
-  Future<ResponseModel> getHospitalFullDetailsRepo(
-   ) async {
-    final response = await ApiBaseHelper().getHTTP(userSelfHospital,
-    onError: (error) {}, onSuccess: (data) {});
+  Future<ResponseModel> getHospitalFullDetailsRepo() async {
+    final response = await ApiBaseHelper()
+        .getHTTP(userSelfHospital, onError: (error) {}, onSuccess: (data) {});
     return response;
   }
+
   ///PUT  COURSE....
-  Future<ResponseModel> updateHospitalInfoRepo(
-      {required Map<String, dynamic> reqBODY,}) async {
+  Future<ResponseModel> updateHospitalInfoRepo({
+    required Map<String, dynamic> reqBODY,
+  }) async {
     final response = await ApiBaseHelper().putHTTP(
         "${hospitalUpdate}$hospitalIDGlobal",
         params: reqBODY,
@@ -28,6 +28,7 @@ class HospitalRepo extends BaseService {
         onSuccess: (data) {});
     return response;
   }
+
   /// LIST: Laboratory Profiles (paginated)
   Future<ResponseModel> listHospitalProfiles({
     required int page,

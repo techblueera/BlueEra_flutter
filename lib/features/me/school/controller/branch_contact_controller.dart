@@ -32,12 +32,16 @@ class BranchContactController extends GetxController {
     required String email,
     required String phone,
   }) {
+    // Email is optional, but if entered, it must be @gmail.com
+    bool isEmailValid =
+        email.isEmpty || (email.isEmail && email.endsWith("@gmail.com"));
+
     // Basic validation logic
     bool isValid = branchName.isNotEmpty &&
         website.isURL &&
         address.isNotEmpty &&
         department.isNotEmpty &&
-        email.isEmail &&
+        isEmailValid &&
         phone.length >= 10;
 
     isFormValid.value = isValid;
@@ -141,10 +145,15 @@ class BranchContactController extends GetxController {
     required String departmentEmailAddress,
     required String departmentPhoneNo,
   }) {
+    // Email is optional, but if entered, it must be @gmail.com
+    bool isEmailValid = departmentEmailAddress.isEmpty ||
+        (departmentEmailAddress.isEmail &&
+            departmentEmailAddress.endsWith("@gmail.com"));
+
     // Condition: All text fields not empty AND at least 1 image
     isFormValid.value = departmentRole.isNotEmpty &&
         departmentPhoneNo.isNotEmpty &&
-        departmentEmailAddress.isNotEmpty;
+        isEmailValid;
   }
 
   ///ADD NEW DEPARTMENT CONTACT INFO...

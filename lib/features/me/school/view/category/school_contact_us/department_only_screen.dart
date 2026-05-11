@@ -71,6 +71,18 @@ class _DepartmentOnlyScreenState extends State<DepartmentOnlyScreen> {
                 textEditController: emailController,
                 hintText: "dpsdehradun@gmail.com",
                 title: AppStrings.email,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return null; // Optional
+                  }
+                  if (!value.isEmail) {
+                    return AppStrings.invalidEmail.tr;
+                  }
+                  if (!value.endsWith("@gmail.com")) {
+                    return "Only @gmail.com allowed";
+                  }
+                  return null;
+                },
                 onChange: (_) => _runValidation(),
               ),
               SizedBox(height: 12),

@@ -34,7 +34,10 @@ class SchoolHomeScreen extends StatelessWidget {
         return SingleChildScrollView(
             child: Column(
           children: [
-            SchoolHeaderView(schoolAboutUsController: schoolAboutUsController,isEdit: true,),
+            SchoolHeaderView(
+              schoolAboutUsController: schoolAboutUsController,
+              isEdit: true,
+            ),
             DirectorCard(
               schoolAboutUsController: schoolAboutUsController,
               isEdit: true,
@@ -47,35 +50,47 @@ class SchoolHomeScreen extends StatelessWidget {
             SchoolCourseSection(
               courses:
                   schoolAboutUsController.schoolDetailsData?.value.courses ??
-                      [], isEdit: true,
+                      [],
+              isEdit: true,
             ),
             CampusPhotoGallery(
               campusLife:
                   schoolAboutUsController.schoolDetailsData?.value.campusLife ??
                       [],
+              galleryPhotos: schoolAboutUsController
+                      .schoolDetailsData?.value.galleryPhotos ??
+                  [],
               isEdit: true,
             ),
             InkWell(
               onTap: () {
-                Get.to(SchoolJobListingScreen(isEdit: true,));
+                Get.to(SchoolJobListingScreen(
+                  isEdit: true,
+                ));
               },
               child: cardViewWidget(title: AppStrings.jobVacancy),
             ),
             InkWell(
               onTap: () {
-                Get.to(SchoolAcademicsPage(isEdit: true,));
+                Get.to(SchoolAcademicsPage(
+                  isEdit: true,
+                ));
               },
               child: cardViewWidget(title: AppStrings.academics),
             ),
             InkWell(
               onTap: () {
-                Get.to(SchoolStudentCorner(isEdit: true,));
+                Get.to(SchoolStudentCorner(
+                  isEdit: true,
+                ));
               },
-              child: cardViewWidget(title:AppStrings.studentCorner),
+              child: cardViewWidget(title: AppStrings.studentCorner),
             ),
             InkWell(
               onTap: () {
-                Get.to(NoticeNewsScreen(isEdit: true,));
+                Get.to(NoticeNewsScreen(
+                  isEdit: true,
+                ));
               },
               child: cardViewWidget(title: AppStrings.noticesNews),
             ),
@@ -134,8 +149,8 @@ class SchoolHomeScreen extends StatelessWidget {
       })),
     );
   }
-
 }
+
 Widget cardViewWidget({required String title}) {
   return Padding(
     padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 8),
@@ -148,7 +163,7 @@ Widget cardViewWidget({required String title}) {
               title: title,
             ),
             CustomText(
-               AppStrings.view,
+              AppStrings.view,
               fontWeight: FontWeight.bold,
               color: AppColors.primaryColor,
             ),
@@ -156,4 +171,3 @@ Widget cardViewWidget({required String title}) {
         )),
   );
 }
-
