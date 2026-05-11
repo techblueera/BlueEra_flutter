@@ -518,6 +518,14 @@ class ApiKeys {
   static const deliveryOTP = 'deliveryOTP';
   static const searchTerm = 'searchTerm';
   static const orders_conversation = 'orders_conversation';
+  // Mention filters for `messageReceived` socket emit + REST
+  // `/chat/conversation/:id/filtered-messages` — see
+  // lib/docs/filtered-messages-integration-guide.md.
+  // `mentioned: true`  → only messages I sent that tag at least one user.
+  // `assigned:  true`  → only messages where my user id is in tagged_users.
+  // Both true          → union (OR). Both false / omitted = no filter.
+  static const mentioned = 'mentioned';
+  static const assigned = 'assigned';
   static const pickupOTP = 'pickupOTP';
   static const newContactNo = 'new_contact_no';
   static const argRentalData = 'argRentalData';

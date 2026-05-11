@@ -1835,7 +1835,14 @@ class ChatViewController extends GetxController {
 
   /// Builds and emits the `messageReceived` fetch payload for the currently
   /// open conversation using the cached identifiers + current page size.
+  ///
+  /// When the group-chat screen is on the "Mentioned" (tab 1) or "Assigned"
+  /// (tab 2) tab, the corresponding filter flag is forwarded so pagination /
+  /// load-more stays inside the same filtered set (see
+  /// `lib/docs/filtered-messages-integration-guide.md`). Tab 0 omits both
+  /// flags → byte-identical to the pre-filter behaviour.
   void _emitFetchMessages(String conversationId) {
+    final groupTab = groupChatScreenSelectedTab.value;
     final params = <String, dynamic>{
       if (conversationId.isEmpty)
         ApiKeys.other_user_id: _currentChatOtherUserId
@@ -1846,6 +1853,8 @@ class ChatViewController extends GetxController {
       ApiKeys.per_page_message: currentMessagePageSize.value,
       if (_currentChatName != null && _currentChatName == "BlueEra Orders")
         ApiKeys.orders_conversation: true,
+      if (groupTab == 1) ApiKeys.mentioned: true,
+      if (groupTab == 2) ApiKeys.assigned: true,
     };
     emitEvent(ChatEmitEvents.messageReceived, params);
   }
