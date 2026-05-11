@@ -2,13 +2,18 @@ import 'dart:developer';
 import 'dart:io';
 import 'dart:ui' as ui;
 
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
+import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
+import 'package:BlueEra/features/common/referral/controller/referral_controller.dart';
+import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:flutter/material.dart' hide Key;
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:geolocator/geolocator.dart' as geo;
+import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:mime/mime.dart';
@@ -76,43 +81,87 @@ List<String> generateList(int startYear, int endYear) {
 }
 
 ///GENERATE POST DEEPLINK
-String postDeepLink({String? postId}) {
-  return 'https://blueera.ai/app/post/${(postId ?? "")}';
-}
+String postDeepLink({String? postId}) =>
+    _withBdmReferral('https://blueera.ai/app/post/${postId ?? ""}');
 
 /// Generate deep link for a Video item
-String videoDeepLink({String? videoId}) {
-  return 'https://blueera.ai/app/video/${(videoId ?? "")}';
-}
+String videoDeepLink({String? videoId}) =>
+    _withBdmReferral('https://blueera.ai/app/video/${videoId ?? ""}');
 
 /// Generate deep link for a Short/Reel item
-String shortDeepLink({String? shortId}) {
-  return 'https://blueera.ai/app/video/${(shortId ?? "")}';
-}
+String shortDeepLink({String? shortId}) =>
+    _withBdmReferral('https://blueera.ai/app/video/${shortId ?? ""}');
 
 /// Generate deep link for a Job post item
-String jobDeepLink({String? jobId}) {
-  return 'https://blueera.ai/app/job/${(jobId ?? "")}';
-}
+String jobDeepLink({String? jobId}) =>
+    _withBdmReferral('https://blueera.ai/app/job/${jobId ?? ""}');
 
-/// Generate deep link for a Profile
-String profileDeepLink({String? userId, required String accountType}) {
-  return 'https://blueera.ai/app/profile/${(userId ?? "")}';
-}
+/// Generate deep link for a Profile.
+String profileDeepLink({String? userId}) =>
+    _withBdmReferral('https://blueera.ai/app/profile/${userId ?? ""}');
 
 /// Generate deep link for a Product item
-String productDeepLink({String? productId}) {
-  return 'https://blueera.ai/app/product/${productId ?? ""}';
-}
+String productDeepLink({String? productId}) =>
+    _withBdmReferral('https://blueera.ai/app/product/${productId ?? ""}');
 
 /// Generate deep link for a Service item
-String serviceDeepLink({String? serviceId}) {
-  return 'https://blueera.ai/app/food/${serviceId ?? ""}';
-}
+String serviceDeepLink({String? serviceId}) =>
+    _withBdmReferral('https://blueera.ai/app/food/${serviceId ?? ""}');
 
 /// Generate deep link for a Food Service item
-String foodServiceDeepLink({String? foodServiceId}) {
-  return 'https://blueera.ai/app/food/${foodServiceId ?? ""}';
+String foodServiceDeepLink({String? foodServiceId}) =>
+    _withBdmReferral('https://blueera.ai/app/food/${foodServiceId ?? ""}');
+
+/// Returns the signed-in user's BDM referral code (when their BDM
+/// application status is `COMPLETED`), or `null`. Public companion
+/// to the auto-attach inside [_withBdmReferral] — call sites that
+/// need the raw code (e.g. the Play Store `referrer` param, an
+/// app-download share body) should read it through here so the
+/// "what counts as a valid referral code" rule lives in one place.
+String? currentBdmReferralCode() => _currentUserReferralCodeIfBdmCompleted();
+
+/// Appends `?referralCode=<code>` to [base] when the signed-in
+/// user is a verified BDM (status `COMPLETED`); returns [base]
+/// unchanged otherwise. All deeplink builders in this file route
+/// through here so the referral-attach rule lives in one place.
+///
+/// Assumes [base] has no existing query string — every current
+/// deeplink builder generates a path-only URL. If that ever
+/// changes, switch to detecting an existing `?` and using `&`.
+String _withBdmReferral(String base) {
+  final code = _currentUserReferralCodeIfBdmCompleted();
+  if (code == null || code.isEmpty) return base;
+  return '$base?referralCode=${Uri.encodeQueryComponent(code)}';
+}
+
+/// Returns the signed-in user's referral code only when their BDM
+/// application status is `COMPLETED` (per [ReferralController]). All
+/// lookups are guarded with `Get.isRegistered` + try/catch so URL
+/// generation can never throw if a controller hasn't been registered
+/// yet (e.g. share surfaces opened before the referral flow loads).
+String? _currentUserReferralCodeIfBdmCompleted() {
+  try {
+    if (!Get.isRegistered<ReferralController>()) return null;
+    final referral = Get.find<ReferralController>();
+    if (referral.referralBdmDetails.value.status != 'COMPLETED') return null;
+
+    if (accountTypeGlobal == AppConstants.business) {
+      if (!Get.isRegistered<ViewBusinessDetailsController>()) return null;
+      return Get.find<ViewBusinessDetailsController>()
+          .businessProfileDetails
+          .value
+          ?.data
+          ?.referral_code;
+    }
+    if (!Get.isRegistered<ViewPersonalDetailsController>()) return null;
+    return Get.find<ViewPersonalDetailsController>()
+        .personalProfileDetails
+        .value
+        .user
+        ?.referral_code;
+  } catch (_) {
+    return null;
+  }
 }
 
 /// Generate "5 days ago" or something similar

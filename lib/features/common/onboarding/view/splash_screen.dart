@@ -197,6 +197,15 @@ class _SplashScreenState extends State<SplashScreen> {
     debugPrint(
         "=====================================Deep link received:========================= $uri");
     try {
+      // Every BlueEra deeplink carries `?referralCode=…` when shared
+      // by a verified BDM. Capture it before path-based routing so it
+      // survives whatever screen the link takes the user to — the
+      // onboarding flow consumes it from secure prefs at signup time.
+      final referral = uri.queryParameters['referralCode'];
+      if (referral != null && referral.trim().isNotEmpty) {
+        await SharedPreferenceUtils.saveDeferredReferralCode(referral);
+      }
+
       final segments = uri.pathSegments; // e.g., [app, post, 123]
       if (segments.length >= 3 && segments[0] == 'app') {
         final type = segments[1]; // post | video | short | job | product

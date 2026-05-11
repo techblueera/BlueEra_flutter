@@ -3,7 +3,6 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
@@ -15,7 +14,7 @@ import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:share_plus/share_plus.dart';
+import 'package:BlueEra/core/services/share_service.dart';
 
 import '../../controller/profile_controller.dart';
 
@@ -264,13 +263,11 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
                     _circleButton(
                       icon: Icons.share_outlined,
                       onTap: () async {
-                        final link = profileDeepLink(
-                            userId: user?.id,
-                            accountType: AppConstants.individual);
-                        await SharePlus.instance.share(
-                          ShareParams(
-                              text: "See my profile on BlueEra:\n$link\n",
-                              subject: user?.name),
+                        // ShareService owns the link + body + share
+                        // sheet for someone-else's-profile shares.
+                        await ShareService.instance.shareProfile(
+                          userId: user?.id,
+                          subject: user?.name,
                         );
                       },
                     ),

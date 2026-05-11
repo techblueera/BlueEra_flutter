@@ -7,13 +7,13 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/choose_earn_service_screen.dart';
 import 'package:BlueEra/core/services/multipart_image_service.dart';
+import 'package:BlueEra/core/services/share_service.dart';
 import 'package:BlueEra/widgets/bottom_nav_hide_on_scroll.dart';
 import 'package:BlueEra/features/business/widgets/business_card_ui.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
@@ -41,7 +41,6 @@ import 'package:croppy/croppy.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-import 'package:share_plus/share_plus.dart';
 
 class SocialMainScreen extends StatefulWidget {
   const SocialMainScreen({super.key});
@@ -384,18 +383,15 @@ class _SocialMainScreenState extends State<SocialMainScreen>
                 const Spacer(),
                 GestureDetector(
                   onTap: () async {
-                    final link = profileDeepLink(
-                      userId: userId,
-                      accountType: AppConstants.individual,
-                    );
-                    final userName =
-                        _viewCtrl.personalProfileDetails.value.user?.name ?? '';
-                    await SharePlus.instance.share(
-                      ShareParams(
-                        text: "See my profile on BlueEra:\n$link\n",
-                        subject: userName,
-                      ),
-                    );
+                    // ShareService owns the link + message + share-sheet
+                    // handoff. Same single entry point as every other
+                    // dashboard's share button.
+                    final userName = _viewCtrl
+                            .personalProfileDetails.value.user?.name ??
+                        '';
+                    await ShareService.instance.shareProfile(
+                        userId: userId,
+                        subject: userName);
                   },
                   child: Container(
                     padding: const EdgeInsets.all(6),

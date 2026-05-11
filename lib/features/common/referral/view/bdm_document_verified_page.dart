@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/services/share_service.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/referral/view/referral_history_screen.dart';
 import 'package:BlueEra/features/common/referral/widgets/referral_points_chart.dart';
@@ -10,7 +11,6 @@ import 'package:BlueEra/widgets/dashed_border_container.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:share_plus/share_plus.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/getx_utils.dart';
 import '../../../../core/constants/size_config.dart';
@@ -148,9 +148,17 @@ class _BdmDocumentVerifiedPageState extends State<BdmDocumentVerifiedPage> {
                             SizedBox(width: SizeConfig.paddingXSL),
                             GestureDetector(
                               onTap: () async {
-                                await Share.share(
-                                  _stats.referralCode??'',
-                                  subject: "Amazing App",
+                                // Share the app-download message
+                                // with this BDM's referral code
+                                // baked in — Play Store `referrer`
+                                // for Android (auto-captured by
+                                // Install Referrer), spelled-out
+                                // code at the bottom for iOS manual
+                                // entry. Passing the code we already
+                                // have on screen avoids racing the
+                                // profile-controller load.
+                                await ShareService.instance.shareAppDownload(
+                                  overrideReferralCode: _stats.referralCode,
                                 );
                               },
                               child: Container(

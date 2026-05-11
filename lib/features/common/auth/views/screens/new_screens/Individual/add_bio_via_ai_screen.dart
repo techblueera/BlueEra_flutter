@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
@@ -64,21 +65,42 @@ class _AddBioViaAiScreenState extends State<AddBioViaAiScreen> {
             "Month: ${widget.selectedMonth}, "
             "Day: ${widget.selectedDay}"
     );
-    // Show the referral / promo-code dialog first, then kick off the
-    // AI bio generation only after the user dismisses or submits it.
-    // Running the API in parallel made the inline AI loader compete
-    // with the modal dialog for the user's attention.
+    // Apply a deeplink-captured referral code if one is waiting in
+    // prefs (silent path — no dialog), otherwise fall through to the
+    // manual promo-code dialog. AI bio generation runs last either
+    // way so its inline loader can't compete with the modal.
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await _showReferralDialog();
+      await _applyDeferredReferralOrPrompt();
       if (!mounted) return;
       await apiCalling();
     });
     super.initState();
   }
 
-  /// Shown once this screen is mounted — the user has just completed the
-  /// individual account form. If they submit a referral code, patch it
-  /// onto their profile via `updateUserProfileDetails`.
+  /// Deeplink-first referral attribution. If `_handleDeepLink` saved
+  /// a code (verified BDM shared a link that this user clicked before
+  /// signup), apply it silently and skip the dialog. Otherwise show
+  /// the manual promo-code prompt so the user can still type a code.
+  Future<void> _applyDeferredReferralOrPrompt() async {
+    final saved = await SharedPreferenceUtils.getDeferredReferralCode();
+    if (saved != null && saved.isNotEmpty) {
+      await personalCreateProfileController.updateUserProfileDetails(
+        params: {ApiKeys.referred_by_code: saved},
+        isFromProfileOnly: true,
+        showProgress: false,
+      );
+      // Consume-once: prevent a stale code from being re-applied if
+      // the user creates a second profile on the same device.
+      await SharedPreferenceUtils.clearDeferredReferralCode();
+      return;
+    }
+    if (!mounted) return;
+    await _showReferralDialog();
+  }
+
+  /// Manual fallback — shown only when no deeplink-captured code is
+  /// available. If the user submits a code, patch it onto their
+  /// profile via `updateUserProfileDetails`.
   Future<void> _showReferralDialog() async {
     if (!mounted) return;
     await showDialog(

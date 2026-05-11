@@ -72,20 +72,40 @@ class _CreateBusinessAccountNewStepTwoState
     viewBusinessDetailsController.listingDescriptionController.value
         .addListener(_validateForm);
     picCodeController.addListener(_validateForm);
-    // Show the referral / promo-code dialog first, then fetch the
-    // user's live location only after the dialog is dismissed. Running
-    // them in parallel made the location-permission prompt collide
-    // with the modal dialog and steal focus.
+    // Apply a deeplink-captured referral code if one is waiting in
+    // prefs (silent path — no dialog), otherwise fall through to the
+    // manual promo-code dialog. Location fetch runs last either way
+    // so its permission prompt can't collide with the modal.
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await _showReferralDialog();
+      await _applyDeferredReferralOrPrompt();
       if (!mounted) return;
       await updateAddressFromLocation();
     });
   }
 
-  /// Shown once this screen is mounted — the user has just created their
-  /// business account in step one. If they enter a referral code, patch it
-  /// onto the new business via `updateBusinessDetails`.
+  /// Deeplink-first referral attribution. If `_handleDeepLink` saved
+  /// a code (verified BDM shared a link that this user clicked before
+  /// signup), apply it silently and skip the dialog. Otherwise show
+  /// the manual promo-code prompt so the user can still type a code.
+  Future<void> _applyDeferredReferralOrPrompt() async {
+    final saved = await SharedPreferenceUtils.getDeferredReferralCode();
+    if (saved != null && saved.isNotEmpty) {
+      await viewBusinessDetailsController.updateBusinessDetails(
+        {ApiKeys.referral_code: saved},
+        showProgress: false,
+      );
+      // Consume-once: prevent a stale code from being re-applied if
+      // the user creates a second business on the same device.
+      await SharedPreferenceUtils.clearDeferredReferralCode();
+      return;
+    }
+    if (!mounted) return;
+    await _showReferralDialog();
+  }
+
+  /// Manual fallback — shown only when no deeplink-captured code is
+  /// available. If the user enters a code, patch it onto the new
+  /// business via `updateBusinessDetails`.
   Future<void> _showReferralDialog() async {
     if (!mounted) return;
     await showDialog(

@@ -233,13 +233,8 @@ class _BusinessShareBannerState extends State<BusinessShareBanner> {
   /// Builds the deep-link caption attached to every shared artefact.
   /// Matches the visiting-card share helper.
   String _buildShareMessage(String shopName) {
-    final accountType = widget.accountType ??
-        (accountTypeGlobal == AppConstants.business
-            ? AppConstants.business
-            : AppConstants.individual);
     final link = profileDeepLink(
       userId: userId,
-      accountType: accountType,
     );
     return 'Visit $shopName on BlueEra:\n$link\n';
   }
