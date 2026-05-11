@@ -924,12 +924,12 @@ class _MyAppState extends State<MyApp> {
           }
 
 // Still loading (null or loading flag)
-          if (appController.isLoading.value ||
-              appController.isInMaintenance.value == null) {
-            return const Scaffold(
-              body: Center(child: CircularProgressIndicator()),
-            );
-          }
+//           if (appController.isLoading.value ||
+//               appController.isInMaintenance.value == null) {
+//             return const Scaffold(
+//               body: Center(child: CircularProgressIndicator()),
+//             );
+//           }
 
 // App under maintenance
           if (appController.isInMaintenance.value == true) {

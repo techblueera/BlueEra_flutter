@@ -47,6 +47,7 @@ import '../../../chat/auth/controller/chat_pin_archive_controller.dart';
 import '../../../chat/auth/controller/chat_view_controller.dart';
 import '../../../chat/auth/model/GetChatListModel.dart';
 import '../../../chat/view/forward_screen/chat_forward_screen.dart';
+import '../../../chat/view/group_chat/add_new_group_page.dart';
 import '../../../chat/view/widget/chat_flag_bottom_sheet.dart';
 import '../../../personal/personal_profile/controller/languge_list_controller.dart';
 import '../../../../core/constants/getx_utils.dart';
@@ -479,13 +480,38 @@ class _ConnectMainPageState extends State<ConnectMainPage>
               child: Padding(
                   padding:
                   const EdgeInsets.only(bottom: kBottomNavigationBarHeight),
-                  child: FloatingActionButton(
-                    child: Icon(Icons.add),
-                    backgroundColor: AppColors.primaryColor,
-                    foregroundColor: Colors.white,
-                    onPressed: () {
-                      Get.toNamed(RouteHelper.getChatContactsRoute());
+                  child: InkWell(
+                    onTap: (){
+                      if(chatViewController.personalTabSelectedIndex.value==1){
+                        Get.to(() => ContactsPage(from: "group"));
+                      }else{
+                        Get.toNamed(RouteHelper.getChatContactsRoute());
+                      }
                     },
+                    child: Container(
+                      // width: 60,
+                      height: 52,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                        color: AppColors.primaryColor,
+                      ),
+                      margin:const EdgeInsets.only(bottom: 18) ,
+                      padding:const EdgeInsets.only(left: 12,right: 12) ,
+                      child: Row(mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          if(chatViewController.personalTabSelectedIndex.value==1)
+                            CustomText("New Group ",color: AppColors.white,fontWeight: FontWeight.w600,),
+                          Icon(Icons.add,color: AppColors.white,),
+                        ],
+                      ),
+                      // backgroundColor: AppColors.primaryColor,
+                      // foregroundColor: Colors.white,
+                      // onPressed: () {
+                      //
+                      //
+                      // },
+                    ),
                   )),
             ),
             body: BottomNavHideOnScroll(

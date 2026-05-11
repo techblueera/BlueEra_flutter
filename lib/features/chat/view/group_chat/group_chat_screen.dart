@@ -44,6 +44,9 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
   @override
   void initState() {
     super.initState();
+    // Default to the "All" tab on entry so a stale mention/assigned filter
+    // from a previous group session doesn't leak into the initial fetch.
+    chatViewController.groupChatScreenSelectedTab.value = 0;
     chatViewController.emitEvent(ChatEmitEvents.messageReceived, {
       ApiKeys.conversation_id: widget.conversationId,
       ApiKeys.page: 1,
@@ -139,13 +142,24 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                           onTabSelected: (index, val) {
                             chatViewController
                                 .groupChatScreenSelectedTab.value = index;
-                            if (index == 0) {
+                            // Tabs 0/1/2 share the same `messageReceived`
+                            // transport — only the filter flags change.
+                            // See lib/docs/filtered-messages-integration-guide.md.
+                            //   0 → All       (no filter)
+                            //   1 → Mentioned (outgoing: messages I sent that
+                            //                  tagged at least one user)
+                            //   2 → Assigned  (incoming: messages where I'm
+                            //                  in tagged_users)
+                            //   3 → Pinned    (separate REST API)
+                            if (index == 0 || index == 1 || index == 2) {
                               chatViewController.emitEvent(
                                   ChatEmitEvents.messageReceived, {
                                 ApiKeys.conversation_id: widget.conversationId,
                                 ApiKeys.page: 1,
                                 ApiKeys.is_online_user: userId,
                                 ApiKeys.per_page_message: 30,
+                                if (index == 1) ApiKeys.mentioned: true,
+                                if (index == 2) ApiKeys.assigned: true,
                               });
                             } else if (index == 3) {
                               chatViewController.getPinMessageListDataApi({
