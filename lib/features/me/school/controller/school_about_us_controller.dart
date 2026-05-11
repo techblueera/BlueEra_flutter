@@ -261,10 +261,41 @@ class SchoolAboutUsController extends GetxController {
       ResponseModel response = await SchoolRepo()
           .getAllCampusLifeRepo(schoolID: schoolID ?? schoolIDGlobal);
       if (response.isSuccess && schoolDetailsData?.value != null) {
-        // Update campusLife in schoolDetailsData
-        final List<dynamic> campusJson = response.response?.data['data'] ?? [];
-        schoolDetailsData!.value.campusLife =
-            campusJson.map((v) => CampusLife.fromJson(v)).toList();
+        final List<dynamic> categoriesJson =
+            response.response?.data['data'] ?? [];
+
+        final List<String> extractedUrls = [];
+
+        for (final category in categoriesJson) {
+          final subcategories = (category['subcategories'] as List?) ?? [];
+          for (final sub in subcategories) {
+            final entries = (sub['entries'] as List?) ?? [];
+            for (final entry in entries) {
+              final images = (entry['images'] as List?) ?? [];
+              for (final img in images) {
+                final url = (img is String)
+                    ? img
+                    : (img['url'] ??
+                            img['image'] ??
+                            img['uploadPhoto'] ??
+                            img['photo'] ??
+                            '')
+                        .toString()
+                        .trim();
+                if (url.isNotEmpty) extractedUrls.add(url);
+              }
+            }
+          }
+        }
+
+        // Store flattened URLs in galleryPhotos so CampusPhotoGallery can display them
+        schoolDetailsData!.value.galleryPhotos = [
+          ...?schoolDetailsData!.value.galleryPhotos,
+          ...extractedUrls,
+        ];
+        // Remove duplicates
+        schoolDetailsData!.value.galleryPhotos =
+            schoolDetailsData!.value.galleryPhotos?.toSet().toList();
         schoolDetailsData?.refresh();
       }
     } catch (e) {

@@ -58,18 +58,16 @@ class HospitalServiceAiController extends GetxController {
     labAddress.value = "";
   }
 
+  RxBool isaiResponseLoading = false.obs;
 
-
-
-
-    RxBool isaiResponseLoading=false.obs;
-
-  Future<void> createHospitalServiceController({required Map<String,dynamic> reqData}) async {
+  Future<void> createHospitalServiceController(
+      {required Map<String, dynamic> reqData}) async {
     try {
-      ResponseModel response = await hospitalServiceRepo.createHospitalRepo(
-          reqBody: {"aiOutput": reqData});
+      ResponseModel response = await hospitalServiceRepo
+          .createHospitalRepo(reqBody: {"aiOutput": reqData});
       if (response.isSuccess) {
-        commonSnackBar(message: AppStrings.hospitalCtrlServiceCreatedSuccess.tr);
+        commonSnackBar(
+            message: AppStrings.hospitalCtrlServiceCreatedSuccess.tr);
 
         labAddress.value = "";
         String? hospitalID = response.response?.data['hospitalId'];
@@ -81,11 +79,9 @@ class HospitalServiceAiController extends GetxController {
         await getHospitalID();
         await Future.delayed(Duration(milliseconds: 200));
         hasHospitalCreated.value = true;
-      } else {
-      }
+      } else {}
     } on Exception {
       hasHospitalCreated.value = false;
-
     }
   }
 
@@ -181,11 +177,9 @@ class HospitalServiceAiController extends GetxController {
         });
         if (response.isSuccess) {
           commonSnackBar(message: AppStrings.hospitalCtrlAddedSuccessfully.tr);
-        } else {
-        }
+        } else {}
       }
     } on Exception {
-
       // TODO
     }
   }
@@ -208,16 +202,17 @@ class HospitalServiceAiController extends GetxController {
     profiles.clear();
     page = 1;
     hasMore.value = true;
-    await _fetch(page, isLoadMore: false,type: type);
+    await _fetch(page, isLoadMore: false, type: type);
   }
 
   Future<void> fetchMore(String type) async {
     if (!hasMore.value || isLoadingMore.value) return;
     page += 1;
-    await _fetch(page, isLoadMore: true,type:type );
+    await _fetch(page, isLoadMore: true, type: type);
   }
 
-  Future<void> _fetch(int p, {required bool isLoadMore,required String type}) async {
+  Future<void> _fetch(int p,
+      {required bool isLoadMore, required String type}) async {
     try {
       if (isLoadMore) {
         isLoadingMore.value = true;

@@ -90,6 +90,18 @@ class _BranchDetailsFormScreenState extends State<BranchDetailsFormScreen> {
                 textEditController: emailController,
                 hintText: "dpsdehradun@gmail.com",
                 title: AppStrings.email,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return null; // Optional
+                  }
+                  if (!value.isEmail) {
+                    return AppStrings.invalidEmail.tr;
+                  }
+                  if (!value.endsWith("@gmail.com")) {
+                    return "Only @gmail.com allowed";
+                  }
+                  return null;
+                },
                 onChange: (_) => _triggerValidation(),
               ),
               SizedBox(height: 12),

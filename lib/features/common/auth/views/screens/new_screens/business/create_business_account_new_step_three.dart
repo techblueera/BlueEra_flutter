@@ -69,12 +69,17 @@ class _CreateBusinessAccountNewStepThreeState
   }
 
   void _validateForm() {
+    String email = emailTextController.text.trim();
+    bool isEmailValid = email.isEmpty ||
+        (GetUtils.isEmail(email) && email.endsWith("@gmail.com"));
+
     setState(() {
       isFormValid = nameTextController.text.trim().isNotEmpty &&
           yourRoleController.text.trim().isNotEmpty &&
           viewBusinessDetailsController.listingDescriptionController.value.text
               .trim()
-              .isNotEmpty;
+              .isNotEmpty &&
+          isEmailValid;
     });
   }
 
@@ -230,7 +235,19 @@ class _CreateBusinessAccountNewStepThreeState
                       regularExpression: RegularExpressionUtils.emailPattern,
                       title: "${AppStrings.email} (Optional)",
                       hintText: AppStrings.emailHint,
-                      isValidate: false,
+                      isValidate: true,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return null;
+                        }
+                        if (!GetUtils.isEmail(value)) {
+                          return AppStrings.invalidEmail.tr;
+                        }
+                        if (!value.endsWith("@gmail.com")) {
+                          return "Only @gmail.com allowed";
+                        }
+                        return null;
+                      },
                       validationType: ValidationTypeEnum.email,
                       autoFillType: AutoFillType.email,
                     ),
