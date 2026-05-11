@@ -34,6 +34,18 @@ class ChatSocketService {
   // ─── Connect ───────────────────────────────────────────────────────────────
 
   Future<void> connectToSocket() async {
+    // Don't open a socket session before the user has logged in. Without
+    // this guard a cold-start (CallController.onInit → connectToSocket)
+    // opens a socket with an empty `authTokenGlobal`, which still emits
+    // `isOnlineFromChatList` / `ChatList` and the server replies with
+    // `isOnLine` events — spamming the SOCKET_RAW log even on the auth
+    // screens. Listeners registered before login are buffered in
+    // `_pendingListeners` and replayed on the first authenticated
+    // connect() (called from AuthController after token is populated).
+    if (!isLoggedIn()) {
+      return;
+    }
+
     // If already connected, don't create a new socket
     if (_isConnected && _socket != null && _socket!.connected) {
       return;
@@ -113,6 +125,10 @@ print("SOCKET ERROR catch ${e}");
     if (_isConnected && _socket != null) {
       _socket!.emit(event, data);
     } else {
+      // Skip the lazy-connect when logged out — connectToSocket() will
+      // no-op anyway, but bailing here keeps the emit semantics obvious
+      // for callers that fire from late teardown paths.
+      if (!isLoggedIn()) return;
       await connectToSocket();
       _socket?.emit(event, data);
 

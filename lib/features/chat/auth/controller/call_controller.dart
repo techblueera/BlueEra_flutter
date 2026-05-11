@@ -19,6 +19,7 @@ import 'package:get/get.dart' hide navigator;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import '../../../../core/api/apiService/response_model.dart';
+import '../../../../core/constants/app_constant.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/constants/shared_preference_utils.dart';
 import '../../../../core/constants/snackbar_helper.dart';
@@ -256,7 +257,15 @@ class CallController extends GetxController {
     // delivered even when the user hasn't opened chat yet. Without this,
     // the server falls back to FCM and CallKit's ring timer can elapse,
     // flipping the call to "missed" before the user sees it.
-    if (!_socket.isConnected) {
+    //
+    // Gate on isLoggedIn(): CallController is registered as permanent in
+    // main.dart before we know if the user is authenticated, so cold
+    // starts on the auth/onboarding screens would otherwise open a socket
+    // with an empty token and spam `isOnLine` events. After login,
+    // AuthController triggers connectToSocket() explicitly; the call
+    // listeners registered above are buffered in ChatSocketService's
+    // `_pendingListeners` and replayed on that first authenticated connect.
+    if (isLoggedIn() && !_socket.isConnected) {
       _socket.connectToSocket();
     }
   }

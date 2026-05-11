@@ -7,6 +7,7 @@ import 'package:get/get.dart';
 import '../../features/chat/auth/controller/call_controller.dart';
 import '../../features/chat/auth/controller/chat_view_controller.dart';
 import '../../features/chat/auth/socket/chat_socket.dart';
+import '../constants/app_constant.dart';
 
 class AppLifecycleHandler extends WidgetsBindingObserver {
   @override
@@ -38,6 +39,12 @@ class AppLifecycleHandler extends WidgetsBindingObserver {
   /// exponential backoff won't fire. This forces an immediate reconnect
   /// with backoff reset, which is critical for iOS returning from background.
   void _reconnectChatSocketIfNeeded() {
+    // Skip reconnect entirely when the user isn't authenticated — the
+    // app may be sitting on the login/onboarding screens, and we don't
+    // want to open a socket against an empty token just because the user
+    // backgrounded and resumed.
+    if (!isLoggedIn()) return;
+
     // Force immediate reconnect on the raw socket (resets backoff)
     final chatSocket = ChatSocketService();
     if (!chatSocket.isConnected) {

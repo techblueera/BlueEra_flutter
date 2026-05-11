@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/services/chat_media_storage_service.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -27,6 +28,7 @@ import 'package:BlueEra/features/me/hospital/view/hospital_main.dart';
 import 'package:BlueEra/features/me/hotel/view/hotel_main.dart';
 import 'package:BlueEra/features/me/laboratory/view/laboratory_main.dart';
 import 'package:BlueEra/features/me/medical_new/view/medical_screen.dart';
+import 'package:BlueEra/features/me/automotive_service/automotive_service_main.dart';
 import 'package:BlueEra/features/me/others/others_main.dart';
 import 'package:BlueEra/features/me/professionals_consultant/view/professionals_main.dart';
 import 'package:BlueEra/features/me/school/view/school_main.dart';
@@ -146,10 +148,8 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       context: context,
       barrierDismissible: true,
       builder: (ctx) => Dialog(
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        insetPadding:
-            const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
         child: Padding(
           padding: const EdgeInsets.all(20),
           child: Column(
@@ -334,7 +334,8 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   void _handlePostFrameInitialization() {
     if (isBusiness()) {
       bottomBarController.currentIndex.value = widget.initialIndex ?? 1;
-      final viewProfileController = getOrPut(() => ViewBusinessDetailsController(), permanent: true);
+      final viewProfileController =
+          getOrPut(() => ViewBusinessDetailsController(), permanent: true);
       if (viewProfileController.viewBusinessResponse.status !=
           Status.COMPLETE) {
         viewProfileController.viewBusinessProfile();
@@ -351,8 +352,6 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       }
     }
   }
-
-
 
   // GET CHANNEL DETAILS...
   Future<ChannelModel?> getChannelDetails() async {
@@ -379,7 +378,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     // and can never reconnect (listeners are cleared permanently).
     final hasActiveCall = Get.isRegistered<CallController>() &&
         (Get.find<CallController>().callStatus.value != CallStatus.idle ||
-         CallController.isCallActivityActive);
+            CallController.isCallActivityActive);
     if (!hasActiveCall) {
       chatViewController.disposeSocket();
     }
@@ -408,11 +407,12 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
                 Obx(() {
                   final hasActiveCall =
                       callController.callStatus.value == CallStatus.connected;
-                  final isRiderLive = viewPersonalDetailsController
-                      .shopStatusOpenClose.value;
+                  final isRiderLive =
+                      viewPersonalDetailsController.shopStatusOpenClose.value;
                   // Push content down when live bar or call bar is showing
                   double topOffset = 0;
-                  if (hasActiveCall) topOffset = 50;
+                  if (hasActiveCall)
+                    topOffset = 50;
                   else if (isRiderLive) topOffset = 42;
 
                   return Positioned.fill(
@@ -424,8 +424,8 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
 
                 // Fixed "I'm Live" bar at top
                 Obx(() {
-                  final isLive = viewPersonalDetailsController
-                      .shopStatusOpenClose.value;
+                  final isLive =
+                      viewPersonalDetailsController.shopStatusOpenClose.value;
                   // Hide when call overlay is showing (call takes priority)
                   final hasActiveCall =
                       callController.callStatus.value != CallStatus.idle;
@@ -495,7 +495,6 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
                             bottomBarController.onChangeIndex(index);
                             // Stay on the same screen until permission is granted
                           }
-
                         },
                         chatNotificationCount: chatNotificationCount,
                       ),
@@ -535,10 +534,10 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       case 3:
       default:
         return
-          // isGuestUser()
-          //   ? GuestDashBoardScreen()
-          //   :
-          const OrderMainChatScreen();
+            // isGuestUser()
+            //   ? GuestDashBoardScreen()
+            //   :
+            const OrderMainChatScreen();
     }
   }
 
@@ -592,18 +591,27 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     } else if (businessTypeGlobal.toUpperCase() ==
         BusinessType.Product.name.toUpperCase()) {
       return const InventoryScreen(fromBottomNavBar: true);
-    } else if (businessTypeGlobal.toUpperCase() == BusinessType.Finance.name.toUpperCase()) {
+    } else if (businessTypeGlobal.toUpperCase() ==
+        BusinessType.Finance.name.toUpperCase()) {
       return const OthersMain();
-    } else if (businessTypeGlobal.toUpperCase() == BusinessType.Service.name.toUpperCase()) {
+    } else if (businessTypeGlobal.toUpperCase() ==
+        BusinessType.Service.name.toUpperCase()) {
       return const OthersMain();
-    }  else if (businessTypeGlobal.toUpperCase() == BusinessType.Manufacturing.name.toUpperCase()) {
+    } else if (businessTypeGlobal.toUpperCase() ==
+        BusinessType.Manufacturing.name.toUpperCase()) {
       // return const ManufactureMain();
       return const InventoryScreen(fromBottomNavBar: true);
     } else if (_isSpecificServiceAutomotive()) {
       return const VehicleHomeScreenV2();
       Get.toNamed(RouteHelper.getVehicleHomeScreenRoute());
-
-    }  else if (_isSpecificProductAutomotive()) {
+    } else if (_isSpecificServiceSpecialAutomotive()) {
+      // VEHICLE_SERVICE / TRANSPORT_LOGISTIC / VEHICLE_SUPPORT now have
+      // their own module entry that currently reuses the OthersMain UI
+      // (and therefore other_repo.dart APIs). Lives in a separate
+      // directory so the UI can diverge in the future without touching
+      // the shared `OthersMain` tree.
+      return const AutomotiveServiceMain();
+    } else if (_isSpecificProductAutomotive()) {
       return const InventoryScreen();
     } else {
       // return const InventoryScreen(fromBottomNavBar: true);
@@ -616,19 +624,33 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
 
     // 1. Define the Automotive sectors that count as "Others"
     final automotiveOthersSectors = {
-      AppConstants.RENTAL_SECTOR.toUpperCase(),
-      // AppConstants.SERVICE_SECTOR.toUpperCase(),
-      AppConstants.SUPPORT_SECTOR.toUpperCase(),
-      AppConstants.TRANSPORT_LOGISTIC.toUpperCase(),
-      "AUTOMOTIVE_SERVICES",
-      "Vehicle_Sales",
-      "Vehicle_parts",
-      "VEHICLE_SERVICE",
+      "VEHICLE_SALES",
+      "VEHICLE_PARTS",
+      "VEHICLE_RENTAL",
     };
 
     // 2. Check if it's Automotive AND in one of those sectors
-    return businessTypeGlobal.toUpperCase() == BusinessType.Automotive.name.toUpperCase() &&
+    return businessTypeGlobal.toUpperCase() ==
+            BusinessType.Automotive.name.toUpperCase() &&
         automotiveOthersSectors.contains(category);
+  }
+
+  bool _isSpecificServiceSpecialAutomotive() {
+    final category = businessCategoryGlobal.toUpperCase();
+logs("category=== ${category}");
+    final automotiveOthersSpecialSectors = {
+      "VEHICLE SERVICE",
+      "VEHICLE_SERVICE",
+      "TRANSPORT_LOGISTIC",
+      "TRANSPORT LOGISTIC",
+      "VEHICLE_SUPPORT",
+      "VEHICLE SUPPORT",
+    };
+
+    // 2. Check if it's Automotive AND in one of those sectors
+    return businessTypeGlobal.toUpperCase() ==
+            BusinessType.Automotive.name.toUpperCase() &&
+        automotiveOthersSpecialSectors.contains(category);
   }
 
   bool _isSpecificProductAutomotive() {
@@ -663,10 +685,9 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
 
       default:
         return const SizedBox();
-        // return const SelfEmployeeScreen(fromBottomNavBar: true);
+      // return const SelfEmployeeScreen(fromBottomNavBar: true);
     }
   }
-
 }
 
 /// Fixed "I'm Live" bar shown at the top of the BottomNavigationBarScreen
@@ -732,7 +753,8 @@ class _RiderLiveBarState extends State<_RiderLiveBar>
                     color: Color(0xFF00C853).withValues(alpha: opacity),
                     boxShadow: [
                       BoxShadow(
-                        color: Color(0xFF00C853).withValues(alpha: opacity * 0.5),
+                        color:
+                            Color(0xFF00C853).withValues(alpha: opacity * 0.5),
                         blurRadius: 6,
                         spreadRadius: 1,
                       ),

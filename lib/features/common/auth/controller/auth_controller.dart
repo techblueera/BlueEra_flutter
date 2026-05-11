@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 
@@ -26,6 +27,7 @@ import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dar
 import 'package:BlueEra/features/common/auth/model/personal_profession_model.dart';
 import 'package:BlueEra/features/common/auth/model/single_business_category_response.dart';
 import 'package:BlueEra/features/common/auth/model/username_res_model.dart';
+import 'package:BlueEra/features/chat/auth/socket/chat_socket.dart';
 import 'package:BlueEra/features/common/auth/repo/auth_repo.dart';
 import 'package:BlueEra/features/common/auth/views/screens/complete_guest_profile_screen.dart';
 import 'package:BlueEra/core/services/multipart_image_service.dart';
@@ -198,6 +200,12 @@ class AuthController extends GetxController {
               await getUserLoginBusinessId();
               await getUserLoginAccountType();
               await getUserAuthToken();
+              // Token is now in `authTokenGlobal` — open the chat socket
+              // so incoming-call / chat events flow immediately this
+              // session. CallController.onInit skipped the cold-start
+              // connect while logged out; this is the first authenticated
+              // connect, on which buffered call-event listeners replay.
+              unawaited(ChatSocketService().connectToSocket());
               final viewProfileController =
                   getOrPut(() => ViewBusinessDetailsController(), permanent: true);
 
@@ -216,6 +224,8 @@ class AuthController extends GetxController {
                   SharedPreferenceUtils.authToken, data.token);
 
               await getUserAuthToken();
+              // First authenticated connect — see business branch above.
+              unawaited(ChatSocketService().connectToSocket());
               final personalController =
                   Get.put(ViewPersonalDetailsController(), permanent: true);
               await personalController.viewPersonalProfile();
@@ -308,6 +318,9 @@ class AuthController extends GetxController {
 
           await getUserLoginAccountType();
           await getUserAuthToken();
+          // Guest → individual upgrade: token just landed, open the chat
+          // socket so call/chat events flow without an app restart.
+          unawaited(ChatSocketService().connectToSocket());
 
           commonSnackBar(message: response.message ?? AppStrings.success);
           final personalController =
@@ -407,6 +420,9 @@ class AuthController extends GetxController {
           await getUserLoginBusinessId();
           await getUserLoginAccountType();
           await getUserAuthToken();
+          // Guest → business upgrade: token just landed, open the chat
+          // socket so call/chat events flow without an app restart.
+          unawaited(ChatSocketService().connectToSocket());
           final viewProfileController =
               getOrPut(() => ViewBusinessDetailsController(), permanent: true);
           await viewProfileController.viewBusinessProfile();

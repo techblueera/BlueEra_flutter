@@ -288,7 +288,6 @@ class AppConstants {
   /// Automotive Categories
   static const SALES_SECTOR = "Sales Sector";
   static const PARTS_SECTOR = "Parts Sector";
-  static const RENTAL_SECTOR = "Rental Sector";
   static const SERVICE_SECTOR = "Service Sector";
   static const SUPPORT_SECTOR = "Support Sector";
   static const TRANSPORT_LOGISTIC = "Transport Logistic";
