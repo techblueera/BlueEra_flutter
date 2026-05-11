@@ -4,12 +4,10 @@ import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
-import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_orders_controller.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/delivery_partner_orders/pickup_order_screen.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -107,41 +105,13 @@ class _DeliveryPartnerOrdersState extends State<DeliveryPartnerOrders> {
 
                     // ---- Completed ----
                     if (state == RiderVerificationState.completed) {
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding: EdgeInsets.all(SizeConfig.size15),
-                            child: HorizontalTabSelector(
-                              tabs: controller.deliveryPartnerOrdersTabs,
-                              selectedIndex: controller
-                                  .selectedDeliveryPartnerOrderIndex.value,
-                              onTabSelected: (index, value) {
-                                if (mounted) {
-                                  controller.selectedDeliveryPartnerOrderIndex
-                                      .value = index;
-                                }
-                              },
-                              labelBuilder: (value) => value.label,
-                            ),
-                          ),
-                          // Embedded mode: parent owns the scroll, so we
-                          // can't use `Expanded` (unbounded constraints).
-                          // Standalone mode keeps `Expanded` so the tab
-                          // body fills the remaining Scaffold height.
-                          if (widget.isInParentScroll)
-                            Builder(
-                              builder: (context) =>
-                                  _buildSelectedOrdersTab(),
-                            )
-                          else
-                            Expanded(
-                              child: Builder(
-                                builder: (context) =>
-                                    _buildSelectedOrdersTab(),
-                              ),
-                            ),
-                        ],
+                      // Verified driver — go straight to the pickup
+                      // orders screen. (The L3 category filter has
+                      // been retired; the only live body is pickup,
+                      // and pickup's own per-status filters now sit
+                      // in a bottom-sheet picker inside that screen.)
+                      return PickupOrderScreen(
+                        isInParentScroll: widget.isInParentScroll,
                       );
                     }
 
@@ -207,31 +177,6 @@ class _DeliveryPartnerOrdersState extends State<DeliveryPartnerOrders> {
               );
 
     return widget.isInParentScroll ? body : Scaffold(body: body);
-  }
-
-  /// Resolves which order subtab body to render based on
-  /// [controller.selectedDeliveryPartnerOrderIndex]. Extracted so the
-  /// build method can reuse the same switch in both
-  /// `isInParentScroll: true` (no `Expanded`) and standalone
-  /// (`Expanded`) layouts.
-  Widget _buildSelectedOrdersTab() {
-    switch (controller.selectedDeliveryPartnerOrderIndex.value) {
-      case 0:
-        return PickupOrderScreen(
-          isInParentScroll: widget.isInParentScroll,
-        );
-      case 1:
-        return CustomText(AppStrings.comingSoon);
-      // return GroceryOrderScreen();
-      case 2:
-        return CustomText(AppStrings.comingSoon);
-      // return ParcelOrderScreen();
-      case 3:
-        return CustomText(AppStrings.comingSoon);
-      // return IncomeScreen();
-      default:
-        return SizedBox.shrink(); // fallback
-    }
   }
 
   void showStatusDialog(BuildContext context, String title, String message) {

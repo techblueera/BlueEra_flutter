@@ -22,7 +22,7 @@ import 'package:BlueEra/widgets/route_map_bottom_sheet.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:share_plus/share_plus.dart';
+import 'package:BlueEra/core/services/share_service.dart';
 
 /// A reusable business profile header card for visiting any business.
 ///
@@ -370,16 +370,17 @@ class _VisitBusinessCommonHeaderState extends State<VisitBusinessCommonHeader> {
             imgColor: Colors.white,
           ),
           onTap: () async {
+            // Custom message ("Check out X on BlueEra") — use the
+            // raw openShareSheet entry point so we control the body,
+            // but still avoid touching SharePlus / ShareParams
+            // directly.
             final link = profileDeepLink(
               userId: details?.userId,
-              accountType: AppConstants.business,
             );
-            final message =
-                "Check out ${details?.businessName ?? 'this business'} on BlueEra:\n$link\n";
-            await SharePlus.instance.share(ShareParams(
-              text: message,
+            await ShareService.instance.openShareSheet(
+              text: "Check out ${details?.businessName ?? 'this business'} on BlueEra:\n$link\n",
               subject: details?.businessName,
-            ));
+            );
           },
         ),
       ],

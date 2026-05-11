@@ -2,7 +2,6 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
@@ -14,7 +13,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:share_plus/share_plus.dart';
+import 'package:BlueEra/core/services/share_service.dart';
 
 import '../../../../widgets/common_box_shadow.dart';
 
@@ -189,18 +188,15 @@ class _BusinessProfileHeaderState extends State<BusinessProfileHeader> {
                         itemBuilder: (context) => popupMenuVisitProfileItemss(),
                         onSelected: (value) async {
                           if (value.toUpperCase() == "SHARE") {
-                            final link = profileDeepLink(
-                              userId: widget.businessProfileDetails.userId,
-                              accountType: AppConstants.business,
-                            );
-                            final message =
-                                "See my profile on BlueEra:\n$link\n";
-                            await SharePlus.instance.share(
-                              ShareParams(
-                                text: message,
-                                subject:
-                                    widget.businessProfileDetails.businessName,
-                              ),
+                            // ShareService.shareProfile builds the
+                            // link from userId and hands it to the
+                            // share sheet — same entry point as
+                            // every other profile share surface in
+                            // the app.
+                            await ShareService.instance.shareProfile(
+                              userId: widget.businessProfileDetails.userId ?? '',
+                              subject:
+                                  widget.businessProfileDetails.businessName,
                             );
                           } else if (value.toUpperCase() == "REPORT") {
                             // 👉 Handle report logic here

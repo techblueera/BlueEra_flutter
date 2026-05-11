@@ -5,12 +5,12 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/multipart_image_service.dart';
+import 'package:BlueEra/core/services/share_service.dart';
 import 'package:BlueEra/features/business/widgets/business_card_ui.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
@@ -19,11 +19,6 @@ import 'package:BlueEra/features/common/visiting_card/view/all_personal_visiting
 import 'package:BlueEra/features/me/me_tab_registry.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/choose_earn_service_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_dashboard_view.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/earn_service_profile_selector.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/self_employed/controller/earn_service_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/self_employed/controller/self_work_service_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/self_employee_orders.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/self_profession_home_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/edit_profile_bottom_sheet.dart';
@@ -39,7 +34,6 @@ import 'package:croppy/croppy.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-import 'package:share_plus/share_plus.dart';
 
 class SelfEmployeeDashboardView extends StatefulWidget {
   final bool fromBottomNavBar;
@@ -58,8 +52,6 @@ class _SelfEmployeeDashboardViewState extends State<SelfEmployeeDashboardView>
     with SingleTickerProviderStateMixin {
   final _viewCtrl = Get.find<ViewPersonalDetailsController>();
   final _personalCtrl = getOrPut(() => PersonalCreateProfileController());
-  final controller = getOrPut(() => SelfWorkServiceController());
-  final earnServiceController = getOrPut(() => EarnServiceController());
 
   late TabController _tabController;
 
@@ -120,26 +112,22 @@ class _SelfEmployeeDashboardViewState extends State<SelfEmployeeDashboardView>
 
   @override
   Widget build(BuildContext context) {
-    return Obx(() {
-      final isEarnSelected = controller.selectedProfileIndex.value == 1 &&
-          _viewCtrl.earnProfileType.value != null;
-
-      if (isEarnSelected) {
-        return EarnServiceDashboardView(
-          fromBottomNavBar: widget.fromBottomNavBar,
-        );
-      }
-
-      return Scaffold(
-        body: SafeArea(
-          bottom: false,
-          child: BottomNavHideOnScroll(
-            child: NestedScrollView(
-              headerSliverBuilder: (context, innerBoxIsScrolled) => [
-                SliverToBoxAdapter(child: _buildCoverSection(context)),
-                SliverToBoxAdapter(child: _buildProfileInfoSection()),
-                SliverToBoxAdapter(child: _buildStatsRow()),
-                SliverAppBar(
+    // No outer Obx — the only reactive reads at this level were the
+    // selectedProfileIndex / earnProfileType pair used to swap in
+    // EarnServiceDashboardView. That switch was driven by the
+    // (now-retired) EarnServiceProfileSelector, so the branch can
+    // never fire any more. Reactive sub-trees (banner, name, stats,
+    // Go-live toggle) keep their own inner Obx wrappers.
+    return Scaffold(
+      body: SafeArea(
+        bottom: false,
+        child: BottomNavHideOnScroll(
+          child: NestedScrollView(
+            headerSliverBuilder: (context, innerBoxIsScrolled) => [
+              SliverToBoxAdapter(child: _buildCoverSection(context)),
+              SliverToBoxAdapter(child: _buildProfileInfoSection()),
+              SliverToBoxAdapter(child: _buildStatsRow()),
+              SliverAppBar(
                 pinned: true,
                 floating: false,
                 primary: false,
@@ -170,20 +158,19 @@ class _SelfEmployeeDashboardViewState extends State<SelfEmployeeDashboardView>
                   ],
                 ),
               ),
+            ],
+            body: TabBarView(
+              controller: _tabController,
+              children: [
+                SelfEmployeeOrders(),
+                SelfProfessionHomeScreen(),
+                const ContributionStatusView(),
               ],
-              body: TabBarView(
-                controller: _tabController,
-                children: [
-                  SelfEmployeeOrders(),
-                  SelfProfessionHomeScreen(),
-                  const ContributionStatusView(),
-                ],
-              ),
             ),
           ),
         ),
-      );
-    });
+      ),
+    );
   }
 
   // ============================================================
@@ -286,18 +273,15 @@ class _SelfEmployeeDashboardViewState extends State<SelfEmployeeDashboardView>
                 const Spacer(),
                 GestureDetector(
                   onTap: () async {
-                    final link = profileDeepLink(
-                      userId: userId,
-                      accountType: AppConstants.individual,
-                    );
-                    final userName =
-                        _viewCtrl.personalProfileDetails.value.user?.name ?? '';
-                    await SharePlus.instance.share(
-                      ShareParams(
-                        text: "See my profile on BlueEra:\n$link\n",
-                        subject: userName,
-                      ),
-                    );
+                    // Centralized share — ShareService builds the link
+                    // from session globals and hands it to the share
+                    // sheet with the standard "See my profile" body.
+                    final userName = _viewCtrl
+                            .personalProfileDetails.value.user?.name ??
+                        '';
+                    await ShareService.instance.shareProfile(
+                        userId: userId,
+                        subject: userName);
                   },
                   child: Container(
                     padding: const EdgeInsets.all(6),
@@ -427,10 +411,11 @@ class _SelfEmployeeDashboardViewState extends State<SelfEmployeeDashboardView>
   }
 
   Widget _buildGlassHeaderRow(BuildContext context) {
-    return Obx(() {
-      final earnType = _viewCtrl.earnProfileType.value;
-      final hasEarnProfile = earnType != null && earnType.isNotEmpty;
-      return Stack(
+    // No reactive reads remain in this header now that the earn-
+    // profile selector + Earn action pill have been retired — drop
+    // the Obx wrapper so we don't emit "improper use of GetX" at
+    // runtime.
+    return Stack(
         children: [
           // Full-width dark glassmorphic backing strip — touches top/left/right
           // edges with no border radius.
@@ -465,32 +450,11 @@ class _SelfEmployeeDashboardViewState extends State<SelfEmployeeDashboardView>
                   ),
                 ),
                 const SizedBox(width: 8),
-                if (hasEarnProfile)
-                  Flexible(
-                    child: EarnServiceProfileSelector(
-                      profileImages: [
-                        _viewCtrl.personalProfileDetails.value.user
-                                ?.profileImage ??
-                            '',
-                        _viewCtrl.personalProfileDetails.value.user
-                                ?.profileImage ??
-                            '',
-                      ],
-                      profileNames: [
-                        'Skill Work',
-                        earnServiceController.earnProfileLabel(earnType),
-                      ],
-                      selectedIndex: controller.selectedProfileIndex.value,
-                      onProfileSelected: (index) =>
-                          controller.switchProfile(index),
-                      onCoverOverlay: true,
-                    ),
-                  )
-                else
-                  _EarnActionPill(
-                    onTap: () =>
-                        Get.to(() => const chooseEarnServiceScreen()),
-                  ),
+                // EarnServiceProfileSelector + the Earn action pill
+                // have been retired from this header — the Earn entry
+                // now lives in the drawer. Nothing replaces them here;
+                // the Spacer below pushes the right-hand pills (bell,
+                // Go-live) to the edge as before.
                 const Spacer(),
                 if (!isGuestUser()) ...[
                   _GlassPill(
@@ -515,8 +479,7 @@ class _SelfEmployeeDashboardViewState extends State<SelfEmployeeDashboardView>
             ),
           ),
         ],
-      );
-    });
+    );
   }
 
   Widget _buildGoLiveChip() {
@@ -829,41 +792,6 @@ class _SelfEmployeeDashboardViewState extends State<SelfEmployeeDashboardView>
     var reqProfile = {ApiKeys.coverpicture: dataImage};
     await _personalCtrl.updateUserProfileDetails(
         params: reqProfile, isFromProfileOnly: true);
-  }
-}
-
-class _EarnActionPill extends StatelessWidget {
-  final VoidCallback onTap;
-
-  const _EarnActionPill({required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return _GlassPill(
-      onTap: onTap,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      dark: true,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          LocalAssets(
-            imagePath: AppIconAssets.earnWithBEIcon,
-            imgColor: Colors.white,
-            width: 16,
-            height: 16,
-          ),
-          const SizedBox(width: 4),
-          const Text(
-            'Earn',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
-    );
   }
 }
 

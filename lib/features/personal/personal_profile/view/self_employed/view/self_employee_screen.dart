@@ -13,6 +13,7 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/multipart_image_service.dart';
+import 'package:BlueEra/core/services/share_service.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
@@ -26,6 +27,7 @@ import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_pictur
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
+import 'package:BlueEra/features/common/referral/view/referral_page.dart';
 import 'package:BlueEra/features/common/reel/view/channel/follower_following_screen.dart';
 import 'package:BlueEra/features/common/visiting_card/view/all_personal_visiting_cards.dart';
 import 'package:BlueEra/features/contribution/controller/contribution_controller.dart';
@@ -33,12 +35,8 @@ import 'package:BlueEra/features/contribution/view/contribution_screen.dart';
 import 'package:BlueEra/features/me/medical_new/view/medical_statistics_screen.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/choose_earn_service_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_dashboard_view.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/earn_service_profile_selector.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/rental/widget/rental_tab_body.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/self_employed/controller/earn_service_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/self_employed/controller/self_work_service_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/rental/controller/rental_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/rental/widget/rental_services_dashboard_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/self_employee_orders.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/self_profession_home_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/edit_profile_bottom_sheet.dart';
@@ -53,7 +51,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import 'package:share_plus/share_plus.dart';
 
 /// Self-Employee dashboard (v2) — mirrors the grocery-v2 layout so the
 /// service provider sees the same modern shell across me-section
@@ -79,8 +76,6 @@ class SelfEmployeeScreen extends StatefulWidget {
 class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
   final _viewCtrl = Get.find<ViewPersonalDetailsController>();
   final _personalCtrl = getOrPut(() => PersonalCreateProfileController());
-  final _selfWorkCtrl = getOrPut(() => SelfWorkServiceController());
-  final _earnCtrl = getOrPut(() => EarnServiceController());
 
   int _selectedTab = 1;
   bool _showStickyTabs = false;
@@ -94,7 +89,6 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
     'Order',
     'Overview',
     'Service',
-    'Rental',
     'Post',
     'Statics',
   ];
@@ -119,16 +113,7 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Obx(() {
-      final isEarnSelected = _selfWorkCtrl.selectedProfileIndex.value == 1 &&
-          _viewCtrl.earnProfileType.value != null;
-      if (isEarnSelected) {
-        return EarnServiceDashboardView(
-          fromBottomNavBar: widget.fromBottomNavBar,
-        );
-      }
-      return _buildScaffold(context);
-    });
+    return _buildScaffold(context);
   }
 
   // ─────────────────────────────────────────────
@@ -285,8 +270,10 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
                   onTap: () => _openDrawer(context),
                 ),
                 SizedBox(width: SizeConfig.size8),
-                Expanded(child: _buildEarnSlot()),
-                SizedBox(width: SizeConfig.size8),
+                // Earn entry now lives in the drawer; Refer & Earn takes
+                // the top-bar slot — same pill the rider dashboard uses.
+                _buildReferEarnPill(),
+                const Spacer(),
                 if (!isGuestUser()) ...[
                   _circleIconButton(
                     icon: Icons.notifications_none,
@@ -306,66 +293,64 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
     );
   }
 
-  Widget _buildEarnSlot() {
-    return Obx(() {
-      final earnType = _viewCtrl.earnProfileType.value;
-      final hasEarnProfile = earnType != null && earnType.isNotEmpty;
-      if (hasEarnProfile) {
-        final image =
-            _viewCtrl.personalProfileDetails.value.user?.profileImage ?? '';
-        return EarnServiceProfileSelector(
-          profileImages: [image, image],
-          profileNames: [
-            'Skill Work',
-            _earnCtrl.earnProfileLabel(earnType),
-          ],
-          selectedIndex: _selfWorkCtrl.selectedProfileIndex.value,
-          onProfileSelected: (index) => _selfWorkCtrl.switchProfile(index),
-          onCoverOverlay: false,
-        );
-      }
-      return Align(
-        alignment: Alignment.centerLeft,
-        child: GestureDetector(
-          onTap: () => Get.to(() => const chooseEarnServiceScreen()),
-          child: Container(
-            padding: EdgeInsets.symmetric(
-                horizontal: SizeConfig.size12, vertical: SizeConfig.size6),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(
-                color: const Color(0xFFC9CDD5),
-                width: 1,
-              ),
-              boxShadow: const [
-                BoxShadow(
-                  color: Color(0x1A000000),
-                  blurRadius: 3,
-                  offset: Offset(0, -1),
-                ),
-              ],
+  // Refer & Earn pill — glassmorphic chrome that matches the rest of
+  // the top bar. Same recipe rider_service_screen uses: outer shadow
+  // → ClipRRect → BackdropFilter → white fill with the shared gray
+  // border (#C9CDD5). Tap navigates to ReferralPage.
+  Widget _buildReferEarnPill() {
+    return GestureDetector(
+      onTap: () => Get.to(() => ReferralPage()),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x1A000000),
+              blurRadius: 3,
+              offset: Offset(0, -1),
             ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                LocalAssets(
-                  imagePath: AppIconAssets.earnWithBEIcon,
-                  imgColor: AppColors.primaryColor,
-                  height: 16,
-                  width: 16,
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(24),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+            child: Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: SizeConfig.size10,
+                vertical: SizeConfig.size6,
+              ),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(
+                  color: const Color(0xFFC9CDD5),
+                  width: 1,
                 ),
-                SizedBox(width: SizeConfig.size6),
-                CustomText('Earn',
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.primaryColor),
-              ],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.share_outlined,
+                    size: 14,
+                    color: AppColors.secondaryTextColor,
+                  ),
+                  SizedBox(width: SizeConfig.size6),
+                  CustomText(
+                    'Refer & Earn',
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.secondaryTextColor,
+                    letterSpacing: 0.2,
+                  ),
+                ],
+              ),
             ),
           ),
         ),
-      );
-    });
+      ),
+    );
   }
 
   Widget _circleIconButton({
@@ -613,6 +598,9 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
   // ─────────────────────────────────────────────
   // TAB CONTENT — switches body by _selectedTab.
   //   0 Order, 1 Overview, 2 Service, 3 Post, 4 Statics
+  // Rentals used to be their own tab — collapsed into Overview
+  // (see _buildRentalCard) so the top strip stays compact while
+  // the three rental categories are still one tap away.
   // ─────────────────────────────────────────────
   List<Widget> _buildTabContent() {
     switch (_selectedTab) {
@@ -623,10 +611,8 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
       case 2:
         return _buildServiceTab();
       case 3:
-        return _buildRentalTab();
-      case 4:
         return _buildPostTab();
-      case 5:
+      case 4:
         return _buildStaticsTab();
       default:
         return const [SizedBox.shrink()];
@@ -1122,16 +1108,6 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
   }
 
   // ─────────────────────────────────────────────
-  // RENTAL TAB — delegated to the shared [RentalTabBody] so the
-  // self-employee, professionals, rider, cab, and social
-  // dashboards all show the exact same rental UI driven by one
-  // RentalController instance.
-  // ─────────────────────────────────────────────
-  List<Widget> _buildRentalTab() {
-    return const [RentalTabBody()];
-  }
-
-  // ─────────────────────────────────────────────
   // POST TAB — embeds FeedScreen filtered to the current user's
   // posts. Mirrors grocery v2's post tab so creators see the same
   // CTA + feed treatment across me-section dashboards.
@@ -1304,6 +1280,8 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
       SizedBox(height: SizeConfig.size12),
       _buildStatsCard(),
       SizedBox(height: SizeConfig.size12),
+      _buildRentalCard(),
+      SizedBox(height: SizeConfig.size12),
       _buildActionRow(),
       SizedBox(height: SizeConfig.size12),
       _buildContactMapCard(),
@@ -1313,6 +1291,164 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
       _buildShareBanner(),
       SizedBox(height: SizeConfig.size16),
     ];
+  }
+
+  // ─── RENTAL CTA CARD ───────────────────────────────────────────
+  // Rentals were demoted from their own tab to a single Overview
+  // card (same treatment rider_service_screen.dart uses). Header
+  // opens the rental dashboard with the controller's current
+  // filter; each category chip pre-selects its filter on
+  // [RentalController.selectedRentalTabs] before pushing, so
+  // [RentalTabBody]'s initState lands the destination already
+  // filtered to the bucket the user tapped.
+  Widget _buildRentalCard() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 14),
+      child: CustomFormCard(
+        padding: EdgeInsets.all(SizeConfig.size14),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFFEDEFF4), width: 1),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            InkWell(
+              onTap: () => _openRentalDashboard(),
+              borderRadius: BorderRadius.circular(8),
+              child: Row(
+                children: [
+                  Container(
+                    width: 36,
+                    height: 36,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryColor.withValues(alpha: 0.10),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(Icons.holiday_village_outlined,
+                        color: AppColors.primaryColor, size: 20),
+                  ),
+                  SizedBox(width: SizeConfig.size12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          AppStrings.rentalServices.tr,
+                          style: TextStyle(
+                            fontFamily: AppConstants.OpenSans,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.mainTextColor,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Manage homestays, rooms & vehicles',
+                          style: TextStyle(
+                            fontFamily: AppConstants.OpenSans,
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w500,
+                            color: AppColors.secondaryTextColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(Icons.chevron_right_rounded,
+                      color: AppColors.secondaryTextColor),
+                ],
+              ),
+            ),
+            SizedBox(height: SizeConfig.size12),
+            Row(
+              children: [
+                Expanded(
+                  child: _rentalCategoryChip(
+                    icon: Icons.house_outlined,
+                    label: AppStrings.homeStay.tr,
+                    onTap: () => _openRentalDashboard(
+                        preselect: RentalServiceType.homeStay),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _rentalCategoryChip(
+                    icon: Icons.apartment_outlined,
+                    label: AppStrings.flatRoom.tr,
+                    onTap: () => _openRentalDashboard(
+                        preselect: RentalServiceType.flatRoom),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _rentalCategoryChip(
+                    icon: Icons.directions_car_outlined,
+                    label: AppStrings.vehicle.tr,
+                    onTap: () => _openRentalDashboard(
+                        preselect: RentalServiceType.vehicle),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _rentalCategoryChip({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+        decoration: BoxDecoration(
+          color: AppColors.primaryColor.withValues(alpha: 0.06),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: AppColors.primaryColor.withValues(alpha: 0.18),
+            width: 0.6,
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 18, color: AppColors.primaryColor),
+            const SizedBox(height: 6),
+            Text(
+              label,
+              style: TextStyle(
+                fontFamily: AppConstants.OpenSans,
+                fontSize: 10.5,
+                fontWeight: FontWeight.w700,
+                color: AppColors.primaryColor,
+                letterSpacing: 0.2,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // [preselect] mutates the shared [RentalController.selectedRentalTabs]
+  // before pushing, so [RentalTabBody]'s initState picks up the right
+  // filter on first build of the destination screen. Skipping the arg
+  // just opens with whatever filter the controller was last in.
+  void _openRentalDashboard({RentalServiceType? preselect}) {
+    if (preselect != null) {
+      final ctrl = getOrPut(() => RentalController());
+      if (ctrl.selectedRentalTabs.value != preselect) {
+        ctrl.selectedRentalTabs.value = preselect;
+      }
+    }
+    Get.to(() => const RentalServicesDashboardScreen());
   }
 
   // ─── IDENTITY CARD ──────────────────────────────────────────────
@@ -2082,17 +2218,10 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
   }
 
   Future<void> _onShareProfile() async {
-    final link = profileDeepLink(
-      userId: userId,
-      accountType: AppConstants.individual,
-    );
     final userName = _viewCtrl.personalProfileDetails.value.user?.name ?? '';
-    await SharePlus.instance.share(
-      ShareParams(
-        text: 'See my profile on BlueEra:\n$link\n',
-        subject: userName,
-      ),
-    );
+    await ShareService.instance.shareProfile(
+        userId: userId,
+        subject: userName);
   }
 
   // ─── CONTACT + MAP CARD ────────────────────────────────────────
@@ -2260,9 +2389,11 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
           final user = _viewCtrl.personalProfileDetails.value.user;
           final name = _capitalizeFirst(user?.name ?? 'Profile');
           final designation = user?.designation ?? '';
+          // Same link generator as the share button — keeps QR
+          // payload and share text in lock-step. profileDeepLink
+          // owns the referral-code attach so the QR carries it too.
           final link = profileDeepLink(
-            userId: userId,
-            accountType: AppConstants.individual,
+            userId: userId
           );
 
           return Column(

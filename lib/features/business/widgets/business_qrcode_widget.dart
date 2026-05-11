@@ -57,7 +57,6 @@ class _BusinessQrCodeWidgetState extends State<BusinessQrCodeWidget> {
     if (ownerUserId.isEmpty) return const SizedBox.shrink();
     final qrData = profileDeepLink(
       userId: ownerUserId,
-      accountType: AppConstants.business,
     );
 
     return CustomFormCard(

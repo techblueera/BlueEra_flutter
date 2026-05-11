@@ -109,6 +109,37 @@ class SharedPreferenceUtils {
   static const productBusinessProfileIDIDKey = 'productBusinessProfileIDIDKey';
   static const hasSelectedLanguage = 'hasSelectedLanguage';
 
+  /// Referral code captured from a `?referralCode=…` deeplink before
+  /// the user signed up. Stored here so the onboarding flow (personal
+  /// or business) can pick it up silently and skip the manual
+  /// promo-code dialog. Cleared after onboarding consumes it.
+  static const deferredReferralCodeKey = 'deferred_referral_code';
+
+  /// Persist a referral code that arrived via deeplink before the user
+  /// completed onboarding. No-op for empty / whitespace-only input so
+  /// a malformed query param can't overwrite a previously-valid one.
+  static Future<void> saveDeferredReferralCode(String code) async {
+    final trimmed = code.trim();
+    if (trimmed.isEmpty) return;
+    await setSecureValue(deferredReferralCodeKey, trimmed);
+  }
+
+  /// Read the deferred referral code, or null when none is stored.
+  /// Returns null (not '') for the absent case so callers can use the
+  /// idiomatic `if (code != null && code.isNotEmpty)` check.
+  static Future<String?> getDeferredReferralCode() async {
+    final value = await getSecureValue(deferredReferralCodeKey);
+    if (value is String && value.isNotEmpty) return value;
+    return null;
+  }
+
+  /// Wipe the stored code — call after onboarding has applied it, so
+  /// a second account creation on the same device doesn't pick up a
+  /// stale referral.
+  static Future<void> clearDeferredReferralCode() async {
+    await _secureStorage.delete(key: deferredReferralCodeKey);
+  }
+
   static Future<void> userLoggedInIndividualGuest({
     required String loginUserId_,
     required String businesId,

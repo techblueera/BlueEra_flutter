@@ -16,20 +16,11 @@ import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueer
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/home_made_product_home_page.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/home_service_home_page.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/earn_service_dashboard_header.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/earn_service_profile_selector.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/earn_service_website_card.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/self_employed/controller/earn_service_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/self_employed/controller/self_work_service_controller.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-/// Earn-service dashboard (v2) — same shell as self_employee_screen.dart:
-/// floating glassmorphic top bar, custom animated-underline tabs card
-/// with a sticky overlay, and a CustomScrollView body. Only two tabs:
-///   • Home — embeds the matching earn-profile page (food / product /
-///     service) with the website card appended when one is linked
-///   • Statics — chat-click analytics
 class EarnServiceDashboardView extends StatefulWidget {
   final bool fromBottomNavBar;
 
@@ -45,8 +36,6 @@ class EarnServiceDashboardView extends StatefulWidget {
 
 class _EarnServiceDashboardViewState extends State<EarnServiceDashboardView> {
   final _viewCtrl = Get.find<ViewPersonalDetailsController>();
-  final _earnCtrl = getOrPut(() => EarnServiceController());
-  final _selfWorkCtrl = getOrPut(() => SelfWorkServiceController());
   final _earnProfileCtrl = getOrPut(() => EarnProfileController());
 
   int _selectedTab = 0;
@@ -208,9 +197,7 @@ class _EarnServiceDashboardViewState extends State<EarnServiceDashboardView> {
                   icon: Icons.menu,
                   onTap: () => _openDrawer(context),
                 ),
-                SizedBox(width: SizeConfig.size8),
-                Expanded(child: _buildEarnSlot()),
-                SizedBox(width: SizeConfig.size8),
+                const Spacer(),
                 if (!isGuestUser()) ...[
                   _circleIconButton(
                     icon: Icons.notifications_none,
@@ -228,26 +215,6 @@ class _EarnServiceDashboardViewState extends State<EarnServiceDashboardView> {
         ),
       ),
     );
-  }
-
-  Widget _buildEarnSlot() {
-    return Obx(() {
-      final earnType = _viewCtrl.earnProfileType.value;
-      final hasEarnProfile = earnType != null && earnType.isNotEmpty;
-      if (!hasEarnProfile) return const SizedBox.shrink();
-      final image =
-          _viewCtrl.personalProfileDetails.value.user?.profileImage ?? '';
-      return EarnServiceProfileSelector(
-        profileImages: [image, image],
-        profileNames: [
-          'Skill Work',
-          _earnCtrl.earnProfileLabel(earnType),
-        ],
-        selectedIndex: _selfWorkCtrl.selectedProfileIndex.value,
-        onProfileSelected: (index) => _selfWorkCtrl.switchProfile(index),
-        onCoverOverlay: false,
-      );
-    });
   }
 
   Widget _circleIconButton({

@@ -16,8 +16,9 @@ import '../../../../core/routes/route_helper.dart';
 import '../../../business/auth/controller/view_business_details_controller.dart';
 import '../../../personal/auth/controller/view_personal_details_controller.dart';
 import '../../../personal/personal_profile/view/account_setting_screen/account_settings_screen.dart';
-import '../../../personal/personal_profile/view/create_profile_screen.dart';
 import '../../../personal/personal_profile/view/app_tutorial/view/app_tutorial.dart';
+import '../../../personal/personal_profile/view/earn_with_blueera/view/choose_earn_service_screen.dart';
+import '../../../personal/personal_profile/view/earn_with_blueera/view/earn_service_dashboard_view.dart';
 import '../../../personal/personal_profile/view/franchise/request_to_franchise.dart';
 import '../../../personal/personal_profile/view/help_and_support_screen/help_and_support_screen.dart';
 import '../../../personal/personal_profile/view/manage_notification/notification.dart';
@@ -554,22 +555,33 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
               color: _emerald,
               title: AppStrings.earnWithBlueEra,
               onTap: () {
-                if (viewProfileController
-                        .personalProfileDetails.value.isProfileCreated ==
-                    false) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => CreateProfileScreen(),
-                    ),
-                  );
+                // The three earn-profile pages (HomeMadeFood / Product
+                // / Service) are body widgets — they assume a Scaffold
+                // ancestor (their InkWells need a Material above) and
+                // are designed to be embedded inside
+                // EarnServiceDashboardView via its `_earnHomeBody(
+                // earnType)` switch. Pushing them directly as routes
+                // throws "No Material widget found." So: for any known
+                // slug navigate to the dashboard and let it host +
+                // dispatch. For unknown / unset, send the user to
+                // chooseEarnServiceScreen so a drawer tap always lands
+                // somewhere actionable instead of the dashboard's
+                // "Coming Soon" placeholder.
+                final earnType =
+                    viewProfileController.earnProfileType.value ?? '';
+                debugPrint(
+                  '[drawer.earnWithBlueEra] earnType="$earnType" '
+                  'len=${earnType.length}',
+                );
+                const handledSlugs = <String>{
+                  'homeMadeFood',
+                  'homeMadeProduct',
+                  'homeService',
+                };
+                if (handledSlugs.contains(earnType)) {
+                  Get.to(() => const EarnServiceDashboardView());
                 } else {
-                  if (userProfessionGlobal == BIKE_RIDER) {
-                    Get.toNamed(
-                        RouteHelper.getGigWorkerOptionsScreenRoute());
-                  } else {
-                    Get.toNamed(RouteHelper.getSelfEmployeeScreenRoute());
-                  }
+                  Get.to(() => const chooseEarnServiceScreen());
                 }
               },
             ),

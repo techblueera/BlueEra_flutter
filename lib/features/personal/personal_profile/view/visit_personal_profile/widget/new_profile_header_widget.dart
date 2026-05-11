@@ -3,7 +3,6 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/popup_menu_builders.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/reel/view/channel/follower_following_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/profile_controller.dart';
@@ -11,7 +10,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:share_plus/share_plus.dart';
+import 'package:BlueEra/core/services/share_service.dart';
 
 import '../../../../../../core/api/model/user_profile_res.dart';
 import '../../../../../../widgets/expandable_text.dart';
@@ -172,10 +171,9 @@ class NewProfileHeaderWidget extends StatelessWidget {
                       ),
                       onSelected: (value) async {
                         if (value.toUpperCase() == "SHARE") {
-                          final link = profileDeepLink(userId: user?.id, accountType: AppConstants.individual);
-                          final message = "See my profile on BlueEra:\n$link\n";
-                          await SharePlus.instance.share(
-                            ShareParams(text: message, subject: user?.name),
+                          await ShareService.instance.shareProfile(
+                            userId: user?.id ?? '',
+                            subject: user?.name,
                           );
                         }
                       },

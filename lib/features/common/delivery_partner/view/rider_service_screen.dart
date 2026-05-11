@@ -13,10 +13,11 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/multipart_image_service.dart';
+import 'package:BlueEra/core/services/share_service.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/business/widgets/business_share_banner.dart';
-import 'package:BlueEra/features/chat/view/orders_chat/orders_chat_list.dart';
+import 'package:BlueEra/features/chat/view/business_chat/business_chat_list.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/delivery_partner_orders/delivery_partner_orders.dart';
@@ -24,13 +25,14 @@ import 'package:BlueEra/features/common/delivery_partner/view/rider_profile_stat
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
+import 'package:BlueEra/features/common/referral/view/referral_page.dart';
 import 'package:BlueEra/features/common/reel/view/channel/follower_following_screen.dart';
 import 'package:BlueEra/features/common/visiting_card/view/all_personal_visiting_cards.dart';
 import 'package:BlueEra/features/me/medical_new/view/medical_statistics_screen.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/choose_earn_service_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/rental/widget/rental_tab_body.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/rental/controller/rental_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/rental/widget/rental_services_dashboard_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/edit_profile_bottom_sheet.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/profile_designation_bottom_sheet.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
@@ -44,7 +46,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import 'package:share_plus/share_plus.dart';
 
 class RiderServiceScreen extends StatefulWidget {
   final bool fromBottomNavBar;
@@ -65,16 +66,19 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
   int _selectedTab = 0;
   bool _showStickyTabs = false;
 
-  // Chat sits adjacent to Order/Document so incoming inquiries are
-  // one tap away from the orders list. Rental sits between Overview
-  // and Post so identity / rental-listings / posts read as a
-  // logical group on the right side of the strip.
+  // Chat was its own top-level tab; it now lives as a sub-tab inside
+  // My Order (once verification is approved). _orderSubTab tracks
+  // which of the two sub-tabs is active. Rentals are not a tab either
+  // — they're surfaced as a CTA card inside the Overview tab (see
+  // _buildRentalCard), so the top strip stays at four entries.
+  static const _orderSubOrders = 0;
+  static const _orderSubChat = 1;
+  int _orderSubTab = _orderSubOrders;
+
   static const _orderIndex = 0;
-  static const _chatIndex = 1;
-  static const _overviewIndex = 2;
-  static const _rentalIndex = 3;
-  static const _postIndex = 4;
-  static const _staticsIndex = 5;
+  static const _overviewIndex = 1;
+  static const _postIndex = 2;
+  static const _staticsIndex = 3;
 
   @override
   void initState() {
@@ -268,8 +272,12 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
                   onTap: () => _openDrawer(context),
                 ),
                 SizedBox(width: SizeConfig.size8),
-                Expanded(child: _buildEarnSlot()),
-                SizedBox(width: SizeConfig.size8),
+                // Earn lives in the drawer now; Refer & Earn stays on
+                // the top bar as the one earn-related shortcut — it
+                // sits right of the drawer button so the bell +
+                // Go-live cluster keeps its right anchor via Spacer.
+                _buildReferEarnPill(),
+                const Spacer(),
                 if (!isGuestUser()) ...[
                   _circleIconButton(
                     icon: Icons.notifications_none,
@@ -289,44 +297,62 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
     );
   }
 
-  Widget _buildEarnSlot() {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: GestureDetector(
-        onTap: () => Get.to(() => const chooseEarnServiceScreen()),
-        child: Container(
-          padding: EdgeInsets.symmetric(
-              horizontal: SizeConfig.size12, vertical: SizeConfig.size6),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(
-              color: const Color(0xFFC9CDD5),
-              width: 1,
+  // Refer & Earn pill — glassmorphic chrome that matches the rest
+  // of the top bar (drawer button, bell, Go-live). Same recipe:
+  // outer shadowed container → ClipRRect → BackdropFilter blur →
+  // inner white fill with the shared gray border (#C9CDD5). Content
+  // (share icon + label) stays primary-colored so the pill still
+  // reads as the earn-related shortcut.
+  Widget _buildReferEarnPill() {
+    return GestureDetector(
+      onTap: () => Get.to(() => ReferralPage()),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x1A000000),
+              blurRadius: 3,
+              offset: Offset(0, -1),
             ),
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0x1A000000),
-                blurRadius: 3,
-                offset: Offset(0, -1),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(24),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+            child: Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: SizeConfig.size10,
+                vertical: SizeConfig.size6,
               ),
-            ],
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              LocalAssets(
-                imagePath: AppIconAssets.earnWithBEIcon,
-                imgColor: AppColors.primaryColor,
-                height: 16,
-                width: 16,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(
+                  color: const Color(0xFFC9CDD5),
+                  width: 1,
+                ),
               ),
-              SizedBox(width: SizeConfig.size6),
-              CustomText('Earn',
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.primaryColor),
-            ],
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.share_outlined,
+                    size: 14,
+                    color: AppColors.secondaryTextColor,
+                  ),
+                  SizedBox(width: SizeConfig.size6),
+                  CustomText(
+                    'Refer & Earn',
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.secondaryTextColor,
+                    letterSpacing: 0.2,
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
       ),
@@ -518,9 +544,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
               "approved";
           final tabs = <String>[
             approved ? AppStrings.myOrder.tr : AppStrings.document.tr,
-            'Chat',
             'Overview',
-            'Rental',
             'Post',
             'Statics',
           ];
@@ -602,12 +626,8 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
     switch (_selectedTab) {
       case _orderIndex:
         return _buildOrderTab();
-      case _chatIndex:
-        return _buildChatTab();
       case _overviewIndex:
         return _buildOverviewTab();
-      case _rentalIndex:
-        return _buildRentalTab();
       case _postIndex:
         return _buildPostTab();
       case _staticsIndex:
@@ -617,52 +637,217 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
     }
   }
 
-  // Rental tab — delegated to the shared [RentalTabBody] so the
-  // self-employee, professionals, rider, cab, and social
-  // dashboards all show the exact same rental UI driven by one
-  // RentalController instance (add/edit/delete from any surface
-  // mirrors here for free).
-  List<Widget> _buildRentalTab() {
-    return const [RentalTabBody()];
-  }
-
-  // Chat tab — incoming order inquiries. `excludeSenderId: userId`
-  // hides chats whose latest message was authored by the rider
-  // themselves, so only conversations needing a reply surface here.
-  // `isInParentScroll: true` makes the inner ListView shrink-wrap and
-  // hand its scroll over to our outer CustomScrollView, so no bounded
-  // height is required.
-  List<Widget> _buildChatTab() {
-    return [
-      OrdersTabView(
-        excludeSenderId: userId,
-        isInParentScroll: true,
-      ),
-    ];
-  }
-
   // Order / Document tab — single source of truth: verification
-  // status. When approved we show the delivery-partner orders list;
-  // otherwise [RiderProfileStatusScreen] handles every other state
-  // (loading, pending review, rejected, etc.) on its own surface.
+  // status. Unapproved riders see [RiderProfileStatusScreen] which
+  // walks them through KYC / pending-review / rejected on its own
+  // surface. Approved riders see a two-pill sub-tab:
+  //   • Orders — the delivery-partner orders list.
+  //   • Chat   — incoming order inquiries (formerly its own
+  //     top-level tab, now relocated here so the top strip stays
+  //     compact while inquiries remain one tap from the orders).
   //
-  // [DeliveryPartnerOrders] runs in `isInParentScroll: true` mode so
-  // its inner Scaffold/Expanded chrome and the [PickupOrderScreen]
-  // ListViews collapse into shrink-wrap mode — letting our parent
-  // CustomScrollView/Column own the vertical scroll without needing
-  // to carve out a fixed pixel height.
+  // Both bodies run in `isInParentScroll: true` so their inner
+  // Scaffold/Expanded chrome and ListViews collapse into shrink-wrap
+  // mode — the parent CustomScrollView/Column owns the vertical
+  // scroll without needing a bounded height.
   List<Widget> _buildOrderTab() {
     return [
       Obx(() {
         final approved = controller
                 .riderOnboardingStatusData.value?.verificationStatus ==
             "approved";
-        if (approved) {
-          return DeliveryPartnerOrders(isInParentScroll: true);
-        }
-        return RiderProfileStatusScreen();
+        if (!approved) return RiderProfileStatusScreen();
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildOrderSubTabs(),
+            SizedBox(height: SizeConfig.size12),
+            if (_orderSubTab == _orderSubOrders)
+              DeliveryPartnerOrders(isInParentScroll: true)
+            else
+              BusinessChatsList(
+                isForwardUI: false,
+                excludeSenderId: userId,
+                isInParentScroll: true,
+              ),
+          ],
+        );
       }),
     ];
+  }
+
+  // Level 2 — solid pill segmented control inside My Order.
+  // The previous tonal-on-tonal version (primary @ 4% track, @ 14%
+  // indicator) disappeared against the dashboard's patterned blue
+  // background. This version uses a SOLID white track + a SOLID
+  // primary indicator so the control anchors clearly on any
+  // backdrop. Still pill-shaped (BorderRadius 100) so it stays
+  // distinct from the L1 strip (white card, animated underline)
+  // and from the L3 filter (white form field with chevron).
+  Widget _buildOrderSubTabs() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 14),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          const trackPadding = 4.0;
+          final pillWidth =
+              (constraints.maxWidth - trackPadding * 2) / 2;
+          return Container(
+            height: 42,
+            padding: const EdgeInsets.all(trackPadding),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(100),
+              border: Border.all(
+                color: AppColors.greyE5,
+                width: 1,
+              ),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x14001120),
+                  blurRadius: 8,
+                  offset: Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Stack(
+              children: [
+                // Sliding primary indicator — solid fill, soft
+                // primary-tinted drop shadow lifts it forward against
+                // the white track. 260ms easeOutCubic glide is the
+                // toggle's signature beat.
+                AnimatedPositioned(
+                  duration: const Duration(milliseconds: 260),
+                  curve: Curves.easeOutCubic,
+                  left: pillWidth * _orderSubTab,
+                  top: 0,
+                  bottom: 0,
+                  width: pillWidth,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryColor,
+                      borderRadius: BorderRadius.circular(100),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primaryColor
+                              .withValues(alpha: 0.32),
+                          blurRadius: 10,
+                          offset: const Offset(0, 3),
+                          spreadRadius: -1,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                // Positioned.fill makes the Row stretch to the full
+                // bounds of the Stack — without this the Row sizes
+                // to its children's intrinsic height (~20pt) and the
+                // Stack's default topStart alignment leaves icon+label
+                // hugging the top edge instead of sitting dead-center
+                // in the 42pt track.
+                Positioned.fill(
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: _subTabButton(
+                          icon: Icons.receipt_long_rounded,
+                          label: 'Orders',
+                          index: _orderSubOrders,
+                        ),
+                      ),
+                      Expanded(
+                        child: _subTabButton(
+                          icon: Icons.question_answer_outlined,
+                          label: 'Inquiry',
+                          index: _orderSubChat,
+                          // unreadCount: _chatUnreadCount.value,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _subTabButton({
+    required IconData icon,
+    required String label,
+    required int index,
+    int? unreadCount,
+  }) {
+    final selected = _orderSubTab == index;
+    // White text on the solid primary indicator, full-strength main
+    // text color on the inactive side — both sides stay readable
+    // against the white track without needing muted greys.
+    final fg = selected ? Colors.white : AppColors.mainTextColor;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => setState(() => _orderSubTab = index),
+      child: AnimatedDefaultTextStyle(
+        duration: const Duration(milliseconds: 240),
+        style: TextStyle(
+          fontFamily: AppConstants.OpenSans,
+          fontSize: 13,
+          fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+          color: fg,
+          letterSpacing: 0.2,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            TweenAnimationBuilder<Color?>(
+              duration: const Duration(milliseconds: 240),
+              tween: ColorTween(end: fg),
+              builder: (_, color, __) =>
+                  Icon(icon, size: 15, color: color),
+            ),
+            const SizedBox(width: 6),
+            Flexible(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            if (unreadCount != null && unreadCount > 0) ...[
+              const SizedBox(width: 6),
+              // Badge inverts against the active indicator: white pill
+              // with primary text sits on the primary fill; primary
+              // pill with white text sits on the white track. Either
+              // side reads cleanly.
+              Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 6, vertical: 1),
+                constraints: const BoxConstraints(minWidth: 18),
+                decoration: BoxDecoration(
+                  color:
+                      selected ? Colors.white : AppColors.primaryColor,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  unreadCount > 99 ? '99+' : '$unreadCount',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontFamily: AppConstants.OpenSans,
+                    fontSize: 9.5,
+                    fontWeight: FontWeight.w800,
+                    color: selected
+                        ? AppColors.primaryColor
+                        : Colors.white,
+                    height: 1.2,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
   }
 
   // Post tab — embeds FeedScreen filtered to the user's posts.
@@ -693,20 +878,26 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
   }
 
   // ─────────────────────────────────────────────
-  // OVERVIEW TAB — refined editorial identity dossier (mirrors
-  // self_employee / social_main):
+  // OVERVIEW TAB — refined editorial identity dossier:
   //   1. Identity card (cover + avatar + identity block).
   //   2. Stats card with hero-typed numerals.
-  //   3. Action row with Share + Personal Cards pills.
-  //   4. Contact + map card (bio / website / phone / address / map).
-  //   5. QR card with the profile deep link.
-  //   6. Share banner.
+  //   3. Rental services CTA — entry point to the rental dashboard.
+  //      Used to be its own tab; we collapsed it into Overview so
+  //      the tab strip stays uncluttered while the three rental
+  //      categories are still one tap away (each chip primes the
+  //      destination's filter before pushing).
+  //   4. Action row with Share + Personal Cards pills.
+  //   5. Contact + map card (bio / website / phone / address / map).
+  //   6. QR card with the profile deep link.
+  //   7. Share banner.
   // ─────────────────────────────────────────────
   List<Widget> _buildOverviewTab() {
     return [
       _buildIdentityCard(context),
       SizedBox(height: SizeConfig.size12),
       _buildStatsCard(),
+      SizedBox(height: SizeConfig.size12),
+      _buildRentalCard(),
       SizedBox(height: SizeConfig.size12),
       _buildActionRow(),
       SizedBox(height: SizeConfig.size12),
@@ -1356,6 +1547,163 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
     );
   }
 
+  // ─── RENTAL CTA CARD ───────────────────────────────────────────
+  // Surfaces the rental dashboard as a single card. Header (icon +
+  // title + chevron) opens it with the controller's current filter;
+  // each category chip below pre-selects its filter on
+  // [RentalController.selectedRentalTabs] before pushing, so
+  // [RentalTabBody]'s initState lands the destination already
+  // filtered to the bucket the user tapped.
+  Widget _buildRentalCard() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 14),
+      child: CustomFormCard(
+        padding: EdgeInsets.all(SizeConfig.size14),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFFEDEFF4), width: 1),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            InkWell(
+              onTap: () => _openRentalDashboard(),
+              borderRadius: BorderRadius.circular(8),
+              child: Row(
+                children: [
+                  Container(
+                    width: 36,
+                    height: 36,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryColor.withValues(alpha: 0.10),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(Icons.holiday_village_outlined,
+                        color: AppColors.primaryColor, size: 20),
+                  ),
+                  SizedBox(width: SizeConfig.size12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          AppStrings.rentalServices.tr,
+                          style: TextStyle(
+                            fontFamily: AppConstants.OpenSans,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.mainTextColor,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Manage homestays, rooms & vehicles',
+                          style: TextStyle(
+                            fontFamily: AppConstants.OpenSans,
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w500,
+                            color: AppColors.secondaryTextColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(Icons.chevron_right_rounded,
+                      color: AppColors.secondaryTextColor),
+                ],
+              ),
+            ),
+            SizedBox(height: SizeConfig.size12),
+            Row(
+              children: [
+                Expanded(
+                  child: _rentalCategoryChip(
+                    icon: Icons.house_outlined,
+                    label: AppStrings.homeStay.tr,
+                    onTap: () => _openRentalDashboard(
+                        preselect: RentalServiceType.homeStay),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _rentalCategoryChip(
+                    icon: Icons.apartment_outlined,
+                    label: AppStrings.flatRoom.tr,
+                    onTap: () => _openRentalDashboard(
+                        preselect: RentalServiceType.flatRoom),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _rentalCategoryChip(
+                    icon: Icons.directions_car_outlined,
+                    label: AppStrings.vehicle.tr,
+                    onTap: () => _openRentalDashboard(
+                        preselect: RentalServiceType.vehicle),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _rentalCategoryChip({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+        decoration: BoxDecoration(
+          color: AppColors.primaryColor.withValues(alpha: 0.06),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: AppColors.primaryColor.withValues(alpha: 0.18),
+            width: 0.6,
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 18, color: AppColors.primaryColor),
+            const SizedBox(height: 6),
+            Text(
+              label,
+              style: TextStyle(
+                fontFamily: AppConstants.OpenSans,
+                fontSize: 10.5,
+                fontWeight: FontWeight.w700,
+                color: AppColors.primaryColor,
+                letterSpacing: 0.2,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // [preselect] mutates the shared [RentalController.selectedRentalTabs]
+  // before pushing, so [RentalTabBody]'s initState picks up the right
+  // filter on first build of the destination screen. Skipping the
+  // arg just opens with whatever filter the controller was last in.
+  void _openRentalDashboard({RentalServiceType? preselect}) {
+    if (preselect != null) {
+      final ctrl = getOrPut(() => RentalController());
+      if (ctrl.selectedRentalTabs.value != preselect) {
+        ctrl.selectedRentalTabs.value = preselect;
+      }
+    }
+    Get.to(() => const RentalServicesDashboardScreen());
+  }
+
   // ─── ACTION ROW ────────────────────────────────────────────────
   Widget _buildActionRow() {
     return Container(
@@ -1439,16 +1787,14 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
   }
 
   Future<void> _onShareProfile() async {
-    final link = profileDeepLink(
-      userId: userId,
-      accountType: AppConstants.individual,
-    );
+    // Profile link + share-sheet handoff centralized in ShareService.
+    // currentProfileDeepLink() (called inside the service) reads
+    // accountTypeGlobal so the rider's business-vs-individual branch
+    // no longer needs to live here.
     final userName = _viewCtrl.personalProfileDetails.value.user?.name ?? '';
-    await SharePlus.instance.share(
-      ShareParams(
-        text: 'See my profile on BlueEra:\n$link\n',
-        subject: userName,
-      ),
+    await ShareService.instance.shareProfile(
+        userId: userId,
+        subject: userName
     );
   }
 
@@ -1601,9 +1947,12 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
           final user = _viewCtrl.personalProfileDetails.value.user;
           final name = _capitalizeFirst(user?.name ?? 'Profile');
           final designation = user?.designation ?? '';
+          // Single source of truth for "my profile link" — reads
+          // session globals so the QR code matches whatever the
+          // share button produces. profileDeepLink owns the
+          // referral-code attach so the QR carries it too.
           final link = profileDeepLink(
-            userId: userId,
-            accountType: AppConstants.individual,
+            userId: userId
           );
 
           return Column(

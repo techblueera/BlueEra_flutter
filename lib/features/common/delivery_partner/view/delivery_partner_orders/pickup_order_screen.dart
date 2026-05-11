@@ -1,11 +1,10 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_orders_controller.dart';
 import 'package:BlueEra/features/common/delivery_partner/widget/order_card.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../../core/api/apiService/api_response.dart';
@@ -51,46 +50,255 @@ class _PickupOrderScreenState extends State<PickupOrderScreen> {
     return widget.isInParentScroll ? body : Scaffold(body: body);
   }
 
+  // Status filter — reframed from the old underline-tab row into a
+  // single dropdown FIELD that opens a bottom-sheet picker. Two tab
+  // strips already live above this screen (top-strip nav + Orders/Chat
+  // sub-tabs), so a third tab-shaped row here would still read as
+  // "more tabs." A form-field-shaped dropdown can't be confused for
+  // navigation: it has no row of options at all.
   Widget _filterButtons() {
     return Obx(() {
-      return SingleChildScrollView(
-        padding: EdgeInsets.all(SizeConfig.size15),
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children: [
-            LocalAssets(imagePath: AppIconAssets.channelFilterIcon),
-            SizedBox(width: SizeConfig.size10),
-            Row(
-              children: controller.pickUpTabs.map((tab) {
-                final isSelected = controller.selectedPickUp.value == tab;
-                return Padding(
-                  padding: EdgeInsets.only(right: SizeConfig.size14),
-                  child: GestureDetector(
-                    onTap: () {
-                      controller.selectedPickUp.value = tab;
-                      if(controller.selectedPickUp.value != PickUpTab.orders && controller.selectedPickUp.value != PickUpTab.rejected){
-                        controller.getRidersBookingOrders();
-                      }else if(controller.selectedPickUp.value == PickUpTab.rejected){
-                        controller.getRiderRejectOrderList();
-                      }
-                    },
-                    child: CustomText(
-                      tab.label,
-                      decoration: TextDecoration.underline,
-                      color: isSelected ? AppColors.primaryColor : AppColors.secondaryTextColor,
-                      decorationColor:
-                          isSelected ? AppColors.primaryColor : AppColors.secondaryTextColor,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 14,
+      final current = controller.selectedPickUp.value;
+      return Padding(
+        padding: EdgeInsets.symmetric(
+          horizontal: SizeConfig.size15,
+          vertical: SizeConfig.size12,
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: _showPickUpFilterSheet,
+            child: Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: SizeConfig.size12,
+                vertical: SizeConfig.size12,
+              ),
+              decoration: BoxDecoration(
+                color: AppColors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: AppColors.greyE5,
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.filter_list_rounded,
+                    size: 16,
+                    color: AppColors.secondaryTextColor,
+                  ),
+                  SizedBox(width: SizeConfig.size8),
+                  Text(
+                    'Show',
+                    style: TextStyle(
+                      fontFamily: AppConstants.OpenSans,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.secondaryTextColor,
                     ),
                   ),
-                );
-              }).toList(),
+                  SizedBox(width: SizeConfig.size8),
+                  Container(
+                    width: 22,
+                    height: 22,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color:
+                          AppColors.primaryColor.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Icon(
+                      _pickUpFilterIcon(current),
+                      size: 13,
+                      color: AppColors.primaryColor,
+                    ),
+                  ),
+                  SizedBox(width: SizeConfig.size8),
+                  Expanded(
+                    child: Text(
+                      current.label,
+                      style: TextStyle(
+                        fontFamily: AppConstants.OpenSans,
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.mainTextColor,
+                      ),
+                    ),
+                  ),
+                  Icon(
+                    Icons.expand_more_rounded,
+                    size: 20,
+                    color: AppColors.secondaryTextColor,
+                  ),
+                ],
+              ),
             ),
-          ],
+          ),
         ),
       );
     });
+  }
+
+  // Status-specific pictograms. Each PickUpTab gets a glyph that
+  // matches its connotation so a glance at the dropdown's medallion
+  // is enough to read state without parsing the label.
+  IconData _pickUpFilterIcon(PickUpTab tab) {
+    switch (tab) {
+      case PickUpTab.orders:
+        return Icons.list_alt_rounded;
+      case PickUpTab.newOrder:
+        return Icons.fiber_new_rounded;
+      case PickUpTab.onGoing:
+        return Icons.directions_run_rounded;
+      case PickUpTab.completed:
+        return Icons.check_circle_outline_rounded;
+      case PickUpTab.cancel:
+        return Icons.cancel_outlined;
+      case PickUpTab.rejected:
+        return Icons.do_not_disturb_alt_outlined;
+    }
+  }
+
+  // Bottom-sheet picker. Each row tap mirrors the old GestureDetector
+  // behavior exactly — set the selection, fire the right repo call
+  // (booking-orders or reject-list depending on the chosen tab), then
+  // close the sheet. The dropdown's Obx re-renders to reflect the
+  // new selection on return.
+  void _showPickUpFilterSheet() {
+    final tabs = controller.pickUpTabs;
+    final current = controller.selectedPickUp.value;
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: AppColors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (sheetCtx) {
+        return SafeArea(
+          top: false,
+          child: Padding(
+            padding: EdgeInsets.symmetric(vertical: SizeConfig.size16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Drag handle — affordance the sheet can be dismissed
+                // by swiping down, common modal-sheet idiom.
+                Center(
+                  child: Container(
+                    width: 36,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: AppColors.greyE5,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                SizedBox(height: SizeConfig.size16),
+                Padding(
+                  padding:
+                      EdgeInsets.symmetric(horizontal: SizeConfig.size20),
+                  child: Text(
+                    'Filter orders by status',
+                    style: TextStyle(
+                      fontFamily: AppConstants.OpenSans,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.mainTextColor,
+                    ),
+                  ),
+                ),
+                SizedBox(height: SizeConfig.size12),
+                ...tabs.map((tab) {
+                  final selected = current == tab;
+                  return InkWell(
+                    onTap: () {
+                      controller.selectedPickUp.value = tab;
+                      // Side-effects mirror the old underline-tabs
+                      // exactly: every status except "orders" and
+                      // "rejected" hits the booking-orders endpoint;
+                      // "rejected" has its own list endpoint.
+                      if (tab != PickUpTab.orders &&
+                          tab != PickUpTab.rejected) {
+                        controller.getRidersBookingOrders();
+                      } else if (tab == PickUpTab.rejected) {
+                        controller.getRiderRejectOrderList();
+                      }
+                      Navigator.pop(sheetCtx);
+                    },
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: SizeConfig.size20,
+                        vertical: SizeConfig.size12,
+                      ),
+                      child: Row(
+                        children: [
+                          // Active row's medallion flips its fill
+                          // (primary instead of tinted) — paired with
+                          // the trailing check, two signals reinforce
+                          // which filter is live.
+                          Container(
+                            width: 36,
+                            height: 36,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: selected
+                                  ? AppColors.primaryColor
+                                  : AppColors.primaryColor
+                                      .withValues(alpha: 0.10),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Icon(
+                              _pickUpFilterIcon(tab),
+                              size: 18,
+                              color: selected
+                                  ? Colors.white
+                                  : AppColors.primaryColor,
+                            ),
+                          ),
+                          SizedBox(width: SizeConfig.size12),
+                          Expanded(
+                            child: Text(
+                              tab.label,
+                              style: TextStyle(
+                                fontFamily: AppConstants.OpenSans,
+                                fontSize: 14,
+                                fontWeight: selected
+                                    ? FontWeight.w800
+                                    : FontWeight.w600,
+                                color: AppColors.mainTextColor,
+                              ),
+                            ),
+                          ),
+                          if (selected)
+                            Container(
+                              width: 22,
+                              height: 22,
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                color: AppColors.primaryColor,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.check_rounded,
+                                size: 14,
+                                color: Colors.white,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  );
+                }),
+                SizedBox(height: SizeConfig.size8),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   Widget _buildTabViews(){
