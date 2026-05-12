@@ -2776,13 +2776,7 @@ class ChatViewController extends GetxController {
 
           // Deduplicate: newMessageReceived socket event may have already added this
 
-          final alreadyExists = message.id != null &&
-              (getListOfMessageData?.any((m) => m.id == message.id) ?? false);
-          if (!alreadyExists) {
-            getListOfMessageData?.add(message);
 
-
-          }
           getListOfMessageResponse.value =
               ApiResponse.complete(getListOfMessageData);
           saveSingleMessageToLocal(
@@ -3363,15 +3357,7 @@ class ChatViewController extends GetxController {
         final data = responseModel.response?.data;
 
         Messages? message = Messages.fromJson(data['data']);
-        if (message.status != null) {
-          readMessageStatus.value = message.status!;
-        }
-        getListOfMessageData?.add(message);
-        getListOfMessageResponse.value =
-            ApiResponse.complete(getListOfMessageData);
-        if (chatFromBusinessProfile.value) {
-          canPopBusiness.value = true;
-        }
+
         scrollDown();
         saveSingleMessageToLocal(message.conversationId ?? '', message);
         emitEvent(ChatEmitEvents.ChatList,

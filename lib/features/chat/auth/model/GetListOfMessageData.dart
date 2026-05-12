@@ -217,7 +217,7 @@ class Messages {
 
   String? senderId;
   String? conversationId;
-  String? deleteForMe;
+  bool? deleteForMe;
   bool? deleteFromEveryone;
   bool? isSaveMessage;
   bool? myMessage;

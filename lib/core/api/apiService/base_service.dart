@@ -173,7 +173,7 @@ abstract class BaseService {
 
   /// CREATE RESUME END
   /// ADD POST
-  final String sendMessage = 'chat-service/chat/send-message';
+  final String sendMessage = 'chat-service/chat/send-messagse';
   final String updateMessage = 'chat-service/chat/update-message';
   final String generateUploadUrls = 'chat-service/s3/generate-upload-urls';
   final String generateDownloadUrls = 'chat-service/s3/generate-download-url';
