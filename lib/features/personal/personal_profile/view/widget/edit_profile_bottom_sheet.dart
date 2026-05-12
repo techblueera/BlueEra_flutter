@@ -6,25 +6,30 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
-import 'package:BlueEra/widgets/common_location_search_field.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-/// Lightweight edit-profile sheet shown from the various dashboard "Edit"
-/// chips (Self Employee, Social, Professionals, Rider, Cab/Transport).
+/// Lightweight edit-profile sheet shown from each dashboard's identity-
+/// card "Edit" chip (Self Employee, Social, Professionals, Rider,
+/// Cab/Transport).
 ///
-/// The full [UpdateProfileScreen] is heavy and calls the profession-list
-/// API on open which adds 1+ second of perceived lag — for the common
-/// "tweak my profile" path users only need name / designation / bio /
-/// address / email / phone, so this sheet keeps it focused and saves
-/// silently via [PersonalCreateProfileController.updateUserProfileDetails]
-/// (no global progress dialog, no extra navigation).
+/// Scoped to the **identity-card fields only** — name / email / phone.
+/// Bio and address have their own dedicated cards
+/// ([ProfileBioCard], [ProfileLocationCard]) with their own update
+/// bottom sheets, so we deliberately don't surface them here to avoid
+/// two sources of truth.
+///
+/// Saves silently via
+/// [PersonalCreateProfileController.updateUserProfileDetails] with
+/// `showProgress: false` — the sheet shows its own inline loader on
+/// the Save CTA.
 class EditProfileBottomSheet extends StatefulWidget {
   const EditProfileBottomSheet({super.key});
 
-  /// Convenience launcher used from each dashboard's `_openEditProfile`.
+  /// Convenience launcher used from each dashboard's identity-card
+  /// Edit chip.
   static Future<void> show(BuildContext context) {
     return showModalBottomSheet<void>(
       context: context,
@@ -47,8 +52,6 @@ class _EditProfileBottomSheetState extends State<EditProfileBottomSheet> {
   );
 
   late final TextEditingController _nameController;
-  late final TextEditingController _bioController;
-  late final TextEditingController _locationController;
   late final TextEditingController _emailController;
   late final TextEditingController _phoneController;
 
@@ -59,8 +62,6 @@ class _EditProfileBottomSheetState extends State<EditProfileBottomSheet> {
   void initState() {
     super.initState();
     _nameController = TextEditingController();
-    _bioController = TextEditingController();
-    _locationController = TextEditingController();
     _emailController = TextEditingController();
     _phoneController = TextEditingController();
 
@@ -76,8 +77,6 @@ class _EditProfileBottomSheetState extends State<EditProfileBottomSheet> {
   void _hydrate() {
     final user = _viewCtrl.personalProfileDetails.value.user;
     _nameController.text = user?.name ?? '';
-    _bioController.text = user?.bio ?? '';
-    _locationController.text = user?.address ?? '';
     _emailController.text = user?.email ?? '';
     _phoneController.text = user?.contactNo ?? '';
   }
@@ -85,8 +84,6 @@ class _EditProfileBottomSheetState extends State<EditProfileBottomSheet> {
   @override
   void dispose() {
     _nameController.dispose();
-    _bioController.dispose();
-    _locationController.dispose();
     _emailController.dispose();
     _phoneController.dispose();
     super.dispose();
@@ -103,14 +100,6 @@ class _EditProfileBottomSheetState extends State<EditProfileBottomSheet> {
     final newName = _nameController.text.trim();
     if (newName.isNotEmpty && newName != (user?.name ?? '')) {
       params[ApiKeys.name] = newName;
-    }
-    final newBio = _bioController.text.trim();
-    if (newBio != (user?.bio ?? '')) {
-      params[ApiKeys.bio] = newBio;
-    }
-    final newAddress = _locationController.text.trim();
-    if (newAddress != (user?.address ?? '')) {
-      params[ApiKeys.address] = newAddress;
     }
     final newEmail = _emailController.text.trim();
     if (newEmail != (user?.email ?? '')) {
@@ -212,29 +201,6 @@ class _EditProfileBottomSheetState extends State<EditProfileBottomSheet> {
                   textEditController: _nameController,
                   hintText: 'Your full name',
                   isValidate: false,
-                ),
-                const SizedBox(height: 12),
-                _label('Bio'),
-                CommonTextField(
-                  textEditController: _bioController,
-                  hintText: 'Write something about yourself...',
-                  maxLine: 4,
-                  maxLength: 900,
-                  isValidate: false,
-                  isCounterVisible: true,
-                  keyBoardType: TextInputType.multiline,
-                  textInputAction: TextInputAction.newline,
-                ),
-                const SizedBox(height: 12),
-                _label(AppStrings.location.tr),
-                CommonLocationSearchField(
-                  controller: _locationController,
-                  hintText: 'E.g. Ranchi, Jharkhand...',
-                  isShowLeading: false,
-                  title: '',
-                  onSelected: (placeId, lat, lng, address) {
-                    _locationController.text = address;
-                  },
                 ),
                 const SizedBox(height: 12),
                 _label('Email'),

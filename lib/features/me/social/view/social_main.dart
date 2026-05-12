@@ -173,12 +173,6 @@ class _SocialMainScreenState extends State<SocialMainScreen>
                 id: userId,
               ),
               SocialHomeScreen(),
-              // Rental tab — wrapped in a SingleChildScrollView so
-              // the body's MasonryGridView shrink-wraps inside the
-              // TabBarView's bounded height (no nested unbounded
-              // height assertion). Other dashboards mount this
-              // widget inside a CustomScrollView/Column flow, so
-              // the TabBarView host needs its own scroll axis.
               SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
                 padding: EdgeInsets.only(top: SizeConfig.size12),

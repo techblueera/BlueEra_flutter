@@ -11,7 +11,6 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/controller/self_work_service_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/service_selection_screen.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
@@ -549,13 +548,14 @@ class _AddSelfServiceScreenState extends State<AddSelfServiceScreen> {
                 ? _buildExpansionTile(
                     title: displayTitle,
                     selectedItems: selectedItems.toList(),
-                    onAddTap: () =>
-                        _navigateToSelection(selectedKey, displayTitle),
+                    // Category editing has moved to the inline section
+                    // sheets on the main earn-service dashboard, so the
+                    // add/edit affordances here are inert.
+                    onAddTap: () {},
                   )
                 : _buildEmptyCategoryRow(
                     title: displayTitle,
-                    onTap: () =>
-                        _navigateToSelection(selectedKey, displayTitle),
+                    onTap: () {},
                   ),
           );
         });
@@ -818,20 +818,4 @@ class _AddSelfServiceScreenState extends State<AddSelfServiceScreen> {
         color: AppColors.mainTextColor,
       );
 
-  void _navigateToSelection(String key, String title) {
-    final selectedItems = controller.selectedCategoryMap[key] ?? <String>[].obs;
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => ServiceSelectionScreen(
-        controller: controller,
-        designation: controller.designation ?? ELECTRICIAN,
-        selectedCategoryKey: key,
-        pageTitle: title,
-        preSelectedOptions: selectedItems,
-        isDataUpdate: false,
-      ),
-    );
-  }
 }

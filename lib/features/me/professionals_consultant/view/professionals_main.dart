@@ -9,7 +9,6 @@ import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -39,9 +38,11 @@ import 'package:BlueEra/features/personal/personal_profile/view/rental/controlle
 import 'package:BlueEra/features/personal/personal_profile/view/rental/widget/rental_services_dashboard_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/edit_profile_bottom_sheet.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/profile_designation_bottom_sheet.dart';
+import 'package:BlueEra/features/personal/personal_profile/widgets/personal_qrcode_widget.dart';
+import 'package:BlueEra/features/personal/personal_profile/widgets/profile_bio_card.dart';
+import 'package:BlueEra/features/personal/personal_profile/widgets/profile_location_card.dart';
 import 'package:BlueEra/widgets/common_circular_profile_image.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/post_via_dialog.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -49,7 +50,6 @@ import 'package:croppy/croppy.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-import 'package:qr_flutter/qr_flutter.dart';
 
 /// Professionals dashboard (v2) — mirrors self_employee_screen.dart's
 /// shell: floating glassmorphic top bar, custom animated-underline
@@ -617,9 +617,16 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
       SizedBox(height: SizeConfig.size12),
       _buildStatsCard(),
       SizedBox(height: SizeConfig.size12),
+      // Dedicated bio tile — reads as identity content, not secondary
+      // detail. Bio used to live inside the identity block; lifting
+      // it here gives it a clear edit affordance.
+      const ProfileBioCard(),
+      SizedBox(height: SizeConfig.size12),
       _buildRentalCard(),
       SizedBox(height: SizeConfig.size12),
       _buildActionRow(),
+      SizedBox(height: SizeConfig.size12),
+      const ProfileLocationCard(),
       SizedBox(height: SizeConfig.size12),
       _buildQrCard(),
       SizedBox(height: SizeConfig.size12),
@@ -1167,12 +1174,8 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
                 profData?.about?.description ??
                 user?.bio ??
                 '';
-            final userAddress = user?.address ?? '';
-            final profAddress = profData?.contact?.address ?? '';
-            final fullAddress = profAddress.isNotEmpty
-                ? profAddress
-                : (userAddress.isNotEmpty ? userAddress : '');
-            final location = _extractCityState(fullAddress);
+            // Address is rendered in [ProfileLocationCard] now — don't
+            // duplicate it inside the identity card.
             final dob = user?.dateOfBirth;
             final email = profData?.contact?.email ?? user?.email ?? '';
             final phone = profData?.contact?.phone ?? user?.contactNo ?? '';
@@ -1181,11 +1184,10 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
             final hasName = name.isNotEmpty;
             final hasUsername = username.isNotEmpty;
             final hasBio = bio.isNotEmpty;
-            final hasLocation = location.isNotEmpty;
             final hasPhone = phone.isNotEmpty;
             final hasEmail = email.isNotEmpty;
             final hasDob = dob != null && dob.date != null && dob.month != null;
-            final hasContact = hasLocation || hasPhone || hasEmail || hasDob;
+            final hasContact = hasPhone || hasEmail || hasDob;
             final hasAnyIdentity = hasDesignation ||
                 hasName ||
                 hasUsername ||
@@ -1224,22 +1226,11 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
               children.add(_usernameText(username));
             }
 
-            if (hasBio) {
-              children.add(SizedBox(height: SizeConfig.size10));
-              children.add(
-                ExpandableText(
-                  text: bio,
-                  trimLines: 2,
-                  expandMode: ExpandMode.dialog,
-                  dialogTitle: AppStrings.bio.tr,
-                  style: TextStyle(
-                    fontSize: 13.5,
-                    color: AppColors.mainTextColor,
-                    height: 1.5,
-                  ),
-                ),
-              );
-            }
+            // Bio rendering has moved to its own [ProfileBioCard]
+            // tile in the overview list — the identity block no
+            // longer carries it. `hasBio` still feeds the
+            // `hasAnyIdentity` aggregate so the fallback Edit chip
+            // still appears when the user has a bio but no name.
 
             if (hasContact) {
               children.add(SizedBox(height: SizeConfig.size12));
@@ -1248,14 +1239,7 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
                 color: const Color(0xFFEDEFF4),
               ));
               children.add(SizedBox(height: SizeConfig.size12));
-              if (hasLocation) {
-                children
-                    .add(_infoRow(Icons.location_on_rounded, location));
-              }
               if (hasPhone) {
-                if (children.last is! SizedBox) {
-                  children.add(SizedBox(height: SizeConfig.size8));
-                }
                 children.add(_infoRow(Icons.phone_rounded, phone));
               }
               if (hasDob) {
@@ -1714,136 +1698,26 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
   }
 
   // ─── QR CODE CARD ──────────────────────────────────────────────
-  // White card with the user's profile-deep-link QR centered, plus
-  // their name + designation underneath. Lets visitors scan to open
-  // the professional profile directly.
+  // Delegates to [PersonalQrCodeWidget] so the professional QR card
+  // matches the business card's UI and behaviour exactly. Prefers
+  // the professional-service basic details when available, falling
+  // back to the personal profile.
   Widget _buildQrCard() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20),
-      child: CustomFormCard(
-        padding: EdgeInsets.symmetric(
-            horizontal: SizeConfig.size16, vertical: SizeConfig.size16),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFFEDEFF4), width: 1),
-        child: Obx(() {
-          final user = _viewCtrl.personalProfileDetails.value.user;
-          final profData = _ctrl.getProfessionalServiceRes?.value.data;
-          final name = _capitalizeFirst(
-              profData?.basicDetails?.fullName ?? user?.name ?? 'Profile');
-          final designation = profData?.basicDetails?.professionalTitle ??
-              user?.designation ??
-              '';
-          // Same link generator as the share button — QR payload and
-          // share text stay in lock-step. profileDeepLink owns the
-          // referral-code attach so the QR carries it too.
-          final link = profileDeepLink(
-            userId: userId
-          );
-
-          return Column(
-            children: [
-              Text(
-                'SCAN TO VIEW PROFILE',
-                style: TextStyle(
-                  fontFamily: AppConstants.OpenSans,
-                  fontSize: 10,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.secondaryTextColor,
-                  letterSpacing: 1.4,
-                ),
-              ),
-              SizedBox(height: SizeConfig.size12),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: AppColors.primaryColor.withValues(alpha: 0.18),
-                    width: 1,
-                  ),
-                ),
-                child: QrImageView(
-                  data: link,
-                  version: QrVersions.auto,
-                  size: 160,
-                  backgroundColor: Colors.white,
-                  eyeStyle: QrEyeStyle(
-                    eyeShape: QrEyeShape.square,
-                    color: AppColors.primaryColor,
-                  ),
-                  dataModuleStyle: QrDataModuleStyle(
-                    dataModuleShape: QrDataModuleShape.square,
-                    color: AppColors.mainTextColor,
-                  ),
-                ),
-              ),
-              SizedBox(height: SizeConfig.size12),
-              Text(
-                name,
-                style: TextStyle(
-                  fontFamily: AppConstants.OpenSans,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.mainTextColor,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              if (designation.trim().isNotEmpty) ...[
-                const SizedBox(height: 2),
-                Text(
-                  designation,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.secondaryTextColor,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-              SizedBox(height: SizeConfig.size12),
-              GestureDetector(
-                onTap: _onShareProfile,
-                child: Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: SizeConfig.size12,
-                    vertical: SizeConfig.size6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryColor.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: AppColors.primaryColor.withValues(alpha: 0.25),
-                      width: 0.6,
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.share_outlined,
-                          size: 14, color: AppColors.primaryColor),
-                      SizedBox(width: SizeConfig.size6),
-                      Text(
-                        'Share QR',
-                        style: TextStyle(
-                          fontFamily: AppConstants.OpenSans,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.primaryColor,
-                          letterSpacing: 0.2,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          );
-        }),
-      ),
-    );
+    return Obx(() {
+      final user = _viewCtrl.personalProfileDetails.value.user;
+      final profData = _ctrl.getProfessionalServiceRes?.value.data;
+      final name = _capitalizeFirst(
+          profData?.basicDetails?.fullName ?? user?.name ?? 'Profile');
+      final designation = profData?.basicDetails?.professionalTitle ??
+          user?.designation ??
+          '';
+      return PersonalQrCodeWidget(
+        userId: userId,
+        name: name,
+        designation: designation,
+        margin: const EdgeInsets.symmetric(horizontal: 20),
+      );
+    });
   }
 
   // ─── SHARE BANNER ──────────────────────────────────────────────
@@ -2307,19 +2181,6 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
     if (count >= 1000000) return '${(count / 1000000).toStringAsFixed(1)}M';
     if (count >= 1000) return '${(count / 1000).toStringAsFixed(1)}k';
     return '$count';
-  }
-
-  String _extractCityState(String address) {
-    if (address.isEmpty) return '';
-    final parts = address.split(',').map((e) => e.trim()).toList();
-    if (parts.length >= 3) {
-      final statePart =
-          parts[parts.length - 2].replaceAll(RegExp(r'\d{5,6}'), '').trim();
-      final city = parts[parts.length - 3].trim();
-      if (city.isNotEmpty && statePart.isNotEmpty) return '$city, $statePart';
-      return city.isNotEmpty ? city : statePart;
-    }
-    return address;
   }
 
   String _formatJoinedDate(String dateStr) {

@@ -614,7 +614,6 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     } else if (_isSpecificProductAutomotive()) {
       return const InventoryScreen();
     } else {
-      // return const InventoryScreen(fromBottomNavBar: true);
       return SizedBox();
     }
   }

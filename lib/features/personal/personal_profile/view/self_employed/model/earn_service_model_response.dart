@@ -1,3 +1,9 @@
+// Schedule + FeeDetails are shared with the booking-availability model
+// — the backend uses identical JSON shapes for them on both endpoints,
+// so reusing the parsers keeps round-trip behaviour consistent and
+// avoids drift between the two screens that consume them.
+import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/model/availability_model.dart';
+
 class EarnServiceModelResponse {
   String? sId;
   ServiceProvider? serviceProvider;
@@ -22,6 +28,15 @@ class EarnServiceModelResponse {
   int? iV;
   ProviderDetails? providerDetails;
 
+  /// Min/max/feeType triple persisted alongside the service. Drives the
+  /// price hero on the section card and seeds the price-update sheet.
+  FeeDetails? feeDetails;
+
+  /// Weekly working-hours schedule persisted alongside the service.
+  /// Drives the schedule card on the section card and seeds the
+  /// working-hours editor on the update sheet.
+  List<Schedule>? schedule;
+
   EarnServiceModelResponse(
       {this.sId,
         this.serviceProvider,
@@ -44,7 +59,9 @@ class EarnServiceModelResponse {
         this.createdAt,
         this.updatedAt,
         this.iV,
-        this.providerDetails});
+        this.providerDetails,
+        this.feeDetails,
+        this.schedule});
 
   EarnServiceModelResponse.fromJson(Map<String, dynamic> json) {
     sId = json['_id'];
@@ -57,14 +74,19 @@ class EarnServiceModelResponse {
     category = json['category'];
     title = json['title'];
     description = json['description'];
-    photos = json['photos'].cast<String>();
-    expertise = json['expertise'].cast<String>();
+    photos = json['photos']?.cast<String>();
+    expertise = json['expertise']?.cast<String>();
     experienceStartDate = json['experienceStartDate'];
-    serviceOffered = json['serviceOffered'].cast<String>();
-    typesOfWork = json['typesOfWork'].cast<String>();
-    workCategories = json['workCategories'].cast<String>();
-    whyChooseMe = json['whyChooseMe'].cast<String>();
-    serviceType = json['serviceType'].cast<String>();
+    // Backend ships the up-to-date list under the plural `servicesOffered`
+    // key (the singular `serviceOffered` is a legacy/stale field still
+    // present in some responses). Prefer the plural; fall back so older
+    // payloads keep working.
+    serviceOffered = (json['servicesOffered'] ?? json['serviceOffered'])
+        ?.cast<String>();
+    typesOfWork = json['typesOfWork']?.cast<String>();
+    workCategories = json['workCategories']?.cast<String>();
+    whyChooseMe = json['whyChooseMe']?.cast<String>();
+    serviceType = json['serviceType']?.cast<String>();
     isActive = json['isActive'];
     isDeleted = json['isDeleted'];
     createdAt = json['createdAt'];
@@ -73,6 +95,15 @@ class EarnServiceModelResponse {
     providerDetails = json['providerDetails'] != null
         ? new ProviderDetails.fromJson(json['providerDetails'])
         : null;
+    feeDetails = json['feeDetails'] != null
+        ? FeeDetails.fromJson(json['feeDetails'])
+        : null;
+    if (json['schedule'] != null) {
+      schedule = <Schedule>[];
+      json['schedule'].forEach((v) {
+        schedule!.add(Schedule.fromJson(v));
+      });
+    }
   }
 
   Map<String, dynamic> toJson() {
@@ -90,7 +121,9 @@ class EarnServiceModelResponse {
     data['photos'] = this.photos;
     data['expertise'] = this.expertise;
     data['experienceStartDate'] = this.experienceStartDate;
-    data['serviceOffered'] = this.serviceOffered;
+    // Write the plural key so toJson round-trips back into a payload
+    // the update endpoint understands.
+    data['servicesOffered'] = this.serviceOffered;
     data['typesOfWork'] = this.typesOfWork;
     data['workCategories'] = this.workCategories;
     data['whyChooseMe'] = this.whyChooseMe;
@@ -100,6 +133,12 @@ class EarnServiceModelResponse {
     data['__v'] = this.iV;
     if (this.providerDetails != null) {
       data['providerDetails'] = this.providerDetails!.toJson();
+    }
+    if (this.feeDetails != null) {
+      data['feeDetails'] = this.feeDetails!.toJson();
+    }
+    if (this.schedule != null) {
+      data['schedule'] = this.schedule!.map((v) => v.toJson()).toList();
     }
     return data;
   }

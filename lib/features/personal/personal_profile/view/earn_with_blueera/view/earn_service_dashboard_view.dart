@@ -2,13 +2,12 @@ import 'dart:ui';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/core/routes/route_helper.dart';
-import 'package:BlueEra/features/common/home/widgets/drawer.dart';
 import 'package:BlueEra/features/me/medical_new/view/medical_statistics_screen.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/controller/earn_profile_controller.dart';
@@ -18,6 +17,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueer
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/earn_service_dashboard_header.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/earn_service_website_card.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -161,7 +161,11 @@ class _EarnServiceDashboardViewState extends State<EarnServiceDashboardView> {
 
   // ─────────────────────────────────────────────
   // TOP BAR — glassmorphic strip:
-  //   [drawer] [profile selector]   …   [bell] [Go Live]
+  //   [back arrow]  [earn-type title]
+  // The title mirrors the active home-tab body so users always know
+  // which earn flavour (Food / Product / Service) they're on. Title is
+  // reactive on [earnProfileType] so it follows the controller's
+  // current selection without an extra setState.
   // ─────────────────────────────────────────────
   Widget _buildTopBar() {
     final topInset = MediaQuery.of(context).padding.top;
@@ -194,27 +198,45 @@ class _EarnServiceDashboardViewState extends State<EarnServiceDashboardView> {
             child: Row(
               children: [
                 _circleIconButton(
-                  icon: Icons.menu,
-                  onTap: () => _openDrawer(context),
+                  icon: Icons.arrow_back,
+                  onTap: () => Navigator.of(context).maybePop(),
                 ),
-                const Spacer(),
-                if (!isGuestUser()) ...[
-                  _circleIconButton(
-                    icon: Icons.notifications_none,
-                    onTap: () => Navigator.pushNamed(
-                      context,
-                      RouteHelper.getNotificationScreenRoute(),
-                    ),
-                  ),
-                  SizedBox(width: SizeConfig.size8),
-                ],
-                _goLivePill(),
+                SizedBox(width: SizeConfig.size12),
+                Expanded(
+                  child: Obx(() {
+                    final title =
+                        _earnTypeTitle(_viewCtrl.earnProfileType.value);
+                    return CustomText(
+                      title,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.mainTextColor,
+                      maxLines: 1,
+                    );
+                  }),
+                ),
               ],
             ),
           ),
         ),
       ),
     );
+  }
+
+  /// Maps the controller's [earnProfileType] code to the title shown
+  /// in the top bar. Kept here (rather than inlined) so the same
+  /// mapping can be reused if other surfaces need the human label.
+  String _earnTypeTitle(String? earnType) {
+    switch (earnType) {
+      case 'homeMadeFood':
+        return 'Home Made Food';
+      case 'homeMadeProduct':
+        return 'Home Made Product';
+      case 'homeService':
+        return 'Home Service';
+      default:
+        return '';
+    }
   }
 
   Widget _circleIconButton({
@@ -242,6 +264,7 @@ class _EarnServiceDashboardViewState extends State<EarnServiceDashboardView> {
             child: Container(
               height: SizeConfig.size36,
               width: SizeConfig.size36,
+              padding: EdgeInsets.all(SizeConfig.size10),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: Colors.white,
@@ -250,121 +273,13 @@ class _EarnServiceDashboardViewState extends State<EarnServiceDashboardView> {
                   width: 1,
                 ),
               ),
-              child: Icon(icon, size: 20, color: AppColors.secondaryTextColor),
+              child: LocalAssets(
+                imagePath: AppIconAssets.back_arrow,
+                height: SizeConfig.size26,
+                width: SizeConfig.size26,
+                imgColor: AppColors.mainTextColor,
+              )
             ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _goLivePill() {
-    return Obx(() {
-      final isOn = _viewCtrl.shopStatusOpenClose.value;
-      final isUpdating = _viewCtrl.isShopStatusUpdating.value;
-      return GestureDetector(
-        onTap: isUpdating ? null : () => _viewCtrl.toggleShopStatus(),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(24),
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0x1A000000),
-                blurRadius: 3,
-                offset: Offset(0, -1),
-              ),
-            ],
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(24),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-              child: Container(
-                padding: EdgeInsets.symmetric(
-                    horizontal: SizeConfig.size10,
-                    vertical: SizeConfig.size6),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(
-                    color: const Color(0xFFC9CDD5),
-                    width: 1,
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    CustomText('Go live',
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.secondaryTextColor),
-                    SizedBox(width: SizeConfig.size6),
-                    if (isUpdating)
-                      SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                              AppColors.primaryColor),
-                        ),
-                      )
-                    else
-                      Container(
-                        width: 30,
-                        height: 18,
-                        padding: const EdgeInsets.all(2),
-                        decoration: BoxDecoration(
-                          color:
-                              isOn ? AppColors.primaryColor : Colors.white,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: AppColors.secondaryTextColor
-                                .withValues(alpha: 0.4),
-                            width: 0.5,
-                          ),
-                        ),
-                        child: AnimatedAlign(
-                          duration: const Duration(milliseconds: 180),
-                          alignment: isOn
-                              ? Alignment.centerRight
-                              : Alignment.centerLeft,
-                          child: Container(
-                            height: 14,
-                            width: 14,
-                            decoration: BoxDecoration(
-                              color: isOn
-                                  ? Colors.white
-                                  : AppColors.secondaryTextColor,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-      );
-    });
-  }
-
-  void _openDrawer(BuildContext context) {
-    showDialog(
-      barrierDismissible: true,
-      barrierColor: Colors.black.withValues(alpha: 0.3),
-      useSafeArea: false,
-      context: context,
-      builder: (_) => Align(
-        alignment: Alignment.centerLeft,
-        child: SizedBox(
-          height: double.infinity,
-          child: Drawer(
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            child: ProfileMenuDrawer(),
           ),
         ),
       ),

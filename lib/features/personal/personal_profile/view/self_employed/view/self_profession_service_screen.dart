@@ -1,6 +1,5 @@
 import 'dart:developer';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
-import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
@@ -8,16 +7,14 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
-import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/add_self_work_service_screen.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/controller/booking_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/model/availability_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/widget/availability_schedule_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/controller/self_work_service_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/service_selection_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/self_employed/widget/working_hours_editor.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/common_drop_down.dart';
@@ -25,24 +22,21 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
-import 'package:BlueEra/widgets/visiting_hour_selector.dart';
 import 'package:croppy/croppy.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 
-class SelfProfessionHomeScreen extends StatefulWidget {
-  const SelfProfessionHomeScreen({Key? key}) : super(key: key);
+class SelfProfessionServiceScreen extends StatefulWidget {
+  const SelfProfessionServiceScreen({Key? key}) : super(key: key);
 
   @override
-  State<SelfProfessionHomeScreen> createState() =>
-      _SelfProfessionHomeScreenState();
+  State<SelfProfessionServiceScreen> createState() =>
+      _SelfProfessionServiceScreenState();
 }
 
-class _SelfProfessionHomeScreenState
-    extends State<SelfProfessionHomeScreen> {
+class _SelfProfessionServiceScreenState
+    extends State<SelfProfessionServiceScreen> {
   final controller = getOrPut(() => SelfWorkServiceController());
-  final bookingController = getOrPut(() => BookingController());
 
   @override
   void initState() {
@@ -58,12 +52,6 @@ class _SelfProfessionHomeScreenState
 
   @override
   Widget build(BuildContext context) {
-    // No Scaffold / SingleChildScrollView here — this screen is
-    // embedded inside the parent self-employee dashboard's
-    // CustomScrollView, so its sections need to flow into the
-    // parent scroll. Wrapping its own scrollable would (a) bound
-    // the inner content to a fixed height and (b) prevent the
-    // parent's sticky-tab overlay from engaging on scroll.
     return Obx(() {
       // 1. Loading State
       if (this.controller.isProfessionDataLoading.value) {
@@ -108,8 +96,6 @@ class _SelfProfessionHomeScreenState
             title: 'Work Photos',
             actionLabel: 'Add',
             actionIcon: Icons.add_a_photo_outlined,
-            // Cap the gallery at 4 photos — once the user hits the
-            // limit the section header's "Add" pill no longer fires.
             onEdit: (service.photos?.length ?? 0) >= _galleryMax
                 ? null
                 : () => _pickAndUploadGalleryPhoto(this.controller),
@@ -117,20 +103,22 @@ class _SelfProfessionHomeScreenState
             body: _galleryGrid(service.photos ?? []),
           ),
           _Section(
+            title: 'Working Hours',
+            onEdit: () => updateVisitingHours(),
+            body: (service.schedule == null || service.schedule!.isEmpty)
+                ? _placeholderHint('Add weekly working hours so customers'
+                ' know when to book.')
+                : AvailabilityScheduleCard(schedule: service.schedule!),
+          ),
+          _Section(
             title: AppStrings.price.tr,
             onEdit: () {
-              final details =
-                  bookingController.availabilityDetails.value?.feeDetails;
-              updateBookingPrice(
-                controller: bookingController,
-                minFee: details?.minFee?.toString() ?? '0',
-                maxFee: details?.maxFee?.toString() ?? '0',
-                feeType: details?.feeType ?? '',
-              );
+              this.controller.seedPriceInputsFromProfession();
+              updateBookingPrice();
             },
             body: Obx(() {
               final details =
-                  bookingController.availabilityDetails.value?.feeDetails;
+                  this.controller.professionData.value.feeDetails;
               return _priceHero(
                 min: details?.minFee?.toString() ?? '0',
                 max: details?.maxFee?.toString() ?? '0',
@@ -159,21 +147,6 @@ class _SelfProfessionHomeScreenState
               experienceStartingDate: service.experienceStartDate,
             ),
             body: _descriptionBody(service.description ?? ''),
-          ),
-          _Section(
-            title: 'Visiting Hours',
-            onEdit: () => updateVisitingHours(
-              controller: bookingController,
-              availabilityData: bookingController.availabilityDetails.value,
-            ),
-            body: bookingController.availabilityDetails.value != null
-                ? AvailabilityScheduleCard(
-                    schedule: bookingController
-                            .availabilityDetails.value?.schedule ??
-                        const [],
-                  )
-                : _placeholderHint('Add weekly visiting hours so customers'
-                    ' know when to book.'),
           ),
           _Section(
             title: 'Work Experience',
@@ -599,9 +572,6 @@ class _SelfProfessionHomeScreenState
     );
   }
 
-  // Editorial pull-quote treatment for the description — a soft
-  // background tint with a primary-colored left rule echoes the
-  // section accent bar and lets long text breathe.
   Widget _descriptionBody(String desc) {
     if (desc.isEmpty || desc == AppStrings.na) {
       return _placeholderHint(
@@ -629,8 +599,6 @@ class _SelfProfessionHomeScreenState
     );
   }
 
-  // Twin stat tiles — large numerals + small caption — for years
-  // and months. Empty state nudges the user to add their experience.
   Widget _experienceCard({
     required int years,
     required int months,
@@ -690,8 +658,6 @@ class _SelfProfessionHomeScreenState
     );
   }
 
-  // Soft, inviting empty-state pill shown when a section has no data
-  // yet. Uses the section's accent rhythm without competing with it.
   Widget _placeholderHint(String message) {
     return Container(
       padding: EdgeInsets.symmetric(
@@ -725,12 +691,11 @@ class _SelfProfessionHomeScreenState
   }
 
   // ─────────────────────────────────────────────
-  // GALLERY — staggered masonry of work photos with a single
-  // trailing "+ add" tile. Cycling pseudo-random aspect ratios
-  // give the grid a portfolio feel without requiring real image
-  // dimensions. When the gallery is empty the entire body collapses
-  // to a single full-width prompt so the section never reads as a
-  // pile of empty placeholders.
+  // GALLERY — uniform 2-column square grid. Every tile shares the
+  // same 1:1 aspect ratio so the grid reads as a calm spec-sheet
+  // strip rather than a masonry portfolio. When the gallery is empty
+  // the entire body collapses to a single full-width prompt so the
+  // section never reads as a pile of empty placeholders.
   // ─────────────────────────────────────────────
   Widget _galleryGrid(List<String> apiPhotos) {
     return GetBuilder<SelfWorkServiceController>(
@@ -744,12 +709,15 @@ class _SelfProfessionHomeScreenState
         // "+ add" tile so the grid doesn't dangle a dead affordance.
         final atCapacity = photos.length >= _galleryMax;
         final tileCount = atCapacity ? photos.length : photos.length + 1;
-        return MasonryGridView.count(
-          crossAxisCount: 2,
-          mainAxisSpacing: SizeConfig.size8,
-          crossAxisSpacing: SizeConfig.size8,
+        return GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            mainAxisSpacing: SizeConfig.size8,
+            crossAxisSpacing: SizeConfig.size8,
+            childAspectRatio: 1.0,
+          ),
           itemCount: tileCount,
           itemBuilder: (context, index) {
             if (index < photos.length) {
@@ -766,18 +734,12 @@ class _SelfProfessionHomeScreenState
   /// their work-photo gallery.
   static const int _galleryMax = 4;
 
-  // Cycles through a small set of natural-feeling aspect ratios so
-  // adjacent tiles read with masonry-style variety even though we
-  // don't know the real image dimensions.
-  static const _galleryAspectCycle = <double>[1.0, 1.35, 0.85, 1.15];
-
   Widget _photoTile(
     SelfWorkServiceController controller,
     List<String> photos,
     int index,
   ) {
     final imagePath = photos[index];
-    final ratio = _galleryAspectCycle[index % _galleryAspectCycle.length];
     return GestureDetector(
       onTap: () => navigatePushTo(
         context,
@@ -790,21 +752,20 @@ class _SelfProfessionHomeScreenState
       ),
       child: Stack(
         children: [
+          // The grid delegate sizes the cell to a 1:1 aspect ratio,
+          // so the tile just fills it — no inner AspectRatio needed.
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
-            child: AspectRatio(
-              aspectRatio: ratio,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: AppColors.white,
-                  border: Border.all(color: AppColors.greyE5, width: 1),
-                  borderRadius: BorderRadius.circular(12),
-                  image: DecorationImage(
-                    image: NetworkImage(imagePath),
-                    fit: BoxFit.cover,
-                  ),
-                  boxShadow: [AppShadows.textFieldShadow],
+            child: Container(
+              decoration: BoxDecoration(
+                color: AppColors.white,
+                border: Border.all(color: AppColors.greyE5, width: 1),
+                borderRadius: BorderRadius.circular(12),
+                image: DecorationImage(
+                  image: NetworkImage(imagePath),
+                  fit: BoxFit.cover,
                 ),
+                boxShadow: [AppShadows.textFieldShadow],
               ),
             ),
           ),
@@ -830,9 +791,6 @@ class _SelfProfessionHomeScreenState
     );
   }
 
-  // Trailing "+ add" tile. In hero mode (used when the gallery is
-  // empty) it spans full width and shows a longer prompt; otherwise
-  // it's a compact masonry tile that matches a typical photo cell.
   Widget _addGalleryTile(SelfWorkServiceController controller,
       {bool isHero = false}) {
     return GestureDetector(
@@ -882,9 +840,6 @@ class _SelfProfessionHomeScreenState
   }
 
   /// Opens the picture-picker dialog and persists the selected photo
-  /// to the gallery. Triggered from the section's "Add" pill and from
-  /// the trailing add tile. Aborts if the user is already at the
-  /// gallery cap so the "+ add" tile can't sneak past the limit.
   Future<void> _pickAndUploadGalleryPhoto(
       SelfWorkServiceController controller) async {
     final current = controller.professionData.value.photos?.length ?? 0;
@@ -905,25 +860,6 @@ class _SelfProfessionHomeScreenState
     );
     controller.update(['professionPhotos']);
   }
-
-  // void _navigateToSelection({
-  //   required String key,
-  //   required List<String> preSelectedOptions,
-  //   String? designation,
-  // }
-  //     ) {
-  //   selfWorkServiceController.selectedCategoryMap[key]?.assignAll(preSelectedOptions);
-  //   final List<String> _preSelectedOptions = selfWorkServiceController.selectedCategoryMap[key] ?? [];
-  //   final _displayTitle = selfWorkServiceController.categoryTitleMap[key] ?? key;
-  //
-  //   Get.to(() => ServiceSelectionScreen(
-  //     controller: selfWorkServiceController,
-  //     designation: designation ?? ELECTRICIAN,
-  //     selectedCategoryKey: key,
-  //     pageTitle: _displayTitle,
-  //     preSelectedOptions: _preSelectedOptions,
-  //   ));
-  // }
 
   // Empty-state CTA shown to existing users who registered before
   // the SELF_EMPLOYED auto-create branch existed. Tapping the button
@@ -1204,6 +1140,14 @@ class _SelfProfessionHomeScreenState
   //   );
   // }
 
+  // ─── SERVICE TYPE PICKER ─────────────────────────────────────
+  // "Numbered Spec Sheet" multi-select. Each row carries a 01/02/…
+  // index (echoing the parent section cards' numbered rhythm), the
+  // service name, and a custom rounded-square selection box. Selected
+  // rows wear a soft primary tint + a check inside the box; the
+  // sheet header shows a live "N / Total" pill, and the Update button
+  // appends "· N selected" so the count reads at all three altitudes
+  // (header → row → CTA).
   void updateServiceType({
     required SelfWorkServiceController controller,
     required List<String> serviceType,
@@ -1212,99 +1156,267 @@ class _SelfProfessionHomeScreenState
     controller.fetchPredefinedCategoryServiceType(
         designation: designation,
         selectedServiceKey: SelfWorkServiceController.keyServiceTypes);
-
     controller.selectedServiceTypes.assignAll(serviceType);
 
     _showCommonUpdateSheet(
       context: context,
       title: 'Service Type',
-      onUpdate: () {
-        Navigator.pop(context);
-      },
+      onUpdate: () => Navigator.pop(context),
       content: Column(
         children: [
           Obx(() {
             if (controller.isPredefinedCategoryServiceTypeLoading.value) {
-              return const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(20.0),
-                  child: CircularProgressIndicator(),
+              return Padding(
+                padding: EdgeInsets.symmetric(vertical: SizeConfig.size32),
+                child: Center(
+                  child: CircularProgressIndicator(
+                      color: AppColors.primaryColor),
                 ),
               );
             }
-
             if (controller.serviceTypes.isEmpty) {
-              return Center(
-                  child: CustomText("No service types available",
-                      color: AppColors.secondaryTextColor));
+              return Padding(
+                padding: EdgeInsets.symmetric(vertical: SizeConfig.size24),
+                child: Center(
+                  child: CustomText(
+                    "No service types available",
+                    color: AppColors.secondaryTextColor,
+                  ),
+                ),
+              );
             }
+            return _serviceTypePicker(controller);
+          }),
+          SizedBox(height: SizeConfig.paddingL),
+          Obx(() {
+            final selectedCount = controller.selectedServiceTypes.length;
+            final isLoading = controller.isUpdateServiceLoading.value;
+            return CustomBtn(
+              radius: SizeConfig.size10,
+              bgColor: AppColors.primaryColor,
+              title: isLoading
+                  ? null
+                  : (selectedCount > 0
+                      ? '${AppStrings.update} · $selectedCount selected'
+                      : AppStrings.update),
+              isLoading: isLoading,
+              onTap: () {
+                if (controller.selectedServiceTypes.isEmpty) {
+                  commonSnackBar(message: 'Please select a service type');
+                  return;
+                }
+                controller.updateEarnServiceData(params: {
+                  ApiKeys.serviceType: controller.selectedServiceTypes,
+                });
+              },
+            );
+          }),
+        ],
+      ),
+    );
+  }
 
+  Widget _serviceTypePicker(SelfWorkServiceController controller) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFE6E8EE), width: 1),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Header strip — uppercase eyebrow + live N / Total pill.
+          Obx(() {
+            final selected = controller.selectedServiceTypes.length;
+            final total = controller.serviceTypes.length;
+            final any = selected > 0;
             return Container(
               padding: EdgeInsets.symmetric(
-                  horizontal: SizeConfig.size4, vertical: SizeConfig.size8),
-              decoration: BoxDecoration(
-                  color: AppColors.white,
-                  borderRadius: BorderRadius.circular(10.0),
-                  border: Border.all(color: AppColors.greyE5),
-                  boxShadow: [AppShadows.textFieldShadow]),
-              child: Column(
-                children: controller.serviceTypes.map((item) {
-                  // Check if this specific item is selected
-                  final isSelected =
-                      controller.selectedServiceTypes.contains(item);
-
-                  return Theme(
-                    data:
-                        ThemeData(unselectedWidgetColor: Colors.grey.shade300),
-                    child: CheckboxListTile(
-                      contentPadding: EdgeInsets.zero,
-                      visualDensity:
-                          const VisualDensity(horizontal: -4, vertical: -3),
-                      dense: true,
-                      activeColor: AppColors.primaryColor,
-                      controlAffinity: ListTileControlAffinity.leading,
-                      title: CustomText(
-                        item,
-                        fontSize: SizeConfig.medium,
+                horizontal: SizeConfig.size14,
+                vertical: SizeConfig.size10,
+              ),
+              decoration: const BoxDecoration(
+                color: Color(0xFFFAFBFE),
+                border: Border(
+                  bottom:
+                      BorderSide(color: Color(0xFFE6E8EE), width: 0.8),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'SERVICE TYPES',
+                      style: TextStyle(
+                        fontFamily: AppConstants.OpenSans,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w800,
                         color: AppColors.secondaryTextColor,
+                        letterSpacing: 1.6,
                       ),
-                      value: isSelected,
-                      onChanged: (val) {
-                        if (val == true) {
-                          controller.selectedServiceTypes.add(item);
-                        } else {
-                          controller.selectedServiceTypes.remove(item);
-                        }
-                      },
                     ),
-                  );
-                }).toList(),
+                  ),
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 180),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: SizeConfig.size8,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: any
+                          ? AppColors.primaryColor.withValues(alpha: 0.10)
+                          : const Color(0xFFF4F6FB),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: any
+                            ? AppColors.primaryColor.withValues(alpha: 0.25)
+                            : const Color(0xFFE6E8EE),
+                        width: 0.6,
+                      ),
+                    ),
+                    child: Text(
+                      '$selected / $total',
+                      style: TextStyle(
+                        fontFamily: AppConstants.OpenSans,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w800,
+                        color: any
+                            ? AppColors.primaryColor
+                            : AppColors.secondaryTextColor,
+                        letterSpacing: 0.4,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             );
           }),
-          SizedBox(height: SizeConfig.paddingL),
-          Obx(() => CustomBtn(
-                radius: SizeConfig.size10,
-                bgColor: AppColors.primaryColor,
-                // Fixed logic: Title should show 'Update' unless handled internally by isLoading
-                title: controller.isUpdateServiceLoading.value
-                    ? null
-                    : AppStrings.update,
-                isLoading: controller.isUpdateServiceLoading.value,
-                onTap: () {
-                  if (controller.selectedServiceTypes.isEmpty) {
-                    commonSnackBar(message: 'Please select a service type');
-                    return;
-                  }
 
-                  Map<String, dynamic> params = {
-                    ApiKeys.serviceType: controller.selectedServiceTypes,
-                  };
-
-                  controller.updateEarnServiceData(params: params);
-                },
-              )),
+          // Numbered rows. The list itself is short (≤20 items) and the
+          // outer sheet handles scrolling, so a plain Column keeps the
+          // numbering deterministic across rebuilds.
+          Obx(() {
+            final items = controller.serviceTypes;
+            return Column(
+              children: List.generate(items.length, (i) {
+                final item = items[i];
+                final isSelected =
+                    controller.selectedServiceTypes.contains(item);
+                final isLast = i == items.length - 1;
+                return _serviceTypeRow(
+                  index: i + 1,
+                  label: item,
+                  isSelected: isSelected,
+                  showDivider: !isLast,
+                  onTap: () {
+                    if (isSelected) {
+                      controller.selectedServiceTypes.remove(item);
+                    } else {
+                      controller.selectedServiceTypes.add(item);
+                    }
+                  },
+                );
+              }),
+            );
+          }),
         ],
+      ),
+    );
+  }
+
+  Widget _serviceTypeRow({
+    required int index,
+    required String label,
+    required bool isSelected,
+    required bool showDivider,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          curve: Curves.easeOutCubic,
+          padding: EdgeInsets.symmetric(
+            horizontal: SizeConfig.size14,
+            vertical: SizeConfig.size12,
+          ),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? AppColors.primaryColor.withValues(alpha: 0.06)
+                : Colors.transparent,
+            border: showDivider
+                ? const Border(
+                    bottom:
+                        BorderSide(color: Color(0xFFEDEFF4), width: 0.6),
+                  )
+                : null,
+          ),
+          child: Row(
+            children: [
+              // 01 / 02 / … — tracks the parent section-card rhythm.
+              SizedBox(
+                width: 26,
+                child: Text(
+                  index.toString().padLeft(2, '0'),
+                  style: TextStyle(
+                    fontFamily: AppConstants.OpenSans,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    color: isSelected
+                        ? AppColors.primaryColor
+                        : AppColors.secondaryTextColor
+                            .withValues(alpha: 0.7),
+                    letterSpacing: 0.4,
+                  ),
+                ),
+              ),
+              SizedBox(width: SizeConfig.size10),
+              Expanded(
+                child: CustomText(
+                  label,
+                  fontSize: SizeConfig.medium,
+                  fontWeight:
+                      isSelected ? FontWeight.w700 : FontWeight.w500,
+                  color: AppColors.mainTextColor,
+                ),
+              ),
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 180),
+                curve: Curves.easeOutCubic,
+                width: 20,
+                height: 20,
+                decoration: BoxDecoration(
+                  color:
+                      isSelected ? AppColors.primaryColor : Colors.white,
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(
+                    color: isSelected
+                        ? AppColors.primaryColor
+                        : AppColors.secondaryTextColor
+                            .withValues(alpha: 0.35),
+                    width: 1.2,
+                  ),
+                ),
+                alignment: Alignment.center,
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 140),
+                  child: isSelected
+                      ? const Icon(
+                          Icons.check_rounded,
+                          key: ValueKey('checked'),
+                          size: 14,
+                          color: Colors.white,
+                        )
+                      : const SizedBox.shrink(key: ValueKey('unchecked')),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -1379,8 +1491,8 @@ class _SelfProfessionHomeScreenState
             radius: SizeConfig.size10,
             bgColor: AppColors.primaryColor,
             title: controller.isUpdateServiceLoading.value
-                ? AppStrings.update
-                : null,
+                ? null
+                : AppStrings.update,
             isLoading: controller.isUpdateServiceLoading.value,
             onTap: () {
               Map<String, dynamic> params = {
@@ -1469,8 +1581,8 @@ class _SelfProfessionHomeScreenState
             radius: SizeConfig.size10,
             bgColor: AppColors.primaryColor,
             title: controller.isUpdateServiceLoading.value
-                ? AppStrings.update
-                : null,
+                ? null
+                : AppStrings.update,
             isLoading: controller.isUpdateServiceLoading.value,
             onTap: () {
               if (controller.selectedExperienceYear.value == null) {
@@ -1498,18 +1610,12 @@ class _SelfProfessionHomeScreenState
     );
   }
 
-  void updateBookingPrice(
-      {required BookingController controller,
-      required String minFee,
-      required String maxFee,
-      required String feeType}) {
-    // 2. Show Sheet
+  // ─── PRICE UPDATE SHEET ──────────────────────────────────────
+  void updateBookingPrice() {
     _showCommonUpdateSheet(
       context: context,
       title: 'Your Fee',
-      onUpdate: () {
-        Navigator.pop(context);
-      },
+      onUpdate: () => Navigator.pop(context),
       content: Column(
         children: [
           Row(
@@ -1557,7 +1663,6 @@ class _SelfProfessionHomeScreenState
               ),
             ],
           ),
-
           SizedBox(height: SizeConfig.paddingM),
 
           /// Fee Type
@@ -1572,69 +1677,60 @@ class _SelfProfessionHomeScreenState
           ),
           SizedBox(height: SizeConfig.paddingL),
 
-          // Common Update Button
-          CustomBtn(
-            title: controller.addUpdateAvailabilityResponse.value.status ==
-                    Status.INITIAL
-                ? null
-                : AppStrings.update,
-            isLoading: controller.addUpdateAvailabilityResponse.value.status ==
-                Status.INITIAL,
-            radius: SizeConfig.size10,
-            bgColor: AppColors.primaryColor,
-            onTap: () {
-              Map<String, dynamic> params = {
-                ApiKeys.minFee: controller.minFeeController.text.trim(),
-                ApiKeys.maxFee: controller.maxFeeController.text.trim(),
-                ApiKeys.feeType: controller.feeTypeController.text.trim(),
-              };
-              controller.updateBookingAvailability(id: userId, params: params);
-            },
-          ),
+          // Common Update Button — drives off the earn-service
+          // controller's own loading flag.
+          Obx(() {
+            final isLoading = controller.isUpdateServiceLoading.value;
+            return CustomBtn(
+              title: isLoading ? null : AppStrings.update,
+              isLoading: isLoading,
+              radius: SizeConfig.size10,
+              bgColor: AppColors.primaryColor,
+              onTap: () {
+                final params = <String, dynamic>{
+                  ApiKeys.minFee: controller.minFeeController.text.trim(),
+                  ApiKeys.maxFee: controller.maxFeeController.text.trim(),
+                  ApiKeys.feeType: controller.feeTypeController.text.trim(),
+                };
+                controller.updateEarnServiceData(params: params);
+              },
+            );
+          }),
         ],
       ),
     );
   }
 
-  void updateVisitingHours(
-      {required BookingController controller,
-      AvailabilityData? availabilityData}) {
-    // 1. Sync Data Logic
-    controller.syncScheduleToController(availabilityData?.schedule);
+  // ─── WORKING HOURS UPDATE SHEET ──────────────────────────────
+  void updateVisitingHours() {
+    controller.syncWorkingHoursFromProfession();
 
-    // 2. Show Sheet
     _showCommonUpdateSheet(
       context: context,
-      title: 'Visiting Hours',
-      onUpdate: () {
-        Navigator.pop(context);
-      },
+      title: 'Working Hours',
+      onUpdate: () => Navigator.pop(context),
       content: Column(
         children: [
-          VisitingHoursSelector(),
+          const WorkingHoursEditor(),
           SizedBox(height: SizeConfig.paddingL),
 
           // Common Update Button
-          CustomBtn(
-            radius: SizeConfig.size10,
-            bgColor: AppColors.primaryColor,
-            title: controller.addUpdateAvailabilityResponse.value.status ==
-                    Status.INITIAL
-                ? null
-                : AppStrings.update,
-            isLoading: controller.addUpdateAvailabilityResponse.value.status ==
-                Status.INITIAL,
-            onTap: () {
-              List<Map<String, dynamic>> visitingHoursData =
-                  bookingController.payloadForVisitingHours();
-              logs("Visiting Hours: $visitingHoursData");
-
-              Map<String, dynamic> params = {
-                ApiKeys.schedule: visitingHoursData,
-              };
-              controller.updateBookingAvailability(id: userId, params: params);
-            },
-          ),
+          Obx(() {
+            final isLoading = controller.isUpdateServiceLoading.value;
+            return CustomBtn(
+              radius: SizeConfig.size10,
+              bgColor: AppColors.primaryColor,
+              title: isLoading ? null : AppStrings.update,
+              isLoading: isLoading,
+              onTap: () {
+                final payload = controller.payloadForWorkingHours();
+                logs("Working Hours: $payload");
+                controller.updateEarnServiceData(
+                  params: {ApiKeys.schedule: payload},
+                );
+              },
+            );
+          }),
         ],
       ),
     );
@@ -1658,17 +1754,11 @@ class _SelfProfessionHomeScreenState
           controller: controller,
           designation: designation ?? ELECTRICIAN,
           selectedCategoryKey: key,
-          pageTitle: _displayTitle,
-          preSelectedOptions: preSelectedOptions,
-          isDataUpdate: true),
+          preSelectedOptions: preSelectedOptions),
     );
   }
 }
 
-/// Lightweight value-type used to declare each profile section in a
-/// single list, then render them as numbered cards. Keeps the build
-/// method's structure flat and conditional sections from leaving
-/// numbering gaps.
 class _Section {
   final String title;
   final Widget body;

@@ -307,9 +307,12 @@ class BookingController extends GetxController {
 
   Future<void> updateBookingAvailability(
       {required String id, required Map<String, dynamic> params}) async {
+    // Guard against double-taps on the update CTA — the previous call
+    // is still in flight and Get.back will dismiss the sheet for us
+    // when it lands.
+    if (addUpdateAvailabilityResponse.value.status == Status.LOADING) return;
+    addUpdateAvailabilityResponse.value = ApiResponse.loading();
     try {
-      addUpdateAvailabilityResponse.value = ApiResponse.initial();
-
       ResponseModel? response = await BookingRepo()
           .addUpdateBookingAvailability(id: id, params: params);
 

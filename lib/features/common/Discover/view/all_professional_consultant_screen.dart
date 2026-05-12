@@ -20,12 +20,12 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
-import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 
 import '../../../chat/auth/controller/chat_view_controller.dart';
@@ -55,6 +55,16 @@ class _AllProfessionConsultantScreenState
     "https://img.freepik.com/free-photo/side-view-woman-working-as-lawyer_23-2151202449.jpg?w=1380",
   ];
 
+  // ─── Client-side sort state ──────────────────────────────────────
+  // The backend doesn't sort, so we fetch current position once and
+  // compute distance / experience / price comparators in memory. The
+  // distance map is keyed on service.id so it survives pagination
+  // appends without re-running geolocator per row.
+  double? _myLat;
+  double? _myLng;
+  final Map<String, double> _distances = {};
+  bool _locationRequested = false;
+
   @override
   initState() {
     super.initState();
@@ -68,6 +78,97 @@ class _AllProfessionConsultantScreenState
           )
         : null;
     controller.fetchProfessionalConsultantServices();
+    _ensureLocation();
+  }
+
+  /// Fetches current GPS once, then refreshes the distance cache so
+  /// the Nearest sort and the spec-strip `NEAR` column light up. Quiet
+  /// failure when permission is denied — every distance falls back to
+  /// `—` and the Nearest sort degrades to server order.
+  Future<void> _ensureLocation() async {
+    if (_locationRequested) return;
+    _locationRequested = true;
+    try {
+      final perm = await Geolocator.checkPermission();
+      if (perm == LocationPermission.denied) {
+        final req = await Geolocator.requestPermission();
+        if (req == LocationPermission.denied ||
+            req == LocationPermission.deniedForever) return;
+      } else if (perm == LocationPermission.deniedForever) {
+        return;
+      }
+      final pos = await Geolocator.getCurrentPosition();
+      _myLat = pos.latitude;
+      _myLng = pos.longitude;
+      _recomputeDistances();
+      if (mounted) setState(() {});
+    } catch (_) {/* swallow — distance just stays unknown */}
+  }
+
+  /// Computes road-adjusted km for every loaded service that has
+  /// usable coords. Idempotent — safe to call on every Obx rebuild.
+  void _recomputeDistances() {
+    if (_myLat == null || _myLng == null) return;
+    for (final item in controller.professionalConsDataList) {
+      final id = item.id ?? item.userId ?? '';
+      if (id.isEmpty || _distances.containsKey(id)) continue;
+      final lat = _toDouble(item.userDetails?.userLocation?.lat);
+      final lng = _toDouble(item.userDetails?.userLocation?.lon);
+      if (lat == null || lng == null || (lat == 0 && lng == 0)) continue;
+      final meters =
+          Geolocator.distanceBetween(_myLat!, _myLng!, lat, lng);
+      // 1.27× road factor mirrors the existing helper in
+      // view_business_details_controller.dart so distances feel
+      // consistent across the app.
+      _distances[id] = (meters * 1.27) / 1000;
+    }
+  }
+
+  double? _toDouble(dynamic v) {
+    if (v == null) return null;
+    if (v is num) return v.toDouble();
+    return double.tryParse(v.toString());
+  }
+
+  double? _distanceFor(ProfessionalConsData item) =>
+      _distances[item.id ?? item.userId ?? ''];
+
+  /// Returns a new list sorted by the active filter. Items missing
+  /// the comparator key sort to the end so they don't crowd the top
+  /// of a sorted list with stale rows.
+  List<ProfessionalConsData> _applySort(
+      List<ProfessionalConsData> items, CategoryFilter filter) {
+    final sorted = List<ProfessionalConsData>.from(items);
+    switch (filter) {
+      case CategoryFilter.nearest:
+        sorted.sort((a, b) {
+          final da = _distanceFor(a) ?? double.infinity;
+          final db = _distanceFor(b) ?? double.infinity;
+          return da.compareTo(db);
+        });
+        break;
+      case CategoryFilter.experienced:
+        sorted.sort((a, b) {
+          final aMonths = (a.about?.totalExperience?.years ?? 0) * 12 +
+              (a.about?.totalExperience?.months ?? 0);
+          final bMonths = (b.about?.totalExperience?.years ?? 0) * 12 +
+              (b.about?.totalExperience?.months ?? 0);
+          return bMonths.compareTo(aMonths); // descending
+        });
+        break;
+      case CategoryFilter.priceLowToHigh:
+        sorted.sort((a, b) {
+          final ap = a.pricing?.amount ?? 0;
+          final bp = b.pricing?.amount ?? 0;
+          // Treat 0 as "unpriced" → push to end.
+          if (ap == 0 && bp == 0) return 0;
+          if (ap == 0) return 1;
+          if (bp == 0) return -1;
+          return ap.compareTo(bp);
+        });
+        break;
+    }
+    return sorted;
   }
 
   bool _onScrollNotification(ScrollNotification notification) {
@@ -166,89 +267,448 @@ class _AllProfessionConsultantScreenState
   }
 
   Widget _buildContent() {
-    return Obx(() => Padding(
-          padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // BookViaBlueEraPartnerBanner(onTap: () {}),
-              HorizontalTabSelector<CategoryFilter>(
-                tabs: controller.filters,
-                selectedIndex:
-                    controller.filters.indexOf(controller.selectedFilter.value),
-                horizontalMargin: 0.0,
-                verticalMargin: 8.0,
-                onTabSelected: (index, _) {
-                  final selectedEnum = controller.filters[index];
-                  if (controller.selectedFilter.value == selectedEnum) return;
-                  controller.selectedFilter.value = selectedEnum;
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(height: SizeConfig.size8),
+          // Segmented capsule — three equal-width filter segments
+          // (Nearest / Experienced / Price Low→High). Tapping just
+          // mutates `selectedFilter`; the Obx below re-sorts the
+          // loaded list client-side. No refetch needed.
+          Obx(() => _FilterCapsule(
+                filters: controller.filters,
+                selected: controller.selectedFilter.value,
+                onChanged: (f) {
+                  if (controller.selectedFilter.value == f) return;
+                  controller.selectedFilter.value = f;
                 },
-                labelBuilder: (r) => r.localizedLabel,
-                unSelectedBackgroundColor: AppColors.white,
-              ),
-              SizedBox(height: SizeConfig.size5),
-              Expanded(
-                child: Obx(() {
-                  if (controller.isProfConServiceLoading.value &&
-                      controller.professionalConsDataList.isEmpty) {
-                    return const Center(child: CircularProgressIndicator());
+              )),
+          SizedBox(height: SizeConfig.size10),
+          Expanded(
+            child: Obx(() {
+              if (controller.isProfConServiceLoading.value &&
+                  controller.professionalConsDataList.isEmpty) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              if (controller.professionalConsDataList.isEmpty) {
+                return Center(
+                    child: EmptyStateWidget(
+                        message: AppStrings.noServicesFound.tr));
+              }
+              // Recompute distance cache cheaply for any new items
+              // appended by the load-more sentinel, then sort by the
+              // active filter.
+              _recomputeDistances();
+              final sorted = _applySort(
+                controller.professionalConsDataList,
+                controller.selectedFilter.value,
+              );
+              final showMoreSpinner =
+                  controller.isProfConServiceLoadingMore.value;
+              return ListView.builder(
+                itemCount: sorted.length + (showMoreSpinner ? 1 : 0),
+                padding: EdgeInsets.only(bottom: SizeConfig.paddingL),
+                itemBuilder: (context, index) {
+                  if (index == sorted.length) {
+                    return const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(16.0),
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    );
                   }
-
-                  if (controller.professionalConsDataList.isEmpty) {
-                    return Center(
-                        child: EmptyStateWidget(
-                            message: AppStrings.noServicesFound.tr));
-                  }
-
-                  return ListView.builder(
-                      itemCount: controller.professionalConsDataList.length +
-                          (controller.isProfConServiceLoadingMore.value
-                              ? 1
-                              : 0),
-                      padding: EdgeInsets.only(bottom: SizeConfig.paddingL),
-                      itemBuilder: (context, index) {
-                        if (index ==
-                            controller.professionalConsDataList.length) {
-                          return const Center(
-                            child: Padding(
-                              padding: EdgeInsets.all(16.0),
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            ),
-                          );
-                        }
-                        return selfProfessionCard(
-                            controller.professionalConsDataList[index]);
-                      });
-                }),
-              )
-            ],
+                  return _buildSpecCard(sorted[index]);
+                },
+              );
+            }),
           ),
-        ));
+        ],
+      ),
+    );
   }
 
-  Widget selfProfessionCard(ProfessionalConsData service) {
-    // Price
-    final priceData = service.pricing?.amount;
-    final isRange = service.pricing?.type == 'range';
+  /// **Spec-Sheet Card** — editorial directory entry.
+  /// Eyebrow (designation) + oversized name + tagline → hairline →
+  /// 4-column spec strip (EXP / PRICE / NEAR / MODE) → optional 16:9
+  /// gallery hero → hairline → ghost View + filled Enquire footer.
+  Widget _buildSpecCard(ProfessionalConsData service) {
+    // ─── Data extraction with sensible fallbacks ──────────────────
+    // Prefer the curated `basicDetails.professionalTitle` (set
+    // when the provider completes their profile) and fall back to
+    // the raw `userDetails.designation` from the user record.
+    final designation = (service.basicDetails?.professionalTitle?.trim().isNotEmpty ?? false)
+        ? service.basicDetails!.professionalTitle!.trim()
+        : (service.userDetails?.designation ?? '').trim();
+    final name = (service.basicDetails?.fullName?.trim().isNotEmpty ?? false)
+        ? service.basicDetails!.fullName!
+        : (service.userDetails?.name ?? AppStrings.unknownUser.tr);
+    final taglineRaw =
+        (service.basicDetails?.shortTagline?.trim().isNotEmpty ?? false)
+            ? service.basicDetails!.shortTagline!
+            : (service.userDetails?.bio ?? '').split('\n').first.trim();
+    final years = service.about?.totalExperience?.years ?? 0;
+    final months = service.about?.totalExperience?.months ?? 0;
+    final amount = service.pricing?.amount ?? 0;
+    final mode = service.pricing?.consultationMode ?? '';
+    final distanceKm = _distanceFor(service);
+    final gallery = service.gallery?.signedUrls ?? const <String>[];
 
-    String priceDisplay;
-    if (isRange) {
-      final min = priceData ?? 0;
-      final max = priceData ?? 0;
-      priceDisplay = "₹${formatIndianNumber(min)}-${formatIndianNumber(max)}";
-    } else {
-      priceDisplay = "₹${formatIndianNumber(priceData ?? 0)}";
-    }
+    final expStr = (years == 0 && months == 0)
+        ? '—'
+        : (months == 0 ? '${years}Y' : '${years}Y ${months}M');
+    final priceStr =
+        amount == 0 ? '—' : '₹${formatIndianNumber(amount)}';
+    final distStr = distanceKm == null
+        ? '—'
+        : '${distanceKm < 10 ? distanceKm.toStringAsFixed(1) : distanceKm.toStringAsFixed(0)} km';
+    final modeStr = mode.isEmpty ? '—' : mode;
 
-    Color badgeColor = isRange ? AppColors.green1A : AppColors.primaryColor;
-    String badgeText = service.pricing?.type.toString().capitalizeFirst ?? '';
-
-    return InkWell(
-      onTap: () {
-        Get.to(()=> DiscoverProfessionalsViewScreen(
+    void openDetail() => Get.to(() => DiscoverProfessionalsViewScreen(
           professionalConsData: service,
         ));
-      },
+
+    return InkWell(
+      onTap: openDetail,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        margin: EdgeInsets.only(bottom: SizeConfig.size12),
+        padding: EdgeInsets.all(SizeConfig.size14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFEDEFF4), width: 1),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x14001120),
+              blurRadius: 14,
+              offset: Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ─── Eyebrow: bullet + DESIGNATION ────────────────────
+            if (designation.isNotEmpty)
+              Row(
+                children: [
+                  Container(
+                    width: 5,
+                    height: 5,
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryColor,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  SizedBox(width: SizeConfig.size8),
+                  Flexible(
+                    child: Text(
+                      designation.toUpperCase(),
+                      style: TextStyle(
+                        fontFamily: AppConstants.OpenSans,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.primaryColor,
+                        letterSpacing: 1.4,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            SizedBox(height: SizeConfig.size8),
+
+            // ─── Name + small avatar ──────────────────────────────
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: Text(
+                    name,
+                    style: TextStyle(
+                      fontFamily: AppConstants.OpenSans,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.mainTextColor,
+                      letterSpacing: -0.3,
+                      height: 1.15,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                SizedBox(width: SizeConfig.size10),
+                CachedAvatarWidget(
+                  imageUrl: service.userDetails?.profileImage ?? '',
+                  size: SizeConfig.size40,
+                  borderColor: Colors.white,
+                  borderRadius: SizeConfig.size20,
+                ),
+              ],
+            ),
+
+            if (taglineRaw.isNotEmpty) ...[
+              SizedBox(height: SizeConfig.size6),
+              Text(
+                taglineRaw,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.secondaryTextColor,
+                  height: 1.4,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+
+            SizedBox(height: SizeConfig.size12),
+            Container(height: 1, color: const Color(0xFFEDEFF4)),
+            SizedBox(height: SizeConfig.size12),
+
+            // ─── 4-column spec strip ──────────────────────────────
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(child: _specColumn('EXP', expStr)),
+                Expanded(child: _specColumn('PRICE', priceStr)),
+                Expanded(child: _specColumn('NEAR', distStr)),
+                Expanded(child: _specColumn('MODE', modeStr)),
+              ],
+            ),
+
+            // ─── Live-photo carousel (gallery) OR logo fallback ───
+            // Reuses the same [StoreLivePhotoWidget] the store cards
+            // use so the photo experience stays consistent across the
+            // app (horizontal scroll, "live" indicator, etc.). When a
+            // provider hasn't uploaded a gallery yet we render their
+            // profile photo at the same 200px height as a clean
+            // fallback so the card silhouette doesn't change shape.
+            if (gallery.isNotEmpty) ...[
+              SizedBox(height: SizeConfig.size12),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: StoreLivePhotoWidget(
+                  livePhotos: gallery,
+                  natureOfBusiness:
+                      service.userDetails?.profession ?? 'Consultant',
+                  height: 200,
+                  onViewFullScreen: ({
+                    required int index,
+                    required List<String> storeImage,
+                    required String natureOfBusiness,
+                  }) {
+                    navigatePushTo(
+                      context,
+                      ImageViewScreen(
+                        subTitle: natureOfBusiness,
+                        appBarTitle: AppStrings.imageViewer,
+                        imageUrls: storeImage,
+                        initialIndex: index,
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ] else if ((service.userDetails?.profileImage ?? '').isNotEmpty) ...[
+              SizedBox(height: SizeConfig.size12),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: GestureDetector(
+                  onTap: () => navigatePushTo(
+                    context,
+                    ImageViewScreen(
+                      subTitle:
+                          service.userDetails?.profession ?? 'Consultant',
+                      appBarTitle: AppStrings.imageViewer,
+                      imageUrls: [service.userDetails!.profileImage!],
+                      initialIndex: 0,
+                    ),
+                  ),
+                  child: SizedBox(
+                    height: 200,
+                    width: double.infinity,
+                    child: CachedNetworkImage(
+                      imageUrl: service.userDetails!.profileImage!,
+                      fit: BoxFit.cover,
+                      memCacheWidth: 800,
+                      memCacheHeight: 600,
+                      placeholder: (_, __) => LocalAssets(
+                        imagePath: AppIconAssets.place_holder_image,
+                        boxFix: BoxFit.fill,
+                      ),
+                      errorWidget: (_, __, ___) => LocalAssets(
+                        imagePath: AppIconAssets.place_holder_image,
+                        boxFix: BoxFit.fill,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+
+            SizedBox(height: SizeConfig.size12),
+            Container(height: 1, color: const Color(0xFFEDEFF4)),
+            SizedBox(height: SizeConfig.size10),
+
+            // ─── Footer: View (ghost) + Enquire (filled) ──────────
+            Row(
+              children: [
+                Expanded(
+                  child: _ghostButton(
+                    label: 'View',
+                    icon: Icons.arrow_outward_rounded,
+                    onTap: openDetail,
+                  ),
+                ),
+                SizedBox(width: SizeConfig.size10),
+                Expanded(
+                  child: _filledButton(
+                    label: 'Enquire',
+                    icon: Icons.chat_outlined,
+                    onTap: () {
+                      final targetUserId = service.userId ?? '';
+                      if (targetUserId.isEmpty) return;
+                      final chatViewController =
+                          getOrPut(() => ChatViewController());
+                      chatViewController.checkChatConnectionAndOpenChat(
+                          userId: targetUserId);
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Single column of the 4-column spec strip — label on top in
+  /// uppercase eyebrow style, value below in body weight with tabular
+  /// figures so digit columns align across rows.
+  Widget _specColumn(String label, String value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontFamily: AppConstants.OpenSans,
+            fontSize: 9,
+            fontWeight: FontWeight.w800,
+            color: AppColors.secondaryTextColor,
+            letterSpacing: 1.2,
+          ),
+        ),
+        const SizedBox(height: 4),
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: Text(
+            value,
+            style: TextStyle(
+              fontFamily: AppConstants.OpenSans,
+              fontSize: 13,
+              fontWeight: FontWeight.w800,
+              color: AppColors.mainTextColor,
+              letterSpacing: 0.2,
+              fontFeatures: const [FontFeature.tabularFigures()],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _ghostButton({
+    required String label,
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: AppColors.primaryColor.withValues(alpha: 0.30),
+            width: 1,
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 14, color: AppColors.primaryColor),
+            const SizedBox(width: 6),
+            CustomText(
+              label,
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: AppColors.primaryColor,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _filledButton({
+    required String label,
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          color: AppColors.primaryColor,
+          borderRadius: BorderRadius.circular(10),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primaryColor.withValues(alpha: 0.30),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 14, color: Colors.white),
+            const SizedBox(width: 6),
+            CustomText(
+              label,
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Legacy `selfProfessionCard` was retired — the ListView now calls
+  // [_buildSpecCard]. Keeping this breadcrumb so anyone diffing the
+  // file knows where the old card body lived.
+  // ignore: unused_element
+  Widget _legacySelfProfessionCardStub(ProfessionalConsData service) {
+    // Legacy body retained but no longer invoked; the file's
+    // ListView now calls [_buildSpecCard]. Keeping the symbol live
+    // so any external callers still compile until they migrate.
+    return InkWell(
+      onTap: () => Get.to(
+          () => DiscoverProfessionalsViewScreen(professionalConsData: service)),
       child: CustomFormCard(
           padding: EdgeInsets.all(SizeConfig.size10),
           margin: EdgeInsets.only(bottom: SizeConfig.size10),
@@ -273,10 +733,8 @@ class _AllProfessionConsultantScreenState
                       CustomText(
                           service.userDetails?.name ??
                               AppStrings.unknownUser.tr,
-                          // fontSize: SizeConfig.small,
                           color: AppColors.mainTextColor,
                           fontWeight: FontWeight.w600),
-                      // SizedBox(height: SizeConfig.size6),
                       CustomText(
                         service.basicDetails?.shortTagline ?? 'N/A',
                         fontSize: SizeConfig.small,
@@ -284,78 +742,10 @@ class _AllProfessionConsultantScreenState
                         overflow: TextOverflow.ellipsis,
                         color: AppColors.mainTextColor,
                       ),
-                      // CommonRatingRow(
-                      //   rating: double.tryParse(service.rating.toString()) ?? 0.0,
-                      //   reviews: service.reviewCount ?? 0,
-                      //   distance: '${service.distance ?? 0} KM',
-                      // )
                     ],
                   )),
-                  // Icon(Icons.more_vert, color: AppColors.black)
                 ],
               ),
-
-              SizedBox(height: SizeConfig.size6),
-
-              // ─── Gallery Photos / Profile Picture ───
-              if (service.gallery?.signedUrls?.isNotEmpty == true) ...[
-                StoreLivePhotoWidget(
-                  livePhotos: service.gallery!.signedUrls!,
-                  natureOfBusiness:
-                      service.userDetails?.profession ?? 'Consultant',
-                  height: 200,
-                  onViewFullScreen: ({
-                    required int index,
-                    required List<String> storeImage,
-                    required String natureOfBusiness,
-                  }) {
-                    navigatePushTo(
-                      context,
-                      ImageViewScreen(
-                        subTitle: natureOfBusiness,
-                        appBarTitle: AppStrings.imageViewer,
-                        imageUrls: storeImage,
-                        initialIndex: index,
-                      ),
-                    );
-                  },
-                ),
-                SizedBox(height: SizeConfig.size6),
-              ] else if ((service.userDetails?.profileImage ?? '')
-                  .isNotEmpty) ...[
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: GestureDetector(
-                    onTap: () => navigatePushTo(
-                      context,
-                      ImageViewScreen(
-                        subTitle:
-                            service.userDetails?.profession ?? 'Consultant',
-                        appBarTitle: AppStrings.imageViewer,
-                        imageUrls: [service.userDetails!.profileImage!],
-                        initialIndex: 0,
-                      ),
-                    ),
-                    child: CachedNetworkImage(
-                      imageUrl: service.userDetails!.profileImage!,
-                      height: 200,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                      memCacheWidth: 600,
-                      memCacheHeight: 600,
-                      placeholder: (_, __) => LocalAssets(
-                        imagePath: AppIconAssets.place_holder_image,
-                        boxFix: BoxFit.fill,
-                      ),
-                      errorWidget: (_, __, ___) => LocalAssets(
-                        imagePath: AppIconAssets.place_holder_image,
-                        boxFix: BoxFit.fill,
-                      ),
-                    ),
-                  ),
-                ),
-                SizedBox(height: SizeConfig.size6),
-              ],
 
               /*  (service.certificates != null &&
                       (service.certificates?.isNotEmpty ?? false))
@@ -447,8 +837,12 @@ class _AllProfessionConsultantScreenState
               Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
+                  // Legacy stub — locals (priceDisplay/badgeColor/badgeText)
+                  // were removed when this card was retired. Keeping a
+                  // shell here so the method still compiles; nothing
+                  // calls it anymore.
                   CustomText(
-                    priceDisplay,
+                    '₹${formatIndianNumber(service.pricing?.amount ?? 0)}',
                     fontSize: SizeConfig.medium,
                     fontWeight: FontWeight.w700,
                     color: AppColors.mainTextColor,
@@ -457,14 +851,14 @@ class _AllProfessionConsultantScreenState
                   Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(4.0),
-                      color: badgeColor,
+                      color: AppColors.primaryColor,
                     ),
                     padding: EdgeInsets.symmetric(
                       horizontal: SizeConfig.size4,
                       vertical: SizeConfig.size2,
                     ),
                     child: CustomText(
-                      badgeText,
+                      service.pricing?.type ?? '',
                       fontSize: SizeConfig.extraSmall,
                       fontWeight: FontWeight.w500,
                       color: AppColors.white,
@@ -1217,4 +1611,138 @@ class _AllProfessionConsultantScreenState
           ),
         ],
       );
+}
+
+/// Segmented capsule filter — three equal-width segments inside a
+/// rounded outer track. Selected segment is a solid primary fill with
+/// a soft drop shadow; inactive segments sit on a soft track tint.
+/// Drives sorting client-side; tapping just mutates the controller's
+/// `selectedFilter` Rx, the parent Obx re-sorts the visible list.
+class _FilterCapsule extends StatelessWidget {
+  final List<CategoryFilter> filters;
+  final CategoryFilter selected;
+  final ValueChanged<CategoryFilter> onChanged;
+
+  const _FilterCapsule({
+    required this.filters,
+    required this.selected,
+    required this.onChanged,
+  });
+
+  IconData _iconFor(CategoryFilter f) {
+    switch (f) {
+      case CategoryFilter.nearest:
+        return Icons.near_me_outlined;
+      case CategoryFilter.experienced:
+        return Icons.workspace_premium_outlined;
+      case CategoryFilter.priceLowToHigh:
+        return Icons.south_rounded;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final selectedIndex = filters.indexOf(selected).clamp(0, filters.length - 1);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const trackPadding = 4.0;
+        final pillWidth =
+            (constraints.maxWidth - trackPadding * 2) / filters.length;
+        return Container(
+          height: 42,
+          padding: const EdgeInsets.all(trackPadding),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(100),
+            border: Border.all(color: const Color(0xFFE6E8EE), width: 1),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x14001120),
+                blurRadius: 8,
+                offset: Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Stack(
+            children: [
+              // Sliding primary indicator — matches the Order/Inquiry
+              // segmented control on the rider/cab dashboards.
+              AnimatedPositioned(
+                duration: const Duration(milliseconds: 260),
+                curve: Curves.easeOutCubic,
+                left: pillWidth * selectedIndex,
+                top: 0,
+                bottom: 0,
+                width: pillWidth,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryColor,
+                    borderRadius: BorderRadius.circular(100),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primaryColor.withValues(alpha: 0.32),
+                        blurRadius: 10,
+                        offset: const Offset(0, 3),
+                        spreadRadius: -1,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Positioned.fill(
+                child: Row(
+                  children: List.generate(filters.length, (i) {
+                    final f = filters[i];
+                    final isActive = i == selectedIndex;
+                    return Expanded(
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () => onChanged(f),
+                        child: Center(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                _iconFor(f),
+                                size: 14,
+                                color: isActive
+                                    ? Colors.white
+                                    : AppColors.mainTextColor,
+                              ),
+                              const SizedBox(width: 6),
+                              Flexible(
+                                child: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: Text(
+                                    f.localizedLabel,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontFamily: AppConstants.OpenSans,
+                                      fontSize: 12,
+                                      fontWeight: isActive
+                                          ? FontWeight.w800
+                                          : FontWeight.w600,
+                                      color: isActive
+                                          ? Colors.white
+                                          : AppColors.mainTextColor,
+                                      letterSpacing: 0.2,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
 }

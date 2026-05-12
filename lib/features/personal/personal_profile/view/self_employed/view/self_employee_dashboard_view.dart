@@ -20,7 +20,7 @@ import 'package:BlueEra/features/me/me_tab_registry.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/self_employee_orders.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/self_profession_home_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/self_profession_service_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/edit_profile_bottom_sheet.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/profile_designation_bottom_sheet.dart';
 import 'package:BlueEra/features/contribution/view/contribution_status_view.dart';
@@ -163,7 +163,7 @@ class _SelfEmployeeDashboardViewState extends State<SelfEmployeeDashboardView>
               controller: _tabController,
               children: [
                 SelfEmployeeOrders(),
-                SelfProfessionHomeScreen(),
+                SelfProfessionServiceScreen(),
                 const ContributionStatusView(),
               ],
             ),

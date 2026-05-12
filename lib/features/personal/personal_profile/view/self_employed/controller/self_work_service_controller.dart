@@ -12,14 +12,16 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/features/common/map/controller/visiting_hour_selector_controller.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
 import 'package:BlueEra/features/common/service/model/add_service_response_model.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/model/availability_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/model/earn_service_model_response.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/model/predefined_category_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/repo/earn_service_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/widget/self_profession_desc_selection_dialog.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../../../core/api/apiService/api_keys.dart';
 
@@ -130,6 +132,17 @@ class SelfWorkServiceController extends GetxController{
 
   // --- About Section ---
   final TextEditingController aboutController = TextEditingController();
+
+  // --- Price / Fee Section ---
+  // Owned by the controller (not the booking controller) so the
+  // earn-service screen has a single source of truth for the user's
+  // fee inputs. Seeded from [professionData.feeDetails] every time
+  // [fetchSelfProfessionData] succeeds, and re-seeded on each price
+  // sheet open via [seedPriceInputsFromProfession] so abandoned edits
+  // don't bleed into the next session.
+  final TextEditingController minFeeController = TextEditingController();
+  final TextEditingController maxFeeController = TextEditingController();
+  final TextEditingController feeTypeController = TextEditingController();
 
   /// Self Profession Data
   Rx<EarnServiceModelResponse> professionData = EarnServiceModelResponse().obs;
@@ -441,7 +454,6 @@ class SelfWorkServiceController extends GetxController{
 
       if (responseModel.isSuccess) {
         updateServiceResponse.value = ApiResponse.complete(responseModel);
-        commonSnackBar(message: 'update');
         Get.back();
         fetchSelfProfessionData(isLoading: false);
       } else {
@@ -567,6 +579,11 @@ class SelfWorkServiceController extends GetxController{
         serviceResponse.value = ApiResponse.complete(response);
         final earnServiceModelResponse = EarnServiceModelResponse.fromJson(response.response?.data);
         professionData.value = earnServiceModelResponse;
+        // Mirror the fresh fee/schedule into the local input state so
+        // the section card hero + the update sheets render the latest
+        // server values without another fetch.
+        seedPriceInputsFromProfession();
+        syncWorkingHoursFromProfession();
       } else {
         serviceResponse.value = ApiResponse.error('error');
       }
@@ -576,6 +593,167 @@ class SelfWorkServiceController extends GetxController{
     } finally {
       isProfessionDataLoading.value = false;
     }
+  }
+
+  // ─────────────────────────────────────────────
+  // PRICE / WORKING-HOURS STATE HELPERS
+  // ─────────────────────────────────────────────
+
+  /// Seed [minFeeController]/[maxFeeController]/[feeTypeController]
+  /// from the latest `professionData.feeDetails`. Idempotent — safe
+  /// to call on every sheet open so abandoned edits get discarded.
+  void seedPriceInputsFromProfession() {
+    final fee = professionData.value.feeDetails;
+    minFeeController.text = fee?.minFee?.toString() ?? '';
+    maxFeeController.text = fee?.maxFee?.toString() ?? '';
+    feeTypeController.text = fee?.feeType ?? '';
+  }
+
+  /// Push `professionData.schedule` into the shared
+  /// [VisitingHoursSelectorController] so the working-hours editor
+  /// renders the persisted state. Mirrors the booking flow's
+  /// `syncScheduleToController` so existing API day-name handling is
+  /// preserved (Mon/Mon./monday all map to "Monday").
+  void syncWorkingHoursFromProfession() {
+    syncScheduleToVisitingController(professionData.value.schedule);
+  }
+
+  /// Map a [Schedule] list onto the [VisitingHoursSelectorController]'s
+  /// RxMaps. Each day defaults to closed; only the days present in
+  /// the schedule get opened, with the first time slot pre-filling
+  /// start/end times.
+  void syncScheduleToVisitingController(List<Schedule>? schedule) {
+    final visitingCtrl = getOrPut(() => VisitingHoursSelectorController());
+    const allDays = [
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+      'Sunday',
+    ];
+    if (schedule == null) {
+      visitingCtrl.syncAll(
+        visitingHours: {for (final d in allDays) d: false},
+        startTimes: {},
+        endTimes: {},
+      );
+      return;
+    }
+    final newVisitingHours = <String, bool>{};
+    final newStartTimes = <String, TimeOfDay>{};
+    final newEndTimes = <String, TimeOfDay>{};
+    for (final d in allDays) {
+      newVisitingHours[d] = false;
+    }
+    for (final sch in schedule) {
+      final uiDay = _mapApiDayToUiDay((sch.day ?? '').toLowerCase());
+      if (uiDay == null) continue;
+      newVisitingHours[uiDay] = sch.isOpen ?? false;
+      final firstSlot = (sch.timeSlots ?? []).isNotEmpty
+          ? sch.timeSlots!.first
+          : null;
+      if (firstSlot != null) {
+        final start = _parseTimeOfDay(firstSlot.startTime);
+        final end = _parseTimeOfDay(firstSlot.endTime);
+        if (start != null) newStartTimes[uiDay] = start;
+        if (end != null) newEndTimes[uiDay] = end;
+      }
+    }
+    visitingCtrl.syncAll(
+      visitingHours: newVisitingHours,
+      startTimes: newStartTimes,
+      endTimes: newEndTimes,
+    );
+  }
+
+  /// Serialise the current [VisitingHoursSelectorController] state into
+  /// the JSON shape the backend expects for the `schedule` field —
+  /// the same shape the booking endpoint already understood, so the
+  /// `AvailabilityScheduleCard` keeps working when re-rendered.
+  List<Map<String, dynamic>> payloadForWorkingHours() {
+    final visitingCtrl = getOrPut(() => VisitingHoursSelectorController());
+    final out = <Map<String, dynamic>>[];
+    visitingCtrl.visitingHours.forEach((day, isOpen) {
+      if (!isOpen) return;
+      final s = visitingCtrl.startTimes[day];
+      final e = visitingCtrl.endTimes[day];
+      if (s == null || e == null) return;
+      out.add({
+        'day': day,
+        'isOpen': true,
+        'timeSlots': [
+          {
+            'startTime': visitingCtrl.formatTime(s),
+            'endTime': visitingCtrl.formatTime(e),
+          }
+        ],
+      });
+    });
+    return out;
+  }
+
+  String? _mapApiDayToUiDay(String apiDayLower) {
+    switch (apiDayLower) {
+      case 'monday':
+      case 'mon':
+        return 'Monday';
+      case 'tuesday':
+      case 'tue':
+      case 'tues':
+        return 'Tuesday';
+      case 'wednesday':
+      case 'wed':
+        return 'Wednesday';
+      case 'thursday':
+      case 'thu':
+      case 'thur':
+      case 'thurs':
+        return 'Thursday';
+      case 'friday':
+      case 'fri':
+        return 'Friday';
+      case 'saturday':
+      case 'sat':
+        return 'Saturday';
+      case 'sunday':
+      case 'sun':
+        return 'Sunday';
+      default:
+        return null;
+    }
+  }
+
+  TimeOfDay? _parseTimeOfDay(String? raw) {
+    if (raw == null) return null;
+    try {
+      final value = raw.trim();
+      final upper = value.toUpperCase();
+      final hasMeridian = upper.contains('AM') || upper.contains('PM');
+      final regex = RegExp(r'^(\d{1,2}):(\d{2})');
+      final match = regex.firstMatch(upper);
+      if (match == null) return null;
+      int hour = int.parse(match.group(1)!);
+      final minute = int.parse(match.group(2)!);
+      if (hasMeridian) {
+        if (upper.contains('PM') && hour != 12) hour += 12;
+        if (upper.contains('AM') && hour == 12) hour = 0;
+      }
+      if (hour < 0 || hour > 23 || minute < 0 || minute > 59) return null;
+      return TimeOfDay(hour: hour, minute: minute);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  @override
+  void onClose() {
+    aboutController.dispose();
+    minFeeController.dispose();
+    maxFeeController.dispose();
+    feeTypeController.dispose();
+    super.onClose();
   }
 
   ///UPDATE BUSINESS IMAGES....

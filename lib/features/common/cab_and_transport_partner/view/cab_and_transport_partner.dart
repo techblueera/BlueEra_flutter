@@ -4,10 +4,8 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
-import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -15,7 +13,6 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/multipart_image_service.dart';
 import 'package:BlueEra/core/services/share_service.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
-import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/business/widgets/business_share_banner.dart';
 import 'package:BlueEra/features/chat/view/business_chat/business_chat_list.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
@@ -36,17 +33,16 @@ import 'package:BlueEra/features/personal/personal_profile/view/rental/widget/re
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/controller/earn_service_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/edit_profile_bottom_sheet.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/profile_designation_bottom_sheet.dart';
-import 'package:BlueEra/widgets/common_box_shadow.dart';
+import 'package:BlueEra/features/personal/personal_profile/widgets/personal_qrcode_widget.dart';
+import 'package:BlueEra/features/personal/personal_profile/widgets/profile_bio_card.dart';
+import 'package:BlueEra/features/personal/personal_profile/widgets/profile_location_card.dart';
 import 'package:BlueEra/widgets/common_circular_profile_image.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/expandable_text.dart';
-import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:croppy/croppy.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-import 'package:qr_flutter/qr_flutter.dart';
 
 /// Cab & Transport Partner dashboard — mirrors the self-employee v2 layout
 /// so cab/auto/taxi drivers see the same modern shell as riders. Floating
@@ -908,11 +904,16 @@ class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
       SizedBox(height: SizeConfig.size12),
       _buildStatsCard(),
       SizedBox(height: SizeConfig.size12),
+      // Dedicated bio tile lives between identity-level cards and the
+      // action/contact rows — bio reads as identity content, not
+      // secondary detail.
+      const ProfileBioCard(),
+      SizedBox(height: SizeConfig.size12),
       _buildRentalCard(),
       SizedBox(height: SizeConfig.size12),
       _buildActionRow(),
       SizedBox(height: SizeConfig.size12),
-      _buildContactMapCard(),
+      const ProfileLocationCard(),
       SizedBox(height: SizeConfig.size12),
       _buildQrCard(),
       SizedBox(height: SizeConfig.size12),
@@ -1050,15 +1051,15 @@ class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
             final name = _capitalizeFirst(user?.name ?? '');
             final username = user?.username ?? '';
             final designation = user?.designation ?? '';
-            final location = _extractCityState(user?.address ?? '');
+            // Address is rendered in [ProfileLocationCard] now — don't
+            // duplicate it inside the identity card.
             final email = user?.email ?? '';
 
             final hasDesignation = designation.trim().isNotEmpty;
             final hasName = name.isNotEmpty;
             final hasUsername = username.isNotEmpty;
-            final hasLocation = location.isNotEmpty;
             final hasEmail = email.isNotEmpty;
-            final hasContact = hasLocation || hasEmail;
+            final hasContact = hasEmail;
             final hasAnyIdentity =
                 hasDesignation || hasName || hasUsername || hasContact;
 
@@ -1101,13 +1102,6 @@ class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
                 color: const Color(0xFFEDEFF4),
               ));
               children.add(SizedBox(height: SizeConfig.size12));
-              if (hasLocation) {
-                children
-                    .add(_infoRow(Icons.location_on_rounded, location));
-                if (hasEmail) {
-                  children.add(SizedBox(height: SizeConfig.size8));
-                }
-              }
               if (hasEmail) {
                 children.add(_infoRow(Icons.alternate_email_rounded, email));
               }
@@ -1808,267 +1802,27 @@ class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
     );
   }
 
-  // ─── CONTACT + MAP CARD (Overview tab) ─────────────────────────
-  // Surfaces fields the identity block doesn't already render — bio,
-  // website, phone, full address, plus the user's mapped location.
-  // The whole card collapses when none of those are set.
-  Widget _buildContactMapCard() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 14),
-      child: Obx(() {
-        final user = _viewCtrl.personalProfileDetails.value.user;
-        final bio = user?.bio ?? '';
-        final website = _viewCtrl.website.value;
-        final phone = user?.contactNo ?? '';
-        final address = user?.address ?? '';
-        final lat = user?.userLocation?.lat ?? 0.0;
-        final lon = user?.userLocation?.lon ?? 0.0;
-        final name = _capitalizeFirst(user?.name ?? '');
-
-        final hasBio = bio.trim().isNotEmpty;
-        final hasWebsite = website.trim().isNotEmpty;
-        final hasPhone = phone.trim().isNotEmpty;
-        final hasAddress = address.trim().isNotEmpty;
-        final hasMap = lat != 0.0 && lon != 0.0;
-
-        if (!hasBio && !hasWebsite && !hasPhone && !hasAddress && !hasMap) {
-          return const SizedBox.shrink();
-        }
-
-        return CustomFormCard(
-          padding: EdgeInsets.all(SizeConfig.size10),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: const Color(0xFFEDEFF4), width: 1),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: CustomText(
-                      AppStrings.contactUs.tr,
-                      fontSize: SizeConfig.large,
-                      color: AppColors.mainTextColor,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  InkWell(
-                    onTap: () => EditProfileBottomSheet.show(Get.context!),
-                    child: LocalAssets(
-                      height: 16,
-                      imagePath: AppIconAssets.pen_line,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              if (hasBio || hasWebsite || hasPhone || hasAddress)
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: AppColors.white,
-                    border: Border.all(color: AppColors.greyE5),
-                    borderRadius: BorderRadius.circular(10),
-                    boxShadow: [AppShadows.textFieldShadow],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (hasBio)
-                        ExpandableText(
-                          text: bio,
-                          trimLines: 3,
-                          isReadMoreNewLine: false,
-                          expandMode: ExpandMode.dialog,
-                          style: TextStyle(
-                            color: AppColors.secondaryTextColor,
-                            fontSize: SizeConfig.medium,
-                            fontWeight: FontWeight.w400,
-                            fontFamily: AppConstants.OpenSans,
-                          ),
-                        ),
-                      if (hasBio &&
-                          (hasWebsite || hasPhone || hasAddress))
-                        const Divider(color: AppColors.greyE5, height: 30),
-                      if (hasWebsite)
-                        _contactItem(
-                          AppIconAssets.website_click,
-                          website,
-                          AppColors.primaryColor,
-                        ),
-                      if (hasPhone)
-                        _contactItem(
-                          AppIconAssets.phone_outline,
-                          phone,
-                          AppColors.secondaryTextColor,
-                        ),
-                      if (hasAddress)
-                        _contactItem(
-                          AppIconAssets.location_new,
-                          address,
-                          AppColors.secondaryTextColor,
-                        ),
-                    ],
-                  ),
-                ),
-              if (hasMap) ...[
-                if (hasBio || hasWebsite || hasPhone || hasAddress)
-                  const SizedBox(height: 10),
-                BusinessLocationMapWidget(
-                  latitude: lat,
-                  longitude: lon,
-                  businessName: name,
-                ),
-              ],
-            ],
-          ),
-        );
-      }),
-    );
-  }
-
-  Widget _contactItem(String icon, String label, Color iconColor) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12.0),
-      child: Row(
-        children: [
-          LocalAssets(imagePath: icon, imgColor: iconColor),
-          const SizedBox(width: 12),
-          Expanded(
-            child: CustomText(label,
-                fontSize: 15, color: AppColors.mainTextColor),
-          ),
-        ],
-      ),
-    );
-  }
+  // Legacy `_buildContactMapCard` was retired — the address/map flow
+  // lives in [ProfileLocationCard] now, the bio in [ProfileBioCard].
+  // Website/phone edit lands through the identity card's edit
+  // affordance.
 
   // ─── QR CODE CARD (Overview tab) ──────────────────────────────
+  // Delegates to [PersonalQrCodeWidget] so the cab/transport partner
+  // QR card matches the business card's UI and behaviour exactly —
+  // capturable RepaintBoundary, Download to gallery, Share PNG.
   Widget _buildQrCard() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 14),
-      child: CustomFormCard(
-        padding: EdgeInsets.symmetric(
-            horizontal: SizeConfig.size16, vertical: SizeConfig.size16),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFFEDEFF4), width: 1),
-        child: Obx(() {
-          final user = _viewCtrl.personalProfileDetails.value.user;
-          final name = _capitalizeFirst(user?.name ?? 'Profile');
-          final designation = user?.designation ?? '';
-          // Single source of truth for "my profile link" — reads
-          // session globals so the QR code matches whatever the
-          // share button produces. profileDeepLink owns the
-          // referral-code attach so the QR carries it too.
-          final link = profileDeepLink(
-            userId: userId
-          );
-
-          return Column(
-            children: [
-              Text(
-                'SCAN TO VIEW PROFILE',
-                style: TextStyle(
-                  fontFamily: AppConstants.OpenSans,
-                  fontSize: 10,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.secondaryTextColor,
-                  letterSpacing: 1.4,
-                ),
-              ),
-              SizedBox(height: SizeConfig.size12),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: AppColors.primaryColor.withValues(alpha: 0.18),
-                    width: 1,
-                  ),
-                ),
-                child: QrImageView(
-                  data: link,
-                  version: QrVersions.auto,
-                  size: 160,
-                  backgroundColor: Colors.white,
-                  eyeStyle: QrEyeStyle(
-                    eyeShape: QrEyeShape.square,
-                    color: AppColors.primaryColor,
-                  ),
-                  dataModuleStyle: QrDataModuleStyle(
-                    dataModuleShape: QrDataModuleShape.square,
-                    color: AppColors.mainTextColor,
-                  ),
-                ),
-              ),
-              SizedBox(height: SizeConfig.size12),
-              Text(
-                name,
-                style: TextStyle(
-                  fontFamily: AppConstants.OpenSans,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.mainTextColor,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              if (designation.trim().isNotEmpty) ...[
-                const SizedBox(height: 2),
-                Text(
-                  designation,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.secondaryTextColor,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-              SizedBox(height: SizeConfig.size12),
-              GestureDetector(
-                onTap: _onShareProfile,
-                child: Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: SizeConfig.size12,
-                    vertical: SizeConfig.size6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryColor.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: AppColors.primaryColor.withValues(alpha: 0.25),
-                      width: 0.6,
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.share_outlined,
-                          size: 14, color: AppColors.primaryColor),
-                      SizedBox(width: SizeConfig.size6),
-                      Text(
-                        'Share QR',
-                        style: TextStyle(
-                          fontFamily: AppConstants.OpenSans,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.primaryColor,
-                          letterSpacing: 0.2,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          );
-        }),
-      ),
-    );
+    return Obx(() {
+      final user = _viewCtrl.personalProfileDetails.value.user;
+      final name = _capitalizeFirst(user?.name ?? 'Profile');
+      final designation = user?.designation ?? '';
+      return PersonalQrCodeWidget(
+        userId: userId,
+        name: name,
+        designation: designation,
+        margin: const EdgeInsets.symmetric(horizontal: 14),
+      );
+    });
   }
 
   // ─── SHARE BANNER (Overview tab) ──────────────────────────────
@@ -2121,19 +1875,6 @@ class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
     if (count >= 1000000) return '${(count / 1000000).toStringAsFixed(1)}M';
     if (count >= 1000) return '${(count / 1000).toStringAsFixed(1)}k';
     return '$count';
-  }
-
-  String _extractCityState(String address) {
-    if (address.isEmpty) return '';
-    final parts = address.split(',').map((e) => e.trim()).toList();
-    if (parts.length >= 3) {
-      final statePart =
-          parts[parts.length - 2].replaceAll(RegExp(r'\d{5,6}'), '').trim();
-      final city = parts[parts.length - 3].trim();
-      if (city.isNotEmpty && statePart.isNotEmpty) return '$city, $statePart';
-      return city.isNotEmpty ? city : statePart;
-    }
-    return address;
   }
 
   String _formatJoinedDate(String dateStr) {
