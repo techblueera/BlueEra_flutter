@@ -21,6 +21,7 @@ import 'package:BlueEra/features/me/vehicle/view/widgets/vehicle_form_sheet.dart
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/refer_earn_pill.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
@@ -218,7 +219,9 @@ class _VehicleHomeScreenV2State extends State<VehicleHomeScreenV2> {
         children: [
           _circleIconButton(icon: Icons.menu, onTap: _openDrawer),
           SizedBox(width: SizeConfig.size8),
+          const ReferEarnPill(),
           const Spacer(),
+          SizedBox(width: SizeConfig.size2),
           _circleIconButton(
             icon: Icons.notifications_none,
             onTap: _openNotifications,

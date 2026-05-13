@@ -38,7 +38,7 @@ import 'package:BlueEra/features/personal/auth/controller/view_personal_details_
 import 'package:BlueEra/features/common/delivery_partner/view/gig_work_options_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/self_employee_screen.dart';
 import 'package:BlueEra/features/me/product/controller/inventory_controller.dart';
-import 'package:BlueEra/features/me/product/view/product/inventory_screen.dart';
+import 'package:BlueEra/features/me/product/view/product/product_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/personal_profile_setup_new_screen.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -589,7 +589,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       return const HotelMain();
     } else if (businessTypeGlobal.toUpperCase() ==
         BusinessType.Product.name.toUpperCase()) {
-      return const InventoryScreen(fromBottomNavBar: true);
+      return const ProductScreen(fromBottomNavBar: true);
     } else if (businessTypeGlobal.toUpperCase() ==
         BusinessType.Finance.name.toUpperCase()) {
       return const OthersMain();
@@ -599,7 +599,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     } else if (businessTypeGlobal.toUpperCase() ==
         BusinessType.Manufacturing.name.toUpperCase()) {
       // return const ManufactureMain();
-      return const InventoryScreen(fromBottomNavBar: true);
+      return const ProductScreen(fromBottomNavBar: true);
     } else if (_isSpecificServiceAutomotive()) {
       return const VehicleHomeScreenV2();
     } else if (_isSpecificServiceSpecialAutomotive()) {
@@ -610,7 +610,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       // the shared `OthersMain` tree.
       return const AutomotiveServiceMain();
     } else if (_isSpecificProductAutomotive()) {
-      return const InventoryScreen();
+      return const ProductScreen();
     } else {
       return SizedBox();
     }

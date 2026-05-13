@@ -32,6 +32,7 @@ import 'package:BlueEra/features/me/product/widget/attribute_two_rows.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:BlueEra/widgets/refer_earn_pill.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -41,19 +42,19 @@ import 'package:get/get.dart';
 /// Orders, Overview, Post, Add Product, Statistics. "Add Product" is
 /// action-only — it fires the existing add-product flow without
 /// switching the body.
-class InventoryScreen extends StatefulWidget {
+class ProductScreen extends StatefulWidget {
   final bool fromBottomNavBar;
 
-  const InventoryScreen({
+  const ProductScreen({
     super.key,
     this.fromBottomNavBar = false,
   });
 
   @override
-  State<InventoryScreen> createState() => _InventoryScreenState();
+  State<ProductScreen> createState() => _ProductScreenState();
 }
 
-class _InventoryScreenState extends State<InventoryScreen>
+class _ProductScreenState extends State<ProductScreen>
     with SingleTickerProviderStateMixin {
   TabController? _tabController;
   int _selectedTab = 1; // matches grocery's default (Overview)
@@ -845,7 +846,10 @@ class _InventoryScreenState extends State<InventoryScreen>
                 _circleIconButton(icon: Icons.menu, onTap: _openDrawer),
                 SizedBox(width: SizeConfig.size8),
                 _nearbyRidersPill(),
+                SizedBox(width: SizeConfig.size8),
+                const ReferEarnPill(),
                 const Spacer(),
+                SizedBox(width: SizeConfig.size2),
                 if (!isGuest)
                   _circleIconButton(
                     icon: Icons.notifications_none,

@@ -47,6 +47,7 @@ import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/post_via_dialog.dart';
+import 'package:BlueEra/widgets/refer_earn_pill.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:croppy/croppy.dart';
 import 'package:flutter/material.dart';
@@ -1325,19 +1326,10 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
                 _circleIconButton(icon: Icons.menu, onTap: _openDrawer),
                 SizedBox(width: SizeConfig.size8),
                 _nearbyRidersPill(),
-                // InkWell(
-                //   onTap: () {
-                //     navigatePushTo(context, BusinessOwnProfileScreen());
-                //   },
-                //   child: Padding(
-                //       padding: EdgeInsets.only(left: SizeConfig.size15),
-                //       child: CachedAvatarWidget(
-                //           imageUrl: userProfileGlobal,
-                //           size: SizeConfig.size30,
-                //           borderRadius: SizeConfig.size15,
-                //           showProfileOnFullScreen: false)),
-                // ),
+                SizedBox(width: SizeConfig.size8),
+                const ReferEarnPill(),
                 const Spacer(),
+                SizedBox(width: SizeConfig.size2),
                 _circleIconButton(
                   icon: Icons.notifications_none,
                   onTap: _openNotifications,

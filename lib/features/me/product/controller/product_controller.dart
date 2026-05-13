@@ -799,7 +799,7 @@ class ProductController extends GetxController{
       print("🔍 Scanning route → ${route.settings.name}");
 
       // STOP when this route matches
-      if(route.settings.name == RouteHelper.getInventoryScreenRoute()) return route.settings.name == RouteHelper.getInventoryScreenRoute();
+      if(route.settings.name == RouteHelper.getProductScreenRoute()) return route.settings.name == RouteHelper.getProductScreenRoute();
       else return route.settings.name == RouteHelper.getBottomNavigationBarScreenRoute();
     });
   }

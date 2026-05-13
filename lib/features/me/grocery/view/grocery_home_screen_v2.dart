@@ -40,6 +40,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/post_via_dialog.dart';
+import 'package:BlueEra/widgets/refer_earn_pill.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:croppy/croppy.dart';
 import 'package:flutter/material.dart';
@@ -88,9 +89,6 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
     super.initState();
     _groceryController = getOrPut(() => GroceryController());
     _groceryController.fetchAllGroceryData(widget.businessId, otherStore: false);
-    // Hydrate the order chat list so the Orders section under the Order
-    // tab has data ready when the user switches to it. Same emit shape
-    // used by `ConnectMainPage` for its Orders tab.
     _chatViewController.emitEvent(
       ChatEmitEvents.ChatList,
       {ApiKeys.type: AppConstants.order_Chat_Type},
@@ -1513,7 +1511,10 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
               _circleIconButton(icon: Icons.menu, onTap: _openDrawer),
               SizedBox(width: SizeConfig.size8),
               _nearbyRidersPill(),
+              SizedBox(width: SizeConfig.size8),
+              const ReferEarnPill(),
               const Spacer(),
+              SizedBox(width: SizeConfig.size2),
               _circleIconButton(
                   icon: Icons.notifications_none, onTap: _openNotifications),
               SizedBox(width: SizeConfig.size8),

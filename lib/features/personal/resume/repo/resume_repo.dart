@@ -635,28 +635,6 @@ class ResumeRepo extends BaseService {
     return response;
   }
 
-  Future<ResponseModel> updateUser({
-    required Map<String, dynamic> params,
-  }) async {
-    final response = await ApiBaseHelper().putHTTP(
-      updateUserProfile,
-      params: params,
-      onError: (error) {},
-      onSuccess: (res) {},
-    );
-    return response;
-  }
-
-  Future<ResponseModel> deleteProject({required String id}) async {
-    final response = await ApiBaseHelper().deleteHTTP(
-      "$updateUserProfile/projects/$id",
-      params: {},
-      onError: (error) {},
-      onSuccess: (res) {},
-    );
-    return response;
-  }
-
   /// Add
   Future<ResponseModel> addEntity({
     required bool isPatent,
