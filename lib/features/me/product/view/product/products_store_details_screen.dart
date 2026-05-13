@@ -143,7 +143,7 @@ class _ProductsStoreDetailsScreenState
               Get.until(
                 (route) =>
                     route.settings.name ==
-                    RouteHelper.getInventoryScreenRoute(),
+                    RouteHelper.getProductScreenRoute(),
               );
             },
             child: const CustomText(AppStrings.yes),

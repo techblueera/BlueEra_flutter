@@ -24,12 +24,6 @@ class BusinessProfileRepo extends BaseService {
     return response;
   }
 
-  Future<ResponseModel> getSubBusinessCat() async {
-    final response = await ApiBaseHelper()
-        .getHTTP(subcategories, onError: (error) {}, onSuccess: (data) {});
-    return response;
-  }
-
   Future<ResponseModel> uploadVerifyBusinessDocs(
       Map<String, dynamic> params) async {
     final response = await ApiBaseHelper().postHTTP(
@@ -140,23 +134,6 @@ class BusinessProfileRepo extends BaseService {
     );
   }
 
-  Future<ResponseModel> getBusinessDetailedRating(String userId) async {
-    return await ApiBaseHelper().getHTTP(
-      "$businessRating/$userId/ratings/count",
-    );
-  }
-
-  Future<ResponseModel> submitRatingToBusiness(
-      String businessId, Map<String, dynamic> params) async {
-    final response = await ApiBaseHelper().postHTTP(
-      "$postBusinessRating/$businessId",
-      params: params,
-      onError: (error) {},
-      onSuccess: (data) {},
-    );
-    return response;
-  }
-
   Future<ResponseModel> submitRatingToPersonal(
       String userId, Map<String, dynamic> params) async {
     final response = await ApiBaseHelper().postHTTP(
@@ -183,27 +160,6 @@ class BusinessProfileRepo extends BaseService {
   Future<ResponseModel> getAllProductsApi(Map<String, dynamic> params) async {
     final response = await ApiBaseHelper().getHTTP(
       "$getAllProducts",
-      params: params,
-      onError: (error) {},
-      onSuccess: (data) {},
-    );
-    return response;
-  }
-
-  Future<ResponseModel> getParticularRatingApi(
-      Map<String, dynamic> params) async {
-    final response = await ApiBaseHelper().getHTTP(
-      "$getParticularRating",
-      params: params,
-      onError: (error) {},
-      onSuccess: (data) {},
-    );
-    return response;
-  }
-
-  Future<ResponseModel> getProductsRepo(Map<String, dynamic> params) async {
-    final response = await ApiBaseHelper().getHTTP(
-      "$getParticularRating",
       params: params,
       onError: (error) {},
       onSuccess: (data) {},

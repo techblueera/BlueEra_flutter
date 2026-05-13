@@ -22,7 +22,6 @@ import 'package:BlueEra/features/common/delivery_partner/view/rider_profile_stat
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
-import 'package:BlueEra/features/common/referral/view/referral_page.dart';
 import 'package:BlueEra/features/common/reel/view/channel/follower_following_screen.dart';
 import 'package:BlueEra/features/common/visiting_card/view/all_personal_visiting_cards.dart';
 import 'package:BlueEra/features/me/medical_new/view/medical_statistics_screen.dart';
@@ -38,6 +37,7 @@ import 'package:BlueEra/features/personal/personal_profile/widgets/profile_bio_c
 import 'package:BlueEra/features/personal/personal_profile/widgets/profile_location_card.dart';
 import 'package:BlueEra/widgets/common_circular_profile_image.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/refer_earn_pill.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:croppy/croppy.dart';
 import 'package:flutter/material.dart';
@@ -288,7 +288,7 @@ class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
                 // the top bar as the one earn-related shortcut — it
                 // sits right of the drawer button so the bell +
                 // Go-live cluster keeps its right anchor via Spacer.
-                _buildReferEarnPill(),
+                const ReferEarnPill(),
                 const Spacer(),
                 if (!isGuestUser()) ...[
                   _circleIconButton(
@@ -302,68 +302,6 @@ class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
                 ],
                 _goLivePill(),
               ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  // Refer & Earn pill — glassmorphic chrome that matches the rest
-  // of the top bar (drawer button, bell, Go-live). Same recipe:
-  // outer shadowed container → ClipRRect → BackdropFilter blur →
-  // inner white fill with the shared gray border (#C9CDD5). Content
-  // (share icon + label) stays primary-colored so the pill still
-  // reads as the earn-related shortcut.
-  Widget _buildReferEarnPill() {
-    return GestureDetector(
-      onTap: () => Get.to(() => ReferralPage()),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(24),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x1A000000),
-              blurRadius: 3,
-              offset: Offset(0, -1),
-            ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(24),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-            child: Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: SizeConfig.size10,
-                vertical: SizeConfig.size6,
-              ),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(
-                  color: const Color(0xFFC9CDD5),
-                  width: 1,
-                ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.share_outlined,
-                    size: 14,
-                    color: AppColors.secondaryTextColor,
-                  ),
-                  SizedBox(width: SizeConfig.size6),
-                  CustomText(
-                    'Refer & Earn',
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.secondaryTextColor,
-                    letterSpacing: 0.2,
-                  ),
-                ],
-              ),
             ),
           ),
         ),

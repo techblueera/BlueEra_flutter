@@ -623,52 +623,6 @@ class ViewBusinessDetailsController extends GetxController {
     } catch (e) {}
   }
 
-  Future<void> getParticularRatingApi(Map<String, dynamic> params) async {
-    try {
-      ResponseModel responseModel =
-          await BusinessProfileRepo().getParticularRatingApi(params);
-
-      if (responseModel.isSuccess) {
-        final data = responseModel.response?.data;
-        getParticularReviewListModel?.value =
-            GetParticularReviewListModel.fromJson(data);
-        update();
-      } else {
-        commonSnackBar(
-            message: responseModel.message ?? AppStrings.somethingWentWrong);
-      }
-    } catch (e) {}
-  }
-
-  Future<bool> submitBusinessRating({
-    required String businessId,
-    required int rating,
-    required String comment,
-  }) async {
-    try {
-      Map<String, dynamic> params = {
-        "rating": rating,
-        "comment": comment,
-      };
-
-      ResponseModel? responseModel = await BusinessProfileRepo()
-          .submitRatingToBusiness(businessId, params);
-
-      if (responseModel.isSuccess) {
-        commonSnackBar(message: "Thank you for your rating!");
-        return true;
-      } else {
-        commonSnackBar(
-          message: responseModel.message ?? AppStrings.somethingWentWrong,
-        );
-        return false;
-      }
-    } catch (e) {
-      commonSnackBar(message: AppStrings.somethingWentWrong);
-      return false;
-    }
-  }
-
   Future<bool> submitPersonalRating({
     required String userId,
     required int rating,

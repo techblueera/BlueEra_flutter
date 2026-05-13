@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 
+import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
@@ -923,13 +924,27 @@ class _MyAppState extends State<MyApp> {
             return const CallActivityRoomScreen();
           }
 
-// Still loading (null or loading flag)
-//           if (appController.isLoading.value ||
-//               appController.isInMaintenance.value == null) {
-//             return const Scaffold(
-//               body: Center(child: CircularProgressIndicator()),
-//             );
-//           }
+// Still waiting on the very first maintenance check -- show a calm
+// branded loader instead of letting SplashScreen flash before we
+// potentially swap it for MaintenanceScreen.
+          if (appController.isInMaintenance.value == null ||
+              appController.isLoading.value) {
+            return Scaffold(
+              backgroundColor: const Color(0xFFF4F8FF),
+              body: Center(
+                child: SizedBox(
+                  width: 36,
+                  height: 36,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 3,
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      AppColors.primaryColor,
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }
 
 // App under maintenance
           if (appController.isInMaintenance.value == true) {

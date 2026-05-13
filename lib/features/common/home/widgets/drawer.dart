@@ -518,7 +518,6 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
   // ─────────────────────────────────────────────
   List<Widget> _buildSectionedMenu() {
     final isIndividual = accountTypeGlobal == AppConstants.individual;
-    final isNotBusiness = accountTypeGlobal != "BUSINESS";
     final isNotSocial = userProfileTypeGlobal != SOCIAL_PROFILE;
 
     final sections = <_DrawerSection>[
@@ -540,16 +539,14 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
           },
         ),
       ]),
-      if (isIndividual || isNotBusiness)
         _DrawerSection('EARNINGS', [
-          if (isIndividual)
             _DrawerItem(
               icon: Icons.share_outlined,
               color: _violet,
               title: AppStrings.referAndEarn,
               onTap: () => Get.to(() => ReferralPage()),
             ),
-          if (isNotBusiness)
+          if (isIndividual)
             _DrawerItem(
               icon: Icons.work_outline_rounded,
               color: _emerald,

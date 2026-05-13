@@ -17,8 +17,8 @@ import 'package:BlueEra/features/me/hospital/view/v2/tabs/hospital_overview_tab_
 import 'package:BlueEra/features/me/hospital/view/v2/tabs/hospital_posts_tab_v2.dart';
 import 'package:BlueEra/features/me/hospital/view/v2/tabs/hospital_stats_tab_v2.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/refer_earn_pill.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 
 /// Hospital "me" profile home (v2) — redesigned to match the layout used by
 /// `MedicalHomeScreenV2` while preserving every action surfaced by the
@@ -188,7 +188,7 @@ class _HospitalHomeScreenV2State extends State<HospitalHomeScreenV2> {
         children: [
           _circleIconButton(icon: Icons.menu, onTap: _openDrawer),
           SizedBox(width: SizeConfig.size8),
-          if (!isBusinessUser()) _earnPill(),
+          const ReferEarnPill(),
           const Spacer(),
           _circleIconButton(
             icon: Icons.notifications_none,
@@ -236,32 +236,6 @@ class _HospitalHomeScreenV2State extends State<HospitalHomeScreenV2> {
           shape: BoxShape.circle,
         ),
         child: Icon(icon, size: 20, color: AppColors.mainTextColor),
-      ),
-    );
-  }
-
-  Widget _earnPill() {
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: SizeConfig.size12,
-        vertical: SizeConfig.size6,
-      ),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _CoinStackIcon(size: 20),
-          SizedBox(width: SizeConfig.size6),
-          CustomText(
-            'Earn',
-            fontSize: 14,
-            fontWeight: FontWeight.w700,
-            color: AppColors.mainTextColor,
-          ),
-        ],
       ),
     );
   }

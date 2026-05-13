@@ -139,7 +139,7 @@ import 'package:BlueEra/features/me/product/view/product/add_product_text_or_sna
 import 'package:BlueEra/features/me/product/view/product/add_product_via_ai_step1.dart';
 import 'package:BlueEra/features/me/product/view/product/add_product_via_ai_step2.dart';
 import 'package:BlueEra/features/me/product/view/product/create_varient_screen.dart';
-import 'package:BlueEra/features/me/product/view/product/inventory_screen.dart';
+import 'package:BlueEra/features/me/product/view/product/product_screen.dart';
 import 'package:BlueEra/features/me/product/model/generate_ai_product_content.dart';
 import 'package:BlueEra/features/me/product/view/product/product_preview_screen.dart';
 import 'package:BlueEra/features/me/product/view/product/products_store_details_screen.dart';
@@ -373,7 +373,7 @@ class RouteHelper {
   // static String getListingFormScreenRoute() =>
   //      RouteConstant.listingFormScreen;
 
-  static String getInventoryScreenRoute() => RouteConstant.inventoryScreen;
+  static String getProductScreenRoute() => RouteConstant.productScreen;
 
   static String getAddServicesScreenRoute() => RouteConstant.addServicesScreen;
 
@@ -1230,10 +1230,10 @@ class RouteHelper {
       //   return MaterialPageRoute(
       //       builder: (_) => ListingFormScreen(),
       //       settings: RouteSettings(name: getListingFormScreenRoute()));
-      case RouteConstant.inventoryScreen:
+      case RouteConstant.productScreen:
         return MaterialPageRoute(
-            builder: (_) => InventoryScreen(),
-            settings: RouteSettings(name: getInventoryScreenRoute()));
+            builder: (_) => ProductScreen(),
+            settings: RouteSettings(name: getProductScreenRoute()));
       case RouteConstant.addServicesScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final ProviderType providerType =

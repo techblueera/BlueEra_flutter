@@ -44,6 +44,7 @@ import 'package:BlueEra/features/me/others/model/other_service_gallery_res_model
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:BlueEra/widgets/refer_earn_pill.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:croppy/croppy.dart';
 import 'package:flutter/material.dart';
@@ -820,8 +821,9 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2> {
         children: [
           _circleIconButton(icon: Icons.menu, onTap: _openDrawer),
           SizedBox(width: SizeConfig.size8),
-          if (!isBusinessUser()) _earnPill(),
+          const ReferEarnPill(),
           const Spacer(),
+          SizedBox(width: SizeConfig.size2),
           _circleIconButton(
               icon: Icons.notifications_none, onTap: _openNotifications),
           SizedBox(width: SizeConfig.size8),
@@ -864,28 +866,6 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2> {
           shape: BoxShape.circle,
         ),
         child: Icon(icon, size: 20, color: AppColors.mainTextColor),
-      ),
-    );
-  }
-
-  Widget _earnPill() {
-    return Container(
-      padding: EdgeInsets.symmetric(
-          horizontal: SizeConfig.size12, vertical: SizeConfig.size6),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _CoinStackIcon(size: 20),
-          SizedBox(width: SizeConfig.size6),
-          CustomText('Earn',
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-              color: AppColors.mainTextColor),
-        ],
       ),
     );
   }

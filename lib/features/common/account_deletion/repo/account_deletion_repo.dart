@@ -14,15 +14,4 @@ class AccountDeletionRepo extends BaseService {
     );
     return response;
   }
-
-  /// Fetches current deletion status when /init responds 409 already_pending.
-  Future<ResponseModel> getAccountDeletionStatusRepo() async {
-    final response = await ApiBaseHelper().getHTTP(
-      accountDeletionStatus,
-      showProgress: false,
-      onError: (error) {},
-      onSuccess: (data) {},
-    );
-    return response;
-  }
 }

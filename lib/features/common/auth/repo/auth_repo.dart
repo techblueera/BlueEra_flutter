@@ -30,18 +30,6 @@ class AuthRepo extends BaseService {
   }
 
   ///User register  REPO...
-  Future<ResponseModel> authUserRegisterRepo(
-      {Map<String, dynamic>? bodyRequest}) async {
-    final response = await ApiBaseHelper().postHTTP(addUser,
-        params: bodyRequest,
-        showProgress: false,
-        onError: (error) {},
-        onSuccess: (data) {},
-        isMultipart: true);
-    return response;
-  }
-
-  ///User register  REPO...
   Future<ResponseModel> updateIndividualAccountUserRepo(
       {Map<String, dynamic>? bodyRequest}) async {
     final response = await ApiBaseHelper().putHTTP(
@@ -138,19 +126,6 @@ class AuthRepo extends BaseService {
     final response = await ApiBaseHelper().postHTTP(
       createGuestAccount,
       showProgress: false,
-      params: params,
-      onError: (error) {},
-      onSuccess: (data) {},
-      isMultipart: true,
-    );
-    return response;
-  }
-
-  //updateGuestAccount...
-  Future<ResponseModel> updateGuestAccountRepo(
-      {required Map<String, dynamic> params}) async {
-    final response = await ApiBaseHelper().putHTTP(
-      updateGuestAccount,
       params: params,
       onError: (error) {},
       onSuccess: (data) {},

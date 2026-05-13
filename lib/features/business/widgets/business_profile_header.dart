@@ -415,7 +415,7 @@ class BusinessProfileHeader extends StatelessWidget {
                               3) {
                             showLivePhotoDialog(context: context);
                           } else {
-                            Get.toNamed(RouteHelper.getInventoryScreenRoute());
+                            Get.toNamed(RouteHelper.getProductScreenRoute());
                           }
                         },
                         child: Padding(

@@ -24,10 +24,6 @@ class _GroceryScreenState extends State<GroceryScreen> {
   @override
   void initState() {
     super.initState();
-    // Auto-prompt the live-photos upload sheet on first paint when the
-    // business doesn't have any live photos yet — same behaviour the
-    // legacy [MyGroceryStoreScreen] used so existing merchants aren't
-    // surprised by the missing nudge after the v2 redesign.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       showBusinessLivePhotoBottomSheetIfNeeded(

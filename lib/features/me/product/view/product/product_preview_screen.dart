@@ -209,7 +209,7 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
 
           // First check entire stack WITHOUT popping it
           Get.routeTree.routes.forEach((route) {
-            if (route.name == RouteHelper.getInventoryScreenRoute()) {
+            if (route.name == RouteHelper.getProductScreenRoute()) {
               isInventoryInStack = true;
             }
           });
@@ -217,7 +217,7 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
           // Case 1: Inventory exists → pop until product
           if (isInventoryInStack) {
             Get.until((route) =>
-                route.settings.name == RouteHelper.getInventoryScreenRoute());
+                route.settings.name == RouteHelper.getProductScreenRoute());
           }
           // Case 2: Inventory not in stack → go to bottom tab, then push product
           else {

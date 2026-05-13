@@ -120,7 +120,7 @@ Future<void> showLivePhotoDialog({
                         }
 
                         Get.back();
-                        Get.toNamed(RouteHelper.getInventoryScreenRoute());
+                        Get.toNamed(RouteHelper.getProductScreenRoute());
                       },
                     ),
                   ),

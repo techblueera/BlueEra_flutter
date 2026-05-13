@@ -24,7 +24,6 @@ import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_pictur
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
-import 'package:BlueEra/features/common/referral/view/referral_page.dart';
 import 'package:BlueEra/features/common/reel/view/channel/follower_following_screen.dart';
 import 'package:BlueEra/features/common/visiting_card/view/all_personal_visiting_cards.dart';
 import 'package:BlueEra/features/contribution/controller/contribution_controller.dart';
@@ -45,6 +44,7 @@ import 'package:BlueEra/widgets/common_circular_profile_image.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/post_via_dialog.dart';
+import 'package:BlueEra/widgets/refer_earn_pill.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:croppy/croppy.dart';
 import 'package:flutter/material.dart';
@@ -259,7 +259,7 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
                 SizedBox(width: SizeConfig.size8),
                 // Earn entry now lives in the drawer; Refer & Earn takes
                 // the top-bar slot — same pill the rider dashboard uses.
-                _buildReferEarnPill(),
+                const ReferEarnPill(),
                 const Spacer(),
                 if (!isGuestUser()) ...[
                   _circleIconButton(
@@ -273,66 +273,6 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
                 ],
                 _goLivePill(),
               ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  // Refer & Earn pill — glassmorphic chrome that matches the rest of
-  // the top bar. Same recipe rider_service_screen uses: outer shadow
-  // → ClipRRect → BackdropFilter → white fill with the shared gray
-  // border (#C9CDD5). Tap navigates to ReferralPage.
-  Widget _buildReferEarnPill() {
-    return GestureDetector(
-      onTap: () => Get.to(() => ReferralPage()),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(24),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x1A000000),
-              blurRadius: 3,
-              offset: Offset(0, -1),
-            ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(24),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-            child: Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: SizeConfig.size10,
-                vertical: SizeConfig.size6,
-              ),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(
-                  color: const Color(0xFFC9CDD5),
-                  width: 1,
-                ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.share_outlined,
-                    size: 14,
-                    color: AppColors.secondaryTextColor,
-                  ),
-                  SizedBox(width: SizeConfig.size6),
-                  CustomText(
-                    'Refer & Earn',
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.secondaryTextColor,
-                    letterSpacing: 0.2,
-                  ),
-                ],
-              ),
             ),
           ),
         ),
