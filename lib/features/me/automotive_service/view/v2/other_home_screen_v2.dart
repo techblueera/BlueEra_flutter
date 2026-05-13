@@ -17,7 +17,6 @@ import 'package:BlueEra/features/me/automotive_service/view/v2/tabs/other_servic
 import 'package:BlueEra/features/me/automotive_service/view/v2/tabs/other_stats_tab_v2.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 
 /// Other-business "me" profile home (v2) — redesigned to mirror the
 /// layout used by `HospitalHomeScreenV2` while preserving every action

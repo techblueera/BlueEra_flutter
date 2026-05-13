@@ -16,18 +16,14 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/multipart_image_service.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
-import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
 import 'package:BlueEra/features/business/widgets/business_contact_map_card.dart';
 import 'package:BlueEra/features/business/widgets/business_description_card.dart';
 import 'package:BlueEra/features/business/widgets/business_qrcode_widget.dart';
 import 'package:BlueEra/features/business/widgets/business_share_banner.dart';
-import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/common_business_live_photo.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/view/add_symbol/add_symbol_screen.dart';
 import 'package:BlueEra/features/chat/view/orders_chat/orders_chat_list.dart';
-import 'package:BlueEra/features/common/Discover/model/service_model_response.dart';
-import 'package:BlueEra/features/common/Discover/view/self_employee_view_screen.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
@@ -38,11 +34,7 @@ import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_business_products_model.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_category_with_inventory_model.dart';
 import 'package:BlueEra/features/me/grocery/view/all_top_selling_grocery_products_screen.dart';
-import 'package:BlueEra/features/me/grocery/view/my_grocery_orders/my_grocery_orders.dart';
 import 'package:BlueEra/features/me/grocery/widget/food_type_indicator.dart';
-import 'package:BlueEra/features/me/grocery/widget/price_row.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:BlueEra/features/me/medical_new/view/medical_statistics_screen.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
@@ -1731,105 +1723,6 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
   //        typeOfBusiness
   // Fixed at top — does NOT scroll with the content.
   // ─────────────────────────────────────────────
-  Widget _buildProfileRow() {
-    return Container(
-      color: Colors.white,
-      padding: EdgeInsets.symmetric(
-          horizontal: SizeConfig.size12, vertical: SizeConfig.size12),
-      child: Row(
-        children: [
-          Obx(() {
-            final details =
-                _businessController.businessProfileDetails.value?.data;
-            final logo = _businessController.imagePath?.value ??
-                details?.logo ??
-                '';
-            return Container(
-              height: SizeConfig.size40,
-              width: SizeConfig.size40,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.grey.shade300, width: 1),
-              ),
-              clipBehavior: Clip.hardEdge,
-              child: logo.isNotEmpty
-                  ? CachedNetworkImage(
-                imageUrl: logo,
-                fit: BoxFit.cover,
-                errorWidget: (_, __, ___) => _logoFallback(),
-              )
-                  : _logoFallback(),
-            );
-          }),
-          SizedBox(width: SizeConfig.size12),
-          Expanded(
-            child: Obx(() {
-              final details =
-                  _businessController.businessProfileDetails.value?.data;
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    children: [
-                      Flexible(
-                        child: CustomText(
-                          details?.businessName ?? '',
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.mainTextColor,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      SizedBox(width: SizeConfig.size6),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 6, vertical: 1),
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade200,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: CustomText('+1',
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.secondaryTextColor),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 2),
-                  CustomText(
-                    details?.typeOfBusiness ?? '',
-                    fontSize: 12,
-                    color: AppColors.secondaryTextColor,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              );
-            }),
-          ),
-          IconButton(
-            onPressed: _onEditCover,
-            icon: Icon(Icons.edit_outlined,
-                size: 20, color: AppColors.mainTextColor),
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(),
-            visualDensity: VisualDensity.compact,
-          ),
-          SizedBox(width: SizeConfig.size8),
-          IconButton(
-            onPressed: _previewProfileAsVisitor,
-            icon: Icon(Icons.remove_red_eye_outlined,
-                size: 20, color: AppColors.mainTextColor),
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(),
-            visualDensity: VisualDensity.compact,
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _logoFallback() => Container(
     color: Colors.grey.shade200,
@@ -2540,96 +2433,8 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
     );
   }
 
-  /// Opens the Discover-style profile preview so the owner can see the
-  /// public profile the way other users discover it on the Discover screen.
-  void _previewProfileAsVisitor() {
-    final details = _businessController.businessProfileDetails.value?.data;
-    final coverFromCtrl = _businessController.coverImage?.value ?? '';
-    final logoFromCtrl = _businessController.imagePath?.value ?? '';
-
-    final livePhotos = details?.livePhotos ?? const <String>[];
-
-    final service = ServiceData()
-      ..id = details?.id ?? widget.businessId
-      ..name = details?.businessName
-      ..profileImage = (coverFromCtrl.isNotEmpty
-          ? coverFromCtrl
-          : (logoFromCtrl.isNotEmpty ? logoFromCtrl : (details?.logo ?? '')))
-      ..bio = details?.businessDescription
-      ..address = details?.address
-      ..category = details?.typeOfBusiness
-      ..serviceMedia = ServiceMedia(photos: List<String>.from(livePhotos));
-
-    Get.to(() => SelfEmployeeViewScreen(
-      service: service,
-      timingMap: const {},
-      priceDisplay: '',
-      priceBadgeText: '',
-      priceBadgeColor: AppColors.primaryColor,
-      isSelfPreview: true,
-    ));
-  }
 }
 
-class _TabsHeaderDelegate extends SliverPersistentHeaderDelegate {
-  _TabsHeaderDelegate({
-    required this.child,
-    this.height = 56,
-    this.topInset = 0,
-  });
-
-  final Widget child;
-  final double height;
-  final double topInset;
-
-  @override
-  double get minExtent => height + topInset;
-
-  @override
-  double get maxExtent => height + topInset;
-
-  @override
-  Widget build(
-      BuildContext context, double shrinkOffset, bool overlapsContent) {
-    final pinned = overlapsContent || shrinkOffset > 0;
-    return ClipRect(
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 150),
-          padding: EdgeInsets.only(top: pinned ? topInset : 0),
-          decoration: BoxDecoration(
-            color: pinned ? const Color(0x66FFFFFF) : Colors.transparent,
-            border: Border(
-              bottom: BorderSide(
-                color: pinned ? Colors.white : Colors.transparent,
-                width: 1,
-              ),
-            ),
-            boxShadow: pinned
-                ? const [
-                    BoxShadow(
-                      color: Color(0x42001120),
-                      blurRadius: 16,
-                      offset: Offset(0, 4),
-                      blurStyle: BlurStyle.outer,
-                    ),
-                  ]
-                : null,
-          ),
-          alignment: Alignment.center,
-          child: child,
-        ),
-      ),
-    );
-  }
-
-  @override
-  bool shouldRebuild(_TabsHeaderDelegate oldDelegate) =>
-      oldDelegate.child != child ||
-      oldDelegate.height != height ||
-      oldDelegate.topInset != topInset;
-}
 
 class _PostMenuEntry {
   final PostCreationMenu type;

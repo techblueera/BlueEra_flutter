@@ -4,7 +4,6 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
-import 'package:BlueEra/features/common/delivery_partner/view/rider_me_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/controller/earn_service_controller.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/rider_service_screen.dart';
 import 'package:BlueEra/widgets/bottom_nav_hide_on_scroll.dart';

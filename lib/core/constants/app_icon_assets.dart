@@ -10,177 +10,78 @@ class AppIconAssets {
   static String gallery_sky = "${iconPath}gallery_sky.svg";
   static String india_flag = "${iconPath}india_flag.svg";
   static String login_bg = "${iconPath}login_bg.svg";
-  static String on_boarding1 = "${iconPath}on_boarding1.svg";
-  static String on_boarding2 = "${iconPath}on_boarding2.svg";
-  static String on_boarding3 = "${iconPath}on_boarding3.svg";
-  static String on_boarding4 = "${iconPath}on_boarding4.svg";
   static String otp_bg = "${iconPath}otp_bg.svg";
-  static String personal_account = "${iconPath}personal_account.svg";
-  static String service = "${iconPath}service.svg";
-  static String store = "${iconPath}store.svg";
-  static String store_service = "${iconPath}store_service.svg";
 
-  static const String business_verification_profile =
-      "${iconPath}business_verification_profile.svg";
-  static const String owner_verification = "${iconPath}owner_verification.svg";
-  static const String profile_un_verify = '${iconPath}profile_un_verify.svg';
   static const String call = '${iconPath}call_outline.svg';
   static const String line = '${iconPath}line.svg';
   static const String email = '${iconPath}email_outline.svg';
-  static const String internet = '${iconPath}internet.svg';
   static const String location_outline = '${iconPath}location_outline.svg';
   static const String phone_outline = '${iconPath}phone_outline.svg';
-  static const String location_fill = '${iconPath}location_fill.svg';
   static const String pen = '${iconPath}pen.svg';
   static const String send = '${iconPath}send.svg';
-  static const String comment = '${iconPath}comment.svg';
-  static const String eye = '${iconPath}eye.svg';
   static const String star = '${iconPath}star.svg';
   static const String user = '${iconPath}user.svg';
   static const String chat = '${iconPath}chat.svg';
-  static const String home = '${iconPath}home.svg';
   static const String job = '${iconPath}job.svg';
   static const String shop = '${iconPath}shop.svg';
-  static const String track_location = '${iconPath}track_location.svg';
   static const String logout = '${iconPath}logout.svg';
-  static const String qrIcon = '${iconPath}qr_icon.svg';
   static const String share = '${iconPath}share.svg';
-  static const String experience = '${iconPath}experience.svg';
   static const String education = '${iconPath}education.svg';
-  static const String email_verified_icon =
-      '${iconPath}email_verified_icon.svg';
-  static const String caution_icon = '${iconPath}caution_icon.svg';
   static const String warningIcon = '${iconPath}warning_icon.svg';
-  static const String greenTickIcon = '${iconPath}green_tick_icon.svg';
   static const String add = '${iconPath}add.svg';
   static const String video_outline = '${iconPath}video_outline.svg';
-  static const String details = '${iconPath}details.svg';
-  static const String skill = '${iconPath}skill.svg';
-  static const String awards = '${iconPath}awards.svg';
-  static const String certificate = '${iconPath}certificate.svg';
   static const String link = '${iconPath}link.svg';
   static const String user_out_line = '${iconPath}user_out_line.svg';
   static const String download = '${iconPath}download.svg';
-  static const String more = '${iconPath}more.svg';
   static const String eye_view = '${iconPath}eye_view.svg';
-  static const String like = '${iconPath}like.svg';
   static const String earth = '${iconPath}earth.svg';
   static const String search = '${iconPath}search.svg';
-  static const String notification = '${iconPath}notification.svg';
-  static const String change_language = '${iconPath}change_language.svg';
-  static const String comment_white = '${iconPath}comment_white.svg';
-  static const String store_bg = '${iconPath}store_bg.svg';
   static const String blockIcon = '${iconPath}block_icon.svg';
   static const String commentIcon = '${iconPath}comment_icon.svg';
-  static const String languageIcon = '${iconPath}language_icon.svg';
-  static const String likeCommentShareIcon =
-      '${iconPath}like_comment_share_icon.svg';
   static const String likeIcon = '${iconPath}like_icon.svg';
-  static const String profilesIcon = '${iconPath}profiles_icon.svg';
   static const String shareIcon = '${iconPath}share_icon.svg';
   static const String viewIcon = '${iconPath}view_icon.svg';
   static const String phoneSecurity = '${iconPath}phone_security.svg';
   static const String cameraWhiteIcon = '${iconPath}camera_white_icon.svg';
   static const String uploadIcon = '${iconPath}upload_icon.svg';
   static const String folderSkyIcon = '${iconPath}folder_sky_icon.svg';
-  static const String emojiLikeIcon = '${iconPath}like.svg';
-  static const String emojiInsightfulIcon = '${iconPath}insightful.svg';
-  static const String emojiHeartIcon = '${iconPath}heart.svg';
-  static const String emojiSupportIcon = '${iconPath}support.svg';
-  static const String emojiCelebrateIcon = '${iconPath}celebrate.svg';
-  static const String repost = '${iconPath}repost.svg';
   static const String circleCheck = '${iconPath}circle_check.png';
   static const String trimmedIcon = '${iconPath}trimmed_icon.svg';
-  static const String tagOutlinedIcon = '${iconPath}tag_outlined_icon.svg';
-  static const String musicOutlinedIcon = '${iconPath}music_outlined_icon.svg';
-  static const String locationOutlinedIcon =
-      '${iconPath}location_outlined_icon.svg';
   static const String savedIcon = '${iconPath}saved_icon.svg';
-  static const String audioOutlinedIcon = '${iconPath}audio_outlined_icon.svg';
   static const String verifiedIcon = '${iconPath}verified_icon.svg';
-  static const String personFollowIcon = '${iconPath}person_follow_icon.svg';
-  static const String connectIcon = '${iconPath}connect_icon.svg';
   static const String peoplesIconYellow = '${iconPath}peoples_icon_yellow.svg';
-  static const String playIcon = '${iconPath}play_icon.svg';
   static const String settingIcon = '${iconPath}setting_icon.svg';
-  static const String electricityOutlineIcon =
-      '${iconPath}electricity_outline_icon.svg';
-  static const String cameraPlusIcon = '${iconPath}camera_plus_icon.svg';
   static const String watchIcon = '${iconPath}watch_icon.svg';
   static const String pinIcon = '${iconPath}pin_icon.svg';
   static const String filterIcon = '${iconPath}filter_icon.svg';
-  static const String companyIcon = '${iconPath}company_icon.svg';
   static const String educationJobIcon = '${iconPath}education_job_icon.svg';
   static const String experienceJobIcon = '${iconPath}experience_job_icon.svg';
   static const String fireIcon = '${iconPath}fire_icon.svg';
-  static const String jobTypeIcon = '${iconPath}job_type_icon.svg';
   static const String languageJobIcon = '${iconPath}language_job_icon.svg';
   static const String locationJobIcon = '${iconPath}location_job_icon.svg';
   static const String skillJobIcon = '${iconPath}skills_job_icon.svg';
   static const String stipendJobIcon = '${iconPath}stipend_job_icon.svg';
-  static const String workAddressIcon = '${iconPath}work_address_icon.svg';
-  static const String workLocationIcon = '${iconPath}work_location_icon.svg';
-  static const String departmentIcon = '${iconPath}department_icon.svg';
-  static const String benefitJobIcon = '${iconPath}benefits_job_icon.svg';
   static const String pdfIcon = '${iconPath}pdf_icon.svg';
-  static const String scriptIcon = '${iconPath}script_icon.svg';
   static const String illustrationIcon = '${iconPath}illustration_icon.svg';
   static const String greenCircleTickIcon =
       '${iconPath}green_circle_tick_icon.svg';
   static const String moneyOutlinedIcon = '${iconPath}money_outlined_icon.svg';
   static const String jobTimeIcon = '${iconPath}job_time_icon.svg';
   static const String verticalLineIcon = '${iconPath}vertical_line_icon.svg';
-  static const String verticalLineCompIcon =
-      '${iconPath}vertical_line_comp_icon.svg';
-  static const String moneyIcon = '${iconPath}money.svg';
-  static const String channelIcon = '${iconPath}channel.svg';
-  static const String diamondIcon = '${iconPath}diamond.svg';
-  static const String documentIcon = '${iconPath}documents.svg';
   static const String earnWithBEIcon = '${iconPath}earn.svg';
   static const String orderBookingIcon = '${iconPath}orders_booking.svg';
-  static const String personIcon = '${iconPath}person.svg';
-  static const String paymentIcon = '${iconPath}payment.svg';
-  static const String cross = '${iconPath}cross.svg';
-  static const String image = '${iconPath}image.svg';
-  static const String timelineDotLine = '${iconPath}timelinedotline.svg';
-  static const String verticalLine = '${iconPath}vertical_line_comp.svg';
-  static const String galleryWhite = '${iconPath}gallery_white.svg';
-  static const String instaIcon = '${iconPath}insta_icon.svg';
-  static const String horizontalThreeDots =
-      '${iconPath}horizontal_three_dots.svg';
-  static const String whatsappIcon = '${iconPath}whatsapp_icon.svg';
-  static const String get_contacts_person = '${iconPath}get_contacts_person.svg';
-  static const String copyIcon = '${iconPath}copy_icon.svg';
-  static const String gradientMsg = '${iconPath}msg_gradient.svg';
-  static const String storyIcon = '${iconPath}story.svg';
-  static const String messageIcon = '${iconPath}message.svg';
-  static const String travelIcon = '${iconPath}travel.svg';
-  static const String shortsIcon = '${iconPath}shorts.svg';
-  static const String more_option = '${iconPath}more_option.svg';
-  static const String angryIcon = '${iconPath}angry.svg';
-  static const String locationIcon = '${iconPath}location.svg';
-  static const String videoIcon = '${iconPath}video.svg';
+  static const String get_contacts_person =
+      '${iconPath}get_contacts_person.svg';
 
   ///Him-dev
-  static const String job_post = '${iconPath}job_post.svg';
-  static const String lightReplyIcon = '${iconPath}light_reply_icon.svg';
-  static const String forwardIcon = '${iconPath}forward_icon.svg';
-  static const String epMenuIcon = '${iconPath}ep_menu_icon.svg';
-  static const String volumeOffIcon = '${iconPath}volume_off_icon.svg';
-  static const String volumeOnIcon = '${iconPath}volume_on_icon.svg';
   static const String editIcon = '${iconPath}edit_icon.svg';
   static const String addBlueIcon = '${iconPath}add_blue_icon.svg';
   static const String deleteIcon = '${iconPath}delete_icon.svg';
   static const String notificationOutlineIcon =
       '${iconPath}notification_outline_icon.svg';
-  static const String gpsIcon = '${iconPath}gps_icon.svg';
   static const String addOutlinedIcon = '${iconPath}add_outline_icon.svg';
-  static const String photosOutlinedIcon = '${iconPath}photos_outline_icon.svg';
   static const String qa_ask_questionOutlinedIcon =
       '${iconPath}qa_ask_question_outline_icon.svg';
-  static const String shortsOutlinedIcon = '${iconPath}shorts_outline_icon.svg';
-  static const String travelOutlinedIcon = '${iconPath}travel_outline_icon.svg';
-  static const String videoOutlinedIcon = '${iconPath}video_outline_icon.svg';
   static const String uilSuitcaseOutlinedIcon =
       '${iconPath}uil_suitcase_outline_icon.svg';
   static const String locationOutlineIconGreyIcon =
@@ -201,24 +102,15 @@ class AppIconAssets {
   static const String bagIcon = '${iconPath}bag_icon.svg';
   static const String pencilIcon = '${iconPath}pencil_icon.svg';
   static const String quillChatIcon = '${iconPath}quill_chat.svg';
-  static const String clarityEventIcon = '${iconPath}clarity_event_icon.svg';
   static const String catalogIcon = '${iconPath}catalog_icon.svg';
   static const String directionIcon = '${iconPath}direction_icon.svg';
   static const String reviewIcon = '${iconPath}review_icon.svg';
   static const String distanceLocation = '${iconPath}distance_location.svg';
   static const String unlikeIcon = '${iconPath}unlike_icon.svg';
-  static const String redHeart = '${iconPath}red_heart.svg';
-  static const String profileFillIcon = '${iconPath}profile_fill_icon.svg';
-  static const String fullScreenRotateIcon = '${iconPath}full_screen_rotate_icon.svg';
-
 
   ///B-DEV
-  static const String location_bottom = '${iconPath}location_bottom.svg';
 
   static const String blueEraIcon = '${iconPath}app_icon.svg';
-  static const String chat_contact = '${iconPath}chat_contact.svg';
-  static const String chat_receive_req = '${iconPath}chat_receive_req.svg';
-  static const String chat_info_more = '${iconPath}chat_info_more.svg';
   static const String chat_smile = '${iconPath}chat_smile.svg';
   static const String chat_cmd = '${iconPath}chat_cmd.svg';
   static const String chat_share_icon = '${iconPath}chat_share_icon.svg';
@@ -226,190 +118,105 @@ class AppIconAssets {
   static const String chat_pick_media = '${iconPath}chat_pick_media.svg';
 
   static const String channelFilterIcon = '${iconPath}channel_filter_icon.svg';
-  static const String made_in_india = '${iconPath}made_in_india.svg';
   static const String upload_share = '${iconPath}upload_share.svg';
   static const String chat_search = '${iconPath}chat_search.svg';
-  static const String info_more = '${iconPath}info_more.svg';
-  static const String mage_filter = '${iconPath}mage_filter.svg';
-  static const String link_pref_profile = '${iconPath}link_pref_profile.svg';
-  static const String profile_intro_vid_icon =
-      '${iconPath}profile_intro_vid_icon.svg';
-  static const String links_profile_header_icon =
-      '${iconPath}links_profile_header_icon.svg';
-  static const String self_employed = '${iconPath}self_employed.svg';
-  static const String profile_v_settings = '${iconPath}profile_v_settings.svg';
-  static const String verify_v_profile = '${iconPath}verify_v_profile.svg';
   static const String chat_call = '${iconPath}chat_call.svg';
-  static const String chat_video_call = '${iconPath}chat_video_call.svg';
   static const String chat_info_pop = '${iconPath}chat_info_pop.svg';
   static const String chat_mic_icon = '${iconPath}chat_mic_icon.svg';
   static const String carbon_delivery = '${iconPath}carbon_delivery.svg';
-  static const String profile_copy = '${iconPath}profile_copy.svg';
-  static const String diamond_premium = '${iconPath}diamond_premium.svg';
 
-  static const String profile_settings_money =
-      '${iconPath}profile_settings_money.svg';
-  static const String profile_setting_booking = '${iconPath}booking.svg';
-  static const String profile_settings_bank =
-      '${iconPath}profile_settings_bank.svg';
-  static const String profile_settings_channel =
-      '${iconPath}profile_settings_channel.svg';
-  static const String profile_settings_doc =
-      '${iconPath}profile_settings_doc.svg';
-  static const String profile_settings_profile_view =
-      '${iconPath}profile_settings_profile_view.svg';
-  static const String profile_settings_help =
-      '${iconPath}profile_settings_help.svg';
-  static const String profile_pen_tool = '${iconPath}profile_pen_tool.svg';
   static const String profile_camera_pic = '${iconPath}profile_camera_pic.svg';
-  static const String profile_request_chat =
-      '${iconPath}profile_request_chat.svg';
-  static const String profile_orders_view_icon =
-      '${iconPath}profile_orders_view_icon.svg';
   static const String send_message_chat = '${iconPath}send_message_chat.svg';
-  static const String self_video_upload = '${iconPath}self_video_upload.svg';
   static const String message_post = '${iconPath}message_post.svg';
   static const String black_gallery = '${iconPath}black_gallery.svg';
   static const String pen_line = '${iconPath}pen_line.svg';
   static const String close_black = '${iconPath}close_black.svg';
   static const String mic = '${iconPath}mic.svg';
-  static const String teacher = '${iconPath}teacher.svg';
-  static const String electrician = '${iconPath}electrician.svg';
-  static const String painter = '${iconPath}painter.svg';
-  static const String cook = '${iconPath}cook.svg';
-  static const String plumber = '${iconPath}plumber.svg';
-  static const String driver = '${iconPath}driver.svg';
-  static const String chat_input_audio = '${iconPath}chat_input_audio.svg';
-  static const String chat_input_camera = '${iconPath}chat_input_camera.svg';
   static const String chat_input_contact = '${iconPath}chat_input_contact.svg';
-  static const String chat_input_document = '${iconPath}chat_input_document.svg';
+  static const String chat_input_document =
+      '${iconPath}chat_input_document.svg';
   static const String chat_input_gallery = '${iconPath}chat_input_gallery.svg';
-  static const String chat_input_location = '${iconPath}chat_input_location.svg';
-  static const String chat_input_add_media = '${iconPath}chat_input_add_media.svg';
+  static const String chat_input_location =
+      '${iconPath}chat_input_location.svg';
+  static const String chat_input_add_media =
+      '${iconPath}chat_input_add_media.svg';
   static const String bus = '${iconPath}bus.svg';
-  static const String  car= '${iconPath}car.svg';
+  static const String car = '${iconPath}car.svg';
   static const String other = '${iconPath}other.svg';
   static const String plan = '${iconPath}plan.svg';
   static const String train = '${iconPath}train.svg';
-  // static const String  = '${iconPath}.svg';
-  static const String chat_input_quick_reply = '${iconPath}chat_input_quick_reply.svg';
+  static const String chat_input_quick_reply =
+      '${iconPath}chat_input_quick_reply.svg';
   static String chat_media_forward = "${iconPath}chat_media_forward.svg";
 
-  static String rating1="${iconPath}sad_rating.svg";
-  static String rating2="${iconPath}last_rating.svg";
-  static String rating3="${iconPath}moderatethree.svg";
-  static String rating4="${iconPath}happyfour_rating.svg";
-  static String rating5="${iconPath}happy_rating.svg";
-  static String filledstar="${iconPath}filled_rating.svg";
+  static String rating1 = "${iconPath}sad_rating.svg";
+  static String rating2 = "${iconPath}last_rating.svg";
+  static String rating3 = "${iconPath}moderatethree.svg";
+  static String rating4 = "${iconPath}happyfour_rating.svg";
+  static String rating5 = "${iconPath}happy_rating.svg";
+  static String filledstar = "${iconPath}filled_rating.svg";
   static String chat_double_tick = "${iconPath}chat_double_tick.svg";
   static String progressIndicator = "${iconPath}progress_indicator.svg";
   static String save_fill = "${iconPath}save_fill.svg";
   static String openVacancy = "${iconPath}open_vacancy.svg";
-  static String unHide = "${iconPath}un_hide.svg";
   static String hide = "${iconPath}hide.svg";
-  static String helpIcon = "${iconPath}help.svg";
-  static String frontArrow = "${iconPath}front_arrow.svg";
   static String mailIcon = "${iconPath}mail_icon.svg";
-  static String queriIcon = "${iconPath}queri.svg";
-  static String FAQIcon = "${iconPath}FAQ.svg";
   static String walletIcon = "${iconPath}wallet.svg";
 
   static String bookingEnquiries = "${iconPath}booking_&_enquiries_new.svg";
   static String channelNew = "${iconPath}channel_new.svg";
   static String earnWithBlueEra = "${iconPath}earn_with_blue_era_new.svg";
   static String helpSupport = "${iconPath}help_&_support_new.svg";
-  static String inventory = "${iconPath}inventory_new.svg";
   static String myDocuments = "${iconPath}my_documents_new.svg";
   static String payment = "${iconPath}paymentt_new.svg";
-  static String subscription = "${iconPath}subscription_new.svg";
   static String accountSetting = "${iconPath}account setting.svg";
   static String unsaved = "${iconPath}unsaved.svg";
   static String documentUploadIcon = "${iconPath}document_upload_icon.svg";
-  static String request_chat = "${iconPath}request_chat.svg";
-  static String follow_person = "${iconPath}follow_person.svg";
   static String more_setting = "${iconPath}more_setting.svg";
   static String reel_like = "${iconPath}reel_like.svg";
   static String reel_like_fill = "${iconPath}reel_like_fill.svg";
-  static String reel_save= "${iconPath}reel_save.svg";
-  static String reel_save_fill= "${iconPath}reel_save_fill.svg";
-  static String reel_comment= "${iconPath}reel_comment.svg";
-  static String reelShare= "${iconPath}reel_share.svg";
-  static String playStore= "${iconPath}play_store.svg";
-  static String appStore= "${iconPath}app_store.svg";
-  static String logout_new= "${AppConstants.baseIconAssetsPath}logout_new.png";
- 
+  static String reel_save = "${iconPath}reel_save.svg";
+  static String reel_save_fill = "${iconPath}reel_save_fill.svg";
+  static String reel_comment = "${iconPath}reel_comment.svg";
+  static String reelShare = "${iconPath}reel_share.svg";
+  static String logout_new = "${AppConstants.baseIconAssetsPath}logout_new.png";
+
   static String visiting_bg = "${iconPath}bgcontainerTemp.svg";
-  static String bE_logo = "${iconPath}bE_logo.svg";
   static String round_black_edit = "${iconPath}round_black_edit.svg";
   static String more_vertical = "${iconPath}more_vertical.svg";
   static String share_bold = "${iconPath}share_bold.svg";
-  static String calender_new = "${iconPath}calender_new.svg";
   static String location_new = "${iconPath}location_new.svg";
   static String mail_new = "${iconPath}mail_new.svg";
-  static String channel_video_new = "${iconPath}channel_video_new.svg";
   static String profile_share = "${iconPath}profile_share.svg";
-  static String profile_report = "${iconPath}profile_report.svg";
-  static String businessprofile_location = "${iconPath}businessprofile_location.svg";
   static String clock_new = "${iconPath}clock_new.svg";
-  static String  eye_new= "${iconPath}eye_new.svg";
+  static String eye_new = "${iconPath}eye_new.svg";
   static String comment_new = "${iconPath}comment_new.svg";
-  static String userNew = "${iconPath}user_new.svg";
   static String like_new = "${iconPath}like_new.svg";
   static String repost_new = "${iconPath}repost_new.svg";
   static String star_rounded = "${iconPath}star_rounded.svg";
   static String save_new = "${iconPath}save_new.svg";
-  static String follow_new = "${iconPath}follow_new.svg";
   static String report_new = "${iconPath}report_new.svg";
   static String block_user = "${iconPath}block_user.svg";
-  static String cards = "${iconPath}cards.svg";
   static String pencilEditIcon = "${iconPath}pencil_edit_icon.svg";
   static String colorTemplateIcon = "${iconPath}color_template_icon.svg";
-  static String upload_video_service = "${iconPath}upload_video_service.svg";
   static String product_sale = "${iconPath}product_sale.svg";
   static String service_provider = "${iconPath}service_provider.svg";
-  static String food_service = "${iconPath}food_service.svg";
   static String other_type = "${iconPath}other_type.svg";
-  static String place_holder_image = "${AppConstants.baseImageAssetsPath}place_holder_image.png";
+  static String place_holder_image =
+      "${AppConstants.baseImageAssetsPath}place_holder_image.png";
   static String storeWatch = "${iconPath}store_watch.svg";
-  static String ai_generative = "${AppConstants.baseIconAssetsPath}ai_generative.png";
-  static String open_close = "${AppConstants.baseIconAssetsPath}open_close.png";
+  static String ai_generative =
+      "${AppConstants.baseIconAssetsPath}ai_generative.png";
   static String location_track = "${iconPath}location_track.svg";
   static String homeServiceIcon = "${iconPath}home_service_icon.svg";
-  static String plumberIcon = "${iconPath}plumber_icon.svg";
-  static String deliveryPartnerIcon = "${iconPath}delivery_partner_icon.svg";
-  static String homeMadeProductIcon = "${iconPath}home_made_product_icon.svg";
-  static String homeMadeFoodIcon = "${iconPath}home_made_food_icon.svg";
   static String rentalServiceIcon = "${iconPath}rental_service_icon.svg";
-  static String counsellingServiceIcon = "${iconPath}counselling_service_icon.svg";
-  static String teachingIcon = "${iconPath}teaching_icon.svg";
-  static String electricianIcon = "${iconPath}electrician_icon.svg";
-  static String technicianIcon = "${iconPath}technician_icon.svg";
-  static String mainCleanerIcon = "${iconPath}main_cleaner_icon.svg";
-  static String carpenterIcon = "${iconPath}carpenter_icon.svg";
-  static String taxiDriverIcon = "${iconPath}taxi_driver_icon.svg";
-  static String mechanicIcon = "${iconPath}mechanic_icon.svg";
-  static String mistryIcon = "${iconPath}mistry_icon.svg";
-  static String painterIcon = "${iconPath}painter_icon.svg";
-  static String gardenerIcon = "${iconPath}gardener_icon.svg";
-  static String securityPersonIcon = "${iconPath}security_person_icon.svg";
-  static String tiffinIcon = "${iconPath}tiffin_icon.svg";
-  static String sweetIcon = "${iconPath}sweet_icon.svg";
+
   static String homeStayIcon = "${iconPath}home_stay_icon.svg";
-  static String roomIcon = "${iconPath}room_icon.svg";
-  static String vehicleIcon = "${iconPath}vehicle_icon.svg";
-  static String beautyServiceIcon = "${iconPath}beauty_service_icon.svg";
-  static String tailoringIcon = "${iconPath}tailoring_icon.svg";
-  static String digitalMarketingIcon = "${iconPath}digital_marketing_icon.svg";
-  static String interiorIcon = "${iconPath}interior_icon.svg";
   static String staggeredIcon = "${iconPath}staggered_icon.svg";
   static String twoWheeler = "${iconPath}2_wheeler.svg";
   static String threeWheeler = "${iconPath}3_wheeler.svg";
   static String ace_helper = "${iconPath}ace_helper.svg";
   static String tata_407 = "${iconPath}tata_407.svg";
-  static String motorcycle = "${iconPath}motorcycle.svg";
-  static String tagIcon = "${iconPath}tag_icon.svg";
-  static String self_pickup = "${iconPath}self_pickup.svg";
-  static String pickup_by_rider = "${iconPath}pickup_by_rider.svg";
   static String empty_star = "${iconPath}empty_star.svg";
   static String fill_star = "${iconPath}fill_star.svg";
 
@@ -419,7 +226,6 @@ class AppIconAssets {
   static String emotionHumanity = "${iconPath}emotion_humanity.svg";
   static String emotionInformative = "${iconPath}emotion_informative.svg";
   static String emotionOpinionated = "${iconPath}emotion_opinionated.svg";
-  static String emotionOutrage = "${iconPath}emotion_outrage.svg";
   static String emotionPatriotism = "${iconPath}emotion_patriotism.svg";
   static String emotionRebellion = "${iconPath}emotion_rebellion.svg";
   static String emotionSarcasm = "${iconPath}emotion_sarcasm.svg";
@@ -427,21 +233,16 @@ class AppIconAssets {
   static String emotionSympathy = "${iconPath}emotion_sympathy.svg";
   static String emotionUpdate = "${iconPath}emotion_update.svg";
 
-  static String commentAgree = "${iconPath}comment_agree.svg";
   static String commentAngry = "${iconPath}comment_angry.svg";
   static String commentAppreciate = "${iconPath}comment_appreciate.svg";
-  static String commentCapa = "${iconPath}comment_capa.svg";
-  static String commentCelebrate = "${iconPath}comment_celebrate.svg";
+
   static String commentCriticise = "${iconPath}comment_criticise.svg";
-  static String commentCurious = "${iconPath}comment_curious.svg";
   static String commentDisagree = "${iconPath}comment_disagree.svg";
-  static String commentEmpathy = "${iconPath}comment_empathy.svg";
   static String commentFunny = "${iconPath}comment_funny.svg";
   static String commentInspired = "${iconPath}comment_inspired.svg";
   static String commentQuestion = "${iconPath}comment_question.svg";
   static String commentSuggest = "${iconPath}comment_suggest.svg";
   static String commentSupport = "${iconPath}comment_support.svg";
-  static String commentWarn = "${iconPath}comment_warn.svg";
   static String bedIcon = "${iconPath}bed_icon.svg";
   static String multiPersonsIcon = "${iconPath}multi_persons_icon.svg";
   static String seatIcon = "${iconPath}seat_icon.svg";
@@ -449,29 +250,18 @@ class AppIconAssets {
   static String rider_otp = "${iconPath}rider_otp.svg";
   static String rider_call_icon = "${iconPath}rider_call_icon.svg";
   static String app_setting_language = "${iconPath}app_setting_language.svg";
-  static String  app_setting_verification= "${iconPath}app_setting_verification.svg";
-  static String app_setting_manage_subscription = "${iconPath}app_setting_manage_subscription.svg";
-  static String  app_setting_change_phone_number= "${iconPath}app_setting_change_phone_number.svg";
-  static String app_setting_change_notification = "${iconPath}app_setting_change_notification.svg";
-  static String  app_setting_edit_profile= "${iconPath}app_setting_edit_profile.svg";
-
+  static String app_setting_verification =
+      "${iconPath}app_setting_verification.svg";
+  static String app_setting_manage_subscription =
+      "${iconPath}app_setting_manage_subscription.svg";
+  static String app_setting_change_phone_number =
+      "${iconPath}app_setting_change_phone_number.svg";
+  static String app_setting_edit_profile =
+      "${iconPath}app_setting_edit_profile.svg";
 
   /// stores icons
-  static String groceryIcon = "${iconPath}grocery_icon.svg";
-  static String storeIcon = "${iconPath}store_icon.svg";
-  static String rentKeyIcon = "${iconPath}rent_key_icon.svg";
-  static String productIcon = "${iconPath}product_icon.svg";
   static String foodIcon = "${iconPath}food_icon.svg";
   static String riderIcon = "${iconPath}rider_icon.svg";
-  static String doctorsIcon = "${iconPath}doctors_icon.svg";
-  static String hospitalIcon = "${iconPath}hospital_icon.svg";
-  static String fastFoodQuickServiceIcon = "${iconPath}fast_food_quick_service_icon.svg";
-  static String multiCuisineRestroIcon = "${iconPath}multi_cuisine_restro_icon.svg";
-  static String groceryVegetableDairyIcon = "${iconPath}grocery_vegetable_dairy_icon.svg";
-  static String nonVegRestaurantIcon = "${iconPath}non_veg_restaurant_icon.svg";
-  static String vegRestaurantIcon = "${iconPath}veg_restaurant_icon.svg";
-  static String sweetBakeryDrinkIcon = "${iconPath}sweet_bakery_drink_icon.svg";
-  static String restaurantIcon = "${iconPath}restaurant_icon.svg";
   static String cartIcon = "${iconPath}cart_icon.svg";
   static String socialNetworkIcon = "${iconPath}social_network_icon.svg";
   static String referral = "${iconPath}referral.svg";
@@ -479,115 +269,44 @@ class AppIconAssets {
   static String finderIcon = "${iconPath}finder_icon.svg";
   static String menIcon = "${iconPath}men_icon.svg";
 
-  static String politicianIcon = "${iconPath}politician_icon.svg";
-  static String socialistIcon = "${iconPath}socialist_icon.svg";
-  static String journalistIcon = "${iconPath}journalist_icon.svg";
-  static String artistIcon = "${iconPath}artist_icon.svg";
-  static String industrialistIcon = "${iconPath}industrialist_icon.svg";
-  static String seniorCitizenIcon = "${iconPath}senior_citizen_icon.svg";
-  static String govtEmpIcon = "${iconPath}govt_emp_icon.svg";
-  static String pvtEmpIcon = "${iconPath}pvt_emp_icon.svg";
-  static String ngoSocietyIcon = "${iconPath}ngo_society_icon.svg";
-  static String govtDeptIcon = "${iconPath}govt_dept_icon.svg";
-  static String contentCreaterIcon = "${iconPath}content_creater_icon.svg";
-
-  static String otherBusinessRelatedIcon = "${iconPath}other_business_related_icon.svg";
   static String refreshIcon = "${iconPath}refresh_icon.svg";
-
-  static String directorIcon = "${iconPath}director_icon.svg";
-  static String homeMakerIcon = "${iconPath}home_maker_icon.svg";
-  static String studentIcon = "${iconPath}student_icon.svg";
-  static String skilledWorkerIcon = "${iconPath}skilled_worker_icon.svg";
-  static String farmerIcon = "${iconPath}farmer_icon.svg";
-  static String aiChatbotIcon = "${iconPath}ai_chatbot_icon.svg";
 
   static String warningOutlineIcon = "${iconPath}warning_outline_icon.svg";
   static String blueStarsIcon = "${iconPath}blue_stars_icon.svg";
   static String removeOutlinedIcon = "${iconPath}remove_outlined_icon.svg";
-
-  static String toggol_buttons = "${iconPath}toggol_buttons.svg";
-  static String clockIcon = "${iconPath}clock_icon.svg";
 
   static String cartListIcon = "${iconPath}cart_list_icon.svg";
   static String handPriceIcon = "${iconPath}hand_price_icon.svg";
   static String green_tick_icon = "${iconPath}green_tick.svg";
   static String takeFranchiseIcon = "${iconPath}franchise.svg";
   static String outlinedDocument = "${iconPath}outlined_document.svg";
-  static String uploadOutlinedIcon = "${iconPath}upload_outlined_icon.svg";
   static String discountTagIcon = "${iconPath}discount_tag.svg";
   static String discountTagGreyIcon = "${iconPath}discount_tag_grey.svg";
   static String discountTagWhiteIcon = "${iconPath}discount_tag_white.svg";
 
   /// Grocery Super Category svg
-  static const groceryIconPath = AppConstants.baseGroceryAssetsPath;
 
-  static const String groceryCookingGrey = "${groceryIconPath}grocery_cooking_grey.svg";
-  static const String dairyBeveragesGrey = "${groceryIconPath}dairy_beverages_grey.svg";
-  static const String vegetablesFruitGrey = "${groceryIconPath}vegetables_fruit_grey.svg";
-  static const String personalBabyCareGrey = "${groceryIconPath}personal_baby_care_grey.svg";
-  static const String kitchenDiningGrey = "${groceryIconPath}kitchen_dining_grey.svg";
-  static const String cleaningMaintenanceGrey = "${groceryIconPath}cleaning_maintenance_grey.svg";
-  static const String electronicsAppliancesGrey = "${groceryIconPath}electronics_appliances_grey.svg";
-  static const String utilityOrganisersGrey = "${groceryIconPath}utility_organisers_grey.svg";
-  static const String homeFurnishingDecorGrey = "${groceryIconPath}home_furnishing_decor_grey.svg";
-  static const String packagedFoodGrey = "${groceryIconPath}packaged_food_grey.svg";
-  static const String stationarySportsGrey = "${groceryIconPath}stationary_sports_grey.svg";
-  static const String giftingSeasonalGrey = "${groceryIconPath}gifting_seasonal_grey.svg";
-
-
-  // static const String groceryItemsColorful = "${iconPath}grocery_items_colorful.svg";
-  // static const String vegetablesColorful = "${iconPath}vegetables_colorful.svg";
-  // static const String fruitsColorful = "${iconPath}fruits_colorful.svg";
-  // static const String bakeryNamkeenItemsColorful = "${iconPath}bakery_colorful.svg";
-  // static const String dairyFrozenItemsColorful = "${iconPath}dairy_products_colorful.svg";
-  // static const String crockeryColorful = "${iconPath}crockery_colorful.svg";
-  // static const String homeEssentialsColorful = "${iconPath}home_essentials_colorful.svg";
-  // static const String cleaningMaintenanceColorful = "${iconPath}cleaning_maintenance_colorful.svg";
-  // static const String beautyHealthCareColorful = "${iconPath}beauty_body_care_colorful.svg";
-  // static const String stationaryColorful = "${iconPath}stationary_colorful.svg";
-  // static const String tiffinColorful = "${iconPath}tiffin_colorful.svg";
-  // static const String breakfastColorful = "${iconPath}breakfast_colorful.svg";
-  // static const String lunchDinnerColorful = "${iconPath}lunch_dinner_colorful.svg";
-  // static const String fastFoodColorful = "${iconPath}fast_food_colorful.svg";
-  // static const String sweetsColorful = "${iconPath}sweets_colorful.svg";
-  // static const String restaurantColorful = "${iconPath}restaurant_colorful.svg";
-  static const String groceryItems = "${iconPath}grocery_items.svg";
-  static const String vegetables = "${iconPath}vegetables.svg";
-  static const String fruits = "${iconPath}fruits.svg";
-  static const String bakeryNamkeenItems = "${iconPath}bakery.svg";
-  static const String dairyFrozenItems = "${iconPath}dairy_products.svg";
-  static const String crockery = "${iconPath}crockery.svg";
-  static const String homeEssentials = "${iconPath}home_essentials.svg";
-  static const String cleaningMaintenance = "${iconPath}cleaning_maintenance.svg";
-  static const String beautyHealthCare = "${iconPath}beauty_body_care.svg";
-  static const String stationary = "${iconPath}stationary.svg";
   static const String time_table = "${iconPath}time_table.svg";
-  static const String  management_trust= "${iconPath}management_trust.svg";
-  static const String  about_us= "${iconPath}about_us.svg";
-  static const String student_corner = "${iconPath}student_corner.svg";
+  static const String management_trust = "${iconPath}management_trust.svg";
+  static const String about_us = "${iconPath}about_us.svg";
   static const String courses_programs = "${iconPath}courses_programs.svg";
-  static const String academics = "${iconPath}academics.svg";
-  static const String  website_click= "${iconPath}website_click.svg";
-  static const String  principal_director_message= "${iconPath}principal_director_message.svg";
-  static const String  vision_mission= "${iconPath}vision_mission.svg";
+  static const String website_click = "${iconPath}website_click.svg";
+  static const String principal_director_message =
+      "${iconPath}principal_director_message.svg";
+  static const String vision_mission = "${iconPath}vision_mission.svg";
   static const String principal = "${iconPath}principal.svg";
-  static const String  result= "${iconPath}result.svg";
-  static const String  notices_news= "${iconPath}notices_news.svg";
-  static const String  gallery_round= "${iconPath}gallery_round.svg";
-  static const String campus_life = "${iconPath}campus_life.svg";
-  static const String  career_jobs= "${iconPath}career_jobs.svg";
+  static const String result = "${iconPath}result.svg";
   static const String contact_us = "${iconPath}contact_us.svg";
   static const String green_tick_rounded = "${iconPath}green_tick_rounded.svg";
   static const String history = "${iconPath}history.svg";
-  static const String  departments= "${iconPath}departments.svg";
-  static const String  faculty_details= "${iconPath}faculty_details.svg";
-  static const String  academic_calendar= "${iconPath}academic_calendar.svg";
+  static const String departments = "${iconPath}departments.svg";
+  static const String faculty_details = "${iconPath}faculty_details.svg";
+  static const String academic_calendar = "${iconPath}academic_calendar.svg";
   static const String syllabus = "${iconPath}syllabus.svg";
-  static const String  exam_schedule= "${iconPath}exam_schedule.svg";
+  static const String exam_schedule = "${iconPath}exam_schedule.svg";
   static const String downloads_new = "${iconPath}downloads_new.svg";
-  static const String edit_banner_icon = "${AppConstants.baseIconAssetsPath}edit_banner_icon.png";
-  // static const String  = "${iconPath}.svg";
-  static const String searchJobIcon = "${iconPath}search_job_icon.svg";
+  static const String edit_banner_icon =
+      "${AppConstants.baseIconAssetsPath}edit_banner_icon.png";
   static const String riderIconColorful = "${iconPath}rider_icon_colorful.svg";
   static const String franchiseIcon = "${iconPath}franchise_icon.svg";
   static const String warningRedIcon = "${iconPath}warning_red_icon.svg";
@@ -595,86 +314,69 @@ class AppIconAssets {
   static const String boiled = "${iconPath}boiled.svg";
   static const String occupancy = "assets/category/hotel_service/occupancy.svg";
   static const String bad = "assets/category/hotel_service/bad.svg";
-  static const String UPLOAD_DOCUMENT = "assets/category/hotel_service/UPLOAD_DOCUMENT.svg";
+  static const String UPLOAD_DOCUMENT =
+      "assets/category/hotel_service/UPLOAD_DOCUMENT.svg";
   static const String other_privacy = "${iconPath}other_privacy.svg";
-  static const String  other_timing= "${iconPath}other_timing.svg";
-  static const String  other_services= "${iconPath}other_services.svg";
-  static const String other_announcements = "${iconPath}other_announcements.svg";
-  static const String  other_gallery= "${iconPath}other_gallery.svg";
+  static const String other_timing = "${iconPath}other_timing.svg";
+  static const String other_services = "${iconPath}other_services.svg";
+  static const String other_announcements =
+      "${iconPath}other_announcements.svg";
+  static const String other_gallery = "${iconPath}other_gallery.svg";
   static const String other_careers = "${iconPath}other_careers.svg";
   static const String other_products = "${iconPath}other_products.svg";
   static const String other_management = "${iconPath}other_management.svg";
-  static const String  other_staffs= "${iconPath}other_staffs.svg";
-  static const String other_office_facility = "${iconPath}other_office_facility.svg";
-  static const String  other_org_about= "${iconPath}other_org_about.svg";
-  static const String  other_download= "${iconPath}other_download.svg";
-  static const String  other_news= "${iconPath}other_news.svg";
-  static const String  other_blog= "${iconPath}other_blog.svg";
+  static const String other_staffs = "${iconPath}other_staffs.svg";
+  static const String other_office_facility =
+      "${iconPath}other_office_facility.svg";
+  static const String other_org_about = "${iconPath}other_org_about.svg";
+  static const String other_download = "${iconPath}other_download.svg";
+  static const String other_news = "${iconPath}other_news.svg";
+  static const String other_blog = "${iconPath}other_blog.svg";
   static const String professional = "${iconPath}professional.svg";
   static const String skillService = "${iconPath}skill_service.svg";
   static const String socialProfile = "${iconPath}social_profile.svg";
   static const String carTaxiGigWorker = "${iconPath}car_taxi_gig_worker.svg";
-  static const String  chat_find= "${iconPath}chat_find.svg";
-  static const String hospitalVisionIcon = "${AppConstants.baseImageAssetsPath}vision_hospital_icon.png";
-  static const String hospitalHistoryIcon = "${AppConstants.baseImageAssetsPath}hospital_history_icon.png";
-  static const String admission_cell = "${AppConstants.baseImageAssetsPath}admission_cell.png";
+  static const String hospitalHistoryIcon =
+      "${AppConstants.baseImageAssetsPath}hospital_history_icon.png";
+  static const String admission_cell =
+      "${AppConstants.baseImageAssetsPath}admission_cell.png";
   static const String aboutProfessional = "${iconPath}aboutProfessional.svg";
   static const String availability = "${iconPath}availability.svg";
-  static const String  basicProfile= "${iconPath}basicProfile.svg";
-  static const String  caseStudies= "${iconPath}caseStudies.svg";
+  static const String basicProfile = "${iconPath}basicProfile.svg";
+  static const String caseStudies = "${iconPath}caseStudies.svg";
   static const String engagementModel = "${iconPath}engagementModel.svg";
-  static const String galleryCertifications = "${iconPath}galleryCertifications.svg";
-  static const String  leadsSection= "${iconPath}leadsSection.svg";
+  static const String galleryCertifications =
+      "${iconPath}galleryCertifications.svg";
   static const String servicesOffered = "${iconPath}servicesOffered.svg";
-  static const String  transport_from_location= "${iconPath}transport_from_location.svg";
-  static const String  tranport_location_pointer= "${iconPath}tranport_location_pointer.svg";
-  static const String  transport_location_exchange= "${iconPath}transport_location_exchange.svg";
-  static const String  transport_bike= "${iconPath}transport_bike.svg";
-  static const String  transport_taxi= "${iconPath}transport_taxi.svg";
-  static const String  transport_auto= "${iconPath}transport_auto.svg";
-  static const String  transport_big_auto= "${iconPath}transport_big_auto.svg";
-  static const String  transport_7_seater= "${iconPath}transport_7_seater.svg";
-  static const String  transport_load_auto= "${iconPath}transport_load_auto.svg";
-  static const String  transport_truck= "${iconPath}transport_truck.svg";
-  static const String  transport_container= "${iconPath}transport_container.svg";
-  static const String  social_activity= "${iconPath}social_activity.svg";
-  static const String  social_activity_status= "${iconPath}social_activity_status.svg";
-  static const String  job_post_black= "${iconPath}job_post_black.svg";
+  static const String transport_from_location =
+      "${iconPath}transport_from_location.svg";
+  static const String tranport_location_pointer =
+      "${iconPath}tranport_location_pointer.svg";
+  static const String transport_location_exchange =
+      "${iconPath}transport_location_exchange.svg";
+  static const String transport_bike = "${iconPath}transport_bike.svg";
+  static const String transport_taxi = "${iconPath}transport_taxi.svg";
+  static const String transport_auto = "${iconPath}transport_auto.svg";
+  static const String transport_big_auto = "${iconPath}transport_big_auto.svg";
+  static const String transport_7_seater = "${iconPath}transport_7_seater.svg";
+  static const String transport_load_auto =
+      "${iconPath}transport_load_auto.svg";
+  static const String transport_truck = "${iconPath}transport_truck.svg";
+  static const String transport_container =
+      "${iconPath}transport_container.svg";
 
-  static const String  OphthalmologyENT= "${iconPath}OphthalmologyENT.svg";
-  static const String  BasicBloodTest= "${iconPath}BasicBloodTest.svg";
-  static const String  Pathology= "${iconPath}Pathology.svg";
-  static const String PulmonologyDiagnostics = "${iconPath}PulmonologyDiagnostics.svg";
-  static const String Radiology = "${iconPath}Radiology.svg";
-  static const String OthersLab = "${iconPath}OthersLab.svg";
-  static const String community_tab = "${iconPath}community_tab.svg";
-  static const String ott_tab = "${iconPath}ott_tab.svg";
-  static const String save_tab = "${iconPath}save_tab.svg";
   static const String drawer_more = "${iconPath}drawer_more.svg";
-  static const String diag_dept = "${iconPath}diag_dept.svg";
-  static const String emergency_care = "${iconPath}emergency_care.svg";
-  static const String ipd = "${iconPath}ipd.svg";
-  static const String  opd = "${iconPath}opd.svg";
-  static const String  medical_store= "${iconPath}medical_store.svg";
-  static const String other_facilities = "${iconPath}other_facilities.svg";
 
-  static const String GeneralWard = "${iconPath}GeneralWard.svg";
-  static const String  SemiPrivateWard= "${iconPath}SemiPrivateWard.svg";
-  static const String PrivateWard = "${iconPath}PrivateWard.svg";
-  static const String IsolationWard = "${iconPath}IsolationWard.svg";
-  static const String  PediatricWard= "${iconPath}PediatricWard.svg";
-  static const String  MaternityWard= "${iconPath}MaternityWard.svg";
-  static const String  Casualty= "${iconPath}Casualty.svg";
+  static const String Casualty = "${iconPath}Casualty.svg";
   static const String TraumaCare = "${iconPath}TraumaCare.svg";
   static const String IntensiveCareUnit = "${iconPath}IntensiveCareUnit.svg";
   static const String CardiacCareUnit = "${iconPath}CardiacCareUnit.svg";
-  static const String Neonatal= "${iconPath}Neonatal.svg";
+  static const String Neonatal = "${iconPath}Neonatal.svg";
   static const String PICU = "${iconPath}PICU.svg";
   static const String CashLessInsurance = "${iconPath}CashLessInsurance.svg";
-  static const String  PMYojana= "${iconPath}PMYojana.png";
+  static const String PMYojana = "${iconPath}PMYojana.png";
   static const String BloodBank = "${iconPath}BloodBank.svg";
-  static const String Ambulance  = "${iconPath}Ambulance.svg";
-  static const String subscriptionSuccessIcon = "${iconPath}subscription_success_icon.svg";
+  static const String Ambulance = "${iconPath}Ambulance.svg";
   static const String emerg_call = "${iconPath}emerg_call.svg";
   static const String diag_dept_view = "${iconPath}diag_dept_view.svg";
   static const String medical_view = "${iconPath}medical_view.svg";
@@ -683,9 +385,8 @@ class AppIconAssets {
   static const String pm_yojna_icon = "${iconPath}pm_yojna_icon.png";
   static const String questionMarkIcon = "${iconPath}question_mark_icon.svg";
   static const String productCartIcon = "${iconPath}product_cart_icon.svg";
-  // static const String transporterIcon = "${iconPath}transporter_icon.svg";
-  // static const String selfPickupIcon = "${iconPath}self_pickup_icon.svg";
-  static const String morningBreakfastIcon = "${iconPath}morning_breakfast_icon.svg";
+  static const String morningBreakfastIcon =
+      "${iconPath}morning_breakfast_icon.svg";
   static const String morningLunchIcon = "${iconPath}morning_lunch_icon.svg";
   static const String nightDinnerIcon = "${iconPath}night_dinner_icon.svg";
   static const String businessCardIcon = "${iconPath}business_card_icon.svg";
@@ -693,6 +394,4 @@ class AppIconAssets {
   static const String sweetsIcon = "${iconPath}sweets_icon.svg";
   static const String namkeenIcon = "${iconPath}namkeen_icon.svg";
   static const String picklesIcon = "${iconPath}pickles_icon.svg";
-  static const String locationWithTime = "${iconPath}location_with_time.svg";
-
 }

@@ -80,7 +80,7 @@ class _ProductSelfPickUpCartScreenState
       final qty = controller.getQuantity(id);
       final variants = p.product.sellerClassification?.variants ?? [];
       final sp =
-          variants.isNotEmpty ? (variants.first.sellingPrice ?? 0) : 0;
+          variants.isNotEmpty ? (variants.first.sellingPrice) : 0;
       total += sp * qty;
     }
     return total;
@@ -106,8 +106,8 @@ class _ProductSelfPickUpCartScreenState
     for (var p in items) {
       final variants = p.product.sellerClassification?.variants ?? [];
       if (variants.isEmpty) continue;
-      final mrp = (variants.first.mrp ?? 0).toDouble();
-      final sp = (variants.first.sellingPrice ?? 0).toDouble();
+      final mrp = (variants.first.mrp).toDouble();
+      final sp = (variants.first.sellingPrice).toDouble();
       if (mrp <= 0 || sp <= 0 || sp >= mrp) continue;
       total += ((mrp - sp) / mrp) * 100;
       count++;

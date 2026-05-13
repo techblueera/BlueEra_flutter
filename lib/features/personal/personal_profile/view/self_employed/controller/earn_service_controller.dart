@@ -10,9 +10,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/widget/consultin
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/home_made_food_profile_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/home_made_product_profile_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/home_service_profile_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/widget/gig_work_service_bottom_sheet.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/rental_service_guide_bottom_sheet.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/widget/self_work_service_guide_bottom_sheet.dart';
 import 'package:BlueEra/widgets/collapsible_grid_model.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';

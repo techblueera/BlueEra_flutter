@@ -10,7 +10,6 @@ class AppColors {
   static const black25 = Color(0x40000000);
   static const blackD9 = Color(0xD9161F28);
   static const blue3F = Color(0xFF23313F);
-  static const blue2A = Color(0xFF17212A);
   static const blue35 = Color(0xFF1D2935);
   static const whiteEE = Color(0xFFEEEEEE);
   static const white12 = Color(0x1FFFFFFF);
@@ -34,10 +33,7 @@ class AppColors {
   static final shimmer = Color(0xFFC1C7E4).withValues(alpha: 0.5);
   static const greyCA = Color(0xFFCDCACA);
   static const greenLight = Color(0xFF5FD568);
-  static const pinkE2 = Color(0xFFE24577);
-  static const white99 = Color(0x99FFFFFF);
   static const white0D = Color(0x0DFFFFFF);
-  static const darkBlue25 = Color(0xFF141D25);
   static const borderGray = Color(0xFFB8BBC2);
   static const fillColor = Color(0xFFF5F5F5);
   static const black33 = Color(0xff191A33);
@@ -103,7 +99,6 @@ class AppColors {
   static const rating = Color(0xFFFABC00);
   static const green0B = Color(0xFF0BC041);
   static const greyLite = Color(0xFFCCCCCC);
-  static const blueShade = Color(0xFF0085FE);
   static const green1A = Color(0xFF1AA260);
   static const yellowPro = Color(0xFFFECC2F);
   static const skyBlueE4 = Color(0xFFE4F2FF);
@@ -125,17 +120,11 @@ class AppColors {
   static const whiteE91 = Color(0xffE9E9E9);
   static const greyDF = Color(0xFFDFDFDF);
   static const red33 = Color(0xFFFF2D33);
-  static const lightGreenShade = Color(0xFF78EDA7);
   static const redE4 = Color(0xFFFFE6E4);
   static const boxBg = Color(0xFFF2F2F2);
-  static const circleBg = Color(0x1AFFFFFF);
   static const placeHolder = Color(0xFFB0B4BF);
   static const greyPlaceHolder = Color(0xFFFAFAFA);
   static const darkBlueShade = Color(0xFF003B6C);
-  static const darkYellowShade = Color(0xFF5F4700);
-  static const darkGreenShade = Color(0xFF005305);
-  static const darkPurpleShade = Color(0xFF2F0044);
-  static const darkPinkShade = Color(0xFF600020);
   static const lightBlueShade = Color(0xFF0085FE);
   static const lightYellowShade = Color(0xFFFDF6E3);
   static const blue2D = Color(0xFF2D3142);
@@ -143,7 +132,6 @@ class AppColors {
   static const green2C = Color(0xFF2C3F25);
   static const purpleFD = Color(0xFFF0E7FD);
   static const purpleFF = Color(0xFFE0E7FF);
-  static const whiteFC = Color(0xffF5F7FC);
   static const kBlue   = Color(0xFF2563EB);
   static const kBlueDark  = Color(0xFF1D4ED8);
   static const kBlueLight = Color(0xFFEFF6FF);
@@ -154,15 +142,8 @@ class AppColors {
   static const kBg        = Color(0xFFF1F5F9);
   static const kCard      = Colors.white;
   static const kRed       = Color(0xFFEF4444);
-
-  static const blue85FE = Color(0xFF0085FE);
   static const blue5CAF = Color(0xFF005CAF);
   static const blue5CFF = Color(0xFFEBF5FF);
-  static const yellow6C = Color(0xFFFFFF6C);
-  static const purpleE9 = Color(0xFFB3CFE9);
-  static const whiteF5 = Color(0xFFF5FAFF);
-  static const green17 = Color(0xFF007F17);
-  static const grey50 = Color(0xFF334250);
   static const greenF3 = Color(0xFFE6FAF3);
   static const green7A = Color(0xFF00B87A);
 }

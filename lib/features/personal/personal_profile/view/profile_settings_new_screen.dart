@@ -59,35 +59,6 @@ class ProfileSettingsNewScreen extends StatelessWidget {
                       AppStrings.helpSupport,
                       onTap: () => Get.to(() => HelpAndSupportScreen()),
                     ),
-                    // _buildTile(
-                    //     AppIconAssets.cards, "My Cards",
-                    //     onTap: () => Get.toNamed(RouteHelper.getMoreCardsScreenRoute(),
-                    //         arguments: {ApiKeys.isFromHomeScreen: false})
-                    // ),
-                    // _buildTile(
-                    //     AppIconAssets.accountSetting,
-                    //     AppStrings.appSettings,
-                    //     onTap: () => Get.to(() => AccountSettingScreen())
-                    // ),
-
-                    // _buildTile(
-                    //     AppIconAssets.accountSetting,
-                    //     "Account Settings",
-                    //     "Language/Delete Account & More",
-                    //     onTap: () => Get.to(() => AccountSettingScreen())
-                    // ),
-                    // _buildTile(
-                    //     AppIconAssets.accountSetting,
-                    //     "Account Settings",
-                    //     "Language/Delete Account & More",
-                    //     onTap: () => Get.to(() => AccountSettingScreen())
-                    // ),
-                    // _buildTile(
-                    //     AppIconAssets.accountSetting,
-                    //     "Account Settings",
-                    //     "Language/Delete Account & More",
-                    //     onTap: () => Get.to(() => AccountSettingScreen())
-                    // ),
                   ],
                 )),
             SizedBox(height: SizeConfig.size10),

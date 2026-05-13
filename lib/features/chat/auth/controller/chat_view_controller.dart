@@ -19,7 +19,6 @@ import 'package:BlueEra/features/chat/auth/model/health_care_ask_ai_model.dart';
 import 'package:BlueEra/features/chat/auth/model/messageMediaUrl.dart';
 import 'package:BlueEra/features/chat/auth/model/service_ask_ai_model.dart';
 import 'package:BlueEra/features/chat/auth/model/travel_and_stay_ask_ai_model.dart';
-import 'package:BlueEra/widgets/collapsible_grid_model.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -403,54 +402,6 @@ class ChatViewController extends GetxController {
     'Others'
   ];
 
-  Rxn<CollapsibleGridModel> askAiFor = Rxn<CollapsibleGridModel>();
-  final List<CollapsibleGridModel> arrAskForOptions = [
-    CollapsibleGridModel(
-      name: 'Products',
-      slugId: PRODUCT,
-      icon: AppImageAssets.products,
-    ),
-    CollapsibleGridModel(
-      name: 'Foods',
-      slugId: FOOD,
-      icon: AppImageAssets.foods,
-    ),
-    CollapsibleGridModel(
-      name: 'Services',
-      slugId: SERVICE,
-      icon: AppImageAssets.services,
-    ),
-    CollapsibleGridModel(
-      name: 'Health Care',
-      slugId: HEALTHCARE_MEDICAL_SERVICES,
-      icon: AppImageAssets.healthCare,
-    ),
-    CollapsibleGridModel(
-      name: 'Education',
-      slugId: EDUCATION_TRAINING,
-      icon: AppImageAssets.education,
-    ),
-    CollapsibleGridModel(
-      name: 'Home Services',
-      slugId: HOME_SERVICES,
-      icon: AppImageAssets.homeService,
-    ),
-    CollapsibleGridModel(
-      name: 'Travel & Stay',
-      slugId: RENTAL_SERVICES,
-      icon: AppImageAssets.travelAndStay,
-    ),
-    CollapsibleGridModel(
-      name: 'Consulting Talk',
-      slugId: PROFESSIONAL,
-      icon: AppImageAssets.consultingTalk,
-    ),
-    CollapsibleGridModel(
-      name: 'Let’s Talk',
-      slugId: 'LETS_TALK',
-      icon: AppImageAssets.sampleGirlImage,
-    ),
-  ];
 
   String productInitialMessage = 'Looking for the right product? Find TVs, refrigerators, washing machines & smartphones. Browse kitchen appliances, home essentials, electronics & gifts. All from trusted sellers near you. Just tell me what you’re looking for, and I’ll take care of the rest.';
 
@@ -3665,8 +3616,6 @@ class ChatViewController extends GetxController {
             // already inserted this server message while the HTTP response
             // was in flight. Without this guard, retried pending media show
             // up twice in the conversation.
-            final alreadyExists = message.id != null &&
-                (getListOfMessageData?.any((m) => m.id == message.id) ?? false);
             // if (!alreadyExists) {
             //   getListOfMessageData?.add(message);
             // }

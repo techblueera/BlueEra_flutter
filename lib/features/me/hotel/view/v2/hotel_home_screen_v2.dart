@@ -18,7 +18,6 @@ import 'package:BlueEra/features/me/hotel/view/v2/tabs/hotel_rooms_tab_v2.dart';
 import 'package:BlueEra/features/me/hotel/view/v2/tabs/hotel_stats_tab_v2.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 
 /// Hotel "me" profile home (v2) — redesigned to mirror the layout used
 /// by `HospitalHomeScreenV2` while preserving every action surfaced by

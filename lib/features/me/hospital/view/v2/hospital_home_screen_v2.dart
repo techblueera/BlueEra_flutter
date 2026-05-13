@@ -18,7 +18,6 @@ import 'package:BlueEra/features/me/hospital/view/v2/tabs/hospital_posts_tab_v2.
 import 'package:BlueEra/features/me/hospital/view/v2/tabs/hospital_stats_tab_v2.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 
 /// Hospital "me" profile home (v2) — redesigned to match the layout used by
 /// `MedicalHomeScreenV2` while preserving every action surfaced by the

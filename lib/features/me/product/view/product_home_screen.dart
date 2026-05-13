@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
-import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -17,7 +16,6 @@ import 'package:BlueEra/features/me/product/controller/inventory_controller.dart
 import 'package:BlueEra/widgets/business_live_photo_bottom_sheet.dart';
 import 'package:BlueEra/widgets/common_business_live_photo.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:croppy/croppy.dart';
 import 'package:flutter/material.dart';

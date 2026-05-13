@@ -51,12 +51,6 @@ class _VisitingCardThirteenState extends State<VisitingCardThirteen> {
                       image: AssetImage(AppImageAssets.visitingCardBg), // local asset
                       fit: BoxFit.cover,
                     ),
-                    // boxShadow: [
-                    //   BoxShadow(
-                    //     color: AppColors.white,
-                    //     blurRadius: 4
-                    //   )
-                    // ]
                   ),
                   padding: EdgeInsets.all(baseFont * 0.6),
                   child: Column(

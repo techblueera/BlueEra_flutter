@@ -33,7 +33,6 @@ import 'package:BlueEra/features/personal/auth/controller/view_personal_details_
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/controller/rental_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/widget/rental_services_dashboard_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/self_employee_orders.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/self_profession_service_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/edit_profile_bottom_sheet.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/profile_designation_bottom_sheet.dart';

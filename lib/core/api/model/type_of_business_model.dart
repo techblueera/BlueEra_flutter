@@ -16,68 +16,6 @@ class BusinessCategory {
     required this.icon,
   });
 }
-final List<BusinessCategory> typeOfBusinessList = [
-  BusinessCategory(
-    title: "Grocery, Vegetables & Dairy",
-    subTitle: "Daily Essentials, Fresh Vegetables, Fruits, Milk & Dairy Products",
-    icon: AppIconAssets.groceryIcon, // Ensure these assets exist
-    type: BusinessType.Grocery.name,
-  ),
-  BusinessCategory(
-    title: "Food & Restaurants",
-    subTitle: "Dine-in, Cafes, Quick Service Restaurants, Sweet Shops & Bakeries",
-    icon: AppIconAssets.rentalServiceIcon,
-    type: BusinessType.Food.name,
-  ),
-  BusinessCategory(
-    title: "Stores / Shops (Retail)",
-    subTitle: "Clothes, Electronics, Toys, Beauty Products & General Retail Stores",
-    icon: AppIconAssets.product_sale,
-    type: BusinessType.Product.name,
-  ),
-  BusinessCategory(
-    title: "Healthcare Sector",
-    subTitle: "Hospitals, Clinics, Pharmacies, Diagnostic Labs & Medical Stores",
-    icon: AppIconAssets.homeServiceIcon,
-    type: BusinessType.Healthcare.name,
-  ),
-  BusinessCategory(
-    title: "Education Sector",
-    subTitle: "Schools, Coaching Centers, Libraries, Stationery & Training Institutes",
-    icon: AppIconAssets.education,
-    type: BusinessType.Siksha.name,
-  ),
-  BusinessCategory(
-    title: "Hotel & Stay",
-    subTitle: "Hotels, Resorts, Guesthouses, Hostels & Homestay Services",
-    icon: AppIconAssets.homeStayIcon,
-    type: BusinessType.Motel.name,
-  ),
-  BusinessCategory(
-    title: "Service Businesses",
-    subTitle: "Consultants, Salon, Laundry, Repair Services & Professional Agencies",
-    icon: AppIconAssets.service_provider,
-    type: BusinessType.Service.name,
-  ),
-  BusinessCategory(
-    title: "Automotive Sector",
-    subTitle: "Vehicle service, Parts, Sales, Rental, Support Services & Transport Logistic",
-    icon: AppIconAssets.service_provider,
-    type: BusinessType.Automotive.name,
-  ),
-  BusinessCategory(
-    title: "Financial Sector",
-    subTitle: "banking, Loan, Insurance, Data, Advisory Sector & Capital Sector",
-    icon: AppIconAssets.service_provider,
-    type: BusinessType.Finance.name,
-  ),
-  BusinessCategory(
-    title: "Manufacturing Units",
-    subTitle: "Factories, Industries, Production Plants & Product Creation Units",
-    icon: AppIconAssets.other_type,
-    type: BusinessType.Manufacturing.name,
-  ),
-];
 
 BusinessCategory getBusinessCategoryFromType(
     String? type,

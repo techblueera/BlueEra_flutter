@@ -23,17 +23,11 @@ class DiscoverBannerSlider extends StatefulWidget {
 class _DiscoverBannerSliderState extends State<DiscoverBannerSlider> {
   int currentPage = 0;
 
-  // final List<Map<String, String>> sliderData = const [
-  //   {"slugId": "FRANCHISE", "image": "https://img.freepik.com/premium-photo/modern-technology-digital-marketing-colorful-abstract-background-with-icons-lines_1355276-4857.jpg?semt=ais_hybrid&w=740&q=80"},
-  //   {"slugId": "FRANCHISE", "image": "https://img.freepik.com/free-photo/corporate-management-strategy-solution-branding-concept_53876-167088.jpg?semt=ais_hybrid&w=740&q=80"},
-  // ];
-
   final List<Map<String, String>> sliderData = [
     {"slugId": "FRANCHISE", "image": "assets/images/ban3.jpeg"},
     {"slugId": "BDM", "image": "assets/images/ban2.jpeg"},
     {"slugId": "QR", "image":"assets/images/ban1.jpeg"},
   ];
-  // "assets/images/ban1.jpeg"
   @override
   Widget build(BuildContext context) {
     final double bannerHeight = (MediaQuery.of(context).size.width * 3 / 4);

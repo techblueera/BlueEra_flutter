@@ -17,7 +17,6 @@ import 'package:BlueEra/features/me/school/view/v2/tabs/school_posts_tab_v2.dart
 import 'package:BlueEra/features/me/school/view/v2/tabs/school_stats_tab_v2.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 
 /// School "me" profile home (v2) — redesigned to mirror the layout used
 /// by `HospitalHomeScreenV2` while preserving every action surfaced by

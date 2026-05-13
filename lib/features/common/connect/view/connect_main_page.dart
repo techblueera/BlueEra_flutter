@@ -47,7 +47,6 @@ import '../../../chat/auth/controller/chat_pin_archive_controller.dart';
 import '../../../chat/auth/controller/chat_view_controller.dart';
 import '../../../chat/auth/model/GetChatListModel.dart';
 import '../../../chat/view/forward_screen/chat_forward_screen.dart';
-import '../../../chat/view/group_chat/add_new_group_page.dart';
 import '../../../chat/view/widget/chat_flag_bottom_sheet.dart';
 import '../../../personal/personal_profile/controller/languge_list_controller.dart';
 import '../../../../core/constants/getx_utils.dart';

@@ -54,7 +54,6 @@ import '../../../chat/auth/controller/call_controller.dart';
 import '../../../chat/auth/controller/chat_view_controller.dart';
 import '../../../chat/view/order_main_chat_screen.dart';
 import '../../../chat/view/forward_screen/chat_forward_screen.dart';
-import '../../../me/manufacture/view/manufacture_main.dart';
 import '../../delivery_partner/controller/delivery_partner_orders_controller.dart';
 import '../../delivery_partner/controller/pip_floating_page_controller.dart';
 import 'package:share_handler/share_handler.dart';
@@ -603,7 +602,6 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       return const InventoryScreen(fromBottomNavBar: true);
     } else if (_isSpecificServiceAutomotive()) {
       return const VehicleHomeScreenV2();
-      Get.toNamed(RouteHelper.getVehicleHomeScreenRoute());
     } else if (_isSpecificServiceSpecialAutomotive()) {
       // VEHICLE_SERVICE / TRANSPORT_LOGISTIC / VEHICLE_SUPPORT now have
       // their own module entry that currently reuses the OthersMain UI

@@ -17,21 +17,15 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/multipart_image_service.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
-import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
-import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
-import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/business/widgets/business_contact_map_card.dart';
 import 'package:BlueEra/features/business/widgets/business_description_card.dart';
 import 'package:BlueEra/features/business/widgets/business_qrcode_widget.dart';
 import 'package:BlueEra/features/business/widgets/business_share_banner.dart';
-import 'package:BlueEra/features/business/widgets/business_verify_now_button.dart';
 import 'package:BlueEra/widgets/business_live_photo_bottom_sheet.dart';
 import 'package:BlueEra/widgets/common_business_live_photo.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/view/add_symbol/add_symbol_screen.dart';
 import 'package:BlueEra/features/chat/view/orders_chat/orders_chat_list.dart';
-import 'package:BlueEra/features/common/Discover/model/service_model_response.dart';
-import 'package:BlueEra/features/common/Discover/view/self_employee_view_screen.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/contribution/controller/contribution_controller.dart';
@@ -40,17 +34,14 @@ import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
 import 'package:BlueEra/features/me/food/controller/restaurant_controller.dart';
 import 'package:BlueEra/features/me/food/model/category_food_product_res_model.dart';
-import 'package:BlueEra/features/me/food/model/food_home_res_model.dart';
 import 'package:BlueEra/features/me/food/view/discount_food_products_screen.dart';
 import 'package:BlueEra/features/me/medical_new/view/medical_statistics_screen.dart';
 import 'package:BlueEra/features/me/food/view/food_category_screen.dart';
-import 'package:BlueEra/features/me/food/view/food_service_gallery/food_service_photos_screen.dart';
 import 'package:BlueEra/features/me/food/view/my_food_product_screen.dart';
 import 'package:BlueEra/features/me/food/view/widget/food_product_variant_sheet.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
 import 'package:BlueEra/features/me/grocery/widget/food_type_indicator.dart';
 import 'package:BlueEra/widgets/RatingBadge.dart';
-import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
@@ -1456,37 +1447,6 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
     );
   }
 
-  Widget _earnPill() {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(24),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-        child: Container(
-          padding: EdgeInsets.symmetric(
-              horizontal: SizeConfig.size12, vertical: SizeConfig.size6),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(
-              color: const Color(0xFFC9CDD5),
-              width: 1,
-            ),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _CoinStackIcon(size: 20),
-              SizedBox(width: SizeConfig.size6),
-              CustomText('Earn',
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.secondaryTextColor),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 
   Widget _goLivePill() {
     return GestureDetector(
@@ -1555,109 +1515,6 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
   // ─────────────────────────────────────────────
   // PROFILE ROW
   // ─────────────────────────────────────────────
-  Widget _buildProfileRow(BusinessProfileDetails? profile) {
-    return Container(
-      color: Colors.white,
-      padding: EdgeInsets.symmetric(
-          horizontal: SizeConfig.size12, vertical: SizeConfig.size12),
-      child: Row(
-        children: [
-          Stack(
-            clipBehavior: Clip.none,
-            children: [
-              Obx(() {
-                final logo = _businessController.imagePath?.value ??
-                    profile?.logo ??
-                    '';
-                return Container(
-                  height: SizeConfig.size40,
-                  width: SizeConfig.size40,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border:
-                        Border.all(color: Colors.grey.shade300, width: 1),
-                  ),
-                  clipBehavior: Clip.hardEdge,
-                  child: logo.isNotEmpty
-                      ? CachedNetworkImage(
-                          imageUrl: logo,
-                          fit: BoxFit.cover,
-                          errorWidget: (_, __, ___) => _logoFallback(),
-                        )
-                      : _logoFallback(),
-                );
-              }),
-              Positioned(
-                right: -10,
-                top: 6,
-                child: Container(
-                  height: SizeConfig.size30,
-                  width: SizeConfig.size30,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.red.shade600,
-                    border: Border.all(color: Colors.white, width: 2),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          SizedBox(width: SizeConfig.size20),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Flexible(
-                      child: CustomText(
-                        profile?.businessName ?? '',
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    SizedBox(width: SizeConfig.size6),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 6, vertical: 1),
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade200,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: CustomText('+1',
-                          fontSize: 11,
-                          color: AppColors.secondaryTextColor),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 2),
-                CustomText(
-                  profile?.typeOfBusiness ?? '',
-                  fontSize: 12,
-                  color: AppColors.secondaryTextColor,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-          Obx(() => BusinessVerifyNowButton(
-                details:
-                    _businessController.businessProfileDetails.value?.data,
-              )),
-          SizedBox(width: SizeConfig.size10),
-          IconButton(
-            onPressed: _previewProfileAsVisitor,
-            icon: const Icon(Icons.remove_red_eye_outlined, size: 20),
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _logoFallback() => Container(
         color: Colors.grey.shade200,
@@ -2385,72 +2242,8 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
     );
   }
 
-  String _slotLabel(int index) {
-    switch (index) {
-      case 0:
-        return 'Road Side Image';
-      case 1:
-        return 'Reception/Counter';
-      case 2:
-        return 'Interior 1';
-      case 3:
-      default:
-        return 'Interior 2';
-    }
-  }
 
-  String _slotPlaceholder(int index) {
-    switch (index) {
-      case 0:
-        return AppImageAssets.storefrontExterior;
-      case 1:
-        return AppImageAssets.billingCounterReceptionArea;
-      case 2:
-        return AppImageAssets.interiorInsideShop;
-      case 3:
-      default:
-        return AppImageAssets.productServiceDisplay;
-    }
-  }
 
-  /// Discover-style profile preview so the owner can preview their food
-  /// profile the way customers discover it.
-  void _previewProfileAsVisitor() {
-    final profile =
-        _businessController.businessProfileDetails.value?.data;
-    final coverFromCtrl = _businessController.coverImage?.value ?? '';
-    final logoFromCtrl = _businessController.imagePath?.value ?? '';
-
-    final galleryPhotos = <String>[];
-    final restaurantData = _foodController.restaurantData.value;
-    for (final entry in restaurantData?.gallery ?? const <FoodGallery>[]) {
-      galleryPhotos.addAll(entry.imageUrls ?? const []);
-    }
-
-    final service = ServiceData()
-      ..id = profile?.id ?? businessId
-      ..name = profile?.businessName
-      ..profileImage = (coverFromCtrl.isNotEmpty
-          ? coverFromCtrl
-          : (logoFromCtrl.isNotEmpty
-              ? logoFromCtrl
-              : (profile?.logo ?? '')))
-      ..bio = profile?.businessDescription
-      ..address = profile?.address
-      ..rating = profile?.avg_rating
-      ..reviewCount = profile?.total_ratings?.toInt() ?? 0
-      ..category = profile?.typeOfBusiness
-      ..serviceMedia = ServiceMedia(photos: galleryPhotos);
-
-    Get.to(() => SelfEmployeeViewScreen(
-          service: service,
-          timingMap: const {},
-          priceDisplay: '',
-          priceBadgeText: '',
-          priceBadgeColor: AppColors.primaryColor,
-          isSelfPreview: true,
-        ));
-  }
 }
 
 class _PostMenuEntry {

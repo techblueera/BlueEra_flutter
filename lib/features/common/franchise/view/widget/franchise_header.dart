@@ -33,13 +33,6 @@ class _FranchiseHeaderState extends State<FranchiseHeader> {
         } else {
         }
       });
-      // if (isBanner) {
-      //   await widget.schoolAboutUsController.uploadSchoolLogoOrBannerImage(
-      //       uploadFile: File(image.path), uploadVia: 'coverUrl');
-      // } else {
-      //   await widget.schoolAboutUsController.uploadSchoolLogoOrBannerImage(
-      //       uploadFile: File(image.path), uploadVia: 'logoUrl');
-      // }
     }
   }
 
@@ -71,34 +64,9 @@ class _FranchiseHeaderState extends State<FranchiseHeader> {
                             topLeft: Radius.circular(10),
                             topRight: Radius.circular(10)),
                         image:
-                        // _bannerImage != null
-                        //     ?
                         DecorationImage(
                             image: AssetImage(AppImageAssets.franchise_home),
                             fit: BoxFit.fill)
-                      // : DecorationImage(
-                      // image: NetworkImage((widget
-                      //     .schoolAboutUsController
-                      //     .hotelData
-                      //     .value
-                      //     ?.profile
-                      //     ?.coverUrl
-                      //     ?.isNotEmpty ??
-                      //     false)
-                      //     ? (widget.schoolAboutUsController.hotelData
-                      //     .value?.profile?.coverUrl ??
-                      //     "")
-                      //     : widget
-                      //     .schoolAboutUsController
-                      //     .hotelData
-                      //     .value
-                      //     ?.profile
-                      //     ?.photos
-                      //     ?.first
-                      //     .imageReferences
-                      //     ?.first ??
-                      //     ""),
-                      // fit: BoxFit.cover),
                     ),
                   ),
                 ),
@@ -133,58 +101,15 @@ class _FranchiseHeaderState extends State<FranchiseHeader> {
                             BoxShadow(color: Colors.black12, blurRadius: 10)
                           ],
                           image:
-                          // _logoImage != null
-                          //     ?
+
                           DecorationImage(
                               image: AssetImage(AppImageAssets.franchise_logo),
                               fit: BoxFit.cover)
-                        // : DecorationImage(
-                        // image: NetworkImage((widget
-                        //     .schoolAboutUsController
-                        //     .hotelData
-                        //     .value
-                        //     ?.profile
-                        //     ?.logoUrl
-                        //     ?.isNotEmpty ??
-                        //     false)
-                        //     ? (widget.schoolAboutUsController.hotelData
-                        //     .value?.profile?.logoUrl ??
-                        //     "")
-                        //     : widget
-                        //     .schoolAboutUsController
-                        //     .hotelData
-                        //     .value
-                        //     ?.profile
-                        //     ?.photos
-                        //     ?.first
-                        //     .imageReferences
-                        //     ?.first ??
-                        //     ""),
-                        // fit: BoxFit.cover),
+
                       ),
                     ),
                   ),
                 ),
-                // Positioned(
-                //     bottom: 10,
-                //     left: 90,
-                //     child: InkWell(
-                //       onTap: () => _pickImage(false),
-                //       child: Container(
-                //           width: 25,
-                //           height: 25,
-                //           decoration: BoxDecoration(
-                //             shape: BoxShape.circle,
-                //             // color: AppColors.red00,
-                //             color: AppColors.secondaryTextColor
-                //                 .withValues(alpha: 0.3),
-                //           ),
-                //           child: const Icon(
-                //             Icons.camera_alt,
-                //             color: Colors.white,
-                //             size: 15,
-                //           )),
-                //     ))
               ],
             ),
           ),

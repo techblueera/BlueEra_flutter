@@ -3,7 +3,6 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
-import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';

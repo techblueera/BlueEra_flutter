@@ -14,17 +14,14 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/shimmer_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
-import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/view/orders_chat/orders_chat_list.dart';
-import 'package:BlueEra/features/business/widgets/business_verify_now_button.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
 import 'package:BlueEra/features/contribution/controller/contribution_controller.dart';
 import 'package:BlueEra/features/contribution/view/contribution_screen.dart';
-import 'package:BlueEra/features/me/grocery/widget/price_row.dart';
 import 'package:BlueEra/features/me/medical_new/view/medical_statistics_screen.dart';
 import 'package:BlueEra/features/me/me_tab_registry.dart';
 import 'package:BlueEra/features/me/product/controller/inventory_controller.dart';
@@ -32,13 +29,11 @@ import 'package:BlueEra/features/me/product/controller/product_business_profile_
 import 'package:BlueEra/features/me/product/view/all_top_selling_products_screen.dart';
 import 'package:BlueEra/features/me/product/view/product_home_screen.dart';
 import 'package:BlueEra/features/me/product/widget/attribute_two_rows.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 
 /// Inventory home (v2) — pattern background, blue gradient top bar,
@@ -1049,82 +1044,7 @@ class _InventoryScreenState extends State<InventoryScreen>
   // ─────────────────────────────────────────────
   // PROFILE ROW
   // ─────────────────────────────────────────────
-  Widget _buildProfileRow() {
-    return Container(
-      color: Colors.white,
-      padding: EdgeInsets.symmetric(
-        horizontal: SizeConfig.size12,
-        vertical: SizeConfig.size12,
-      ),
-      child: Obx(() {
-        final details =
-            viewBusinessDetailsController.businessProfileDetails.value?.data;
-        final logoFromCtrl =
-            viewBusinessDetailsController.imagePath?.value ?? '';
-        final logo =
-            logoFromCtrl.isNotEmpty ? logoFromCtrl : (details?.logo ?? '');
-        final name = details?.businessName ?? '';
-        final type = details?.typeOfBusiness ?? '';
 
-        return Row(
-          children: [
-            Container(
-              height: SizeConfig.size40,
-              width: SizeConfig.size40,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.grey.shade300, width: 1),
-              ),
-              clipBehavior: Clip.hardEdge,
-              child: logo.isNotEmpty
-                  ? CachedNetworkImage(
-                      imageUrl: logo,
-                      fit: BoxFit.cover,
-                      errorWidget: (_, __, ___) => _logoFallback(),
-                    )
-                  : _logoFallback(),
-            ),
-            SizedBox(width: SizeConfig.size12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  CustomText(
-                    name.isNotEmpty ? name : AppStrings.businessName.tr,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  if (type.isNotEmpty) ...[
-                    const SizedBox(height: 2),
-                    CustomText(
-                      type,
-                      fontSize: 12,
-                      color: AppColors.secondaryTextColor,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ],
-              ),
-            ),
-            BusinessVerifyNowButton(details: details),
-          ],
-        );
-      }),
-    );
-  }
-
-  Widget _logoFallback() => Container(
-        color: Colors.grey.shade200,
-        child: Icon(
-          Icons.storefront,
-          size: 20,
-          color: AppColors.secondaryTextColor,
-        ),
-      );
 
   // ─────────────────────────────────────────────
   // TABS — solid white card with high-contrast labels and an animated

@@ -264,46 +264,39 @@ class BusinessProfileHeader extends StatelessWidget {
                   spacing: 8,
                   runSpacing: 8,
                   children: [
-                    InkWell(
-                      onTap: () {
-                        if(kDebugMode){
-                          openBusinessDetailsEditSheet(context);
-                        }
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: AppColors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: AppColors.secondaryTextColor,
-                          ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppColors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: AppColors.secondaryTextColor,
                         ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Flexible(
-                              child: CustomText(
-                                "${details?.categoryDetails?.name ?? ''}",
-                                color: AppColors.secondaryTextColor,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w400,
-                                overflow: TextOverflow.ellipsis,
-                              ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Flexible(
+                            child: CustomText(
+                              "${details?.categoryDetails?.name ?? ''}",
+                              color: AppColors.secondaryTextColor,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w400,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            if(kDebugMode)...[
-                              SizedBox(width: SizeConfig.size10),
-                              LocalAssets(
-                                imagePath: AppIconAssets.editIcon,
-                                height: SizeConfig.size12,
-                                width: SizeConfig.size12,
-                                imgColor: AppColors.primaryColor,
-                              ),
-                            ]
+                          ),
+                          if(kDebugMode)...[
+                            SizedBox(width: SizeConfig.size10),
+                            LocalAssets(
+                              imagePath: AppIconAssets.editIcon,
+                              height: SizeConfig.size12,
+                              width: SizeConfig.size12,
+                              imgColor: AppColors.primaryColor,
+                            ),
+                          ]
 
-                          ],
-                        ),
+                        ],
                       ),
                     ),
                     GestureDetector(

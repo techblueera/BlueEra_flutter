@@ -2,7 +2,6 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/Discover/view/all_stay_service_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/discover_screen.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';

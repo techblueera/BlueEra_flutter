@@ -2,6 +2,7 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/model/tab_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
@@ -818,7 +819,7 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
                                   fit: BoxFit.cover,
                                   errorBuilder: (context, error, stackTrace) =>
                                       Image.asset(
-                                    "assets/images/camera_stand.png",
+                                    AppImageAssets.receivedIcon,
                                     height: SizeConfig.size150,
                                     width: double.infinity,
                                     fit: BoxFit.cover,
