@@ -13,59 +13,82 @@ import 'package:get/get.dart';
 class HospitalBranchOnlyScreen extends StatefulWidget {
   final SchoolContactUsData schoolContactUsData;
 
-  const HospitalBranchOnlyScreen(
-      {super.key, required this.schoolContactUsData});
+  const HospitalBranchOnlyScreen({
+    super.key,
+    required this.schoolContactUsData,
+  });
 
   @override
-  _HospitalBranchOnlyScreenState createState() =>
+  State<HospitalBranchOnlyScreen> createState() =>
       _HospitalBranchOnlyScreenState();
 }
 
 class _HospitalBranchOnlyScreenState extends State<HospitalBranchOnlyScreen> {
-  final schoolAboutUsController = Get.find<HospitalBranchContactController>();
+  final branchController = Get.find<HospitalBranchContactController>();
 
-  // Main Branch Controllers
   final branchNameController = TextEditingController();
   final websiteController = TextEditingController();
   final addressController = TextEditingController();
 
   @override
   void initState() {
-    schoolAboutUsController.isFormValid.value = false;
-    branchNameController.text = widget.schoolContactUsData.branch?.name ?? "";
-    addressController.text =
-        widget.schoolContactUsData.branch?.location?.name ?? "";
-    websiteController.text = widget.schoolContactUsData.branch?.website ?? "";
-    // TODO: implement initState
-    branchNameController.addListener(_runValidation);
-    websiteController.addListener(_runValidation);
-    addressController.addListener(_runValidation);
-
     super.initState();
+    branchController.isFormValid.value = false;
+    final branch = widget.schoolContactUsData.branch;
+    branchNameController.text = branch?.name ?? "";
+    addressController.text = branch?.location?.name ?? "";
+    websiteController.text = branch?.website ?? "";
+    // The address field has no parent-facing onChange callback, so listen
+    // on its controller to revalidate when the user types directly (the
+    // other two fields already revalidate via their `onChange:` props).
+    addressController.addListener(_runValidation);
   }
 
-// Helper to trigger validation
+  @override
+  void dispose() {
+    branchNameController.dispose();
+    websiteController.dispose();
+    addressController.dispose();
+    super.dispose();
+  }
+
   void _runValidation() {
-    schoolAboutUsController.branchValidateForm(
+    branchController.branchValidateForm(
       branchName: branchNameController.text,
       branchWebsiteUrl: websiteController.text,
       branchLocation: addressController.text,
     );
   }
 
+  Future<void> _handleSubmit() {
+    return branchController.updateBranchContactController(
+      reqBody: {
+        "branch": {
+          "name": branchNameController.text,
+          "website": websiteController.text,
+          "location": {
+            "name": addressController.text,
+            "type": "Point",
+            "coordinates": [
+              branchController.selectedLat,
+              branchController.selectedLng,
+            ],
+          },
+        },
+      },
+      branchId: widget.schoolContactUsData.id ?? "",
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(
-        title: AppStrings.branch,
-      ),
+      appBar: CommonBackAppBar(title: AppStrings.branch),
       body: CommonCardWidget(
         child: SingleChildScrollView(
-          // padding: EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // --- TOP BRANCH SECTION ---
               CommonTextField(
                 textEditController: branchNameController,
                 hintText: "E.g. DPS Dehradun",
@@ -73,55 +96,33 @@ class _HospitalBranchOnlyScreenState extends State<HospitalBranchOnlyScreen> {
                 maxLength: 50,
                 onChange: (_) => _runValidation(),
               ),
-              SizedBox(height: 12),
+              const SizedBox(height: 12),
               HttpsTextField(
                 controller: websiteController,
                 hintText: "https://dpsdehradun.com",
                 title: AppStrings.website,
                 onChange: (_) => _runValidation(),
               ),
-              SizedBox(height: 12),
-
+              const SizedBox(height: 12),
               CommonLocationSearchField(
                 controller: addressController,
                 title: AppStrings.location,
                 isShowLeading: false,
                 hintText: AppStrings.egLucknowGomtiNagar,
-                onSelected: (placeId, lat, lng, address) async {
+                onSelected: (placeId, lat, lng, address) {
                   addressController.text = address;
-                  schoolAboutUsController.selectedLat = lat;
-                  schoolAboutUsController.selectedLng = lng;
+                  branchController.selectedLat = lat;
+                  branchController.selectedLng = lng;
                   _runValidation();
                 },
               ),
-
-              SizedBox(height: 24),
-
+              const SizedBox(height: 24),
               Obx(() {
+                final isValid = branchController.isFormValid.value;
                 return CustomBtn(
-                  onTap: schoolAboutUsController.isFormValid.value
-                      ? () async {
-                          // updateBranchContactController
-
-                          await schoolAboutUsController
-                              .updateBranchContactController(reqBody: {
-                            "branch": {
-                              "name": branchNameController.text,
-                              "website": websiteController.text,
-                              "location": {
-                                "name": addressController.text,
-                                "type": "Point",
-                                "coordinates": [
-                                  schoolAboutUsController.selectedLat,
-                                  schoolAboutUsController.selectedLng
-                                ]
-                              }
-                            }
-                          }, branchId: widget.schoolContactUsData.id ?? "");
-                        }
-                      : null,
+                  onTap: isValid ? _handleSubmit : null,
                   title: AppStrings.submit,
-                  isValidate: schoolAboutUsController.isFormValid.value,
+                  isValidate: isValid,
                 );
               }),
             ],

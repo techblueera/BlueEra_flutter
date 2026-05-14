@@ -6,48 +6,63 @@ import 'package:BlueEra/features/me/laboratory/repo/lab_service_repo.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+/// Bootstraps a new laboratory record from the AI-generated profile data
+/// captured during sign-up. The only consumer is the auth flow in
+/// `auth_controller.dart`.
 class LabServiceAiController extends GetxController {
-  LabServiceRepo labServiceRepo = LabServiceRepo();
+  final LabServiceRepo _repo = LabServiceRepo();
 
-  ///GENERATE VIA AI LAB DETAILS....
+  // ---- AI-generation form state --------------------------------------------
+
   final searchController = TextEditingController();
   final websiteController = TextEditingController();
-  RxString labAddress = "".obs;
-  RxBool hasLabCreated = false.obs;
+  final RxString labAddress = "".obs;
 
-  clearFiled() {
+  /// Flips to `true` after [createLabServiceController] persists the lab.
+  /// `laboratory_main` watches this to swap entry screens.
+  final RxBool hasLabCreated = false.obs;
+
+  final RxBool isSaving = false.obs;
+
+  /// Resets every form field. Method name kept (typo: `clearFiled`) for
+  /// parity with the hospital sibling — both are internal to their
+  /// controllers.
+  void clearFiled() {
     searchController.clear();
     websiteController.clear();
     labAddress.value = "";
   }
 
+  @override
+  void onClose() {
+    searchController.dispose();
+    websiteController.dispose();
+    super.onClose();
+  }
 
-  Future<void> createLabServiceController({required Map<String, dynamic>? reqData}) async {
+  Future<void> createLabServiceController({
+    required Map<String, dynamic>? reqData,
+  }) async {
     try {
-      ResponseModel response = await labServiceRepo
-          // .createLabServiceRepo(reqBody: {"data": aiLabResModel?.value.data});
-          .createLabServiceRepo(reqBody: {"data": reqData});
+      isSaving.value = true;
+      final ResponseModel response =
+          await _repo.createLabServiceRepo(reqBody: {"data": reqData});
+
       if (response.isSuccess) {
         commonSnackBar(message: AppStrings.labServiceCreatedSuccess.tr);
-
         labAddress.value = "";
-        String? labID = response.response?.data['laboratoryId'];
-        if (labID != null && labID.isNotEmpty) {
-          await setLabID(labID);
-        } else {
-          await setLabID("");
-        }
+        final labID = response.response?.data['laboratoryId'] as String?;
+        await setLabID(labID?.isNotEmpty == true ? labID! : "");
         await getLabID();
-        await Future.delayed(Duration(milliseconds: 200));
-        hasLabCreated.value=true;
+        hasLabCreated.value = true;
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);
       }
     } on Exception catch (e) {
-      hasLabCreated.value=false;
-
+      hasLabCreated.value = false;
       commonSnackBar(message: e.toString());
+    } finally {
+      isSaving.value = false;
     }
   }
-
 }

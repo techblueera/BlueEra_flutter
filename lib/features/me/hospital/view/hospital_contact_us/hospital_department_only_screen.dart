@@ -13,52 +13,82 @@ class HospitalDepartmentOnlyScreen extends StatefulWidget {
   final bool? isContactInfoEdit;
   final String? branchId;
 
-  const HospitalDepartmentOnlyScreen(
-      {super.key, this.isContactInfoEdit, this.contactInfo, this.branchId});
+  const HospitalDepartmentOnlyScreen({
+    super.key,
+    this.isContactInfoEdit,
+    this.contactInfo,
+    this.branchId,
+  });
 
   @override
-  _HospitalDepartmentOnlyScreenState createState() =>
+  State<HospitalDepartmentOnlyScreen> createState() =>
       _HospitalDepartmentOnlyScreenState();
 }
 
 class _HospitalDepartmentOnlyScreenState
     extends State<HospitalDepartmentOnlyScreen> {
-  final schoolAboutUsController = Get.find<HospitalBranchContactController>();
+  final branchController = Get.find<HospitalBranchContactController>();
 
   final titleController = TextEditingController();
   final emailController = TextEditingController();
   final phoneController = TextEditingController();
 
+  bool get _isEdit => widget.isContactInfoEdit ?? false;
+
   @override
   void initState() {
-    // TODO: implement initState
-
-    if (widget.isContactInfoEdit ?? false) {
+    super.initState();
+    if (_isEdit) {
       titleController.text = widget.contactInfo?.department ?? "";
       emailController.text = widget.contactInfo?.email ?? "";
       phoneController.text = widget.contactInfo?.phone ?? "";
     }
-    super.initState();
   }
 
-// Helper to trigger validation
+  @override
+  void dispose() {
+    titleController.dispose();
+    emailController.dispose();
+    phoneController.dispose();
+    super.dispose();
+  }
+
   void _runValidation() {
-    schoolAboutUsController.departmentValidateForm(
+    branchController.departmentValidateForm(
       departmentRole: titleController.text,
       departmentEmailAddress: emailController.text,
       departmentPhoneNo: phoneController.text,
     );
   }
 
+  Future<void> _handleSubmit() async {
+    final body = {
+      "department": titleController.text,
+      "email": emailController.text,
+      "phone": phoneController.text,
+    };
+    if (_isEdit) {
+      // NOTE: branchID/contactID names look swapped here vs. the param
+      // semantics — preserved as-is to avoid changing the outbound request.
+      await branchController.updateBranchContactDetailsController(
+        reqBody: body,
+        branchID: widget.contactInfo?.id ?? "",
+        contactID: widget.branchId ?? "",
+      );
+    } else {
+      await branchController.addBranchDepartmentController(
+        reqBody: body,
+        branchID: widget.branchId ?? "",
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(
-        title: AppStrings.department,
-      ),
+      appBar: CommonBackAppBar(title: AppStrings.department),
       body: CommonCardWidget(
         child: SingleChildScrollView(
-          // padding: EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -68,14 +98,14 @@ class _HospitalDepartmentOnlyScreenState
                 title: AppStrings.department,
                 onChange: (_) => _runValidation(),
               ),
-              SizedBox(height: 12),
+              const SizedBox(height: 12),
               CommonTextField(
                 textEditController: emailController,
                 hintText: "dpsdehradun@gmail.com",
                 title: AppStrings.enterEmailAddress,
                 onChange: (_) => _runValidation(),
               ),
-              SizedBox(height: 12),
+              const SizedBox(height: 12),
               CommonTextField(
                 textEditController: phoneController,
                 hintText: "+91 1234567890",
@@ -83,31 +113,11 @@ class _HospitalDepartmentOnlyScreenState
                 maxLength: 10,
                 onChange: (_) => _runValidation(),
               ),
-              SizedBox(height: 12),
+              const SizedBox(height: 12),
               Obx(() {
                 return CustomBtn(
-                  isValidate: schoolAboutUsController.isFormValid.value,
-                  onTap: () async {
-                    if (widget.isContactInfoEdit ?? false) {
-                      await schoolAboutUsController
-                          .updateBranchContactDetailsController(
-                              reqBody: {
-                            "department": titleController.text,
-                            "email": emailController.text,
-                            "phone": phoneController.text,
-                          },
-                              branchID: widget.contactInfo?.id ?? "",
-                              contactID: widget.branchId ?? "");
-                    } else {
-                      await schoolAboutUsController
-                          .addBranchDepartmentController(reqBody: {
-                        "department": titleController.text,
-                        "email": emailController.text,
-                        "phone": phoneController.text,
-                      }, branchID: widget.branchId ?? "");
-                      // addBranchDepartmentController
-                    }
-                  },
+                  isValidate: branchController.isFormValid.value,
+                  onTap: _handleSubmit,
                   title: AppStrings.submit,
                 );
               }),

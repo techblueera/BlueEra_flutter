@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -8,50 +9,54 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class HospitalJobListingScreen extends StatefulWidget {
+/// Lists job posts belonging to a hospital business and (when not read-only)
+/// surfaces a "create job" CTA pinned to the bottom of the screen.
+class HospitalJobListingScreen extends StatelessWidget {
   const HospitalJobListingScreen({super.key, required this.isReadOnly});
 
   final bool isReadOnly;
 
-  @override
-  State<HospitalJobListingScreen> createState() =>
-      _HospitalJobListingScreenState();
-}
+  /// Channel tag sent to the jobs feed so the backend / UI can scope results
+  /// and tag newly-created posts as originating from the hospital flow.
+  static const String _hospitalVia = 'hospital';
 
-class _HospitalJobListingScreenState extends State<HospitalJobListingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(
-        title: AppStrings.jobs,
-      ),
-      bottomNavigationBar: widget.isReadOnly
-          ? SizedBox.shrink()
-          : SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.only(
-                    right: 10.0, left: 10.0, bottom: 40, top: 10),
-                child: PositiveCustomBtn(
-                    bgColor: AppColors.white,
-                    textColor: AppColors.primaryColor,
-                    borderColor: AppColors.primaryColor,
-                    onTap: () {
-                      Get.toNamed(RouteHelper.getCreateJobPostScreenRoute(),
-                          arguments: {
-                            'isEditMode': false,
-                            'jobId': '',
-                            'createJobVia': 'hospital',
-                          });
-                    },
-                    title:AppStrings.createJob),
-              ),
-            ),
+      appBar: CommonBackAppBar(title: AppStrings.jobs),
+      bottomNavigationBar: isReadOnly ? null : _buildCreateJobButton(),
       body: AllJobPostScreen(
-        key: ValueKey(AppConstants.All),
-        onHeaderVisibilityChanged: (val) {},
+        key: const ValueKey(AppConstants.All),
+        onHeaderVisibilityChanged: (_) {},
         headerHeight: 0,
-        screenListingVia: "hospital",
+        screenListingVia: _hospitalVia,
       ),
+    );
+  }
+
+  Widget _buildCreateJobButton() {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(10, 10, 10, 40),
+        child: PositiveCustomBtn(
+          bgColor: AppColors.white,
+          textColor: AppColors.primaryColor,
+          borderColor: AppColors.primaryColor,
+          title: AppStrings.createJob,
+          onTap: _openCreateJobScreen,
+        ),
+      ),
+    );
+  }
+
+  void _openCreateJobScreen() {
+    Get.toNamed(
+      RouteHelper.getCreateJobPostScreenRoute(),
+      arguments: {
+        'isEditMode': false,
+        ApiKeys.jobId: '',
+        'createJobVia': _hospitalVia,
+      },
     );
   }
 }

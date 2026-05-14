@@ -79,16 +79,14 @@ class HospitalOtherFacilitiesController extends GetxController {
   }
 
   void validate() {
-    final hidReady = (hospitalIdArg?.isNotEmpty ?? false) || true;
-    final anySelected = ambulance.value ||
+    isFormValid.value = ambulance.value ||
         pmSwasthyaBimaYojana.value ||
         bloodBank.value ||
         cashlessInsurance.isNotEmpty;
-    isFormValid.value = hidReady && anySelected;
   }
 
+  /// Backend upserts on POST, so create/update share the same endpoint.
   Future<void> save() async {
-    // if (!isFormValid.value) return;
     isSaving.value = true;
     try {
       final body = {
@@ -98,12 +96,7 @@ class HospitalOtherFacilitiesController extends GetxController {
         "cashlessInsurance": cashlessInsurance.toList(),
         ApiKeys.hospitalId: hospitalIDGlobal,
       };
-      ResponseModel res;
-      // if (current == null || current!.id.isEmpty) {
-      res = await repo.create(body: body);
-      // } else {
-      //   res = await repo.update(id: current!.id, body: body);
-      // }
+      final ResponseModel res = await repo.create(body: body);
       if (res.isSuccess) {
         await load();
         Get.back();
@@ -119,17 +112,18 @@ class HospitalOtherFacilitiesController extends GetxController {
     }
   }
 
+  /// Single-toggle upsert used by the inline status switches
+  /// (diagnostic departments / medical store).
   Future<void> updateStatus({required String keyParm}) async {
     isSaving.value = true;
     try {
-      final body = {
+      final body = <String, dynamic>{
         if (keyParm == "diagnosticDepartments")
           "diagnosticDepartments": diagnosticStatus.value,
         if (keyParm == "medicalStore") "medicalStore": medicalStoreStatus.value,
         ApiKeys.hospitalId: hospitalIDGlobal,
       };
-      ResponseModel res;
-      res = await repo.create(body: body);
+      final ResponseModel res = await repo.create(body: body);
       if (res.isSuccess) {
         await load();
       } else {

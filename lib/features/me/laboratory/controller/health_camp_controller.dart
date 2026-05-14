@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/me/laboratory/model/health_camp_model.dart';
@@ -12,18 +13,28 @@ import 'package:BlueEra/features/me/school/repo/upload_file_to_s3.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+/// Owns the multi-section "health camp" form: metadata, dates / time slot,
+/// images (with S3 upload), and per-test discount picks across selected
+/// pathology categories. Only one camp per lab is supported by the backend.
 class HealthCampController extends GetxController {
   final HealthCampRepo _repo = HealthCampRepo();
   final LabTestRepo _testRepo = LabTestRepo();
 
-  var isLoading = false.obs;
-  var camps = <HealthCamp>[].obs;
-  var isValid = false.obs;
-  var campDetail = Rxn<HealthCamp>();
-  var isDetailLoading = false.obs;
+  // ---- Lifecycle state ------------------------------------------------------
 
-  /// Whether a camp already exists (only single camp allowed)
+  final RxBool isLoading = false.obs;
+  final RxBool isSaving = false.obs;
+  final RxBool isDetailLoading = false.obs;
+  final RxBool isTestsLoading = false.obs;
+  final RxBool isValid = false.obs;
+
+  final RxList<HealthCamp> camps = <HealthCamp>[].obs;
+  final Rxn<HealthCamp> campDetail = Rxn<HealthCamp>();
+
+  /// `true` once at least one camp exists. Only one is allowed per lab.
   bool get hasCamp => camps.isNotEmpty;
+
+  // ---- Form text fields -----------------------------------------------------
 
   final typeController = TextEditingController();
   final descController = TextEditingController();
@@ -31,58 +42,50 @@ class HealthCampController extends GetxController {
   final priceController = TextEditingController();
   final discountPriceController = TextEditingController();
   final searchController = TextEditingController();
-  RxString activityType = "".obs;
+  final RxString activityType = "".obs;
 
-  RxInt startDay = 1.obs;
-  RxInt startMonth = 1.obs;
-  RxInt startYear = DateTime.now().year.obs;
-  RxInt endDay = 1.obs;
-  RxInt endMonth = 1.obs;
-  RxInt endYear = DateTime.now().year.obs;
-  RxDouble lat = 0.0.obs;
-  RxDouble lng = 0.0.obs;
+  // ---- Date / time ----------------------------------------------------------
 
-  // Image upload fields
-  var selectedImages = <File>[].obs;
-  final int maxImages = 5;
-  final int minImages = 1;
+  final RxInt startDay = 1.obs;
+  final RxInt startMonth = 1.obs;
+  final RxInt startYear = DateTime.now().year.obs;
+  final RxInt endDay = 1.obs;
+  final RxInt endMonth = 1.obs;
+  final RxInt endYear = DateTime.now().year.obs;
 
-  // Test category fields
-  final List<String> testCategoryOptions = [
-    "Blood & Routine Tests",
-    "Preventive & Wellness Checkups",
-    "Women, Pregnancy & Child Health",
-    "Diagnostics & Imaging",
-    "Organ & System Health",
-    "Infection, Cancer & Immunity",
+  final RxDouble lat = 0.0.obs;
+  final RxDouble lng = 0.0.obs;
+
+  final RxString selectedTime = "".obs;
+  static const List<String> timeSlots = [
+    '06:00 AM', '07:00 AM', '08:00 AM', '09:00 AM', '10:00 AM',
+    '11:00 AM', '12:00 PM', '01:00 PM', '02:00 PM', '03:00 PM',
+    '04:00 PM', '05:00 PM', '06:00 PM', '07:00 PM', '08:00 PM',
+    '09:00 PM',
   ];
-  var selectedTestCategories = <String>[].obs;
 
-  // Test & discount fields
-  var isTestsLoading = false.obs;
-  var labTestsMap = <String, List<PathologyTest>>{}.obs;
-  var selectedTestDiscounts = <TestDiscount>[].obs;
-  RxBool addDiscountTestEnabled = false.obs;
+  // ---- Images ---------------------------------------------------------------
 
-  RxString selectedTime = "".obs;
-  final List<String> timeSlots = [
-    "06:00 AM",
-    "07:00 AM",
-    "08:00 AM",
-    "09:00 AM",
-    "10:00 AM",
-    "11:00 AM",
-    "12:00 PM",
-    "01:00 PM",
-    "02:00 PM",
-    "03:00 PM",
-    "04:00 PM",
-    "05:00 PM",
-    "06:00 PM",
-    "07:00 PM",
-    "08:00 PM",
-    "09:00 PM"
+  final RxList<File> selectedImages = <File>[].obs;
+  static const int maxImages = 5;
+  static const int minImages = 1;
+
+  // ---- Tests & discounts ----------------------------------------------------
+
+  static const List<String> testCategoryOptions = [
+    'Blood & Routine Tests',
+    'Preventive & Wellness Checkups',
+    'Women, Pregnancy & Child Health',
+    'Diagnostics & Imaging',
+    'Organ & System Health',
+    'Infection, Cancer & Immunity',
   ];
+  final RxList<String> selectedTestCategories = <String>[].obs;
+
+  final RxMap<String, List<PathologyTest>> labTestsMap =
+      <String, List<PathologyTest>>{}.obs;
+  final RxList<TestDiscount> selectedTestDiscounts = <TestDiscount>[].obs;
+  final RxBool addDiscountTestEnabled = false.obs;
 
   @override
   void onInit() {
@@ -90,21 +93,26 @@ class HealthCampController extends GetxController {
     fetchCamps();
   }
 
+  @override
+  void onClose() {
+    typeController.dispose();
+    descController.dispose();
+    sqFootController.dispose();
+    priceController.dispose();
+    discountPriceController.dispose();
+    searchController.dispose();
+    super.onClose();
+  }
+
+  // ---- Validation -----------------------------------------------------------
+
   void validateForm() {
     final title = typeController.text.trim();
     final desc = descController.text.trim();
-    final sq = int.tryParse(sqFootController.text.trim() == ""
-            ? "0"
-            : sqFootController.text.trim()) ??
-        0;
-    final price = int.tryParse(priceController.text.trim() == ""
-            ? "0"
-            : priceController.text.trim()) ??
-        0;
-    final discount = int.tryParse(discountPriceController.text.trim() == ""
-            ? "0"
-            : discountPriceController.text.trim()) ??
-        0;
+    final sq = _parseIntOrZero(sqFootController.text);
+    final price = _parseIntOrZero(priceController.text);
+    final discount = _parseIntOrZero(discountPriceController.text);
+
     final hasDate = startDay.value > 0 &&
         startMonth.value > 0 &&
         startYear.value > 0 &&
@@ -113,6 +121,7 @@ class HealthCampController extends GetxController {
         endYear.value > 0;
     final hasTime = selectedTime.value.isNotEmpty;
     final hasImages = selectedImages.length >= minImages;
+
     isValid.value = title.isNotEmpty &&
         desc.isNotEmpty &&
         hasDate &&
@@ -123,6 +132,14 @@ class HealthCampController extends GetxController {
         hasImages;
   }
 
+  int _parseIntOrZero(String raw) {
+    final text = raw.trim();
+    if (text.isEmpty) return 0;
+    return int.tryParse(text) ?? 0;
+  }
+
+  // ---- Images ---------------------------------------------------------------
+
   void addImages(List<String> paths) {
     final remaining = maxImages - selectedImages.length;
     if (remaining <= 0) {
@@ -130,17 +147,33 @@ class HealthCampController extends GetxController {
           message: "${AppStrings.labMaxImagesAllowed.tr} ($maxImages)");
       return;
     }
-    final newFiles = paths.take(remaining).map((e) => File(e)).toList();
-    selectedImages.addAll(newFiles);
+    selectedImages.addAll(paths.take(remaining).map((e) => File(e)));
     validateForm();
   }
 
   void removeImage(int index) {
-    if (index >= 0 && index < selectedImages.length) {
-      selectedImages.removeAt(index);
-      validateForm();
-    }
+    if (index < 0 || index >= selectedImages.length) return;
+    selectedImages.removeAt(index);
+    validateForm();
   }
+
+  /// Uploads every picked file to S3 and returns the URLs.
+  Future<List<String>> _uploadImagesToS3() async {
+    final urls = <String>[];
+    for (final file in selectedImages) {
+      final UploadResult result = await S3UploadService.uploadFile(file);
+      if (result.isSuccess) {
+        urls.add(result.url);
+      } else {
+        commonSnackBar(
+            message:
+                "${AppStrings.labImageUploadFailed.tr} ${result.message}");
+      }
+    }
+    return urls;
+  }
+
+  // ---- Test categories & discounts ------------------------------------------
 
   void toggleTestCategory(String category) {
     if (selectedTestCategories.contains(category)) {
@@ -150,56 +183,41 @@ class HealthCampController extends GetxController {
     }
   }
 
-  // --- S3 image upload ---
-  Future<List<String>> _uploadImagesToS3() async {
-    final List<String> urls = [];
-    for (final file in selectedImages) {
-      UploadResult result = await S3UploadService.uploadFile(file);
-      if (result.isSuccess) {
-        urls.add(result.url);
-      } else {
-        commonSnackBar(
-            message: "${AppStrings.labImageUploadFailed.tr} ${result.message}");
-      }
-    }
-    return urls;
-  }
-
-  // --- Lab tests (user-created) ---
   Future<void> fetchTestsForCategory(String category) async {
     if (labTestsMap.containsKey(category)) return;
-    isTestsLoading.value = true;
     try {
-      ResponseModel res = await _testRepo.getPathologyTests(category);
+      isTestsLoading.value = true;
+      final ResponseModel res = await _testRepo.getPathologyTests(category);
       if (res.isSuccess) {
-        List data = res.response?.data['data'] ?? [];
+        final List data = res.response?.data['data'] ?? [];
         labTestsMap[category] =
             data.map((e) => PathologyTest.fromJson(e)).toList();
       }
     } catch (e) {
-      print("Error fetching tests: $e");
+      logs("HealthCampController.fetchTestsForCategory ERROR $e");
     } finally {
       isTestsLoading.value = false;
     }
   }
 
   Future<void> fetchAllSelectedTests() async {
-    isTestsLoading.value = true;
-    for (final cat in selectedTestCategories) {
-      if (!labTestsMap.containsKey(cat)) {
-        await fetchTestsForCategory(cat);
+    try {
+      isTestsLoading.value = true;
+      for (final cat in selectedTestCategories) {
+        if (!labTestsMap.containsKey(cat)) {
+          await fetchTestsForCategory(cat);
+        }
       }
+    } finally {
+      isTestsLoading.value = false;
     }
-    isTestsLoading.value = false;
   }
 
-  List<PathologyTest> getTestsForCategory(String category) {
-    return labTestsMap[category] ?? [];
-  }
+  List<PathologyTest> getTestsForCategory(String category) =>
+      labTestsMap[category] ?? const [];
 
-  bool isTestSelected(String testId) {
-    return selectedTestDiscounts.any((d) => d.test?.id == testId);
-  }
+  bool isTestSelected(String testId) =>
+      selectedTestDiscounts.any((d) => d.test?.id == testId);
 
   void toggleTestDiscount(PathologyTest item) {
     final index =
@@ -208,10 +226,7 @@ class HealthCampController extends GetxController {
       selectedTestDiscounts.removeAt(index);
     } else {
       selectedTestDiscounts.add(TestDiscount(
-        test: Test(
-          id: item.id,
-          testName: item.testName,
-        ),
+        test: Test(id: item.id, testName: item.testName),
         discountType: "percentage",
         discountValue: 0,
       ));
@@ -219,23 +234,27 @@ class HealthCampController extends GetxController {
   }
 
   void updateDiscountValue(String testId, int value) {
-    final index = selectedTestDiscounts.indexWhere((d) => d.test?.id == testId);
+    final index =
+        selectedTestDiscounts.indexWhere((d) => d.test?.id == testId);
     if (index >= 0) {
+      final current = selectedTestDiscounts[index];
       selectedTestDiscounts[index] = TestDiscount(
-        test: selectedTestDiscounts[index].test,
-        discountType: selectedTestDiscounts[index].discountType,
+        test: current.test,
+        discountType: current.discountType,
         discountValue: value,
       );
     }
   }
 
   void updateDiscountType(String testId, String type) {
-    final index = selectedTestDiscounts.indexWhere((d) => d.test?.id == testId);
+    final index =
+        selectedTestDiscounts.indexWhere((d) => d.test?.id == testId);
     if (index >= 0) {
+      final current = selectedTestDiscounts[index];
       selectedTestDiscounts[index] = TestDiscount(
-        test: selectedTestDiscounts[index].test,
+        test: current.test,
         discountType: type,
-        discountValue: selectedTestDiscounts[index].discountValue,
+        discountValue: current.discountValue,
       );
     }
   }
@@ -244,152 +263,73 @@ class HealthCampController extends GetxController {
     selectedTestDiscounts.removeWhere((d) => d.test?.id == testId);
   }
 
+  // ---- API: reads -----------------------------------------------------------
+
   Future<void> fetchCamps() async {
     if (labIDGlobal.isEmpty) return;
-    isLoading.value = true;
     try {
-      ResponseModel res = await _repo.getHealthCampsByLab(labIDGlobal);
+      isLoading.value = true;
+      final ResponseModel res = await _repo.getHealthCampsByLab(labIDGlobal);
       if (res.isSuccess) {
-        List data = res.response?.data['data'] ?? [];
+        final List data = res.response?.data['data'] ?? [];
         camps.value = data.map((e) => HealthCamp.fromJson(e)).toList();
       }
     } catch (e) {
-      print("Error fetching camps: $e");
+      logs("HealthCampController.fetchCamps ERROR $e");
     } finally {
       isLoading.value = false;
     }
   }
 
-  /// Filter selectedTestDiscounts to only include entries with valid test IDs
-  List<TestDiscount> _getValidTestDiscounts() {
-    return selectedTestDiscounts
-        .where((d) => d.test?.id != null && d.test!.id!.isNotEmpty)
-        .toList();
-  }
-
-  Future<bool> createCamp() async {
-    isLoading.value = true;
+  Future<void> fetchCampFullDetails() async {
+    if (labIDGlobal.isEmpty) return;
     try {
-      // Upload images to S3
-      final imageUrls = await _uploadImagesToS3();
-
-      final start = DateTime(startYear.value, startMonth.value, startDay.value)
-          .toIso8601String();
-      final end = DateTime(endYear.value, endMonth.value, endDay.value)
-          .toIso8601String();
-      final validDiscounts = _getValidTestDiscounts();
-      final payload = HealthCamp(
-        sqFoot: int.tryParse(sqFootController.text.trim()) ?? 0,
-        title: typeController.text.trim(),
-        description: descController.text.trim(),
-        price: int.tryParse(priceController.text.trim()) ?? 0,
-        discountPrice: int.tryParse(discountPriceController.text.trim()) ?? 0,
-        startDate: start,
-        endDate: end,
-        startTime: selectedTime.value,
-        laboratoryId: labIDGlobal,
-        images: imageUrls.isNotEmpty ? imageUrls : null,
-        location: (lat.value != 0.0 || lng.value != 0.0)
-            ? HealthCampLocation(
-                name: searchController.text.trim(),
-                type: "Point",
-                coordinates: [lng.value, lat.value],
-              )
-            : null,
-        testDiscounts: validDiscounts.isNotEmpty ? validDiscounts : null,
-      ).toJson();
-
-      print("[HealthCamp] CREATE payload: $payload");
-
-      ResponseModel res = await _repo.createHealthCamp(payload);
+      isDetailLoading.value = true;
+      final ResponseModel res = await _repo.getHealthCampsByLab(labIDGlobal);
       if (res.isSuccess) {
-        commonSnackBar(message: AppStrings.labHealthCampCreated.tr);
-        await fetchCamps();
-        return true;
-      } else {
-        final errorMsg = res.response?.data['message'] ??
-            res.response?.data['error'] ??
-            AppStrings.labFailedToCreate.tr;
-        print("[HealthCamp] CREATE failed: ${res.response?.data}");
-        commonSnackBar(message: errorMsg.toString());
-        return false;
+        final data = res.response?.data['data'];
+        if (data is List && data.isNotEmpty) {
+          // The "last" entry is the camp belonging to this lab — the
+          // backend returns history-ordered results.
+          campDetail.value = HealthCamp.fromJson(data.last);
+        } else if (data is Map<String, dynamic>) {
+          campDetail.value = HealthCamp.fromJson(data);
+        } else {
+          campDetail.value = null;
+        }
       }
     } catch (e) {
-      print("[HealthCamp] CREATE exception: $e");
-      commonSnackBar(message: "${AppStrings.hotelErrorPrefix.tr} $e");
-      return false;
+      logs("HealthCampController.fetchCampFullDetails ERROR $e");
     } finally {
-      isLoading.value = false;
+      isDetailLoading.value = false;
     }
+  }
+
+  // ---- API: writes ----------------------------------------------------------
+
+  Future<bool> createCamp() async {
+    return _saveCamp(
+      existing: null,
+      successMessage: AppStrings.labHealthCampCreated.tr,
+      failureFallback: AppStrings.labFailedToCreate.tr,
+      operationLabel: 'CREATE',
+    );
   }
 
   Future<bool> updateCamp(HealthCamp existing) async {
-    isLoading.value = true;
-    try {
-      // Upload images to S3
-      final imageUrls = await _uploadImagesToS3();
-
-      final start = DateTime(startYear.value, startMonth.value, startDay.value)
-          .toIso8601String();
-      final end = DateTime(endYear.value, endMonth.value, endDay.value)
-          .toIso8601String();
-
-      // Keep existing images if no new images were uploaded
-      final List<String>? finalImages =
-          imageUrls.isNotEmpty ? imageUrls : existing.images;
-
-      final validDiscounts = _getValidTestDiscounts();
-      final payload = HealthCamp(
-        id: existing.id,
-        sqFoot: int.tryParse(sqFootController.text.trim()) ?? existing.sqFoot,
-        title: typeController.text.trim(),
-        description: descController.text.trim(),
-        price: int.tryParse(priceController.text.trim()) ?? existing.price,
-        discountPrice: int.tryParse(discountPriceController.text.trim()) ??
-            existing.discountPrice,
-        startDate: start,
-        endDate: end,
-        startTime: selectedTime.value,
-        laboratoryId: existing.laboratoryId ?? labIDGlobal,
-        images: finalImages,
-        location: (lat.value != 0.0 || lng.value != 0.0)
-            ? HealthCampLocation(
-                name: searchController.text.trim(),
-                type: "Point",
-                coordinates: [lng.value, lat.value],
-              )
-            : null,
-        testDiscounts: validDiscounts.isNotEmpty ? validDiscounts : null,
-      ).toJson();
-
-      print("[HealthCamp] UPDATE payload: $payload");
-
-      ResponseModel res = await _repo.updateHealthCamp(existing.id!, payload);
-      if (res.isSuccess) {
-        commonSnackBar(message: AppStrings.labHealthCampUpdated.tr);
-        await fetchCamps();
-        return true;
-      } else {
-        final errorMsg = res.response?.data['message'] ??
-            res.response?.data['error'] ??
-            AppStrings.labFailedToUpdate.tr;
-        print("[HealthCamp] UPDATE failed: ${res.response?.data}");
-        commonSnackBar(message: errorMsg.toString());
-        return false;
-      }
-    } catch (e) {
-      print("[HealthCamp] UPDATE exception: $e");
-      commonSnackBar(message: "${AppStrings.hotelErrorPrefix.tr} $e");
-      return false;
-    } finally {
-      isLoading.value = false;
-    }
+    if (existing.id == null) return false;
+    return _saveCamp(
+      existing: existing,
+      successMessage: AppStrings.labHealthCampUpdated.tr,
+      failureFallback: AppStrings.labFailedToUpdate.tr,
+      operationLabel: 'UPDATE',
+    );
   }
 
   Future<void> deleteCamp(String id) async {
-    isLoading.value = true;
     try {
-      ResponseModel res = await _repo.deleteHealthCamp(id);
+      isSaving.value = true;
+      final ResponseModel res = await _repo.deleteHealthCamp(id);
       if (res.isSuccess) {
         commonSnackBar(message: AppStrings.labHealthCampDeleted.tr);
         campDetail.value = null;
@@ -400,104 +340,184 @@ class HealthCampController extends GetxController {
                 AppStrings.labFailedToDelete.tr);
       }
     } catch (e) {
+      logs("HealthCampController.deleteCamp ERROR $e");
       commonSnackBar(message: "${AppStrings.hotelErrorPrefix.tr} $e");
     } finally {
-      isLoading.value = false;
+      isSaving.value = false;
     }
   }
 
-  Future<void> fetchCampFullDetails() async {
-    if (labIDGlobal.isEmpty) return;
-    isDetailLoading.value = true;
+  /// Shared create + update path. When [existing] is null this issues a
+  /// create; otherwise it falls back to existing values for numeric fields
+  /// and keeps existing images if the user didn't pick new ones.
+  Future<bool> _saveCamp({
+    required HealthCamp? existing,
+    required String successMessage,
+    required String failureFallback,
+    required String operationLabel,
+  }) async {
     try {
-      ResponseModel res = await _repo.getHealthCampsByLab(labIDGlobal);
-      if (res.isSuccess) {
-        final data = res.response?.data['data'];
+      isSaving.value = true;
+      final imageUrls = await _uploadImagesToS3();
+      final payload = _buildCampPayload(existing: existing, imageUrls: imageUrls);
+      logs("HealthCamp $operationLabel payload: $payload");
 
-        if (data != null && data is List && data.isNotEmpty) {
-          // Get the camp for this specific laboratory
-          campDetail.value = HealthCamp.fromJson(data.last);
-        } else if (data != null && data is Map<String, dynamic>) {
-          campDetail.value = HealthCamp.fromJson(data);
-        } else {
-          campDetail.value = null;
-        }
+      final ResponseModel res = existing == null
+          ? await _repo.createHealthCamp(payload)
+          : await _repo.updateHealthCamp(existing.id!, payload);
+
+      if (res.isSuccess) {
+        commonSnackBar(message: successMessage);
+        await fetchCamps();
+        return true;
       }
+      final errorMsg = res.response?.data['message'] ??
+          res.response?.data['error'] ??
+          failureFallback;
+      logs("HealthCamp $operationLabel failed: ${res.response?.data}");
+      commonSnackBar(message: errorMsg.toString());
+      return false;
     } catch (e) {
-      print("Error fetching camp full details: $e");
+      logs("HealthCamp $operationLabel exception: $e");
+      commonSnackBar(message: "${AppStrings.hotelErrorPrefix.tr} $e");
+      return false;
     } finally {
-      isDetailLoading.value = false;
+      isSaving.value = false;
     }
   }
 
+  Map<String, dynamic> _buildCampPayload({
+    required HealthCamp? existing,
+    required List<String> imageUrls,
+  }) {
+    final start = DateTime(startYear.value, startMonth.value, startDay.value)
+        .toIso8601String();
+    final end = DateTime(endYear.value, endMonth.value, endDay.value)
+        .toIso8601String();
+
+    // For updates, fall back to the existing record's value if the user
+    // didn't change a numeric field.
+    int? fallback(int? value) => existing == null ? null : value;
+
+    final List<String>? finalImages = imageUrls.isNotEmpty
+        ? imageUrls
+        : (existing?.images);
+
+    final validDiscounts = selectedTestDiscounts
+        .where((d) => d.test?.id != null && d.test!.id!.isNotEmpty)
+        .toList();
+
+    return HealthCamp(
+      id: existing?.id,
+      sqFoot: int.tryParse(sqFootController.text.trim()) ??
+          fallback(existing?.sqFoot) ??
+          0,
+      title: typeController.text.trim(),
+      description: descController.text.trim(),
+      price: int.tryParse(priceController.text.trim()) ??
+          fallback(existing?.price) ??
+          0,
+      discountPrice: int.tryParse(discountPriceController.text.trim()) ??
+          fallback(existing?.discountPrice) ??
+          0,
+      startDate: start,
+      endDate: end,
+      startTime: selectedTime.value,
+      laboratoryId: existing?.laboratoryId ?? labIDGlobal,
+      images: finalImages,
+      location: (lat.value != 0.0 || lng.value != 0.0)
+          ? HealthCampLocation(
+              name: searchController.text.trim(),
+              type: "Point",
+              coordinates: [lng.value, lat.value],
+            )
+          : null,
+      testDiscounts: validDiscounts.isNotEmpty ? validDiscounts : null,
+    ).toJson();
+  }
+
+  // ---- Form pre-fill --------------------------------------------------------
+
+  /// Pre-fills the form with [camp] for edit, or clears every field for a
+  /// fresh create.
   void preloadForm(HealthCamp? camp) {
     if (camp == null) {
-      typeController.clear();
-      descController.clear();
-      sqFootController.clear();
-      priceController.clear();
-      discountPriceController.clear();
-      searchController.clear();
-      selectedTime.value = "";
-      startDay.value = DateTime.now().day;
-      startMonth.value = DateTime.now().month;
-      startYear.value = DateTime.now().year;
-      endDay.value = DateTime.now().day;
-      endMonth.value = DateTime.now().month;
-      endYear.value = DateTime.now().year;
-      lat.value = 0.0;
-      lng.value = 0.0;
-      selectedImages.clear();
-      selectedTestCategories.clear();
-      selectedTestDiscounts.clear();
-      labTestsMap.clear();
-      addDiscountTestEnabled.value = false;
+      _resetFormFields();
     } else {
-      typeController.text = camp.title ?? "";
-      descController.text = camp.description ?? "";
-      sqFootController.text = (camp.sqFoot ?? 0).toString();
-      priceController.text = (camp.price ?? 0).toString();
-      discountPriceController.text = (camp.discountPrice ?? 0).toString();
-      selectedTime.value = camp.startTime ?? "";
-      selectedImages.clear();
-      // selectedTestCategories.value =
-      //     camp.testCategories?.toList() ?? [];
-      selectedTestDiscounts.value = (camp.testDiscounts ?? [])
-          .where(
-              (d) => d.test?.testName != null && d.test!.testName!.isNotEmpty)
-          .toList();
-      if (camp.location != null) {
-        searchController.text = camp.location?.name ?? "";
-        lat.value = (camp.location?.coordinates != null &&
-                camp.location!.coordinates!.length >= 2)
-            ? camp.location!.coordinates![1]
-            : 0.0;
-        lng.value = (camp.location?.coordinates != null &&
-                camp.location!.coordinates!.isNotEmpty)
-            ? camp.location!.coordinates![0]
-            : 0.0;
-      } else {
-        searchController.clear();
-        lat.value = 0.0;
-        lng.value = 0.0;
-      }
-      labTestsMap.clear();
-      addDiscountTestEnabled.value = selectedTestDiscounts.isNotEmpty;
-      try {
-        final s = DateTime.tryParse(camp.startDate ?? "");
-        final e = DateTime.tryParse(camp.endDate ?? "");
-        if (s != null) {
-          startDay.value = s.day;
-          startMonth.value = s.month;
-          startYear.value = s.year;
-        }
-        if (e != null) {
-          endDay.value = e.day;
-          endMonth.value = e.month;
-          endYear.value = e.year;
-        }
-      } catch (_) {}
+      _applyCampToForm(camp);
     }
     validateForm();
+  }
+
+  void _resetFormFields() {
+    typeController.clear();
+    descController.clear();
+    sqFootController.clear();
+    priceController.clear();
+    discountPriceController.clear();
+    searchController.clear();
+    selectedTime.value = "";
+
+    final now = DateTime.now();
+    startDay.value = now.day;
+    startMonth.value = now.month;
+    startYear.value = now.year;
+    endDay.value = now.day;
+    endMonth.value = now.month;
+    endYear.value = now.year;
+
+    lat.value = 0.0;
+    lng.value = 0.0;
+    selectedImages.clear();
+    selectedTestCategories.clear();
+    selectedTestDiscounts.clear();
+    labTestsMap.clear();
+    addDiscountTestEnabled.value = false;
+  }
+
+  void _applyCampToForm(HealthCamp camp) {
+    typeController.text = camp.title ?? '';
+    descController.text = camp.description ?? '';
+    sqFootController.text = (camp.sqFoot ?? 0).toString();
+    priceController.text = (camp.price ?? 0).toString();
+    discountPriceController.text = (camp.discountPrice ?? 0).toString();
+    selectedTime.value = camp.startTime ?? '';
+    selectedImages.clear();
+
+    selectedTestDiscounts.value = (camp.testDiscounts ?? [])
+        .where((d) => d.test?.testName != null && d.test!.testName!.isNotEmpty)
+        .toList();
+
+    final loc = camp.location;
+    if (loc != null) {
+      searchController.text = loc.name ?? '';
+      final coords = loc.coordinates;
+      lng.value = (coords != null && coords.isNotEmpty) ? coords[0] : 0.0;
+      lat.value = (coords != null && coords.length >= 2) ? coords[1] : 0.0;
+    } else {
+      searchController.clear();
+      lat.value = 0.0;
+      lng.value = 0.0;
+    }
+
+    labTestsMap.clear();
+    addDiscountTestEnabled.value = selectedTestDiscounts.isNotEmpty;
+
+    _applyDateRange(camp.startDate, camp.endDate);
+  }
+
+  void _applyDateRange(String? startIso, String? endIso) {
+    final s = DateTime.tryParse(startIso ?? '');
+    if (s != null) {
+      startDay.value = s.day;
+      startMonth.value = s.month;
+      startYear.value = s.year;
+    }
+    final e = DateTime.tryParse(endIso ?? '');
+    if (e != null) {
+      endDay.value = e.day;
+      endMonth.value = e.month;
+      endYear.value = e.year;
+    }
   }
 }

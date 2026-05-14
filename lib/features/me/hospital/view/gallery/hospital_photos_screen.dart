@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_photo_controller.dart';
+import 'package:BlueEra/features/me/hospital/model/hospital_gallery_res_model.dart';
 import 'package:BlueEra/features/me/hospital/view/gallery/hospital_category_details_screen.dart';
 import 'package:BlueEra/features/me/hospital/view/gallery/upload_hospital_photos_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -10,122 +11,131 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
 class HospitalPhotosScreen extends StatelessWidget {
-  final controller = Get.put(HospitalPhotoController());
+  const HospitalPhotosScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final controller = Get.put(HospitalPhotoController());
+
     return Scaffold(
-      appBar: CommonBackAppBar(
-        title: AppStrings.hospitalPhotos,
-      ),
+      appBar: CommonBackAppBar(title: AppStrings.hospitalPhotos),
       bottomNavigationBar: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.only(left: 20,right: 20,bottom: 30,top: 10),
+          padding: const EdgeInsets.only(
+            left: 20,
+            right: 20,
+            bottom: 30,
+            top: 10,
+          ),
           child: PositiveCustomBtn(
-              onTap: () {
-                controller.clearUploadState();
-                Get.to(UploadHospitalPhotosScreen());
-              },
-              title:AppStrings.uploadHospitalPhoto),
+            onTap: () {
+              controller.clearUploadState();
+              Get.to(UploadHospitalPhotosScreen());
+            },
+            title: AppStrings.uploadHospitalPhoto,
+          ),
         ),
       ),
       body: Obx(() {
-        if (controller.isLoading.value)
-          return Center(child: CircularProgressIndicator());
-
+        if (controller.isLoading.value) {
+          return const Center(child: CircularProgressIndicator());
+        }
         return ListView.builder(
-          padding: EdgeInsets.all(16),
+          padding: const EdgeInsets.all(16),
           itemCount: controller.propertyPhotosList.length,
-          itemBuilder: (context, index) {
-            var item = controller.propertyPhotosList[index];
-            List images = item.images ?? [];
-            String firstImage = images.isNotEmpty ? images[0] : "";
-
-            return InkWell(
-              onTap: () {
-                Get.to(HospitalCategoryDetailsScreen(
-                  categoryData: item,
-                ));
-              },
-              child: Card(
-                margin: EdgeInsets.only(bottom: 16),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
-                child: Padding(
-                  padding: const EdgeInsets.all(12.0),
-                  child: Row(
-                    children: [
-                      // Thumbnail with Image Count Overlay
-                      Stack(
-                        children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: Image.network(
-                              firstImage,
-                              width: 100,
-                              height: 100,
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) =>
-                                  Container(
-                                      color: Colors.grey,
-                                      width: 100,
-                                      height: 100,
-                                      child: Icon(Icons.image)),
-                            ),
-                          ),
-                          Positioned(
-                            bottom: 8,
-                            left: 8,
-                            right: 8,
-                            child: Container(
-                              padding: EdgeInsets.symmetric(vertical: 2),
-                              decoration: BoxDecoration(
-                                color: Colors.black.withValues(alpha: 0.6),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: CustomText(
-                                "${images.length} ${AppStrings.images.tr}",
-                                textAlign: TextAlign.center,
-                                    color: Colors.white, fontSize: 10),
-                            ),
-                          )
-                        ],
-                      ),
-                      SizedBox(width: 16),
-                      // Details
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                CustomText(item.title??"",
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold),
-                              ],
-                            ),
-                            SizedBox(height: 4),
-                            CustomText("${AppStrings.latestUpdate.tr}: ${formatIsoDate(item.updatedAt??"")}",
-
-                                    color: Colors.grey, fontSize: 12),
-
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            );
-          },
+          itemBuilder: (context, index) => _buildPhotoTile(
+            controller.propertyPhotosList[index],
+          ),
         );
       }),
     );
   }
+
+  Widget _buildPhotoTile(HospitalGalleryData item) {
+    final images = item.images ?? const <String>[];
+    final firstImage = images.isNotEmpty ? images[0] : "";
+
+    return InkWell(
+      onTap: () => Get.to(HospitalCategoryDetailsScreen(categoryData: item)),
+      child: Card(
+        margin: const EdgeInsets.only(bottom: 16),
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(12)),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Row(
+            children: [
+              _buildThumbnail(firstImage, images.length),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CustomText(
+                      item.title ?? "",
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    const SizedBox(height: 4),
+                    CustomText(
+                      "${AppStrings.latestUpdate.tr}: ${formatIsoDate(item.updatedAt ?? "")}",
+                      color: Colors.grey,
+                      fontSize: 12,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildThumbnail(String firstImage, int imageCount) {
+    return Stack(
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: Image.network(
+            firstImage,
+            width: 100,
+            height: 100,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) => Container(
+              color: Colors.grey,
+              width: 100,
+              height: 100,
+              child: const Icon(Icons.image),
+            ),
+          ),
+        ),
+        Positioned(
+          bottom: 8,
+          left: 8,
+          right: 8,
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 2),
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.6),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: CustomText(
+              "$imageCount ${AppStrings.images.tr}",
+              textAlign: TextAlign.center,
+              color: Colors.white,
+              fontSize: 10,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   static String formatIsoDate(String isoString) {
     if (isoString.isEmpty) return "";
-    DateTime dateTime = DateTime.parse(isoString);
+    final dateTime = DateTime.parse(isoString);
     return DateFormat('dd MMM, yyyy').format(dateTime);
   }
 }

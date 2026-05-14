@@ -6,86 +6,86 @@ import 'package:BlueEra/features/me/hotel/controller/hotel_home_detail_controlle
 import 'package:BlueEra/features/me/hotel/repo/hotel_service_repo.dart';
 import 'package:get/get.dart';
 
+/// Manages the hotel-wide policies: check-in/out window, allowance flags
+/// and food restrictions.
+///
+/// The API exposes these as a flat record under `data` plus a nested
+/// `foodRestrictions: { enabled, restrictions[] }` block; we lift each field
+/// to its own observable for direct UI binding.
 class HotelPolicyController extends GetxController {
-  var isLoading = false.obs;
+  final HotelServiceRepo _repo = HotelServiceRepo();
 
-  // var userSelections = <String, dynamic>{}.obs;
-  var userCheckInSelections = '12:00'.obs;
-  var userCheckOutSelections = '11:00'.obs;
-  var userFoodTypeSelections = [].obs;
+  final RxBool isLoading = false.obs;
+  final RxBool isSaving = false.obs;
 
-  // Observable fields matching your JSON response keys
-  // var checkInTime = "12:00 PM".obs;
-  // var checkOutTime = "11:00 AM".obs;
-  var is24Hours = false.obs;
+  final RxString userCheckInSelections = '12:00'.obs;
+  final RxString userCheckOutSelections = '11:00'.obs;
+  final RxList<String> userFoodTypeSelections = <String>[].obs;
 
-  var earlyCheckInAllowed = false.obs;
-  var lateCheckOutAllowed = false.obs;
-  var marriedCoupleAllowed = false.obs;
-  var bachelorStudentAllowed = false.obs;
-  var freeCancellation = false.obs;
-  var localIdAllowed = false.obs;
-  var aadharMandatory = false.obs;
-  var smokingDrinkingAllowed = false.obs;
+  final RxBool is24Hours = false.obs;
+  final RxBool earlyCheckInAllowed = false.obs;
+  final RxBool lateCheckOutAllowed = false.obs;
+  final RxBool marriedCoupleAllowed = false.obs;
+  final RxBool bachelorStudentAllowed = false.obs;
+  final RxBool freeCancellation = false.obs;
+  final RxBool localIdAllowed = false.obs;
+  final RxBool aadharMandatory = false.obs;
+  final RxBool smokingDrinkingAllowed = false.obs;
 
-  // Food Restriction logic
-  var foodRestrictionsEnabled = false.obs;
-  var selectedRestrictions = <String>[].obs;
-  List<String> timeSlots =
+  final RxBool foodRestrictionsEnabled = false.obs;
+  final RxList<String> selectedRestrictions = <String>[].obs;
+
+  /// 24 hourly slots (`"00:00"`..`"23:00"`) for the check-in/out dropdowns.
+  final List<String> timeSlots =
       List.generate(24, (i) => "${i.toString().padLeft(2, '0')}:00");
 
   @override
   void onInit() {
     super.onInit();
     loadPolicies();
-    // In a real app, call your fetch API here
   }
 
-  // Load data from GET API response
   Future<void> loadPolicies() async {
     try {
-      isLoading(true);
-      // Simulated GET Response based on your provided JSON
-      ResponseModel response = await HotelServiceRepo().getHotelPoliciesRepo();
+      isLoading.value = true;
+      final ResponseModel response = await _repo.getHotelPoliciesRepo();
+      if (!response.isSuccess) {
+        commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
+        return;
+      }
 
-      if (response.isSuccess) {
-        final Map<String, dynamic> data = response.response?.data['data'];
-        userCheckInSelections.value = data['checkInTime'] ?? "12:00";
-        userCheckOutSelections.value = data['checkOutTime'] ?? "11:00";
-        is24Hours.value = data['checkInHours'] == "24 Hours";
-        logs("is24Hours.value=== ${is24Hours.value}");
+      final data = response.response?.data['data'] as Map<String, dynamic>?;
+      if (data == null) return;
 
-        earlyCheckInAllowed.value = data['earlyCheckInAllowed'] ?? false;
-        lateCheckOutAllowed.value = data['lateCheckOutAllowed'] ?? false;
-        marriedCoupleAllowed.value = data['marriedCoupleAllowed'] ?? false;
-        bachelorStudentAllowed.value = data['bachelorStudentAllowed'] ?? false;
-        freeCancellation.value = data['freeCancellation'] ?? false;
-        localIdAllowed.value = data['localIdAllowed'] ?? false;
-        aadharMandatory.value = data['aadharMandatory'] ?? false;
-        smokingDrinkingAllowed.value = data['smokingDrinkingAllowed'] ?? false;
+      userCheckInSelections.value = data['checkInTime'] ?? "12:00";
+      userCheckOutSelections.value = data['checkOutTime'] ?? "11:00";
+      is24Hours.value = data['checkInHours'] == "24 Hours";
 
-        if (data['foodRestrictions'] != null) {
-          foodRestrictionsEnabled.value =
-              data['foodRestrictions']['enabled'] ?? false;
-          userFoodTypeSelections.assignAll(List<String>.from(
-              data['foodRestrictions']['restrictions'] ?? []));
-        }
+      earlyCheckInAllowed.value = data['earlyCheckInAllowed'] ?? false;
+      lateCheckOutAllowed.value = data['lateCheckOutAllowed'] ?? false;
+      marriedCoupleAllowed.value = data['marriedCoupleAllowed'] ?? false;
+      bachelorStudentAllowed.value = data['bachelorStudentAllowed'] ?? false;
+      freeCancellation.value = data['freeCancellation'] ?? false;
+      localIdAllowed.value = data['localIdAllowed'] ?? false;
+      aadharMandatory.value = data['aadharMandatory'] ?? false;
+      smokingDrinkingAllowed.value = data['smokingDrinkingAllowed'] ?? false;
 
-        // Assign to the observable map and refresh
-        // hotelAmenityStatus.assignAll(filteredMap);
-      } else {
-        commonSnackBar(message: AppStrings.somethingWentWrong);
+      final food = data['foodRestrictions'] as Map<String, dynamic>?;
+      if (food != null) {
+        foodRestrictionsEnabled.value = food['enabled'] ?? false;
+        userFoodTypeSelections
+            .assignAll(List<String>.from(food['restrictions'] ?? const []));
       }
     } catch (e) {
+      logs("HotelPolicyController.loadPolicies ERROR $e");
       commonSnackBar(message: AppStrings.hotelFailedLoadAmenities.tr);
     } finally {
-      isLoading(false);
+      isLoading.value = false;
     }
   }
 
   Future<void> submitPolicies() async {
-    // Construct POST payload here
-    Map<String, dynamic> requestBody = {
+    final body = <String, dynamic>{
       "checkInTime": userCheckInSelections.value,
       "checkOutTime": userCheckOutSelections.value,
       "checkInHours": is24Hours.value ? "24 Hours" : "12 Hours",
@@ -100,26 +100,33 @@ class HotelPolicyController extends GetxController {
       "foodRestrictions": {
         "enabled": foodRestrictionsEnabled.value,
         "restrictions":
-            foodRestrictionsEnabled.value ? userFoodTypeSelections.value : []
-      }
+            foodRestrictionsEnabled.value ? userFoodTypeSelections.toList() : [],
+      },
     };
 
     try {
-      ResponseModel response =
-          await HotelServiceRepo().addHotelPoliciesRepo(reqBody: requestBody);
+      isSaving.value = true;
+      final ResponseModel response =
+          await _repo.addHotelPoliciesRepo(reqBody: body);
 
       if (response.isSuccess) {
         Get.back();
         commonSnackBar(message: response.response?.data['message']);
-        loadPolicies();
-        try {
-          Get.find<HotelDetailController>().loadHotelData();
-        } catch (_) {}
+        await loadPolicies();
+        _refreshHotelHome();
       } else {
-        commonSnackBar(message: AppStrings.somethingWentWrong);
+        commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
       }
-    } on Exception {
+    } catch (_) {
       commonSnackBar(message: AppStrings.somethingWentWrong);
+    } finally {
+      isSaving.value = false;
     }
+  }
+
+  void _refreshHotelHome() {
+    try {
+      Get.find<HotelDetailController>().loadHotelData();
+    } catch (_) {}
   }
 }

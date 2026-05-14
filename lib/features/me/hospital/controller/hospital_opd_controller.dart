@@ -93,55 +93,59 @@ class HospitalOpdController extends GetxController {
     if (!isFormValid.value) return;
     isSaving.value = true;
     try {
-      String imageUrl = initialImageUrl;
-      if (selectedImage.value != null) {
-        final uploadResult = await S3UploadService.uploadFile(selectedImage.value!);
-        if (uploadResult.isSuccess) {
-          imageUrl = uploadResult.url;
-        } else {
-          commonSnackBar(message: uploadResult.message);
-          isSaving.value = false;
-          return;
-        }
-      }
+      final imageUrl = await _resolveImageUrl();
+      if (imageUrl == null) return; // upload failed, snackbar already shown
+
+      final feesText = feesController.text.trim();
       final body = {
         ApiKeys.name: nameController.text.trim(),
         "education": educationController.text.trim(),
         ApiKeys.description: descriptionController.text.trim(),
         "departmentId": departmentIdArg ?? "",
         "position": positionController.text.trim(),
-        "fees": int.tryParse(feesController.text.trim() == "" ? "0" : feesController.text.trim()) ?? 0,
+        "fees": feesText.isEmpty ? 0 : (int.tryParse(feesText) ?? 0),
         "imageUrl": imageUrl,
         "timing": timingController.text.trim(),
         ApiKeys.hospitalId: hospitalIdArg ?? (await getHospitalID()),
       };
-      if (editing == null) {
-        final ResponseModel res = await _repo.create(body: body);
-        if (res.isSuccess) {
-          final created = OpdDoctor.fromJson(res.response?.data['data']);
-          doctors.insert(0, created);
-          commonSnackBar(message: AppStrings.hospitalCtrlOpdDoctorAdded.tr);
-          Get.back();
-        } else {
-          commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong);
-        }
-      } else {
-        final ResponseModel res = await _repo.update(id: editing!.id, body: body);
-        if (res.isSuccess) {
-          final upd = OpdDoctor.fromJson(res.response?.data['data']);
-          final idx = doctors.indexWhere((e) => e.id == editing!.id);
-          if (idx != -1) doctors[idx] = upd;
-          commonSnackBar(message: AppStrings.hospitalCtrlOpdDoctorUpdated.tr);
-          Get.back();
-        } else {
-          commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong);
-        }
+
+      final isCreate = editing == null;
+      final ResponseModel res = isCreate
+          ? await _repo.create(body: body)
+          : await _repo.update(id: editing!.id, body: body);
+
+      if (!res.isSuccess) {
+        commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong);
+        return;
       }
+
+      final saved = OpdDoctor.fromJson(res.response?.data['data']);
+      if (isCreate) {
+        doctors.insert(0, saved);
+        commonSnackBar(message: AppStrings.hospitalCtrlOpdDoctorAdded.tr);
+      } else {
+        final idx = doctors.indexWhere((e) => e.id == editing!.id);
+        if (idx != -1) doctors[idx] = saved;
+        commonSnackBar(message: AppStrings.hospitalCtrlOpdDoctorUpdated.tr);
+      }
+      Get.back();
     } catch (e) {
       commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {
       isSaving.value = false;
     }
+  }
+
+  /// Uploads [selectedImage] if the user picked a new one; otherwise returns
+  /// the existing URL. Returns `null` (and shows a snackbar) on upload failure
+  /// so the caller can abort save.
+  Future<String?> _resolveImageUrl() async {
+    if (selectedImage.value == null) return initialImageUrl;
+    final uploadResult = await S3UploadService.uploadFile(selectedImage.value!);
+    if (uploadResult.isSuccess) return uploadResult.url;
+    commonSnackBar(message: uploadResult.message);
+    isSaving.value = false;
+    return null;
   }
 
   Future<void> deleteOpd(OpdDoctor d) async {

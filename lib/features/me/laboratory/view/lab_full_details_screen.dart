@@ -66,7 +66,7 @@ class _LabFullDetailsScreenState extends State<LabFullDetailsScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 LabHeaderView(
-                  schoolAboutUsController: controller,
+                  controller: controller,
                 ),
 
                 // Description section - show empty state if no description

@@ -13,120 +13,132 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 
+/// Drives the multi-step "create room" flow:
+///   1. metadata form (count, size, bed type, occupancy, price)
+///   2. optional coupons
+///   3. exterior / washroom / amenity images
+///
+/// Also backs the room-listing screen that lists rooms of a given type and
+/// supports deletion.
 class RoomDetailController extends GetxController {
-  // Text Controllers
-  final totalRoomsTotal = TextEditingController();
-  final roomLength = TextEditingController();
-  final roomWidth = TextEditingController();
-  final pricePerDay = TextEditingController();
+  final HotelServiceRepo _repo = HotelServiceRepo();
+  final ImagePicker _picker = ImagePicker();
 
-  // Coupon Modal Controllers
-  final couponName = TextEditingController();
-  final couponDesc = TextEditingController();
-  final couponCode = TextEditingController();
-  final totalOff = TextEditingController();
-  var discountData = "".obs; // Radio button state
-  var offType = "In Percentage".obs; // Radio button state
+  // ---- Step 1: metadata form -------------------------------------------------
 
-  // List of saved coupons
-  // Dropdown / Complex State
-  var selectedCategory = Rxn<String>(); // Example for your CommonDropdown
-  final categoryList = ["Standard", "Deluxe", "Suite"].obs;
+  final TextEditingController totalRoomsTotal = TextEditingController();
+  final TextEditingController roomLength = TextEditingController();
+  final TextEditingController roomWidth = TextEditingController();
+  final TextEditingController pricePerDay = TextEditingController();
 
-  // Validation Regex
-  final numericRegex = RegExp(r'^[0-9]+$');
-
-  // Computed property to enable/disable the button
-
-  void onCategoryChanged(String? value) {
-    selectedCategory.value = value;
-    update(); // Triggers UI refresh for validation
-  }
-
-  var isFormValidRx = false.obs;
-
-  void triggerValidation() {
-    isFormValidRx.value = isFormValid;
-    update(); // Simple way to refresh the Obx wrapping the button
-  }
-
-  // List for dropdown
+  /// Bed type / occupancy dropdowns.
   final List<BedType> bedTypeList = BedType.values;
+  final List<OccupancyType> occupancyList = OccupancyType.values;
+  final Rxn<BedType> selectedBedType = Rxn<BedType>();
+  final Rxn<OccupancyType> selectedOccupancy = Rxn<OccupancyType>();
 
-  // Selected value
-  var selectedBedType = Rxn<BedType>();
+  /// Mirrored Rx flag for the "Next" button. Views call [triggerValidation]
+  /// after every field change to keep this in sync with [_isFormValid].
+  final RxBool isFormValidRx = false.obs;
+
+  static final RegExp _numericRegex = RegExp(r'^[0-9]+$');
+
+  // ---- Step 2: coupons -------------------------------------------------------
+
+  final TextEditingController couponName = TextEditingController();
+  final TextEditingController couponDesc = TextEditingController();
+  final TextEditingController couponCode = TextEditingController();
+  final TextEditingController totalOff = TextEditingController();
+
+  /// `"In Percentage"` or `"In Rupees"`. Drives validation bounds.
+  final RxString offType = "In Percentage".obs;
+  final RxBool isCouponValid = false.obs;
+  final RxList<Map<String, String>> savedCoupons = <Map<String, String>>[].obs;
+
+  // ---- Step 3: images --------------------------------------------------------
+
+  final RxList<XFile> exteriorImages = <XFile>[].obs;
+  final RxList<XFile> washroomImages = <XFile>[].obs;
+  final RxList<XFile> amenityImages = <XFile>[].obs;
+
+  final RxList<String> exteriorImagesUrlList = <String>[].obs;
+  final RxList<String> washroomImagesUrlList = <String>[].obs;
+  final RxList<String> amenityImagesUrlList = <String>[].obs;
+
+  static const int _maxImagesPerCategory = 4;
+
+  // ---- Listing screen --------------------------------------------------------
+
+  final RxList<HotelRoomData> hotelRoomDataList = <HotelRoomData>[].obs;
+  final RxBool isLoading = false.obs;
+  final RxBool isSaving = false.obs;
+
+  // ---- Form-state callbacks --------------------------------------------------
 
   void onBedTypeChanged(BedType? value) {
     selectedBedType.value = value;
-    // This updates the TextField controller if you are using one for Bed Type
-    // bedTypeController.text = value?.name ?? "";
   }
-
-  // Validation check
-  bool get isBedSelected => selectedBedType.value != null;
-
-  // Occupancy State
-  final List<OccupancyType> occupancyList = OccupancyType.values;
-  var selectedOccupancy = Rxn<OccupancyType>();
 
   void onOccupancyChanged(OccupancyType? value) {
     selectedOccupancy.value = value;
-    triggerValidation(); // Refresh the "Next" button state
+    triggerValidation();
   }
 
-  // Update your validation logic to include these dropdowns
-  bool get isFormValid {
+  void triggerValidation() {
+    isFormValidRx.value = _isFormValid;
+    update();
+  }
+
+  /// Step-1 form validity (all numeric fields filled + dropdowns picked).
+  bool get _isFormValid {
     return totalRoomsTotal.text.isNotEmpty &&
-        numericRegex.hasMatch(totalRoomsTotal.text) &&
+        _numericRegex.hasMatch(totalRoomsTotal.text) &&
         roomLength.text.isNotEmpty &&
-        numericRegex.hasMatch(roomLength.text) &&
+        _numericRegex.hasMatch(roomLength.text) &&
         roomWidth.text.isNotEmpty &&
-        numericRegex.hasMatch(roomWidth.text) &&
-        selectedBedType.value != null && // Bed Type must be selected
-        selectedOccupancy.value != null && // Occupancy must be selected
+        _numericRegex.hasMatch(roomWidth.text) &&
+        selectedBedType.value != null &&
+        selectedOccupancy.value != null &&
         pricePerDay.text.isNotEmpty &&
-        numericRegex.hasMatch(pricePerDay.text);
+        _numericRegex.hasMatch(pricePerDay.text);
   }
 
-// Validation for Coupon Modal (Code is optional)
-  RxBool isCouponValid = false.obs;
+  /// Step-3 minimum-image rule used to gate the create button.
+  bool get isCreateHotel =>
+      exteriorImages.length >= 2 && washroomImages.length >= 2;
 
-  isCouponValidMethod() {
-    bool baseValidation = couponName.text.trim().length >= 3 &&
+  /// Hard validation for the create flow.
+  bool validate() => isCreateHotel;
+
+  // ---- Coupons ---------------------------------------------------------------
+
+  bool isCouponValidMethod() {
+    bool ok = couponName.text.trim().length >= 3 &&
         couponDesc.text.trim().length >= 5 &&
         totalOff.text.isNotEmpty &&
-        numericRegex.hasMatch(totalOff.text);
+        _numericRegex.hasMatch(totalOff.text);
 
+    final off = int.tryParse(totalOff.text);
     if (offType.value == "In Percentage") {
-      int val = int.tryParse(totalOff.text) ?? 101;
-      baseValidation = baseValidation && val <= 100 && val > 0;
+      ok = ok && off != null && off > 0 && off <= 100;
     } else {
-      int val = int.tryParse(totalOff.text) ?? 0;
-      baseValidation = baseValidation && val > 0;
+      ok = ok && off != null && off > 0;
     }
-
-    return isCouponValid.value = baseValidation;
+    isCouponValid.value = ok;
+    return ok;
   }
 
-  // Observable list of coupons
-  var savedCoupons = <Map<String, String>>[].obs;
-
   void addCoupon() {
-    // Collect data from controllers
-    final Map<String, String> newCoupon = {
+    savedCoupons.add({
       "id": DateTime.now().millisecondsSinceEpoch.toString(),
       "name": couponName.text,
       "desc": couponDesc.text,
       "code":
           couponCode.text.isEmpty ? "NOCODE" : couponCode.text.toUpperCase(),
       "offValue": totalOff.text,
-      "offType": offType.value, // "In Rupees" or "In Percentage"
-    };
-
-    savedCoupons.add(newCoupon);
-    savedCoupons.refresh(); // Explicitly trigger UI update
-
-    // Clear fields for next entry
+      "offType": offType.value,
+    });
+    savedCoupons.refresh();
     _clearCouponFields();
     isCouponValid.value = false;
   }
@@ -143,251 +155,165 @@ class RoomDetailController extends GetxController {
     totalOff.clear();
   }
 
-  clearRoomFormDetails() {}
-
-  var isLoading = false.obs;
-  var roomStatus = <String, bool>{}.obs;
-
-  // Replace with your actual businessId from your auth/session logic
-  // final String businessId = "68ccf05f28492e584c365636";
-
-  @override
-  void onInit() {
-    fetchRoomDetails();
-    super.onInit();
-  }
-
-  // GET API Logic
-  void fetchRoomDetails() async {
-    ResponseModel response =
-        await HotelServiceRepo().getAllHotelRoomsTypeRepo();
-    if (response.isSuccess) {
-      Map<String, dynamic> data =
-          response.response?.data as Map<String, dynamic>;
-      // Filter only booleans for our toggle map
-      data.forEach((key, value) {
-        if (value is bool) {
-          roomStatus[key] = value;
-        }
-      });
-    }
-  }
-
-  void toggleRoom(String keyId, bool value) {
-    roomStatus[keyId] = value;
-    roomStatus.refresh();
-  }
-
-  // POST API Logic
-
-  Future<void> submitRoomDetails() async {
-    try {
-      Map<String, dynamic> requestBody = {
-        ...roomStatus,
-      };
-      ResponseModel response = await HotelServiceRepo()
-          .addAllHotelRoomsTypeRepo(reqBODY: requestBody);
-
-      if (response.isSuccess) {
-        Get.back();
-        commonSnackBar(message: response.response?.data['message']);
-      } else {
-        commonSnackBar(message: AppStrings.somethingWentWrong);
-      }
-    } on Exception {
-      commonSnackBar(message: AppStrings.somethingWentWrong);
-    }
-    // await getConnect.post('url', requestParams);
-  }
-
-  RxList<HotelRoomData> hotelRoomDataList = <HotelRoomData>[].obs;
-
-  ///GET ROOM LISTING
-  Future<void> getHotelRoomDetails({
-    required String roomTYPE,
-  }) async {
-    try {
-      hotelRoomDataList.clear();
-      ResponseModel response = await HotelServiceRepo()
-          .getCreatedRoomProfileRepo(roomType: roomTYPE);
-      HotelRoomListingResModel hotelRoomListingResModel =
-          HotelRoomListingResModel.fromJson(response.response?.data);
-      if (response.isSuccess) {
-        hotelRoomDataList.addAll(hotelRoomListingResModel.data ?? []);
-        // Get.back();
-        // commonSnackBar(message: response.response?.data['message']);
-      } else {
-        commonSnackBar(message: AppStrings.somethingWentWrong);
-      }
-    } on Exception {
-      commonSnackBar(message: AppStrings.somethingWentWrong);
-    }
-    // await getConnect.post('url', requestParams);
-  }
-
-  final ImagePicker _picker = ImagePicker();
-
-  // Observable lists for each category
-  var exteriorImages = <XFile>[].obs;
-  var washroomImages = <XFile>[].obs;
-  var amenityImages = <XFile>[].obs;
-
-  var exteriorImagesUrlList = <String>[].obs;
-  var washroomImagesUrlList = <String>[].obs;
-  var amenityImagesUrlList = <String>[].obs;
+  // ---- Images ----------------------------------------------------------------
 
   Future<void> pickImage(ImageSource source, RxList<XFile> targetList) async {
-    if (targetList.length >= 4) {
+    if (targetList.length >= _maxImagesPerCategory) {
       commonSnackBar(message: AppStrings.hotelLimitReached4Images.tr);
       return;
     }
-
-    final XFile? selected = await _picker.pickImage(source: source);
-    if (selected != null) {
-      targetList.add(selected);
-    }
+    final XFile? picked = await _picker.pickImage(source: source);
+    if (picked != null) targetList.add(picked);
   }
 
   void removeImage(int index, RxList<XFile> targetList) {
     targetList.removeAt(index);
   }
 
-  // RxBool isCreateHotel = false.obs;
-  // This getter returns true only if both requirements are met
-  bool get isCreateHotel =>
-      exteriorImages.length >= 2 && washroomImages.length >= 2;
+  // ---- API: list / submit / delete ------------------------------------------
 
-  // Optional: If you still need a manual validate function for snacks/alerts
-  bool validate() {
-    if (exteriorImages.length < 2) {
-      return false;
+  Future<void> getHotelRoomDetails({required String roomTYPE}) async {
+    try {
+      isLoading.value = true;
+      hotelRoomDataList.clear();
+      final ResponseModel response =
+          await _repo.getCreatedRoomProfileRepo(roomType: roomTYPE);
+      if (response.isSuccess) {
+        final res = HotelRoomListingResModel.fromJson(response.response?.data);
+        hotelRoomDataList.addAll(res.data ?? []);
+      } else {
+        commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
+      }
+    } on Exception catch (e) {
+      logs("RoomDetailController.getHotelRoomDetails ERROR $e");
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    } finally {
+      isLoading.value = false;
     }
-    if (washroomImages.length < 2) {
-      return false;
-    }
-    return true;
   }
 
   Future<void> submitHotelRoom({
     required String name,
     required String type,
   }) async {
-    // 1. Show Loader
-    isLoading.value = true;
-
-    // Clear previous URLs to avoid duplicates if the user retries
-
-    exteriorImagesUrlList.clear();
-    washroomImagesUrlList.clear();
-    amenityImagesUrlList.clear();
-// 2. Parallel Uploading (Optimization)
-    // We create a list of upload tasks and run them concurrently
-    await Future.wait([
-      _uploadCategory(exteriorImages, exteriorImagesUrlList),
-      _uploadCategory(washroomImages, washroomImagesUrlList),
-      _uploadCategory(amenityImages, amenityImagesUrlList),
-    ]);
-
-    // Construct POST payload here
-    Map<String, dynamic> requestBody = {
-      "name": name,
-      "type": type,
-      "totalRooms": totalRoomsTotal.text,
-      "size": {"length": roomLength.text, "width": roomWidth.text},
-      "bedType": selectedBedType.value?.name,
-      "maxOccupancy": selectedOccupancy.value?.name,
-      "pricePerDay": pricePerDay.text,
-      // "discount": newCoupon[''],
-      "isActive": true,
-      "images": {
-        "exteriorImages": exteriorImagesUrlList,
-        "washroomImages": washroomImagesUrlList,
-        "amenityImages": amenityImagesUrlList
-      },
-    };
-
     try {
-      ResponseModel response =
-          await HotelServiceRepo().addHotelRoomRepo(reqBody: requestBody);
+      isSaving.value = true;
+
+      exteriorImagesUrlList.clear();
+      washroomImagesUrlList.clear();
+      amenityImagesUrlList.clear();
+
+      // Run the three uploads concurrently.
+      await Future.wait([
+        _uploadCategory(exteriorImages, exteriorImagesUrlList),
+        _uploadCategory(washroomImages, washroomImagesUrlList),
+        _uploadCategory(amenityImages, amenityImagesUrlList),
+      ]);
+
+      final body = <String, dynamic>{
+        "name": name,
+        "type": type,
+        "totalRooms": totalRoomsTotal.text,
+        "size": {"length": roomLength.text, "width": roomWidth.text},
+        "bedType": selectedBedType.value?.name,
+        "maxOccupancy": selectedOccupancy.value?.name,
+        "pricePerDay": pricePerDay.text,
+        "isActive": true,
+        "images": {
+          "exteriorImages": exteriorImagesUrlList,
+          "washroomImages": washroomImagesUrlList,
+          "amenityImages": amenityImagesUrlList,
+        },
+      };
+
+      final ResponseModel response = await _repo.addHotelRoomRepo(reqBody: body);
 
       if (response.isSuccess) {
         Get.back();
         Get.back();
         commonSnackBar(message: response.response?.data['message']);
-        getHotelRoomDetails(roomTYPE: type);
+        await getHotelRoomDetails(roomTYPE: type);
         resetForm();
-        try {
-          Get.find<HotelDetailController>().loadHotelData();
-        } catch (_) {}
+        _refreshHotelHome();
       } else {
-        commonSnackBar(message: AppStrings.somethingWentWrong);
+        commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
       }
-    } on Exception {
+    } catch (e) {
+      logs("RoomDetailController.submitHotelRoom ERROR $e");
       commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {
-      // 5. Always hide loader at the end
-      isLoading.value = false;
+      isSaving.value = false;
     }
   }
 
-  // Helper method to handle multiple uploads for a category
-  Future<void> _uploadCategory(List<XFile> files, List<String> urlList) async {
-    for (var file in files) {
-      UploadResult? result = await S3UploadService.uploadFile(File(file.path));
-      if (result.isSuccess) {
-        urlList.add(result.url);
-      }
-    }
-  }
-
-  void resetForm() {
-    // 1. Clear Text Controllers
-    totalRoomsTotal.clear();
-    roomLength.clear();
-    roomWidth.clear();
-    pricePerDay.clear();
-    totalOff.clear(); // If you have this for discount
-
-    // 2. Reset Rxn (Nullable) selections to null
-    selectedBedType.value = null;
-    selectedOccupancy.value = null;
-
-    // 3. Clear Observable Lists
-    exteriorImages.clear();
-    washroomImages.clear();
-    amenityImages.clear();
-
-    // 4. Reset Validation Booleans
-    // isCreateHotel = false;
-
-    // Optional: If you have URL lists for the backend, clear them too
-    exteriorImagesUrlList.clear();
-    washroomImagesUrlList.clear();
-    amenityImagesUrlList.clear();
-
-    savedCoupons.clear();
-  }
-
-  ///DELETE NOTICE....
   Future<void> deleteHotelRoomController({
     required String hotelRoomType,
     required String hotelRoomId,
   }) async {
     try {
-      ResponseModel response =
-          await HotelServiceRepo().deleteHotelRoomRepo(hotelRoomId);
-
+      final ResponseModel response = await _repo.deleteHotelRoomRepo(hotelRoomId);
       if (response.isSuccess) {
         Get.back();
         commonSnackBar(
-            message:
-                response.response?.data['message'] ?? AppStrings.successful);
-        getHotelRoomDetails(roomTYPE: hotelRoomType);
+            message: response.response?.data['message'] ?? AppStrings.successful);
+        await getHotelRoomDetails(roomTYPE: hotelRoomType);
       } else {
-        commonSnackBar(message: AppStrings.somethingWentWrong);
+        commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
       }
     } on Exception catch (e) {
-      logs("ERROR ${e}");
+      logs("RoomDetailController.deleteHotelRoom ERROR $e");
     }
+  }
+
+  Future<void> _uploadCategory(List<XFile> files, List<String> urlList) async {
+    for (final file in files) {
+      final result = await S3UploadService.uploadFile(File(file.path));
+      if (result.isSuccess) urlList.add(result.url);
+    }
+  }
+
+  // ---- Reset -----------------------------------------------------------------
+
+  /// Wipes every field of the create-room form so the next entry starts fresh.
+  void resetForm() {
+    totalRoomsTotal.clear();
+    roomLength.clear();
+    roomWidth.clear();
+    pricePerDay.clear();
+    totalOff.clear();
+
+    selectedBedType.value = null;
+    selectedOccupancy.value = null;
+
+    exteriorImages.clear();
+    washroomImages.clear();
+    amenityImages.clear();
+
+    exteriorImagesUrlList.clear();
+    washroomImagesUrlList.clear();
+    amenityImagesUrlList.clear();
+
+    savedCoupons.clear();
+    isFormValidRx.value = false;
+    isCouponValid.value = false;
+  }
+
+  void _refreshHotelHome() {
+    try {
+      Get.find<HotelDetailController>().loadHotelData();
+    } catch (_) {}
+  }
+
+  @override
+  void onClose() {
+    totalRoomsTotal.dispose();
+    roomLength.dispose();
+    roomWidth.dispose();
+    pricePerDay.dispose();
+    couponName.dispose();
+    couponDesc.dispose();
+    couponCode.dispose();
+    totalOff.dispose();
+    super.onClose();
   }
 }

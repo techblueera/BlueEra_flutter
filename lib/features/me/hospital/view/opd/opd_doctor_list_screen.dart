@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_opd_controller.dart';
+import 'package:BlueEra/features/me/hospital/model/opd_doctor_model.dart';
 import 'package:BlueEra/features/me/hospital/view/opd/opd_doctor_form_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
@@ -19,8 +20,11 @@ class OpdDoctorListScreen extends StatefulWidget {
   final String departmentId;
   final String? hospitalId;
 
-  const OpdDoctorListScreen(
-      {super.key, required this.departmentId, this.hospitalId});
+  const OpdDoctorListScreen({
+    super.key,
+    required this.departmentId,
+    this.hospitalId,
+  });
 
   @override
   State<OpdDoctorListScreen> createState() => _OpdDoctorListScreenState();
@@ -37,9 +41,15 @@ class _OpdDoctorListScreenState extends State<OpdDoctorListScreen> {
     controller.loadByDepartment(widget.departmentId);
   }
 
+  void _openForm() => Get.to(
+        () => OpdDoctorFormScreen(
+          departmentId: widget.departmentId,
+          hospitalId: widget.hospitalId,
+        ),
+      );
+
   @override
   Widget build(BuildContext context) {
-    SizeConfig.init(context);
     return Scaffold(
       appBar: CommonBackAppBar(
         title: AppStrings.opdDoctors,
@@ -49,10 +59,7 @@ class _OpdDoctorListScreenState extends State<OpdDoctorListScreen> {
           child: GestureDetector(
             onTap: () {
               controller.startCreate();
-              Get.to(() => OpdDoctorFormScreen(
-                    departmentId: widget.departmentId,
-                    hospitalId: widget.hospitalId,
-                  ));
+              _openForm();
             },
             child: Container(
               height: 36,
@@ -75,8 +82,8 @@ class _OpdDoctorListScreenState extends State<OpdDoctorListScreen> {
         child: Obx(() {
           if (controller.isLoading.value) {
             return const Center(
-                child:
-                    CircularProgressIndicator(color: AppColors.primaryColor));
+              child: CircularProgressIndicator(color: AppColors.primaryColor),
+            );
           }
           if (controller.doctors.isEmpty) {
             return Center(child: CustomText(AppStrings.nodata));
@@ -87,126 +94,132 @@ class _OpdDoctorListScreenState extends State<OpdDoctorListScreen> {
               padding: EdgeInsets.all(SizeConfig.paddingM),
               itemCount: controller.doctors.length,
               separatorBuilder: (_, __) => SizedBox(height: SizeConfig.size8),
-              itemBuilder: (context, index) {
-                final d = controller.doctors[index];
-                return CommonCardWidget(
-                  cardMargin: 0,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                              child: Container(
-                                  height: 70,
-                                  child: NetWorkOcToAssets(
-                                    imgUrl: d.imageUrl,
-                                    customErrorImage:
-                                        AppIconAssets.place_holder_image,
-                                  ))),
-                          SizedBox(
-                            width: 10,
-                          ),
-                          Expanded(
-                            flex: 3,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                CustomText(d.name,
-                                    fontSize: 16, fontWeight: FontWeight.w700),
-                                SizedBox(height: 6),
-                                if ((d.position ?? '').isNotEmpty)
-                                  CustomText(d.position ?? '',
-                                      color: AppColors.black28),
-                                SizedBox(height: 6),
-                                if ((d.education ?? '').isNotEmpty)
-                                  CustomText(d.education ?? '',
-                                      color: AppColors.black28),
-                              ],
-                            ),
-                          ),
-                          PopupMenuButton<String>(
-                            child: const Icon(Icons.more_vert, size: 20),
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(),
-                            offset: const Offset(-6, 36),
-                            color: AppColors.white,
-                            elevation: 8,
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10)),
-                            itemBuilder: (context) => [
-                              PopupMenuItem(
-                                value: "EDIT",
-                                onTap: () {
-                                  controller.startEdit(d);
-                                  Future.delayed(
-                                      const Duration(milliseconds: 100), () {
-                                    Get.to(() => OpdDoctorFormScreen(
-                                        departmentId: widget.departmentId,
-                                        hospitalId: widget.hospitalId));
-                                  });
-                                },
-                                child: CustomText(AppStrings.edit),
-                              ),
-                              const PopupMenuItem(
-                                enabled: false,
-                                padding: EdgeInsets.zero,
-                                height: 1,
-                                child: Divider(height: 1),
-                              ),
-                              PopupMenuItem(
-                                value: "DELETE",
-                                height: 15,
-                                onTap: () {
-                                  Future.delayed(
-                                      const Duration(milliseconds: 100), () {
-                                    commonConformationDialog(
-                                      context: context,
-                                      text: AppStrings.areYouSureDelete.tr,
-                                      confirmCallback: () async {
-                                        Navigator.of(context).pop();
-                                        await controller.deleteOpd(d);
-                                      },
-                                      cancelCallback: () =>
-                                          Navigator.of(context).pop(),
-                                    );
-                                  });
-                                },
-                                child: CustomText(AppStrings.delete),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 6),
-                      if (d.fees != null)
-                        CustomText("${AppStrings.fees.tr}: ₹${d.fees}",
-                            color: AppColors.secondaryTextColor),
-                      if (d.timing.isNotEmpty)
-                        CustomText("${AppStrings.timing.tr}: ${d.timing}",
-                            color: AppColors.secondaryTextColor),
-                      if (d.description.isNotEmpty)
-                        ExpandableText(
-                          text: d.description,
-                          trimLines: 2,
-                          isReadMoreNewLine: false,
-                          expandMode: ExpandMode.dialog,
-                          style: TextStyle(
-                            color: AppColors.secondaryTextColor,
-                            fontSize: SizeConfig.medium,
-                            fontWeight: FontWeight.w400,
-                            fontFamily: AppConstants.OpenSans,
-                          ),
-                        ),
-                    ],
-                  ),
-                );
-              },
+              itemBuilder: (context, index) =>
+                  _buildDoctorCard(context, controller.doctors[index]),
             ),
           );
         }),
       ),
+    );
+  }
+
+  Widget _buildDoctorCard(BuildContext context, OpdDoctor d) {
+    return CommonCardWidget(
+      cardMargin: 0,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: SizedBox(
+                  height: 70,
+                  child: NetWorkOcToAssets(
+                    imgUrl: d.imageUrl,
+                    customErrorImage: AppIconAssets.place_holder_image,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                flex: 3,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CustomText(
+                      d.name,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                    ),
+                    const SizedBox(height: 6),
+                    if ((d.position ?? '').isNotEmpty)
+                      CustomText(d.position ?? '', color: AppColors.black28),
+                    const SizedBox(height: 6),
+                    if ((d.education ?? '').isNotEmpty)
+                      CustomText(d.education ?? '', color: AppColors.black28),
+                  ],
+                ),
+              ),
+              _buildPopupMenu(context, d),
+            ],
+          ),
+          const SizedBox(height: 6),
+          if (d.fees != null)
+            CustomText(
+              "${AppStrings.fees.tr}: ₹${d.fees}",
+              color: AppColors.secondaryTextColor,
+            ),
+          if (d.timing.isNotEmpty)
+            CustomText(
+              "${AppStrings.timing.tr}: ${d.timing}",
+              color: AppColors.secondaryTextColor,
+            ),
+          if (d.description.isNotEmpty)
+            ExpandableText(
+              text: d.description,
+              trimLines: 2,
+              isReadMoreNewLine: false,
+              expandMode: ExpandMode.dialog,
+              style: TextStyle(
+                color: AppColors.secondaryTextColor,
+                fontSize: SizeConfig.medium,
+                fontWeight: FontWeight.w400,
+                fontFamily: AppConstants.OpenSans,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPopupMenu(BuildContext context, OpdDoctor d) {
+    return PopupMenuButton<String>(
+      child: const Icon(Icons.more_vert, size: 20),
+      padding: EdgeInsets.zero,
+      constraints: const BoxConstraints(),
+      offset: const Offset(-6, 36),
+      color: AppColors.white,
+      elevation: 8,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
+      itemBuilder: (context) => [
+        PopupMenuItem(
+          value: "EDIT",
+          onTap: () {
+            controller.startEdit(d);
+            // PopupMenu plays a close animation; let it finish before
+            // pushing the next route to avoid a janky transition.
+            Future.delayed(const Duration(milliseconds: 100), _openForm);
+          },
+          child: CustomText(AppStrings.edit),
+        ),
+        const PopupMenuItem(
+          enabled: false,
+          padding: EdgeInsets.zero,
+          height: 1,
+          child: Divider(height: 1),
+        ),
+        PopupMenuItem(
+          value: "DELETE",
+          height: 15,
+          onTap: () {
+            Future.delayed(const Duration(milliseconds: 100), () {
+              commonConformationDialog(
+                context: context,
+                text: AppStrings.areYouSureDelete.tr,
+                confirmCallback: () async {
+                  Get.back();
+                  await controller.deleteOpd(d);
+                },
+                cancelCallback: Get.back,
+              );
+            });
+          },
+          child: CustomText(AppStrings.delete),
+        ),
+      ],
     );
   }
 }

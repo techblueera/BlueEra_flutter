@@ -76,38 +76,31 @@ class HospitalVisionMissionController extends GetxController {
     if (!validate()) return;
     try {
       isSaving.value = true;
-      final body = {
-        "visionAndMission": visionController.text.trim(),
-        "hospitalId": hospitalIDGlobal,
-      };
+      final visionAndMission = visionController.text.trim();
+      final existingId = data.value?.id;
+      final isCreate = existingId == null || existingId.isEmpty;
 
-      if (data.value == null || (data.value?.id?.isEmpty ?? true)) {
-        final ResponseModel res = await _repo.create(body: body);
-        if (res.isSuccess) {
-          final VisionMissionRes vm =
-              VisionMissionRes.fromJson(res.response?.data);
-          data.value = vm.data;
-          commonSnackBar(message: AppStrings.hospitalCtrlSavedSuccessfully.tr);
-          Get.back();
-          hospitalServiceController.getHospitalFullDetailsController();
-        } else {
-          commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong);
-        }
+      // Create sends hospitalId; update only sends the editable field.
+      final ResponseModel res = isCreate
+          ? await _repo.create(body: {
+              "visionAndMission": visionAndMission,
+              "hospitalId": hospitalIDGlobal,
+            })
+          : await _repo.update(
+              id: existingId,
+              body: {"visionAndMission": visionAndMission},
+            );
+
+      if (res.isSuccess) {
+        data.value = VisionMissionRes.fromJson(res.response?.data).data;
+        commonSnackBar(
+            message: isCreate
+                ? AppStrings.hospitalCtrlSavedSuccessfully.tr
+                : AppStrings.hospitalCtrlUpdatedSuccessfully.tr);
+        Get.back();
+        hospitalServiceController.getHospitalFullDetailsController();
       } else {
-        final ResponseModel res = await _repo.update(
-            id: data.value!.id!,
-            body: {"visionAndMission": body["visionAndMission"]});
-        if (res.isSuccess) {
-          final VisionMissionRes vm =
-              VisionMissionRes.fromJson(res.response?.data);
-          data.value = vm.data;
-          commonSnackBar(
-              message: AppStrings.hospitalCtrlUpdatedSuccessfully.tr);
-          Get.back();
-          hospitalServiceController.getHospitalFullDetailsController();
-        } else {
-          commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong);
-        }
+        commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
       commonSnackBar(message: AppStrings.somethingWentWrong);

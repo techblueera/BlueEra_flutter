@@ -6,27 +6,30 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/me/hotel/repo/hotel_service_repo.dart';
 import 'package:get/get.dart';
 
+/// Drives the hotel service catalog tree: top-level categories and the
+/// per-category subcategory toggles that get pushed back as a bulk update.
 class HotelCategoryController extends GetxController {
-  var hotelServiceCategoryList = <HotelServiceCategoriesData>[].obs;
-  var hotelServiceSubCategoryList = <HotelServiceCategoriesData>[].obs;
+  final HotelServiceRepo _repo = HotelServiceRepo();
 
-  Rx<ApiResponse> getAllHotelServiceResponse =
+  final RxList<HotelServiceCategoriesData> hotelServiceCategoryList =
+      <HotelServiceCategoriesData>[].obs;
+  final RxList<HotelServiceCategoriesData> hotelServiceSubCategoryList =
+      <HotelServiceCategoriesData>[].obs;
+
+  final Rx<ApiResponse> getAllHotelServiceResponse =
       ApiResponse.initial('Initial').obs;
 
-  @override
-  void onInit() {
-    super.onInit();
-  }
+  final RxBool isLoading = false.obs;
+  final RxBool isSaving = false.obs;
 
-  ///GET ALL CAMPUS CATEGORY...
   Future<void> fetchAllHotelServiceCategories({bool isRefresh = false}) async {
     try {
+      isLoading.value = true;
       hotelServiceCategoryList.clear();
-      ResponseModel response =
-          await HotelServiceRepo().getHotelServiceCategoryRepo();
+      final ResponseModel response = await _repo.getHotelServiceCategoryRepo();
 
       if (response.isSuccess && response.response?.data != null) {
-        HotelServiceCategoriesResModel? resModel =
+        final resModel =
             HotelServiceCategoriesResModel.fromJson(response.response?.data);
         hotelServiceCategoryList.addAll(resModel.data ?? []);
         getAllHotelServiceResponse.value = ApiResponse.complete(resModel);
@@ -38,45 +41,43 @@ class HotelCategoryController extends GetxController {
     } catch (e) {
       getAllHotelServiceResponse.value = ApiResponse.error(e.toString());
       commonSnackBar(message: "${AppStrings.hotelErrorPrefix.tr} $e");
+    } finally {
+      isLoading.value = false;
     }
   }
 
-  // Toggle switch status
   void toggleRoom(int index, bool value) {
     hotelServiceSubCategoryList[index].isEnabled = value;
-    hotelServiceSubCategoryList.refresh(); // Notify UI of change inside the list
+    hotelServiceSubCategoryList.refresh();
   }
 
-  /// Call the repository and handle the response
   Future<void> updateHotelBulkStatus() async {
     try {
-      final List<Map<String, dynamic>> nodes = hotelServiceSubCategoryList
+      isSaving.value = true;
+      final nodes = hotelServiceSubCategoryList
           .where((room) => room.id != null)
           .map((room) => {
-        "catalogNodeId": room.id!,
-        "isEnabled": room.isEnabled ?? false,
-      })
+                "catalogNodeId": room.id!,
+                "isEnabled": room.isEnabled ?? false,
+              })
           .toList();
 
-      final Map<String, dynamic> requestBody = {
-        "nodes": nodes,
-      };
+      final ResponseModel response =
+          await _repo.updateHotelServiceRepo(reqBody: {"nodes": nodes});
 
-
-      // Call your existing repository function
-      ResponseModel response = await HotelServiceRepo().updateHotelServiceRepo(reqBody: requestBody);
-
-      if (response.isSuccess == true) {
-        // SUCCESS MESSAGE
-        commonSnackBar(message:   response.message ?? AppStrings.hotelServicesUpdatedSuccess.tr);
-
+      if (response.isSuccess) {
+        commonSnackBar(
+            message: response.message ??
+                AppStrings.hotelServicesUpdatedSuccess.tr);
       } else {
-        // FAILED MESSAGE FROM API
-        commonSnackBar(message: response.message ?? AppStrings.hotelFailedToUpdateServices.tr);
+        commonSnackBar(
+            message: response.message ??
+                AppStrings.hotelFailedToUpdateServices.tr);
       }
-    } catch (e) {
-      // EXCEPTION HANDLING (Network issues, etc.)
+    } catch (_) {
       commonSnackBar(message: AppStrings.somethingWentWrong.tr);
+    } finally {
+      isSaving.value = false;
     }
   }
 }

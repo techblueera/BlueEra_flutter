@@ -1,11 +1,12 @@
-import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/laboratory/controller/facility_controller.dart';
+import 'package:BlueEra/features/me/laboratory/widget/lab_switch_row.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
-import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/info_banner.dart';
+import 'package:BlueEra/widgets/section_icon_header.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -40,110 +41,82 @@ class _FacilityScreenState extends State<FacilityScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // --- Info Banner ---
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryColor.withValues(alpha: 0.06),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                        color:
-                            AppColors.primaryColor.withValues(alpha: 0.15)),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.local_hospital_outlined,
-                          color: AppColors.primaryColor, size: 20),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: CustomText(
-                          AppStrings.labFacilityToggleInfo.tr,
-                          color: AppColors.primaryColor,
-                          fontSize: SizeConfig.small,
-                        ),
-                      ),
-                    ],
-                  ),
+                InfoBanner(
+                  icon: Icons.local_hospital_outlined,
+                  message: AppStrings.labFacilityToggleInfo.tr,
                 ),
                 SizedBox(height: SizeConfig.size14),
 
                 // --- Core Facilities ---
-                CommonCardWidget(
-                  padding: 0,
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _sectionIcon(
-                          Icons.medical_services_outlined,
-                          AppStrings.labCoreFacilities.tr,
-                          AppStrings.labCoreFacilitiesSub.tr,
-                        ),
-                        const SizedBox(height: 16),
-                        _buildSwitch(AppStrings.homeSampleCollection.tr,
-                            controller.homeSampleCollection),
-                        _buildSwitch(AppStrings.digitalReport.tr,
-                            controller.digitalReport),
-                        _buildSwitch(AppStrings.wheelchairAssistance.tr,
-                            controller.wheelchairAssistance),
-                      ],
+                _facilityCard(
+                  icon: Icons.medical_services_outlined,
+                  title: AppStrings.labCoreFacilities.tr,
+                  subtitle: AppStrings.labCoreFacilitiesSub.tr,
+                  rows: [
+                    LabSwitchRow(
+                      title: AppStrings.homeSampleCollection.tr,
+                      value: controller.homeSampleCollection,
+                      onChanged: controller.validateForm,
                     ),
-                  ),
+                    LabSwitchRow(
+                      title: AppStrings.digitalReport.tr,
+                      value: controller.digitalReport,
+                      onChanged: controller.validateForm,
+                    ),
+                    LabSwitchRow(
+                      title: AppStrings.wheelchairAssistance.tr,
+                      value: controller.wheelchairAssistance,
+                      onChanged: controller.validateForm,
+                    ),
+                  ],
                 ),
                 SizedBox(height: SizeConfig.size14),
 
                 // --- Consultation & Insurance ---
-                CommonCardWidget(
-                  padding: 0,
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _sectionIcon(
-                          Icons.health_and_safety_outlined,
-                          AppStrings.labConsultationInsurance.tr,
-                          AppStrings.labConsultationInsuranceSub.tr,
-                        ),
-                        const SizedBox(height: 16),
-                        _buildSwitch(AppStrings.doctorConsultationTieUp.tr,
-                            controller.doctorConsultationTieUp),
-                        _buildSwitch(AppStrings.insuranceCashlessSupport.tr,
-                            controller.insuranceCashlessSupport),
-                        _buildSwitch(AppStrings.health_checkup_packages,
-                            controller.healthPackage),
-                      ],
+                _facilityCard(
+                  icon: Icons.health_and_safety_outlined,
+                  title: AppStrings.labConsultationInsurance.tr,
+                  subtitle: AppStrings.labConsultationInsuranceSub.tr,
+                  rows: [
+                    LabSwitchRow(
+                      title: AppStrings.doctorConsultationTieUp.tr,
+                      value: controller.doctorConsultationTieUp,
+                      onChanged: controller.validateForm,
                     ),
-                  ),
+                    LabSwitchRow(
+                      title: AppStrings.insuranceCashlessSupport.tr,
+                      value: controller.insuranceCashlessSupport,
+                      onChanged: controller.validateForm,
+                    ),
+                    LabSwitchRow(
+                      title: AppStrings.health_checkup_packages,
+                      value: controller.healthPackage,
+                      onChanged: controller.validateForm,
+                    ),
+                  ],
                 ),
                 SizedBox(height: SizeConfig.size14),
 
                 // --- Payment Options ---
-                CommonCardWidget(
-                  padding: 0,
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _sectionIcon(
-                          Icons.payment_outlined,
-                          AppStrings.labPaymentOptions.tr,
-                          AppStrings.labPaymentOptionsSub.tr,
-                        ),
-                        const SizedBox(height: 16),
-                        _buildSwitch(AppStrings.online_upi_payment,
-                            controller.upiPayment),
-                        _buildSwitch(AppStrings.credit_card_payment,
-                            controller.cardPayment),
-                      ],
+                _facilityCard(
+                  icon: Icons.payment_outlined,
+                  title: AppStrings.labPaymentOptions.tr,
+                  subtitle: AppStrings.labPaymentOptionsSub.tr,
+                  rows: [
+                    LabSwitchRow(
+                      title: AppStrings.online_upi_payment,
+                      value: controller.upiPayment,
+                      onChanged: controller.validateForm,
                     ),
-                  ),
+                    LabSwitchRow(
+                      title: AppStrings.credit_card_payment,
+                      value: controller.cardPayment,
+                      onChanged: controller.validateForm,
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 30),
 
-                // --- Save ---
                 CustomBtn(
                   title: AppStrings.save,
                   isValidate: controller.isValid.value,
@@ -164,56 +137,24 @@ class _FacilityScreenState extends State<FacilityScreen> {
     );
   }
 
-  Widget _sectionIcon(IconData icon, String title, String subtitle) {
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: AppColors.primaryColor.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Icon(icon, color: AppColors.primaryColor, size: 20),
+  Widget _facilityCard({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required List<Widget> rows,
+  }) {
+    return CommonCardWidget(
+      padding: 0,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SectionIconHeader(icon: icon, title: title, subtitle: subtitle),
+            const SizedBox(height: 16),
+            ...rows,
+          ],
         ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              CustomText(title,
-                  fontWeight: FontWeight.w600, fontSize: SizeConfig.medium),
-              const SizedBox(height: 2),
-              CustomText(subtitle,
-                  color: AppColors.secondaryTextColor,
-                  fontSize: SizeConfig.small),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSwitch(String title, RxBool value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Expanded(
-            child: CustomText(title, color: AppColors.mainTextColor),
-          ),
-          Transform.scale(
-            scale: 0.8,
-            child: Switch(
-              value: value.value,
-              onChanged: (val) {
-                value.value = val;
-                controller.validateForm();
-              },
-              activeColor: AppColors.primaryColor,
-            ),
-          ),
-        ],
       ),
     );
   }

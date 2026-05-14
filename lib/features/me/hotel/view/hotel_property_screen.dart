@@ -8,91 +8,39 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-
+/// Hotel policy editor: check-in / check-out window (or 24-hour mode),
+/// a stack of allow/disallow switches, and an optional food-restrictions
+/// section.
 class HotelPoliciesScreen extends StatelessWidget {
+  HotelPoliciesScreen({super.key});
+
   final controller = Get.put(HotelPolicyController());
+
+  // Food-restriction payload values (also stored on the controller's
+  // `userFoodTypeSelections`). Must match the backend's expected literals.
+  static const String _foodAll = 'All';
+  static const String _foodVeg = 'Vegetarian';
+  static const String _foodNonVeg = 'Non-Vegetarian';
+  static const List<String> _individualFoodOptions = [_foodVeg, _foodNonVeg];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(
-        title: AppStrings.hotelPoliciesTitle.tr,
-      ),
+      appBar: CommonBackAppBar(title: AppStrings.hotelPoliciesTitle.tr),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Column(
             children: [
-              // Time Selection Row
-              CommonCardWidget(
-                cardMargin: 0,
-                padding: 10,
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        CustomText(AppStrings.hotelCheckInCheckOut.tr, fontWeight: FontWeight.bold),
-                        Row(
-                          children: [
-                            CustomText(AppStrings.hotelHours24.tr, fontSize: 12),
-                            Obx(() => Transform.scale(
-                                  scale: 0.75,
-                                  child: Switch(
-                                    value: controller.is24Hours.value,
-                                    activeColor: AppColors.primaryColor,
-                                    onChanged: (v) => controller.is24Hours.value = v,
-                                  ),
-                                ))
-                          ],
-                        )
-                      ],
-                    ),
-                    Row(
-                      children: [
-                        _timeDropdown(AppStrings.hotelCheckIn.tr),
-                        SizedBox(width: 10),
-                        _timeDropdownCheckOut(AppStrings.hotelCheckOut.tr),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-           
+              _buildCheckInOutCard(),
               const SizedBox(height: 10),
-        
-              // Reusable Switches
-              Obx(() => Column(
-                    children: [
-                      _buildSwitchTile(AppStrings.hotelEarlyCheckInAllowedQ.tr,
-                          controller.earlyCheckInAllowed),
-                      _buildSwitchTile(AppStrings.hotelLateCheckOutAllowedQ.tr,
-                          controller.lateCheckOutAllowed),
-                      _buildSwitchTile(AppStrings.hotelAllowUnmarriedCouple.tr,
-                          controller.marriedCoupleAllowed),
-                      _buildSwitchTile(AppStrings.areYouAllowBachelorOrStudent.tr,
-                          controller.bachelorStudentAllowed),
-                      _buildSwitchTile(
-                          AppStrings.hotelFreeCancelation.tr, controller.freeCancellation),
-                      _buildSwitchTile(
-                          AppStrings.hotelLocalIdAllowed.tr, controller.localIdAllowed),
-                      _buildSwitchTile(
-                          AppStrings.hotelAadharMandatory.tr, controller.aadharMandatory),
-                      _buildSwitchTile(AppStrings.hotelSmokingDrinkingAllowed.tr,
-                          controller.smokingDrinkingAllowed),
-        
-                      // Food Restriction Section
-                      _buildFoodRestrictionSection(),
-                    ],
-                  )),
-        
+              _buildSwitchesAndFoodSection(),
               const SizedBox(height: 20),
               PositiveCustomBtn(
-                  onTap: controller.submitPolicies, title: AppStrings.submit.tr),
-
-               SizedBox(height: 20),
-
-
+                onTap: controller.submitPolicies,
+                title: AppStrings.submit.tr,
+              ),
+              const SizedBox(height: 20),
             ],
           ),
         ),
@@ -100,37 +48,82 @@ class HotelPoliciesScreen extends StatelessWidget {
     );
   }
 
-  Widget _timeDropdown(String label) {
+  // ---- Check-in / check-out card --------------------------------------------
+
+  Widget _buildCheckInOutCard() {
+    return CommonCardWidget(
+      cardMargin: 0,
+      padding: 10,
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              CustomText(AppStrings.hotelCheckInCheckOut.tr,
+                  fontWeight: FontWeight.bold),
+              Row(
+                children: [
+                  CustomText(AppStrings.hotelHours24.tr, fontSize: 12),
+                  Obx(() => Transform.scale(
+                        scale: 0.75,
+                        child: Switch(
+                          value: controller.is24Hours.value,
+                          activeThumbColor: AppColors.primaryColor,
+                          onChanged: (v) => controller.is24Hours.value = v,
+                        ),
+                      )),
+                ],
+              ),
+            ],
+          ),
+          Row(
+            children: [
+              _buildTimeDropdown(
+                label: AppStrings.hotelCheckIn.tr,
+                selection: controller.userCheckInSelections,
+              ),
+              const SizedBox(width: 10),
+              _buildTimeDropdown(
+                label: AppStrings.hotelCheckOut.tr,
+                selection: controller.userCheckOutSelections,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Renders a single time-of-day dropdown bound to [selection]. Disabled
+  /// when 24-hour mode is on.
+  Widget _buildTimeDropdown({
+    required String label,
+    required RxString selection,
+  }) {
     return Expanded(
       child: Obx(() {
-        // Accessing .value here registers the dependency
-        // final bool isEnabled = true;
-        final bool isEnabled = !controller.is24Hours.value;
-        final String currentSelection = controller.userCheckInSelections.value;
+        final isEnabled = !controller.is24Hours.value;
+        final current = selection.value;
 
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 10),
           decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey.shade300),
-              borderRadius: BorderRadius.circular(8),
-              color: isEnabled ? Colors.white : Colors.grey.shade100),
+            border: Border.all(color: Colors.grey.shade300),
+            borderRadius: BorderRadius.circular(8),
+            color: isEnabled ? Colors.white : Colors.grey.shade100,
+          ),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<String>(
-              // Use the locally stored value from the observer
-              value: currentSelection.isEmpty ? null : currentSelection,
+              value: current.isEmpty ? null : current,
               isExpanded: true,
-              // Only enable onChanged if isEnabled is true
-              onChanged: isEnabled
-                  ? (val) => controller.userCheckInSelections.value = val ?? ""
-                  : null,
-              items: controller.timeSlots.map((String t) {
-                return DropdownMenuItem<String>(
-                  value: t,
-                  child: CustomText(
-                    "$label - $t",
-                  ),
-                );
-              }).toList(),
+              onChanged:
+                  isEnabled ? (val) => selection.value = val ?? '' : null,
+              items: controller.timeSlots
+                  .map((t) => DropdownMenuItem<String>(
+                        value: t,
+                        child: CustomText('$label - $t'),
+                      ))
+                  .toList(),
             ),
           ),
         );
@@ -138,72 +131,58 @@ class HotelPoliciesScreen extends StatelessWidget {
     );
   }
 
-  Widget _timeDropdownCheckOut(String label) {
-    return Expanded(
-      child: Obx(() {
-        // Accessing .value here registers the dependency
-        final bool isEnabled = !controller.is24Hours.value;
-        final String currentSelection = controller.userCheckOutSelections.value;
+  // ---- Switches + food-restriction section ---------------------------------
 
-        return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10),
-          decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey.shade300),
-              borderRadius: BorderRadius.circular(8),
-              color: isEnabled ? Colors.white : Colors.grey.shade100),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              // Use the locally stored value from the observer
-              value: currentSelection.isEmpty ? null : currentSelection,
-              isExpanded: true,
-              // Only enable onChanged if isEnabled is true
-              onChanged: isEnabled
-                  ? (val) => controller.userCheckOutSelections.value = val ?? ""
-                  : null,
-              items: controller.timeSlots.map((String t) {
-                return DropdownMenuItem<String>(
-                  value: t,
-                  child: CustomText("$label - $t", fontSize: 13),
-                );
-              }).toList(),
-            ),
-          ),
-        );
-      }),
-    );
+  Widget _buildSwitchesAndFoodSection() {
+    return Obx(() => Column(
+          children: [
+            _buildSwitchTile(AppStrings.hotelEarlyCheckInAllowedQ.tr,
+                controller.earlyCheckInAllowed),
+            _buildSwitchTile(AppStrings.hotelLateCheckOutAllowedQ.tr,
+                controller.lateCheckOutAllowed),
+            _buildSwitchTile(AppStrings.hotelAllowUnmarriedCouple.tr,
+                controller.marriedCoupleAllowed),
+            _buildSwitchTile(AppStrings.areYouAllowBachelorOrStudent.tr,
+                controller.bachelorStudentAllowed),
+            _buildSwitchTile(AppStrings.hotelFreeCancelation.tr,
+                controller.freeCancellation),
+            _buildSwitchTile(AppStrings.hotelLocalIdAllowed.tr,
+                controller.localIdAllowed),
+            _buildSwitchTile(AppStrings.hotelAadharMandatory.tr,
+                controller.aadharMandatory),
+            _buildSwitchTile(AppStrings.hotelSmokingDrinkingAllowed.tr,
+                controller.smokingDrinkingAllowed),
+            _buildFoodRestrictionSection(),
+          ],
+        ));
   }
 
   Widget _buildSwitchTile(String title, RxBool obsValue) {
     return Container(
-      margin: EdgeInsets.only(bottom: 8),
+      margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
-          color: Colors.white, borderRadius: BorderRadius.circular(10)),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+      ),
       child: Obx(() => Padding(
-            padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 10),
-            // Adjust row spacing here
+            padding:
+                const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // Title
-                Expanded(
-                  child: CustomText(
-                    title,
-                  ),
-                ),
-
-                // Small Sized Switch
+                Expanded(child: CustomText(title)),
                 SizedBox(
-                  height: 30, // Tighten vertical space
-                  width: 45, // Tighten horizontal space
+                  height: 30,
+                  width: 45,
                   child: Transform.scale(
-                    scale: 0.75, // Adjust for small size
+                    scale: 0.75,
                     child: Switch(
                       value: obsValue.value,
-                      onChanged: (val) => obsValue.value = val,
-                      activeColor: AppColors.primaryColor,
+                      onChanged: (v) => obsValue.value = v,
+                      activeThumbColor: AppColors.primaryColor,
                     ),
                   ),
-                )
+                ),
               ],
             ),
           )),
@@ -212,10 +191,12 @@ class HotelPoliciesScreen extends StatelessWidget {
 
   Widget _buildFoodRestrictionSection() {
     return Container(
-      margin: EdgeInsets.only(bottom: 8),
+      margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.only(left: 10, right: 2),
       decoration: BoxDecoration(
-          color: Colors.white, borderRadius: BorderRadius.circular(10)),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -227,80 +208,71 @@ class HotelPoliciesScreen extends StatelessWidget {
                 scale: 0.75,
                 child: Switch(
                   value: controller.foodRestrictionsEnabled.value,
-                  activeColor: AppColors.primaryColor,
-                  onChanged: (val) =>
-                      controller.foodRestrictionsEnabled.value = val,
+                  activeThumbColor: AppColors.primaryColor,
+                  onChanged: (v) =>
+                      controller.foodRestrictionsEnabled.value = v,
                 ),
-              )
+              ),
             ],
           ),
           if (controller.foodRestrictionsEnabled.value) ...[
-            CustomText(AppStrings.kindlyIndicateWhichFoodHabits.tr,
-             fontSize: 12, color: Colors.grey),
-            _checkBoxTile("All"),
-            _checkBoxTile("Vegetarian"),
-            _checkBoxTile("Non-Vegetarian"),
-          ]
+            CustomText(
+              AppStrings.kindlyIndicateWhichFoodHabits.tr,
+              fontSize: 12,
+              color: Colors.grey,
+            ),
+            _buildFoodCheckbox(_foodAll, AppStrings.all.tr),
+            _buildFoodCheckbox(_foodVeg, AppStrings.vegetarian.tr),
+            _buildFoodCheckbox(_foodNonVeg, AppStrings.nonVegetarian.tr),
+          ],
         ],
       ),
     );
   }
 
-  Widget _checkBoxTile(String label) {
+  /// A single food-type checkbox. The selection list keeps `_foodAll` as a
+  /// virtual entry that is added/removed in lockstep with the individual
+  /// options being fully selected/cleared.
+  Widget _buildFoodCheckbox(String payloadValue, String label) {
     return Obx(() {
-      // Accessing .value directly ensures Obx tracks changes
-      List<String> currentList = List<String>.from(controller.userFoodTypeSelections);
-      bool isSelected = currentList.contains(label);
-
-      // Match these exactly with your UI labels and API expected values
-      final foodOptions = ["Vegetarian", "Non-Vegetarian"];
-
-      final String displayLabel = {
-            "All": AppStrings.all.tr,
-            "Vegetarian": AppStrings.vegetarian.tr,
-            "Non-Vegetarian": AppStrings.nonVegetarian.tr,
-          }[label] ??
-          label;
+      final currentList =
+          List<String>.from(controller.userFoodTypeSelections);
+      final isSelected = currentList.contains(payloadValue);
 
       return CheckboxListTile(
-        title: CustomText(displayLabel, fontSize: 12),
+        title: CustomText(label, fontSize: 12),
         value: isSelected,
         checkColor: AppColors.white,
         controlAffinity: ListTileControlAffinity.leading,
-        onChanged: (bool? v) {
-          if (v == null) return;
-
-          if (label == "All") {
-            if (v) {
-              // Select "All" and every individual option
-              currentList = ["All", ...foodOptions];
-            } else {
-              // Clear everything
-              currentList.clear();
-            }
-          } else {
-            if (v) {
-              currentList.add(label);
-              // Check if all individual options are now selected to toggle "All"
-              if (foodOptions.every((item) => currentList.contains(item))) {
-                currentList.add("All");
-              }
-            } else {
-              currentList.remove(label);
-              // If any single item is unchecked, "All" must be removed
-              currentList.remove("All");
-            }
-          }
-
-          // Assign the new list to the observable to trigger UI update
+        onChanged: (checked) {
+          if (checked == null) return;
+          _applyFoodToggle(currentList, payloadValue, checked);
           controller.userFoodTypeSelections.value = currentList;
         },
       );
     });
+  }
 
+  void _applyFoodToggle(List<String> list, String payloadValue, bool checked) {
+    if (payloadValue == _foodAll) {
+      if (checked) {
+        list
+          ..clear()
+          ..addAll([_foodAll, ..._individualFoodOptions]);
+      } else {
+        list.clear();
+      }
+      return;
+    }
 
-
-
+    if (checked) {
+      list.add(payloadValue);
+      // Promote to "All" once every individual option is selected.
+      if (_individualFoodOptions.every(list.contains)) list.add(_foodAll);
+    } else {
+      list.remove(payloadValue);
+      // "All" can no longer hold once any individual option is unchecked.
+      list.remove(_foodAll);
+    }
   }
 }
-

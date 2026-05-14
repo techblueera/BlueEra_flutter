@@ -1,44 +1,32 @@
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/me/laboratory/repo/lab_service_repo.dart';
 import 'package:BlueEra/features/me/social/model/social_contact_us_res_model.dart';
 import 'package:get/get.dart';
 
+/// Manages the laboratory's branch / reception contact: load + create.
 class LabContactUsController extends GetxController {
-  // Observables
-  var isLoading = true.obs;
-  var contactUsData = Rxn<SocialContactUsResModel>();
+  final LabServiceRepo _repo = LabServiceRepo();
 
-  @override
-  void onInit() {
-    super.onInit();
-  }
+  final RxBool isLoading = false.obs;
+  final RxBool isSaving = false.obs;
+  final Rxn<SocialContactUsResModel> contactUsData =
+      Rxn<SocialContactUsResModel>();
 
-  fetchHomeData() async {
-    try {
-      isLoading(true);
+  /// Form validity for the submit button.
+  final RxBool isFormValid = false.obs;
 
-      // call repo
-      ResponseModel responseModel =
-          await LabServiceRepo().getSocialContactByIdRepo();
-
-      if (responseModel.isSuccess) {
-        contactUsData.value =
-            SocialContactUsResModel.fromJson(responseModel.response?.data);
-      }
-    } finally {
-      isLoading(false);
-    }
-  }
-
-  // Validation state
-  var isFormValid = false.obs;
-
-  // Values to store from location picker
+  /// Coordinates from the location-picker on the branch form.
   double? selectedLat;
   double? selectedLng;
+
+  // ---- Validation ----------------------------------------------------------
+
+  static final RegExp _nameRegex = RegExp(r"^[a-zA-Z\s\.]{3,50}$");
+  static final RegExp _gmailRegex = RegExp(r'^[\w-\.]+@gmail\.com$');
 
   void validateForm({
     required String branchName,
@@ -47,19 +35,28 @@ class LabContactUsController extends GetxController {
     required String email,
     required String phone,
   }) {
-    // Strict Name/Branch Validation: At least 3 chars, letters and spaces preferred
-    final nameRegex = RegExp(r"^[a-zA-Z\s\.]{3,50}$");
-    
-    // Strict Gmail Validation: Must end with @gmail.com
-    final gmailRegex = RegExp(r'^[\w-\.]+@gmail\.com$');
-
-    bool isValid = nameRegex.hasMatch(branchName.trim()) &&
+    isFormValid.value = _nameRegex.hasMatch(branchName.trim()) &&
         (website.isEmpty || website.isURL) &&
         address.isNotEmpty &&
-        gmailRegex.hasMatch(email.trim()) &&
+        _gmailRegex.hasMatch(email.trim()) &&
         phone.length >= 10;
+  }
 
-    isFormValid.value = isValid;
+  // ---- API -----------------------------------------------------------------
+
+  Future<void> fetchHomeData() async {
+    try {
+      isLoading.value = true;
+      final ResponseModel response = await _repo.getSocialContactByIdRepo();
+      if (response.isSuccess) {
+        contactUsData.value =
+            SocialContactUsResModel.fromJson(response.response?.data);
+      }
+    } catch (e) {
+      logs("LabContactUsController.fetchHomeData ERROR $e");
+    } finally {
+      isLoading.value = false;
+    }
   }
 
   Future<void> submitBranchDetails({
@@ -75,10 +72,8 @@ class LabContactUsController extends GetxController {
     }
 
     try {
-      isLoading.value = true;
-
-      // Prepare Request Body
-      Map<String, dynamic> body = {
+      isSaving.value = true;
+      final body = <String, dynamic>{
         "name": branchName,
         "websiteUrl": website,
         "email": email,
@@ -86,27 +81,28 @@ class LabContactUsController extends GetxController {
         "location": {
           "name": address,
           "type": "Point",
-          "coordinates": [selectedLat, selectedLng]
+          "coordinates": [selectedLat, selectedLng],
         },
-        "laboratoryId": labIDGlobal
+        "laboratoryId": labIDGlobal,
       };
 
-      ResponseModel response =
-          await LabServiceRepo().addSocialContactRepo(reqBody: body);
+      final ResponseModel response =
+          await _repo.addSocialContactRepo(reqBody: body);
+
       if (response.isSuccess) {
         commonSnackBar(
             message: response.response?.data['message'] ??
                 AppStrings.hotelBranchAddedSuccess.tr);
         Get.back();
-        fetchHomeData();
+        await fetchHomeData();
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);
       }
-      print("Request Body: $body");
     } catch (e) {
+      logs("LabContactUsController.submitBranchDetails ERROR $e");
       commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {
-      isLoading.value = false;
+      isSaving.value = false;
     }
   }
 }

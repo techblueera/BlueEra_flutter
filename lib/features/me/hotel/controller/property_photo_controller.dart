@@ -10,166 +10,162 @@ import 'package:BlueEra/features/me/hotel/repo/hotel_service_repo.dart';
 import 'package:BlueEra/features/me/school/repo/upload_file_to_s3.dart';
 import 'package:get/get.dart';
 
+/// Drives the property-photos screen: lists existing albums per category,
+/// and handles the multi-image upload flow that batches local files through
+/// S3 then registers them under a category.
 class PropertyPhotoController extends GetxController {
-  // Use RxList to store your JSON data
-  var propertyPhotosList = <HotelPropertyPhotoData>[].obs;
-  var isLoading = true.obs;
+  final HotelServiceRepo _repo = HotelServiceRepo();
 
-  Future<void> fetchPhotos() async {
-    isLoading.value = true;
-    propertyPhotosList.clear();
+  final RxBool isLoading = false.obs;
+  final RxBool isSaving = false.obs;
 
-    ResponseModel response =
-        await HotelServiceRepo().getHotelPropertyPhotosRepo();
+  /// Existing albums returned by the API.
+  final RxList<HotelPropertyPhotoData> propertyPhotosList =
+      <HotelPropertyPhotoData>[].obs;
 
-    if (response.isSuccess) {
-      HotelPropertyPhotoResModel hotelPropertyPhotoResModel =
-          HotelPropertyPhotoResModel.fromJson(response.response?.data);
-
-      if ((hotelPropertyPhotoResModel.data?.isNotEmpty ?? false)) {
-        for (var photo in hotelPropertyPhotoResModel.data ?? []) {
-          if (photo.imageReferences != null &&
-              photo.imageReferences!.isNotEmpty) {
-            propertyPhotosList.add(photo);
-          }
-        }
-        // propertyPhotosList.addAll(hotelPropertyPhotoResModel.data ?? []);
-      }
-    } else {
-      commonSnackBar(message: AppStrings.somethingWentWrong);
-    }
-    // propertyPhotos.assignAll(responseData);
-    isLoading.value = false;
-  }
-
-  var categoryImages = <String, RxList<String>>{}.obs;
-
-  final int maxImages = 6;
-  final int minImages = 1;
-
-  // Categories from your image
-  final List<String> categories = [
+  /// Available album categories shown in the upload dropdown.
+  final List<String> categories = const [
     "External View & Parking",
     "Lobby & Garden",
     "Rooms",
     "Restaurant & Bar",
-    "Gym & Swimming Pool"
+    "Gym & Swimming Pool",
   ];
+
+  /// Max picks before [addImage] starts rejecting.
+  static const int _maxImagesPerUpload = 6;
+
+  // ---- Upload-form state -----------------------------------------------------
+
+  final RxString selectedCategory = "".obs;
+  final RxList<String> selectedImages = <String>[].obs;
 
   @override
   void onInit() {
     super.onInit();
     fetchPhotos();
-
-    // Initialize an empty observable list for each category
-    for (var cat in categories) {
-      categoryImages[cat] = <String>[].obs;
-    }
   }
 
-  // Observable for the selected category string
-  var selectedCategory = "".obs;
-
-  // Observable list for image paths (max 6)
-  var selectedImages = <String>[].obs;
-
-  void onCategoryChanged(String? value) {
-    if (value != null) {
-      selectedCategory.value = value;
-    }
-  }
-
-  void addImage(String path) {
-    if (selectedImages.length < 6) {
-      selectedImages.add(path);
-    } else {
-      commonSnackBar(message: AppStrings.hotelLimitReached6Images.tr);
-    }
-  }
-
-  void removeImage(int index) {
-    selectedImages.removeAt(index);
-  }
-
-  // Logic to build the JSON request body
-  List<String> urlList = [];
-
-  Future buildRequestBody() async {
-    isLoading.value = true;
+  Future<void> fetchPhotos() async {
     try {
-      urlList
-          .clear(); // Clear to avoid accumulating URLs from previous attempts
-      for (var filePath in selectedImages) {
-        UploadResult? result = await S3UploadService.uploadFile(File(filePath));
-        if (result.isSuccess) {
-          urlList.add(result.url);
-        }
-      }
-
-      if (urlList.isEmpty) {
-        commonSnackBar(message: AppStrings.somethingWentWrong);
+      isLoading.value = true;
+      propertyPhotosList.clear();
+      final ResponseModel response = await _repo.getHotelPropertyPhotosRepo();
+      if (!response.isSuccess) {
+        commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
         return;
       }
 
-      var requestBody = {
-        "category": selectedCategory.value,
-        "images": urlList,
-      };
-
-      ResponseModel response = await HotelServiceRepo()
-          .addHotelPropertyPhotosRepo(reqBody: requestBody);
-
-      if (response.isSuccess) {
-        Get.back();
-        commonSnackBar(message: response.response?.data['message']);
-
-        // Clear state after successful upload
-        selectedImages.clear();
-        selectedCategory.value = "";
-        urlList.clear();
-
-        fetchPhotos();
-        try {
-          Get.find<HotelDetailController>().loadHotelData();
-        } catch (_) {}
-      } else {
-        commonSnackBar(message: AppStrings.somethingWentWrong);
+      final res = HotelPropertyPhotoResModel.fromJson(response.response?.data);
+      for (final photo in res.data ?? const <HotelPropertyPhotoData>[]) {
+        if (photo.imageReferences?.isNotEmpty ?? false) {
+          propertyPhotosList.add(photo);
+        }
       }
     } catch (e) {
-      logs("Error in buildRequestBody: $e");
+      logs("PropertyPhotoController.fetchPhotos ERROR $e");
       commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {
       isLoading.value = false;
     }
   }
 
-  ///DELETE NOTICE....
+  void onCategoryChanged(String? value) {
+    if (value != null) selectedCategory.value = value;
+  }
+
+  void addImage(String path) {
+    if (selectedImages.length >= _maxImagesPerUpload) {
+      commonSnackBar(message: AppStrings.hotelLimitReached6Images.tr);
+      return;
+    }
+    selectedImages.add(path);
+  }
+
+  void removeImage(int index) {
+    selectedImages.removeAt(index);
+  }
+
+  /// Uploads every picked file to S3 then posts the resulting URLs under
+  /// [selectedCategory]. Clears the form on success.
+  Future<void> buildRequestBody() async {
+    try {
+      isSaving.value = true;
+      final urls = await _uploadAll(selectedImages);
+
+      if (urls.isEmpty) {
+        commonSnackBar(message: AppStrings.somethingWentWrong);
+        return;
+      }
+
+      final ResponseModel response =
+          await _repo.addHotelPropertyPhotosRepo(reqBody: {
+        "category": selectedCategory.value,
+        "images": urls,
+      });
+
+      if (response.isSuccess) {
+        Get.back();
+        commonSnackBar(message: response.response?.data['message']);
+        clearSelection();
+        await fetchPhotos();
+        _refreshHotelHome();
+      } else {
+        commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e) {
+      logs("PropertyPhotoController.buildRequestBody ERROR $e");
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    } finally {
+      isSaving.value = false;
+    }
+  }
+
+  /// Removes a single image reference from a category album.
+  ///
+  /// Named `deleteHotelRoomController` for backwards compatibility with
+  /// existing view callers; it actually deletes a property photo.
   Future<void> deleteHotelRoomController({
     required String categoryType,
     required String imgUrl,
   }) async {
     try {
-      ResponseModel response = await HotelServiceRepo()
-          .deleteHotelPropertyPhotosRepo(
-              reqBODY: {"category": categoryType, "imageReferences": imgUrl});
+      final ResponseModel response = await _repo.deleteHotelPropertyPhotosRepo(
+        reqBody: {"category": categoryType, "imageReferences": imgUrl},
+      );
 
       if (response.isSuccess) {
         Get.back();
         commonSnackBar(
-            message:
-                response.response?.data['message'] ?? AppStrings.successful);
-        fetchPhotos();
+            message: response.response?.data['message'] ?? AppStrings.successful);
+        await fetchPhotos();
       } else {
-        commonSnackBar(message: AppStrings.somethingWentWrong);
+        commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
       }
     } on Exception catch (e) {
-      logs("ERROR ${e}");
+      logs("PropertyPhotoController.deleteHotelRoomController ERROR $e");
     }
   }
 
   void clearSelection() {
     selectedImages.clear();
     selectedCategory.value = "";
-    urlList.clear();
+  }
+
+  /// Uploads a batch of local file paths sequentially and returns the
+  /// resulting S3 URLs for those that succeed.
+  Future<List<String>> _uploadAll(List<String> paths) async {
+    final urls = <String>[];
+    for (final path in paths) {
+      final result = await S3UploadService.uploadFile(File(path));
+      if (result.isSuccess) urls.add(result.url);
+    }
+    return urls;
+  }
+
+  void _refreshHotelHome() {
+    try {
+      Get.find<HotelDetailController>().loadHotelData();
+    } catch (_) {}
   }
 }

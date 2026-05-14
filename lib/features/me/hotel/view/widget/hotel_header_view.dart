@@ -2,23 +2,27 @@ import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
+import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import 'package:BlueEra/features/me/hotel/controller/hotel_home_detail_controller.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/service_home_header_title_widget.dart';
-import 'package:flutter/material.dart';
-import 'package:BlueEra/core/constants/shared_preference_utils.dart';
-import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
-import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:croppy/croppy.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+/// Header section of the hotel home screen: banner (16:9), circular logo
+/// overlay, and the name/description block. Both banner and logo are
+/// editable — picking a new image shows it optimistically before the upload
+/// to S3 completes and the controller reloads the profile.
 class HotelHeaderView extends StatefulWidget {
-  final HotelDetailController schoolAboutUsController;
+  final HotelDetailController controller;
 
   const HotelHeaderView({
     super.key,
-    required this.schoolAboutUsController,
+    required this.controller,
   });
 
   @override
@@ -29,7 +33,7 @@ class _HotelHeaderViewState extends State<HotelHeaderView> {
   File? _bannerImage;
   File? _logoImage;
 
-  Future<void> _pickImage(bool isBanner) async {
+  Future<void> _pickImage({required bool isBanner}) async {
     final String? imagePath = await SelectProfilePictureDialog.showLogoDialog(
       context,
       isBanner
@@ -40,27 +44,79 @@ class _HotelHeaderViewState extends State<HotelHeaderView> {
           : const CropAspectRatio(width: 1, height: 1),
     );
 
-    if (imagePath != null && imagePath.isNotEmpty) {
-      setState(() {
-        if (isBanner) {
-          _bannerImage = File(imagePath);
-        } else {
-          _logoImage = File(imagePath);
-        }
-      });
+    if (imagePath == null || imagePath.isEmpty) return;
+
+    final picked = File(imagePath);
+    setState(() {
       if (isBanner) {
-        await widget.schoolAboutUsController.uploadSchoolLogoOrBannerImage(
-            uploadFile: File(imagePath), uploadVia: 'coverUrl');
+        _bannerImage = picked;
       } else {
-        await widget.schoolAboutUsController.uploadSchoolLogoOrBannerImage(
-            uploadFile: File(imagePath), uploadVia: 'logoUrl');
+        _logoImage = picked;
       }
+    });
+
+    await widget.controller.uploadSchoolLogoOrBannerImage(
+      uploadFile: picked,
+      uploadVia: isBanner ? 'coverUrl' : 'logoUrl',
+    );
+  }
+
+  /// First non-empty image source for the banner: local pick > profile
+  /// `coverUrl` > first uploaded property photo. Returns `null` when nothing
+  /// is available so the caller can show a blank placeholder background.
+  DecorationImage? _bannerDecoration() {
+    if (_bannerImage != null) {
+      return DecorationImage(image: FileImage(_bannerImage!), fit: BoxFit.cover);
     }
+    final url = _coverOrFirstPhotoUrl();
+    if (url == null) return null;
+    return DecorationImage(image: NetworkImage(url), fit: BoxFit.cover);
+  }
+
+  /// Same fallback chain as the banner but ending in the in-app placeholder
+  /// asset, so the logo circle is never empty.
+  DecorationImage _logoDecoration() {
+    if (_logoImage != null) {
+      return DecorationImage(image: FileImage(_logoImage!), fit: BoxFit.cover);
+    }
+    final logoUrl = widget.controller.hotelData.value?.profile?.logoUrl;
+    if (logoUrl != null && logoUrl.isNotEmpty) {
+      return DecorationImage(image: NetworkImage(logoUrl), fit: BoxFit.cover);
+    }
+    final firstPhoto = _firstPropertyPhotoUrl();
+    if (firstPhoto != null) {
+      return DecorationImage(image: NetworkImage(firstPhoto), fit: BoxFit.cover);
+    }
+    return DecorationImage(
+      image: AssetImage(AppIconAssets.place_holder_image),
+      fit: BoxFit.cover,
+    );
+  }
+
+  String? _coverOrFirstPhotoUrl() {
+    final cover = widget.controller.hotelData.value?.profile?.coverUrl;
+    if (cover != null && cover.isNotEmpty) return cover;
+    return _firstPropertyPhotoUrl();
+  }
+
+  String? _firstPropertyPhotoUrl() {
+    final photos = widget.controller.hotelData.value?.profile?.photos;
+    if (photos == null || photos.isEmpty) return null;
+    final refs = photos.first.imageReferences;
+    if (refs == null || refs.isEmpty) return null;
+    return refs.first;
+  }
+
+  String _hotelDisplayName() {
+    final name = widget.controller.hotelData.value?.profile?.name;
+    return (name != null && name.isNotEmpty) ? name : businessNameGlobal;
   }
 
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
+    final profile = widget.controller.hotelData.value?.profile;
+
     return CommonCardWidget(
       padding: 0,
       cardMargin: 10,
@@ -68,176 +124,104 @@ class _HotelHeaderViewState extends State<HotelHeaderView> {
         mainAxisSize: MainAxisSize.max,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // --- HEADER SECTION (Banner & Logo) ---
           SizedBox(
             height: size.height * 0.21,
             child: Stack(
               clipBehavior: Clip.none,
               children: [
-                // Banner Image
-                GestureDetector(
-                  onTap: () => null,
-                  // onTap: () => _pickImage(true),
-                  child: Container(
-                    width: double.infinity,
-                    height: size.height * 0.17,
-                    decoration: BoxDecoration(
-                      color: Colors.blueGrey[100],
-                      borderRadius: const BorderRadius.only(
-                          topLeft: Radius.circular(10),
-                          topRight: Radius.circular(10)),
-                      image: _bannerImage != null
-                          ? DecorationImage(
-                              image: FileImage(_bannerImage!),
-                              fit: BoxFit.cover)
-                          : (widget.schoolAboutUsController.hotelData.value
-                                      ?.profile?.coverUrl?.isNotEmpty ??
-                                  false)
-                              ? DecorationImage(
-                                  image: NetworkImage(widget
-                                      .schoolAboutUsController
-                                      .hotelData
-                                      .value!
-                                      .profile!
-                                      .coverUrl!),
-                                  fit: BoxFit.cover)
-                              : (widget.schoolAboutUsController.hotelData.value?.profile?.photos?.isNotEmpty ?? false) &&
-                                      (widget
-                                              .schoolAboutUsController
-                                              .hotelData
-                                              .value!
-                                              .profile!
-                                              .photos!
-                                              .first
-                                              .imageReferences
-                                              ?.isNotEmpty ??
-                                          false)
-                                  ? DecorationImage(
-                                      image: NetworkImage(widget
-                                          .schoolAboutUsController
-                                          .hotelData
-                                          .value!
-                                          .profile!
-                                          .photos!
-                                          .first
-                                          .imageReferences!
-                                          .first),
-                                      fit: BoxFit.cover)
-                                  : null,
-                    ),
-                  ),
-                ),
-                Positioned(
-                  right: 20,
-                  top: 10,
-                  child: InkWell(
-                    onTap: () => _pickImage(true),
-                    child: Container(
-                        width: 30,
-                        height: 30,
-                        child: LocalAssets(
-                          imagePath: AppIconAssets.edit_banner_icon,
-                        )),
-                  ),
-                ),
-
-                // Logo Image
-                Positioned(
-                  bottom: 0,
-                  left: 20,
-                  child: GestureDetector(
-                    onTap: () => _pickImage(false),
-                    child: Container(
-                      width: 100,
-                      height: 100,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 4),
-                        boxShadow: [
-                          BoxShadow(color: Colors.black12, blurRadius: 10)
-                        ],
-                        image: _logoImage != null
-                            ? DecorationImage(
-                                image: FileImage(_logoImage!),
-                                fit: BoxFit.cover)
-                            : (widget.schoolAboutUsController.hotelData.value
-                                        ?.profile?.logoUrl?.isNotEmpty ??
-                                    false)
-                                ? DecorationImage(
-                                    image: NetworkImage(widget
-                                        .schoolAboutUsController
-                                        .hotelData
-                                        .value!
-                                        .profile!
-                                        .logoUrl!),
-                                    fit: BoxFit.cover)
-                                : (widget
-                                                .schoolAboutUsController
-                                                .hotelData
-                                                .value
-                                                ?.profile
-                                                ?.photos
-                                                ?.isNotEmpty ??
-                                            false) &&
-                                        (widget
-                                                .schoolAboutUsController
-                                                .hotelData
-                                                .value!
-                                                .profile!
-                                                .photos!
-                                                .first
-                                                .imageReferences
-                                                ?.isNotEmpty ??
-                                            false)
-                                    ? DecorationImage(
-                                        image:
-                                            NetworkImage(widget.schoolAboutUsController.hotelData.value!.profile!.photos!.first.imageReferences!.first),
-                                        fit: BoxFit.cover)
-                                    : DecorationImage(image: AssetImage(AppIconAssets.place_holder_image), fit: BoxFit.cover),
-                      ),
-                    ),
-                  ),
-                ),
-                Positioned(
-                    bottom: 10,
-                    left: 90,
-                    child: InkWell(
-                      onTap: () => _pickImage(false),
-                      child: Container(
-                          width: 25,
-                          height: 25,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            // color: AppColors.red00,
-                            color: AppColors.secondaryTextColor
-                                .withValues(alpha: 0.3),
-                          ),
-                          child: const Icon(
-                            Icons.camera_alt,
-                            color: Colors.white,
-                            size: 15,
-                          )),
-                    ))
+                _banner(size),
+                _bannerEditButton(),
+                _logo(),
+                _logoEditButton(),
               ],
             ),
           ),
-
-          // --- FORM SECTION ---
           ServiceHomeHeaderTitleWidget(
-            title: (widget.schoolAboutUsController.hotelData.value?.profile
-                        ?.name?.isNotEmpty ??
-                    false)
-                ? widget.schoolAboutUsController.hotelData.value!.profile!.name!
-                : businessNameGlobal,
-            description: widget.schoolAboutUsController.hotelData.value?.profile
-                    ?.description ??
-                "",
+            title: _hotelDisplayName(),
+            description: profile?.description ?? '',
           ),
         ],
       ),
     );
   }
-}
 
-//sss
+  // ---- Banner ---------------------------------------------------------------
+
+  Widget _banner(Size size) {
+    return Container(
+      width: double.infinity,
+      height: size.height * 0.17,
+      decoration: BoxDecoration(
+        color: Colors.blueGrey[100],
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(10),
+          topRight: Radius.circular(10),
+        ),
+        image: _bannerDecoration(),
+      ),
+    );
+  }
+
+  Widget _bannerEditButton() {
+    return Positioned(
+      right: 20,
+      top: 10,
+      child: InkWell(
+        onTap: () => _pickImage(isBanner: true),
+        child: const SizedBox(
+          width: 30,
+          height: 30,
+          child: LocalAssets(imagePath: AppIconAssets.edit_banner_icon),
+        ),
+      ),
+    );
+  }
+
+  // ---- Logo -----------------------------------------------------------------
+
+  Widget _logo() {
+    return Positioned(
+      bottom: 0,
+      left: 20,
+      child: GestureDetector(
+        onTap: () => _pickImage(isBanner: false),
+        child: Container(
+          width: 100,
+          height: 100,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            shape: BoxShape.circle,
+            border: Border.all(color: Colors.white, width: 4),
+            boxShadow: const [
+              BoxShadow(color: Colors.black12, blurRadius: 10),
+            ],
+            image: _logoDecoration(),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _logoEditButton() {
+    return Positioned(
+      bottom: 10,
+      left: 90,
+      child: InkWell(
+        onTap: () => _pickImage(isBanner: false),
+        child: Container(
+          width: 25,
+          height: 25,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: AppColors.secondaryTextColor.withValues(alpha: 0.3),
+          ),
+          child: const Icon(
+            Icons.camera_alt,
+            color: Colors.white,
+            size: 15,
+          ),
+        ),
+      ),
+    );
+  }
+}

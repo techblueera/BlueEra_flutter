@@ -4,8 +4,8 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_departments_controller.dart';
 import 'package:BlueEra/features/me/hospital/model/department_model.dart';
-import 'package:BlueEra/features/me/laboratory/view/widgets/me_menu_card_design.dart';
 import 'package:BlueEra/features/me/hospital/view/ipd/ipd_ward_list_screen.dart';
+import 'package:BlueEra/features/me/laboratory/view/widgets/me_menu_card_design.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
@@ -29,17 +29,13 @@ class _HospitalIpdScreenState extends State<HospitalIpdScreen> {
 
   @override
   Widget build(BuildContext context) {
-    SizeConfig.init(context);
     return Scaffold(
-      appBar: CommonBackAppBar(
-        title: AppStrings.ipdTitle,
-        isLeading: true,
-        isShadowShow: true,
-      ),
+      appBar: CommonBackAppBar(title: AppStrings.ipdTitle),
       body: Obx(() {
         if (controller.isLoading.value) {
           return const Center(
-              child: CircularProgressIndicator(color: AppColors.primaryColor));
+            child: CircularProgressIndicator(color: AppColors.primaryColor),
+          );
         }
 
         final ipd = controller.departments
@@ -48,15 +44,14 @@ class _HospitalIpdScreenState extends State<HospitalIpdScreen> {
         if (ipd.isEmpty) {
           return Center(child: CustomText(AppStrings.nodata));
         }
+
         return SingleChildScrollView(
           padding: EdgeInsets.only(bottom: 50, top: SizeConfig.paddingM),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (ipd.isNotEmpty) ...[
-                ...ipd.map((d) => _departmentCard(d)),
-                SizedBox(height: SizeConfig.size15),
-              ],
+              ...ipd.map(_departmentCard),
+              SizedBox(height: SizeConfig.size15),
             ],
           ),
         );
@@ -66,12 +61,12 @@ class _HospitalIpdScreenState extends State<HospitalIpdScreen> {
 
   Widget _departmentCard(Department d) {
     return InkWell(
-      onTap: () {
-        Get.to(() => IpdWardListScreen(
-              departmentId: d.id,
-              hospitalId: d.hospitalId,
-            ));
-      },
+      onTap: () => Get.to(
+        () => IpdWardListScreen(
+          departmentId: d.id,
+          hospitalId: d.hospitalId,
+        ),
+      ),
       child: MeMenuCardDesign(
         title: d.key,
         icon: "assets/svg/${d.key}.svg",

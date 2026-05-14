@@ -94,17 +94,9 @@ class HospitalIpdController extends GetxController {
     if (!isFormValid.value) return;
     isSaving.value = true;
     try {
-      String imageUrl = initialImageUrl;
-      if (selectedImage.value != null) {
-        final UploadResult? uploadResult = await S3UploadService.uploadFile(selectedImage.value!);
-        if (uploadResult != null && uploadResult.isSuccess) {
-          imageUrl = uploadResult.url;
-        } else {
-          commonSnackBar(message: uploadResult?.message ?? AppStrings.hospitalCtrlImageUploadFailed.tr);
-          isSaving.value = false;
-          return;
-        }
-      }
+      final imageUrl = await _resolveImageUrl();
+      if (imageUrl == null) return; // upload failed, snackbar already shown
+
       final body = {
         'name': nameController.text.trim(),
         'imageUrl': imageUrl,
@@ -114,18 +106,21 @@ class HospitalIpdController extends GetxController {
         'hospitalId': hospitalIdArg ?? (await getHospitalID()),
         'departmentId': departmentIdArg ?? '',
       };
-      ResponseModel res;
-      if (editingWard == null) {
-        res = await _repo.create(body: body);
-      } else {
-        res = await _repo.update(id: editingWard!.id, body: body);
-      }
+
+      final isCreate = editingWard == null;
+      final ResponseModel res = isCreate
+          ? await _repo.create(body: body)
+          : await _repo.update(id: editingWard!.id, body: body);
+
       if (res.isSuccess) {
         if (departmentIdArg != null) {
           await loadByDepartment(departmentIdArg!);
         }
         Get.back();
-        commonSnackBar(message: editingWard == null ? AppStrings.hospitalCtrlIpdAddedSuccessfully.tr : AppStrings.hospitalCtrlIpdUpdatedSuccessfully.tr);
+        commonSnackBar(
+            message: isCreate
+                ? AppStrings.hospitalCtrlIpdAddedSuccessfully.tr
+                : AppStrings.hospitalCtrlIpdUpdatedSuccessfully.tr);
       } else {
         commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong);
       }
@@ -134,6 +129,21 @@ class HospitalIpdController extends GetxController {
     } finally {
       isSaving.value = false;
     }
+  }
+
+  /// Uploads [selectedImage] if the user picked a new one; otherwise returns
+  /// the existing URL. Returns `null` (and shows a snackbar) on upload failure
+  /// so the caller can abort save.
+  Future<String?> _resolveImageUrl() async {
+    if (selectedImage.value == null) return initialImageUrl;
+    final uploadResult = await S3UploadService.uploadFile(selectedImage.value!);
+    if (uploadResult.isSuccess) return uploadResult.url;
+    commonSnackBar(
+        message: uploadResult.message.isNotEmpty
+            ? uploadResult.message
+            : AppStrings.hospitalCtrlImageUploadFailed.tr);
+    isSaving.value = false;
+    return null;
   }
 
   Future<void> deleteWard(IpdWard ward) async {

@@ -69,63 +69,58 @@ class HospitalHistoryController extends GetxController {
   Future<void> saveOrUpdate() async {
     validate();
     if (!isFormValid.value) {
-      if (historyController.text.trim().isEmpty) {
-        commonSnackBar(message: 'Please enter history description');
-      } else {
-        commonSnackBar(message: 'Please enter a valid history description (only punctuation/spaces are not allowed)');
-      }
+      commonSnackBar(
+          message: historyController.text.trim().isEmpty
+              ? 'Please enter history description'
+              : 'Please enter a valid history description (only punctuation/spaces are not allowed)');
       return;
     }
     try {
       isSaving.value = true;
-      String imageUrl = initialImageUrl;
-      if (selectedImage.value != null) {
-        final UploadResult? uploadResult =
-            await S3UploadService.uploadFile(selectedImage.value!);
-        if (uploadResult != null && uploadResult.isSuccess) {
-          imageUrl = uploadResult.url;
-        } else {
-          commonSnackBar(
-              message: uploadResult?.message ?? AppStrings.somethingWentWrong);
-          isSaving.value = false;
-          return;
-        }
-      }
+      final imageUrl = await _resolveImageUrl();
+      if (imageUrl == null) return; // upload failed, snackbar already shown
+
       final body = {
         "history": historyController.text.trim(),
         "imageUrl": imageUrl,
         "hospitalId": hospitalIDGlobal,
       };
-      if (data.value == null || (data.value?.id?.isEmpty ?? true)) {
-        final ResponseModel res = await _repo.create(body: body);
-        if (res.isSuccess) {
-          final HospitalHistoryRes hr =
-              HospitalHistoryRes.fromJson(res.response?.data);
-          data.value = hr.data;
-          initialImageUrl = hr.data?.imageUrl ?? '';
-          commonSnackBar(message: AppStrings.hospitalCtrlSaved.tr);
-          Get.back();
-        } else {
-          commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong);
-        }
+
+      final existingId = data.value?.id;
+      final isCreate = existingId == null || existingId.isEmpty;
+      final ResponseModel res = isCreate
+          ? await _repo.create(body: body)
+          : await _repo.update(id: existingId, body: body);
+
+      if (res.isSuccess) {
+        final hr = HospitalHistoryRes.fromJson(res.response?.data);
+        data.value = hr.data;
+        initialImageUrl = hr.data?.imageUrl ?? '';
+        commonSnackBar(
+            message: isCreate
+                ? AppStrings.hospitalCtrlSaved.tr
+                : AppStrings.hospitalCtrlUpdated.tr);
+        Get.back();
       } else {
-        final ResponseModel res =
-            await _repo.update(id: data.value!.id!, body: body);
-        if (res.isSuccess) {
-          final HospitalHistoryRes hr =
-              HospitalHistoryRes.fromJson(res.response?.data);
-          data.value = hr.data;
-          initialImageUrl = hr.data?.imageUrl ?? '';
-          commonSnackBar(message: AppStrings.hospitalCtrlUpdated.tr);
-          Get.back();
-        } else {
-          commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong);
-        }
+        commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
       commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {
       isSaving.value = false;
     }
+  }
+
+  /// Uploads [selectedImage] if the user picked a new one; otherwise returns
+  /// the existing URL. Returns `null` (and shows a snackbar) on upload failure
+  /// so the caller can abort save.
+  Future<String?> _resolveImageUrl() async {
+    if (selectedImage.value == null) return initialImageUrl;
+    final uploadResult = await S3UploadService.uploadFile(selectedImage.value!);
+    if (uploadResult.isSuccess) return uploadResult.url;
+    commonSnackBar(
+        message: uploadResult.message);
+    isSaving.value = false;
+    return null;
   }
 }

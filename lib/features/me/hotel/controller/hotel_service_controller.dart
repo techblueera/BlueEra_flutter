@@ -3,160 +3,34 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/me/hotel/repo/hotel_service_repo.dart';
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+/// Bootstraps a brand-new hotel record after the user signs up under a Motel
+/// business type. The only consumer is the auth flow in
+/// `auth_controller.dart`, which passes a fully-built request body.
 class HotelServiceController extends GetxController {
-  ///GENERATE VIA AI SCHOOL DETAILS....
-  final searchController = TextEditingController();
-  final websiteController = TextEditingController();
-  RxDouble lat = 0.0.obs;
-  RxDouble lng = 0.0.obs;
+  final HotelServiceRepo _repo = HotelServiceRepo();
 
-  RxDouble busStationLat = 0.0.obs;
-  RxDouble busStationLng = 0.0.obs;
+  final RxBool isSaving = false.obs;
 
-  // Text Editing Controllers for the Form
-  final policeController = TextEditingController();
-  final hospitalController = TextEditingController();
-  final busStationController = TextEditingController();
-  final phoneController = TextEditingController();
-  final cityController = TextEditingController();
-  final stateController = TextEditingController();
-  final pincodeController = TextEditingController();
-  RxString cityName = "".obs;
-  RxString pinCodeName = "".obs;
-  RxString stateName = "".obs;
-  RxString policeStationName = "".obs;
-  RxString hospitalName = "".obs;
-  RxString busStationName = "".obs;
-  RxString phoneNumber = "".obs;
-  RxString hotelAddress = "".obs;
-
-
-// Reactive variable to track button state
-  var isFormValid = false.obs;
-
-  // Function to validate all fields
-  void validateFields() {
-    bool isValid = policeStationName.value.isNotEmpty &&
-        hospitalName.value.isNotEmpty &&
-        phoneNumber.value.length == 10 &&
-        cityName.value.isNotEmpty &&
-        stateName.value.isNotEmpty &&
-        pinCodeName.value.length == 6;
-
-    isFormValid.value = isValid;
-  }
-
-
-
-  clearAiGenerateFiled() {
-    searchController.clear();
-    websiteController.clear();
-    policeController.clear();
-    phoneController.clear();
-    hospitalController.clear();
-    cityController.clear();
-    stateController.clear();
-    pincodeController.clear();
-    cityName.value = "";
-    stateName.value = "";
-    pinCodeName.value = "";
-    policeStationName.value = "";
-    hospitalName.value = "";
-    phoneNumber.value = "";
-  }
-
-  @override
-  void onClose() {
-    searchController.dispose();
-    websiteController.dispose();
-    policeController.dispose();
-    phoneController.dispose();
-    hospitalController.dispose();
-    cityController.dispose();
-    stateController.dispose();
-    pincodeController.dispose();
-    super.onClose();
-  }
-
-  Future<void> createHotelServiceController({required Map<String,dynamic> reqParm}) async {
+  Future<void> createHotelServiceController(
+      {required Map<String, dynamic> reqParm}) async {
     try {
+      isSaving.value = true;
+      final ResponseModel response =
+          await _repo.createHotelServiceRepo(reqBody: reqParm);
 
-
-      ResponseModel response =
-          await HotelServiceRepo().createHotelServiceRepo(reqBody: reqParm);
       if (response.isSuccess) {
-        hotelAddress.value = "";
-        String? hotelID = response.response?.data['data']['_id'];
-        if (hotelID != null && hotelID.isNotEmpty) {
-          await setHotelID(hotelID);
-        } else {
-          await setHotelID("");
-        }
+        final hotelID = response.response?.data['data']?['_id'] as String?;
+        await setHotelID(hotelID?.isNotEmpty == true ? hotelID! : "");
         await getHotelID();
-        // commonSnackBar(message: response.response?.data['message']);
-        //
-        // Get.until((route) =>
-        //     route.settings.name ==
-        //     RouteHelper.getBottomNavigationBarScreenRoute());
       } else {
-        commonSnackBar(message: AppStrings.somethingWentWrong);
+        commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
       }
     } on Exception catch (e) {
       commonSnackBar(message: e.toString());
+    } finally {
+      isSaving.value = false;
     }
   }
-/*
-  Future<void> createHotelServiceController_() async {
-    try {
-      AiHotelData data = aiHotelResModel?.value.data ?? AiHotelData();
-      final reqData = {
-        ApiKeys.businessId: businessId,
-        "name": data.appMetadata?.appName,
-        "description": data.screens?.aboutProperty?.description ?? "",
-        "website": data.screens?.contactUs?.website ?? "",
-        "address": {
-          "city": cityName.value,
-          "state": stateName.value,
-          "pincode": pinCodeName.value
-        },
-        "location": {
-          "name": hotelAddress.value,
-          "type": "Point",
-          "coordinates": [lat.value, lng.value]
-        },
-        "bus_station_location": {
-          "name": busStationName.value,
-          "type": "Point",
-          "coordinates": [busStationLat.value, busStationLng.value]
-        },
-        "category": businessCategoryGlobal
-      };
-
-      ResponseModel response =
-          await HotelServiceRepo().createHotelServiceRepo(reqBody: reqData);
-      if (response.isSuccess) {
-        hotelAddress.value = "";
-        String? hotelID = response.response?.data['data']['_id'];
-        if (hotelID != null && hotelID.isNotEmpty) {
-          await setHotelID(hotelID);
-        } else {
-          await setHotelID("");
-        }
-        await getHotelID();
-        commonSnackBar(message: response.response?.data['message']);
-
-        Get.until((route) =>
-            route.settings.name ==
-            RouteHelper.getBottomNavigationBarScreenRoute());
-      } else {
-        commonSnackBar(message: AppStrings.somethingWentWrong);
-      }
-    } on Exception catch (e) {
-      commonSnackBar(message: e.toString());
-    }
-  }
-*/
 }

@@ -11,67 +11,67 @@ import 'package:get/get.dart';
 
 class ManagementCardListWidget extends StatelessWidget {
   final bool isReadOnly;
-  ManagementCardListWidget({super.key, this.isReadOnly = true});
 
-  final controller = Get.find<HospitalServiceAiController>();
+  const ManagementCardListWidget({super.key, this.isReadOnly = true});
+
+  void _openManagement() => Get.to(const HospitalManagementScreen());
 
   @override
   Widget build(BuildContext context) {
+    final controller = Get.find<HospitalServiceAiController>();
+
     return Obx(() {
       final managementList =
           controller.hospitalDataResModel?.value.data?.management ?? [];
       final isEmpty = managementList.isEmpty;
 
-      if (isEmpty && isReadOnly) return SizedBox.shrink();
+      if (isEmpty && isReadOnly) return const SizedBox.shrink();
 
       return CommonCardWidget(
         padding: 0,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Section Header
             Padding(
               padding: const EdgeInsets.only(top: 10.0, left: 15, bottom: 10),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  ServiceHomeTitleWidget(
-                    title: AppStrings.managementTrust,
-                  ),
+                  ServiceHomeTitleWidget(title: AppStrings.managementTrust),
                   if (!isReadOnly)
                     IconButton(
-                      onPressed: () => Get.to(const HospitalManagementScreen()),
+                      onPressed: _openManagement,
                       icon: Icon(
-                        isEmpty ? Icons.add_circle_outline : Icons.edit_outlined,
+                        isEmpty
+                            ? Icons.add_circle_outline
+                            : Icons.edit_outlined,
                         size: 20,
                       ),
                     ),
                 ],
               ),
             ),
-
-            // Horizontal List (or empty-state placeholder mirroring medical-v2 gallery)
-            isEmpty
-                ? Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
-                    child: EmptySectionPlaceholder(
-                      imageAsset: 'assets/images/other_management.png',
-                      ctaLabel: AppStrings.hospitalViewAddManagement.tr,
-                      ctaIcon: Icons.person_add_alt_1_outlined,
-                      onTap: () => Get.to(const HospitalManagementScreen()),
-                    ),
-                  )
-                : SizedBox(
-              height: 280,
-                  child: ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      padding: const EdgeInsets.only(left: 16, bottom: 10),
-                      itemCount: managementList.length,
-                      itemBuilder: (context, index) {
-                        return HospitalManagementCard(person: managementList[index]);
-                      },
-                    ),
-            ),
+            if (isEmpty)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+                child: EmptySectionPlaceholder(
+                  imageAsset: 'assets/images/other_management.png',
+                  ctaLabel: AppStrings.hospitalViewAddManagement.tr,
+                  ctaIcon: Icons.person_add_alt_1_outlined,
+                  onTap: _openManagement,
+                ),
+              )
+            else
+              SizedBox(
+                height: 280,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.only(left: 16, bottom: 10),
+                  itemCount: managementList.length,
+                  itemBuilder: (context, index) =>
+                      HospitalManagementCard(person: managementList[index]),
+                ),
+              ),
           ],
         ),
       );
@@ -82,13 +82,12 @@ class ManagementCardListWidget extends StatelessWidget {
 class HospitalManagementCard extends StatelessWidget {
   final HospitalManagement person;
 
-  const HospitalManagementCard({Key? key, required this.person})
-      : super(key: key);
+  const HospitalManagementCard({super.key, required this.person});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 260, // Slightly wider based on your reference image
+      width: 260,
       margin: const EdgeInsets.only(right: 16),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
@@ -98,7 +97,6 @@ class HospitalManagementCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         child: Stack(
           children: [
-            // Background Image
             Positioned.fill(
               child: Image.network(
                 person.imageUrl ?? "",
@@ -107,11 +105,9 @@ class HospitalManagementCard extends StatelessWidget {
                     const Center(child: Icon(Icons.person, size: 50)),
               ),
             ),
-            // Bottom Gradient Overlay
             Align(
               alignment: Alignment.bottomCenter,
               child: Container(
-                // height: 120,
                 width: double.infinity,
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
@@ -131,10 +127,11 @@ class HospitalManagementCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 6),
-                    // Position Tag (Pill shape)
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.white.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(20),

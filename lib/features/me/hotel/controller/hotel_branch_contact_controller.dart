@@ -6,23 +6,29 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/me/hotel/controller/hotel_home_detail_controller.dart';
 import 'package:BlueEra/features/me/hotel/repo/hotel_service_repo.dart';
-import 'package:BlueEra/features/me/school/repo/school_repo.dart';
 import 'package:get/get.dart';
 
+/// Branch / reception contact management for a hotel:
+/// list, create, update and delete reception contacts.
 class HotelBranchContactController extends GetxController {
-  Rx<ApiResponse> getHotelContactUsResponse =
+  final HotelServiceRepo _repo = HotelServiceRepo();
+
+  final Rx<ApiResponse> getHotelContactUsResponse =
       ApiResponse.initial('Initial').obs;
+  final Rx<GetHotelContactUsResModel> hotelContactUsData =
+      GetHotelContactUsResModel().obs;
 
-  // Loading state for the submit button
-  var isLoading = false.obs;
+  final RxBool isLoading = false.obs;
+  final RxBool isFormValid = false.obs;
 
-  // Validation state
-  var isFormValid = false.obs;
-
-  // Values to store from location picker
+  /// Coordinates set by the location-picker on the branch form.
   double? selectedLat;
   double? selectedLng;
 
+  // ---- Validation ------------------------------------------------------------
+
+  /// Full-form validation for the branch-details form
+  /// (`hotel_branch_details_form_screen`).
   void validateForm({
     required String branchName,
     required String website,
@@ -30,20 +36,70 @@ class HotelBranchContactController extends GetxController {
     required String email,
     required String phone,
   }) {
-    bool isGmail = email.trim().toLowerCase().endsWith("@gmail.com");
-    bool isRepetitive = phone.split('').every((char) => char == phone[0]);
-    bool isPhoneValid = phone.length == 10 && RegExp(r'^[0-9]+$').hasMatch(phone) && !isRepetitive;
-    bool isWebsiteValid = website.isEmpty || GetUtils.isURL(website);
-    bool isAddressValid = address.isNotEmpty;
+    final isGmail = email.trim().toLowerCase().endsWith("@gmail.com");
+    final isRepetitive =
+        phone.isNotEmpty && phone.split('').every((c) => c == phone[0]);
+    final isPhoneValid = phone.length == 10 &&
+        RegExp(r'^[0-9]+$').hasMatch(phone) &&
+        !isRepetitive;
+    final isWebsiteValid = website.isEmpty || GetUtils.isURL(website);
+    final isAddressValid = address.isNotEmpty;
 
-    isFormValid.value = isAddressValid && isGmail && isPhoneValid && isWebsiteValid;
+    isFormValid.value =
+        isAddressValid && isGmail && isPhoneValid && isWebsiteValid;
   }
 
-  Future<void> submitBranchDetails({
+  /// Lighter validation used by the department-only form.
+  void departmentValidateForm({
+    required String departmentRole,
+    required String departmentEmailAddress,
+    required String departmentAddress,
+    required String departmentPhoneNo,
+  }) {
+    isFormValid.value = departmentPhoneNo.isNotEmpty &&
+        departmentAddress.isNotEmpty &&
+        departmentEmailAddress.isNotEmpty;
+  }
+
+  /// Branch-only validation (no email/phone fields).
+  void branchValidateForm({
     required String branchName,
+    required String branchWebsiteUrl,
+    required String branchLocation,
+  }) {
+    isFormValid.value = branchName.isNotEmpty &&
+        branchWebsiteUrl.isNotEmpty &&
+        branchLocation.isNotEmpty;
+  }
+
+  // ---- Reads -----------------------------------------------------------------
+
+  Future<void> getBranchDetailsController() async {
+    try {
+      final ResponseModel response = await _repo.getAllHotelContactsRepo();
+      hotelContactUsData.value =
+          GetHotelContactUsResModel.fromJson(response.response?.data);
+
+      if (response.isSuccess) {
+        getHotelContactUsResponse.value =
+            ApiResponse.complete(hotelContactUsData.value);
+      } else {
+        commonSnackBar(message: AppStrings.somethingWentWrong);
+        getHotelContactUsResponse.value =
+            ApiResponse.error(AppStrings.somethingWentWrong);
+      }
+    } on Exception catch (e) {
+      logs("HotelBranchContactController.getBranchDetails ERROR $e");
+      getHotelContactUsResponse.value =
+          ApiResponse.error(AppStrings.somethingWentWrong);
+    }
+  }
+
+  // ---- Writes ----------------------------------------------------------------
+
+  Future<void> submitBranchDetails({
     required String website,
     required String address,
-    required String department,
     required String email,
     required String phone,
   }) async {
@@ -51,61 +107,67 @@ class HotelBranchContactController extends GetxController {
       commonSnackBar(message: AppStrings.hotelSelectValidLocation.tr);
       return;
     }
-
-    try {
-      isLoading.value = true;
-
-      // Prepare Request Body
-      Map<String, dynamic> body = {
-        "type": "reception",
-        "email": email,
-        "phone": phone,
-        "address": address,
-        "website": website,
-      };
-
-      ResponseModel response =
-          await HotelServiceRepo().addHotelContactRepo(reqBody: body);
-      if (response.isSuccess) {
-        commonSnackBar(
-            message: response.response?.data['message'] ??
-                AppStrings.hotelBranchAddedSuccess.tr);
-        Get.back();
-        await getBranchDetailsController();
-        try {
-          Get.find<HotelDetailController>().loadHotelData();
-        } catch (_) {}
-      } else {
-        commonSnackBar(message: AppStrings.somethingWentWrong);
-      }
-      print("Request Body: $body");
-    } catch (e) {
-      commonSnackBar(message: AppStrings.somethingWentWrong);
-    } finally {
-      isLoading.value = false;
-    }
+    await _submitContact(
+      body: _receptionBody(
+          email: email, phone: phone, address: address, website: website),
+      isUpdate: false,
+      successMessage: AppStrings.hotelBranchAddedSuccess.tr,
+    );
   }
 
   Future<void> updateBranchDetails({
-    required String branchName,
     required String website,
     required String address,
-    required String department,
     required String email,
     required String phone,
     required String contactID,
   }) async {
-    // if (selectedLat == null || selectedLng == null) {
-    //   commonSnackBar(
-    //       message: "Please select a valid location from the search.");
-    //   return;
-    // }
+    await _submitContact(
+      body: _receptionBody(
+          email: email, phone: phone, address: address, website: website),
+      isUpdate: true,
+      contactId: contactID,
+      successMessage: AppStrings.hotelBranchUpdatedSuccess.tr,
+    );
+  }
 
+  /// Generic contact update path also used by the branch-only screen.
+  Future<void> updateBranchContactController({
+    required Map<String, dynamic> reqBody,
+    required String branchId,
+  }) async {
     try {
-      isLoading.value = true;
+      final ResponseModel response = await _repo.updateHotelContactRepo(
+        reqBody: reqBody,
+        id: branchId,
+      );
+      _handleContactWriteResponse(response);
+    } on Exception catch (e) {
+      logs("HotelBranchContactController.updateBranchContact ERROR $e");
+    }
+  }
 
-      // Prepare Request Body
-      Map<String, dynamic> body = {
+  Future<void> deleteHotelBranchDepartmentController({
+    required String departmentId,
+  }) async {
+    try {
+      final ResponseModel response =
+          await _repo.deleteHotelContactRepo(departmentId);
+      _handleContactWriteResponse(response);
+    } on Exception catch (e) {
+      logs("HotelBranchContactController.deleteBranchDepartment ERROR $e");
+    }
+  }
+
+  // ---- Shared helpers --------------------------------------------------------
+
+  Map<String, dynamic> _receptionBody({
+    required String email,
+    required String phone,
+    required String address,
+    required String website,
+  }) =>
+      {
         "type": "reception",
         "email": email,
         "phone": phone,
@@ -113,208 +175,49 @@ class HotelBranchContactController extends GetxController {
         "website": website,
       };
 
-      ResponseModel response = await HotelServiceRepo()
-          .updateHotelContactRepo(reqBody: body, id: contactID);
+  Future<void> _submitContact({
+    required Map<String, dynamic> body,
+    required bool isUpdate,
+    required String successMessage,
+    String? contactId,
+  }) async {
+    try {
+      isLoading.value = true;
+      final ResponseModel response = isUpdate
+          ? await _repo.updateHotelContactRepo(reqBody: body, id: contactId!)
+          : await _repo.addHotelContactRepo(reqBody: body);
+
       if (response.isSuccess) {
         commonSnackBar(
-            message: response.response?.data['message'] ??
-                AppStrings.hotelBranchUpdatedSuccess.tr);
+            message: response.response?.data['message'] ?? successMessage);
         Get.back();
         await getBranchDetailsController();
-        try {
-          Get.find<HotelDetailController>().loadHotelData();
-        } catch (_) {}
+        _refreshHotelHome();
       } else {
-        commonSnackBar(message: AppStrings.somethingWentWrong);
+        commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
       }
-      print("Request Body: $body");
     } catch (e) {
+      logs("HotelBranchContactController._submitContact ERROR $e");
       commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {
       isLoading.value = false;
     }
   }
 
-  Rx<GetHotelContactUsResModel>? hotelContactUsData =
-      GetHotelContactUsResModel().obs;
-
-  ///====================API CALLING START==============================
-  ///GET BRANCH CONTACT DETAILS...
-
-  Future<void> getBranchDetailsController() async {
-    // 1. Check if data is already loaded OR if it's currently loading
-    // Logic for AI generation goes here
-    try {
-      // schoolContactUsData=null;
-      ResponseModel response =
-          await HotelServiceRepo().getAllHotelContactsRepo();
-
-      hotelContactUsData?.value =
-          GetHotelContactUsResModel.fromJson(response.response?.data);
-
-      if (response.isSuccess) {
-        getHotelContactUsResponse.value =
-            ApiResponse.complete(hotelContactUsData?.value);
-      } else {
-        commonSnackBar(message: AppStrings.somethingWentWrong);
-        getHotelContactUsResponse.value =
-            ApiResponse.error(AppStrings.somethingWentWrong);
-      }
-    } on Exception catch (e) {
-      logs("ERROR ${e}");
-      // TODO
-      getHotelContactUsResponse.value =
-          ApiResponse.error(AppStrings.somethingWentWrong);
+  void _handleContactWriteResponse(ResponseModel response) {
+    if (response.isSuccess) {
+      Get.back();
+      commonSnackBar(
+          message: response.response?.data["message"] ?? AppStrings.successful);
+      getBranchDetailsController();
+    } else {
+      commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
     }
   }
 
-  ///Only Department Validation
-
-  void departmentValidateForm({
-    required String departmentRole,
-    required String departmentEmailAddress,
-    required String departmentAddress,
-    required String departmentPhoneNo,
-  }) {
-    // Condition: All text fields not empty AND at least 1 image
-    isFormValid.value =
-        // departmentRole.isNotEmpty &&
-        departmentPhoneNo.isNotEmpty &&
-            departmentAddress.isNotEmpty &&
-            departmentEmailAddress.isNotEmpty;
-  }
-
-  ///ADD NEW DEPARTMENT CONTACT INFO...
-  Future<void> addBranchDepartmentController(
-      {required Map<String, dynamic> reqBody, required String branchID}) async {
-    // 1. Check if data is already loaded OR if it's currently loading
-
-    // Logic for AI generation goes here
+  void _refreshHotelHome() {
     try {
-      ResponseModel response = await SchoolRepo()
-          .addBranchDepartmentRepo(reqParm: reqBody, branchId: branchID);
-
-      if (response.isSuccess) {
-        Get.back();
-        commonSnackBar(
-            message:
-                response.response?.data["message"] ?? AppStrings.successful);
-
-        await getBranchDetailsController();
-      } else {
-        commonSnackBar(message: AppStrings.somethingWentWrong);
-      }
-    } on Exception catch (e) {
-      logs("ERROR ${e}");
-      // TODO
-    }
-  }
-
-  ///UPDATE CONTACT INFO...
-  Future<void> updateBranchContactDetailsController(
-      {required Map<String, dynamic> reqBody,
-      required String contactID,
-      required String branchID}) async {
-    // 1. Check if data is already loaded OR if it's currently loading
-
-    // Logic for AI generation goes here
-    try {
-      ResponseModel response = await SchoolRepo().updateSchoolContactRepo(
-          reqParm: reqBody, contactID: contactID, branchId: branchID);
-
-      if (response.isSuccess) {
-        Get.back();
-        commonSnackBar(
-            message:
-                response.response?.data["message"] ?? AppStrings.successful);
-        await getBranchDetailsController();
-      } else {
-        commonSnackBar(message: AppStrings.somethingWentWrong);
-      }
-    } on Exception catch (e) {
-      logs("ERROR ${e}");
-      // TODO
-    }
-  }
-
-  ///DELETE BRnach Contact....
-  Future<void> deleteHotelBranchDepartmentController({
-    required String departmentId,
-  }) async {
-    try {
-      ResponseModel response =
-          await HotelServiceRepo().deleteHotelContactRepo(departmentId);
-
-      if (response.isSuccess) {
-        Get.back();
-        commonSnackBar(
-            message:
-                response.response?.data['message'] ?? AppStrings.successful);
-        await getBranchDetailsController();
-      } else {
-        commonSnackBar(message: AppStrings.somethingWentWrong);
-      }
-    } on Exception catch (e) {
-      logs("ERROR ${e}");
-    }
-  }
-
-  ///DELETE BRanch....
-  Future<void> deleteSchoolBranchController({required String contactId}) async {
-    try {
-      ResponseModel response =
-          await SchoolRepo().deleteSchoolBranchRepo(contactID: contactId);
-
-      if (response.isSuccess) {
-        Get.back();
-        commonSnackBar(
-            message:
-                response.response?.data['message'] ?? AppStrings.successful);
-        await getBranchDetailsController();
-      } else {
-        commonSnackBar(message: AppStrings.somethingWentWrong);
-      }
-    } on Exception catch (e) {
-      logs("ERROR ${e}");
-    }
-  }
-
-  ///UPDATE CONTACT INFO...
-  Future<void> updateBranchContactController(
-      {required Map<String, dynamic> reqBody, required String branchId}) async {
-    // 1. Check if data is already loaded OR if it's currently loading
-
-    // Logic for AI generation goes here
-    try {
-      ResponseModel response = await SchoolRepo().updateSchoolBranchRepo(
-        reqParm: reqBody,
-        branchID: branchId,
-      );
-
-      if (response.isSuccess) {
-        Get.back();
-        commonSnackBar(
-            message:
-                response.response?.data["message"] ?? AppStrings.successful);
-        await getBranchDetailsController();
-      } else {
-        commonSnackBar(message: AppStrings.somethingWentWrong);
-      }
-    } on Exception catch (e) {
-      logs("ERROR ${e}");
-      // TODO
-    }
-  }
-
-  ///Only Branch Validation
-  void branchValidateForm({
-    required String branchName,
-    required String branchWebsiteUrl,
-    required String branchLocation,
-  }) {
-    // Condition: All text fields not empty AND at least 1 image
-    isFormValid.value = branchName.isNotEmpty &&
-        branchWebsiteUrl.isNotEmpty &&
-        branchLocation.isNotEmpty;
+      Get.find<HotelDetailController>().loadHotelData();
+    } catch (_) {}
   }
 }

@@ -220,7 +220,7 @@ class _HealthCampFormScreenState extends State<HealthCampFormScreen> {
               fontWeight: FontWeight.w400,
             ),
             Obx(() => CustomText(
-                  "${controller.selectedImages.length}/${controller.maxImages}",
+                  "${controller.selectedImages.length}/${HealthCampController.maxImages}",
                   fontSize: 12,
                   fontWeight: FontWeight.w400,
                   color: AppColors.greyA5,
@@ -235,7 +235,7 @@ class _HealthCampFormScreenState extends State<HealthCampFormScreen> {
                 ...List.generate(controller.selectedImages.length, (index) {
                   return _buildImageTile(controller.selectedImages[index], index);
                 }),
-                if (controller.selectedImages.length < controller.maxImages)
+                if (controller.selectedImages.length < HealthCampController.maxImages)
                   _buildAddImageTile(),
               ],
             )),
@@ -290,7 +290,7 @@ class _HealthCampFormScreenState extends State<HealthCampFormScreen> {
     return GestureDetector(
       onTap: () async {
         final remaining =
-            controller.maxImages - controller.selectedImages.length;
+            HealthCampController.maxImages - controller.selectedImages.length;
         if (remaining <= 0) return;
         final paths = await SelectProductImageDialog.showLogoDialog(
           context,
@@ -462,7 +462,7 @@ class _HealthCampFormScreenState extends State<HealthCampFormScreen> {
                 ),
                 const Divider(height: 1),
                 // Category list with checkboxes
-                ...controller.testCategoryOptions.map((category) {
+                ...HealthCampController.testCategoryOptions.map((category) {
                   return Obx(() {
                     final isSelected =
                         controller.selectedTestCategories.contains(category);
@@ -550,7 +550,7 @@ class _HealthCampFormScreenState extends State<HealthCampFormScreen> {
         const SizedBox(height: 8),
         Obx(() => SizedBox(
               width: double.infinity,
-              child: _buildDropdown(controller.timeSlots, selectedValue.value,
+              child: _buildDropdown(HealthCampController.timeSlots, selectedValue.value,
                   (val) {
                 selectedValue.value = val!;
                 controller.validateForm();
