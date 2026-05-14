@@ -167,7 +167,7 @@ class _AddLabTestScreenState extends State<AddLabTestScreen> {
                   ),
                   SizedBox(height: SizeConfig.paddingXSL),
                   CommonDropdownDialog<String>(
-                    items: controller.specimenList,
+                    items: LabTestController.specimenList,
                     selectedValue: selectedSpecimen,
                     title: AppStrings.specimen.tr,
                     hintText: AppStrings.selectSpecimen.tr,
@@ -185,7 +185,7 @@ class _AddLabTestScreenState extends State<AddLabTestScreen> {
                   ),
                   SizedBox(height: SizeConfig.paddingXSL),
                   CommonDropdownDialog<String>(
-                    items: controller.collectionMethods,
+                    items: LabTestController.collectionMethods,
                     selectedValue: selectedCollectionMethod,
                     title: AppStrings.specimenCollectionMethod.tr,
                     hintText: AppStrings.selectMethod.tr,
@@ -227,7 +227,7 @@ class _AddLabTestScreenState extends State<AddLabTestScreen> {
                 ),
                 SizedBox(height: SizeConfig.paddingXSL),
                 CommonDropdownDialog<String>(
-                  items: controller.genderList,
+                  items: LabTestController.genderList,
                   selectedValue: selectedGender,
                   title: AppStrings.gender.tr,
                   hintText: AppStrings.selectGender.tr,
@@ -326,7 +326,7 @@ class _AddLabTestScreenState extends State<AddLabTestScreen> {
                 ),
                 SizedBox(height: SizeConfig.paddingXSL),
                 CommonDropdownDialog<String>(
-                  items: controller.packageTypeList,
+                  items: LabTestController.packageTypeList,
                   selectedValue: selectedPackageType,
                   title: AppStrings.packageType.tr,
                   hintText: AppStrings.selectPackageType.tr,

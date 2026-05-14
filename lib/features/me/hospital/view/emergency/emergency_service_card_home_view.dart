@@ -5,13 +5,12 @@ import 'package:flutter/material.dart';
 
 class VerticalEmergencyServiceCard extends StatelessWidget {
   final String title;
-  final String description;
-  final String? icon; // Or use an Image.asset for custom icons
+  final String icon;
 
   const VerticalEmergencyServiceCard({
+    super.key,
     required this.title,
-    required this.description,
-    this.icon,
+    required this.icon,
   });
 
   @override
@@ -36,17 +35,14 @@ class VerticalEmergencyServiceCard extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Icon Box
           Expanded(
             child: Container(
-              // width: 45,
-              // height: 45,
               decoration: BoxDecoration(
                 color: Colors.grey.shade50,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: Colors.grey.shade100),
               ),
-              child: LocalAssets(imagePath: icon ?? ""),
+              child: LocalAssets(imagePath: icon),
             ),
           ),
           const SizedBox(height: 16),

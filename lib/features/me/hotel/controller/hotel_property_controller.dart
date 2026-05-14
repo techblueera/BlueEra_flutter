@@ -4,46 +4,53 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/me/hotel/repo/hotel_service_repo.dart';
 import 'package:get/get.dart';
 
+/// Generic catalog-node editor: tracks an `isActive` flag and an optional
+/// `data` payload per node id, and submits the whole set to the policies
+/// endpoint as `{ nodes: [...] }`.
+///
+/// Currently has no view bindings — kept for the catalog-builder flow.
 class HotelPropertyController extends GetxController {
-  // Mocking the raw response from your input
-  var policyData = {}.obs;
-  var is24Hours = false.obs;
+  final HotelServiceRepo _repo = HotelServiceRepo();
 
-  // This map stores the user selections: { "catalogNodeId": value }
-  var userSelections = <String, dynamic>{}.obs;
+  final RxBool isSaving = false.obs;
+  final RxBool is24Hours = false.obs;
 
-  // This map stores toggle states (isActive/isEnabled)
-  var activeStates = <String, bool>{}.obs;
+  /// `{ catalogNodeId: payload }` — populated by the editor widgets.
+  final RxMap<String, dynamic> userSelections = <String, dynamic>{}.obs;
 
-  List<String> timeSlots =
+  /// `{ catalogNodeId: isActive }`.
+  final RxMap<String, bool> activeStates = <String, bool>{}.obs;
+
+  final List<String> timeSlots =
       List.generate(24, (i) => "${i.toString().padLeft(2, '0')}:00");
 
-// Helper to find a specific child node by its KEY
-
-
-
   Future<void> submitData() async {
-    // Map the local state back to your requested format
-    var reqBODY = {
-      "nodes": activeStates.entries.map((e) {
-        var node = {
-          "catalogNodeId": e.key,
-          "isActive": e.value,
-        };
-        if (userSelections.containsKey(e.key)) {
-          node["data"] = userSelections[e.key];
-        }
-        return node;
-      }).toList()
-    };
-    ResponseModel response =
-        await HotelServiceRepo().addHotelPoliciesRepo(reqBody: reqBODY);
+    final nodes = activeStates.entries.map((e) {
+      final node = <String, dynamic>{
+        "catalogNodeId": e.key,
+        "isActive": e.value,
+      };
+      if (userSelections.containsKey(e.key)) {
+        node["data"] = userSelections[e.key];
+      }
+      return node;
+    }).toList();
 
-    if (response.isSuccess) {
-      Get.back();
-      commonSnackBar(message: response.response?.data['message']);
-    } else {
+    try {
+      isSaving.value = true;
+      final ResponseModel response =
+          await _repo.addHotelPoliciesRepo(reqBody: {"nodes": nodes});
+
+      if (response.isSuccess) {
+        Get.back();
+        commonSnackBar(message: response.response?.data['message']);
+      } else {
+        commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (_) {
       commonSnackBar(message: AppStrings.somethingWentWrong);
+    } finally {
+      isSaving.value = false;
     }
   }
 }

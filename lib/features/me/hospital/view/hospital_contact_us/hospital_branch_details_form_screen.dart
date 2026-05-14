@@ -15,14 +15,15 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 class HospitalBranchDetailsFormScreen extends StatefulWidget {
+  const HospitalBranchDetailsFormScreen({super.key});
+
   @override
-  _HospitalBranchDetailsFormScreenState createState() =>
+  State<HospitalBranchDetailsFormScreen> createState() =>
       _HospitalBranchDetailsFormScreenState();
 }
 
 class _HospitalBranchDetailsFormScreenState
     extends State<HospitalBranchDetailsFormScreen> {
-  // Initialize the specific controller
   final controller = Get.find<HospitalBranchContactController>();
 
   final branchNameController = TextEditingController();
@@ -31,6 +32,17 @@ class _HospitalBranchDetailsFormScreenState
   final titleController = TextEditingController();
   final emailController = TextEditingController();
   final phoneController = TextEditingController();
+
+  @override
+  void dispose() {
+    branchNameController.dispose();
+    websiteController.dispose();
+    addressController.dispose();
+    titleController.dispose();
+    emailController.dispose();
+    phoneController.dispose();
+    super.dispose();
+  }
 
   void _triggerValidation() {
     controller.validateForm(
@@ -69,88 +81,121 @@ class _HospitalBranchDetailsFormScreenState
       body: CommonCardWidget(
         padding: 0,
         child: SingleChildScrollView(
-          padding: EdgeInsets.all(16),
-          child: Obx(() => Column(
-            children: [
-              _buildHeader(AppStrings.branch),
-              CommonTextField(
-                textEditController: branchNameController,
-                hintText: "E.g. DPS Dehradun",
-                title: AppStrings.branchName,
-                onChange: (_) => _triggerValidation(),
-              ),
-              if (controller.branchNameError.value.isNotEmpty)
-                _buildErrorText(controller.branchNameError.value),
-              SizedBox(height: 12),
-              HttpsTextField(
-                controller: websiteController,
-                hintText: "https://dpsdehradun.com",
-                title: AppStrings.website,
-                onChange: (_) => _triggerValidation(),
-              ),
-              if (controller.websiteError.value.isNotEmpty)
-                _buildErrorText(controller.websiteError.value),
-              SizedBox(height: 12),
-              CommonLocationSearchField(
-                controller: addressController,
-                title: AppStrings.location,
-                onSelected: (placeId, lat, lng, address) {
-                  addressController.text = address;
-                  controller.selectedLat = lat;
-                  controller.selectedLng = lng;
-                  _triggerValidation();
-                },
-              ),
-              if (controller.addressError.value.isNotEmpty)
-                _buildErrorText(controller.addressError.value),
-
-              SizedBox(height: 24),
-              _buildHeader(AppStrings.department),
-
-              CommonTextField(
-                textEditController: titleController,
-                hintText: "E.g. Admission Cell",
-                title: AppStrings.department,
-                onChange: (_) => _triggerValidation(),
-              ),
-              if (controller.departmentError.value.isNotEmpty)
-                _buildErrorText(controller.departmentError.value),
-              SizedBox(height: 12),
-              CommonTextField(
-                textEditController: emailController,
-                hintText: "example@gmail.com",
-                title: AppStrings.enterEmailAddress,
-                keyBoardType: TextInputType.emailAddress,
-                onChange: (_) => _triggerValidation(),
-              ),
-              if (controller.emailError.value.isNotEmpty)
-                _buildErrorText(controller.emailError.value),
-              SizedBox(height: 12),
-              CommonTextField(
-                textEditController: phoneController,
-                hintText: "1234567890",
-                title: AppStrings.phoneNumber,
-                maxLength: 10,
-                keyBoardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                onChange: (_) => _triggerValidation(),
-              ),
-              if (controller.phoneError.value.isNotEmpty)
-                _buildErrorText(controller.phoneError.value),
-
-              SizedBox(height: 32),
-
-              // Submit Button - always clickable for validation feedback
-              CustomBtn(
-                isLoading: controller.isLoading.value,
-                onTap: () => _handleSubmit(),
-                title: AppStrings.submit,
-                isValidate: controller.isFormValid.value,
-              ),
-            ],
-          )),
+          padding: const EdgeInsets.all(16),
+          child: Obx(
+            () => Column(
+              children: [
+                _buildHeader(AppStrings.branch),
+                _fieldWithError(
+                  field: _textField(
+                    textController: branchNameController,
+                    hint: "E.g. DPS Dehradun",
+                    title: AppStrings.branchName,
+                  ),
+                  errorRx: controller.branchNameError,
+                  gap: 12,
+                ),
+                _fieldWithError(
+                  field: HttpsTextField(
+                    controller: websiteController,
+                    hintText: "https://dpsdehradun.com",
+                    title: AppStrings.website,
+                    onChange: (_) => _triggerValidation(),
+                  ),
+                  errorRx: controller.websiteError,
+                  gap: 12,
+                ),
+                _fieldWithError(
+                  field: CommonLocationSearchField(
+                    controller: addressController,
+                    title: AppStrings.location,
+                    onSelected: (placeId, lat, lng, address) {
+                      addressController.text = address;
+                      controller.selectedLat = lat;
+                      controller.selectedLng = lng;
+                      _triggerValidation();
+                    },
+                  ),
+                  errorRx: controller.addressError,
+                  gap: 24,
+                ),
+                _buildHeader(AppStrings.department),
+                _fieldWithError(
+                  field: _textField(
+                    textController: titleController,
+                    hint: "E.g. Admission Cell",
+                    title: AppStrings.department,
+                  ),
+                  errorRx: controller.departmentError,
+                  gap: 12,
+                ),
+                _fieldWithError(
+                  field: _textField(
+                    textController: emailController,
+                    hint: "example@gmail.com",
+                    title: AppStrings.enterEmailAddress,
+                    keyBoardType: TextInputType.emailAddress,
+                  ),
+                  errorRx: controller.emailError,
+                  gap: 12,
+                ),
+                _fieldWithError(
+                  field: _textField(
+                    textController: phoneController,
+                    hint: "1234567890",
+                    title: AppStrings.phoneNumber,
+                    keyBoardType: TextInputType.number,
+                    maxLength: 10,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  ),
+                  errorRx: controller.phoneError,
+                  gap: 32,
+                ),
+                // Submit Button - always clickable for validation feedback
+                CustomBtn(
+                  isLoading: controller.isLoading.value,
+                  onTap: _handleSubmit,
+                  title: AppStrings.submit,
+                  isValidate: controller.isFormValid.value,
+                ),
+              ],
+            ),
+          ),
         ),
       ),
+    );
+  }
+
+  Widget _textField({
+    required TextEditingController textController,
+    required String hint,
+    required String title,
+    TextInputType? keyBoardType,
+    int? maxLength,
+    List<TextInputFormatter>? inputFormatters,
+  }) {
+    return CommonTextField(
+      textEditController: textController,
+      hintText: hint,
+      title: title,
+      keyBoardType: keyBoardType,
+      maxLength: maxLength,
+      inputFormatters: inputFormatters,
+      onChange: (_) => _triggerValidation(),
+    );
+  }
+
+  Widget _fieldWithError({
+    required Widget field,
+    required RxString errorRx,
+    required double gap,
+  }) {
+    return Column(
+      children: [
+        field,
+        if (errorRx.value.isNotEmpty) _buildErrorText(errorRx.value),
+        SizedBox(height: gap),
+      ],
     );
   }
 
@@ -183,4 +228,3 @@ class _HospitalBranchDetailsFormScreenState
     );
   }
 }
-

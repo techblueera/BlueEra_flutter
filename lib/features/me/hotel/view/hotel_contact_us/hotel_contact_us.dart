@@ -53,8 +53,7 @@ class _HotelContactUsState extends State<HotelContactUs> {
                   //   return Center(child: CustomText("No Contact Us Found "));
                   // }
                   GetHotelContactUsResModel dataHotel =
-                      controller.hotelContactUsData?.value ??
-                          GetHotelContactUsResModel();
+                      controller.hotelContactUsData.value;
 
                   return CommonCardWidget(
                     child: Column(

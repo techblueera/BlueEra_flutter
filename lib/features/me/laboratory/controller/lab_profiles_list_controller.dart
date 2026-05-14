@@ -53,17 +53,19 @@ class LabProfileListItem {
   }
 }
 
-class   LabProfilesListController extends GetxController {
+/// Paginated list of laboratory profiles. The screen calls [fetchInitial]
+/// once and [fetchMore] each time the user scrolls past the bottom.
+class LabProfilesListController extends GetxController {
   final LabServiceRepo _repo = LabServiceRepo();
 
-  final profiles = <LabProfileListItem>[].obs;
-  final isLoading = false.obs;
-  final isLoadingMore = false.obs;
-  final hasMore = true.obs;
-  final error = ''.obs;
+  final RxList<LabProfileListItem> profiles = <LabProfileListItem>[].obs;
+  final RxBool isLoading = false.obs;
+  final RxBool isLoadingMore = false.obs;
+  final RxBool hasMore = true.obs;
+  final RxString error = ''.obs;
 
   int page = 1;
-  final int limit = 10;
+  static const int _pageSize = 10;
 
   @override
   void onInit() {
@@ -92,13 +94,13 @@ class   LabProfilesListController extends GetxController {
       error.value = '';
 
       final ResponseModel res =
-          await _repo.listLaboratoryProfiles(page: p, limit: limit);
+          await _repo.listLaboratoryProfiles(page: p, limit: _pageSize);
 
       if (res.isSuccess) {
         final List data = res.response?.data['data'] ?? [];
         final items =
             data.map((e) => LabProfileListItem.fromJson(e)).toList();
-        if (items.isEmpty || items.length < limit) {
+        if (items.isEmpty || items.length < _pageSize) {
           hasMore.value = false;
         }
         if (items.isNotEmpty) {

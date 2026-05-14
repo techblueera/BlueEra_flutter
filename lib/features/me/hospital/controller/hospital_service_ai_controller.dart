@@ -92,43 +92,40 @@ class HospitalServiceAiController extends GetxController {
   RxInt selectedDeptIndex = 0.obs; // Tracks selected category chip
   RxInt selectedIpdDeptIndex = 0.obs; // Tracks selected category chip
 
-  // 1. Get departments filtered by the current Tab (OPD or IPD)
-  List<IpdOpdDepartments> get filteredOpdDepartments {
-    var allDepts = hospitalDataResModel?.value.data?.departments ?? [];
-    return allDepts.where((dept) => dept.type == "OPD").toList();
+  /// Departments filtered by [type] ("OPD" or "IPD").
+  List<IpdOpdDepartments> _departmentsOfType(String type) =>
+      (hospitalDataResModel?.value.data?.departments ?? [])
+          .where((dept) => dept.type == type)
+          .toList();
+
+  List<IpdOpdDepartments> get filteredOpdDepartments =>
+      _departmentsOfType("OPD");
+  List<IpdOpdDepartments> get filteredIpdDepartments =>
+      _departmentsOfType("IPD");
+
+  /// Items (doctors or beds) for the currently selected chip on the given
+  /// tab — guards against stale index values when the user switches tabs.
+  List<dynamic> _itemsFor({
+    required List<IpdOpdDepartments> depts,
+    required RxInt indexRx,
+    required List<dynamic>? Function(IpdOpdDepartments) extract,
+  }) {
+    if (depts.isEmpty) return [];
+    if (indexRx.value >= depts.length) indexRx.value = 0;
+    return extract(depts[indexRx.value]) ?? [];
   }
 
-  // 2. Get the actual list of doctors or beds based on selection
-  List<dynamic> get currentCategoryItems {
-    if (filteredOpdDepartments.isEmpty) return [];
+  List<dynamic> get currentCategoryItems => _itemsFor(
+        depts: filteredOpdDepartments,
+        indexRx: selectedDeptIndex,
+        extract: (d) => d.opd,
+      );
 
-    // Ensure index doesn't go out of bounds if tab switches
-    if (selectedDeptIndex.value >= filteredOpdDepartments.length) {
-      selectedDeptIndex.value = 0;
-    }
-
-    var dept = filteredOpdDepartments[selectedDeptIndex.value];
-    return (dept.opd ?? []);
-  }
-
-  // 1. Get departments filtered by the current Tab (OPD or IPD)
-  List<IpdOpdDepartments> get filteredIpdDepartments {
-    var allDepts = hospitalDataResModel?.value.data?.departments ?? [];
-    return allDepts.where((dept) => dept.type == "IPD").toList();
-  }
-
-  // 2. Get the actual list of doctors or beds based on selection
-  List<dynamic> get currentCategoryItemsIpd {
-    if (filteredIpdDepartments.isEmpty) return [];
-
-    // Ensure index doesn't go out of bounds if tab switches
-    if (selectedIpdDeptIndex.value >= filteredIpdDepartments.length) {
-      selectedIpdDeptIndex.value = 0;
-    }
-
-    var dept = filteredIpdDepartments[selectedIpdDeptIndex.value];
-    return (dept.ipd ?? []);
-  }
+  List<dynamic> get currentCategoryItemsIpd => _itemsFor(
+        depts: filteredIpdDepartments,
+        indexRx: selectedIpdDeptIndex,
+        extract: (d) => d.ipd,
+      );
 
   // Call this when switching tabs to reset the category selection
   void changeTab(String type) {
@@ -137,50 +134,40 @@ class HospitalServiceAiController extends GetxController {
     selectedIpdDeptIndex.value = 0;
   }
 
-  getHospitalFullDetailsController() async {
+  Future<void> getHospitalFullDetailsController() async {
     try {
-      hospitalIDGlobal = "";
-      if (hospitalIDGlobal.isEmpty) {
-        ResponseModel response =
-            await HospitalRepo().getHospitalFullDetailsRepo();
-        if (response.isSuccess) {
-          hospitalDataResModel?.value =
-              HospitalFullDetailsResModel.fromJson(response.response?.data);
-          hospitalIDGlobal = hospitalDataResModel?.value.data?.id ?? "";
-
-          if (hospitalIDGlobal.isNotEmpty) {
-            await setHospitalID(hospitalIDGlobal);
-          } else {
-            hospitalIDGlobal = "";
-            await setHospitalID("");
-          }
-        } else {
-          hospitalIDGlobal = "";
-          await setHospitalID("");
-        }
+      final ResponseModel response =
+          await HospitalRepo().getHospitalFullDetailsRepo();
+      if (response.isSuccess) {
+        final model =
+            HospitalFullDetailsResModel.fromJson(response.response?.data);
+        hospitalDataResModel?.value = model;
+        hospitalIDGlobal = model.data?.id ?? "";
+      } else {
+        hospitalIDGlobal = "";
       }
+      await setHospitalID(hospitalIDGlobal);
       await getHospitalID();
       hasHospitalCreated.value = hospitalIDGlobal.isNotEmpty;
     } on Exception {
-      // TODO
+      // Swallow; existing behaviour — UI falls back to empty hospital state.
     }
   }
 
-  uploadHospitalLogoOrBannerImage(
-      {required File uploadFile, required String uploadVia}) async {
+  Future<void> uploadHospitalLogoOrBannerImage({
+    required File uploadFile,
+    required String uploadVia,
+  }) async {
     try {
-      UploadResult? result = await S3UploadService.uploadFile(uploadFile);
-      if (result.isSuccess) {
-        ResponseModel response =
-            await HospitalRepo().updateHospitalInfoRepo(reqBODY: {
-          uploadVia: result.url,
-        });
-        if (response.isSuccess) {
-          commonSnackBar(message: AppStrings.hospitalCtrlAddedSuccessfully.tr);
-        } else {}
+      final result = await S3UploadService.uploadFile(uploadFile);
+      if (!result.isSuccess) return;
+      final response = await HospitalRepo()
+          .updateHospitalInfoRepo(reqBODY: {uploadVia: result.url});
+      if (response.isSuccess) {
+        commonSnackBar(message: AppStrings.hospitalCtrlAddedSuccessfully.tr);
       }
     } on Exception {
-      // TODO
+      // Swallow; matches prior behaviour.
     }
   }
 
@@ -192,11 +179,6 @@ class HospitalServiceAiController extends GetxController {
 
   int page = 1;
   final int limit = 10;
-
-  // void onInit() {
-  //   super.onInit();
-  //   fetchInitial();
-  // }
 
   Future<void> fetchInitial(String type) async {
     profiles.clear();

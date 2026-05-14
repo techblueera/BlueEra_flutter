@@ -1,12 +1,12 @@
-import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/laboratory/controller/lab_profile_controller.dart';
+import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
-import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
-import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/info_banner.dart';
+import 'package:BlueEra/widgets/section_icon_header.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -33,9 +33,7 @@ class _LabDescriptionScreenState extends State<LabDescriptionScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(
-        title: AppStrings.description.tr,
-      ),
+      appBar: CommonBackAppBar(title: AppStrings.description.tr),
       body: SafeArea(
         child: Obx(() {
           return SingleChildScrollView(
@@ -43,34 +41,12 @@ class _LabDescriptionScreenState extends State<LabDescriptionScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // --- Info Banner ---
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryColor.withValues(alpha: 0.06),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                        color:
-                            AppColors.primaryColor.withValues(alpha: 0.15)),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.info_outline,
-                          color: AppColors.primaryColor, size: 20),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: CustomText(
-                          AppStrings.labAddDescHelp.tr,
-                          color: AppColors.primaryColor,
-                          fontSize: SizeConfig.small,
-                        ),
-                      ),
-                    ],
-                  ),
+                InfoBanner(
+                  icon: Icons.info_outline,
+                  message: AppStrings.labAddDescHelp.tr,
                 ),
                 SizedBox(height: SizeConfig.size14),
 
-                // --- Description Card ---
                 CommonCardWidget(
                   padding: 0,
                   child: Padding(
@@ -78,10 +54,10 @@ class _LabDescriptionScreenState extends State<LabDescriptionScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _sectionIcon(
-                          Icons.description_outlined,
-                          AppStrings.description.tr,
-                          AppStrings.labTellAboutLab.tr,
+                        SectionIconHeader(
+                          icon: Icons.description_outlined,
+                          title: AppStrings.description.tr,
+                          subtitle: AppStrings.labTellAboutLab.tr,
                         ),
                         const SizedBox(height: 16),
                         CommonTextField(
@@ -99,7 +75,6 @@ class _LabDescriptionScreenState extends State<LabDescriptionScreen> {
                 ),
                 const SizedBox(height: 30),
 
-                // --- Save ---
                 CustomBtn(
                   title: AppStrings.save,
                   isValidate: controller.isValid.value,
@@ -117,35 +92,6 @@ class _LabDescriptionScreenState extends State<LabDescriptionScreen> {
           );
         }),
       ),
-    );
-  }
-
-  Widget _sectionIcon(IconData icon, String title, String subtitle) {
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: AppColors.primaryColor.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Icon(icon, color: AppColors.primaryColor, size: 20),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              CustomText(title,
-                  fontWeight: FontWeight.w600, fontSize: SizeConfig.medium),
-              const SizedBox(height: 2),
-              CustomText(subtitle,
-                  color: AppColors.secondaryTextColor,
-                  fontSize: SizeConfig.small),
-            ],
-          ),
-        ),
-      ],
     );
   }
 }

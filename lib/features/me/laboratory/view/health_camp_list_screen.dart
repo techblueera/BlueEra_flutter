@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/laboratory/controller/health_camp_controller.dart';
 import 'package:BlueEra/features/me/laboratory/model/health_camp_model.dart';
 import 'package:BlueEra/features/me/laboratory/view/health_camp_form_screen.dart';
+import 'package:BlueEra/features/me/laboratory/widget/lab_tag_pill.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -34,116 +35,119 @@ class _HealthCampListScreenState extends State<HealthCampListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(
-        title: AppStrings.healthCamps.tr,
+      appBar: CommonBackAppBar(title: AppStrings.healthCamps.tr),
+      floatingActionButton: Obx(
+        () => controller.hasCamp
+            ? const SizedBox.shrink()
+            : FloatingActionButton(
+                onPressed: () => Get.to(() => const HealthCampFormScreen()),
+                child: const Icon(Icons.add, color: AppColors.white),
+              ),
       ),
-      floatingActionButton: Obx(() => controller.hasCamp
-          ? const SizedBox.shrink()
-          : FloatingActionButton(
-              onPressed: () {
-                Get.to(() => const HealthCampFormScreen());
-              },
-              child: const Icon(Icons.add, color: AppColors.white),
-            )),
       body: Obx(() {
         if (controller.isLoading.value && controller.camps.isEmpty) {
           return const Center(child: CircularProgressIndicator());
         }
         if (controller.camps.isEmpty) {
           return Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                CustomText(AppStrings.noHealthCampsFound.tr, color: AppColors.grey99),
-                SizedBox(height: SizeConfig.size10),
-                // ElevatedButton(
-                //   onPressed: () => Get.to(() => const HealthCampFormScreen()),
-                //   child: const Text("Create Health Camp"),
-                // ),
-              ],
+            child: CustomText(
+              AppStrings.noHealthCampsFound.tr,
+              color: AppColors.grey99,
             ),
           );
         }
         return ListView.separated(
           padding: EdgeInsets.all(SizeConfig.size12),
-          itemBuilder: (_, i) {
-            final HealthCamp c = controller.camps[i];
-            return Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey.shade200),
-              ),
-              padding: EdgeInsets.all(SizeConfig.size12),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        CustomText(c.title ?? "", fontWeight: FontWeight.w700, fontSize: SizeConfig.size15),
-                        if (c.description?.isNotEmpty == true)
-                          Padding(
-                            padding: EdgeInsets.only(top: SizeConfig.size4),
-                            child: CustomText(c.description ?? "", fontSize: SizeConfig.small, color: AppColors.black28, maxLines: 2),
-                          ),
-                        SizedBox(height: SizeConfig.size8),
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 6,
-                          children: [
-                            _pill("${AppStrings.price.tr}: ${c.price ?? 0}"),
-                            _pill("${AppStrings.discount.tr}: ${c.discountPrice ?? 0}"),
-                            if (c.startTime != null) _pill("${AppStrings.start.tr}: ${c.startTime}"),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  Column(
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.edit, color: Colors.black),
-                        onPressed: () {
-                          Get.to(() => HealthCampFormScreen(existing: c));
-                        },
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.delete_outline, color: Colors.red),
-                        onPressed: () {
-                          showCommonDialog(
-                            context: context,
-                            text: AppStrings.deleteThisHealthCamp.tr,
-                            confirmCallback: () => controller.deleteCamp(c.id!),
-                            cancelCallback: () => Get.back(),
-                            confirmText: AppStrings.delete,
-                            cancelText: AppStrings.cancel,
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            );
-          },
-          separatorBuilder: (_, __) => SizedBox(height: SizeConfig.size10),
           itemCount: controller.camps.length,
+          separatorBuilder: (_, __) => SizedBox(height: SizeConfig.size10),
+          itemBuilder: (_, i) => _CampRow(
+            camp: controller.camps[i],
+            onDelete: () => _confirmDelete(controller.camps[i]),
+          ),
         );
       }),
     );
   }
 
-  Widget _pill(String text) {
+  void _confirmDelete(HealthCamp camp) {
+    showCommonDialog(
+      context: context,
+      text: AppStrings.deleteThisHealthCamp.tr,
+      confirmCallback: () => controller.deleteCamp(camp.id!),
+      cancelCallback: () => Get.back(),
+      confirmText: AppStrings.delete,
+      cancelText: AppStrings.cancel,
+    );
+  }
+}
+
+class _CampRow extends StatelessWidget {
+  final HealthCamp camp;
+  final VoidCallback onDelete;
+
+  const _CampRow({required this.camp, required this.onDelete});
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: AppColors.primaryColor.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.primaryColor.withValues(alpha: 0.1)),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade200),
       ),
-      child: CustomText(text, fontSize: SizeConfig.small, color: AppColors.primaryColor),
+      padding: EdgeInsets.all(SizeConfig.size12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CustomText(
+                  camp.title ?? "",
+                  fontWeight: FontWeight.w700,
+                  fontSize: SizeConfig.size15,
+                ),
+                if (camp.description?.isNotEmpty == true)
+                  Padding(
+                    padding: EdgeInsets.only(top: SizeConfig.size4),
+                    child: CustomText(
+                      camp.description ?? "",
+                      fontSize: SizeConfig.small,
+                      color: AppColors.black28,
+                      maxLines: 2,
+                    ),
+                  ),
+                SizedBox(height: SizeConfig.size8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 6,
+                  children: [
+                    LabTagPill("${AppStrings.price.tr}: ${camp.price ?? 0}"),
+                    LabTagPill(
+                        "${AppStrings.discount.tr}: ${camp.discountPrice ?? 0}"),
+                    if (camp.startTime != null)
+                      LabTagPill("${AppStrings.start.tr}: ${camp.startTime}"),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          Column(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.edit, color: Colors.black),
+                onPressed: () =>
+                    Get.to(() => HealthCampFormScreen(existing: camp)),
+              ),
+              IconButton(
+                icon: const Icon(Icons.delete_outline, color: Colors.red),
+                onPressed: onDelete,
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

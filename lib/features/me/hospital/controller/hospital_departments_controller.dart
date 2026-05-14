@@ -73,18 +73,20 @@ class HospitalDepartmentsController extends GetxController {
         ApiKeys.name: nameController.text.trim(),
         ApiKeys.type: selectedType.value.trim(),
         ApiKeys.description: descriptionController.text.trim(),
-        ApiKeys.hospitalId:hospitalIDGlobal,
+        ApiKeys.hospitalId: hospitalIDGlobal,
       };
-      ResponseModel res;
-      if (editingDepartment == null) {
-        res = await repo.createDepartment(body: body);
-      } else {
-        res = await repo.updateDepartment(id: editingDepartment!.id, body: body);
-      }
+      final isCreate = editingDepartment == null;
+      final ResponseModel res = isCreate
+          ? await repo.createDepartment(body: body)
+          : await repo.updateDepartment(id: editingDepartment!.id, body: body);
+
       if (res.isSuccess) {
         await loadDepartments();
         Get.back();
-        commonSnackBar(message: editingDepartment == null ? AppStrings.hospitalCtrlDepartmentCreated.tr : AppStrings.hospitalCtrlDepartmentUpdated.tr);
+        commonSnackBar(
+            message: isCreate
+                ? AppStrings.hospitalCtrlDepartmentCreated.tr
+                : AppStrings.hospitalCtrlDepartmentUpdated.tr);
       } else {
         commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong);
       }

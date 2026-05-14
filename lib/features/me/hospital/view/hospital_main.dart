@@ -5,7 +5,6 @@ import 'package:BlueEra/features/me/hospital/view/v2/hospital_home_screen_v2.dar
 import 'package:BlueEra/features/me/me_tab_registry.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:webview_flutter/webview_flutter.dart';
 
 class HospitalMain extends StatefulWidget {
   const HospitalMain({super.key});
@@ -69,119 +68,7 @@ class _HospitalMainState extends State<HospitalMain>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.white,
-      body: HospitalHomeScreenV2()/*SafeArea(
-          child: BottomNavHideOnScroll(
-            child: NestedScrollView(
-              headerSliverBuilder: (context, _) => [
-                SliverToBoxAdapter(
-                  child: SizedBox(
-                    height: kToolbarHeight,
-                    child: CommonBackAppBar(
-                      showElevation: 0,
-                      isDrawerMenu: true,
-                      isLeading: false,
-                      isMore: true,
-                      isProfile: false,
-                      isNotification: !isGuestUser(),
-                      bellIconNotEmpty: true,
-                      isGuestLogout: isGuestUser(),
-                      onNotificationTap: () {
-                        Navigator.pushNamed(
-                          context,
-                          RouteHelper.getNotificationScreenRoute(),
-                        );
-                      },
-                    ),
-                  ),
-                ),
-                SliverToBoxAdapter(
-                  child: SizedBox(height: SizeConfig.size12),
-                ),
-                SliverAppBar(
-                  pinned: true,
-                  floating: false,
-                  primary: false,
-                  automaticallyImplyLeading: false,
-                  toolbarHeight: 0,
-                  collapsedHeight: 0,
-                  expandedHeight: 0,
-                  backgroundColor: AppColors.white,
-                  surfaceTintColor: AppColors.white,
-                  bottom: TabBar(
-                    controller: _tabController,
-                    labelColor: AppColors.primaryColor,
-                    unselectedLabelColor: Colors.grey[600],
-                    indicatorColor: AppColors.primaryColor,
-                    indicatorWeight: 4,
-                    tabAlignment: TabAlignment.fill,
-                    indicatorSize: TabBarIndicatorSize.tab,
-                    labelStyle:
-                    const TextStyle(fontWeight: FontWeight.w600),
-                    tabs: [
-                      Tab(text: AppStrings.home.tr),
-                      if (_hasWebsite) const Tab(text: 'Website'),
-                      Tab(text: AppStrings.statistics.tr),
-                    ],
-                  ),
-                ),
-              ],
-              body: const HospitalHomeScreenV2()*//*TabBarView(
-                controller: _tabController,
-                children: [
-                  const HospitalHomeScreenV2(),
-                  if (_hasWebsite) CommonWebView( urlLink: _websiteUrl, urlTitle: '',hideAppBar: true,),
-                  ComingSoon(),
-                ],
-              )*//*,
-            ),
-          )
-      )*/,
-    );
-  }
-}
-
-class _HospitalWebView extends StatefulWidget {
-  final String url;
-  const _HospitalWebView({required this.url});
-
-  @override
-  State<_HospitalWebView> createState() => _HospitalWebViewState();
-}
-
-class _HospitalWebViewState extends State<_HospitalWebView>
-    with AutomaticKeepAliveClientMixin {
-  late final WebViewController _webController;
-  bool _isLoading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    final uri = Uri.tryParse(widget.url.startsWith('http')
-        ? widget.url
-        : 'https://${widget.url}');
-    _webController = WebViewController()
-      ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..setNavigationDelegate(
-        NavigationDelegate(
-          onPageFinished: (_) => setState(() => _isLoading = false),
-          onPageStarted: (_) => setState(() => _isLoading = true),
-        ),
-      )
-      ..loadRequest(uri ?? Uri.parse('about:blank'));
-  }
-
-  @override
-  bool get wantKeepAlive => true;
-
-  @override
-  Widget build(BuildContext context) {
-    super.build(context);
-    return Stack(
-      children: [
-        WebViewWidget(controller: _webController),
-        if (_isLoading)
-          const Center(child: CircularProgressIndicator()),
-      ],
+      body: const HospitalHomeScreenV2(),
     );
   }
 }

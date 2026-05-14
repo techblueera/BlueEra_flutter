@@ -5,15 +5,13 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_vision_mission_controller.dart';
 import 'package:BlueEra/widgets/ai_description_field_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
-import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
+import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class HospitalVisionMissionScreen extends StatefulWidget {
-  const HospitalVisionMissionScreen({
-    super.key,
-  });
+  const HospitalVisionMissionScreen({super.key});
 
   @override
   State<HospitalVisionMissionScreen> createState() =>
@@ -32,17 +30,21 @@ class _HospitalVisionMissionScreenState
 
   @override
   Widget build(BuildContext context) {
-    SizeConfig.init(context);
     return Scaffold(
-      appBar: CommonBackAppBar(
-        title: AppStrings.visionMission,
-        isLeading: true,
-      ),
+      appBar: CommonBackAppBar(title: AppStrings.visionMission),
       body: Obx(() {
         if (controller.isLoading.value) {
           return const Center(
-              child: CircularProgressIndicator(color: AppColors.primaryColor));
+            child: CircularProgressIndicator(color: AppColors.primaryColor),
+          );
         }
+
+        final isChanged = controller.isDataChanged;
+        final canSave = isChanged && !controller.isSaving.value;
+        final btnColor =
+            isChanged ? AppColors.primaryColor : AppColors.grey9B;
+        final isUpdate = controller.data.value != null;
+
         return Padding(
           padding: EdgeInsets.all(SizeConfig.paddingM),
           child: Column(
@@ -51,34 +53,28 @@ class _HospitalVisionMissionScreenState
                 cardMargin: 0,
                 padding: 0,
                 child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 5),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12.0,
+                    vertical: 5,
+                  ),
                   child: AiDescriptionField(
                     label: AppStrings.visionMissionTitle,
                     hintText: AppStrings.visionMissionDescription,
                     controller: controller.visionController,
                     rxValue: controller.descriptionTest,
-                    // Your RX variable from the controller
                     aiType: "Hospital vision and mission",
-                    aiData: {},
+                    aiData: const {},
                   ),
                 ),
               ),
               SizedBox(height: SizeConfig.size20),
               PositiveCustomBtn(
-                onTap: controller.isSaving.value || !controller.isDataChanged
-                    ? null
-                    : controller.saveOrUpdate,
-                title: controller.data.value == null
-                    ? AppStrings.save
-                    : AppStrings.update,
+                onTap: canSave ? controller.saveOrUpdate : null,
+                title: isUpdate ? AppStrings.update : AppStrings.save,
                 width: double.infinity,
                 height: SizeConfig.size45,
-                bgColor: controller.isDataChanged
-                    ? AppColors.primaryColor
-                    : AppColors.grey9B,
-                borderColor: controller.isDataChanged
-                    ? AppColors.primaryColor
-                    : AppColors.grey9B,
+                bgColor: btnColor,
+                borderColor: btnColor,
               ),
             ],
           ),

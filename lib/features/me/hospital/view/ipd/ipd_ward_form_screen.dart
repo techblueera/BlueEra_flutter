@@ -1,23 +1,27 @@
 import 'dart:io';
+
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/delivery_partner/widget/common_image_upload_section.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_ipd_controller.dart';
+import 'package:BlueEra/widgets/ai_description_field_screen.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:BlueEra/widgets/ai_description_field_screen.dart';
 
 class IpdWardFormScreen extends StatefulWidget {
   final String departmentId;
   final String? hospitalId;
 
-  const IpdWardFormScreen(
-      {super.key, required this.departmentId, this.hospitalId});
+  const IpdWardFormScreen({
+    super.key,
+    required this.departmentId,
+    this.hospitalId,
+  });
 
   @override
   State<IpdWardFormScreen> createState() => _IpdWardFormScreenState();
@@ -32,57 +36,52 @@ class _IpdWardFormScreenState extends State<IpdWardFormScreen> {
     controller = getOrPut(() => HospitalIpdController());
     controller.departmentIdArg = widget.departmentId;
     controller.hospitalIdArg = widget.hospitalId;
-    controller.selectedImage.value=null;
+    controller.selectedImage.value = null;
+  }
+
+  /// Called from every text field's `onChange`. The `setState` is needed
+  /// because the `AiDescriptionField` below reads non-Rx text from
+  /// `nameController` and `bedCountController` into its `aiData` map; a
+  /// rebuild is required to refresh that snapshot on each keystroke.
+  void _onFieldChange() {
+    controller.validate();
+    setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
-    SizeConfig.init(context);
+    final isEditing = controller.editingWard != null;
+
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: controller.editingWard == null ? AppStrings.addIpd:AppStrings.editIpd,
-        isLeading: true,
-        isShadowShow: true,
+        title: isEditing ? AppStrings.editIpd : AppStrings.addIpd,
       ),
       body: CommonCardWidget(
         child: SingleChildScrollView(
-          // padding: EdgeInsets.all(SizeConfig.paddingM),
           child: Column(
             children: [
-              if (controller.editingWard == null)...[_buildImageSection(context),
-
+              if (!isEditing) ...[
+                _buildImageSection(context),
                 SizedBox(height: SizeConfig.size20),
               ],
-              CommonTextField(
+              _textField(
                 title: AppStrings.bedName,
-                textEditController: controller.nameController,
-                hintText: AppStrings.fullName,
-                onChange: (_) {
-                  controller.validate();
-                  setState(() {});
-                },
+                textController: controller.nameController,
+                hint: AppStrings.fullName,
               ),
               SizedBox(height: SizeConfig.size10),
-              CommonTextField(
+              _textField(
                 title: AppStrings.bedCount,
-                textEditController: controller.bedCountController,
-                hintText: "4",
+                textController: controller.bedCountController,
+                hint: "4",
                 keyBoardType: TextInputType.number,
-                onChange: (_) {
-                  controller.validate();
-                  setState(() {});
-                },
               ),
               SizedBox(height: SizeConfig.size10),
-              CommonTextField(
-                title:AppStrings.price,
-                textEditController: controller.feesController,
-                hintText: "Rs 500/-",
+              _textField(
+                title: AppStrings.price,
+                textController: controller.feesController,
+                hint: "Rs 500/-",
                 keyBoardType: TextInputType.number,
-                onChange: (_) {
-                  controller.validate();
-                  setState(() {});
-                },
               ),
               SizedBox(height: SizeConfig.size10),
               AiDescriptionField(
@@ -93,25 +92,40 @@ class _IpdWardFormScreenState extends State<IpdWardFormScreen> {
                 aiType: "Hospital IPD (In-Patient Departments / Wards)",
                 aiData: {
                   'bed_count': controller.bedCountController.text,
-                  'bed_name': controller.nameController.text
+                  'bed_name': controller.nameController.text,
                 },
               ),
               SizedBox(height: SizeConfig.size30),
-              Obx(() => CustomBtn(
-                    isValidate: controller.isFormValid.value,
-                    title: controller.isSaving.value
-                        ? AppStrings.saving
-                        : (controller.editingWard == null
-                            ? AppStrings.add
-                            : AppStrings.update),
-                    onTap: controller.isFormValid.value
-                        ? controller.saveOrUpdate
-                        : null,
-                  )),
+              Obx(() {
+                final isValid = controller.isFormValid.value;
+                final isSaving = controller.isSaving.value;
+                return CustomBtn(
+                  isValidate: isValid,
+                  title: isSaving
+                      ? AppStrings.saving
+                      : (isEditing ? AppStrings.update : AppStrings.add),
+                  onTap: isValid ? controller.saveOrUpdate : null,
+                );
+              }),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _textField({
+    required String title,
+    required TextEditingController textController,
+    required String hint,
+    TextInputType? keyBoardType,
+  }) {
+    return CommonTextField(
+      title: title,
+      textEditController: textController,
+      hintText: hint,
+      keyBoardType: keyBoardType,
+      onChange: (_) => _onFieldChange(),
     );
   }
 
@@ -127,38 +141,12 @@ class _IpdWardFormScreenState extends State<IpdWardFormScreen> {
           title: '',
           context: context,
         );
-      } else if (controller.initialImageUrl.isNotEmpty) {
-        return Stack(
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: Image.network(
-                controller.initialImageUrl,
-                height: 150,
-                width: double.infinity,
-                fit: BoxFit.cover,
-              ),
-            ),
-            Positioned(
-              right: 5,
-              top: 5,
-              child: CircleAvatar(
-                backgroundColor: Colors.red,
-                child: IconButton(
-                  icon: const Icon(Icons.delete, color: Colors.white),
-                  onPressed: () {
-                    controller.initialImageUrl = "";
-                    controller.validate();
-                    setState(() {});
-                  },
-                ),
-              ),
-            )
-          ],
-        );
+      }
+      if (controller.initialImageUrl.isNotEmpty) {
+        return _networkImagePreview(controller.initialImageUrl);
       }
       return CommonImageUploadTile(
-        title:AppStrings.uploadPhotos,
+        title: AppStrings.uploadPhotos,
         context: context,
         onImageSelected: () async {
           final path = await CommonImageUploadTile.pickImage(context: context);
@@ -170,5 +158,36 @@ class _IpdWardFormScreenState extends State<IpdWardFormScreen> {
         imageFile: controller.selectedImage,
       );
     });
+  }
+
+  Widget _networkImagePreview(String url) {
+    return Stack(
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: Image.network(
+            url,
+            height: 150,
+            width: double.infinity,
+            fit: BoxFit.cover,
+          ),
+        ),
+        Positioned(
+          right: 5,
+          top: 5,
+          child: CircleAvatar(
+            backgroundColor: Colors.red,
+            child: IconButton(
+              icon: const Icon(Icons.delete, color: Colors.white),
+              onPressed: () {
+                controller.initialImageUrl = "";
+                controller.validate();
+                setState(() {});
+              },
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }

@@ -121,18 +121,8 @@ class HospitalManagementController extends GetxController {
     if (!isFormValid.value) return;
     isSaving.value = true;
     try {
-      String imageUrl = initialImageUrl;
-      if (selectedImage.value != null) {
-        final uploadRes =
-            await S3UploadService.uploadFile(selectedImage.value!);
-        if (uploadRes.isSuccess) {
-          imageUrl = uploadRes.url;
-        } else {
-          commonSnackBar(message: uploadRes.message);
-          isSaving.value = false;
-          return;
-        }
-      }
+      final imageUrl = await _resolveImageUrl();
+      if (imageUrl == null) return; // upload failed, snackbar already shown
 
       final body = {
         ApiKeys.name: nameController.text.trim(),
@@ -143,35 +133,43 @@ class HospitalManagementController extends GetxController {
         ApiKeys.hospitalId: hospitalIdArg ?? await getHospitalID(),
       };
 
-      if (editingMember == null) {
-        final ResponseModel res = await _repo.create(body: body);
-        if (res.isSuccess) {
-          final created = ManagementMember.fromJson(res.response?.data['data']);
-          members.insert(0, created);
-          commonSnackBar(message: AppStrings.hospitalCtrlMemberAdded.tr);
-          Get.back();
-        } else {
-          commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong);
-        }
-      } else {
-        final ResponseModel res =
-            await _repo.update(id: editingMember!.id, body: body);
-        if (res.isSuccess) {
-          final upd = ManagementMember.fromJson(res.response?.data['data']);
-          final idx =
-              members.indexWhere((element) => element.id == editingMember!.id);
-          if (idx != -1) members[idx] = upd;
-          commonSnackBar(message: AppStrings.hospitalCtrlMemberUpdated.tr);
-          Get.back();
-        } else {
-          commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong);
-        }
+      final isCreate = editingMember == null;
+      final ResponseModel res = isCreate
+          ? await _repo.create(body: body)
+          : await _repo.update(id: editingMember!.id, body: body);
+
+      if (!res.isSuccess) {
+        commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong);
+        return;
       }
+
+      final saved = ManagementMember.fromJson(res.response?.data['data']);
+      if (isCreate) {
+        members.insert(0, saved);
+        commonSnackBar(message: AppStrings.hospitalCtrlMemberAdded.tr);
+      } else {
+        final idx = members.indexWhere((e) => e.id == editingMember!.id);
+        if (idx != -1) members[idx] = saved;
+        commonSnackBar(message: AppStrings.hospitalCtrlMemberUpdated.tr);
+      }
+      Get.back();
     } catch (e) {
       commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {
       isSaving.value = false;
     }
+  }
+
+  /// Uploads [selectedImage] if the user picked a new one; otherwise returns
+  /// the existing URL. Returns `null` (and shows a snackbar) on upload failure
+  /// so the caller can abort save.
+  Future<String?> _resolveImageUrl() async {
+    if (selectedImage.value == null) return initialImageUrl;
+    final uploadRes = await S3UploadService.uploadFile(selectedImage.value!);
+    if (uploadRes.isSuccess) return uploadRes.url;
+    commonSnackBar(message: uploadRes.message);
+    isSaving.value = false;
+    return null;
   }
 
   Future<void> deleteMember(ManagementMember m) async {

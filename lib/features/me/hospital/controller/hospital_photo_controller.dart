@@ -21,25 +21,17 @@ class HospitalPhotoController extends GetxController {
   Future<void> fetchPhotos() async {
     propertyPhotosList.clear();
 
-    ResponseModel response =
+    final ResponseModel response =
         await HospitalGalleryRepo().getHospitalPropertyPhotosRepo();
 
     if (response.isSuccess) {
-      HospitalGalleryResModel hotelPropertyPhotoResModel =
-      HospitalGalleryResModel.fromJson(response.response?.data);
-
-      if ((hotelPropertyPhotoResModel.data?.isNotEmpty ?? false)) {
-        for (HospitalGalleryData photo in hotelPropertyPhotoResModel.data ?? []) {
-          if (photo.images != null &&
-             ( photo.images?.isNotEmpty??false)) {
-            propertyPhotosList.add(photo);
-          }
-        }
-      }
+      final model = HospitalGalleryResModel.fromJson(response.response?.data);
+      final withImages = (model.data ?? [])
+          .where((photo) => photo.images?.isNotEmpty ?? false);
+      propertyPhotosList.addAll(withImages);
     } else {
       commonSnackBar(message: AppStrings.somethingWentWrong);
     }
-    // propertyPhotos.assignAll(responseData);
     isLoading.value = false;
   }
 
@@ -87,7 +79,7 @@ class HospitalPhotoController extends GetxController {
   }
 
   void addImage(String path) {
-    if (selectedImages.length < 6) {
+    if (selectedImages.length < maxImages) {
       selectedImages.add(path);
     } else {
       commonSnackBar(message: AppStrings.hospitalCtrlPhotoLimitReached.tr);
@@ -105,25 +97,26 @@ class HospitalPhotoController extends GetxController {
 
 
 
-  Future buildRequestBody() async {
+  Future<void> buildRequestBody() async {
     try {
       isLoading.value = true;
-      List<String> urlList = [];
-      for (var filePath in selectedImages) {
-        UploadResult? result = await S3UploadService.uploadFile(File(filePath));
-        if (result.isSuccess) {
-          urlList.add(result.url);
-        }
-      }
 
-      var requestBody = {
+      // Upload all picked files in parallel, then keep only successful URLs.
+      final results = await Future.wait(
+        selectedImages.map((p) => S3UploadService.uploadFile(File(p))),
+      );
+      final urlList = [
+        for (final r in results)
+          if (r.isSuccess) r.url,
+      ];
+
+      final requestBody = {
         "title": selectedCategory.value,
         "images": urlList,
         "hospitalId": hospitalIDGlobal,
-
       };
 
-      ResponseModel response = await HospitalGalleryRepo()
+      final response = await HospitalGalleryRepo()
           .addHospitalPropertyPhotosRepo(reqBody: requestBody);
 
       if (response.isSuccess) {
@@ -138,20 +131,21 @@ class HospitalPhotoController extends GetxController {
     } on Exception {
       commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {
-      // 5. Always hide loader at the end
       isLoading.value = false;
     }
   }
 
-  ///DELETE NOTICE....
+  /// Delete a single image from a gallery category.
+  /// (Method name kept for backwards compatibility with existing callers — the
+  /// underlying repo is the hospital gallery, not a hotel room.)
   Future<void> deleteHotelRoomController({
     required String categoryId,
     required String imgUrl,
   }) async {
     try {
-      ResponseModel response = await HospitalGalleryRepo()
+      final response = await HospitalGalleryRepo()
           .deleteHospitalPropertyPhotosRepo(
-              reqBODY: { "image": imgUrl},id: categoryId);
+              reqBODY: {"image": imgUrl}, id: categoryId);
 
       if (response.isSuccess) {
         Get.back();
@@ -164,7 +158,7 @@ class HospitalPhotoController extends GetxController {
         commonSnackBar(message: AppStrings.somethingWentWrong);
       }
     } on Exception catch (e) {
-      logs("ERROR ${e}");
+      logs("ERROR $e");
     }
   }
 }

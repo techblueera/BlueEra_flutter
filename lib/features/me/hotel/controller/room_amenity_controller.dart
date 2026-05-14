@@ -4,84 +4,76 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/me/hotel/repo/hotel_service_repo.dart';
 import 'package:get/get.dart';
 
+/// Manages the boolean amenity flags for a single room.
+///
+/// Mirrors [HotelAmenityController] but talks to the per-room amenity endpoint.
 class RoomAmenityController extends GetxController {
-  var isLoading = false.obs;
+  final HotelServiceRepo _repo = HotelServiceRepo();
 
-  // This map holds the true/false status for each key from your API
-  var roomAmenityStatus = <String, bool>{}.obs;
+  final RxBool isLoading = false.obs;
+  final RxBool isSaving = false.obs;
+
+  /// `{amenityKey: enabled}` — only boolean entries from the API response.
+  final RxMap<String, bool> roomAmenityStatus = <String, bool>{}.obs;
 
   @override
   void onInit() {
-    fetchAmenities();
     super.onInit();
+    fetchAmenities();
   }
 
-  // GET API Call
   Future<void> fetchAmenities() async {
     try {
-      isLoading(true);
-      // Simulated GET Response based on your provided JSON
-      await Future.delayed(const Duration(seconds: 1));
-      ResponseModel response = await HotelServiceRepo()
-          .getHotelRoomAmenitiesRepo(roomId: "");
-
+      isLoading.value = true;
+      final ResponseModel response =
+          await _repo.getHotelRoomAmenitiesRepo(roomId: "");
       if (response.isSuccess) {
-        final Map<String, dynamic> allData = response.response?.data['data'];
-
-        // Filter the map: only keep entries where the value is a boolean
-        final Map<String, bool> filteredMap = {};
-        allData.forEach((key, value) {
-          if (value is bool) {
-            filteredMap[key] = value;
-          }
-        });
-
-        // Assign to the observable map and refresh
-        roomAmenityStatus.assignAll(filteredMap);
-        // Get.back();
-        // commonSnackBar(message: response.response?.data['message']);
+        final data = response.response?.data['data'] as Map<String, dynamic>?;
+        roomAmenityStatus.assignAll(_filterBooleans(data));
       } else {
-        commonSnackBar(message: AppStrings.somethingWentWrong);
+        commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
       }
-    } catch (e) {
+    } catch (_) {
       commonSnackBar(message: AppStrings.hotelFailedLoadAmenities.tr);
     } finally {
-      isLoading(false);
+      isLoading.value = false;
     }
   }
 
-  // POST/PUT API Call (Update Toggle)
-  Future<void> updateAmenity(String key, bool value) async {
-    // Update local UI immediately for better UX
+  /// Optimistic local toggle. The actual write happens on [submitAPI].
+  void updateAmenity(String key, bool value) {
     roomAmenityStatus[key] = value;
-
-    try {
-      roomAmenityStatus.refresh();
-    } catch (e) {
-      // Revert if API fails
-      roomAmenityStatus[key] = !value;
-      commonSnackBar(message: AppStrings.hotelUpdateFailed.tr);
-    }
+    roomAmenityStatus.refresh();
   }
 
-  ///SUBMIT ROOM AMENITIES....
-  submitAPI() async {
+  Future<void> submitAPI() async {
     try {
-      Map<String, dynamic> requestBody = {
+      isSaving.value = true;
+      final body = <String, dynamic>{
         "roomId": "",
         ...roomAmenityStatus,
       };
-      ResponseModel response = await HotelServiceRepo()
-          .addHotelRoomAmenitiesRepo(reqBody: requestBody);
+      final ResponseModel response =
+          await _repo.addHotelRoomAmenitiesRepo(reqBody: body);
 
       if (response.isSuccess) {
         Get.back();
         commonSnackBar(message: response.response?.data['message']);
       } else {
-        commonSnackBar(message: AppStrings.somethingWentWrong);
+        commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
       }
-    } on Exception {
+    } catch (_) {
       commonSnackBar(message: AppStrings.somethingWentWrong);
+    } finally {
+      isSaving.value = false;
     }
+  }
+
+  Map<String, bool> _filterBooleans(Map<String, dynamic>? source) {
+    final result = <String, bool>{};
+    source?.forEach((key, value) {
+      if (value is bool) result[key] = value;
+    });
+    return result;
   }
 }

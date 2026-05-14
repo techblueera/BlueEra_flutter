@@ -114,9 +114,7 @@ class _HotelDepartmentOnlyScreenState extends State<HotelDepartmentOnlyScreen> {
                           email: emailController.text,
                           phone: phoneController.text,
                           contactID: widget.branchId ?? "",
-                          branchName: '',
-                          website: websiteController.text,
-                          department: '');
+                          website: websiteController.text);
 
                     },
                     title: AppStrings.submit.tr);

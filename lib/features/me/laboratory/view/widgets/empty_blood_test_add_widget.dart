@@ -5,8 +5,20 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+/// Hero empty-state card on the lab tests tab inviting the lab owner to add
+/// their first Blood & Routine test.
 class BloodTestEmptyState extends StatelessWidget {
   const BloodTestEmptyState({super.key});
+
+  static const String _backgroundAsset =
+      'assets/category/medical/lab_blood_test_bg.png';
+  static const String _emptyIconAsset =
+      'assets/category/medical/empty_white_data.png';
+
+  // These are the collection key + title that LabTestListScreen expects for
+  // the Blood & Routine bucket. Kept aligned with [CategorySelector].
+  static const String _bloodCollection = 'Blood & Routine Tests';
+  static const String _bloodTitle = 'blood_routine';
 
   @override
   Widget build(BuildContext context) {
@@ -30,62 +42,15 @@ class BloodTestEmptyState extends StatelessWidget {
             child: Stack(
               alignment: Alignment.center,
               children: [
-                // Background Image with Blur
                 Image.asset(
-                  'assets/category/medical/lab_blood_test_bg.png',
-                  // Use a high-quality lab image
+                  _backgroundAsset,
                   height: 220,
                   width: double.infinity,
                   fit: BoxFit.cover,
                 ),
-                // Positioned.fill(
-                //   child: Container(color: Colors.black.withValues(alpha: 0.4)),
-                // ),
-                // The Content Overlay
                 Padding(
                   padding: const EdgeInsets.all(20.0),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // Folder/Search Icon
-                      LocalAssets(
-                          imagePath:
-                              "assets/category/medical/empty_white_data.png",width: 60,height: 60,),
-                      const SizedBox(height: 12),
-                      CustomText(
-                        "no_tests_posted".tr,
-                        color: Colors.white,
-                        textAlign: TextAlign.center,
-                        fontSize: SizeConfig.size15,
-                        fontWeight: FontWeight.w500,
-                      ),
-                      const SizedBox(height: 16),
-                      // Action Button
-                      InkWell(
-                        onTap: () {
-                          Get.to(LabTestListScreen(
-                            collection: "Blood & Routine Tests",
-                            title: "blood_routine",
-                          ));
-                        },
-                        // onTap: () => _openAddTestOption(context),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 24, vertical: 10),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.2),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.white54),
-                          ),
-                          child: CustomText(
-                            "add_tests".tr,
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                  child: _buildEmptyContent(),
                 ),
               ],
             ),
@@ -95,4 +60,41 @@ class BloodTestEmptyState extends StatelessWidget {
     );
   }
 
+  Widget _buildEmptyContent() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        LocalAssets(imagePath: _emptyIconAsset, width: 60, height: 60),
+        const SizedBox(height: 12),
+        CustomText(
+          "no_tests_posted".tr,
+          color: Colors.white,
+          textAlign: TextAlign.center,
+          fontSize: SizeConfig.size15,
+          fontWeight: FontWeight.w500,
+        ),
+        const SizedBox(height: 16),
+        InkWell(
+          onTap: () => Get.to(LabTestListScreen(
+            collection: _bloodCollection,
+            title: _bloodTitle,
+          )),
+          child: Container(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.white54),
+            ),
+            child: CustomText(
+              "add_tests".tr,
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 }

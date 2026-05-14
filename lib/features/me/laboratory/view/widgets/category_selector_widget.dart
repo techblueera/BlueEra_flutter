@@ -5,45 +5,47 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+/// Top-level lab category grid shown on the lab profile/tests tab.
 class CategorySelector extends StatelessWidget {
-  const CategorySelector({super.key,  this.labID});
+  const CategorySelector({super.key, this.labID});
+
   final String? labID;
+
+  static const List<_LabCategory> _categories = [
+    _LabCategory(
+      title: 'blood_routine',
+      collection: 'Blood & Routine Tests',
+      image: 'assets/category/medical/lab_blood_test_img.png',
+    ),
+    _LabCategory(
+      title: 'preventive_wellness',
+      collection: 'Preventive & Wellness Checkups',
+      image: 'assets/category/medical/lab_wellness_img.png',
+    ),
+    _LabCategory(
+      title: 'women_pregnancy',
+      collection: 'Women, Pregnancy & Child Health',
+      image: 'assets/category/medical/lab_women_helth_img.png',
+    ),
+    _LabCategory(
+      title: 'diagnostics_imaging',
+      collection: 'Diagnostics & Imaging',
+      image: 'assets/category/medical/lab_diagnostics_img.png',
+    ),
+    _LabCategory(
+      title: 'organ_system',
+      collection: 'Organ & System Health',
+      image: 'assets/category/medical/lab_organ_img.png',
+    ),
+    _LabCategory(
+      title: 'infection_immunity',
+      collection: 'Infection, Cancer & Immunity',
+      image: 'assets/category/medical/lab_infection_img.png',
+    ),
+  ];
+
   @override
   Widget build(BuildContext context) {
-    // List of data for the grid
-    final List<Map<String, String>> categories = [
-      {
-        "title": "blood_routine",
-        "key": "Blood & Routine Tests",
-        "image": "assets/category/medical/lab_blood_test_img.png"
-      },
-      {
-        "title": "preventive_wellness",
-        "key": "Preventive & Wellness Checkups",
-        "image": "assets/category/medical/lab_wellness_img.png"
-      },
-      {
-        "title": "women_pregnancy",
-        "key": "Women, Pregnancy & Child Health",
-        "image": "assets/category/medical/lab_women_helth_img.png"
-      },
-      {
-        "title": "diagnostics_imaging",
-        "key": "Diagnostics & Imaging",
-        "image": "assets/category/medical/lab_diagnostics_img.png"
-      },
-      {
-        "title": "organ_system",
-        "key": "Organ & System Health",
-        "image": "assets/category/medical/lab_organ_img.png"
-      },
-      {
-        "title": "infection_immunity",
-        "key": "Infection, Cancer & Immunity",
-        "image": "assets/category/medical/lab_infection_img.png"
-      },
-    ];
-
     return Container(
       padding: EdgeInsets.all(SizeConfig.size16),
       decoration: BoxDecoration(
@@ -52,83 +54,84 @@ class CategorySelector extends StatelessWidget {
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header Section
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              CustomText(
-                AppStrings.labUpdateYourTest.tr,
-                fontWeight: FontWeight.w700,
-              ),
-              // const Icon(Icons.edit_outlined, size: 24),
-            ],
+          CustomText(
+            AppStrings.labUpdateYourTest.tr,
+            fontWeight: FontWeight.w700,
           ),
           SizedBox(height: SizeConfig.size20),
-
-          // Responsive Grid
           GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            itemCount: categories.length,
+            itemCount: _categories.length,
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 3, // 3 columns as per image
+              crossAxisCount: 3,
               crossAxisSpacing: SizeConfig.size12,
               mainAxisSpacing: SizeConfig.size12,
-              childAspectRatio: 0.85, // Adjust this for height vs width ratio
+              childAspectRatio: 0.85,
             ),
-            itemBuilder: (context, index) {
-              return InkWell(
-                onTap: () {
-                  Get.to(LabTestListScreen(
-                    collection: categories[index]['key'] ?? "",
-                    title: categories[index]['title'],labId: labID,
-                  ));
-                },
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF8FBFF),
-                    // Subtle blue tint from image
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      // Image Asset
-                      Expanded(
-                        flex: 3,
-                        child: Padding(
-                          padding: const EdgeInsets.all(12.0),
-                          child: Image.asset(
-                            categories[index]['image']!,
-                            fit: BoxFit.contain,
-                          ),
-                        ),
-                      ),
-                      // Text Label
-                      Expanded(
-                        flex: 2,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                          child: CustomText(
-                            categories[index]['title'],
-                            fontSize: SizeConfig.size13,
-                            fontWeight: FontWeight.w500,
-                            textAlign: TextAlign.center,
-                            maxLines: 2,
-                            color: Colors.blueGrey.shade800,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
+            itemBuilder: (context, index) => _buildCategoryTile(_categories[index]),
           ),
         ],
       ),
     );
   }
+
+  Widget _buildCategoryTile(_LabCategory category) {
+    return InkWell(
+      onTap: () => Get.to(
+        LabTestListScreen(
+          collection: category.collection,
+          title: category.title,
+          labId: labID,
+        ),
+      ),
+      child: Container(
+        decoration: BoxDecoration(
+          color: const Color(0xFFF8FBFF),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Expanded(
+              flex: 3,
+              child: Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: Image.asset(category.image, fit: BoxFit.contain),
+              ),
+            ),
+            Expanded(
+              flex: 2,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                child: CustomText(
+                  category.title,
+                  fontSize: SizeConfig.size13,
+                  fontWeight: FontWeight.w500,
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  color: Colors.blueGrey.shade800,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _LabCategory {
+  final String title;
+  final String collection;
+  final String image;
+
+  const _LabCategory({
+    required this.title,
+    required this.collection,
+    required this.image,
+  });
 }

@@ -285,7 +285,7 @@ class _HotelHomeDetailScreenState extends State<HotelHomeDetailScreen> {
                 background: Container(
                   color: AppColors.appBackgroundColor,
                   child: HotelHeaderView(
-                    schoolAboutUsController: controller,
+                    controller: controller,
                   ),
                 ),
                 collapseMode: CollapseMode.parallax,

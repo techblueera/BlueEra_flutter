@@ -63,18 +63,17 @@ class HospitalEmergencyController extends GetxController {
   }
 
   void validate() {
-    final hidReady = (hospitalIdArg?.isNotEmpty ?? false) || true;
-    final anySelected = emergencyCasualty.value ||
+    isFormValid.value = emergencyCasualty.value ||
         traumaCare.value ||
         icu.value ||
         ccu.value ||
         nicu.value ||
         picu.value;
-    isFormValid.value = hidReady && anySelected;
   }
 
+  bool get _isCreate => current == null || (current?.id.isEmpty ?? true);
+
   Future<void> save() async {
-    // if (!isFormValid.value) return;
     isSaving.value = true;
     try {
       final body = {
@@ -84,15 +83,11 @@ class HospitalEmergencyController extends GetxController {
         "ccu": ccu.value,
         "nicu": nicu.value,
         "picu": picu.value,
-        if (current == null || (current?.id.isEmpty ?? false))
-          ApiKeys.hospitalId: hospitalIDGlobal,
+        if (_isCreate) ApiKeys.hospitalId: hospitalIDGlobal,
       };
-      ResponseModel res;
-      if (current == null || (current?.id.isEmpty ?? false)) {
-        res = await repo.create(body: body);
-      } else {
-        res = await repo.update( body: body);
-      }
+      final ResponseModel res =
+          _isCreate ? await repo.create(body: body) : await repo.update(body: body);
+
       if (res.isSuccess) {
         await load();
         Get.back();

@@ -5,6 +5,7 @@ import 'package:BlueEra/features/me/laboratory/controller/health_camp_controller
 import 'package:BlueEra/features/me/laboratory/model/health_camp_model.dart';
 import 'package:BlueEra/features/me/laboratory/repo/health_camp_repo.dart';
 import 'package:BlueEra/features/me/laboratory/view/health_camp_form_screen.dart';
+import 'package:BlueEra/features/me/laboratory/widget/lab_soft_card_color.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/common_dialog.dart';
@@ -32,7 +33,7 @@ class _HealthCampDetailScreenState extends State<HealthCampDetailScreen> {
   HealthCampController? controller;
   bool _isDescExpanded = false;
 
-  // For other user's camp (read-only)
+  // For another lab's camp (read-only mode).
   HealthCamp? _otherCamp;
   bool _isOtherLoading = false;
 
@@ -56,25 +57,26 @@ class _HealthCampDetailScreenState extends State<HealthCampDetailScreen> {
     try {
       final res = await HealthCampRepo().getHealthCampsByLab(widget.labId!);
       if (res.isSuccess) {
-        List data = res.response?.data['data'] ?? [];
-        if (data.isNotEmpty) {
+        final List data = res.response?.data['data'] ?? [];
+        if (data.isNotEmpty && mounted) {
           setState(() => _otherCamp = HealthCamp.fromJson(data.last));
         }
       }
     } catch (e) {
-      print("Error fetching other user camp: $e");
+      debugPrint("Error fetching other user camp: $e");
     } finally {
-      setState(() => _isOtherLoading = false);
+      if (mounted) setState(() => _isOtherLoading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (widget.isOwnProfile) {
-      return _buildOwnProfileScreen();
-    }
-    return _buildOtherProfileScreen();
+    return widget.isOwnProfile
+        ? _buildOwnProfileScreen()
+        : _buildOtherProfileScreen();
   }
+
+  // ---------- Other lab (read-only) ----------------------------------------
 
   Widget _buildOtherProfileScreen() {
     return Scaffold(
@@ -88,22 +90,11 @@ class _HealthCampDetailScreenState extends State<HealthCampDetailScreen> {
                     color: AppColors.greyA5,
                   ),
                 )
-              : SingleChildScrollView(
-                  padding: EdgeInsets.all(SizeConfig.size12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildCampHeader(_otherCamp!),
-                      SizedBox(height: SizeConfig.size12),
-                      if (_otherCamp!.testDiscounts != null &&
-                          _otherCamp!.testDiscounts!.isNotEmpty)
-                        _buildTestCategoryGroup(
-                            _otherCamp!.title ?? "", _otherCamp!.testDiscounts!),
-                    ],
-                  ),
-                ),
+              : _buildCampBody(_otherCamp!),
     );
   }
+
+  // ---------- Own lab (editable) -------------------------------------------
 
   Widget _buildOwnProfileScreen() {
     return Scaffold(
@@ -136,56 +127,64 @@ class _HealthCampDetailScreenState extends State<HealthCampDetailScreen> {
           return const Center(child: CircularProgressIndicator());
         }
         final camp = controller!.campDetail.value;
-        if (camp == null) {
-          return Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                CustomText(
-                  AppStrings.noHealthCampsFound.tr,
-                  color: AppColors.greyA5,
-                ),
-                SizedBox(height: SizeConfig.size16),
-                GestureDetector(
-                  onTap: () async {
-                    await Get.to(() => const HealthCampFormScreen());
-                    controller!.fetchCampFullDetails();
-                  },
-                  child: Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: SizeConfig.size20,
-                      vertical: SizeConfig.size12,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryColor,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: CustomText(
-                      AppStrings.createHealthCamp.tr,
-                      color: AppColors.white,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          );
-        }
-        return SingleChildScrollView(
-          padding: EdgeInsets.all(SizeConfig.size12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildCampHeader(camp),
-              SizedBox(height: SizeConfig.size12),
-              if (camp.testDiscounts != null && camp.testDiscounts!.isNotEmpty)
-                _buildTestCategoryGroup(camp.title ?? "", camp.testDiscounts!),
-            ],
-          ),
-        );
+        if (camp == null) return _buildEmptyOwnState();
+        return _buildCampBody(camp);
       }),
     );
   }
+
+  Widget _buildEmptyOwnState() {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          CustomText(
+            AppStrings.noHealthCampsFound.tr,
+            color: AppColors.greyA5,
+          ),
+          SizedBox(height: SizeConfig.size16),
+          GestureDetector(
+            onTap: () async {
+              await Get.to(() => const HealthCampFormScreen());
+              controller!.fetchCampFullDetails();
+            },
+            child: Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: SizeConfig.size20,
+                vertical: SizeConfig.size12,
+              ),
+              decoration: BoxDecoration(
+                color: AppColors.primaryColor,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: CustomText(
+                AppStrings.createHealthCamp.tr,
+                color: AppColors.white,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCampBody(HealthCamp camp) {
+    return SingleChildScrollView(
+      padding: EdgeInsets.all(SizeConfig.size12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildCampHeader(camp),
+          SizedBox(height: SizeConfig.size12),
+          if (camp.testDiscounts != null && camp.testDiscounts!.isNotEmpty)
+            _buildTestCategoryGroup(camp.title ?? "", camp.testDiscounts!),
+        ],
+      ),
+    );
+  }
+
+  // ---------- Sections ------------------------------------------------------
 
   Widget _buildCampHeader(HealthCamp camp) {
     return CommonCardWidget(
@@ -285,40 +284,41 @@ class _HealthCampDetailScreenState extends State<HealthCampDetailScreen> {
   }
 
   Widget _buildDateTimeSection(HealthCamp camp) {
-    final startFormatted = _formatDate(camp.startDate);
-    final endFormatted = _formatDate(camp.endDate);
-
+    // The HealthCamp model currently exposes only `startTime`, so both boxes
+    // surface that value; swap to `camp.endTime` once the model gains it.
+    final time = camp.startTime ?? '';
     return Row(
       children: [
-        // Start Date Container
         Expanded(
           child: _buildDateTimeBox(
             label: AppStrings.labStartDate.tr,
-            date: startFormatted,
-            time: camp.startTime ?? '',
+            date: _formatDate(camp.startDate),
+            time: time,
           ),
         ),
-        SizedBox(width: SizeConfig.size12), // Space between boxes
-        // End Date Container
+        SizedBox(width: SizeConfig.size12),
         Expanded(
           child: _buildDateTimeBox(
             label: AppStrings.labEndDate.tr,
-            date: endFormatted,
-            time: camp.startTime ?? '', // Ensure you use endTime here
+            date: _formatDate(camp.endDate),
+            time: time,
           ),
         ),
       ],
     );
   }
 
-  Widget _buildDateTimeBox(
-      {required String label, required String date, required String time}) {
+  Widget _buildDateTimeBox({
+    required String label,
+    required String date,
+    required String time,
+  }) {
     return Container(
       padding: EdgeInsets.all(SizeConfig.size12),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade300), // Light grey border
+        border: Border.all(color: Colors.grey.shade300),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -339,11 +339,7 @@ class _HealthCampDetailScreenState extends State<HealthCampDetailScreen> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              CustomText(
-                " • ", // The dot separator from your screenshot
-                fontSize: 14,
-                color: Colors.grey,
-              ),
+              CustomText(" • ", fontSize: 14, color: Colors.grey),
               CustomText(
                 time,
                 fontSize: 12,
@@ -367,7 +363,7 @@ class _HealthCampDetailScreenState extends State<HealthCampDetailScreen> {
         children: [
           CustomText(
             title,
-            fontSize: 18, // Adjusted for header style in image
+            fontSize: 18,
             fontWeight: FontWeight.w700,
           ),
           SizedBox(height: SizeConfig.size16),
@@ -375,18 +371,14 @@ class _HealthCampDetailScreenState extends State<HealthCampDetailScreen> {
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: discounts.length,
-            separatorBuilder: (context, index) =>
-                SizedBox(height: SizeConfig.size16),
-            itemBuilder: (context, index) {
+            separatorBuilder: (_, __) => SizedBox(height: SizeConfig.size16),
+            itemBuilder: (_, index) {
               final item = discounts[index];
               return Row(
                 children: [
-                  // Green Check Icon
                   Icon(Icons.check_circle_outline,
                       color: Colors.green.shade600, size: 24),
                   SizedBox(width: SizeConfig.size12),
-
-                  // Test Name
                   Expanded(
                     child: CustomText(
                       item.test?.testName ?? "N/A",
@@ -394,8 +386,6 @@ class _HealthCampDetailScreenState extends State<HealthCampDetailScreen> {
                       color: Colors.black87,
                     ),
                   ),
-
-                  // Eye Icon Button in Light Blue Container
                   GestureDetector(
                     onTap: () => _showTestDetailsDialog(context, item),
                     child: Container(
@@ -421,11 +411,6 @@ class _HealthCampDetailScreenState extends State<HealthCampDetailScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-// 1. Remove padding from the title and content
-//         titlePadding: EdgeInsets.zero,
-        // contentPadding: EdgeInsets.zero,
-
-        // 2. Adjust the insetPadding if you want the dialog to be wider/full screen
         insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
@@ -434,7 +419,6 @@ class _HealthCampDetailScreenState extends State<HealthCampDetailScreen> {
             Expanded(
               child: CustomText(
                 discount.test?.testName ?? AppStrings.labTestDetails.tr,
-                // fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -443,125 +427,23 @@ class _HealthCampDetailScreenState extends State<HealthCampDetailScreen> {
               icon: const Icon(Icons.close),
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(),
-            )
+            ),
           ],
         ),
-        content: _buildTestCard(
-            discount) /*Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _dialogRow("Category:", discount.test?.groupCategory ?? "N/A"),
-            const SizedBox(height: 8),
-            _dialogRow("Discount:", "${discount.discountValue}%"),
-            // Add more details here if needed
-          ],
-        )*/
-        ,
+        content: _buildTestCard(discount),
       ),
     );
   }
-
-
-  //
-  // Widget _buildTestDiscountsSection(List<TestDiscount> discounts) {
-  //   // Group discounts by groupCategory
-  //   final Map<String, List<TestDiscount>> grouped = {};
-  //   for (final d in discounts) {
-  //     final category = d.test?.groupCategory ?? "Other";
-  //     grouped.putIfAbsent(category, () => []);
-  //     grouped[category]!.add(d);
-  //   }
-  //
-  //   return Column(
-  //     crossAxisAlignment: CrossAxisAlignment.start,
-  //     children: [
-  //       // Available Free Test section (discountValue == 0 or free)
-  //       _buildTestCategoryGroup(
-  //         AppStrings.availableFreeTest.tr,
-  //         discounts.where((d) => (d.discountValue ?? 0) == 0).toList(),
-  //       ),
-  //       SizedBox(height: SizeConfig.size12),
-  //       // Available Discounted Test section (discountValue > 0)
-  //       _buildTestCategoryGroup(
-  //         AppStrings.availableDiscountedTest.tr,
-  //         discounts.where((d) => (d.discountValue ?? 0) > 0).toList(),
-  //       ),
-  //     ],
-  //   );
-  // }
-  //
-  // Widget _buildTestCategoryGroup(String title, List<TestDiscount> discounts) {
-  //   if (discounts.isEmpty) return const SizedBox.shrink();
-  //
-  //   // Group by category
-  //   final Map<String, List<TestDiscount>> grouped = {};
-  //   for (final d in discounts) {
-  //     final category = d.test?.groupCategory ?? "Other";
-  //     grouped.putIfAbsent(category, () => []);
-  //     grouped[category]!.add(d);
-  //   }
-  //
-  //   return CommonCardWidget(
-  //     cardMargin: 0,
-  //     child: Column(
-  //       crossAxisAlignment: CrossAxisAlignment.start,
-  //       children: [
-  //         CustomText(
-  //           title,
-  //           fontSize: 14,
-  //           fontWeight: FontWeight.w700,
-  //         ),
-  //         SizedBox(height: SizeConfig.size12),
-  //         ...grouped.entries.map((entry) {
-  //           return Column(
-  //             crossAxisAlignment: CrossAxisAlignment.start,
-  //             children: [
-  //               // Category chip
-  //               Container(
-  //                 padding: const EdgeInsets.symmetric(
-  //                     horizontal: 12, vertical: 6),
-  //                 decoration: BoxDecoration(
-  //                   color: AppColors.primaryColor.withValues(alpha: 0.08),
-  //                   borderRadius: BorderRadius.circular(20),
-  //                 ),
-  //                 child: CustomText(
-  //                   entry.key,
-  //                   fontSize: 11,
-  //                   fontWeight: FontWeight.w500,
-  //                   color: AppColors.primaryColor,
-  //                 ),
-  //               ),
-  //               SizedBox(height: SizeConfig.size8),
-  //               // Test cards for this category
-  //               ...entry.value.map((discount) => _buildTestCard(discount)),
-  //               SizedBox(height: SizeConfig.size8),
-  //             ],
-  //           );
-  //         }),
-  //       ],
-  //     ),
-  //   );
-  // }
 
   Widget _buildTestCard(TestDiscount discount) {
     final test = discount.test;
     if (test == null) return const SizedBox.shrink();
 
-    final List<Color> cardColors = [
-      const Color(0xFFFFFBEB),
-      const Color(0xFFF0FDF4),
-      const Color(0xFFEFF6FF),
-      const Color(0xFFFAF5FF),
-    ];
-    final colorIndex = (test.testName?.hashCode ?? 0).abs() % cardColors.length;
-
     return Container(
       width: double.infinity,
-      // margin: EdgeInsets.only(bottom: SizeConfig.size8),
       padding: EdgeInsets.all(SizeConfig.size12),
       decoration: BoxDecoration(
-        color: cardColors[colorIndex],
+        color: LabSoftCardColor.forKey(test.testName),
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
@@ -623,8 +505,8 @@ class _HealthCampDetailScreenState extends State<HealthCampDetailScreen> {
           SizedBox(height: SizeConfig.size8),
           Row(
             children: [
-              Icon(Icons.circle, size: 8, color: Colors.grey),
-              SizedBox(width: 8),
+              const Icon(Icons.circle, size: 8, color: Colors.grey),
+              const SizedBox(width: 8),
               CustomText(
                 "${test.specimen ?? 'Blood'} sample collection",
                 color: Colors.grey.shade700,
@@ -671,7 +553,7 @@ class _HealthCampDetailScreenState extends State<HealthCampDetailScreen> {
       text: AppStrings.confirmDeleteCamp.tr,
       confirmCallback: () async {
         Get.back();
-        await controller?.deleteCamp(camp.id??"");
+        await controller?.deleteCamp(camp.id ?? "");
         controller?.fetchCampFullDetails();
       },
       cancelCallback: () => Get.back(),

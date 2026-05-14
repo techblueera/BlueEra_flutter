@@ -10,93 +10,110 @@ import 'package:get/get.dart';
 
 class HospitalCategoryDetailsScreen extends StatelessWidget {
   final HospitalGalleryData categoryData;
-  final HospitalPhotoController controller = Get.find();
 
-  HospitalCategoryDetailsScreen({required this.categoryData});
+  const HospitalCategoryDetailsScreen({super.key, required this.categoryData});
 
   @override
   Widget build(BuildContext context) {
+    final controller = Get.find<HospitalPhotoController>();
+
     return Scaffold(
-      appBar: CommonBackAppBar(
-        title: categoryData.title,
-      ),
+      appBar: CommonBackAppBar(title: categoryData.title),
       body: Obx(() {
-        // Find the live data in the controller to ensure UI updates after delete
-        var currentCategory = controller.propertyPhotosList.firstWhere(
+        // Resolve the category against the controller's live list so the grid
+        // reflects deletes; fall back to the snapshot passed in for the
+        // initial render before the list is populated.
+        final currentCategory = controller.propertyPhotosList.firstWhere(
           (item) => item.id == categoryData.id,
           orElse: () => categoryData,
         );
-        List<String> images = currentCategory.images ?? [];
+        final images = currentCategory.images ?? const <String>[];
 
         return GridView.builder(
-          padding: EdgeInsets.all(16),
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          padding: const EdgeInsets.all(16),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
             crossAxisSpacing: 12,
             mainAxisSpacing: 12,
           ),
           itemCount: images.length,
-          itemBuilder: (context, index) {
-            return Stack(
-              children: [
-                InkWell(
-                  onTap: (){
-
-                    navigatePushTo(
-                      context,
-                      ImageViewScreen(
-                        subTitle: categoryData.title,
-                        appBarTitle: AppStrings.imageViewer,
-                        imageUrls: images,
-                        initialIndex: index,
-                      ),
-                    );
-
-                  },
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: Image.network(
-                      images[index],
-                      width: double.infinity,
-                      height: double.infinity,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
-                // Delete Button Overlay
-                Positioned(
-                  top: 8,
-                  right: 8,
-                  child: GestureDetector(
-                    onTap: () async {
-                      await showCommonDialog(
-                          context: context,
-                          text: AppStrings.hospitalViewDeleteImageConfirm.tr,
-                          confirmCallback: () async {
-                            Get.back();
-                            await controller.deleteHotelRoomController(
-                                categoryId: categoryData.id ?? "",
-                                imgUrl: images[index]);
-                          },
-                          cancelCallback: () {
-                            Navigator.of(context).pop(); // Close the dialog
-                          },
-                          confirmText: AppStrings.yes,
-                          cancelText: AppStrings.no);
-                    },
-                    child: CircleAvatar(
-                      radius: 14,
-                      backgroundColor: Colors.red.withValues(alpha: 0.8),
-                      child: Icon(Icons.delete, color: Colors.white, size: 16),
-                    ),
-                  ),
-                ),
-              ],
-            );
-          },
+          itemBuilder: (context, index) => _buildImageTile(
+            context: context,
+            controller: controller,
+            images: images,
+            index: index,
+          ),
         );
       }),
     );
   }
 
+  Widget _buildImageTile({
+    required BuildContext context,
+    required HospitalPhotoController controller,
+    required List<String> images,
+    required int index,
+  }) {
+    return Stack(
+      children: [
+        InkWell(
+          onTap: () => navigatePushTo(
+            context,
+            ImageViewScreen(
+              subTitle: categoryData.title,
+              appBarTitle: AppStrings.imageViewer,
+              imageUrls: images,
+              initialIndex: index,
+            ),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: Image.network(
+              images[index],
+              width: double.infinity,
+              height: double.infinity,
+              fit: BoxFit.cover,
+            ),
+          ),
+        ),
+        Positioned(
+          top: 8,
+          right: 8,
+          child: GestureDetector(
+            onTap: () => _confirmDelete(
+              context: context,
+              controller: controller,
+              imageUrl: images[index],
+            ),
+            child: CircleAvatar(
+              radius: 14,
+              backgroundColor: Colors.red.withValues(alpha: 0.8),
+              child: const Icon(Icons.delete, color: Colors.white, size: 16),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _confirmDelete({
+    required BuildContext context,
+    required HospitalPhotoController controller,
+    required String imageUrl,
+  }) {
+    return showCommonDialog(
+      context: context,
+      text: AppStrings.hospitalViewDeleteImageConfirm.tr,
+      confirmText: AppStrings.yes,
+      cancelText: AppStrings.no,
+      confirmCallback: () async {
+        Get.back();
+        await controller.deleteHotelRoomController(
+          categoryId: categoryData.id ?? "",
+          imgUrl: imageUrl,
+        );
+      },
+      cancelCallback: Get.back,
+    );
+  }
 }

@@ -28,66 +28,70 @@ class _HospitalEmergencyContactScreenState
     controller = getOrPut(() => HospitalEmergencyContactController());
   }
 
+  /// Shared rules for both phone fields. The min-length message is parameter-
+  /// ized so each field keeps its current copy verbatim (no behavior change).
+  /// The controller's `_validate` listener is the source of truth for the
+  /// submit-button enable state; this validator only drives in-field errors.
+  String? _phoneValidator(String? value, {required String minLengthMessage}) {
+    if (value == null || value.isEmpty) return 'Required';
+    if (value.startsWith('0')) return 'Leading zeros not allowed';
+    if (value.length < 10) return minLengthMessage;
+    return null;
+  }
+
+  Widget _phoneField({
+    required TextEditingController textController,
+    required String title,
+    required String hint,
+    required int maxLength,
+    required String minLengthMessage,
+  }) {
+    return CommonTextField(
+      textEditController: textController,
+      hintText: hint,
+      title: title,
+      maxLength: maxLength,
+      isValidate: true,
+      keyBoardType: TextInputType.number,
+      regularExpression: RegularExpressionUtils.digitsPattern,
+      validator: (value) =>
+          _phoneValidator(value, minLengthMessage: minLengthMessage),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(
-        title: AppStrings.emergencyContact,
-      ),
+      appBar: CommonBackAppBar(title: AppStrings.emergencyContact),
       body: Obx(() {
         if (controller.isLoading.value) {
           return const Center(child: CircularProgressIndicator());
         }
+        final canSubmit = controller.isFormValid && !controller.isSaving.value;
         return CommonCardWidget(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              SizedBox(height: 12),
-              CommonTextField(
-                textEditController: controller.emergencyController,
-                hintText: "9888767657",
+              const SizedBox(height: 12),
+              _phoneField(
+                textController: controller.emergencyController,
                 title: AppStrings.emergencyNumber,
+                hint: "9888767657",
                 maxLength: 10,
-                isValidate: true,
-                keyBoardType: TextInputType.number,
-                regularExpression: RegularExpressionUtils.digitsPattern,
-                validator: (value) {
-                  if (value == null || value.isEmpty) return 'Required';
-                  if (value.startsWith('0')) return 'Leading zeros not allowed';
-                  if (value.length < 10) return '10 digits required';
-                  if (RegExp(r'^0+$').hasMatch(value))
-                    return 'All zeros not allowed';
-                  return null;
-                },
-                onChange: (_) => controller
-                    .update(), // Refresh to update button state if needed
+                minLengthMessage: '10 digits required',
               ),
-              SizedBox(height: 20),
-              CommonTextField(
-                textEditController: controller.appointmentController,
-                hintText: "9343767657",
+              const SizedBox(height: 20),
+              _phoneField(
+                textController: controller.appointmentController,
                 title: AppStrings.appointmentNumber,
+                hint: "9343767657",
                 maxLength: 11,
-                isValidate: true,
-                keyBoardType: TextInputType.number,
-                regularExpression: RegularExpressionUtils.digitsPattern,
-                validator: (value) {
-                  if (value == null || value.isEmpty) return 'Required';
-                  if (value.startsWith('0')) return 'Leading zeros not allowed';
-                  if (value.length < 10) return 'Minimum 10 digits required';
-                  if (RegExp(r'^0+$').hasMatch(value))
-                    return 'All zeros not allowed';
-                  return null;
-                },
-                onChange: (_) => controller.update(),
+                minLengthMessage: 'Minimum 10 digits required',
               ),
-              SizedBox(height: 40),
+              const SizedBox(height: 40),
               CustomBtn(
-                isValidate:
-                    controller.isFormValid && !controller.isSaving.value,
-                onTap: controller.isFormValid && !controller.isSaving.value
-                    ? controller.submit
-                    : null,
+                isValidate: canSubmit,
+                onTap: canSubmit ? controller.submit : null,
                 title: AppStrings.submit,
               ),
               SizedBox(height: SizeConfig.size14),

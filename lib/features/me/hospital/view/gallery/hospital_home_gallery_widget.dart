@@ -19,9 +19,9 @@ class HospitalHomeGalleryWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final List<String> allImages = photos
-            ?.expand((photo) => photo.images ?? <String>[])
+            ?.expand((photo) => photo.images ?? const <String>[])
             .toList() ??
-        [];
+        const <String>[];
 
     if (allImages.isEmpty && isReadOnly) return const SizedBox.shrink();
 
@@ -37,7 +37,7 @@ class HospitalHomeGalleryWidget extends StatelessWidget {
               ServiceHomeTitleWidget(title: AppStrings.gallery),
               if (!isReadOnly)
                 IconButton(
-                  onPressed: () => Get.to(HospitalPhotosScreen()),
+                  onPressed: _openGallery,
                   icon: Icon(
                     allImages.isEmpty
                         ? Icons.add_circle_outline
@@ -52,7 +52,7 @@ class HospitalHomeGalleryWidget extends StatelessWidget {
             EmptySectionPlaceholder(
               imageAsset: 'assets/images/other_gallery.png',
               ctaLabel: AppStrings.hospitalViewAddPhotos.tr,
-              onTap: () => Get.to(HospitalPhotosScreen()),
+              onTap: _openGallery,
             )
           else
             _buildGalleryLayout(context, allImages),
@@ -60,6 +60,8 @@ class HospitalHomeGalleryWidget extends StatelessWidget {
       ),
     );
   }
+
+  void _openGallery() => Get.to(HospitalPhotosScreen());
 
   Widget _buildGalleryLayout(BuildContext context, List<String> images) {
     final display = images.length > 4 ? images.sublist(0, 4) : images;

@@ -27,86 +27,74 @@ class _EmergencyCriticalCareViewState extends State<EmergencyCriticalCareView> {
   static const int _maxVisibleItems = 4;
   bool _isExpanded = false;
 
-  List<Map<String, String>> _buildServices() {
+  /// Read every (title, icon) flagged on by the hospital's emergencyCare /
+  /// otherFacilities sub-models. Chain access is hoisted once into [emergency]
+  /// and [facilities] so the per-item rows stay readable.
+  List<_ServiceItem> _buildServices() {
+    final data = controller.hospitalDataResModel?.value.data;
+    final emergency = data?.emergencyCare;
+    final facilities = data?.otherFacilities;
+
     return [
-      if (controller.hospitalDataResModel?.value.data?.emergencyCare
-              ?.emergencyCasualty ??
-          false)
-        {
-          "title": AppStrings.hospitalViewEmergencyCasualty.tr,
-          "icon": "assets/svg/em_emergency.svg",
-          "desc": ""
-        },
-      if (controller
-              .hospitalDataResModel?.value.data?.emergencyCare?.traumaCare ??
-          false)
-        {
-          "title": AppStrings.hospitalViewTraumaCare.tr,
-          "icon": "assets/svg/em_trauma_care.svg",
-          "desc": ""
-        },
-      if (controller.hospitalDataResModel?.value.data?.emergencyCare?.icu ??
-          false)
-        {
-          "title": AppStrings.hospitalViewIcu.tr,
-          "icon": "assets/svg/em_icu.svg",
-          "desc": ""
-        },
-      if (controller.hospitalDataResModel?.value.data?.emergencyCare?.ccu ??
-          false)
-        {
-          "title": AppStrings.hospitalViewCcu.tr,
-          "icon": "assets/svg/em_ccu.svg",
-          "desc": ""
-        },
-      if (controller.hospitalDataResModel?.value.data?.emergencyCare?.nicu ??
-          false)
-        {
-          "title": AppStrings.hospitalViewNicu.tr,
-          "icon": "assets/svg/em_nicu.svg",
-          "desc": ""
-        },
-      if (controller.hospitalDataResModel?.value.data?.emergencyCare?.picu ??
-          false)
-        {
-          "title": AppStrings.hospitalViewPicu.tr,
-          "icon": "assets/svg/em_picu.svg",
-          "desc": ""
-        },
-      if (controller
-              .hospitalDataResModel?.value.data?.otherFacilities?.ambulance ??
-          false)
-        {"title": AppStrings.hospitalViewAmbulance.tr, "icon": AppIconAssets.Ambulance, "desc": ""},
-      if (controller
-              .hospitalDataResModel?.value.data?.otherFacilities?.bloodBank ??
-          false)
-        {"title": AppStrings.hospitalViewBloodBank.tr, "icon": AppIconAssets.BloodBank, "desc": ""},
-      if (controller.hospitalDataResModel?.value.data?.otherFacilities
-              ?.diagnosticDepartments ??
-          false)
-        {
-          "title": AppStrings.hospitalViewDiagnosticDepartments.tr,
-          "icon": AppIconAssets.diag_dept_view,
-          "desc": ""
-        },
-      if (controller.hospitalDataResModel?.value.data?.otherFacilities
-              ?.medicalStore ??
-          false)
-        {
-          "title": AppStrings.medicalStore.tr,
-          "icon": AppIconAssets.medical_view,
-          "desc": ""
-        },
-      if (controller.hospitalDataResModel?.value.data?.otherFacilities
-              ?.pmSwasthyaBimaYojana ??
-          false)
-        {
-          "title": AppStrings.hospitalViewPmSwasthyaBimaYojana.tr,
-          "icon": AppIconAssets.PMYojana,
-          "desc": ""
-        },
+      if (emergency?.emergencyCasualty ?? false)
+        _ServiceItem(
+          title: AppStrings.hospitalViewEmergencyCasualty.tr,
+          icon: "assets/svg/em_emergency.svg",
+        ),
+      if (emergency?.traumaCare ?? false)
+        _ServiceItem(
+          title: AppStrings.hospitalViewTraumaCare.tr,
+          icon: "assets/svg/em_trauma_care.svg",
+        ),
+      if (emergency?.icu ?? false)
+        _ServiceItem(
+          title: AppStrings.hospitalViewIcu.tr,
+          icon: "assets/svg/em_icu.svg",
+        ),
+      if (emergency?.ccu ?? false)
+        _ServiceItem(
+          title: AppStrings.hospitalViewCcu.tr,
+          icon: "assets/svg/em_ccu.svg",
+        ),
+      if (emergency?.nicu ?? false)
+        _ServiceItem(
+          title: AppStrings.hospitalViewNicu.tr,
+          icon: "assets/svg/em_nicu.svg",
+        ),
+      if (emergency?.picu ?? false)
+        _ServiceItem(
+          title: AppStrings.hospitalViewPicu.tr,
+          icon: "assets/svg/em_picu.svg",
+        ),
+      if (facilities?.ambulance ?? false)
+        _ServiceItem(
+          title: AppStrings.hospitalViewAmbulance.tr,
+          icon: AppIconAssets.Ambulance,
+        ),
+      if (facilities?.bloodBank ?? false)
+        _ServiceItem(
+          title: AppStrings.hospitalViewBloodBank.tr,
+          icon: AppIconAssets.BloodBank,
+        ),
+      if (facilities?.diagnosticDepartments ?? false)
+        _ServiceItem(
+          title: AppStrings.hospitalViewDiagnosticDepartments.tr,
+          icon: AppIconAssets.diag_dept_view,
+        ),
+      if (facilities?.medicalStore ?? false)
+        _ServiceItem(
+          title: AppStrings.medicalStore.tr,
+          icon: AppIconAssets.medical_view,
+        ),
+      if (facilities?.pmSwasthyaBimaYojana ?? false)
+        _ServiceItem(
+          title: AppStrings.hospitalViewPmSwasthyaBimaYojana.tr,
+          icon: AppIconAssets.PMYojana,
+        ),
     ];
   }
+
+  void _openEdit() => Get.to(const HospitalEmergencyCareScreen());
 
   @override
   Widget build(BuildContext context) {
@@ -115,7 +103,7 @@ class _EmergencyCriticalCareViewState extends State<EmergencyCriticalCareView> {
 
       if (services.isEmpty && widget.isReadOnly) return const SizedBox.shrink();
 
-      final bool hasMore = services.length > _maxVisibleItems;
+      final hasMore = services.length > _maxVisibleItems;
       final displayItems =
           _isExpanded ? services : services.take(_maxVisibleItems).toList();
 
@@ -127,12 +115,10 @@ class _EmergencyCriticalCareViewState extends State<EmergencyCriticalCareView> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                ServiceHomeTitleWidget(
-                  title: AppStrings.otherFacilities,
-                ),
+                ServiceHomeTitleWidget(title: AppStrings.otherFacilities),
                 if (!widget.isReadOnly)
                   IconButton(
-                    onPressed: () => Get.to(const HospitalEmergencyCareScreen()),
+                    onPressed: _openEdit,
                     icon: Icon(
                       services.isEmpty
                           ? Icons.add_circle_outline
@@ -143,69 +129,77 @@ class _EmergencyCriticalCareViewState extends State<EmergencyCriticalCareView> {
               ],
             ),
             const SizedBox(height: 16),
-            services.isEmpty
-                ? EmptySectionPlaceholder(
-                    imageAsset: 'assets/images/other_gallery.png',
-                    ctaLabel: AppStrings.hospitalViewAddFacilities.tr,
-                    ctaIcon: Icons.local_hospital_outlined,
-                    onTap: () => Get.to(const HospitalEmergencyCareScreen()),
-                  )
-                : GridView.builder(
-                    shrinkWrap: true,
-                    padding: EdgeInsets.zero,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: displayItems.length,
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 10,
-                      mainAxisSpacing: 10,
-                      childAspectRatio: 1,
-                    ),
-                    itemBuilder: (context, index) {
-                      return VerticalEmergencyServiceCard(
-                        title: displayItems[index]['title']!,
-                        description: displayItems[index]['desc']!,
-                        icon: displayItems[index]['icon']!,
-                      );
-                    },
-                  ),
-            if (hasMore && services.isNotEmpty)
-              Padding(
-                padding: EdgeInsets.only(top: SizeConfig.paddingS),
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(8),
-                  onTap: () {
-                    setState(() {
-                      _isExpanded = !_isExpanded;
-                    });
-                  },
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      CustomText(
-                        _isExpanded
-                            ? AppStrings.hospitalViewViewLess.tr
-                            : AppStrings.hospitalViewViewMoreCount.trParams(
-                                {'count': '${services.length - _maxVisibleItems}'}),
-                        color: AppColors.primaryColor,
-                        fontWeight: FontWeight.w600,
-                        fontSize: SizeConfig.medium,
-                      ),
-                      SizedBox(width: SizeConfig.paddingXSmall),
-                      Icon(
-                        _isExpanded
-                            ? Icons.keyboard_arrow_up_rounded
-                            : Icons.keyboard_arrow_down_rounded,
-                        color: AppColors.primaryColor,
-                        size: SizeConfig.size20,
-                      ),
-                    ],
-                  ),
+            if (services.isEmpty)
+              EmptySectionPlaceholder(
+                imageAsset: 'assets/images/other_gallery.png',
+                ctaLabel: AppStrings.hospitalViewAddFacilities.tr,
+                ctaIcon: Icons.local_hospital_outlined,
+                onTap: _openEdit,
+              )
+            else
+              GridView.builder(
+                shrinkWrap: true,
+                padding: EdgeInsets.zero,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: displayItems.length,
+                gridDelegate:
+                    const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 10,
+                  mainAxisSpacing: 10,
+                  childAspectRatio: 1,
                 ),
+                itemBuilder: (context, index) {
+                  final item = displayItems[index];
+                  return VerticalEmergencyServiceCard(
+                    title: item.title,
+                    icon: item.icon,
+                  );
+                },
               ),
+            if (hasMore && services.isNotEmpty)
+              _buildExpandToggle(services.length - _maxVisibleItems),
           ],
         ),
       );
     });
   }
+
+  Widget _buildExpandToggle(int extraCount) {
+    return Padding(
+      padding: EdgeInsets.only(top: SizeConfig.paddingS),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(8),
+        onTap: () => setState(() => _isExpanded = !_isExpanded),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CustomText(
+              _isExpanded
+                  ? AppStrings.hospitalViewViewLess.tr
+                  : AppStrings.hospitalViewViewMoreCount
+                      .trParams({'count': '$extraCount'}),
+              color: AppColors.primaryColor,
+              fontWeight: FontWeight.w600,
+              fontSize: SizeConfig.medium,
+            ),
+            SizedBox(width: SizeConfig.paddingXSmall),
+            Icon(
+              _isExpanded
+                  ? Icons.keyboard_arrow_up_rounded
+                  : Icons.keyboard_arrow_down_rounded,
+              color: AppColors.primaryColor,
+              size: SizeConfig.size20,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ServiceItem {
+  final String title;
+  final String icon;
+  const _ServiceItem({required this.title, required this.icon});
 }

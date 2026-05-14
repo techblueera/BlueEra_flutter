@@ -9,27 +9,65 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+/// Form for creating a new reception/branch contact: website, address,
+/// email and phone. The selected location's lat/lng are stashed on the
+/// controller via [CommonLocationSearchField.onSelected].
 class HotelBranchDetailsFormScreen extends StatefulWidget {
+  const HotelBranchDetailsFormScreen({super.key});
+
   @override
-  _HotelBranchDetailsFormScreenState createState() =>
+  State<HotelBranchDetailsFormScreen> createState() =>
       _HotelBranchDetailsFormScreenState();
 }
 
 class _HotelBranchDetailsFormScreenState
     extends State<HotelBranchDetailsFormScreen> {
-  // Initialize the specific controller
   final controller = Get.find<HotelBranchContactController>();
 
-  final branchNameController = TextEditingController();
   final websiteController = TextEditingController();
   final addressController = TextEditingController();
-  final titleController = TextEditingController();
   final emailController = TextEditingController();
   final phoneController = TextEditingController();
 
-  void _triggerValidation() {
+  @override
+  void dispose() {
+    websiteController.dispose();
+    addressController.dispose();
+    emailController.dispose();
+    phoneController.dispose();
+    super.dispose();
+  }
+
+  /// Pushes the current field values into the controller's validator so the
+  /// `Submit` button enables/disables in real time.
+  void _triggerValidation([_]) {
     controller.validateForm(
-      branchName: branchNameController.text,
+      branchName: '',
+      website: websiteController.text,
+      address: addressController.text,
+      email: emailController.text,
+      phone: phoneController.text,
+    );
+  }
+
+  String? _validateEmail(String? value) {
+    if (value == null || value.isEmpty) return AppStrings.required.tr;
+    if (!value.trim().toLowerCase().endsWith("@gmail.com")) {
+      return AppStrings.onlyGmailAllowed.tr;
+    }
+    return null;
+  }
+
+  String? _validatePhone(String? value) {
+    if (value == null || value.isEmpty) return AppStrings.required.tr;
+    if (value.length != 10) return AppStrings.enterValidPhoneNumber.tr;
+    final isRepetitive = value.split('').every((c) => c == value[0]);
+    if (isRepetitive) return AppStrings.enterValidPhoneNumber.tr;
+    return null;
+  }
+
+  Future<void> _onSubmit() {
+    return controller.submitBranchDetails(
       website: websiteController.text,
       address: addressController.text,
       email: emailController.text,
@@ -44,7 +82,7 @@ class _HotelBranchDetailsFormScreenState
       body: CommonCardWidget(
         padding: 0,
         child: SingleChildScrollView(
-          padding: EdgeInsets.all(16),
+          padding: const EdgeInsets.all(16),
           child: Column(
             children: [
               HttpsTextField(
@@ -52,9 +90,9 @@ class _HotelBranchDetailsFormScreenState
                 hintText: AppStrings.hotelWebsiteHint.tr,
                 title: AppStrings.website.tr,
                 isUrlValidate: true,
-                onChange: (_) => _triggerValidation(),
+                onChange: _triggerValidation,
               ),
-              SizedBox(height: 12),
+              const SizedBox(height: 12),
               CommonLocationSearchField(
                 controller: addressController,
                 title: AppStrings.location.tr,
@@ -66,24 +104,15 @@ class _HotelBranchDetailsFormScreenState
                   _triggerValidation();
                 },
               ),
-              SizedBox(height: 12),
-
+              const SizedBox(height: 12),
               CommonTextField(
                 textEditController: emailController,
                 hintText: AppStrings.hotelEmailExampleHint.tr,
                 title: AppStrings.email.tr,
-                validator: (value) {
-                  if (value == null || value.isEmpty)
-                    return AppStrings.required.tr;
-                  if (!value.trim().toLowerCase().endsWith("@gmail.com")) {
-                    return "Only @gmail.com is allowed";
-                  }
-                  return null;
-                },
-                onChange: (_) => _triggerValidation(),
+                validator: _validateEmail,
+                onChange: _triggerValidation,
               ),
-
-              SizedBox(height: 12),
+              const SizedBox(height: 12),
               CommonTextField(
                 textEditController: phoneController,
                 hintText: AppStrings.hotelPhoneExampleHint.tr,
@@ -91,37 +120,18 @@ class _HotelBranchDetailsFormScreenState
                 keyBoardType: TextInputType.number,
                 regularExpression: r'[0-9]',
                 maxLength: 10,
-                validator: (value) {
-                  if (value == null || value.isEmpty)
-                    return AppStrings.required.tr;
-                  if (value.length != 10)
-                    return "Enter a valid 10-digit number";
-                  bool isRepetitive =
-                      value.split('').every((char) => char == value[0]);
-                  if (isRepetitive) return "Invalid phone number";
-                  return null;
-                },
-                onChange: (_) => _triggerValidation(),
+                validator: _validatePhone,
+                onChange: _triggerValidation,
               ),
-
-              SizedBox(height: 32),
-
-              // Reactive Submit Button
-              Obx(() => CustomBtn(
-                    isLoading: controller.isLoading.value,
-                    onTap: controller.isFormValid.value
-                        ? () => controller.submitBranchDetails(
-                              branchName: branchNameController.text,
-                              website: websiteController.text,
-                              address: addressController.text,
-                              department: titleController.text,
-                              email: emailController.text,
-                              phone: phoneController.text,
-                            )
-                        : null, // Button disabled if form invalid
-                    title: AppStrings.submit.tr,
-                    isValidate: controller.isFormValid.value,
-                  )),
+              const SizedBox(height: 32),
+              Obx(
+                () => CustomBtn(
+                  isLoading: controller.isLoading.value,
+                  onTap: controller.isFormValid.value ? _onSubmit : null,
+                  title: AppStrings.submit.tr,
+                  isValidate: controller.isFormValid.value,
+                ),
+              ),
             ],
           ),
         ),

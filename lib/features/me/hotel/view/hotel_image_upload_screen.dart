@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:BlueEra/core/constants/app_colors.dart';
+
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/delivery_partner/widget/common_image_upload_section.dart';
@@ -12,56 +12,64 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 
+import 'package:BlueEra/core/constants/app_colors.dart';
+
+/// Step-2-of-2 of room creation: pick up to 4 images for each of the
+/// three categories (exterior / washroom / amenity). Submit is gated on the
+/// minimum-image rule from [RoomDetailController.isCreateHotel].
+///
+/// While [RoomDetailController.isLoading] is true the upload progress
+/// shimmer covers the form and the system back swipe is intercepted by the
+/// [PopScope] so the user can't abandon mid-upload.
 class HotelImageUploadScreen extends StatelessWidget {
-  final controller = Get.find<RoomDetailController>();
   final String roomType;
   final String roomName;
 
-  HotelImageUploadScreen(
-      {super.key, required this.roomType, required this.roomName});
+  HotelImageUploadScreen({
+    super.key,
+    required this.roomType,
+    required this.roomName,
+  });
+
+  final controller = Get.find<RoomDetailController>();
+
+  static const int _maxImagesPerSection = 4;
 
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      return WillPopScope(
-        onWillPop: () async => !controller.isLoading.value,
+      final isLoading = controller.isLoading.value;
+      return PopScope(
+        canPop: !isLoading,
         child: Scaffold(
-          appBar: CommonBackAppBar(
-            title: AppStrings.hotelImagesAppBar.tr,
-          ),
+          appBar: CommonBackAppBar(title: AppStrings.hotelImagesAppBar.tr),
           body: Stack(
             children: [
               SingleChildScrollView(
-                padding: EdgeInsets.all(16),
+                padding: const EdgeInsets.all(16),
                 child: Column(
                   children: [
                     _buildSection(
-                        AppStrings.hotelUploadExteriorImages.tr, controller.exteriorImages,context),
+                      context,
+                      AppStrings.hotelUploadExteriorImages.tr,
+                      controller.exteriorImages,
+                    ),
                     _buildSection(
-                        AppStrings.hotelUploadWashroomImages.tr, controller.washroomImages,context),
-                    _buildSection(AppStrings.hotelUploadAmenitiesImagesOptional.tr,
-                        controller.amenityImages,context),
-                    SizedBox(height: 30),
-                    Obx(() {
-                      return CustomBtn(
-                        onTap: controller.isCreateHotel
-                            ? () {
-                          if (controller.validate()) {
-                            // Proceed with submission logic
-                            print("Form Submitted Successfully");
-                            controller.submitHotelRoom(
-                                name: roomName, type: roomType);
-                          }
-                        }
-                            : null,
-                        title: AppStrings.submit.tr,
-                        isValidate: controller.isCreateHotel,
-                      );
-                    }),
+                      context,
+                      AppStrings.hotelUploadWashroomImages.tr,
+                      controller.washroomImages,
+                    ),
+                    _buildSection(
+                      context,
+                      AppStrings.hotelUploadAmenitiesImagesOptional.tr,
+                      controller.amenityImages,
+                    ),
+                    const SizedBox(height: 30),
+                    _buildSubmitButton(),
                   ],
                 ),
               ),
-              if (controller.isLoading.value) ShimmerListView()
+              if (isLoading) ShimmerListView(),
             ],
           ),
         ),
@@ -69,12 +77,33 @@ class HotelImageUploadScreen extends StatelessWidget {
     });
   }
 
-  Widget _buildSection(String title, RxList<XFile> imageList, BuildContext context) {
+  Widget _buildSubmitButton() {
+    final isReady = controller.isCreateHotel;
+    return CustomBtn(
+      onTap: isReady
+          ? () {
+              if (controller.validate()) {
+                controller.submitHotelRoom(name: roomName, type: roomType);
+              }
+            }
+          : null,
+      title: AppStrings.submit.tr,
+      isValidate: isReady,
+    );
+  }
+
+  Widget _buildSection(
+    BuildContext context,
+    String title,
+    RxList<XFile> imageList,
+  ) {
     return Container(
-      margin: EdgeInsets.only(bottom: 16),
-      padding: EdgeInsets.all(12),
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-          color: Colors.white, borderRadius: BorderRadius.circular(12)),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -82,60 +111,18 @@ class HotelImageUploadScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               CustomText(title, fontWeight: FontWeight.w500),
-              CustomText(AppStrings.hotelMin2Images.tr,
-               color: AppColors.secondaryTextColor, fontSize: SizeConfig.size12),
+              CustomText(
+                AppStrings.hotelMin2Images.tr,
+                color: AppColors.secondaryTextColor,
+                fontSize: SizeConfig.size12,
+              ),
             ],
           ),
-          SizedBox(height: 12),
-          Obx(() =>
-              Row(
-                children: List.generate(4, (index) {
+          const SizedBox(height: 12),
+          Obx(() => Row(
+                children: List.generate(_maxImagesPerSection, (index) {
                   return Expanded(
-                    child: GestureDetector(
-                      onTap: () async {
-                        final path = await CommonImageUploadTile.pickImage(context: context);
-                        if (path != null) imageList.add(XFile(path));
-                      },
-                      // onTap: () => _showPickerOptions(imageList),
-                      child: Container(
-                        height: 80,
-                        margin: EdgeInsets.symmetric(horizontal: 4),
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey.shade300),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: index < imageList.length
-                            ? Stack(
-                          children: [
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: Image.file(
-                                  File(imageList[index].path),
-                                  fit: BoxFit.cover,
-                                  width: double.infinity,
-                                height: 80,
-
-                              ),
-                            ),
-                            Positioned(
-                              right: 0,
-                              top: 0,
-                              child: GestureDetector(
-                                onTap: () =>
-                                    controller.removeImage(
-                                        index, imageList),
-                                child: CircleAvatar(
-                                    radius: 10,
-                                    backgroundColor: Colors.red,
-                                    child: Icon(Icons.close,
-                                        size: 12, color: Colors.white)),
-                              ),
-                            )
-                          ],
-                        )
-                            : Icon(Icons.image_outlined, color: Colors.grey),
-                      ),
-                    ),
+                    child: _buildImageSlot(context, imageList, index),
                   );
                 }),
               )),
@@ -144,4 +131,53 @@ class HotelImageUploadScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildImageSlot(
+      BuildContext context, RxList<XFile> imageList, int index) {
+    final hasImage = index < imageList.length;
+    return GestureDetector(
+      onTap: () async {
+        final path = await CommonImageUploadTile.pickImage(context: context);
+        if (path != null) imageList.add(XFile(path));
+      },
+      child: Container(
+        height: 80,
+        margin: const EdgeInsets.symmetric(horizontal: 4),
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey.shade300),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: hasImage
+            ? _buildImageThumbnail(imageList, index)
+            : const Icon(Icons.image_outlined, color: Colors.grey),
+      ),
+    );
+  }
+
+  Widget _buildImageThumbnail(RxList<XFile> imageList, int index) {
+    return Stack(
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: Image.file(
+            File(imageList[index].path),
+            fit: BoxFit.cover,
+            width: double.infinity,
+            height: 80,
+          ),
+        ),
+        Positioned(
+          right: 0,
+          top: 0,
+          child: GestureDetector(
+            onTap: () => controller.removeImage(index, imageList),
+            child: const CircleAvatar(
+              radius: 10,
+              backgroundColor: Colors.red,
+              child: Icon(Icons.close, size: 12, color: Colors.white),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 }

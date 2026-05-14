@@ -1,4 +1,4 @@
-
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -9,45 +9,54 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class HotelJobListingScreen extends StatefulWidget {
-  const HotelJobListingScreen({super.key});
+/// Lists job posts belonging to a hotel business and (when not read-only)
+/// surfaces a "create job" CTA pinned to the bottom of the screen.
+class HotelJobListingScreen extends StatelessWidget {
+  const HotelJobListingScreen({super.key, this.isReadOnly = false});
 
-  @override
-  State<HotelJobListingScreen> createState() => _HotelJobListingScreenState();
-}
+  final bool isReadOnly;
 
-class _HotelJobListingScreenState extends State<HotelJobListingScreen> {
+  /// Channel tag sent to the jobs feed so the backend / UI can scope results
+  /// and tag newly-created posts as originating from the hotel flow.
+  static const String _hotelVia = 'hotel';
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(
-        title: AppStrings.createJob.tr,
+      appBar: CommonBackAppBar(title: AppStrings.jobs),
+      bottomNavigationBar: isReadOnly ? null : _buildCreateJobButton(),
+      body: AllJobPostScreen(
+        key: const ValueKey(AppConstants.All),
+        onHeaderVisibilityChanged: (_) {},
+        headerHeight: 0,
+        screenListingVia: _hotelVia,
       ),
-      bottomNavigationBar: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.only(
-              right: 10.0, left: 10.0, bottom: 40, top: 10),
-          child: PositiveCustomBtn(
-              bgColor: AppColors.white,
-              textColor: AppColors.primaryColor,
-              borderColor: AppColors.primaryColor,
-              onTap: () {
-                Get.toNamed(RouteHelper.getCreateJobPostScreenRoute(),
-                    arguments: {
-                      'isEditMode': false,
-                      'jobId': '',
-                      'createJobVia': 'hotel',
-                    });
-              },
-              title:  AppStrings.createJob),
+    );
+  }
+
+  Widget _buildCreateJobButton() {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(10, 10, 10, 40),
+        child: PositiveCustomBtn(
+          bgColor: AppColors.white,
+          textColor: AppColors.primaryColor,
+          borderColor: AppColors.primaryColor,
+          title: AppStrings.createJob,
+          onTap: _openCreateJobScreen,
         ),
       ),
+    );
+  }
 
-      body: AllJobPostScreen(
-        key: ValueKey(AppConstants.All),
-        onHeaderVisibilityChanged: (val){},
-        headerHeight: 0,screenListingVia: "hotel",
-      ),
+  void _openCreateJobScreen() {
+    Get.toNamed(
+      RouteHelper.getCreateJobPostScreenRoute(),
+      arguments: {
+        'isEditMode': false,
+        ApiKeys.jobId: '',
+        'createJobVia': _hotelVia,
+      },
     );
   }
 }

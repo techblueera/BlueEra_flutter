@@ -1,19 +1,25 @@
 import 'dart:io';
+
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/features/common/delivery_partner/widget/common_image_upload_section.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_opd_controller.dart';
+import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
-import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:BlueEra/features/common/delivery_partner/widget/common_image_upload_section.dart';
 
 class OpdDoctorFormScreen extends StatefulWidget {
   final String departmentId;
   final String? hospitalId;
-  const OpdDoctorFormScreen({super.key, required this.departmentId, this.hospitalId});
+
+  const OpdDoctorFormScreen({
+    super.key,
+    required this.departmentId,
+    this.hospitalId,
+  });
 
   @override
   State<OpdDoctorFormScreen> createState() => _OpdDoctorFormScreenState();
@@ -32,9 +38,8 @@ class _OpdDoctorFormScreenState extends State<OpdDoctorFormScreen> {
 
   @override
   Widget build(BuildContext context) {
-    SizeConfig.init(context);
     return Scaffold(
-      appBar: CommonBackAppBar(title:  AppStrings.addEditOpdDoctor,),
+      appBar: CommonBackAppBar(title: AppStrings.addEditOpdDoctor),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(SizeConfig.paddingM),
         child: Column(
@@ -45,64 +50,79 @@ class _OpdDoctorFormScreenState extends State<OpdDoctorFormScreen> {
                 children: [
                   _buildImageSection(),
                   SizedBox(height: SizeConfig.size12),
-                  CommonTextField(
+                  _textField(
                     title: AppStrings.fullName,
-                    textEditController: controller.nameController,
-                    hintText: AppStrings.egRahulSharma,
-                    onChange: (_) => controller.validate(),
+                    textController: controller.nameController,
+                    hint: AppStrings.egRahulSharma,
                   ),
                   SizedBox(height: SizeConfig.size12),
-                  CommonTextField(
-                    title:  AppStrings.education,
-                    textEditController: controller.educationController,
-                    hintText: AppStrings.hospitalViewEducationOptional.tr,
-                    onChange: (_) => controller.validate(),
+                  _textField(
+                    title: AppStrings.education,
+                    textController: controller.educationController,
+                    hint: AppStrings.hospitalViewEducationOptional.tr,
                   ),
                   SizedBox(height: SizeConfig.size12),
-                  CommonTextField(
-                    title:  AppStrings.position,
-                    textEditController: controller.positionController,
-                    hintText: AppStrings.hospitalViewPositionHint.tr,
-                    onChange: (_) => controller.validate(),
+                  _textField(
+                    title: AppStrings.position,
+                    textController: controller.positionController,
+                    hint: AppStrings.hospitalViewPositionHint.tr,
                   ),
                   SizedBox(height: SizeConfig.size12),
-                  CommonTextField(
+                  _textField(
                     title: AppStrings.fees,
-                    textEditController: controller.feesController,
-                    hintText:  AppStrings.fees,
+                    textController: controller.feesController,
+                    hint: AppStrings.fees,
                     keyBoardType: TextInputType.number,
-                    onChange: (_) => controller.validate(),
                   ),
                   SizedBox(height: SizeConfig.size12),
-                  CommonTextField(
-                    title:  AppStrings.timing,
-                    textEditController: controller.timingController,
-                    hintText: AppStrings.hospitalViewTimingHint.tr,
-                    onChange: (_) => controller.validate(),
+                  _textField(
+                    title: AppStrings.timing,
+                    textController: controller.timingController,
+                    hint: AppStrings.hospitalViewTimingHint.tr,
                   ),
                   SizedBox(height: SizeConfig.size12),
-                  CommonTextField(
-                    title:  AppStrings.description,
-                    textEditController: controller.descriptionController,
-                    hintText: AppStrings.description.tr,
+                  _textField(
+                    title: AppStrings.description,
+                    textController: controller.descriptionController,
+                    hint: AppStrings.description.tr,
                     maxLine: 4,
-                    onChange: (_) => controller.validate(),
                   ),
                   SizedBox(height: SizeConfig.size20),
-                  Obx(() => SizedBox(
-                        width: double.infinity,
-                        child: CustomBtn(
-                          isValidate:controller.isFormValid.value  ,
-                          title: controller.editing == null ?  AppStrings.save :  AppStrings.update,
-                          onTap: controller.isFormValid.value ? controller.save : null,
-                        ),
-                      )),
+                  Obx(() {
+                    final isValid = controller.isFormValid.value;
+                    final isEditing = controller.editing != null;
+                    return SizedBox(
+                      width: double.infinity,
+                      child: CustomBtn(
+                        isValidate: isValid,
+                        title: isEditing ? AppStrings.update : AppStrings.save,
+                        onTap: isValid ? controller.save : null,
+                      ),
+                    );
+                  }),
                 ],
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _textField({
+    required String title,
+    required TextEditingController textController,
+    required String hint,
+    TextInputType? keyBoardType,
+    int? maxLine,
+  }) {
+    return CommonTextField(
+      title: title,
+      textEditController: textController,
+      hintText: hint,
+      keyBoardType: keyBoardType,
+      maxLine: maxLine,
+      onChange: (_) => controller.validate(),
     );
   }
 
@@ -117,38 +137,12 @@ class _OpdDoctorFormScreenState extends State<OpdDoctorFormScreen> {
         title: '',
         context: context,
       );
-    } else if (controller.initialImageUrl.isNotEmpty) {
-      return Stack(
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: Image.network(
-              controller.initialImageUrl,
-              height: 150,
-              width: double.infinity,
-              fit: BoxFit.cover,
-            ),
-          ),
-          Positioned(
-            right: 5,
-            top: 5,
-            child: CircleAvatar(
-              backgroundColor: Colors.red,
-              child: IconButton(
-                icon: const Icon(Icons.delete, color: Colors.white),
-                onPressed: () {
-                  controller.initialImageUrl = "";
-                  controller.validate();
-                  setState(() {});
-                },
-              ),
-            ),
-          )
-        ],
-      );
+    }
+    if (controller.initialImageUrl.isNotEmpty) {
+      return _networkImagePreview(controller.initialImageUrl);
     }
     return CommonImageUploadTile(
-      title:  AppStrings.uploadPhotos,
+      title: AppStrings.uploadPhotos,
       context: context,
       onImageSelected: () async {
         final path = await CommonImageUploadTile.pickImage(context: context);
@@ -158,6 +152,37 @@ class _OpdDoctorFormScreenState extends State<OpdDoctorFormScreen> {
         }
       },
       imageFile: controller.selectedImage,
+    );
+  }
+
+  Widget _networkImagePreview(String url) {
+    return Stack(
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: Image.network(
+            url,
+            height: 150,
+            width: double.infinity,
+            fit: BoxFit.cover,
+          ),
+        ),
+        Positioned(
+          right: 5,
+          top: 5,
+          child: CircleAvatar(
+            backgroundColor: Colors.red,
+            child: IconButton(
+              icon: const Icon(Icons.delete, color: Colors.white),
+              onPressed: () {
+                controller.initialImageUrl = "";
+                controller.validate();
+                setState(() {});
+              },
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
