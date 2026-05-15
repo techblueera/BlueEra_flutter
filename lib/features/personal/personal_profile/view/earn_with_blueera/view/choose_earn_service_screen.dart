@@ -31,15 +31,15 @@ class _EarnOption {
   });
 }
 
-class chooseEarnServiceScreen extends StatefulWidget {
-  const chooseEarnServiceScreen({super.key});
+class ChooseEarnServiceScreen extends StatefulWidget {
+  const ChooseEarnServiceScreen({super.key});
 
   @override
-  State<chooseEarnServiceScreen> createState() =>
-      _chooseEarnServiceScreenState();
+  State<ChooseEarnServiceScreen> createState() =>
+      _ChooseEarnServiceScreenState();
 }
 
-class _chooseEarnServiceScreenState extends State<chooseEarnServiceScreen> {
+class _ChooseEarnServiceScreenState extends State<ChooseEarnServiceScreen> {
   final controller = getOrPut(() => EarnServiceController());
   int _selectedIndex = 0;
 

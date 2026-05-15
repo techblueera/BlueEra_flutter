@@ -3,33 +3,45 @@ import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/routes/route_constant.dart';
 import 'package:BlueEra/features/chat/view/call_screen/audio_calling_handler.dart';
 import 'package:BlueEra/features/chat/view/call_screen/rider_call/incoming_rider_order_screen.dart';
+import 'package:BlueEra/features/common/auth/views/screens/Individual/add_bio_via_ai_screen.dart';
+import 'package:BlueEra/features/common/auth/views/screens/Individual/personal_account_new_screen.dart';
+import 'package:BlueEra/features/common/auth/views/screens/business/create_business_account_new_step_one.dart';
+import 'package:BlueEra/features/common/auth/views/screens/business/create_business_account_new_step_three.dart';
+import 'package:BlueEra/features/common/auth/views/screens/business/create_business_account_new_step_two.dart';
 import 'package:BlueEra/features/common/delivery_partner/widget/near_by_rider_screen.dart';
 import 'package:BlueEra/features/me/food/controller/food_service_controller.dart';
 import 'package:BlueEra/features/me/food/model/food_gen_ai_res_model.dart';
 import 'package:BlueEra/features/me/food/model/food_snap_search_response.dart';
-import 'package:BlueEra/features/me/food/view/add_food_snap_search_screen.dart';
-import 'package:BlueEra/features/me/food/view/add_single_food_product_screen.dart';
-import 'package:BlueEra/features/me/food/view/food_ai_details_screen.dart';
-import 'package:BlueEra/features/me/food/view/food_customer_listing_screen.dart';
-import 'package:BlueEra/features/me/food/view/food_entry_ai_screen.dart';
-import 'package:BlueEra/features/me/food/view/food_product_selection_screen.dart';
-import 'package:BlueEra/features/me/food/view/missing_food_itmes_screen.dart';
-import 'package:BlueEra/features/me/food/view/visit_food_store_details_screen.dart';
+import 'package:BlueEra/features/me/food/view/admin/add_food_snap_search_screen.dart';
+import 'package:BlueEra/features/me/food/view/admin/add_single_food_product_screen.dart';
+import 'package:BlueEra/features/me/food/view/admin/food_ai_details_screen.dart';
+import 'package:BlueEra/features/me/food/view/customer/food_customer_listing_screen.dart';
+import 'package:BlueEra/features/me/food/view/admin/food_entry_ai_screen.dart';
+import 'package:BlueEra/features/me/food/view/admin/food_product_selection_screen.dart';
+import 'package:BlueEra/features/me/food/view/admin/missing_food_itmes_screen.dart';
+import 'package:BlueEra/features/me/food/view/customer/visit_food_store_details_screen.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_category_with_inventory_model.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_snap_search_response.dart';
-import 'package:BlueEra/features/me/grocery/view/add_grocery_snap_search_screen.dart';
-import 'package:BlueEra/features/me/grocery/view/grocery_via_rider/grocery_rider_snap_search_screen.dart';
-import 'package:BlueEra/features/me/grocery/view/grocery_via_rider/all_grocery_product_screen.dart';
-import 'package:BlueEra/features/me/grocery/view/grocery_via_self_pickup/visit_grocery_products_screen.dart';
+import 'package:BlueEra/features/me/grocery/view/admin/add_grocery_snap_search_screen.dart';
+import 'package:BlueEra/features/me/grocery/view/admin/missing_grocery_items_screen.dart';
+import 'package:BlueEra/features/me/grocery/view/admin/my_grocery_listing/my_grocery_products_screen.dart';
+import 'package:BlueEra/features/me/grocery/view/customer/grocery_via_rider/all_grocery_product_screen.dart';
+import 'package:BlueEra/features/me/grocery/view/customer/grocery_via_rider/grocery_cart_screen.dart';
+import 'package:BlueEra/features/me/grocery/view/customer/grocery_via_rider/grocery_confirm_screen.dart';
+import 'package:BlueEra/features/me/grocery/view/customer/grocery_via_rider/grocery_rider_snap_search_screen.dart';
+import 'package:BlueEra/features/me/grocery/view/customer/grocery_via_self_pickup/visit_grocery_products_screen.dart';
+import 'package:BlueEra/features/me/grocery/view/customer/grocery_via_self_pickup/visit_grocery_store_screen.dart';
+import 'package:BlueEra/features/me/grocery/view/admin/grocery_nested_category_with_inventory_screen.dart';
 import 'package:BlueEra/features/me/medical_new/view/add_medical_snap_search_screen.dart';
-import 'package:BlueEra/features/me/grocery/view/missing_grocery_items_screen.dart';
-import 'package:BlueEra/features/me/grocery/view/grocery_via_self_pickup/visit_grocery_store_screen.dart';
-import 'package:BlueEra/features/me/grocery/view/grocery_nested_category_with_inventory_screen.dart';
 import 'package:BlueEra/features/me/medical_new/view/medical_home_screen_v2.dart';
 import 'package:BlueEra/features/me/product/model/product_category_with_inventory_model.dart';
-import 'package:BlueEra/features/me/product/view/product_nested_category_with_inventory_screen.dart';
-import 'package:BlueEra/features/me/product/view/my_product_products_screen.dart';
+import 'package:BlueEra/features/me/product/view/admin/product_cart_screen.dart';
+import 'package:BlueEra/features/me/product/view/admin/product_nested_category_with_inventory_screen.dart';
+import 'package:BlueEra/features/me/product/view/admin/my_product_products_screen.dart';
+import 'package:BlueEra/features/me/product/view/admin/product_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/choose_earn_service_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_dashboard_view.dart';
 import 'package:share_handler/share_handler.dart';
 import 'package:BlueEra/features/business/business_verification/view/business_verification_screen.dart';
 import 'package:BlueEra/features/business/business_verification/view/ownership_verification_screen.dart';
@@ -43,12 +55,7 @@ import 'package:BlueEra/features/business/visiting_card/view/business_own_profil
 import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
 import 'package:BlueEra/features/common/auth/model/personal_profession_model.dart';
 import 'package:BlueEra/features/common/auth/views/screens/gst_verification_screen.dart';
-import 'package:BlueEra/features/common/auth/views/screens/new_screens/Individual/add_bio_via_ai_screen.dart';
-import 'package:BlueEra/features/common/auth/views/screens/new_screens/Individual/personal_account_new_screen.dart';
-import 'package:BlueEra/features/common/auth/views/screens/new_screens/business/create_business_account_new_step_one.dart';
-import 'package:BlueEra/features/common/auth/views/screens/new_screens/business/create_business_account_new_step_three.dart';
-import 'package:BlueEra/features/common/auth/views/screens/new_screens/business/create_business_account_new_step_two.dart';
-import 'package:BlueEra/features/common/auth/views/screens/new_screens/create_account_type_screen.dart';
+import 'package:BlueEra/features/common/auth/views/screens/create_account_type_screen.dart';
 import 'package:BlueEra/features/common/auth/views/screens/mobile_number_screen.dart';
 import 'package:BlueEra/features/common/auth/views/screens/otp_page_screen.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/view/bottom_navigation_bar_screen.dart';
@@ -99,20 +106,16 @@ import 'package:BlueEra/features/journey/view/journey_planning_screen.dart';
 import 'package:BlueEra/features/journey/view/update_journy_screen.dart';
 import 'package:BlueEra/features/me/vehicle/view/v2/vehicle_home_screen_v2.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
-import 'package:BlueEra/features/me/grocery/view/add_grocery_variant_screen.dart';
-import 'package:BlueEra/features/me/grocery/view/grocery_via_rider/grocery_cart_screen.dart';
-import 'package:BlueEra/features/me/grocery/view/grocery_via_rider/grocery_confirm_screen.dart';
-import 'package:BlueEra/features/me/grocery/view/grocery_nested_category_screen.dart';
-import 'package:BlueEra/features/me/grocery/view/grocery_stores_screen.dart';
-import 'package:BlueEra/features/me/grocery/view/grocery_products_selection_screen.dart';
-import 'package:BlueEra/features/me/grocery/view/grocery_super_category_screen.dart';
-import 'package:BlueEra/features/common/store/view/product_super_category_screen.dart';
-import 'package:BlueEra/features/common/store/view/product_nested_category_screen.dart';
-import 'package:BlueEra/features/common/store/view/product_selection_screen.dart';
-import 'package:BlueEra/features/me/product/view/product/product_cart_screen.dart';
+import 'package:BlueEra/features/me/grocery/view/admin/add_grocery_variant_screen.dart';
+import 'package:BlueEra/features/me/grocery/view/admin/grocery_nested_category_screen.dart';
+import 'package:BlueEra/features/me/grocery/view/customer/grocery_stores_screen.dart';
+import 'package:BlueEra/features/me/grocery/view/admin/grocery_products_selection_screen.dart';
+import 'package:BlueEra/features/me/grocery/view/admin/grocery_super_category_screen.dart';
+import 'package:BlueEra/features/me/product/view/admin/product_super_category_screen.dart';
+import 'package:BlueEra/features/me/product/view/admin/product_nested_category_screen.dart';
+import 'package:BlueEra/features/me/product/view/admin/product_selection_screen.dart';
 import 'package:BlueEra/features/me/product/model/product_nested_category_response.dart';
-import 'package:BlueEra/features/me/grocery/view/grocery_screen.dart';
-import 'package:BlueEra/features/me/grocery/view/my_grocery_listing/my_grocery_products_screen.dart';
+import 'package:BlueEra/features/me/grocery/view/admin/grocery_screen.dart';
 import 'package:BlueEra/features/me/medical_new/model/medical_nested_category_model.dart';
 import 'package:BlueEra/features/me/medical_new/model/my_medical_products_response.dart';
 import 'package:BlueEra/features/me/medical_new/view/add_medical_screen.dart';
@@ -135,15 +138,14 @@ import 'package:BlueEra/features/common/delivery_partner/view/rider_me_screen.da
 import 'package:BlueEra/features/common/delivery_partner/view/rider_service_screen.dart';
 import 'package:BlueEra/features/me/product/controller/product_controller.dart';
 import 'package:BlueEra/features/me/product/model/get_product_model.dart';
-import 'package:BlueEra/features/me/product/view/product/add_product_text_or_snap_screen.dart';
-import 'package:BlueEra/features/me/product/view/product/add_product_via_ai_step1.dart';
-import 'package:BlueEra/features/me/product/view/product/add_product_via_ai_step2.dart';
-import 'package:BlueEra/features/me/product/view/product/create_varient_screen.dart';
-import 'package:BlueEra/features/me/product/view/product/product_screen.dart';
+import 'package:BlueEra/features/me/product/view/admin/add_product_text_or_snap_screen.dart';
+import 'package:BlueEra/features/me/product/view/admin/add_product_via_ai_step1.dart';
+import 'package:BlueEra/features/me/product/view/admin/add_product_via_ai_step2.dart';
+import 'package:BlueEra/features/me/product/view/admin/create_varient_screen.dart';
 import 'package:BlueEra/features/me/product/model/generate_ai_product_content.dart';
-import 'package:BlueEra/features/me/product/view/product/product_preview_screen.dart';
-import 'package:BlueEra/features/me/product/view/product/products_store_details_screen.dart';
-import 'package:BlueEra/features/me/product/view/product/inventory_business_cards_screen.dart';
+import 'package:BlueEra/features/me/product/view/admin/product_preview_screen.dart';
+import 'package:BlueEra/features/me/product/view/customer/products_store_details_screen.dart';
+import 'package:BlueEra/features/me/product/view/admin/inventory_business_cards_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/my_documents/view/add_document_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/payment/view/add_bank_account_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/payment/view/payment_setting_screen.dart';
@@ -178,11 +180,14 @@ class RouteHelper {
   static final RouteObserver<PageRoute> routeObserver =
       RouteObserver<PageRoute>();
 
-  static String getMobileNumberLoginRoute() => RouteConstant.MobileNumberScreen;
+  static String getMobileNumberLoginRoute() => 
+      RouteConstant.MobileNumberScreen;
 
-  // static String getOnboardingStartedScreenRoute() => RouteConstant.OnboardingStartedScreen;
+  // static String getOnboardingStartedScreenRoute() => 
+  // RouteConstant.OnboardingStartedScreen;
 
-  static String getOtpPageScreenRoute() => RouteConstant.OtpPageScreen;
+  static String getOtpPageScreenRoute() => 
+      RouteConstant.OtpPageScreen;
 
   // static String getSelectAccountScreenRoute() =>
   //     RouteConstant.SelectAccountScreen;
@@ -190,13 +195,17 @@ class RouteHelper {
   // static String getCreateUserAccountRoute() =>
   //     RouteConstant.CreateUserAccount;
 
-  static String getHomeScreenRoute() => RouteConstant.HomeScreen;
+  static String getHomeScreenRoute() => 
+      RouteConstant.HomeScreen;
 
-  static String getSplashScreenRoute() => RouteConstant.SplashScreen;
+  static String getSplashScreenRoute() => 
+      RouteConstant.SplashScreen;
 
-  static String getPermissionScreenRoute() => RouteConstant.PermissionScreen;
+  static String getPermissionScreenRoute() => 
+      RouteConstant.PermissionScreen;
 
-  static String getAudioCallScreenRoute() => RouteConstant.AudioCallScreen;
+  static String getAudioCallScreenRoute() => 
+      RouteConstant.AudioCallScreen;
 
   // static String getBusinessAccountRoute() =>
   //     RouteConstant.BusinessAccount;
@@ -210,7 +219,8 @@ class RouteHelper {
   static String getPersonalProfileCreateScreenRoute() =>
       RouteConstant.PersonalProfileCreateScreen;
 
-  static String getFeedScreenRoute() => RouteConstant.FeedScreen;
+  static String getFeedScreenRoute() => 
+      RouteConstant.FeedScreen;
 
   static String getBusinessVerificationScreenRoute() =>
       RouteConstant.BusinessVerificationScreen;
@@ -224,9 +234,11 @@ class RouteHelper {
   static String getManageChannelScreenRoute() =>
       RouteConstant.ManageChannelScreen;
 
-  static String getChannelScreenRoute() => RouteConstant.ChannelScreen;
+  static String getChannelScreenRoute() => 
+      RouteConstant.ChannelScreen;
 
-  static String getCreateReelScreenRoute() => RouteConstant.CreateReelScreen;
+  static String getCreateReelScreenRoute() => 
+      RouteConstant.CreateReelScreen;
 
   static String getCustomizeMapScreenRoute() =>
       RouteConstant.CustomizeMapScreen;
@@ -234,7 +246,8 @@ class RouteHelper {
   static String getSearchLocationScreenRoute() =>
       RouteConstant.SearchLocationScreen;
 
-  static String getAddSongScreenRoute() => RouteConstant.addSongScreen;
+  static String getAddSongScreenRoute() => 
+      RouteConstant.addSongScreen;
 
   static String getAddPlaceStepOneScreenRoute() =>
       RouteConstant.addPlaceStepOne;
@@ -245,12 +258,14 @@ class RouteHelper {
   static String getCategorySelectionScreenRoute() =>
       RouteConstant.categorySelectionScreen;
 
-  static String getJobQnaScreenRoute() => RouteConstant.JobQnaScreen;
+  static String getJobQnaScreenRoute() => 
+      RouteConstant.JobQnaScreen;
 
   static String getJobDetailsOverviewScreenRoute() =>
       RouteConstant.JobDetailsOverviewScreen;
 
-  static String getAppliedJobsScreenRoute() => RouteConstant.AppliedJobsScreen;
+  static String getAppliedJobsScreenRoute() => 
+      RouteConstant.AppliedJobsScreen;
 
   static String getAddUpdateProductScreenRoute() =>
       RouteConstant.addUpdateProductScreen;
@@ -258,7 +273,8 @@ class RouteHelper {
   static String getFollowerFollowingScreenRoute() =>
       RouteConstant.FollowerFollowingScreen;
 
-  static String getChatContactsRoute() => RouteConstant.ChatContactsScreen;
+  static String getChatContactsRoute() => 
+      RouteConstant.ChatContactsScreen;
 
   static String getCreateJobPostScreenRoute() =>
       RouteConstant.CreateJobPostScreen;
@@ -275,25 +291,32 @@ class RouteHelper {
   static String getCreateJobPostStep5Route() =>
       RouteConstant.CreateJobPostStep5;
 
-  static String getTagPeopleScreenRoute() => RouteConstant.tagPeopleScreen;
+  static String getTagPeopleScreenRoute() => 
+      RouteConstant.tagPeopleScreen;
 
   static String getVideoReelRecorderScreenRoute() =>
       RouteConstant.videoRecorderScreen;
 
-  static String getFullVideoPreviewRoute() => RouteConstant.fullVideoPreview;
+  static String getFullVideoPreviewRoute() => 
+      RouteConstant.fullVideoPreview;
 
-  static String getVideoTrimScreenRoute() => RouteConstant.videoTrimScreen;
+  static String getVideoTrimScreenRoute() => 
+      RouteConstant.videoTrimScreen;
 
-  static String getAllSongsScreenRoute() => RouteConstant.allSongsScreen;
+  static String getAllSongsScreenRoute() => 
+      RouteConstant.allSongsScreen;
 
   static String getCreateMessagePostScreenRoute() =>
       RouteConstant.CreateMessagePostScreen;
 
-  static String getPollInputScreenRoute() => RouteConstant.PollInputScreen;
+  static String getPollInputScreenRoute() => 
+      RouteConstant.PollInputScreen;
 
-  static String getPollReviewScreenRoute() => RouteConstant.PollReviewScreen;
+  static String getPollReviewScreenRoute() => 
+      RouteConstant.PollReviewScreen;
 
-  static String getPhotoPostScreenRoute() => RouteConstant.PhotoPostScreen;
+  static String getPhotoPostScreenRoute() => 
+      RouteConstant.PhotoPostScreen;
 
   static String getPhotoPostPreviewScreenRoute() =>
       RouteConstant.PhotoPostPreviewScreen;
@@ -301,7 +324,8 @@ class RouteHelper {
   static String getPhotoPostReviewScreenRoute() =>
       RouteConstant.PhotoPostReviewScreen;
 
-  static String getVideoPlayerScreenRoute() => RouteConstant.videoPlayerScreen;
+  static String getVideoPlayerScreenRoute() =>
+      RouteConstant.videoPlayerScreen;
 
   // In route_helper.dart
   static String getJourneyPlanningScreenRoute() =>
@@ -323,7 +347,8 @@ class RouteHelper {
   static String getProductListingScreenRoute() =>
       RouteConstant.ProductListingScreen;
 
-  static String getMyBookingScreenRoute() => RouteConstant.MyBookingScreen;
+  static String getMyBookingScreenRoute() =>
+      RouteConstant.MyBookingScreen;
 
   static String getReceivedBookingScreenRoute() =>
       RouteConstant.ReceivedBookingScreen;
@@ -337,9 +362,11 @@ class RouteHelper {
   static String getVideographyTutorialScreen2Route() =>
       RouteConstant.VideographyTutorialScreen2;
 
-  static String getMyEnquiresRoute() => RouteConstant.MyEnquiresScreen;
+  static String getMyEnquiresRoute() =>
+      RouteConstant.MyEnquiresScreen;
 
-  static String sentEnquiresRoute() => RouteConstant.EnquiryForm;
+  static String sentEnquiresRoute() => 
+      RouteConstant.EnquiryForm;
 
   static String getBookingAndEnquiresRoute() =>
       RouteConstant.BookingAndEnquiresScreen;
@@ -356,16 +383,20 @@ class RouteHelper {
   static String getAddAccountUpiScreenRoute() =>
       RouteConstant.addAccountUpiScreen;
 
-  static String getWalletScreenRoute() => RouteConstant.walletScreen;
+  static String getWalletScreenRoute() => 
+      RouteConstant.walletScreen;
 
   static String getAllTransactionsScreen() =>
       RouteConstant.allTransactionsScreen;
 
-  static String getAddDocumentScreenRoute() => RouteConstant.addDocumentScreen;
+  static String getAddDocumentScreenRoute() => 
+      RouteConstant.addDocumentScreen;
 
-  static String getPostDetailPageRoute() => RouteConstant.postDetailPage;
+  static String getPostDetailPageRoute() => 
+      RouteConstant.postDetailPage;
 
-  static String getMoreCardsScreenRoute() => RouteConstant.moreCardsScreen;
+  static String getMoreCardsScreenRoute() => 
+      RouteConstant.moreCardsScreen;
 
   static String getAddProductTextOrSnapScreenRoute() =>
       RouteConstant.addProductTextOrSnapSearchScreen;
@@ -373,9 +404,11 @@ class RouteHelper {
   // static String getListingFormScreenRoute() =>
   //      RouteConstant.listingFormScreen;
 
-  static String getProductScreenRoute() => RouteConstant.productScreen;
+  static String getProductScreenRoute() => 
+      RouteConstant.productScreen;
 
-  static String getAddServicesScreenRoute() => RouteConstant.addServicesScreen;
+  static String getAddServicesScreenRoute() =>
+      RouteConstant.addServicesScreen;
 
   static String getAddProductViaAiStep1Route() =>
       RouteConstant.addProductViaAiStep1;
@@ -401,7 +434,8 @@ class RouteHelper {
   static String getStoreProductSelectionScreenRoute() =>
       RouteConstant.storeProductSelectionScreen;
 
-  static String getProductCartScreenRoute() => RouteConstant.productCartScreen;
+  static String getProductCartScreenRoute() =>
+      RouteConstant.productCartScreen;
 
   static String getSelfEmployeeScreenRoute() =>
       RouteConstant.selfEmployeeScreen;
@@ -409,7 +443,8 @@ class RouteHelper {
   static String getInventoryBusinessCardsScreenRoute() =>
       RouteConstant.inventoryBusinessCardsScreen;
 
-  static String getFoodUploadScreenRoute() => RouteConstant.foodUploadScreen;
+  static String getFoodUploadScreenRoute() => 
+      RouteConstant.foodUploadScreen;
 
   static String getAddFlatRoomRentalServiceScreenRoute() =>
       RouteConstant.addFlatRoomRentalServiceScreen;
@@ -447,8 +482,10 @@ class RouteHelper {
   // ── be_vehicle_service routes ────────────────────────────────────
   static String getVehicleHomeScreenRoute() =>
       RouteConstant.vehicleHomeScreen;
+  
   static String getVehicleListingScreenRoute() =>
       RouteConstant.vehicleListingScreen;
+  
   static String getVehicleDetailScreenRoute() =>
       RouteConstant.vehicleDetailScreen;
 
@@ -467,11 +504,14 @@ class RouteHelper {
   static String getPersonalAccountNewScreenRoute() =>
       RouteConstant.personalAccountNewScreen;
 
-  static String getGstNumberScreenRoute() => RouteConstant.gstNumberScreen;
+  static String getGstNumberScreenRoute() => 
+      RouteConstant.gstNumberScreen;
 
-  static String getAddBioViaAiScreenRoute() => RouteConstant.addBioViaAiScreen;
+  static String getAddBioViaAiScreenRoute() =>
+      RouteConstant.addBioViaAiScreen;
 
-  static String getGroceryScreenRoute() => RouteConstant.groceryScreen;
+  static String getGroceryScreenRoute() => 
+      RouteConstant.groceryScreen;
 
   static String getGroceryNestedCategoryScreenRoute() =>
       RouteConstant.groceryNestedCategoryScreen;
@@ -500,9 +540,11 @@ class RouteHelper {
   static String getRiderServiceScreenRoute() =>
       RouteConstant.riderServiceScreen;
 
-  static String getRiderMeScreenRoute() => RouteConstant.riderMeScreen;
+  static String getRiderMeScreenRoute() => 
+      RouteConstant.riderMeScreen;
 
-  static String getGroceryCartScreenRoute() => RouteConstant.groceryCartScreen;
+  static String getGroceryCartScreenRoute() => 
+      RouteConstant.groceryCartScreen;
 
   // static String getYourAddToCardScreenRoute() =>
   //     RouteConstant.yourAddToCardScreen;
@@ -519,7 +561,8 @@ class RouteHelper {
   static String getMedicalOtcItemsScreen() =>
       RouteConstant.medicalOtcItemsScreen;
 
-  static String getHospitalOptCategory() => RouteConstant.hospitalOptCategory;
+  static String getHospitalOptCategory() => 
+      RouteConstant.hospitalOptCategory;
 
   static String getHospitalDoctorViewCategory() =>
       RouteConstant.hospitalDoctorViewCategory;
@@ -527,12 +570,14 @@ class RouteHelper {
   static String getHospitalWardViewCategory() =>
       RouteConstant.hospitalWardViewCategory;
 
-  static String getRiderStoreScreenRoute() => RouteConstant.riderStoreScreen;
+  static String getRiderStoreScreenRoute() => 
+      RouteConstant.riderStoreScreen;
 
   static String getGroceryConfirmScreenRoute() =>
       RouteConstant.groceryConfirmScreen;
 
-  static String getAddSelfServiceRoute() => RouteConstant.addSelfServiceScreen;
+  static String getAddSelfServiceRoute() =>
+      RouteConstant.addSelfServiceScreen;
 
   static String getCreateAccountTypeScreenRoute() =>
       RouteConstant.createAccountTypeScreen;
@@ -540,7 +585,8 @@ class RouteHelper {
   static String getGigWorkerOptionsScreenRoute() =>
       RouteConstant.gigWorkerOptionsScreen;
 
-  static String getMedicalScreenRoute() => RouteConstant.medicalScreen;
+  static String getMedicalScreenRoute() => 
+      RouteConstant.medicalScreen;
 
   static String getMedicalCategoryScreenRoute() =>
       RouteConstant.medicalCategoryScreen;
@@ -548,7 +594,8 @@ class RouteHelper {
   static String getMedicalSubCategoryScreenRoute() =>
       RouteConstant.medicalSubCategoryScreen;
 
-  static String getAddMedicalScreenRoute() => RouteConstant.addMedicalScreen;
+  static String getAddMedicalScreenRoute() => 
+      RouteConstant.addMedicalScreen;
 
   static String getAddMedicalVariantScreenRoute() =>
       RouteConstant.addMedicalVariantScreen;
@@ -562,12 +609,14 @@ class RouteHelper {
   static String getMedicalListingScreenRoute() =>
       RouteConstant.medicalListingScreen;
 
-  static String getMedicalCartScreenRoute() => RouteConstant.medicalCartScreen;
+  static String getMedicalCartScreenRoute() => 
+      RouteConstant.medicalCartScreen;
 
   static String getMedicalConfirmScreenRoute() =>
       RouteConstant.medicalConfirmScreen;
 
-  static String getMedicalHomeScreenRoute() => RouteConstant.medicalHomeScreen;
+  static String getMedicalHomeScreenRoute() =>
+      RouteConstant.medicalHomeScreen;
 
   static String getHospitalDepartmentsScreenRoute() =>
       RouteConstant.hospitalDepartmentsScreen;
@@ -614,7 +663,8 @@ class RouteHelper {
   static String getMyProductProductsScreenRoute() =>
       RouteConstant.myProductProductsScreen;
 
-  static String getFoodEntryAiScreenRoute() => RouteConstant.foodEntryAiScreen;
+  static String getFoodEntryAiScreenRoute() => 
+      RouteConstant.foodEntryAiScreen;
 
   static String getFoodAiDetailScreenRoute() =>
       RouteConstant.foodAiDetailScreen;
@@ -625,7 +675,8 @@ class RouteHelper {
   static String getNearByRidersScreenRoute() =>
       RouteConstant.nearByRidersScreen;
 
-  static String getYourCartScreenRoute() => RouteConstant.yourCartScreen;
+  static String getYourCartScreenRoute() => 
+      RouteConstant.yourCartScreen;
 
   // Business onboarding (WhatsApp-style) routes
   static String getBusinessOnboardingCategoryScreenRoute() =>
@@ -645,6 +696,12 @@ class RouteHelper {
 
   static String getBusinessOnboardingDescriptionScreenRoute() =>
       RouteConstant.BusinessOnboardingDescriptionScreen;
+
+  static String getChooseEarnServiceScreenRoute() =>
+      RouteConstant.chooseEarnServiceScreen;
+
+  static String getEarnServiceDashboardViewRoute() =>
+      RouteConstant.earnServiceDashboardView;
 
   ///REDIRECT ROUTING SETUP.....
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -1605,6 +1662,7 @@ class RouteHelper {
                 ),
             settings:
                 RouteSettings(name: getVisitGroceryProductsScreenRoute()));
+
       case RouteConstant.allGroceryCategorizeProductsScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final List<GroceryNestedCategoryModel> argCategories =
@@ -1615,6 +1673,7 @@ class RouteHelper {
                 ),
             settings: RouteSettings(
                 name: getAllGroceryCategorizeProductsScreenRoute()));
+
       // case RouteConstant.groceryCustomerListingScreen:
       //   final args = settings.arguments as Map<String, dynamic>;
       //   final List<GroceryNestedCategoryModel> argGroceries =
@@ -1627,6 +1686,7 @@ class RouteHelper {
       //           // selectedGroceryData: argSelectedGroceryData
       //       ),
       //       settings: RouteSettings(name: getGroceryCustomerListingScreenRoute()));
+
       case RouteConstant.riderServiceScreen:
         // final args = settings.arguments as Map<String, dynamic>;
         // final List<CollapsibleGridModel> argGroceries = args[ApiKeys.argGroceries] as List<CollapsibleGridModel>;
@@ -1937,7 +1997,8 @@ class RouteHelper {
             args[ApiKeys.argCategoryData] as GroceryNestedCategoryModel;
         return MaterialPageRoute(
             builder: (_) =>
-                FoodProductSelectionScreen(foodCategoryData: foodCategoryData),
+                FoodProductSelectionScreen(
+                    foodCategoryData: foodCategoryData),
             settings: RouteSettings(name: getProductSelectionScreenRoute()));
 
       case RouteConstant.productNestedCategoryWithInventoryScreen:
@@ -2063,6 +2124,7 @@ class RouteHelper {
           ),
           settings: RouteSettings(name: getVehicleListingScreenRoute()),
         );
+
       case RouteConstant.vehicleDetailScreen:
         final args = settings.arguments as Map<String, dynamic>;
         return MaterialPageRoute(
@@ -2070,11 +2132,19 @@ class RouteHelper {
               VehicleDetailScreen(vehicleId: args['vehicleId'] as String),
           settings: RouteSettings(name: getVehicleDetailScreenRoute()),
         );
-      // case RouteConstant.yourCartScreen:
-      //   return MaterialPageRoute(
-      //     builder: (_) => const YourCartScreen(),
-      //     settings: RouteSettings(name: RouteHelper.getYourCartScreenRoute()),
-      //   );
+
+      case RouteConstant.chooseEarnServiceScreen:
+        return MaterialPageRoute(
+          builder: (_) => const ChooseEarnServiceScreen(),
+          settings: RouteSettings(name: RouteHelper.getChooseEarnServiceScreenRoute()),
+        );
+
+      case RouteConstant.earnServiceDashboardView:
+        return MaterialPageRoute(
+          builder: (_) => const EarnServiceDashboardView(),
+          settings: RouteSettings(name: RouteHelper.getEarnServiceDashboardViewRoute()),
+        );
+
       default:
         return MaterialPageRoute(
           builder: (_) => const Scaffold(

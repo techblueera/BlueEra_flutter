@@ -10,10 +10,9 @@ import 'package:BlueEra/features/me/automotive_service/view/about_us/about_us.da
 import 'package:BlueEra/features/me/automotive_service/view/announcements/announcements_screen.dart';
 import 'package:BlueEra/features/me/automotive_service/view/other_career_jobs/other_job_listing_screen.dart';
 import 'package:BlueEra/features/me/automotive_service/view/other_privacy_condition/other_privacy_condition_screen.dart';
-import 'package:BlueEra/features/me/product/view/product/add_product_text_or_snap_screen.dart';
+import 'package:BlueEra/features/me/product/view/admin/add_product_text_or_snap_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
 import '../../../../core/constants/app_enum.dart';
 import '../../laboratory/view/widgets/me_menu_card_design.dart';
 

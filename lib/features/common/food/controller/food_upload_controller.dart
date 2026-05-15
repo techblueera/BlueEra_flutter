@@ -336,9 +336,6 @@ class FoodUploadController extends GetxController {
          }
          UploadProgressDialog.close();
          commonSnackBar(message: AppStrings.foodAddedSuccess.tr);
-          // if(providerType == ProviderType.user){
-          //   await setEarnServiceOptData(true);
-          // }
          Get.close(2);
 
        } else {

@@ -8,7 +8,7 @@ import 'package:BlueEra/core/routes/route_constant.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/controller/bottom_bar_controller.dart';
 import 'package:BlueEra/features/me/product/model/get_product_model.dart';
-import 'package:BlueEra/features/me/product/repo/inventory_repo.dart';
+import 'package:BlueEra/features/me/product/repo/product_repo.dart';
 import 'package:BlueEra/widgets/app_loader.dart';
 import 'package:get/get.dart';
 

@@ -1,5 +1,4 @@
 import 'dart:ui';
-
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -41,7 +40,6 @@ import 'package:BlueEra/features/personal/personal_profile/widgets/profile_locat
 import 'package:BlueEra/widgets/common_circular_profile_image.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
-import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/post_via_dialog.dart';
 import 'package:BlueEra/widgets/refer_earn_pill.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -51,11 +49,9 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
 class SelfEmployeeScreen extends StatefulWidget {
-  final bool fromBottomNavBar;
 
   const SelfEmployeeScreen({
     super.key,
-    this.fromBottomNavBar = false,
   });
 
   @override
@@ -572,13 +568,6 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
         ),
       ),
       SizedBox(height: SizeConfig.size16),
-      // Incoming inquiries — only chats whose latest message was
-      // authored by *someone else*. Mirror of the Connect Inquiry tab,
-      // which keeps the user's own outgoing inquiries. `isInParentScroll`
-      // makes BusinessChatsList drop its inner `Expanded` and switch
-      // the chat ListView to NeverScrollableScrollPhysics so the
-      // surrounding CustomScrollView owns the scroll — no fixed
-      // SizedBox height required.
       BusinessChatsList(
         isForwardUI: false,
         excludeSenderId: userId,
@@ -1202,9 +1191,6 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
     return [
       _buildIdentityCard(context),
       _buildStatsCard(),
-      // Dedicated bio tile lives between identity-level cards and the
-      // action/contact rows so it reads as identity content (about me)
-      // rather than secondary detail.
       Padding(
         padding: const EdgeInsets.only(top: 10, left: 20, right: 10),
         child: const ProfileBioCard(margin: EdgeInsets.zero),
@@ -1361,10 +1347,6 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
     );
   }
 
-  // [preselect] mutates the shared [RentalController.selectedRentalTabs]
-  // before pushing, so [RentalTabBody]'s initState picks up the right
-  // filter on first build of the destination screen. Skipping the arg
-  // just opens with whatever filter the controller was last in.
   void _openRentalDashboard({RentalServiceType? preselect}) {
     if (preselect != null) {
       final ctrl = getOrPut(() => RentalController());
@@ -1397,12 +1379,6 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
           borderRadius: BorderRadius.circular(10),
           child: Column(
           children: [
-            // ── Banner + avatar overlay zone. The Stack's height
-            //    explicitly includes the avatar overlap so the
-            //    avatar sits inside the hit-test region (Clip.none
-            //    only allows painting outside, not tapping). Banner
-            //    pinned to the top half; avatar pinned to the bottom
-            //    of the Stack so it straddles the seam.
             SizedBox(
               height: bannerHeight + avatarOverlap,
               width: double.infinity,
@@ -1461,9 +1437,6 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
                 ],
               ),
             ),
-            // ── Identity block — flows below the banner Stack; no
-            //    overlap to clear since the avatar is fully inside
-            //    the Stack's bounds.
             _buildIdentityBlock(),
           ],
           ),

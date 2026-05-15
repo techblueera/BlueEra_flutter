@@ -21,8 +21,8 @@ import 'package:BlueEra/features/me/product/model/generate_ai_product_content.da
 import 'package:BlueEra/features/me/product/model/inventory_based_search_product_response.dart';
 import 'package:BlueEra/features/me/product/model/product_nested_category_response.dart';
 import 'package:BlueEra/features/me/product/model/single_product_model.dart';
-import 'package:BlueEra/features/me/product/repo/inventory_repo.dart';
-import 'package:BlueEra/features/me/product/view/product/product_preview_screen.dart';
+import 'package:BlueEra/features/me/product/repo/product_repo.dart';
+import 'package:BlueEra/features/me/product/view/admin/product_preview_screen.dart';
 import 'package:BlueEra/widgets/collapsible_grid_model.dart';
 import 'package:BlueEra/widgets/select_product_image_dialog.dart';
 import 'package:dio/dio.dart' as dio;
@@ -805,14 +805,18 @@ class ProductController extends GetxController{
   }
 
   Future<void> navigateToEarnWithBlueEraSectionAfterAddProduct() async {
-    // await setEarnServiceOptData(true);
-    // await setRiderServiceOptData(true);
+    Get.until(
+          (route) =>
+      route.settings.name ==
+          RouteHelper.getEarnServiceDashboardViewRoute(),
+    );
 
-    if (userProfessionGlobal == BIKE_RIDER) {
-      Get.until((route) => Get.currentRoute == RouteHelper.getGigWorkerOptionsScreenRoute());
-    } else {
-      Get.until((route) => Get.currentRoute == RouteHelper.getSelfEmployeeScreenRoute());
-    }
+    // if (userProfessionGlobal == BIKE_RIDER) {
+    //   Get.until((route) => Get.currentRoute == RouteHelper.getGigWorkerOptionsScreenRoute());
+    // } else {
+    //   Get.until((route) => Get.currentRoute == RouteHelper.getSelfEmployeeScreenRoute());
+    // }
+
   }
 
   void navigateToChannelSectionAfterAddProduct(){

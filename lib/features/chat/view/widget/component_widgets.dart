@@ -5,7 +5,9 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/chat/auth/model/GetListOfMessageData.dart';
+import 'package:BlueEra/features/me/product/view/customer/visit_product_store_details_screen.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -25,7 +27,6 @@ import '../../../../core/constants/shared_preference_utils.dart';
 import '../../../../core/routes/route_helper.dart';
 import '../../../../widgets/custom_text_cm.dart';
 import '../../../business/visit_business_profile/view/visit_business_profile_new.dart';
-import '../../../me/product/view/visit_product_store_details_screen.dart';
 import '../../../common/bottomNavigationBar/controller/bottom_bar_controller.dart';
 import '../../../personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
 import '../../auth/controller/chat_theme_controller.dart';
@@ -97,14 +98,14 @@ Widget timeAndReadInfoWidget({required Messages message,
             size: 16,
           );
         } else if (effectiveStatus == 'read') {
-          return SvgPicture.asset(
-            AppIconAssets.chat_double_tick,
-            color: Colors.blue,
+          return LocalAssets(
+            imagePath: AppIconAssets.chat_double_tick,
+            imgColor: Colors.blue,
           );
         } else if (effectiveStatus == 'delivered') {
-          return SvgPicture.asset(
-            AppIconAssets.chat_double_tick,
-            color: Colors.grey,
+          return LocalAssets(
+            imagePath: AppIconAssets.chat_double_tick,
+            imgColor: Colors.grey,
           );
         } else {
           // sent or null
@@ -125,9 +126,9 @@ Widget noChatsFound([bool? reminderMsg]) {
     child: Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        SvgPicture.asset(
-          AppIconAssets.chat,
-          color: Colors.black,
+        LocalAssets(
+          imagePath: AppIconAssets.chat,
+          imgColor: Colors.black,
           height: 70,
           width: 70,
         ),
@@ -167,10 +168,10 @@ Widget noGroupChatsFound() {
     child: Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        SvgPicture.asset(
-          AppIconAssets.chat,
-          color: Colors.black,
+        LocalAssets(
+          imagePath: AppIconAssets.chat,
           height: 70,
+          imgColor: Colors.black,
           width: 70,
         ),
         const SizedBox(
@@ -1705,7 +1706,9 @@ AppBar getChatTitleAppBar(BuildContext context, {
       if(isFromAiChat==true)
         PopupMenuButton<String>(
           menuPadding: EdgeInsets.zero,
-          icon: SvgPicture.asset(AppIconAssets.editIcon,color: AppColors.black,),
+          icon: LocalAssets(
+            imagePath: AppIconAssets.editIcon,
+            imgColor: AppColors.black,),
           padding: EdgeInsets.zero,
           color: AppColors.white,
           elevation: 8,
@@ -1761,7 +1764,12 @@ AppBar getChatTitleAppBar(BuildContext context, {
       // const SizedBox(width: 12),
       if(isGroupAppBar == null)
         PopupMenuButton<String>(
-            icon: SvgPicture.asset(AppIconAssets.chat_info_pop,height: 20,width: 20,color: AppColors.black,),
+            icon: LocalAssets(
+              imagePath: AppIconAssets.chat_info_pop,
+              height: 20,
+              width: 20,
+              imgColor: AppColors.black,
+            ),
             padding: const EdgeInsets.symmetric(horizontal: 4),
             constraints: const BoxConstraints(),
             offset: const Offset(-6, 36),

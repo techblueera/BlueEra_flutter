@@ -6,25 +6,15 @@ import 'package:BlueEra/features/business/auth/controller/view_business_details_
 import 'package:BlueEra/features/me/product/controller/inventory_controller.dart';
 import 'package:BlueEra/features/me/product/controller/product_selfpickup_controller.dart';
 import 'package:BlueEra/features/me/product/model/get_product_model.dart';
-import 'package:BlueEra/features/me/product/view/widget/product_self_pickup_cart.dart';
-import 'package:BlueEra/features/me/product/widget/product_top_selling_tile.dart';
+import 'package:BlueEra/features/me/product/view/admin/widget/product_top_selling_tile.dart';
+import 'package:BlueEra/features/me/product/view/customer/widget/product_self_pickup_cart.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 
-/// Paginated MasonryGridView of all "Top Selling" products for a business.
-///
-/// Opened from the "View All" action on [ProductHomeScreen] (owner flow —
-/// pass no [visitBusinessId]) or from [VisitProductStoreDetailsScreen]
-/// (customer flow — pass the visiting business's id). Shares
-/// [InventoryController] state so the preview and this screen stay in
-/// sync.
 class AllTopSellingProductsScreen extends StatefulWidget {
-  /// When non-null, paginate products scoped to this visiting business.
-  /// When null, falls back to the current user's own business via the
-  /// global `businessId` inside [InventoryController.fetchProducts].
   final String? visitBusinessId;
 
   const AllTopSellingProductsScreen({super.key, this.visitBusinessId});

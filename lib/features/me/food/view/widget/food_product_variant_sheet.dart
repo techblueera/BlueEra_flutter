@@ -7,15 +7,6 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-/// Reusable, view-only bottom sheet that lists all variants of a
-/// [CategoryFoodProductData]. Extracted from [MyFoodProductScreen] so it
-/// can be reused by [RestaurantHomeScreen]'s Offer Dish tiles,
-/// [DiscountFoodProductsScreen]'s grid tiles, and the owner product
-/// listing screen — all of which show the same variant breakdown.
-///
-/// This sheet does **not** add anything to the cart. It is the owner-side
-/// read-only variants view. For the customer self-pickup add/remove flow,
-/// use `showFoodSelfPickupVariantsSheet` instead.
 Future<void> showFoodProductVariantSheet(
   BuildContext context, {
   required CategoryFoodProductData product,

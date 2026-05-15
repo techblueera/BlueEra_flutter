@@ -6,7 +6,7 @@ import 'package:BlueEra/features/me/food/controller/food_selfpickup_controller.d
 import 'package:BlueEra/features/me/food/model/category_food_product_res_model.dart';
 import 'package:BlueEra/features/me/food/view/widget/food_product_des_widget.dart';
 import 'package:BlueEra/features/me/food/view/widget/food_product_image_widget.dart';
-import 'package:BlueEra/features/me/grocery/widget/price_row.dart';
+import 'package:BlueEra/widgets/price_row.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';

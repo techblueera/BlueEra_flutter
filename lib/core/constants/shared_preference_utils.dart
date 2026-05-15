@@ -37,7 +37,6 @@ String businessOwnerAddressGlobal = '';
 String businessCategoryGlobal = '';
 String businessSubCategoryGlobal = '';
 String serviceProviderStatusGlobal = '';
-String earnServiceCreatedStatusGlobal = 'false';
 String businessTypeGlobal = '';
 
 // String isRiderServiceOpt = '';
@@ -294,7 +293,6 @@ class SharedPreferenceUtils {
       userDesignationGlobal = '';
       userNameAtGlobal = '';
       serviceProviderStatusGlobal = '';
-      earnServiceCreatedStatusGlobal = '"false"';
       businessTypeGlobal = '';
       businessCategoryGlobal = '';
       businessSubCategoryGlobal = '';
@@ -385,12 +383,6 @@ getServiceProviderStatusUtils() async {
   serviceProviderStatusGlobal = await SharedPreferenceUtils.getSecureValue(
           SharedPreferenceUtils.serviceProviderStatus) ??
       "";
-}
-
-getEarnServiceCreatedStatusUtils() async {
-  earnServiceCreatedStatusGlobal = await SharedPreferenceUtils.getSecureValue(
-          SharedPreferenceUtils.earnServiceCreatedStatusKey) ??
-      "false";
 }
 
 Future<String> getUserServiceExistsKey() async {

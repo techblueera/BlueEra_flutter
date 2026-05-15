@@ -552,18 +552,6 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
               color: _emerald,
               title: AppStrings.earnWithBlueEra,
               onTap: () {
-                // The three earn-profile pages (HomeMadeFood / Product
-                // / Service) are body widgets — they assume a Scaffold
-                // ancestor (their InkWells need a Material above) and
-                // are designed to be embedded inside
-                // EarnServiceDashboardView via its `_earnHomeBody(
-                // earnType)` switch. Pushing them directly as routes
-                // throws "No Material widget found." So: for any known
-                // slug navigate to the dashboard and let it host +
-                // dispatch. For unknown / unset, send the user to
-                // chooseEarnServiceScreen so a drawer tap always lands
-                // somewhere actionable instead of the dashboard's
-                // "Coming Soon" placeholder.
                 final earnType =
                     viewProfileController.earnProfileType.value ?? '';
                 debugPrint(
@@ -576,9 +564,9 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
                   'homeService',
                 };
                 if (handledSlugs.contains(earnType)) {
-                  Get.to(() => const EarnServiceDashboardView());
+                  Get.toNamed(RouteHelper.getEarnServiceDashboardViewRoute());
                 } else {
-                  Get.to(() => const chooseEarnServiceScreen());
+                  Get.toNamed(RouteHelper.getChooseEarnServiceScreenRoute());
                 }
               },
             ),

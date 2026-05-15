@@ -22,11 +22,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class EarnServiceDashboardView extends StatefulWidget {
-  final bool fromBottomNavBar;
 
   const EarnServiceDashboardView({
     super.key,
-    this.fromBottomNavBar = false,
   });
 
   @override

@@ -371,9 +371,8 @@ class ViewPersonalDetailsController extends GetxController {
     linkedin.value = data['user']['social_links']['linkedin'] ?? '';
     instagram.value = data['user']['social_links']['instagram'] ?? '';
     website.value = data['user']['social_links']['website'] ?? '';
-    final introVideoController = Get.isRegistered<IntroductionVideoController>()
-        ? Get.find<IntroductionVideoController>()
-        : Get.put(IntroductionVideoController());
+    final introVideoController = getOrPut(() => IntroductionVideoController());
+
 
     // logs("personalProfileDetails.value.user?.introVideo=== 1 ${ personalProfileDetails.value.user?.introVideo }");
     introVideoController.videoUrl.value =
@@ -449,67 +448,6 @@ class ViewPersonalDetailsController extends GetxController {
     } catch (e) {
       postsResponse.value = ApiResponse.error('error');
       commonSnackBar(message: AppStrings.somethingWentWrong);
-    }
-  }
-
-  // String checkIsEranServiceAlreadyCreated(){
-  //   return earnServiceCreatedStatusGlobal;
-  // }
-
-  ///GET STATUS OF EARN SERVICE...
-  // Future<void> getEarnServiceStatus() async {
-  //   try {
-  //     if(earnServiceCreatedStatusGlobal == "true"){
-  //       return;
-  //     }
-  //
-  //     ResponseModel responseModel =
-  //         await EarnServiceRepo().getEarnServiceExistsStatusRepo();
-  //
-  //     if (responseModel.isSuccess) {
-  //       final statusData = responseModel.response?.data['exists'] != null
-  //           ? responseModel.response!.data['exists'].toString()
-  //           : 'false';
-  //       await SharedPreferenceUtils.setSecureValue(
-  //           SharedPreferenceUtils.earnServiceCreatedStatusKey, statusData);
-  //       await getEarnServiceCreatedStatusUtils();
-  //     } else {
-  //       commonSnackBar(
-  //           message: responseModel.message ?? AppStrings.somethingWentWrong);
-  //     }
-  //   } catch (e) {
-  //     update();
-  //   }
-  // }
-
-  void partiallyForceToCreateService() {
-    final viewProfileController =
-        getOrPut(() => ViewPersonalDetailsController(), permanent: true);
-
-    Get.find<AuthController>().individualOnboardingSkillWorkList.any(
-          (service) => service.tagId == userProfessionGlobal,
-        );
-
-    if (viewProfileController.personalProfileDetails.value.isProfileCreated ==
-        false) {
-      Navigator.push(Get.context!,
-          MaterialPageRoute(builder: (context) => CreateProfileScreen()));
-    } else {
-      if (userProfessionGlobal == BIKE_RIDER) {
-        Get.toNamed(RouteHelper.getGigWorkerOptionsScreenRoute());
-      } else {
-        Get.toNamed(RouteHelper.getSelfEmployeeScreenRoute());
-      }
-
-      // Get.toNamed(
-      //   RouteHelper.getAddServicesScreenRoute(),
-      //   arguments: {
-      //     ApiKeys.providerType: ProductServiceProviderType.user,
-      //     ApiKeys.isFromEarnWithBlueEraService: true,
-      //     ApiKeys.designation: userProfessionGlobal,
-      //     ApiKeys.serviceSubType: isSelfService ? EarnWithBlueEraServiceTypes.selfWork : EarnWithBlueEraServiceTypes.homeService,
-      //   },
-      // );
     }
   }
 

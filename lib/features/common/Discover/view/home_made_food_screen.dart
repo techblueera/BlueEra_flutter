@@ -4,15 +4,18 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/Discover/controller/home_made_food_consumer_controller.dart';
 import 'package:BlueEra/features/common/Discover/widget/banner_carousel.dart';
 import 'package:BlueEra/features/common/Discover/widget/sticky_category_header_delegate.dart';
 import 'package:BlueEra/features/me/grocery/widget/discount_badge.dart';
 import 'package:BlueEra/features/me/grocery/widget/food_type_or_cooking_method.dart';
-import 'package:BlueEra/features/me/grocery/widget/price_row.dart';
+import 'package:BlueEra/widgets/price_row.dart';
+import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/choose_earn_service_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_dashboard_view.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/model/food_item_model.dart';
 import 'package:BlueEra/features/common/Discover/model/consumer_tiffin_response_model.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/self_employee_screen.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
@@ -32,11 +35,11 @@ class _HomeMadeFoodScreenState extends State<HomeMadeFoodScreen> {
   final controller = getOrPut(() => HomeMadeFoodConsumerController());
 
   static final List<_FoodCategory> _categories = [
-    _FoodCategory('Tiffin',   AppIconAssets.morningLunchIcon),
-    _FoodCategory('Bakery',   AppIconAssets.bakeryIcon),
-    _FoodCategory('Sweets',   AppIconAssets.sweetsIcon),
-    _FoodCategory('Namkeen',  AppIconAssets.namkeenIcon),
-    _FoodCategory('Pickles',  AppIconAssets.picklesIcon),
+    _FoodCategory('Tiffin', AppIconAssets.morningLunchIcon),
+    _FoodCategory('Bakery', AppIconAssets.bakeryIcon),
+    _FoodCategory('Sweets', AppIconAssets.sweetsIcon),
+    _FoodCategory('Namkeen', AppIconAssets.namkeenIcon),
+    _FoodCategory('Pickles', AppIconAssets.picklesIcon),
   ];
 
   final List<String> _tiffinFilterTabs = [
@@ -175,8 +178,20 @@ class _HomeMadeFoodScreenState extends State<HomeMadeFoodScreen> {
       ),
       child: InkWell(
         onTap: () {
-          if (isGuestUser()) return;
-          Get.to(() => const SelfEmployeeScreen());
+          if (isGuestUser() || isBusinessUser()) return;
+          final viewProfileController = getOrPut(() => ViewPersonalDetailsController());
+          final earnType =
+              viewProfileController.earnProfileType.value ?? '';
+          const handledSlugs = <String>{
+            'homeMadeFood',
+            'homeMadeProduct',
+            'homeService',
+          };
+          if (handledSlugs.contains(earnType)) {
+            Get.toNamed(RouteHelper.getEarnServiceDashboardViewRoute());
+          } else {
+            Get.toNamed(RouteHelper.getChooseEarnServiceScreenRoute());
+          }
         },
         borderRadius: BorderRadius.circular(8),
         child: Container(

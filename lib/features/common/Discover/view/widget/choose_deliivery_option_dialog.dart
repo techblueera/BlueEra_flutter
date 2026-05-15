@@ -3,7 +3,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
-import 'package:BlueEra/features/me/grocery/view/grocery_via_rider/add_grocery_via_rider_category_screen.dart';
+import 'package:BlueEra/features/me/grocery/view/customer/grocery_via_rider/add_grocery_via_rider_category_screen.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';

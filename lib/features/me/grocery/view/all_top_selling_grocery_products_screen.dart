@@ -7,7 +7,7 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
-import 'package:BlueEra/features/me/grocery/widget/grocery_self_pickup_cart.dart';
+import 'package:BlueEra/features/me/grocery/widget/customer_grocery_self_pickup_cart.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_selfpickup_consumer_controller.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_business_products_model.dart';
@@ -18,13 +18,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 
-/// Paginated grid of all "Top Selling Products" for a grocery business.
-///
-/// Opened from the "View All" action on the Top Selling Products section of
-/// either [MyGroceryStoreScreen] (owner view) or [VisitGroceryStoreScreen]
-/// (customer view). Both flows share [GroceryController]; the [otherStore]
-/// flag picks between the authenticated `business-products` endpoint and
-/// the `public/business-products` endpoint.
 class AllTopSellingGroceryProductsScreen extends StatefulWidget {
   final String userId;
   final bool otherStore;
@@ -289,7 +282,7 @@ class _AllTopSellingGroceryProductsScreenState
               bottom: 40,
               left: 0,
               right: 0,
-              child: GrocerySelfPickupCart(
+              child: CustomerGrocerySelfPickupCart(
                 controller: _groceryCustomerController!,
               ),
             ),

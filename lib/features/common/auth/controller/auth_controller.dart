@@ -31,7 +31,7 @@ import 'package:BlueEra/features/chat/auth/socket/chat_socket.dart';
 import 'package:BlueEra/features/common/auth/repo/auth_repo.dart';
 import 'package:BlueEra/features/common/auth/views/screens/complete_guest_profile_screen.dart';
 import 'package:BlueEra/core/services/multipart_image_service.dart';
-import 'package:BlueEra/features/common/auth/views/screens/new_screens/create_account_type_screen.dart';
+import 'package:BlueEra/features/common/auth/views/screens/create_account_type_screen.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/view/bottom_navigation_bar_screen.dart';
 import 'package:BlueEra/features/common/feed/models/block_user_response.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_service_ai_controller.dart';

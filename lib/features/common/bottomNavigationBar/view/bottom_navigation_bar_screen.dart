@@ -19,17 +19,17 @@ import 'package:BlueEra/features/common/bottomNavigationBar/controller/bottom_ba
 import 'package:BlueEra/features/common/bottomNavigationBar/view/bottom_navigation_widget.dart';
 import 'package:BlueEra/features/common/connect/view/connect_main_page.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
-import 'package:BlueEra/features/common/more/controller/more_cards_screen_controller.dart';
 import 'package:BlueEra/features/common/reel/models/channel_model.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
-import 'package:BlueEra/features/me/food/view/food_main_screen.dart';
-import 'package:BlueEra/features/me/grocery/view/grocery_screen.dart';
+import 'package:BlueEra/features/me/food/view/admin/food_main_screen.dart';
+import 'package:BlueEra/features/me/grocery/view/admin/grocery_screen.dart';
 import 'package:BlueEra/features/me/hospital/view/hospital_main.dart';
 import 'package:BlueEra/features/me/hotel/view/hotel_main.dart';
 import 'package:BlueEra/features/me/laboratory/view/laboratory_main.dart';
 import 'package:BlueEra/features/me/medical_new/view/medical_screen.dart';
 import 'package:BlueEra/features/me/automotive_service/automotive_service_main.dart';
 import 'package:BlueEra/features/me/others/others_main.dart';
+import 'package:BlueEra/features/me/product/view/admin/product_screen.dart';
 import 'package:BlueEra/features/me/professionals_consultant/view/professionals_main.dart';
 import 'package:BlueEra/features/me/school/view/school_main.dart';
 import 'package:BlueEra/features/me/social/view/social_main.dart';
@@ -38,12 +38,10 @@ import 'package:BlueEra/features/personal/auth/controller/view_personal_details_
 import 'package:BlueEra/features/common/delivery_partner/view/gig_work_options_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/self_employee_screen.dart';
 import 'package:BlueEra/features/me/product/controller/inventory_controller.dart';
-import 'package:BlueEra/features/me/product/view/product/product_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/personal_profile_setup_new_screen.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/service_provider_dialoge.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
 import 'package:get/get.dart';
@@ -76,9 +74,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final bottomBarController = Get.put(BottomBarController());
   final chatViewController = getOrPut(() => ChatViewController());
-  final moreCardsScreenController = Get.put(MoreCardsScreenController());
-  final viewPersonalDetailsController =
-      getOrPut(() => ViewPersonalDetailsController(), permanent: true);
+  final viewPersonalDetailsController = getOrPut(() => ViewPersonalDetailsController(), permanent: true);
   final inventoryController = Get.put(InventoryController());
   final orderController = getOrPut(() => DeliverPartnerOrdersController());
   final dialogService = Get.put(DialogService());
@@ -276,9 +272,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   }
 
   Future<void> _initializeIndividualUser() async {
-    // viewPersonalDetailsController.getEarnServiceStatus();
     await Future.delayed(Duration(seconds: 2));
-    showEnableServiceDialog();
 
     if (channelId.isNotEmpty) return;
 
@@ -669,7 +663,7 @@ logs("category=== ${category}");
     // Using a Switch statement makes it cleaner and easier to add new types
     switch (currentType) {
       case SELF_EMPLOYED:
-        return const SelfEmployeeScreen(fromBottomNavBar: true);
+        return const SelfEmployeeScreen();
 
       case GIG_WORKER:
         return const GigWorkOptionsScreen(fromBottomNavBar: true);

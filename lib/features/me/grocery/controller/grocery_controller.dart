@@ -19,8 +19,8 @@ import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.
 import 'package:BlueEra/features/me/grocery/model/grocery_product_model.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_products_response.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_category_with_inventory_model.dart';
-import 'package:BlueEra/features/me/grocery/view/edit_grocery_varient_dialog.dart';
-import 'package:BlueEra/features/me/grocery/view/grocery_varient_dialog.dart';
+import 'package:BlueEra/features/me/grocery/view/admin/edit_grocery_varient_dialog.dart';
+import 'package:BlueEra/features/me/grocery/view/admin/grocery_varient_dialog.dart';
 import 'package:BlueEra/widgets/select_product_image_dialog.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:flutter/material.dart';

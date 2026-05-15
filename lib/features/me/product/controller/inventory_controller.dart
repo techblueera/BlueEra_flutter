@@ -22,7 +22,7 @@ import 'package:BlueEra/features/me/product/model/product_category_with_inventor
 import 'package:BlueEra/features/me/product/model/product_model.dart';
 import 'package:BlueEra/features/me/product/model/product_nested_category_response.dart';
 import 'package:BlueEra/features/me/product/model/product_snap_search_response.dart';
-import 'package:BlueEra/features/me/product/repo/inventory_repo.dart';
+import 'package:BlueEra/features/me/product/repo/product_repo.dart';
 import 'package:BlueEra/widgets/select_product_image_dialog.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:flutter/material.dart';
@@ -805,23 +805,27 @@ class InventoryController extends GetxController {
         cloneVariantProductResponse.value = ApiResponse.complete(responseModel);
         productDataNeedsRefresh = true;
         if((providerType==ProviderType.business)){
-          navigateToInventory();
+          navigateToProductSection();
         }else{
-          // await setEarnServiceOptData(true);
-          // await setRiderServiceOptData(true);
-          if (userProfessionGlobal == BIKE_RIDER) {
-            Get.until(
-                  (route) =>
-              route.settings.name ==
-                  RouteHelper.getGigWorkerOptionsScreenRoute(),
-            );
-          } else {
-            Get.until(
-                  (route) =>
-              route.settings.name ==
-                  RouteHelper.getSelfEmployeeScreenRoute(),
-            );
-          }
+          Get.until(
+                (route) =>
+            route.settings.name ==
+                RouteHelper.getEarnServiceDashboardViewRoute(),
+          );
+
+          // if (userProfessionGlobal == BIKE_RIDER) {
+          //   Get.until(
+          //         (route) =>
+          //     route.settings.name ==
+          //         RouteHelper.getGigWorkerOptionsScreenRoute(),
+          //   );
+          // } else {
+          //   Get.until(
+          //         (route) =>
+          //     route.settings.name ==
+          //         RouteHelper.getSelfEmployeeScreenRoute(),
+          //   );
+          // }
 
         }
 
@@ -837,7 +841,7 @@ class InventoryController extends GetxController {
     }
   }
 
-  void navigateToInventory() {
+  void navigateToProductSection() {
     Get.until((route) {
       print("🔍 Scanning route → ${route.settings.name}");
 

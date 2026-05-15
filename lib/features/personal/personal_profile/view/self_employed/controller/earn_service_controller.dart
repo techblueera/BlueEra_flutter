@@ -5,8 +5,7 @@ import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/features/me/product/model/get_product_model.dart';
-import 'package:BlueEra/features/me/product/repo/inventory_repo.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/widget/consulting_service_guide_bottom_sheet.dart';
+import 'package:BlueEra/features/me/product/repo/product_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/home_made_food_profile_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/home_made_product_profile_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/home_service_profile_screen.dart';
@@ -86,22 +85,22 @@ class EarnServiceController extends GetxController{
         Get.to(()=> const HomeServiceProfileScreen());
         break;
 
-      case RENTAL_SERVICES:
-        showModalBottomSheet(
-          context: context,
-          backgroundColor: Colors.transparent,
-          isScrollControlled: true,
-          builder: (_) => RentalServiceGuideBottomSheet(),
-        );
-        break;
+      // case RENTAL_SERVICES:
+      //   showModalBottomSheet(
+      //     context: context,
+      //     backgroundColor: Colors.transparent,
+      //     isScrollControlled: true,
+      //     builder: (_) => RentalServiceGuideBottomSheet(),
+      //   );
+      //   break;
 
-      case PROFESSIONAL:
-        showModalBottomSheet(
-          context: context,
-          backgroundColor: Colors.transparent,
-          isScrollControlled: true,
-          builder: (_) => ConsultingServiceGuideBottomSheet(),
-        );
+      // case PROFESSIONAL:
+      //   showModalBottomSheet(
+      //     context: context,
+      //     backgroundColor: Colors.transparent,
+      //     isScrollControlled: true,
+      //     builder: (_) => ConsultingServiceGuideBottomSheet(),
+      //   );
 
       // case CONTENT_CREATOR:
         // if(isEarnServiceOpt.value=='true' && userDesignationGlobal == CONSULTANT){

@@ -789,7 +789,6 @@ Future<void> _initDeferred(LocalizationService localizationService) async {
     getDeviceInfo(),
     getChannelData(),
     getServiceProviderStatusUtils(),
-    getEarnServiceCreatedStatusUtils(),
     HiveServices.init(),
     HomeCacheService.init(),
     AddressCacheService.init(),

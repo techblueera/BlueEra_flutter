@@ -11,7 +11,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/feed/view/post_detail_screen.dart';
 import 'package:BlueEra/features/common/onboarding/view/select_language_screen.dart';
-import 'package:BlueEra/features/me/product/view/product/share_product_screen.dart';
+import 'package:BlueEra/features/me/product/view/admin/share_product_screen.dart';
 import 'package:BlueEra/features/chat/view/forward_screen/chat_forward_screen.dart';
 import 'package:BlueEra/features/chat/view/personal_chat/personal_chat_screen.dart';
 import 'package:BlueEra/features/chat/view/business_chat/business_chat_screen_updated.dart';

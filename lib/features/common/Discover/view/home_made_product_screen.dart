@@ -8,7 +8,7 @@ import 'package:BlueEra/features/common/Discover/controller/discover_controller.
 import 'package:BlueEra/features/common/Discover/widget/banner_carousel.dart';
 import 'package:BlueEra/features/common/Discover/widget/sticky_category_header_delegate.dart';
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
-import 'package:BlueEra/features/common/store/view/store_product_card.dart';
+import 'package:BlueEra/features/me/product/view/customer/store_product_card.dart';
 import 'package:BlueEra/features/me/product/model/get_product_model.dart';
 import 'package:BlueEra/widgets/collapsible_grid_model.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';

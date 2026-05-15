@@ -458,7 +458,7 @@ class _SocialMainScreenState extends State<SocialMainScreen>
               ),
               const SizedBox(width: 8),
               _EarnActionPill(
-                onTap: () => Get.to(() => const chooseEarnServiceScreen()),
+                onTap: () => Get.toNamed(RouteHelper.getChooseEarnServiceScreenRoute()),
               ),
               const Spacer(),
               if (!isGuestUser())

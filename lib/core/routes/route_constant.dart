@@ -208,9 +208,14 @@ class RouteConstant {
   static const String BusinessOnboardingDescriptionScreen =
       "/BusinessOnboardingDescriptionScreen";
 
+
   // Vehicle service (be_vehicle_service) — see
   // lib/docs/FLUTTER_INTEGRATION_GUIDE.md.
   static const String vehicleHomeScreen = "/VehicleHomeScreen";
   static const String vehicleListingScreen = "/VehicleListingScreen";
   static const String vehicleDetailScreen = "/VehicleDetailScreen";
+
+  // Earn Pages
+  static const String chooseEarnServiceScreen = "/ChooseEarnServiceScreen";
+  static const String earnServiceDashboardView = "/EarnServiceDashboardView";
 }
