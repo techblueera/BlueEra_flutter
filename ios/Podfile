@@ -57,6 +57,8 @@ post_install do |installer|
         'PERMISSION_MICROPHONE=1',
         'PERMISSION_CAMERA=1',
        ]
+        config.build_settings['EXCLUDED_ARCHS[sdk=iphonesimulator*]'] = 'x86_64'
+        config.build_settings['ONLY_ACTIVE_ARCH'] = 'YES'
      end
      # End of the permission_handler configuration
   end

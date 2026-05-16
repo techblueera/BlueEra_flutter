@@ -14,7 +14,7 @@ PODS:
     - Flutter
   - croppy (0.0.1):
     - Flutter
-  - CryptoSwift (1.8.4)
+  - CryptoSwift (1.10.0)
   - CwlCatchException (2.2.1):
     - CwlCatchExceptionSupport (~> 2.2.1)
   - CwlCatchExceptionSupport (2.2.1)
@@ -234,9 +234,9 @@ PODS:
   - PromisesObjC (2.4.0)
   - PromisesSwift (2.4.0):
     - PromisesObjC (= 2.4.0)
-  - razorpay-core-pod (1.0.3)
-  - razorpay-pod (1.5.2):
-    - razorpay-core-pod (= 1.0.3)
+  - razorpay-core-pod (1.0.6)
+  - razorpay-pod (1.5.3):
+    - razorpay-core-pod (= 1.0.6)
   - razorpay_flutter (1.1.10):
     - Flutter
     - razorpay-pod
@@ -491,7 +491,7 @@ SPEC CHECKSUMS:
   camera_avfoundation: be3be85408cd4126f250386828e9b1dfa40ab436
   connectivity_plus: cb623214f4e1f6ef8fe7403d580fdad517d2f7dd
   croppy: 979e8ddc254f4642bffe7d52dc7193354b27ba30
-  CryptoSwift: e64e11850ede528a02a0f3e768cec8e9d92ecb90
+  CryptoSwift: e2e7776512f250e66205955da748e7a4e4abffe0
   CwlCatchException: 7acc161b299a6de7f0a46a6ed741eae2c8b4d75a
   CwlCatchExceptionSupport: 54ccab8d8c78907b57f99717fb19d4cc3bce02dc
   device_info_plus: 21fcca2080fbcd348be798aa36c3e5ed849eefbe
@@ -546,8 +546,8 @@ SPEC CHECKSUMS:
   permission_handler_apple: 4ed2196e43d0651e8ff7ca3483a069d469701f2d
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   PromisesSwift: 9d77319bbe72ebf6d872900551f7eeba9bce2851
-  razorpay-core-pod: ef0309dbf8e3e5a1330f6cad89dcf9226d8ef758
-  razorpay-pod: a9cb6e158aee8754053b147008eff6b4897789c8
+  razorpay-core-pod: 6da5fb4ed280279d665507fdb50e213d793a5fe2
+  razorpay-pod: 4385cf844aa29389313b741e20c72fe668970d49
   razorpay_flutter: 0e98e4fcaae27ad50e011d85f66d85e0a008754a
   record_ios: 412daca2350b228e698fffcd08f1f94ceb1e3844
   SDWebImage: e9fc87c1aab89a8ab1bbd74eba378c6f53be8abf
@@ -568,6 +568,6 @@ SPEC CHECKSUMS:
   WebRTC-SDK: 1762e2de812354d27a8407d1b2c532064ec39fce
   webview_flutter_wkwebview: 1821ceac936eba6f7984d89a9f3bcb4dea99ebb2
 
-PODFILE CHECKSUM: 0f077b572c9274ad278a48a6406ba5ec544ad288
+PODFILE CHECKSUM: 7f68709388672a4532cc594f470869e3d613f451
 
 COCOAPODS: 1.16.2
