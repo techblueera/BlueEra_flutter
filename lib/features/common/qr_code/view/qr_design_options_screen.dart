@@ -13,7 +13,7 @@ class QrDesignOptionsScreen extends StatelessWidget {
 
   const QrDesignOptionsScreen({super.key, required this.userName});
 
-  String get _qrData => 'https://emergency.blueera.ai/$userId';
+  String get _qrData => 'https://emergency.beapp.in/$userId';
 
   @override
   Widget build(BuildContext context) {

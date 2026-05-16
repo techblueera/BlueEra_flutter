@@ -54,21 +54,21 @@ Future<void> projectKeys({required String environmentType}) async {
     }
     chatSocketUrl = Env.chatSocketUrl;
     liveTrackSocket = Env.liveTrackSocket;
-    callBaseUrl = "https://call.blueera.ai/";
+    callBaseUrl = "https://call.beapp.in/";
   } else if (environmentType == AppConstants.dev) {
     isProdEnvironment = false;
     baseUrl = Env.devBaseUrl;
     razorpayKey = Env.devRazorPayKey;
     chatSocketUrl = Env.chatSocketUrl;
     liveTrackSocket = Env.liveTrackSocket;
-    callBaseUrl = "https://call.blueera.ai/";
+    callBaseUrl = "https://call.beapp.in/";
   } else if (environmentType == AppConstants.qa) {
     isProdEnvironment = false;
     baseUrl = Env.devBaseUrl;
     razorpayKey = Env.devRazorPayKey;
     chatSocketUrl = Env.chatSocketUrl;
     liveTrackSocket = Env.liveTrackSocket;
-    callBaseUrl = "https://call.blueera.ai/";
+    callBaseUrl = "https://call.beapp.in/";
     // razorpayKey = "rzp_live_RYv0tzupV710iQ";
   }
   await SharedPreferenceUtils.setBaseUrlSecureValue(baseUrl);

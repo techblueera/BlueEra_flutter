@@ -82,35 +82,35 @@ List<String> generateList(int startYear, int endYear) {
 
 ///GENERATE POST DEEPLINK
 String postDeepLink({String? postId}) =>
-    _withBdmReferral('https://blueera.ai/app/post/${postId ?? ""}');
+    _withBdmReferral('https://beapp.in/app/post/${postId ?? ""}');
 
 /// Generate deep link for a Video item
 String videoDeepLink({String? videoId}) =>
-    _withBdmReferral('https://blueera.ai/app/video/${videoId ?? ""}');
+    _withBdmReferral('https://beapp.in/app/video/${videoId ?? ""}');
 
 /// Generate deep link for a Short/Reel item
 String shortDeepLink({String? shortId}) =>
-    _withBdmReferral('https://blueera.ai/app/video/${shortId ?? ""}');
+    _withBdmReferral('https://beapp.in/app/video/${shortId ?? ""}');
 
 /// Generate deep link for a Job post item
 String jobDeepLink({String? jobId}) =>
-    _withBdmReferral('https://blueera.ai/app/job/${jobId ?? ""}');
+    _withBdmReferral('https://beapp.in/app/job/${jobId ?? ""}');
 
 /// Generate deep link for a Profile.
 String profileDeepLink({String? userId}) =>
-    _withBdmReferral('https://blueera.ai/app/profile/${userId ?? ""}');
+    _withBdmReferral('https://beapp.in/app/profile/${userId ?? ""}');
 
 /// Generate deep link for a Product item
 String productDeepLink({String? productId}) =>
-    _withBdmReferral('https://blueera.ai/app/product/${productId ?? ""}');
+    _withBdmReferral('https://beapp.in/app/product/${productId ?? ""}');
 
 /// Generate deep link for a Service item
 String serviceDeepLink({String? serviceId}) =>
-    _withBdmReferral('https://blueera.ai/app/food/${serviceId ?? ""}');
+    _withBdmReferral('https://beapp.in/app/food/${serviceId ?? ""}');
 
 /// Generate deep link for a Food Service item
 String foodServiceDeepLink({String? foodServiceId}) =>
-    _withBdmReferral('https://blueera.ai/app/food/${foodServiceId ?? ""}');
+    _withBdmReferral('https://beapp.in/app/food/${foodServiceId ?? ""}');
 
 /// Returns the signed-in user's BDM referral code (when their BDM
 /// application status is `COMPLETED`), or `null`. Public companion

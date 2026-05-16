@@ -33,7 +33,7 @@ class QrFullScreenView extends StatelessWidget {
   final GlobalKey _repaintKey = GlobalKey();
   final RxBool _isSaving = false.obs;
 
-  String get _qrData => 'https://emergency.blueera.ai/$userId';
+  String get _qrData => 'https://emergency.beapp.in/$userId';
 
   @override
   Widget build(BuildContext context) {

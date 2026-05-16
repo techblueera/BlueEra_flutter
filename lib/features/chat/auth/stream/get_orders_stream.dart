@@ -10,7 +10,7 @@ import '../../../../core/constants/shared_preference_utils.dart';
 
 Stream<dynamic> getOrderFromUserStream() async* {
   final url = Uri.parse(
-    'https://rider.blueera.ai/riders/orders/requested/stream',
+    'https://rider.beapp.in/riders/orders/requested/stream',
   );
 
   final request = http.Request('GET', url);

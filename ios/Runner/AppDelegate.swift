@@ -45,7 +45,7 @@ import flutter_callkit_incoming
 
     // Universal Links: forward the incoming web URL to the Flutter engine so
     // app_links / go_router / the Navigator can route it. Without this override,
-    // taps on https://blueera.ai/... open Safari even though Associated Domains
+    // taps on https://beapp.in/... open Safari even though Associated Domains
     // is configured.
     override func application(_ application: UIApplication,
                               continue userActivity: NSUserActivity,

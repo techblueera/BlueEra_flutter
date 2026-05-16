@@ -4,7 +4,7 @@ import 'package:BlueEra/video_calling/response_model_jwt.dart';
 import 'package:http/http.dart' as http;
 
 class CallApiService {
-  static const String baseUrl = "https://api.blueera.ai/api/chat-service/call/user";
+  static const String baseUrl = "https://api.beapp.in/api/chat-service/call/user";
 
   static Future<AudioCallResponse?> startAudioCall({
     required String conversationId,

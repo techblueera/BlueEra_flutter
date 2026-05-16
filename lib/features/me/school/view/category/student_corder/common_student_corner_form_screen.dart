@@ -233,7 +233,7 @@ class _CommonStudentCornerFormScreenState
                     textEditController: descriptionEditController,
                     title: "",
                     hintText:
-                        "Hello Everyone @India User Now I am Using https://blueera.ai It’s Amazing, I suggest to Join Me.",
+                        "Hello Everyone @India User Now I am Using https://beapp.in It’s Amazing, I suggest to Join Me.",
                     maxLine: 5,
                     maxLength: 1000,
                     isValidate: false,

@@ -554,7 +554,7 @@ class _AllJobPostScreenState extends State<AllJobPostScreen> {
                                                                         "");
 
                                                             final linkShare =
-                                                                "https://blueera.ai/app/job/${job.sId.toString()}";
+                                                                "https://beapp.in/app/job/${job.sId.toString()}";
 
                                                             await SharePlus
                                                                 .instance

@@ -90,7 +90,7 @@ class TermsAndConditionsScreen extends StatelessWidget {
       icon: Icons.support_agent_outlined,
       title: '13. Contact Us',
       body:
-          'For questions, complaints or grievances regarding these Terms, please reach our Grievance Officer through the in-app Help & Support section, or write to us at support@blueera.ai.\n\nWe respond to grievances within the timelines prescribed under the IT Rules.',
+          'For questions, complaints or grievances regarding these Terms, please reach our Grievance Officer through the in-app Help & Support section, or write to us at support@beapp.in.\n\nWe respond to grievances within the timelines prescribed under the IT Rules.',
     ),
   ];
 

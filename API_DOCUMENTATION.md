@@ -1,7 +1,7 @@
 # Medical Service - Complete API Documentation
 
 **Base URLs:**
-- Production: `https://be.blueera.ai/api/medical-service`
+- Production: `https://be.beapp.in/api/medical-service`
 - Development: `http://localhost:3000`
 - Swagger UI: `/api-docs`
 

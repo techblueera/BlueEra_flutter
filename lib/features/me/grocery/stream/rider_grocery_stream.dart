@@ -7,7 +7,7 @@ import 'package:http/http.dart' as http;
 Stream<dynamic> groceryRiderOrderStream() async* {
 
   final url = Uri.parse(
-    'https://rider.blueera.ai/${BaseService.groceryRiderOrderStream}',
+    'https://rider.beapp.in/${BaseService.groceryRiderOrderStream}',
   );
 
   final request = http.Request('GET', url);

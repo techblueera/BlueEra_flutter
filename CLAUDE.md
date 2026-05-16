@@ -65,7 +65,7 @@ feature/
 ## Key Services & Integrations
 
 - **API:** Dio HTTP client (`lib/core/api/apiService/`)
-- **WebSockets:** socket_io_client for chat (`wss://chat.blueera.ai`) and live tracking (`https://map.blueera.ai/`)
+- **WebSockets:** socket_io_client for chat (`wss://chat.beapp.in`) and live tracking (`https://map.beapp.in/`)
 - **Firebase:** FCM push notifications, Crashlytics
 - **Video Calling:** flutter_webrtc + flutter_callkit_incoming
 - **Local Storage:** Hive (with adapters generated via build_runner) + flutter_secure_storage

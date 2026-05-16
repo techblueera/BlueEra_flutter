@@ -65,7 +65,7 @@ class NearestPharmaciesController extends GetxController {
   final error = ''.obs;
   final responseState = ApiResponse.initial('Initial').obs;
   // curl -X 'GET' \
-  // 'https://be.blueera.ai/api/user-service/business/filter?category=HOSPITAL_SECTOR&page=1&limit=10' \
+  // 'https://be.beapp.in/api/user-service/business/filter?category=HOSPITAL_SECTOR&page=1&limit=10' \
   // -H 'accept: application/json'
   Future<void> fetchNearest({
     required String category,

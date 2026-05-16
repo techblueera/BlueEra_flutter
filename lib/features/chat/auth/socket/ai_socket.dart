@@ -11,8 +11,8 @@ class AiSocketService {
   IO.Socket? socket;
 
   // SOCKET URL (Your Backend)
-  final String aiSocketUrl = "https://ai.blueera.ai/";
-  final String aiSearchSocketUrl = "https://search.blueera.ai";
+  final String aiSocketUrl = "https://ai.beapp.in/";
+  final String aiSearchSocketUrl = "https://search.beapp.in";
 
   Future<void> disposeSocket()async{
     socket?.disconnect();

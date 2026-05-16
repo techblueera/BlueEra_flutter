@@ -542,7 +542,7 @@ class _GetAppBanner extends StatelessWidget {
     // Opens Play Store on Android, App Store on iOS.
     // url_launcher resolves platform automatically via universal links.
     // Adjust the URI to your app's universal/smart-app-banner link.
-    final uri = Uri.parse('https://emergency.blueera.ai/download');
+    final uri = Uri.parse('https://emergency.beapp.in/download');
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     }

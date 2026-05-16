@@ -13,7 +13,7 @@ import 'package:flutter/foundation.dart';
 class CallRepo extends BaseService {
   static const String _basePath = 'call';
 
-  /// Dedicated Dio instance for call service (https://call.blueera.ai/)
+  /// Dedicated Dio instance for call service (https://call.beapp.in/)
   static Dio? _callDio;
 
   static Dio get callDio {

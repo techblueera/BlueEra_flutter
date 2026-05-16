@@ -2181,7 +2181,7 @@ class CallController extends GetxController {
     return (data['calls'] as List).map((c) => CallModel.fromJson(c)).toList();
   }
 
-  /// GET https://call.blueera.ai/call/history?page=$page&limit=$limit
+  /// GET https://call.beapp.in/call/history?page=$page&limit=$limit
   /// Fetches the global call history (all conversations) for the current user.
   /// Logs the raw response for debugging and returns the parsed list.
   Future<List<CallModel>> fetchCallHistory({

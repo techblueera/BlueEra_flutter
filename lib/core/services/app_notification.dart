@@ -192,7 +192,7 @@ Future<void> _handleBackgroundNotificationResponse(
         // Use call service base URL (matches foreground CallRepo).
         // Hardcoded because `callBaseUrl` global isn't initialized in the
         // FCM/notification background isolate.
-        final apiUrl = (callBaseUrl ?? 'https://call.blueera.ai/') + 'call/decline';
+        final apiUrl = (callBaseUrl ?? 'https://call.beapp.in/') + 'call/decline';
         final dioClient = dio.Dio();
         await dioClient.post(
           apiUrl,

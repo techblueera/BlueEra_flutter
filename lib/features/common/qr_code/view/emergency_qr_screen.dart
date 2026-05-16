@@ -15,7 +15,7 @@ class EmergencyQrWidget extends StatelessWidget {
 
   final GlobalKey _qrKey = GlobalKey();
 
-  String get _qrData => 'https://emergency.blueera.ai/$userId';
+  String get _qrData => 'https://emergency.beapp.in/$userId';
   final controller = Get.find<EmergencyProfileController>();
 
   @override
@@ -193,7 +193,7 @@ class EmergencyQrWidget extends StatelessWidget {
                   Opacity(
                     opacity: 0.25,
                     child: QrImageView(
-                      data: 'https://blueera.ai',
+                      data: 'https://beapp.in',
                       version: QrVersions.auto,
                       size: 200,
                       gapless: true,

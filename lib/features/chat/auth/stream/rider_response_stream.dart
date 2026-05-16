@@ -12,7 +12,7 @@ Stream<dynamic> riderOrderStream(String userId,) async* {
 
 
   final url = Uri.parse(
-    'https://rider.blueera.ai/riders/orders/stream/$userId',
+    'https://rider.beapp.in/riders/orders/stream/$userId',
   );
 
   final request = http.Request('GET', url);
@@ -56,7 +56,7 @@ Stream<dynamic> riderOrderStream(String userId,) async* {
 Stream<dynamic> riderLiveLocationOrderStream(String riderId,) async* {
 
   final url = Uri.parse(
-    'https://map.blueera.ai/api/provider/live-stream/$riderId',
+    'https://map.beapp.in/api/provider/live-stream/$riderId',
   );
 
   final request = http.Request('GET', url);

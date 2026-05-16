@@ -196,7 +196,7 @@ class AppConstants {
   static const String links = "Eg. Linkedin";
   static const String address = "Eg. Shop no.15, Borivali...";
   static const String gender = "Select Gender";
-  static const String chatHost = 'chat.blueera.ai';
+  static const String chatHost = 'chat.beapp.in';
   static const String adminUserName = 'admin_blueera';
   static const String pdfIconUrl =
       "https://cdn-icons-png.flaticon.com/512/4726/4726010.png";

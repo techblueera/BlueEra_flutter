@@ -3,14 +3,14 @@
 ///
 /// Usage:
 ///   dart run scripts/sync_translations.dart
-///   dart run scripts/sync_translations.dart --base-url https://be.blueera.ai/api/
+///   dart run scripts/sync_translations.dart --base-url https://be.beapp.in/api/
 
 import 'dart:convert';
 import 'dart:io';
 
 import 'package:BlueEra/core/constants/common_methods.dart';
 
-const defaultBaseUrl = 'https://be.blueera.ai/api/';
+const defaultBaseUrl = 'https://be.beapp.in/api/';
 const languagesEndpoint = 'language-service/languages/names';
 const downloadEndpoint = 'language-service/languages';
 const outputDir = 'assets/translations';

@@ -20,7 +20,7 @@ class LiveTrackingSocketService {
   Future<void> connectToSocket(LatLng? currentPos) async {
     try {
       _socket = IO.io(
-        liveTrackSocket, // ex: https://map.blueera.ai
+        liveTrackSocket, // ex: https://map.beapp.in
         IO.OptionBuilder()
             .setTransports(['websocket'])
             .enableForceNew()

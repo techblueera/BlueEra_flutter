@@ -6,8 +6,8 @@
 	<string>development</string>
 	<key>com.apple.developer.associated-domains</key>
 	<array>
-		<string>applinks:be.blueera.ai</string>
-		<string>applinks:blueera.ai</string>
+		<string>applinks:be.beapp.in</string>
+		<string>applinks:beapp.in</string>
 		<string>applinks:ai.bluecs.app</string>
 	</array>
 	<key>com.apple.security.application-groups</key>
