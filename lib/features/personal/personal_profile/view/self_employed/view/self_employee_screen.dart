@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:ui';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
@@ -51,7 +52,6 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
 class SelfEmployeeScreen extends StatefulWidget {
-
   const SelfEmployeeScreen({
     super.key,
   });
@@ -265,7 +265,7 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
                   ),
                   SizedBox(width: SizeConfig.size8),
                 ],
-                _goLivePill(),
+                if (Platform.isAndroid) _goLivePill(),
               ],
             ),
           ),
@@ -338,8 +338,7 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
               filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
               child: Container(
                 padding: EdgeInsets.symmetric(
-                    horizontal: SizeConfig.size10,
-                    vertical: SizeConfig.size6),
+                    horizontal: SizeConfig.size10, vertical: SizeConfig.size6),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(24),
@@ -372,9 +371,7 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
                         height: 18,
                         padding: const EdgeInsets.all(2),
                         decoration: BoxDecoration(
-                          color: isOn
-                              ? AppColors.primaryColor
-                              : Colors.white,
+                          color: isOn ? AppColors.primaryColor : Colors.white,
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
                             color: AppColors.secondaryTextColor
@@ -448,7 +445,6 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
         ),
       ),
     );
-
   }
 
   // ─────────────────────────────────────────────
@@ -493,9 +489,8 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
                             curve: Curves.easeOutCubic,
                             style: TextStyle(
                               fontSize: 13,
-                              fontWeight: selected
-                                  ? FontWeight.w700
-                                  : FontWeight.w500,
+                              fontWeight:
+                                  selected ? FontWeight.w700 : FontWeight.w500,
                               letterSpacing: 0.2,
                               color: selected
                                   ? AppColors.primaryColor
@@ -521,8 +516,7 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
                       borderRadius: BorderRadius.circular(3),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.primaryColor
-                              .withValues(alpha: 0.4),
+                          color: AppColors.primaryColor.withValues(alpha: 0.4),
                           blurRadius: 6,
                           offset: const Offset(0, 2),
                         ),
@@ -666,8 +660,7 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
                     height: 18,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      valueColor:
-                          AlwaysStoppedAnimation(Color(0xFF844CD5)),
+                      valueColor: AlwaysStoppedAnimation(Color(0xFF844CD5)),
                     ),
                   ),
                 ],
@@ -957,8 +950,7 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
             filter: ImageFilter.blur(sigmaX: 100, sigmaY: 100),
             child: Container(
               padding: EdgeInsets.symmetric(
-                  horizontal: SizeConfig.size14,
-                  vertical: SizeConfig.size12),
+                  horizontal: SizeConfig.size14, vertical: SizeConfig.size12),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
                   begin: Alignment.centerLeft,
@@ -1080,8 +1072,8 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
           backgroundColor: AppColors.primaryColor,
           padding: EdgeInsets.symmetric(
               horizontal: SizeConfig.size16, vertical: SizeConfig.size8),
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           elevation: 0,
         ),
       ),
@@ -1120,8 +1112,7 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
       context: context,
       builder: (ctx) => Dialog(
         backgroundColor: Colors.white,
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: Padding(
           padding: EdgeInsets.symmetric(
               horizontal: SizeConfig.size16, vertical: SizeConfig.size16),
@@ -1233,10 +1224,7 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
   // ─── RENTAL CTA CARD ───────────────────────────────────────────
   Widget _buildRentalCard() {
     return Container(
-      margin: const EdgeInsets.only(
-          top: 10,
-          left: 20,
-          right: 10),
+      margin: const EdgeInsets.only(top: 10, left: 20, right: 10),
       child: CustomFormCard(
         padding: EdgeInsets.all(SizeConfig.size14),
         borderRadius: BorderRadius.circular(10),
@@ -1391,9 +1379,7 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
     const avatarSize = 88.0;
     const avatarOverlap = avatarSize / 2; // half on photo, half on sheet
     return Container(
-      margin: const EdgeInsets.only(
-          left: 20,
-          right: 10),
+      margin: const EdgeInsets.only(left: 20, right: 10),
       child: CustomFormCard(
         padding: EdgeInsets.zero,
         borderRadius: BorderRadius.circular(10),
@@ -1401,67 +1387,67 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
         child: ClipRRect(
           borderRadius: BorderRadius.circular(10),
           child: Column(
-          children: [
-            SizedBox(
-              height: bannerHeight + avatarOverlap,
-              width: double.infinity,
-              child: Stack(
-                children: [
-                  Positioned(
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    height: bannerHeight,
-                    child: Stack(
-                      children: [
-                        Positioned.fill(child: _bannerImage()),
-                        Positioned.fill(
-                          child: DecoratedBox(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topRight,
-                                end: Alignment.bottomLeft,
-                                colors: [
-                                  Colors.black.withValues(alpha: 0.18),
-                                  Colors.transparent,
-                                ],
+            children: [
+              SizedBox(
+                height: bannerHeight + avatarOverlap,
+                width: double.infinity,
+                child: Stack(
+                  children: [
+                    Positioned(
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      height: bannerHeight,
+                      child: Stack(
+                        children: [
+                          Positioned.fill(child: _bannerImage()),
+                          Positioned.fill(
+                            child: DecoratedBox(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topRight,
+                                  end: Alignment.bottomLeft,
+                                  colors: [
+                                    Colors.black.withValues(alpha: 0.18),
+                                    Colors.transparent,
+                                  ],
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                        Positioned(
-                          top: 12,
-                          right: 12,
-                          child: _glassActionPill(
-                            icon: Icons.camera_alt_rounded,
-                            label: 'Edit cover',
-                            onTap: () => _onCoverImageEdit(context),
+                          Positioned(
+                            top: 12,
+                            right: 12,
+                            child: _glassActionPill(
+                              icon: Icons.camera_alt_rounded,
+                              label: 'Edit cover',
+                              onTap: () => _onCoverImageEdit(context),
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                  Positioned(
-                    left: 20,
-                    right: 20,
-                    bottom: 0,
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        _avatarFrame(avatarSize),
-                        SizedBox(width: SizeConfig.size12),
-                        Padding(
-                          padding: EdgeInsets.only(bottom: avatarOverlap - 4),
-                          child: _memberSincePill(),
-                        ),
-                      ],
+                    Positioned(
+                      left: 20,
+                      right: 20,
+                      bottom: 0,
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          _avatarFrame(avatarSize),
+                          SizedBox(width: SizeConfig.size12),
+                          Padding(
+                            padding: EdgeInsets.only(bottom: avatarOverlap - 4),
+                            child: _memberSincePill(),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            _buildIdentityBlock(),
-          ],
+              _buildIdentityBlock(),
+            ],
           ),
         ),
       ),
@@ -1516,90 +1502,85 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Obx(() {
-              final user = _viewCtrl.personalProfileDetails.value.user;
-              final name = _capitalizeFirst(user?.name ?? '');
-              final username = user?.username ?? '';
-              final designation = user?.designation ?? '';
-              // Address is rendered in [ProfileLocationCard] now — don't
-              // duplicate it inside the identity card.
-              final email = user?.email ?? '';
+            final user = _viewCtrl.personalProfileDetails.value.user;
+            final name = _capitalizeFirst(user?.name ?? '');
+            final username = user?.username ?? '';
+            final designation = user?.designation ?? '';
+            // Address is rendered in [ProfileLocationCard] now — don't
+            // duplicate it inside the identity card.
+            final email = user?.email ?? '';
 
-              final hasDesignation = designation.trim().isNotEmpty;
-              final hasName = name.isNotEmpty;
-              final hasUsername = username.isNotEmpty;
-              final hasEmail = email.isNotEmpty;
-              final hasContact = hasEmail;
-              final hasAnyIdentity = hasDesignation ||
-                  hasName ||
-                  hasUsername ||
-                  hasContact;
+            final hasDesignation = designation.trim().isNotEmpty;
+            final hasName = name.isNotEmpty;
+            final hasUsername = username.isNotEmpty;
+            final hasEmail = email.isNotEmpty;
+            final hasContact = hasEmail;
+            final hasAnyIdentity =
+                hasDesignation || hasName || hasUsername || hasContact;
 
-              // Build children dynamically so empty fields claim
-              // zero vertical space — no placeholder rows, no
-              // dangling spacers.
-              final children = <Widget>[];
+            // Build children dynamically so empty fields claim
+            // zero vertical space — no placeholder rows, no
+            // dangling spacers.
+            final children = <Widget>[];
 
-              if (hasDesignation) {
-                children.add(_designationEyebrow(designation));
+            if (hasDesignation) {
+              children.add(_designationEyebrow(designation));
+            }
+
+            if (hasName) {
+              if (children.isNotEmpty) {
+                children.add(SizedBox(height: SizeConfig.size6));
               }
-
-              if (hasName) {
-                if (children.isNotEmpty) {
-                  children.add(SizedBox(height: SizeConfig.size6));
-                }
-                children.add(_nameRow(name));
-              } else if (hasAnyIdentity) {
-                if (children.isNotEmpty) {
-                  children.add(SizedBox(height: SizeConfig.size8));
-                }
-                children.add(
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: _editChip(
-                      onTap: () =>
-                          EditProfileBottomSheet.show(Get.context!),
-                      label: 'Edit',
-                      icon: Icons.edit_outlined,
-                    ),
+              children.add(_nameRow(name));
+            } else if (hasAnyIdentity) {
+              if (children.isNotEmpty) {
+                children.add(SizedBox(height: SizeConfig.size8));
+              }
+              children.add(
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: _editChip(
+                    onTap: () => EditProfileBottomSheet.show(Get.context!),
+                    label: 'Edit',
+                    icon: Icons.edit_outlined,
                   ),
-                );
-              }
-
-              if (hasUsername) {
-                children.add(const SizedBox(height: 4));
-                children.add(_usernameText(username));
-              }
-
-              if (hasContact) {
-                children.add(SizedBox(height: SizeConfig.size12));
-                children.add(Container(
-                  height: 1,
-                  color: const Color(0xFFEDEFF4),
-                ));
-                children.add(SizedBox(height: SizeConfig.size12));
-                if (hasEmail) {
-                  children.add(
-                      _infoRow(Icons.alternate_email_rounded, email));
-                }
-              }
-
-              if (children.isEmpty) {
-                return _completeProfileCta();
-              }
-
-              return Padding(
-                padding: EdgeInsets.only(top: SizeConfig.size12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: children,
                 ),
               );
-            }),
+            }
+
+            if (hasUsername) {
+              children.add(const SizedBox(height: 4));
+              children.add(_usernameText(username));
+            }
+
+            if (hasContact) {
+              children.add(SizedBox(height: SizeConfig.size12));
+              children.add(Container(
+                height: 1,
+                color: const Color(0xFFEDEFF4),
+              ));
+              children.add(SizedBox(height: SizeConfig.size12));
+              if (hasEmail) {
+                children.add(_infoRow(Icons.alternate_email_rounded, email));
+              }
+            }
+
+            if (children.isEmpty) {
+              return _completeProfileCta();
+            }
+
+            return Padding(
+              padding: EdgeInsets.only(top: SizeConfig.size12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: children,
+              ),
+            );
+          }),
         ],
       ),
     );
   }
-
 
   Widget _avatarFrame(double size) {
     return SizedBox(
@@ -1626,8 +1607,7 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
                   imagePath: _personalCtrl.imagePath?.value ?? '',
                   onImageUpdate: (image) async {
                     _personalCtrl.imagePath?.value = image;
-                    dynamic dataImage =
-                        await multiPartImage(imagePath: image);
+                    dynamic dataImage = await multiPartImage(imagePath: image);
                     var reqProfile = {ApiKeys.profile_image: dataImage};
                     await _personalCtrl.updateUserProfileDetails(
                         params: reqProfile, isFromProfileOnly: true);
@@ -1948,10 +1928,7 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
   // CTA are the same target.
   Widget _buildStatsCard() {
     return Container(
-      margin: const EdgeInsets.only(
-          top: 10,
-          left: 20,
-          right: 10),
+      margin: const EdgeInsets.only(top: 10, left: 20, right: 10),
       child: CustomFormCard(
         padding: EdgeInsets.symmetric(
           horizontal: SizeConfig.size16,
@@ -1971,8 +1948,8 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
                 child: _statTile(
                   label: 'Followers',
                   value: _formatCount(followers),
-                  onTap: () => Get.to(
-                      () => FollowersFollowingPage(tabIndex: 1, userID: userId)),
+                  onTap: () => Get.to(() =>
+                      FollowersFollowingPage(tabIndex: 1, userID: userId)),
                 ),
               ),
               _statSeam(),
@@ -1980,8 +1957,8 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
                 child: _statTile(
                   label: 'Following',
                   value: _formatCount(following),
-                  onTap: () => Get.to(
-                      () => FollowersFollowingPage(tabIndex: 0, userID: userId)),
+                  onTap: () => Get.to(() =>
+                      FollowersFollowingPage(tabIndex: 0, userID: userId)),
                 ),
               ),
             ],
@@ -2057,10 +2034,7 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
   // that used to clutter the cover photo.
   Widget _buildActionRow() {
     return Container(
-      margin: const EdgeInsets.only(
-          top: 10,
-          left: 20,
-          right: 10),
+      margin: const EdgeInsets.only(top: 10, left: 20, right: 10),
       child: Row(
         children: [
           Expanded(
@@ -2140,9 +2114,7 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
 
   Future<void> _onShareProfile() async {
     final userName = _viewCtrl.personalProfileDetails.value.user?.name ?? '';
-    await ShareService.instance.shareProfile(
-        userId: userId,
-        subject: userName);
+    await ShareService.instance.shareProfile(userId: userId, subject: userName);
   }
 
   // Note: the legacy `_buildContactMapCard` + `_contactItem` helpers
@@ -2177,15 +2149,14 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
   // points at the personal profile route.
   Widget _buildShareBanner() {
     return Container(
-      margin: const EdgeInsets.only(
-          left: 20,
-          right: 10),
+      margin: const EdgeInsets.only(left: 20, right: 10),
       child: Obx(() {
         final user = _viewCtrl.personalProfileDetails.value.user;
         final name = _capitalizeFirst(user?.name ?? '');
-        final photo = (_personalCtrl.imagePath?.value.trim().isNotEmpty ?? false)
-            ? _personalCtrl.imagePath?.value
-            : user?.profileImage;
+        final photo =
+            (_personalCtrl.imagePath?.value.trim().isNotEmpty ?? false)
+                ? _personalCtrl.imagePath?.value
+                : user?.profileImage;
         final designation = user?.designation ?? '';
         return BusinessShareBanner(
           overrideName: name,

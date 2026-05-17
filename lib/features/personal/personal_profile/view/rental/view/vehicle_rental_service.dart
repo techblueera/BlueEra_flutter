@@ -471,12 +471,12 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
                 SizedBox(height: SizeConfig.paddingM),
 
                 /// Vehicle Name
-                CommonTextField(
-                  title: AppStrings.vehicleName,
-                  hintText: AppStrings.egSP125,
-                  textEditController: controller.vehicleNameCtrl,
-                  isValidate: true,
-                ),
+                // CommonTextField(
+                //   title: AppStrings.vehicleName,
+                //   hintText: AppStrings.egSP125,
+                //   textEditController: controller.vehicleNameCtrl,
+                //   isValidate: true,
+                // ),
                 SizedBox(height: SizeConfig.paddingM),
 
                 /// Fuel Type

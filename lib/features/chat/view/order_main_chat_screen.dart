@@ -122,75 +122,65 @@ class _OrderMainChatScreenState extends State<OrderMainChatScreen>
         // ),
         body: SafeArea(
           child: BottomNavHideOnScroll(
-            child: NestedScrollView(
-              headerSliverBuilder: (context, innerBoxIsScrolled) {
-                return [
-                  SliverAppBar(
-                    backgroundColor: Colors.white,
-                    elevation: 0,
-                    floating: true,
-                    snap: true,
-                    pinned: false,
-                    automaticallyImplyLeading: false,
-                    flexibleSpace: Padding(
-                      padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      child: _buildHeader(context),
-                    ),
-                    expandedHeight: 72,
+            child: Column(
+              children: [
+                // Fixed search-bar header — kept outside the tab scrollables so
+                // it can't get "stuck" in a half-collapsed state when the inner
+                // ListView/CustomScrollView (each with its own ScrollController)
+                // fails to coordinate with NestedScrollView's outer position.
+                Container(
+                  color: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 16, vertical: 12),
+                  child: _buildHeader(context),
+                ),
+                Container(
+                  color: Colors.white,
+                  child: TabBar(
+                    onTap: (index) {
+                      if (widget.isNewGroupUI != null &&
+                          widget.isNewGroupUI == true) {
+                        if (chatViewController.selectedChatList.isNotEmpty) {
+                          commonSnackBar(
+                              message: "You can't select personal & business both");
+                          chatViewController.selectedUserIds.clear();
+                        }
+                      }
+                    },
+                    controller: chatViewController.chatMainTabController,
+                    labelColor: Colors.black,
+                    padding: EdgeInsets.zero,
+                    labelPadding: const EdgeInsets.symmetric(horizontal: 12),
+                    unselectedLabelColor: Colors.black54,
+                    indicatorColor: Colors.lightBlue,
+                    tabs: const [
+                      Tab(text: "Social"),
+                      Tab(text: "Community"),
+                    ],
                   ),
-                  SliverPersistentHeader(
-                    pinned: true,
-                    delegate: _TabBarDelegate(
-                      TabBar(
-                        onTap: (index) {
-                          if (widget.isNewGroupUI != null &&
-                              widget.isNewGroupUI == true) {
-                            if (chatViewController.selectedChatList.isNotEmpty) {
-                              commonSnackBar(
-                                  message: "You can't select personal & business both");
-                              chatViewController.selectedUserIds.clear();
-                            }
-                          }
-                        },
-                        controller: chatViewController.chatMainTabController,
-                        labelColor: Colors.black,
-                        padding: EdgeInsets.zero,
-                        labelPadding: const EdgeInsets.symmetric(horizontal: 12),
-                        unselectedLabelColor: Colors.black54,
-                        indicatorColor: Colors.lightBlue,
-                        tabs:  [
-                          Tab(text: "Social"),
-                          Tab(text: "Community"),
-                        ],
-                      ),
+                ),
+                Expanded(
+                  child: Container(
+                    color: AppColors.white,
+                    child: TabBarView(
+                      controller: chatViewController.chatMainTabController,
+                      children: [
+                        HomeFeedScreenNew(
+                          key: const ValueKey('orderMain_feed_social'),
+                          postFilterType: PostType.all,
+                          headerHeight: 0,
+                          isInParentScroll: false,
+                        ),
+                        ChannelFeedScreen(
+                          key: const ValueKey('orderMain_feed_community'),
+                          headerHeight: 0,
+                        ),
+                      ],
                     ),
                   ),
-                ];
-              },
-              body: Container(
-                color: AppColors.white,
-                child: Column(
-                  children: [
-                    Expanded(
-                      child: TabBarView(
-                        controller: chatViewController.chatMainTabController,
-                        children: [
-                          HomeFeedScreenNew(
-                            key: const ValueKey('orderMain_feed_social'),
-                            postFilterType: PostType.all,
-                            headerHeight: 0,
-                            isInParentScroll: false,
-                          ),
-                          ChannelFeedScreen(
-                            key: const ValueKey('orderMain_feed_community'),
-                            headerHeight: 0,
-                          ),
-                        ],
-                      ),
-                    ),
-                    (widget.isForwardUI != null && (widget.isForwardUI ?? false))
-                        ?
+                ),
+                (widget.isForwardUI != null && (widget.isForwardUI ?? false))
+                    ?
                     Obx(() {
                       return InkWell(
                         onTap: (chatViewController.selectedUserIds.isNotEmpty)
@@ -262,9 +252,7 @@ class _OrderMainChatScreenState extends State<OrderMainChatScreen>
                       );
                     })
                         : SizedBox()
-                  ],
-                ),
-              ),
+              ],
             ),
           ),
         ),
@@ -712,28 +700,4 @@ class _OrderMainChatScreenState extends State<OrderMainChatScreen>
     );
   }
   */
-}
-
-class _TabBarDelegate extends SliverPersistentHeaderDelegate {
-  final TabBar _tabBar;
-
-  _TabBarDelegate(this._tabBar);
-
-  @override
-  Widget build(BuildContext context, double shrinkOffset,
-      bool overlapsContent) {
-    return Container(
-      color: Colors.white,
-      child: _tabBar,
-    );
-  }
-
-  @override
-  double get maxExtent => _tabBar.preferredSize.height;
-
-  @override
-  double get minExtent => _tabBar.preferredSize.height;
-
-  @override
-  bool shouldRebuild(_TabBarDelegate oldDelegate) => false;
 }

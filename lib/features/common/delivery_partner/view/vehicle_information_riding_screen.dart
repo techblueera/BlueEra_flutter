@@ -55,7 +55,7 @@ class _VehicleInformationRidingScreenState extends State<VehicleInformationRidin
                   children: [
                     /// Vehicle Type
                     CustomText(
-                      AppStrings.vehicleType,
+                      AppStrings.vehicleType.tr,
                       fontSize: SizeConfig.small,
                       fontWeight: FontWeight.w400,
                       color: AppColors.mainTextColor,
@@ -66,9 +66,9 @@ class _VehicleInformationRidingScreenState extends State<VehicleInformationRidin
                           userProfessionGlobal,
                           controller.vehicleEnumResponse?.vehicleType ?? []
                       ),
-                      title: AppStrings.vehicleType,
+                      title: AppStrings.vehicleType.tr,
                       selectedValue: controller.selectedVehicleType.value,
-                      hintText: AppStrings.egTwoThreeWheeler,
+                      hintText: AppStrings.egTwoThreeWheeler.tr,
                       displayValue: (value) => value,
                       onChanged: (value) {
                         controller.selectedVehicleType.value = value;
@@ -81,7 +81,7 @@ class _VehicleInformationRidingScreenState extends State<VehicleInformationRidin
 
                     /// Registration Type
                     CustomText(
-                      AppStrings.registrationType,
+                      AppStrings.registrationType.tr,
                       fontSize: SizeConfig.small,
                       fontWeight: FontWeight.w400,
                       color: AppColors.mainTextColor,
@@ -90,8 +90,8 @@ class _VehicleInformationRidingScreenState extends State<VehicleInformationRidin
                     CommonDropdownDialog<String>(
                       items: controller.vehicleEnumResponse?.registrationType ?? [],
                       selectedValue: controller.selectedVehicleRegistrationType.value,
-                      title: AppStrings.registrationType,
-                      hintText: AppStrings.egPersonalCommercial,
+                      title: AppStrings.registrationType.tr,
+                      hintText: AppStrings.egPersonalCommercial.tr,
                       displayValue: (value) => value,
                       onChanged: (value) {
                         controller.selectedVehicleRegistrationType.value = value;
@@ -101,10 +101,10 @@ class _VehicleInformationRidingScreenState extends State<VehicleInformationRidin
                       // },
                     ),
                     SizedBox(height: SizeConfig.paddingM),
-        
+
                     /// Vehicle Use Type
                     CustomText(
-                      AppStrings.vehicleUseType,
+                      AppStrings.vehicleUseType.tr,
                       fontSize: SizeConfig.small,
                       fontWeight: FontWeight.w400,
                       color: AppColors.mainTextColor,
@@ -113,8 +113,8 @@ class _VehicleInformationRidingScreenState extends State<VehicleInformationRidin
                     CommonDropdownDialog<String>(
                       items: controller.vehicleEnumResponse?.vehicleUsesType ?? [],
                       selectedValue: controller.selectedVehicleUseType.value,
-                      title: AppStrings.vehicleUseType,
-                      hintText: AppStrings.egPassengerDeliveryGoods,
+                      title: AppStrings.vehicleUseType.tr,
+                      hintText: AppStrings.egPassengerDeliveryGoods.tr,
                       displayValue: (value) => value,
                       onChanged: (value) {
                         controller.selectedVehicleUseType.value = value;
@@ -124,19 +124,20 @@ class _VehicleInformationRidingScreenState extends State<VehicleInformationRidin
                       // },
                     ),
                     SizedBox(height: SizeConfig.paddingM),
-        
+
                     /// Vehicle Name
                     CommonTextField(
-                      title: AppStrings.vehicleName,
-                      hintText: AppStrings.egSP125,
+                      title: "Vehicle Name (Company Name)",
+                      // title: AppStrings.vehicleName.tr,
+                      hintText:"Honda",
                       textEditController: controller.vehicleNameController,
                       isValidate: true,
                     ),
                     SizedBox(height: SizeConfig.paddingM),
-        
+
                     /// Fuel Type
                     CustomText(
-                      AppStrings.fuelType,
+                      AppStrings.fuelType.tr,
                       fontSize: SizeConfig.small,
                       fontWeight: FontWeight.w400,
                       color: AppColors.mainTextColor,
@@ -145,8 +146,8 @@ class _VehicleInformationRidingScreenState extends State<VehicleInformationRidin
                     CommonDropdownDialog<String>(
                       items: controller.vehicleEnumResponse?.fuelType ?? [],
                       selectedValue: controller.selectedFuelType.value,
-                      title: AppStrings.fuelType,
-                      hintText: AppStrings.egPetrolDiesel,
+                      title: AppStrings.fuelType.tr,
+                      hintText: AppStrings.egPetrolDiesel.tr,
                       displayValue: (value) => value,
                       onChanged: (value) {
                         controller.selectedFuelType.value = value;
@@ -156,22 +157,22 @@ class _VehicleInformationRidingScreenState extends State<VehicleInformationRidin
                       // },
                     ),
                     SizedBox(height: SizeConfig.paddingM),
-        
+
                     /// Vehicle Number
                     CommonTextField(
-                      title: AppStrings.vehicleNumber,
-                      hintText: AppStrings.egWB5454,
+                      title: AppStrings.vehicleNumber.tr,
+                      hintText: AppStrings.egWB5454.tr,
                       textEditController: controller.vehicleRegistrationNumberController,
                       validator: ValidationMethod.validateVehicleNumber,
                       isCapitalize: true,
                       maxLength: 10,
                     ),
                     SizedBox(height: SizeConfig.paddingM),
-        
+
                     /// Vehicle Model
                     CommonTextField(
-                      title: AppStrings.vehicleModelYearManufacturing,
-                      hintText: AppStrings.eg2020,
+                      title: AppStrings.vehicleModelYearManufacturing.tr,
+                      hintText: AppStrings.eg2020.tr,
                       // hintText: "E.g. Honda, Maruti, BMW....",
                       keyBoardType: TextInputType.number,
                       textEditController: controller.vehicleModelController,
@@ -254,7 +255,7 @@ class _VehicleInformationRidingScreenState extends State<VehicleInformationRidin
                     CustomBtn(
                       title: controller.isRiderVehicleInformationLoading.value
                           ? null
-                          : AppStrings.create,
+                          : AppStrings.create.tr,
                       onTap: ()=> controller.ridersOnboardingVehicleInformationApi(
                           widget.screeName
                       ),
@@ -272,7 +273,7 @@ class _VehicleInformationRidingScreenState extends State<VehicleInformationRidin
     if (isFromTab) return content;
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: AppStrings.vehicleInformation,
+        title: AppStrings.vehicleInformation.tr,
         buildCustomActionWidget: () => Padding(
           padding: const EdgeInsets.only(right: 16),
           child: Center(

@@ -65,7 +65,7 @@ class _VehicleInformationWidgetState extends State<VehicleInformationWidget> {
                         selectedValue: controller.selectedVehicleType.value,
                         title: AppStrings.vehicleType,
                         hintText: AppStrings.egTwoThreeWheeler,
-                        displayValue: (value) => value,
+                        displayValue: (value) => value.capitalizeFirst??"",
                         onChanged: (value) {
                           controller.selectedVehicleType.value = value;
                         },
@@ -111,7 +111,7 @@ class _VehicleInformationWidgetState extends State<VehicleInformationWidget> {
                         selectedValue: controller.selectedVehicleUseType.value,
                         title: AppStrings.vehicleUseType,
                         hintText: AppStrings.egPassengerDeliveryGoods,
-                        displayValue: (value) => value,
+                        displayValue: (value) => value.capitalizeFirst??"",
                         onChanged: (value) {
                           controller.selectedVehicleUseType.value = value;
                         },
@@ -123,8 +123,9 @@ class _VehicleInformationWidgetState extends State<VehicleInformationWidget> {
 
                       /// Vehicle Name
                       CommonTextField(
-                        title: AppStrings.vehicleName,
-                        hintText: AppStrings.egSP125,
+                        title: "Vehicle Name (Company Name)",
+                        // title: AppStrings.vehicleName.tr,
+                        hintText:"Honda",
                         textEditController: controller.vehicleNameController,
                         isValidate: true,
                       ),

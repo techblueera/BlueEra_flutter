@@ -74,7 +74,8 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final bottomBarController = Get.put(BottomBarController());
   final chatViewController = getOrPut(() => ChatViewController());
-  final viewPersonalDetailsController = getOrPut(() => ViewPersonalDetailsController(), permanent: true);
+  final viewPersonalDetailsController =
+      getOrPut(() => ViewPersonalDetailsController(), permanent: true);
   final inventoryController = Get.put(InventoryController());
   final orderController = getOrPut(() => DeliverPartnerOrdersController());
   final dialogService = Get.put(DialogService());
@@ -526,11 +527,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
         );
       case 3:
       default:
-        return
-            // isGuestUser()
-            //   ? GuestDashBoardScreen()
-            //   :
-            const OrderMainChatScreen();
+        return const OrderMainChatScreen();
     }
   }
 
@@ -628,7 +625,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
 
   bool _isSpecificServiceSpecialAutomotive() {
     final category = businessCategoryGlobal.toUpperCase();
-logs("category=== ${category}");
+    logs("category=== ${category}");
     final automotiveOthersSpecialSectors = {
       "VEHICLE SERVICE",
       "VEHICLE_SERVICE",
