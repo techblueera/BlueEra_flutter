@@ -18,6 +18,7 @@ import 'package:BlueEra/features/business/widgets/business_share_banner.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/view/add_symbol/add_symbol_screen.dart';
 import 'package:BlueEra/features/chat/view/business_chat/business_chat_list.dart';
+import 'package:BlueEra/features/common/Discover/view/go_live_permission_screen.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
@@ -37,6 +38,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/widget/profile_d
 import 'package:BlueEra/features/personal/personal_profile/widgets/personal_qrcode_widget.dart';
 import 'package:BlueEra/features/personal/personal_profile/widgets/profile_bio_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/widgets/profile_location_card.dart';
+import 'package:BlueEra/permissionCentralize/go_live_permission_service.dart';
 import 'package:BlueEra/widgets/common_circular_profile_image.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -318,7 +320,7 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
       final isOn = _viewCtrl.shopStatusOpenClose.value;
       final isUpdating = _viewCtrl.isShopStatusUpdating.value;
       return GestureDetector(
-        onTap: isUpdating ? null : () => _viewCtrl.toggleShopStatus(),
+        onTap: isUpdating ? null : _handleGoLiveTap,
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(24),
@@ -405,6 +407,27 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
         ),
       );
     });
+  }
+
+  // Going live needs background location, battery-optimization, and
+  // display-over-other-apps. If any are missing we route through
+  // [GoLivePermissionScreen] and only flip the shop status once the
+  // user finishes granting them. Turning the shop back off doesn't
+  // need any of these checks.
+  Future<void> _handleGoLiveTap() async {
+    if (_viewCtrl.shopStatusOpenClose.value) {
+      _viewCtrl.toggleShopStatus();
+      return;
+    }
+    final statuses = await GoLivePermissionService.checkAll();
+    if (statuses.values.every((v) => v)) {
+      _viewCtrl.toggleShopStatus();
+      return;
+    }
+    final granted = await Get.to(() => const GoLivePermissionScreen());
+    if (granted == true) {
+      _viewCtrl.toggleShopStatus();
+    }
   }
 
   void _openDrawer(BuildContext context) {

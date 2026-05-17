@@ -116,7 +116,6 @@ class ApiBaseHelper {
         InterceptorsWrapper(
           onRequest: (RequestOptions options, handler) async {
             numberOfReq++;
-            logs("err==== response?.statusCode ${options.baseUrl}");
 
             if (showProgressDialog && numberOfReq > 0)
               ProgressDialog.showProgressDialog(true, apiPath: options.path);
@@ -188,7 +187,6 @@ class ApiBaseHelper {
             }
 
             final response = err.response;
-            logs("err==== response?.statusCode ${response?.statusCode}");
 
             if (response?.statusCode == 401) {
               logs("ERROR CODE 401 ====");
