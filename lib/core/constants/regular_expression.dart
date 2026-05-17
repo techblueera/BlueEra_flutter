@@ -347,10 +347,13 @@ class ValidationMethod {
       return 'Vehicle number is required.';
     }
 
-    final regex = RegExp(r'^[A-Z]{2}[0-9]{1,2}[A-Z]{1,3}[0-9]{1,4}$');
+    // Standard Indian plate (e.g. MH12AB1234) OR a `DF` prefix followed by
+    // digits (e.g. DF1234) used for special/temporary registrations.
+    final regex =
+        RegExp(r'^([A-Z]{2}[0-9]{1,2}[A-Z]{1,3}[0-9]{1,4}|DF[0-9]+)$');
 
     if (!regex.hasMatch(value.trim().toUpperCase())) {
-      return 'Please enter a valid vehicle number (e.g. MH12AB1234).';
+      return 'Please enter a valid vehicle number (e.g. MH12AB1234 or DF1234).';
     }
 
     return null;
