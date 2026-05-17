@@ -171,6 +171,7 @@ class _VehicleInformationWidgetState extends State<VehicleInformationWidget> {
                         hintText: AppStrings.eg2020,
                         // hintText: "E.g. Honda, Maruti, BMW....",
                         keyBoardType: TextInputType.number,
+                        maxLength: 4,
                         textEditController: controller.vehicleModelController,
                         isValidate: true,
                       ),

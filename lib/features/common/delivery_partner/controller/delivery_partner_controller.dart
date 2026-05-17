@@ -904,18 +904,12 @@ class DeliveryPartnerController extends GetxController {
     if (vehicleRightSideImages.isEmpty) {
       commonSnackBar(message: AppStrings.pleaseSelectRightSideImages.tr);
       return;
-    } else if (vehicleRightSideImages.length < 2) {
-      commonSnackBar(message: AppStrings.pleaseSelectAtLeastTwoRight.tr);
-      return;
     }
 
-    if (vehicleLeftSideImages.isEmpty) {
-      commonSnackBar(message: AppStrings.pleaseSelectLeftSideImages.tr);
-      return;
-    } else if (vehicleLeftSideImages.length < 2) {
-      commonSnackBar(message: AppStrings.pleaseSelectAtLeastTwoLeft.tr);
-      return;
-    }
+    // if (vehicleLeftSideImages.isEmpty) {
+    //   commonSnackBar(message: AppStrings.pleaseSelectLeftSideImages.tr);
+    //   return;
+    // }
 
     if (vehicleFrontImages.isEmpty) {
       commonSnackBar(message: AppStrings.pleaseSelectFrontImage.tr);
