@@ -175,13 +175,14 @@ class _HotelHomeScreenV2State extends State<HotelHomeScreenV2> {
       child: Row(
         children: [
           _circleIconButton(icon: Icons.menu, onTap: _openDrawer),
-          SizedBox(width: SizeConfig.size8),
-          const ReferEarnPill(),
+          SizedBox(width: SizeConfig.size6),
+          // Pills wrapped in Flexible so their inner text can ellipsize
+          // instead of pushing the row past its width.
+          Flexible(child: const ReferEarnPill()),
           const Spacer(),
-          SizedBox(width: SizeConfig.size2),
           _circleIconButton(
               icon: Icons.notifications_none, onTap: _openNotifications),
-          SizedBox(width: SizeConfig.size8),
+          SizedBox(width: SizeConfig.size6),
           _goLivePill(),
         ],
       ),

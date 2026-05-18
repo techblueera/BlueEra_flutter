@@ -184,7 +184,7 @@ class ProductSelfPickupController extends GetxController {
       };
 
       final response =
-          await InventoryRepo().placeBulkProductOrderApi(params: requestBody);
+          await ProductRepo().placeBulkProductOrderApi(params: requestBody);
 
       if (!response.isSuccess) {
         AppLoader.hide();

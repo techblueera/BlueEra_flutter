@@ -91,7 +91,7 @@ class _InventoryBusinessCardsScreenState extends State<InventoryBusinessCardsScr
     switch (type) {
       case AppConstants.product:
         if (inventoryController.allProducts.isEmpty) {
-          inventoryController.fetchProducts();
+          inventoryController.fetchBusinessProducts();
         }
         break;
 

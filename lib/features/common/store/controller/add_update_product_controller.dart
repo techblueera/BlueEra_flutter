@@ -8,7 +8,7 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
 import 'package:BlueEra/features/common/store/models/get_channel_product_model.dart';
-import 'package:BlueEra/features/common/store/repo/product_repo.dart';
+import 'package:BlueEra/features/me/product/repo/product_repo.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';

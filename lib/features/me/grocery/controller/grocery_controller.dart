@@ -67,10 +67,10 @@ class GroceryController extends GetxController {
   RxList<GroceryProductData> selectedGroceries = <GroceryProductData>[].obs;
 
   RxInt selectedHorizontalTabIndex = 0.obs;
-  String get currentTabKey =>
+  String get currentCatId =>
       selectedHorizontalTabIndex.value == 0
-          ? (selectedGroceryData.value?.key ?? '')
-          : selectedGroceryData.value?.children?.first.key ?? '';
+          ? (selectedGroceryData.value?.sId ?? '')
+          : selectedGroceryData.value?.children?.first.sId ?? '';
 
   String get currentTabName =>
       selectedHorizontalTabIndex.value == 0
@@ -360,7 +360,7 @@ class GroceryController extends GetxController {
 
       // log('current tab key-- $currentTabKey');
       Map<String, dynamic> queryParams = {
-        ApiKeys.key: currentTabKey,
+        ApiKeys.categoryId: currentCatId,
         ApiKeys.page: groceryCategoryProductsPage,
         ApiKeys.limit: pageLimit
       };

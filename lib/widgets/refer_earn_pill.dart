@@ -70,12 +70,16 @@ class ReferEarnPill extends StatelessWidget {
                     color: AppColors.secondaryTextColor,
                   ),
                   SizedBox(width: SizeConfig.size6),
-                  CustomText(
-                    'Refer & Earn',
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.secondaryTextColor,
-                    letterSpacing: 0.2,
+                  Flexible(
+                    child: CustomText(
+                      'Refer & Earn',
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.secondaryTextColor,
+                      letterSpacing: 0.2,
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    ),
                   ),
                 ],
               ),

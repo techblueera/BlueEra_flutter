@@ -95,32 +95,61 @@ class _ProductNestedCategoryScreenState
               ),
               itemBuilder: (BuildContext context) {
                 return _argArrProductSuperCat.map((choice) {
+                  final imageUrl = choice.image ?? '';
+                  final isSvg = imageUrl.toLowerCase().endsWith('.svg');
                   return PopupMenuItem<ProductNestedCategoryResponse>(
                     value: choice,
                     child: Row(
                       children: [
-                        (isNetworkImage(choice.image))
-                            ? SvgPicture.network(
-                                choice.image ?? '',
-                                width: SizeConfig.size20,
-                                height: SizeConfig.size20,
-                                fit: BoxFit.contain,
-                              )
-                            : LocalAssets(
-                                imagePath: choice.image ?? '',
-                                width: SizeConfig.size20,
-                                height: SizeConfig.size20,
-                                boxFix: BoxFit.contain,
-                              ),
+                        SizedBox(
+                          width: SizeConfig.size20,
+                          height: SizeConfig.size20,
+                          child: isNetworkImage(imageUrl)
+                              ? (isSvg
+                                  ? SvgPicture.network(
+                                      imageUrl,
+                                      width: SizeConfig.size20,
+                                      height: SizeConfig.size20,
+                                      fit: BoxFit.contain,
+                                    )
+                                  : CachedNetworkImage(
+                                      imageUrl: imageUrl,
+                                      width: SizeConfig.size20,
+                                      height: SizeConfig.size20,
+                                      fit: BoxFit.contain,
+                                      placeholder: (_, __) =>
+                                          const SizedBox.shrink(),
+                                      errorWidget: (_, __, ___) => LocalAssets(
+                                        imagePath:
+                                            AppIconAssets.place_holder_image,
+                                        width: SizeConfig.size20,
+                                        height: SizeConfig.size20,
+                                        boxFix: BoxFit.contain,
+                                      ),
+                                    ))
+                              : LocalAssets(
+                                  imagePath: imageUrl,
+                                  width: SizeConfig.size20,
+                                  height: SizeConfig.size20,
+                                  boxFix: BoxFit.contain,
+                                ),
+                        ),
                         SizedBox(width: SizeConfig.size8),
-                        CustomText(
-                          choice.name?.tr,
-                          color: choice.sId == _argArrProductCatId
-                              ? Colors.green
-                              : Colors.black,
-                          fontWeight: choice.sId == _argArrProductCatId
-                              ? FontWeight.bold
-                              : FontWeight.normal,
+                        // Long category names were pushing this Row past
+                        // the popup's width — wrap in Flexible + ellipsis
+                        // so they truncate instead of overflowing.
+                        Flexible(
+                          child: CustomText(
+                            choice.name?.tr,
+                            color: choice.sId == _argArrProductCatId
+                                ? Colors.green
+                                : Colors.black,
+                            fontWeight: choice.sId == _argArrProductCatId
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
                       ],
                     ),

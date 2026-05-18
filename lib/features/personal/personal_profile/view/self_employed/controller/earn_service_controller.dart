@@ -153,7 +153,7 @@ class EarnServiceController extends GetxController{
     required bool varientIsActive,
   }) async {
     try {
-      final res = await InventoryRepo().updateInventoryVariantRepo(
+      final res = await ProductRepo().updateInventoryVariantRepo(
         inventoryId: inventoryId,
         variantId: variantId,
         params: {
@@ -194,15 +194,13 @@ class EarnServiceController extends GetxController{
 
     try {
       final Map<String, dynamic> queryParams = {
-        'DRAFT': false,
-        'ownerId': userId,
         'ownerType': ProviderType.user.title,
         'page': ownProductDataPage,
         'limit': limit,
       };
 
-      final response = await InventoryRepo()
-          .fetchOwnDraftedAndPublicProductsRepo(queryParams: queryParams);
+      final response = await ProductRepo()
+          .fetchProductsRepo(queryParams: queryParams);
       if (response.isSuccess) {
         ownProductsResponse.value = ApiResponse.complete(response);
         final getProductModel =

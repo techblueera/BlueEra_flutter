@@ -20,9 +20,6 @@ final _slotConfigs = [
   {'label': 'Products / Services\nDisplay', 'image': AppImageAssets.productServiceDisplay},
 ];
 
-/// Shows the "Business Live Photos" bottom sheet prompting the user to upload
-/// live photos. Call [showBusinessLivePhotoBottomSheetIfNeeded] from `initState`
-/// to auto-show when no photos exist.
 void showBusinessLivePhotoBottomSheetIfNeeded({
   required BuildContext context,
   required ViewBusinessDetailsController controller,

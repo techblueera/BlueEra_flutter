@@ -373,7 +373,7 @@ class _VisitProductStoreDetailsScreenState
   //  CATEGORY GRID (view-only in the visit flow)
   // ─────────────────────────────────────────────────────────────────
   Widget _categoryWithInventoryWidget() {
-    final categoryList = controller.productCategoryList;
+    final categoryList = controller.productNestedCategoryList;
 
     return CustomFormCard(
       padding: EdgeInsets.all(SizeConfig.size10),

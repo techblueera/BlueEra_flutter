@@ -256,10 +256,12 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
                   icon: Icons.menu,
                   onTap: () => _openDrawer(context),
                 ),
-                SizedBox(width: SizeConfig.size8),
+                SizedBox(width: SizeConfig.size6),
+                // Pills wrapped in Flexible so their inner text can ellipsize
+                // instead of pushing the row past its width.
                 // Earn entry now lives in the drawer; Refer & Earn takes
                 // the top-bar slot — same pill the rider dashboard uses.
-                const ReferEarnPill(),
+                Flexible(child: const ReferEarnPill()),
                 const Spacer(),
                 if (!isGuestUser()) ...[
                   _circleIconButton(
@@ -269,7 +271,7 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
                       RouteHelper.getNotificationScreenRoute(),
                     ),
                   ),
-                  SizedBox(width: SizeConfig.size8),
+                  SizedBox(width: SizeConfig.size6),
                 ],
                 _goLivePill(),
               ],

@@ -7,7 +7,7 @@ class GroceryRepo extends BaseService {
   Future<ResponseModel> searchGroceryCategoryRepo(
       {Map<String, dynamic>? queryParam}) async {
     final response = await ApiBaseHelper().getHTTP(
-      searchGroceryCategory,
+      searchGroceryViaCategory,
       params: queryParam,
       showProgress: false,
       onError: (error) {},

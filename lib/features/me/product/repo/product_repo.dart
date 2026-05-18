@@ -2,7 +2,7 @@ import 'package:BlueEra/core/api/apiService/api_base_helper.dart';
 import 'package:BlueEra/core/api/apiService/base_service.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 
-class InventoryRepo extends BaseService {
+class ProductRepo extends BaseService {
 
   /// Generate Ai Product...
   Future<ResponseModel> generateAiProductContentRepo({required Map<String, dynamic> params}) async {
@@ -18,9 +18,9 @@ class InventoryRepo extends BaseService {
   }
 
   ///Get Own Products...
-  Future<ResponseModel> fetchOwnDraftedAndPublicProductsRepo({required Map<String, dynamic> queryParams}) async {
+  Future<ResponseModel> fetchProductsRepo({required Map<String, dynamic> queryParams}) async {
     final response = await ApiBaseHelper().getHTTP(
-      getOwnDraftedAndPublicProducts,
+      allProducts,
       params: queryParams,
       showProgress: false,
       onError: (error) {},
@@ -43,9 +43,9 @@ class InventoryRepo extends BaseService {
   }
 
   ///Fetch InventoryBasedSearchProduct...
-  Future<ResponseModel> fetchInventoryBasedSearchProductRepo({required Map<String, dynamic> queryParams}) async {
+  Future<ResponseModel> fetchSearchProductViaCategoryRepo({required Map<String, dynamic> queryParams}) async {
     final response = await ApiBaseHelper().getHTTP(
-      getInventoryBasedSearchProduct,
+      searchProductViaCategory,
       params: queryParams,
       showProgress: false,
       onError: (error) {},
@@ -67,10 +67,34 @@ class InventoryRepo extends BaseService {
     return response;
   }
 
-  ///Clone Product Variant...
-  Future<ResponseModel> cloneProductVariantRepo({required Map<String, dynamic> params}) async {
+  /// Create a brand-new variant on an existing product. Mirrors
+  /// grocery's `createNewGroceryProductVariantRepo` — same payload
+  /// shape, only the service URL changes (grocery-service →
+  /// product-service).
+  Future<ResponseModel> createNewProductVariantRepo({
+    required String productId,
+    Map<String, dynamic>? params,
+  }) async {
     final response = await ApiBaseHelper().postHTTP(
-      cloneProductInventory,
+      createProductNewVariant(productId),
+      params: params,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
+  ///Clone Product Variant...
+  /// Now hits the product-service inventory endpoint (mirrors grocery's
+  /// `grocery-service/api/inventory`). The body is a flat
+  /// `List<Map<String, dynamic>>` — same shape grocery's
+  /// `addGroceryProductVariantRepo` posts — built by
+  /// `InventoryController._buildInventoryPayload`.
+  Future<ResponseModel> cloneProductVariantRepo(
+      {List<Map<String, dynamic>>? params}) async {
+    final response = await ApiBaseHelper().postHTTP(
+      addProductVariant,
       params: params,
       showProgress: false,
       onError: (error) {},
@@ -132,15 +156,27 @@ class InventoryRepo extends BaseService {
   }
 
   /// Fetch Product Category With Inventory
-  Future<ResponseModel> fetchProductCategoryWithInventoryRepo({required String businessId}) async {
+  Future<ResponseModel> fetchProductCategoryWithInventoryRepo() async {
     final response = await ApiBaseHelper().getHTTP(
-      productInventoryByCategory(businessId),
+      productInventoryByCategory,
       showProgress: false,
       onError: (error) {},
       onSuccess: (data) {},
     );
     return response;
   }
+
+  /// Fetch Product Category With Inventory
+  Future<ResponseModel> fetchPublicProductCategoryWithInventoryRepo() async {
+    final response = await ApiBaseHelper().getHTTP(
+      productPublicInventoryByCategory,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
 
   ///GET BUSINESS PROFILE REPO....
   Future<ResponseModel> getBusinessProfileRepo() async {
@@ -175,4 +211,146 @@ class InventoryRepo extends BaseService {
     );
     return response;
   }
+
+  ///Add Product...
+  Future<ResponseModel> addProduct({required Map<String, dynamic> params}) async {
+    final response = await ApiBaseHelper().postHTTP(
+      products,
+      params: params,
+      showProgress: false,
+      isMultipart: true,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
+  ///Get Product...
+  Future<ResponseModel> getProduct({required String channelId}) async {
+    String channelProduct = channelProducts(channelId);
+    final response = await ApiBaseHelper().getHTTP(
+      channelProduct,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
+  ///Get Single Product ...
+  Future<ResponseModel> getSingleProductDetails({required String productId}) async {
+    String channelProductDetails = product(productId);
+    final response = await ApiBaseHelper().getHTTP(
+      channelProductDetails,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
+  ///update Product Details...
+  Future<ResponseModel> updateProductDetails({required String productId, required Map<String, dynamic> params}) async {
+    String channelProductDetails = product(productId);
+    final response = await ApiBaseHelper().putHTTP(
+      channelProductDetails,
+      showProgress: false,
+      isMultipart: true,
+      params: params,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
+  ///Delete Product...
+  Future<ResponseModel> deleteProduct({required String productId}) async {
+    String channelProductDetails = product(productId);
+    final response = await ApiBaseHelper().deleteHTTP(
+      channelProductDetails,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
+  // Create Product (multipart)
+  Future<ResponseModel> createProductViaAiApi({required Map<String, dynamic> params}) async {
+    final response = await ApiBaseHelper().postHTTP(
+      createProductViaAi,
+      params: params,
+      isMultipart: true,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
+  ///Add Product To Inventory...
+  Future<ResponseModel> addProductToInventoryApi({required Map<String, dynamic> params}) async {
+    final response = await ApiBaseHelper().postHTTP(
+      addProductToInventory,
+      params: params,
+      isMultipart: true,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
+  Future<ResponseModel> searchCategoryOfProduct({
+    required Map<String, dynamic> queryParams
+  }) async {
+    final response = await ApiBaseHelper().getHTTP(
+      searchProductCategory,
+      params: queryParams,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
+  Future<ResponseModel> addUpdateProductVariantApi({
+    required Map<String, dynamic> params,
+    required String productId,
+
+  }) async {
+    final response = await ApiBaseHelper().patchHTTP(
+      addUpdateProductVariant(productId),
+      params: params,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
+  ///Get Own Products...
+  Future<ResponseModel> fetchSingleProductApi({required String productId}) async {
+    final response = await ApiBaseHelper().getHTTP(
+      getProductById(productId),
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
+  Future<ResponseModel> productNestedCategoryRepo(
+      {Map<String, dynamic>? queryParams}) async {
+    final response = await ApiBaseHelper().getHTTP(
+      productNestedCategory,
+      showProgress: false,
+      params: queryParams,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
+
 }

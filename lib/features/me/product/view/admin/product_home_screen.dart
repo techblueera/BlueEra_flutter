@@ -8,6 +8,7 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/multipart_image_service.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/widgets/business_contact_map_card.dart';
+import 'package:BlueEra/features/common/bottomNavigationBar/controller/bottom_bar_controller.dart';
 import 'package:BlueEra/features/business/widgets/business_description_card.dart';
 import 'package:BlueEra/features/business/widgets/business_qrcode_widget.dart';
 import 'package:BlueEra/features/business/widgets/business_share_banner.dart';
@@ -40,16 +41,18 @@ class _ProductHomeScreenState extends State<ProductHomeScreen> {
 
   @override
   void initState() {
-    controller.fetchAllProductData();
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        showBusinessLivePhotoBottomSheetIfNeeded(
-          context: context,
-          controller: _businessController,
-        );
+      if (!mounted) return;
+      if (Get.isRegistered<BottomBarController>() &&
+          Get.find<BottomBarController>().currentIndex.value != 0) {
+        return;
       }
+      showBusinessLivePhotoBottomSheetIfNeeded(
+        context: context,
+        controller: _businessController,
+      );
     });
   }
 

@@ -36,6 +36,7 @@ import 'package:BlueEra/features/me/grocery/view/admin/grocery_nested_category_w
 import 'package:BlueEra/features/me/medical_new/view/add_medical_snap_search_screen.dart';
 import 'package:BlueEra/features/me/medical_new/view/medical_home_screen_v2.dart';
 import 'package:BlueEra/features/me/product/model/product_category_with_inventory_model.dart';
+import 'package:BlueEra/features/me/product/view/admin/add_product_variant_screen.dart';
 import 'package:BlueEra/features/me/product/view/admin/product_cart_screen.dart';
 import 'package:BlueEra/features/me/product/view/admin/product_nested_category_with_inventory_screen.dart';
 import 'package:BlueEra/features/me/product/view/admin/my_product_products_screen.dart';
@@ -436,6 +437,9 @@ class RouteHelper {
 
   static String getProductCartScreenRoute() =>
       RouteConstant.productCartScreen;
+
+  static String getAddProductVariantScreenRoute() =>
+      RouteConstant.addProductVariantScreen;
 
   static String getSelfEmployeeScreenRoute() =>
       RouteConstant.selfEmployeeScreen;
@@ -1774,6 +1778,12 @@ class RouteHelper {
             builder: (_) => ProductCartScreen(),
             settings: RouteSettings(name: getProductCartScreenRoute()));
 
+      case RouteConstant.addProductVariantScreen:
+        return MaterialPageRoute(
+            builder: (_) => AddProductVariantScreen(),
+            settings: RouteSettings(
+                name: getAddProductVariantScreenRoute()));
+
       case RouteConstant.paymentSettingScreen:
         return MaterialPageRoute(
             builder: (_) => PaymentSettingScreen(),
@@ -2023,9 +2033,9 @@ class RouteHelper {
 
       case RouteConstant.myProductProductsScreen:
         final args = settings.arguments as Map<String, dynamic>;
-        final List<ProductNestedCategoryResponse> argProductCategories =
+        final List<ProductCategoryWithInventoryModel> argProductCategories =
             args[ApiKeys.argProductCategories]
-                as List<ProductNestedCategoryResponse>;
+                as List<ProductCategoryWithInventoryModel>;
         return MaterialPageRoute(
             builder: (_) => MyProductProductsScreen(
                   arrCategories: argProductCategories,

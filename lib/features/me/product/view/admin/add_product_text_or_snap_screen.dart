@@ -29,6 +29,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:BlueEra/widgets/snap_scan_loader.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
@@ -51,6 +52,14 @@ class _AddProductTextOrSnapSearchScreenState
   final scrollController = ScrollController();
   final controller = Get.put(InventoryController());
   final Rx<_AddProductMode> _selectedMode = _AddProductMode.textSearch.obs;
+
+  /// Live keystroke mirror — `controller.searchProduct` only updates
+  /// after the debounce AND the 3-character gate, so binding the UI
+  /// branch directly to it makes the typing hint card lag behind the
+  /// keyboard. This mirrors the raw input so the hint switches the
+  /// instant the user types or backspaces.
+  static const int _minSearchChars = 3;
+  final RxString _liveInput = ''.obs;
 
   @override
   void initState() {
@@ -115,7 +124,7 @@ class _AddProductTextOrSnapSearchScreenState
       inventoryCtrl.variantSelection[id] = true;
     }
 
-    Get.toNamed(RouteHelper.getProductCartScreenRoute());
+    Get.toNamed(RouteHelper.getAddProductVariantScreenRoute());
   }
 
   void _openPreview(VariantData variantData) {
@@ -294,29 +303,43 @@ class _AddProductTextOrSnapSearchScreenState
                     color: AppColors.grey9B,
                   ),
                   SizedBox(height: SizeConfig.size16),
-                  CommonTextField(
-                    textEditController: controller.searchController,
-                    onChange: (value) => controller.onSearchChanged(value),
-                    hintText:
-                        AppStrings.typeAtLeastThreeCharForSearchProducts,
-                    showClearIcon: controller.searchProduct.isNotEmpty,
-                    onClearTap: () {
-                      controller.searchController.clear();
-                      controller.searchProduct.value = '';
-                    },
-                    isValidate: false,
-                  ),
+                  Obx(() => CommonTextField(
+                        textEditController: controller.searchController,
+                        onChange: (value) {
+                          _liveInput.value = value;
+                          controller.onSearchChanged(value);
+                        },
+                        hintText: AppStrings
+                            .typeAtLeastThreeCharForSearchProducts,
+                        showClearIcon: _liveInput.value.isNotEmpty,
+                        onClearTap: () {
+                          controller.searchController.clear();
+                          controller.searchProduct.value = '';
+                          _liveInput.value = '';
+                        },
+                        isValidate: false,
+                      )),
                 ],
               ),
             ),
 
             SizedBox(height: SizeConfig.size15),
 
-            // Results
-            if (controller.searchProduct.isNotEmpty)
-              _buildSearchResults()
-            else
-              _buildSuggestedProducts(),
+            // Results — switches between three states based on the
+            // live keystroke count:
+            //   0 chars        → suggested products (browse)
+            //   1..2 chars     → typing hint (let the user know more
+            //                    characters are needed before search
+            //                    will fire)
+            //   >= 3 chars     → real results (skeleton while loading)
+            Obx(() {
+              final length = _liveInput.value.trim().length;
+              if (length == 0) return _buildSuggestedProducts();
+              if (length < _minSearchChars) {
+                return _SearchTypingHint(typed: length, required: _minSearchChars);
+              }
+              return _buildSearchResults();
+            }),
           ],
         ),
       ),
@@ -324,10 +347,14 @@ class _AddProductTextOrSnapSearchScreenState
   }
 
   Widget _buildSearchResults() {
+    // Initial fetch — paint a placeholder grid that mirrors the real
+    // variant card layout instead of a centered spinner. Gives the
+    // merchant a preview of the layout they're about to receive and
+    // avoids the "is anything happening?" pause.
     if (controller.ProductSearchLoading.isTrue) {
-      return Padding(
-        padding: const EdgeInsets.all(30.0),
-        child: CircularProgressIndicator(),
+      return const Padding(
+        padding: EdgeInsets.only(top: 4),
+        child: _VariantGridSkeleton(count: 4),
       );
     }
 
@@ -345,16 +372,13 @@ class _AddProductTextOrSnapSearchScreenState
           _buildVariantGrid(controller.searchProductVariantsList),
         ],
 
+        // Load-more — two-card skeleton row keeps the visual language
+        // consistent with the initial fetch instead of jumping to a
+        // spinner.
         if (controller.isLoadingMore)
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Center(
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                valueColor:
-                    AlwaysStoppedAnimation<Color>(AppColors.primaryColor),
-              ),
-            ),
+          const Padding(
+            padding: EdgeInsets.only(top: 12),
+            child: _VariantGridSkeleton(count: 2),
           ),
       ],
     );
@@ -653,15 +677,9 @@ class _AddProductTextOrSnapSearchScreenState
       final response = controller.productSnapSearchResponse.value;
       if (response.status == Status.INITIAL) return const SizedBox();
       if (response.status == Status.LOADING) {
-        return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 40.0),
-          child: Center(
-            child: Image.asset(
-              'assets/images/grocery_loading_indicator.gif',
-              fit: BoxFit.cover,
-              gaplessPlayback: true,
-            ),
-          ),
+        return const Padding(
+          padding: EdgeInsets.symmetric(vertical: 24.0),
+          child: SnapScanLoader(),
         );
       }
 
@@ -947,6 +965,337 @@ class _AddProductTextOrSnapSearchScreenState
                 const Icon(Icons.close, color: AppColors.red, size: 20),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════
+// SEARCH TYPING HINT — shown while the user has typed 1..n-1 chars and
+// the API hasn't fired yet. Soft brand-tinted card with a breathing
+// search glyph, a progress-dot row (filled = typed, outline = pending),
+// and a one-line directive. Communicates the threshold without
+// scolding — the user knows exactly how many more keystrokes unlock
+// the search.
+// ════════════════════════════════════════════════════════════════════
+
+class _SearchTypingHint extends StatefulWidget {
+  final int typed;
+  final int required;
+
+  const _SearchTypingHint({required this.typed, required this.required});
+
+  @override
+  State<_SearchTypingHint> createState() => _SearchTypingHintState();
+}
+
+class _SearchTypingHintState extends State<_SearchTypingHint>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _pulse;
+
+  @override
+  void initState() {
+    super.initState();
+    _pulse = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1400),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _pulse.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final remaining = widget.required - widget.typed;
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(
+        horizontal: SizeConfig.size20,
+        vertical: SizeConfig.size24,
+      ),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        // Whisper of brand color over white — the card reads as
+        // primary-themed without competing with the search field.
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.white,
+            AppColors.primaryColor.withValues(alpha: 0.05),
+          ],
+        ),
+        border: Border.all(
+          color: AppColors.primaryColor.withValues(alpha: 0.18),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primaryColor.withValues(alpha: 0.06),
+            blurRadius: 18,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Breathing search glyph — soft outer halo scales up while
+          // the inner disc holds steady, suggesting "ready, waiting
+          // for input" rather than "loading".
+          AnimatedBuilder(
+            animation: _pulse,
+            builder: (_, __) {
+              final t = _pulse.value; // 0..1
+              final haloScale = 1.0 + 0.18 * t;
+              final haloAlpha = 0.20 - 0.14 * t;
+              return SizedBox(
+                width: 78,
+                height: 78,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Transform.scale(
+                      scale: haloScale,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: AppColors.primaryColor
+                              .withValues(alpha: haloAlpha.clamp(0.0, 1.0)),
+                        ),
+                      ),
+                    ),
+                    Container(
+                      width: 52,
+                      height: 52,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            AppColors.primaryColor,
+                            Color.lerp(
+                              AppColors.primaryColor,
+                              Colors.black,
+                              0.12,
+                            )!,
+                          ],
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primaryColor
+                                .withValues(alpha: 0.28),
+                            blurRadius: 14,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: const Icon(
+                        Icons.search_rounded,
+                        size: 26,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+          SizedBox(height: SizeConfig.size16),
+          CustomText(
+            'Keep typing…',
+            fontSize: SizeConfig.large,
+            fontWeight: FontWeight.w800,
+            color: AppColors.mainTextColor,
+            letterSpacing: -0.2,
+          ),
+          SizedBox(height: SizeConfig.size6),
+          CustomText(
+            remaining == 1
+                ? 'Just 1 more character to start searching'
+                : 'Type $remaining more characters to start searching',
+            fontSize: SizeConfig.small,
+            color: AppColors.secondaryTextColor,
+            fontWeight: FontWeight.w500,
+            textAlign: TextAlign.center,
+            height: 1.4,
+          ),
+          SizedBox(height: SizeConfig.size18),
+          // Progress dots — filled for keystrokes already typed,
+          // outlined for the ones still needed. Reads at a glance.
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(widget.required, (i) {
+              final filled = i < widget.typed;
+              return Padding(
+                padding: EdgeInsets.symmetric(
+                    horizontal: SizeConfig.size4),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 240),
+                  curve: Curves.easeOutCubic,
+                  width: filled ? 22 : 10,
+                  height: 10,
+                  decoration: BoxDecoration(
+                    color: filled
+                        ? AppColors.primaryColor
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(5),
+                    border: Border.all(
+                      color: filled
+                          ? AppColors.primaryColor
+                          : AppColors.primaryColor.withValues(alpha: 0.35),
+                      width: 1.5,
+                    ),
+                  ),
+                ),
+              );
+            }),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════
+// VARIANT GRID SKELETON — placeholder grid shown during the search
+// API call. Mimics the real ProductVariantGridCard layout (image ▸
+// title ▸ price) so the merchant gets a preview of the layout, and
+// applies a moving shimmer via ShaderMask so the placeholders feel
+// alive rather than frozen.
+// ════════════════════════════════════════════════════════════════════
+
+class _VariantGridSkeleton extends StatefulWidget {
+  final int count;
+
+  const _VariantGridSkeleton({this.count = 4});
+
+  @override
+  State<_VariantGridSkeleton> createState() => _VariantGridSkeletonState();
+}
+
+class _VariantGridSkeletonState extends State<_VariantGridSkeleton>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _shimmer;
+
+  @override
+  void initState() {
+    super.initState();
+    _shimmer = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _shimmer.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MasonryGridView.count(
+      shrinkWrap: true,
+      primary: false,
+      physics: const NeverScrollableScrollPhysics(),
+      crossAxisCount: 2,
+      crossAxisSpacing: 10,
+      mainAxisSpacing: 10,
+      itemCount: widget.count,
+      itemBuilder: (_, i) => _SkeletonVariantCard(animation: _shimmer),
+    );
+  }
+}
+
+class _SkeletonVariantCard extends StatelessWidget {
+  final Animation<double> animation;
+
+  const _SkeletonVariantCard({required this.animation});
+
+  // Bases & highlight tuned for a calm, light card surface.
+  static const Color _base = Color(0xFFEDEFF3);
+  static const Color _highlight = Color(0xFFF8F9FB);
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: animation,
+      builder: (_, __) {
+        final t = animation.value; // 0..1
+        // Move the gradient from off-left to off-right so the bright
+        // band sweeps cleanly across the card.
+        final dx = -1.5 + 3.0 * t;
+        return ShaderMask(
+          blendMode: BlendMode.srcATop,
+          shaderCallback: (bounds) {
+            return LinearGradient(
+              begin: Alignment(dx - 0.6, 0),
+              end: Alignment(dx + 0.6, 0),
+              colors: const [_base, _highlight, _base],
+              stops: const [0.0, 0.5, 1.0],
+            ).createShader(bounds);
+          },
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: const Color(0xFFE6E8EE),
+                width: 1,
+              ),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: const [
+                // Image placeholder — matches the variant card hero.
+                AspectRatio(
+                  aspectRatio: 1.0,
+                  child: ColoredBox(color: _base),
+                ),
+                // Info zone — name bar (long), price bar (short).
+                Padding(
+                  padding: EdgeInsets.fromLTRB(10, 12, 10, 12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _SkBar(width: double.infinity, height: 10),
+                      SizedBox(height: 8),
+                      _SkBar(width: 80, height: 10),
+                      SizedBox(height: 14),
+                      _SkBar(width: 64, height: 14),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _SkBar extends StatelessWidget {
+  final double width;
+  final double height;
+
+  const _SkBar({required this.width, required this.height});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: width,
+      height: height,
+      decoration: BoxDecoration(
+        color: _SkeletonVariantCard._base,
+        borderRadius: BorderRadius.circular(height / 2),
       ),
     );
   }
