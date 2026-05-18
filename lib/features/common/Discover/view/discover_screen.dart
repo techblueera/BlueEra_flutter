@@ -51,6 +51,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
 
   final ScrollController _scrollController = ScrollController();
   final GlobalKey _qrWidgetKey = GlobalKey();
+  final GlobalKey _riderWidgetKey = GlobalKey();
   late final EmergencyProfileController emergencyController;
 
   /// 0=Overview, 1=Bookings, 2=Professionals, 3=Shopping, 4=Services
@@ -68,7 +69,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
     final inGrid = _isInGridMode;
     return [
       (widget: GroceryCardWidget(), tabs: {3}),
-      (widget: TransportServiceWidget(), tabs: {1}),
+      (widget: TransportServiceWidget(targetRiderKey: _riderWidgetKey,), tabs: {1}),
       (widget: BookHomeServiceWidget(), tabs: {2}),
       (widget: ProfessionalsCardWidget(), tabs: {2}),
       (widget: HealthServiceCardWidget(), tabs: {4}),
@@ -153,13 +154,6 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
           statusBarBrightness: Brightness.dark,
         ),
         child: Scaffold(
-          // floatingActionButton: FloatingActionButton(onPressed: (){
-          //   // Get.toNamed(getCreateAccountTypeScreenRoute());
-          //
-          //   Get.toNamed(RouteHelper.getVehicleHomeScreenRoute());
-          //
-          //   // Get.to(BusinessOwnProfileScreen());
-          // }),
           body: SafeArea(
             top: false,
             child: BottomNavHideOnScroll(
@@ -175,6 +169,11 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                         DiscoverBannerSlider(
                           parentScrollController: _scrollController,
                           targetKey: _qrWidgetKey,
+                          targetRiderKey: _riderWidgetKey,
+                          onTabSelected: (i) {
+                            if (i == _activeTabIndex) return;
+                            setState(() => _activeTabIndex = i);
+                          },
                         ),
 
                         /// Overlay: location + cart on top of banner

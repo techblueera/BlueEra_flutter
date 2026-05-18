@@ -521,6 +521,7 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
                   keyBoardType: TextInputType.number,
                   textEditController: controller.vehicleModelCtrl,
                   isValidate: true,
+                  maxLength: 4,
                 ),
                 SizedBox(height: SizeConfig.paddingM),
 

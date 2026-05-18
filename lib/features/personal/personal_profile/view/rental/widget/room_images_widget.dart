@@ -95,7 +95,7 @@ class roomImagesWidget extends StatelessWidget {
           _buildAddButton(
               title: AppStrings.uploadKitchenImages,
               onTap: () {
-                CommonDocumentBottomSheet(
+                Get.bottomSheet(                CommonDocumentBottomSheet(
                   title: AppStrings.uploadKitchenImages,
                   child: Column(
                     children: [
@@ -138,7 +138,7 @@ class roomImagesWidget extends StatelessWidget {
                       )
                     ],
                   ),
-                );
+                ));
               },
               status: controller.sectionUploadStatus[CommonMultipleImageSectionController.kitchenImageId] ?? false
 
