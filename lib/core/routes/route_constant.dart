@@ -96,6 +96,7 @@ class RouteConstant {
   static const String productNestedCategoryScreen = "/ProductNestedCategoryScreen";
   static const String storeProductSelectionScreen = "/StoreProductSelectionScreen";
   static const String productCartScreen = "/ProductCartScreen";
+  static const String addProductVariantScreen = "/AddProductVariantScreen";
   // static const String storeFeedScreen = "/StoreFeedScreen";
   static const String selfEmployeeScreen = "/SelfEmployeeScreen";
   static const String inventoryBusinessCardsScreen = "/InventoryBusinessCardsScreen";

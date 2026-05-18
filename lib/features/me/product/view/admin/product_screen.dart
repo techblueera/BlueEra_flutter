@@ -25,7 +25,7 @@ import 'package:BlueEra/features/contribution/view/contribution_screen.dart';
 import 'package:BlueEra/features/me/medical_new/view/medical_statistics_screen.dart';
 import 'package:BlueEra/features/me/me_tab_registry.dart';
 import 'package:BlueEra/features/me/product/controller/inventory_controller.dart';
-import 'package:BlueEra/features/me/product/view/admin/widget/attribute_two_rows.dart';
+import 'package:BlueEra/features/me/product/model/product_category_with_inventory_model.dart';
 import 'package:BlueEra/features/me/product/view/all_top_selling_products_screen.dart';
 import 'package:BlueEra/features/me/product/view/admin/product_home_screen.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -42,11 +42,9 @@ import 'package:get/get.dart';
 /// action-only — it fires the existing add-product flow without
 /// switching the body.
 class ProductScreen extends StatefulWidget {
-  final bool fromBottomNavBar;
 
   const ProductScreen({
     super.key,
-    this.fromBottomNavBar = false,
   });
 
   @override
@@ -65,13 +63,8 @@ class _ProductScreenState extends State<ProductScreen>
   late final List<Widget> _tabViews;
 
   final inventoryController = getOrPut(() => InventoryController());
-  final viewBusinessDetailsController =
-      Get.find<ViewBusinessDetailsController>();
-
-  // Drives the orders list shown under the Order tab. Same controller
-  // the Connect screen uses, so socket-driven updates land on both.
-  final ChatViewController _chatViewController =
-      getOrPut(() => ChatViewController());
+  final viewBusinessDetailsController = Get.find<ViewBusinessDetailsController>();
+  final ChatViewController _chatViewController = getOrPut(() => ChatViewController());
 
   @override
   void initState() {
@@ -110,9 +103,56 @@ class _ProductScreenState extends State<ProductScreen>
 
   void _onTabChanged() {
     final c = _tabController;
-    if (c == null || c.indexIsChanging) return;
+    if (c == null) return;
+    // No `indexIsChanging` guard here: on tap, `animateTo` notifies
+    // listeners synchronously with `indexIsChanging == true`, and we
+    // need to react at the START of the animation (not the end) so
+    // the lazy product fetch fires for tap-driven changes too.
     if (_selectedTab != c.index) {
       setState(() => _selectedTab = c.index);
+      // Fetch product data lazily — only when the merchant actually
+      // opens the Products tab, not on every Me-tab landing.
+      print('index--> ${c.index}');
+      if (c.index == 2) {
+        inventoryController.fetchAllProductData();
+      }
+    }
+  }
+
+  /// Pull-to-refresh dispatcher — each tab owns a different data set,
+  /// so the refresh action fires only the API(s) backing the currently
+  /// visible tab. Avoids hammering unrelated endpoints on every pull.
+  Future<void> _onRefreshCurrentTab() async {
+    switch (_selectedTab) {
+      case 0:
+        // Orders: re-pull the order chat list + recharge status.
+        _chatViewController.emitEvent(
+          ChatEmitEvents.ChatList,
+          {ApiKeys.type: AppConstants.order_Chat_Type},
+        );
+        if (Get.isRegistered<ContributionController>()) {
+          await Get.find<ContributionController>().fetchCurrent();
+        }
+        break;
+      case 1:
+        // Overview: re-pull the business profile (drives joined date,
+        // identity card, cover banner, contact-map, QR, share banner).
+        await viewBusinessDetailsController.viewBusinessProfile();
+        break;
+      case 2:
+        // Products: re-pull catalog + categories.
+        inventoryController.fetchAllProductData();
+        break;
+      case 3:
+        // Post: re-pull the merchant's own posts feed.
+        if (Get.isRegistered<FeedController>()) {
+          await Get.find<FeedController>().getFeed(refresh: true);
+        }
+        break;
+      case 4:
+        // Statics: MedicalStatisticsScreen manages its own state and
+        // doesn't expose an external refresh hook — no-op for now.
+        break;
     }
   }
 
@@ -156,9 +196,7 @@ class _ProductScreenState extends State<ProductScreen>
                 return false;
               },
               child: RefreshIndicator(
-                onRefresh: () async {
-                  inventoryController.fetchAllProductData();
-                },
+                onRefresh: _onRefreshCurrentTab,
                 child: CustomScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
                   slivers: [
@@ -816,7 +854,7 @@ class _ProductScreenState extends State<ProductScreen>
           BoxShadow(
             color: Color(0x42001120),
             blurRadius: 16,
-            offset: Offset(0, 4),
+            offset: Offset(0, 0),
             blurStyle: BlurStyle.outer,
           ),
         ],
@@ -842,18 +880,20 @@ class _ProductScreenState extends State<ProductScreen>
             child: Row(
               children: [
                 _circleIconButton(icon: Icons.menu, onTap: _openDrawer),
-                SizedBox(width: SizeConfig.size8),
-                _nearbyRidersPill(),
-                SizedBox(width: SizeConfig.size8),
-                const ReferEarnPill(),
+                SizedBox(width: SizeConfig.size6),
+                // Pills wrapped in Flexible so their inner text can
+                // ellipsize instead of pushing the row past its width.
+                Flexible(child: _nearbyRidersPill()),
+                SizedBox(width: SizeConfig.size6),
+                Flexible(child: const ReferEarnPill()),
                 const Spacer(),
-                SizedBox(width: SizeConfig.size2),
-                if (!isGuest)
+                if (!isGuest) ...[
                   _circleIconButton(
                     icon: Icons.notifications_none,
                     onTap: _openNotifications,
                   ),
-                SizedBox(width: SizeConfig.size8),
+                  SizedBox(width: SizeConfig.size6),
+                ],
                 _goLivePill(),
               ],
             ),
@@ -960,11 +1000,15 @@ class _ProductScreenState extends State<ProductScreen>
                   width: 18,
                 ),
                 SizedBox(width: SizeConfig.size6),
-                CustomText(
-                  'Nearby Riders',
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.secondaryTextColor,
+                Flexible(
+                  child: CustomText(
+                    'Nearby Riders',
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.secondaryTextColor,
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
                 ),
               ],
             ),
@@ -1141,8 +1185,10 @@ class _ProductScreenState extends State<ProductScreen>
     if (c == null) return;
     if (i < 0 || i >= c.length) return;
     if (i == c.index) return;
+    // _selectedTab is updated by _onTabChanged when animateTo
+    // notifies — no preemptive setState here, otherwise the listener
+    // sees `_selectedTab == c.index` and skips the fetch on tap.
     c.animateTo(i);
-    setState(() => _selectedTab = i);
   }
 }
 
@@ -1335,7 +1381,11 @@ class _ProductsTabBodyState extends State<_ProductsTabBody> {
           ),
           SizedBox(height: SizeConfig.size12),
           SizedBox(
-            height: 290,
+            // Was 290 (sized for the old card with the attribute-chip
+            // row). After that row was removed, the card's natural max
+            // is ~245 (hero 160 + info 60 + paddings/ribbon). 250 keeps
+            // a 5px buffer for descender/line-height variance.
+            height: 250,
             child: Builder(builder: (context) {
               final previewCount = controller.allProducts.length >
                       InventoryController.ownProductsPreviewLimit
@@ -1465,39 +1515,6 @@ class _ProductsTabBodyState extends State<_ProductsTabBody> {
     final discountPercent = discountRaw.toInt();
     final rank = index + 1;
 
-    // Build the unique-attribute map (color/size variants) for the
-    // attribute chip row — same logic as the original implementation.
-    final Map<String, List<dynamic>> uniqueAttributes = {};
-    final firstTwoKeys = <String>[];
-    for (var v in variants) {
-      for (var key in v.attributes.keys) {
-        if (!firstTwoKeys.contains(key)) firstTwoKeys.add(key);
-        if (firstTwoKeys.length == 1) break;
-      }
-      if (firstTwoKeys.length == 1) break;
-    }
-    for (var key in firstTwoKeys) {
-      uniqueAttributes[key] = [];
-      for (var v in variants) {
-        final value = v.attributes[key];
-        if (value == null) continue;
-        if (key == 'color' && value is Map<String, dynamic>) {
-          final colorMap = {
-            'color_name': value['color_name'] ?? '',
-            'color_code': value['color_code'] ?? '',
-          };
-          if (!uniqueAttributes[key]!.any((e) =>
-              e is Map &&
-              e['color_name'] == colorMap['color_name'] &&
-              e['color_code'] == colorMap['color_code'])) {
-            uniqueAttributes[key]!.add(colorMap);
-          }
-        } else if (!uniqueAttributes[key]!.contains(value)) {
-          uniqueAttributes[key]!.add(value);
-        }
-      }
-    }
-
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () => Get.to(() => const AllTopSellingProductsScreen()),
@@ -1619,7 +1636,7 @@ class _ProductsTabBodyState extends State<_ProductsTabBody> {
                 ],
               ),
             ),
-            // Info zone — name, attribute chips, price hierarchy.
+            // Info zone — name + price hierarchy.
             Padding(
               padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
               child: Column(
@@ -1661,16 +1678,6 @@ class _ProductsTabBodyState extends State<_ProductsTabBody> {
                         ),
                       ],
                     ),
-                  const SizedBox(height: 8),
-                  // Attribute chips row — always reserve a fixed-height
-                  // slot so cards without attributes still align with
-                  // their neighbours. Empty cards keep the row blank.
-                  SizedBox(
-                    height: 24,
-                    child: uniqueAttributes.isNotEmpty
-                        ? AttributeRows(attributeMap: uniqueAttributes)
-                        : const SizedBox.shrink(),
-                  ),
                 ],
               ),
             ),
@@ -1697,7 +1704,8 @@ class _ProductsTabBodyState extends State<_ProductsTabBody> {
   }
 
   Widget _categoryWithInventoryGrid() {
-    final categoryList = controller.productCategoryList;
+    final List<ProductCategoryWithInventoryModel> categoryList =
+        controller.productNestedCategoryList;
     if (categoryList.isEmpty) {
       return Padding(
         padding: EdgeInsets.symmetric(
@@ -1739,7 +1747,10 @@ class _ProductsTabBodyState extends State<_ProductsTabBody> {
   // (BoxFit.contain so nothing crops), crisp white footer with the
   // name + a small filled brand-blue chevron. Single tap target —
   // no separate "View Products" CTA — for a clean silhouette.
-  Widget _inventoryCategoryCard(dynamic item, List categoryList) {
+  Widget _inventoryCategoryCard(
+    ProductCategoryWithInventoryModel item,
+    List<ProductCategoryWithInventoryModel> categoryList,
+  ) {
     final image = (item.image ?? '').toString();
     final hasImage = image.isNotEmpty;
     return Material(
@@ -1748,6 +1759,7 @@ class _ProductsTabBodyState extends State<_ProductsTabBody> {
         onTap: () => Get.toNamed(
           RouteHelper.getProductNestedCategoryWithInventoryScreenRoute(),
           arguments: {
+            ApiKeys.userId: businessId,
             ApiKeys.argProductCategoryWithInventory: categoryList.toList(),
             ApiKeys.argProductCatKey: item.key ?? '',
             ApiKeys.argProductCatName: item.name ?? '',

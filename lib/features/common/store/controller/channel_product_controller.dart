@@ -2,7 +2,7 @@ import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/store/models/get_channel_product_model.dart';
-import 'package:BlueEra/features/common/store/repo/product_repo.dart';
+import 'package:BlueEra/features/me/product/repo/product_repo.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 

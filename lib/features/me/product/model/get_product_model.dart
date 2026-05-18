@@ -11,13 +11,40 @@ class GetProductModel {
     required this.data,
   });
 
+  /// Handles two response shapes:
+  ///
+  /// 1. Legacy flat: `{ data: [{ product: {...} }, ...] }` — one entry
+  ///    per product, used by older endpoints (channel, discover, store).
+  /// 2. New category-grouped: `{ data: [{ category: { ..., products:
+  ///    [{ ..., variants: [...] }] } }, ...] }` — returned by the
+  ///    refreshed `fetchProductsRepo` API. We flatten this into one
+  ///    [GetProductData] per product so the rest of the app (top-selling
+  ///    shelf, cart screens, etc.) keeps consuming a flat list.
   factory GetProductModel.fromJson(Map<String, dynamic> json) {
+    final rawData = (json['data'] as List<dynamic>? ?? const []);
+    final flattened = <GetProductData>[];
+    for (final entry in rawData) {
+      if (entry is! Map) continue;
+      final map = Map<String, dynamic>.from(entry);
+      if (map['category'] is Map) {
+        final cat = Map<String, dynamic>.from(map['category'] as Map);
+        final products =
+            (cat['products'] as List<dynamic>? ?? const <dynamic>[]);
+        for (final p in products) {
+          if (p is! Map) continue;
+          flattened.add(GetProductData.fromCategoryProduct(
+            category: cat,
+            product: Map<String, dynamic>.from(p),
+          ));
+        }
+      } else {
+        flattened.add(GetProductData.fromJson(map));
+      }
+    }
     return GetProductModel(
       status: json['status'] ?? false,
       message: json['message'] ?? '',
-      data: (json['data'] as List<dynamic>? ?? [])
-          .map((e) => GetProductData.fromJson(e))
-          .toList(),
+      data: flattened,
     );
   }
 
@@ -41,11 +68,100 @@ class GetProductData {
     );
   }
 
+  /// Constructs a [GetProductData] from one product entry inside the
+  /// new category-grouped API response. We synthesize a legacy-shaped
+  /// envelope so the existing [ProductStore]/[ProductDetails]/[Variant]
+  /// factories can parse it without per-field dual-mode forks.
+  factory GetProductData.fromCategoryProduct({
+    required Map<String, dynamic> category,
+    required Map<String, dynamic> product,
+  }) {
+    final variantsRaw = (product['variants'] as List<dynamic>? ?? const []);
+    final synthesizedVariants = <Map<String, dynamic>>[];
+    String? businessId;
+    for (final v in variantsRaw) {
+      if (v is! Map) continue;
+      final variant = Map<String, dynamic>.from(v);
+      final pricing = (variant['pricing'] as List<dynamic>? ?? const []);
+      final firstPricing = pricing.isNotEmpty && pricing.first is Map
+          ? Map<String, dynamic>.from(pricing.first as Map)
+          : const <String, dynamic>{};
+      final inventory = variant['inventory'] is Map
+          ? Map<String, dynamic>.from(variant['inventory'] as Map)
+          : const <String, dynamic>{};
+      businessId ??= inventory['businessId']?.toString();
+      synthesizedVariants.add({
+        '_id': variant['_id'] ?? '',
+        'attributes': variant['attributes'] ?? const <String, dynamic>{},
+        'stock': inventory['isOutOfStock'] != true,
+        'sellingPrice': firstPricing['sellingPrice'] ?? 0,
+        'mrp': firstPricing['mrp'] ?? 0,
+        'media_related_to_varient': _extractMediaUrls(variant['images']),
+        'varientIsActive': variant['isActive'] ?? true,
+      });
+    }
+
+    final synth = <String, dynamic>{
+      'business_id': businessId ?? '',
+      'category': category['_id'] ?? '',
+      'details': {
+        '_id': product['_id'] ?? '',
+        'name': product['name'] ?? '',
+        'description': product['description'] ?? '',
+        'brand': product['brand'] ?? '',
+        'media': _extractMediaUrls(product['images']),
+        'video_url': _extractMediaUrls(product['videos']),
+        'tags': const <String>[],
+        'add_more_details': const <dynamic>[],
+        'add_product_features': const <dynamic>[],
+        'type': product['type'] ?? '',
+        'symbol': product['currencySymbol'] ?? '',
+        'product_warranty': product['productWarrenty'] ?? '',
+        'is_returnable': product['isReturnable'] ?? false,
+        'returning_day': product['returnDays'] ?? 0,
+        'is_published': product['isPublished'] ?? false,
+        'mrp_per_unit': product['mrpPerUnit'] ?? 0,
+        'sku': '',
+        'hsn': '',
+        'category': {
+          'id': category['_id'] ?? '',
+          'name': category['name'] ?? '',
+          'image_url': category['image'] ?? '',
+          'active': category['isActive'] ?? true,
+        },
+      },
+      'sellerCalsification': {
+        '_id': '',
+        'product_id': product['_id'] ?? '',
+        'isActive': true,
+        'variants': synthesizedVariants,
+      },
+    };
+    return GetProductData(product: ProductStore.fromJson(synth));
+  }
+
   Map<String, dynamic> toJson() {
     return {
       'product': product.toJson(),
     };
   }
+}
+
+/// Extracts URL strings from the API's `images` / `videos` arrays
+/// where each entry is an object `{ url, altText, _id }`. Falls back
+/// to plain string entries (legacy shape) when present.
+List<String> _extractMediaUrls(dynamic raw) {
+  if (raw is! List) return const [];
+  final out = <String>[];
+  for (final e in raw) {
+    if (e is String && e.isNotEmpty) {
+      out.add(e);
+    } else if (e is Map) {
+      final url = (e['url'] ?? '').toString();
+      if (url.isNotEmpty) out.add(url);
+    }
+  }
+  return out;
 }
 
 class ProductStore {

@@ -29,6 +29,12 @@ class _ProductCartScreenState extends State<ProductCartScreen> {
   final productController = getOrPut(() => ProductController());
   late final InventoryController inventoryController;
 
+  /// Per-variant inline error message keyed by variant id. Populated
+  /// when the merchant types a selling price that exceeds that
+  /// variant's MRP — used to block both the save into
+  /// `inventoryController.variantSellingPrice` and the publish CTA.
+  final Map<String, String?> _priceErrors = {};
+
   @override
   void initState() {
     super.initState();
@@ -40,6 +46,24 @@ class _ProductCartScreenState extends State<ProductCartScreen> {
         inventoryController.variantSelection[id] = true;
       }
     });
+  }
+
+  void _onSellingPriceChanged(String variantId, String value, double mrp) {
+    final trimmed = value.trim();
+    final parsed = double.tryParse(trimmed);
+    if (parsed != null && parsed > mrp) {
+      setState(() {
+        _priceErrors[variantId] =
+            'Selling price can’t exceed MRP (${AppConstants.rupeeSymbol}${mrp.toStringAsFixed(0)})';
+      });
+      // Don't persist an invalid price — the existing value stays so
+      // publish still uses something sensible.
+      return;
+    }
+    if (_priceErrors[variantId] != null) {
+      setState(() => _priceErrors[variantId] = null);
+    }
+    inventoryController.updateSellingPrice(variantId, trimmed);
   }
 
   @override
@@ -297,89 +321,120 @@ class _ProductCartScreenState extends State<ProductCartScreen> {
               horizontal: SizeConfig.size12,
               vertical: SizeConfig.size10,
             ),
-            child: Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(
-                  Icons.edit_outlined,
-                  size: 16,
-                  color: AppColors.primaryColor,
-                ),
-                SizedBox(width: SizeConfig.size6),
-                CustomText(
-                  'Your Selling Price',
-                  fontSize: SizeConfig.small,
-                  color: AppColors.mainTextColor,
-                  fontWeight: FontWeight.w500,
-                ),
-                SizedBox(width: SizeConfig.size12),
-                Expanded(
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: Container(
-                      height: 38,
-                      decoration: BoxDecoration(
-                        color: AppColors.fillColor,
+                Row(
+                  children: [
+                    Icon(
+                      Icons.edit_outlined,
+                      size: 16,
+                      color: AppColors.primaryColor,
+                    ),
+                    SizedBox(width: SizeConfig.size6),
+                    CustomText(
+                      'Your Selling Price',
+                      fontSize: SizeConfig.small,
+                      color: AppColors.mainTextColor,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    SizedBox(width: SizeConfig.size12),
+                    Expanded(
+                      child: ClipRRect(
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: AppColors.greyE5, width: 1),
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 32,
-                            height: 38,
-                            decoration: BoxDecoration(
-                              color: AppColors.primaryColor.withValues(alpha: 0.08),
-                            ),
-                            alignment: Alignment.center,
-                            child: CustomText(
-                              AppConstants.rupeeSymbol,
-                              fontSize: SizeConfig.medium,
-                              color: AppColors.primaryColor,
-                              fontWeight: FontWeight.w600,
+                        child: Container(
+                          height: 38,
+                          decoration: BoxDecoration(
+                            color: AppColors.fillColor,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: _priceErrors[variant.id] != null
+                                  ? AppColors.red
+                                  : AppColors.greyE5,
+                              width: 1,
                             ),
                           ),
-                          Expanded(
-                            child: TextField(
-                              keyboardType: TextInputType.numberWithOptions(decimal: true),
-                              inputFormatters: [
-                                FilteringTextInputFormatter.allow(
-                                    RegExp(r'^\d*\.?\d*')),
-                              ],
-                              style: TextStyle(
-                                fontSize: SizeConfig.medium,
-                                fontWeight: FontWeight.w500,
-                                color: AppColors.mainTextColor,
-                              ),
-                              decoration: InputDecoration(
-                                hintText: variant.sellingPrice.toStringAsFixed(0),
-                                hintStyle: TextStyle(
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 32,
+                                height: 38,
+                                decoration: BoxDecoration(
+                                  color: AppColors.primaryColor
+                                      .withValues(alpha: 0.08),
+                                ),
+                                alignment: Alignment.center,
+                                child: CustomText(
+                                  AppConstants.rupeeSymbol,
                                   fontSize: SizeConfig.medium,
-                                  color: AppColors.secondaryTextColor,
+                                  color: AppColors.primaryColor,
+                                  fontWeight: FontWeight.w600,
                                 ),
-                                border: InputBorder.none,
-                                enabledBorder: InputBorder.none,
-                                focusedBorder: InputBorder.none,
-                                disabledBorder: InputBorder.none,
-                                errorBorder: InputBorder.none,
-                                contentPadding: EdgeInsets.symmetric(
-                                  horizontal: SizeConfig.size8,
-                                  vertical: 10,
-                                ),
-                                isDense: true,
                               ),
-                              onChanged: (value) {
-                                inventoryController.updateSellingPrice(
-                                  variant.id,
-                                  value,
-                                );
-                              },
-                            ),
+                              Expanded(
+                                child: TextField(
+                                  keyboardType: TextInputType
+                                      .numberWithOptions(decimal: true),
+                                  inputFormatters: [
+                                    FilteringTextInputFormatter.allow(
+                                        RegExp(r'^\d*\.?\d*')),
+                                  ],
+                                  style: TextStyle(
+                                    fontSize: SizeConfig.medium,
+                                    fontWeight: FontWeight.w500,
+                                    color: AppColors.mainTextColor,
+                                  ),
+                                  decoration: InputDecoration(
+                                    hintText:
+                                        variant.sellingPrice.toStringAsFixed(0),
+                                    hintStyle: TextStyle(
+                                      fontSize: SizeConfig.medium,
+                                      color: AppColors.secondaryTextColor,
+                                    ),
+                                    border: InputBorder.none,
+                                    enabledBorder: InputBorder.none,
+                                    focusedBorder: InputBorder.none,
+                                    disabledBorder: InputBorder.none,
+                                    errorBorder: InputBorder.none,
+                                    contentPadding: EdgeInsets.symmetric(
+                                      horizontal: SizeConfig.size8,
+                                      vertical: 10,
+                                    ),
+                                    isDense: true,
+                                  ),
+                                  onChanged: (value) =>
+                                      _onSellingPriceChanged(
+                                          variant.id, value, variant.mrp),
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
+                        ),
                       ),
                     ),
-                  ),
+                  ],
                 ),
+                if (_priceErrors[variant.id] != null) ...[
+                  SizedBox(height: SizeConfig.size6),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.error_outline,
+                        size: 14,
+                        color: AppColors.red,
+                      ),
+                      SizedBox(width: SizeConfig.size4),
+                      Expanded(
+                        child: CustomText(
+                          _priceErrors[variant.id]!,
+                          fontSize: SizeConfig.extraSmall,
+                          color: AppColors.red,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ],
             ),
           ),
@@ -464,6 +519,23 @@ class _ProductCartScreenState extends State<ProductCartScreen> {
     final variants = productController.selectedProducts.toList();
     if (variants.isEmpty) return;
 
+    // Block publish while any row still has a selling-price > MRP error.
+    final hasInvalidPrice =
+        _priceErrors.values.any((err) => err != null && err.isNotEmpty);
+    if (hasInvalidPrice) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const CustomText(
+            'Fix selling prices that exceed MRP before publishing.',
+            color: AppColors.white,
+          ),
+          backgroundColor: AppColors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
     final missingPriceIds =
         inventoryController.validateSelectedVariants(variants);
 
@@ -519,7 +591,6 @@ class _ProductCartScreenState extends State<ProductCartScreen> {
         productController.ownerProviderType ?? ProviderType.business;
 
     inventoryController.cloneProductVariantApi(
-      ownerID: ownerID,
       providerType: providerType,
       variants: variants,
     );

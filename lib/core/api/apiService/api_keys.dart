@@ -777,4 +777,5 @@ class ApiKeys {
 
   static const argEmergencyProfileId = 'argEmergencyProfileId';
   static const argEmergencyProfile = 'argEmergencyProfile';
+  static const isDiscounted  = 'isDiscounted ';
 }

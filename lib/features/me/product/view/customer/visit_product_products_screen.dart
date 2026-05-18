@@ -7,7 +7,6 @@ import 'package:BlueEra/features/me/product/controller/inventory_controller.dart
 import 'package:BlueEra/features/me/product/controller/product_selfpickup_controller.dart';
 import 'package:BlueEra/features/me/product/model/get_product_model.dart';
 import 'package:BlueEra/features/me/product/model/product_category_with_inventory_model.dart';
-import 'package:BlueEra/features/me/product/model/product_nested_category_response.dart';
 import 'package:BlueEra/features/me/product/view/admin/widget/product_top_selling_tile.dart';
 import 'package:BlueEra/features/me/product/view/customer/widget/product_self_pickup_cart.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -47,8 +46,8 @@ class _VisitProductProductsScreenState
   final ScrollController _scrollController = ScrollController();
 
   /// Currently selected level-2 category (sidebar).
-  final Rxn<ProductNestedCategoryResponse> _selectedCategory =
-      Rxn<ProductNestedCategoryResponse>();
+  final Rxn<ProductCategoryWithInventoryModel> _selectedCategory =
+      Rxn<ProductCategoryWithInventoryModel>();
 
   /// Horizontal tab index for level-3 children. `0` → "All"
   /// (uses the level-2 category id directly).
@@ -177,7 +176,7 @@ class _VisitProductProductsScreenState
 
   Widget _buildSidebar() {
     final level2 = widget.parentCategory.children ?? [];
-    return CommonGenericLeftSideCategoryList<ProductNestedCategoryResponse>(
+    return CommonGenericLeftSideCategoryList<ProductCategoryWithInventoryModel>(
       items: level2,
       getIcon: (item) => item.image ?? '',
       getLabel: (item) => item.name ?? '',
