@@ -7,6 +7,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
+import 'package:BlueEra/features/common/delivery_partner/model/vehicle_enums_response.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_drop_down-dialoge.dart';
@@ -61,7 +62,7 @@ class _VehicleInformationRidingScreenState extends State<VehicleInformationRidin
                       color: AppColors.mainTextColor,
                     ),
                     SizedBox(height: SizeConfig.size8),
-                    CommonDropdownDialog<String>(
+                    CommonDropdownDialog<VehicleEnumItem>(
                       items: controller.getFilteredVehicles(
                           userProfessionGlobal,
                           controller.vehicleEnumResponse?.vehicleType ?? []
@@ -69,7 +70,7 @@ class _VehicleInformationRidingScreenState extends State<VehicleInformationRidin
                       title: AppStrings.vehicleType.tr,
                       selectedValue: controller.selectedVehicleType.value,
                       hintText: AppStrings.egTwoThreeWheeler.tr,
-                      displayValue: (value) => value,
+                      displayValue: (value) => value.slugValue,
                       onChanged: (value) {
                         controller.selectedVehicleType.value = value;
                       },
@@ -87,12 +88,12 @@ class _VehicleInformationRidingScreenState extends State<VehicleInformationRidin
                       color: AppColors.mainTextColor,
                     ),
                     SizedBox(height: SizeConfig.size8),
-                    CommonDropdownDialog<String>(
+                    CommonDropdownDialog<VehicleEnumItem>(
                       items: controller.vehicleEnumResponse?.registrationType ?? [],
                       selectedValue: controller.selectedVehicleRegistrationType.value,
                       title: AppStrings.registrationType.tr,
                       hintText: AppStrings.egPersonalCommercial.tr,
-                      displayValue: (value) => value,
+                      displayValue: (value) => value.slugValue,
                       onChanged: (value) {
                         controller.selectedVehicleRegistrationType.value = value;
                       },
@@ -110,12 +111,12 @@ class _VehicleInformationRidingScreenState extends State<VehicleInformationRidin
                       color: AppColors.mainTextColor,
                     ),
                     SizedBox(height: SizeConfig.size8),
-                    CommonDropdownDialog<String>(
+                    CommonDropdownDialog<VehicleEnumItem>(
                       items: controller.vehicleEnumResponse?.vehicleUsesType ?? [],
                       selectedValue: controller.selectedVehicleUseType.value,
                       title: AppStrings.vehicleUseType.tr,
                       hintText: AppStrings.egPassengerDeliveryGoods.tr,
-                      displayValue: (value) => value,
+                      displayValue: (value) => value.slugValue,
                       onChanged: (value) {
                         controller.selectedVehicleUseType.value = value;
                       },
@@ -143,12 +144,12 @@ class _VehicleInformationRidingScreenState extends State<VehicleInformationRidin
                       color: AppColors.mainTextColor,
                     ),
                     SizedBox(height: SizeConfig.size8),
-                    CommonDropdownDialog<String>(
+                    CommonDropdownDialog<VehicleEnumItem>(
                       items: controller.vehicleEnumResponse?.fuelType ?? [],
                       selectedValue: controller.selectedFuelType.value,
                       title: AppStrings.fuelType.tr,
                       hintText: AppStrings.egPetrolDiesel.tr,
-                      displayValue: (value) => value,
+                      displayValue: (value) => value.slugValue,
                       onChanged: (value) {
                         controller.selectedFuelType.value = value;
                       },

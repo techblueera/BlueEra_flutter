@@ -126,10 +126,11 @@ class DeliveryPartnerController extends GetxController {
   final vehicleModelController = TextEditingController();
 
   final RxBool isTermsAccepted = false.obs;
-  Rx<String?> selectedVehicleType = Rx<String?>(null);
-  Rx<String?> selectedVehicleRegistrationType = Rx<String?>(null);
-  Rx<String?> selectedVehicleUseType = Rx<String?>(null);
-  Rx<String?> selectedFuelType = Rx<String?>(null);
+  Rx<VehicleEnumItem?> selectedVehicleType = Rx<VehicleEnumItem?>(null);
+  Rx<VehicleEnumItem?> selectedVehicleRegistrationType =
+      Rx<VehicleEnumItem?>(null);
+  Rx<VehicleEnumItem?> selectedVehicleUseType = Rx<VehicleEnumItem?>(null);
+  Rx<VehicleEnumItem?> selectedFuelType = Rx<VehicleEnumItem?>(null);
 
   Future<ImageUploadResponseModel?> uploadInit(
       {required String fileType}) async {
@@ -531,13 +532,13 @@ class DeliveryPartnerController extends GetxController {
         isRiderVehicleInformationLoading.value = true;
 
         Map<String, dynamic> params = {
-          ApiKeys.registrationType: selectedVehicleRegistrationType.value,
+          ApiKeys.registrationType: selectedVehicleRegistrationType.value?.slugId,
           ApiKeys.registrationNo: vehicleRegistrationNumberController.text,
-          ApiKeys.vehicleType: selectedVehicleType.value,
-          ApiKeys.vehicleUsesType: selectedVehicleUseType.value,
+          ApiKeys.vehicleType: selectedVehicleType.value?.slugId,
+          ApiKeys.vehicleUsesType: selectedVehicleUseType.value?.slugId,
           ApiKeys.vehicleName: vehicleNameController.text,
           ApiKeys.vehicleModelYear: vehicleModelController.text,
-          ApiKeys.fuelType: selectedFuelType.value,
+          ApiKeys.fuelType: selectedFuelType.value?.slugId,
         };
 
         ResponseModel response =
@@ -1057,7 +1058,8 @@ class DeliveryPartnerController extends GetxController {
     }
   }
 
-  List<String> getFilteredVehicles(String userRole, List<String> allVehicles) {
+  List<VehicleEnumItem> getFilteredVehicles(
+      String userRole, List<VehicleEnumItem> allVehicles) {
 
     // switch (userRole) {
     //   case BIKE_RIDER:

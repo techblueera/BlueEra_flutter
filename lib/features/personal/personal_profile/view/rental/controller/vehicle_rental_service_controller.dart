@@ -336,12 +336,12 @@ class VehicleRentalServiceController extends GetxController {
         ApiKeys.lng: pickUpLocationLongitude,
         ApiKeys.vehicleDetails: jsonEncode({
           ApiKeys.registrationType:
-              deliveryPartnerController.selectedVehicleRegistrationType.value,
+              deliveryPartnerController.selectedVehicleRegistrationType.value?.slugId,
           ApiKeys.vehicleType:
-              deliveryPartnerController.selectedVehicleType.value,
-          ApiKeys.fuelType: deliveryPartnerController.selectedFuelType.value,
+              deliveryPartnerController.selectedVehicleType.value?.slugId,
+          ApiKeys.fuelType: deliveryPartnerController.selectedFuelType.value?.slugId,
           ApiKeys.vehicleUsesType:
-              deliveryPartnerController.selectedVehicleUseType.value,
+              deliveryPartnerController.selectedVehicleUseType.value?.slugId,
           ApiKeys.brand: vehicleNameCtrl.text,
           ApiKeys.registrationNumber: vehicleRegistrationNumberCtrl.text,
           ApiKeys.yearOfManufacture: vehicleModelCtrl.text,
@@ -406,12 +406,12 @@ class VehicleRentalServiceController extends GetxController {
         ApiKeys.lng: pickUpLocationLongitude,
         ApiKeys.vehicleDetails: jsonEncode({
           ApiKeys.registrationType:
-          deliveryPartnerController.selectedVehicleRegistrationType.value,
+          deliveryPartnerController.selectedVehicleRegistrationType.value?.slugId,
           ApiKeys.vehicleType:
-          deliveryPartnerController.selectedVehicleType.value,
-          ApiKeys.fuelType: deliveryPartnerController.selectedFuelType.value,
+          deliveryPartnerController.selectedVehicleType.value?.slugId,
+          ApiKeys.fuelType: deliveryPartnerController.selectedFuelType.value?.slugId,
           ApiKeys.vehicleUsesType:
-          deliveryPartnerController.selectedVehicleUseType.value,
+          deliveryPartnerController.selectedVehicleUseType.value?.slugId,
           ApiKeys.brand: vehicleNameCtrl.text,
           ApiKeys.registrationNumber: vehicleRegistrationNumberCtrl.text,
           ApiKeys.yearOfManufacture: vehicleModelCtrl.text,

@@ -13,6 +13,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
+import 'package:BlueEra/features/common/delivery_partner/model/vehicle_enums_response.dart';
 import 'package:BlueEra/features/common/delivery_partner/widget/common_multiple_image_upload_section.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/email_verification_controller.dart';
@@ -409,12 +410,12 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
                   color: AppColors.mainTextColor,
                 ),
                 SizedBox(height: SizeConfig.size8),
-                CommonDropdownDialog<String>(
+                CommonDropdownDialog<VehicleEnumItem>(
                   items: deliveryPartnerController.vehicleEnumResponse?.registrationType ?? [],
                   selectedValue: deliveryPartnerController.selectedVehicleRegistrationType.value,
                   title: AppStrings.registrationType,
                   hintText: AppStrings.egPersonalCommercial,
-                  displayValue: (value) => value,
+                  displayValue: (value) => value.slugValue,
                   onChanged: (value) {
                     deliveryPartnerController.selectedVehicleRegistrationType.value = value;
                   },
@@ -432,12 +433,12 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
                   color: AppColors.mainTextColor,
                 ),
                 SizedBox(height: SizeConfig.size8),
-                CommonDropdownDialog<String>(
+                CommonDropdownDialog<VehicleEnumItem>(
                   items: deliveryPartnerController.vehicleEnumResponse?.vehicleType ?? [],
                   selectedValue: deliveryPartnerController.selectedVehicleType.value,
                   title: AppStrings.vehicleType,
                   hintText: AppStrings.egTwoThreeWheeler,
-                  displayValue: (value) => value,
+                  displayValue: (value) => value.slugValue,
                   onChanged: (value) {
                     deliveryPartnerController.selectedVehicleType.value = value;
                   },
@@ -455,12 +456,12 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
                   color: AppColors.mainTextColor,
                 ),
                 SizedBox(height: SizeConfig.size8),
-                CommonDropdownDialog<String>(
+                CommonDropdownDialog<VehicleEnumItem>(
                   items: deliveryPartnerController.vehicleEnumResponse?.vehicleUsesType ?? [],
                   selectedValue: deliveryPartnerController.selectedVehicleUseType.value,
                   title: AppStrings.vehicleUseType,
                   hintText: AppStrings.egPassengerDeliveryGoods,
-                  displayValue: (value) => value,
+                  displayValue: (value) => value.slugValue,
                   onChanged: (value) {
                     deliveryPartnerController.selectedVehicleUseType.value = value;
                   },
@@ -487,12 +488,12 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
                   color: AppColors.mainTextColor,
                 ),
                 SizedBox(height: SizeConfig.size8),
-                CommonDropdownDialog<String>(
+                CommonDropdownDialog<VehicleEnumItem>(
                   items: deliveryPartnerController.vehicleEnumResponse?.fuelType ?? [],
                   selectedValue: deliveryPartnerController.selectedFuelType.value,
                   title: AppStrings.fuelType,
                   hintText: AppStrings.egPetrolDiesel,
-                  displayValue: (value) => value,
+                  displayValue: (value) => value.slugValue,
                   onChanged: (value) {
                     deliveryPartnerController.selectedFuelType.value = value;
                   },
@@ -523,7 +524,7 @@ class _VehicleRentalServiceState extends State<VehicleRentalService> {
                 ),
                 SizedBox(height: SizeConfig.paddingM),
 
-                if(deliveryPartnerController.selectedVehicleRegistrationType != 'commercialGoods')
+                if(deliveryPartnerController.selectedVehicleRegistrationType.value?.slugId != 'commercialGoods')
                   CommonTextField(
                     title: AppStrings.seatingCapacity,
                     hintText: AppStrings.eg10People,

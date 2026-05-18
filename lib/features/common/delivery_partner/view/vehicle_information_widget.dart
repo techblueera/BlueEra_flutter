@@ -7,6 +7,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
+import 'package:BlueEra/features/common/delivery_partner/model/vehicle_enums_response.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_drop_down-dialoge.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -57,7 +58,7 @@ class _VehicleInformationWidgetState extends State<VehicleInformationWidget> {
                         color: AppColors.mainTextColor,
                       ),
                       SizedBox(height: SizeConfig.size8),
-                      CommonDropdownDialog<String>(
+                      CommonDropdownDialog<VehicleEnumItem>(
                         items: controller.getFilteredVehicles(
                             userProfessionGlobal,
                             controller.vehicleEnumResponse?.vehicleType ?? []
@@ -65,7 +66,7 @@ class _VehicleInformationWidgetState extends State<VehicleInformationWidget> {
                         selectedValue: controller.selectedVehicleType.value,
                         title: AppStrings.vehicleType,
                         hintText: AppStrings.egTwoThreeWheeler,
-                        displayValue: (value) => value.capitalizeFirst??"",
+                        displayValue: (value) => value.slugValue,
                         onChanged: (value) {
                           controller.selectedVehicleType.value = value;
                         },
@@ -83,12 +84,12 @@ class _VehicleInformationWidgetState extends State<VehicleInformationWidget> {
                         color: AppColors.mainTextColor,
                       ),
                       SizedBox(height: SizeConfig.size8),
-                      CommonDropdownDialog<String>(
+                      CommonDropdownDialog<VehicleEnumItem>(
                         items: controller.vehicleEnumResponse?.registrationType ?? [],
                         selectedValue: controller.selectedVehicleRegistrationType.value,
                         title: AppStrings.registrationType,
                         hintText: AppStrings.egPersonalCommercial,
-                        displayValue: (value) => value,
+                        displayValue: (value) => value.slugValue,
                         onChanged: (value) {
                           controller.selectedVehicleRegistrationType.value = value;
                         },
@@ -106,12 +107,12 @@ class _VehicleInformationWidgetState extends State<VehicleInformationWidget> {
                         color: AppColors.mainTextColor,
                       ),
                       SizedBox(height: SizeConfig.size8),
-                      CommonDropdownDialog<String>(
+                      CommonDropdownDialog<VehicleEnumItem>(
                         items: controller.vehicleEnumResponse?.vehicleUsesType ?? [],
                         selectedValue: controller.selectedVehicleUseType.value,
                         title: AppStrings.vehicleUseType,
                         hintText: AppStrings.egPassengerDeliveryGoods,
-                        displayValue: (value) => value.capitalizeFirst??"",
+                        displayValue: (value) => value.slugValue,
                         onChanged: (value) {
                           controller.selectedVehicleUseType.value = value;
                         },
@@ -139,12 +140,12 @@ class _VehicleInformationWidgetState extends State<VehicleInformationWidget> {
                         color: AppColors.mainTextColor,
                       ),
                       SizedBox(height: SizeConfig.size8),
-                      CommonDropdownDialog<String>(
+                      CommonDropdownDialog<VehicleEnumItem>(
                         items: controller.vehicleEnumResponse?.fuelType ?? [],
                         selectedValue: controller.selectedFuelType.value,
                         title: AppStrings.fuelType,
                         hintText: AppStrings.egPetrolDiesel,
-                        displayValue: (value) => value,
+                        displayValue: (value) => value.slugValue,
                         onChanged: (value) {
                           controller.selectedFuelType.value = value;
                         },
