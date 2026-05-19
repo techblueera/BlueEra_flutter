@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
+import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
@@ -20,9 +22,9 @@ import 'package:BlueEra/features/me/product/model/get_product_model.dart';
 import 'package:BlueEra/features/me/product/model/inventory_based_search_product_response.dart';
 import 'package:BlueEra/features/me/product/model/product_category_with_inventory_model.dart';
 import 'package:BlueEra/features/me/product/model/product_model.dart';
-import 'package:BlueEra/features/me/product/model/product_nested_category_response.dart';
 import 'package:BlueEra/features/me/product/model/product_snap_search_response.dart';
 import 'package:BlueEra/features/me/product/repo/product_repo.dart';
+import 'package:BlueEra/features/me/product/view/admin/product_variant_dialog.dart';
 import 'package:BlueEra/widgets/select_product_image_dialog.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:flutter/material.dart';
@@ -57,14 +59,7 @@ class InventoryController extends GetxController {
   RxInt selectedProductIndex = 0.obs;
 
   RxList<GetProductData> allProducts = <GetProductData>[].obs;
-  RxList<GetProductData> liveProducts = <GetProductData>[].obs;
-  RxList<GetProductData> draftProducts = <GetProductData>[].obs;
 
-  /// ─── Pagination for "Top Selling" own products ───────────────────
-  /// Shared between [ProductHomeScreen]'s horizontal preview and the
-  /// "View All" screen. On the home screen only the first
-  /// [ownProductsPreviewLimit] items are rendered — the rest of the
-  /// paginated list lives behind the "View All" action.
   RxBool isAllProductsLoadingMore = false.obs;
   int _allProductsPage = 1;
   bool _allProductsHasMore = true;
@@ -83,6 +78,10 @@ class InventoryController extends GetxController {
   final RxBool ProductSearchLoading = false.obs;
 
   final RxBool cloneProductVariantLoading = false.obs;
+
+  /// Loading flag for [createNewProductVariantApi] — mirrors grocery's
+  /// `isCreateNewGroceryProductNewVariantLoading`.
+  final RxBool isCreateNewProductVariantLoading = false.obs;
   int page = 1;
   int limit = 10;
   bool hasMoreData = true;
@@ -91,7 +90,6 @@ class InventoryController extends GetxController {
   RxInt businessCardsSelectedIndex = 0.obs;
 
   RxList<VariantData> searchProductVariantsList = <VariantData>[].obs;
-  RxList<UnUsedProduct> searchProductsList = <UnUsedProduct>[].obs;
 
   final variantSelection = <String, bool>{}.obs;
   final variantSellingPrice = <String, String>{}.obs;
@@ -170,16 +168,15 @@ class InventoryController extends GetxController {
   // ── Product Nested Category With Inventory ──────────────────────────────────
   Rx<ApiResponse> fetchProductCategoryResponse = ApiResponse.initial('Initial').obs;
   RxBool myProductLoading = true.obs;
-  RxList<ProductCategoryWithInventoryModel> productCategoryList = <ProductCategoryWithInventoryModel>[].obs;
+  RxList<ProductCategoryWithInventoryModel> productNestedCategoryList = <ProductCategoryWithInventoryModel>[].obs;
   RxBool productNestedCategoryLoading = false.obs;
-  RxList<ProductNestedCategoryResponse> productNestedCategoryList = <ProductNestedCategoryResponse>[].obs;
 
   Future<void> fetchAllProductData({String? visitBusinessId}) async {
     try {
       myProductLoading.value = true;
       await Future.wait([
         fetchProductCategoryWithInventory(visitBusinessId: visitBusinessId),
-        fetchProducts(visitBusinessId: visitBusinessId),
+        fetchBusinessProducts(visitBusinessId: visitBusinessId),
       ]);
     } catch (e) {
       log('Error fetching product data: $e');
@@ -194,17 +191,29 @@ class InventoryController extends GetxController {
     try {
       fetchProductCategoryResponse.value = ApiResponse.initial('Initial');
 
-      final response = await InventoryRepo().fetchProductCategoryWithInventoryRepo(
-        businessId: visitBusinessId ?? businessId,
-      );
+      ResponseModel response;
+      if(visitBusinessId!=null){
+        response = await ProductRepo().fetchPublicProductCategoryWithInventoryRepo();
+      }else{
+        response = await ProductRepo().fetchProductCategoryWithInventoryRepo();
+      }
 
       if (response.isSuccess) {
         fetchProductCategoryResponse.value = ApiResponse.complete(response);
-        final responseData = ProductInventoryByCategoryResponse.fromJson(
-          response.response?.data,
-        );
-        productCategoryList.value = responseData.data ?? [];
-        log("Loaded ${productCategoryList.length} product categories");
+        // API returns either a flat list of categories or a legacy
+        // `{data: [...]}` envelope. Handle both so old/new shapes work.
+        final raw = response.response?.data;
+        final List<dynamic> rawList = raw is List
+            ? raw
+            : (raw is Map && raw['data'] is List
+                ? List<dynamic>.from(raw['data'] as List)
+                : const <dynamic>[]);
+        productNestedCategoryList.value = rawList
+            .whereType<Map>()
+            .map((e) => ProductCategoryWithInventoryModel.fromJson(
+                Map<String, dynamic>.from(e)))
+            .toList();
+        log("Loaded ${productNestedCategoryList.length} product categories");
       } else {
         fetchProductCategoryResponse.value = ApiResponse.error('error');
       }
@@ -215,7 +224,8 @@ class InventoryController extends GetxController {
   }
 
   // ── Product By Category (Paginated) ────────────────────────────────
-  final selectedProductCategoryData = Rxn<ProductNestedCategoryResponse>();
+  final selectedProductCategoryData =
+      Rxn<ProductCategoryWithInventoryModel>();
   RxList<GetProductData> productsByCategoryList = <GetProductData>[].obs;
   RxBool isProductByCategoryFirstLoading = false.obs;
   RxBool isProductByCategoryLoadingMore = false.obs;
@@ -227,8 +237,8 @@ class InventoryController extends GetxController {
 
   Future<void> fetchProductsByCategory({
     required String categoryId,
-    bool isLoadMore = false,
     String? visitBusinessId,
+    bool isLoadMore = false,
   }) async {
     if (isLoadMore) {
       if (isProductByCategoryLoadingMore.value || !productByCategoryHasMore) return;
@@ -241,14 +251,14 @@ class InventoryController extends GetxController {
 
     try {
       Map<String, dynamic> queryParams = {
-        'ownerId': visitBusinessId ?? businessId,
         'ownerType': ProviderType.business.title,
+        'businessId': visitBusinessId ?? userId,
         'categoryId': categoryId,
         ApiKeys.page: productByCategoryPage,
         ApiKeys.limit: productByCategoryPageLimit,
       };
 
-      final response = await InventoryRepo().fetchOwnDraftedAndPublicProductsRepo(queryParams: queryParams);
+      final response = await ProductRepo().fetchProductsRepo(queryParams: queryParams);
 
       if (response.isSuccess) {
         final getOwnProductModel = GetProductModel.fromJson(response.response!.data);
@@ -348,7 +358,7 @@ class InventoryController extends GetxController {
       };
 
       final responseModel =
-          await InventoryRepo().fetchProductSnapSearchRepo(params: params);
+          await ProductRepo().fetchProductSnapSearchRepo(params: params);
 
       if (responseModel.isSuccess) {
         productSnapSearchResponse.value = ApiResponse.complete(responseModel);
@@ -418,25 +428,14 @@ class InventoryController extends GetxController {
     super.onClose();
   }
 
-  /// Currently-active `ownerId` for the paginated `allProducts` list. When
-  /// the user is visiting another business this becomes the visiting
-  /// business's id; on the owner's own product home it stays as the
-  /// global `businessId`. Remembered here so load-more requests keep
-  /// hitting the same business across `isLoadMore` calls without the
-  /// caller having to re-pass it.
-  String? _allProductsActiveOwnerId;
-
-  Future<void> fetchProducts({
-    bool? isDraftProduct,
-    bool isLoadMore = false,
+  Future<void> fetchBusinessProducts({
     String? visitBusinessId,
+    bool? isDiscountedProducts,
+    bool isLoadMore = false,
   }) async {
-    // Paginated "allProducts" path is only engaged when no draft filter is
-    // supplied — the draft/live lists still use the old one-shot behavior.
-    final bool paginate = isDraftProduct == null;
 
     try {
-      if (paginate && isLoadMore) {
+      if (isLoadMore) {
         // Guard against duplicate/overlapping load-more calls and stop
         // once the server has reported there are no more pages.
         if (!_allProductsHasMore ||
@@ -446,57 +445,33 @@ class InventoryController extends GetxController {
         }
         isAllProductsLoadingMore.value = true;
       } else {
-        ownDraftAndPublicProductResponse.value =
-            ApiResponse.initial('Initial');
+        ownDraftAndPublicProductResponse.value = ApiResponse.initial('Initial');
         isLoading.value = true;
         isProductLoading.value = true;
-        if (paginate) {
-          _allProductsPage = 1;
-          _allProductsHasMore = true;
-          allProducts.clear();
-          // Remember which owner this paginated run is scoped to, so
-          // subsequent load-more calls stay on the same business even
-          // if the caller forgets to pass `visitBusinessId` again.
-          _allProductsActiveOwnerId = visitBusinessId ?? businessId;
-        }
+        _allProductsPage = 1;
+        _allProductsHasMore = true;
+        allProducts.clear();
       }
-
-      final String effectiveOwnerId = paginate
-          ? (_allProductsActiveOwnerId ?? businessId)
-          : (visitBusinessId ?? businessId);
 
       final Map<String, dynamic> queryParams = {
-        'ownerId': effectiveOwnerId,
-        'ownerType': ProviderType.business.title,
+        ApiKeys.ownerType: ProviderType.business.title,
       };
+      if(visitBusinessId!=null) queryParams[ApiKeys.businessId] = visitBusinessId;
+      if(isDiscountedProducts!=null) queryParams[ApiKeys.isDiscounted] = isDiscountedProducts;
+      queryParams[ApiKeys.page] = _allProductsPage;
+      queryParams[ApiKeys.limit] = _allProductsLimit;
 
-      if (isDraftProduct != null) {
-        queryParams['DRAFT'] = isDraftProduct;
-      } else {
-        queryParams[ApiKeys.page] = _allProductsPage;
-        queryParams[ApiKeys.limit] = _allProductsLimit;
-      }
-
-      final response = await InventoryRepo()
-          .fetchOwnDraftedAndPublicProductsRepo(queryParams: queryParams);
+      final response = await ProductRepo()
+          .fetchProductsRepo(queryParams: queryParams);
       if (response.isSuccess) {
         ownDraftAndPublicProductResponse.value = ApiResponse.complete(response);
         final getOwnProductModel =
             GetProductModel.fromJson(response.response!.data);
         final List<GetProductData> products = getOwnProductModel.data;
 
-        if (isDraftProduct != null) {
-          if (isDraftProduct) {
-            draftProducts.clear();
-            draftProducts.assignAll(products);
-          } else {
-            liveProducts.clear();
-            liveProducts.assignAll(products);
-          }
-        } else {
-          if (isLoadMore) {
+        if (isLoadMore) {
             allProducts.addAll(products);
-          } else {
+        } else {
             allProducts.assignAll(products);
           }
           if (products.isNotEmpty) {
@@ -506,7 +481,7 @@ class InventoryController extends GetxController {
           if (products.length < _allProductsLimit) {
             _allProductsHasMore = false;
           }
-        }
+
       } else {
         print("API failed with status: ${response.statusCode}");
         ownDraftAndPublicProductResponse.value = ApiResponse.error('error');
@@ -515,7 +490,7 @@ class InventoryController extends GetxController {
       print("stack trace: $s");
       ownDraftAndPublicProductResponse.value = ApiResponse.error('error');
     } finally {
-      if (paginate && isLoadMore) {
+      if (isLoadMore) {
         isAllProductsLoadingMore.value = false;
       } else {
         isLoading.value = false;
@@ -559,7 +534,6 @@ class InventoryController extends GetxController {
         page = 1;
         hasMoreData = true;
         searchProductVariantsList.clear();
-        searchProductsList.clear();
         ProductSearchLoading.value = true;
       } else {
         isLoadingMore = true;
@@ -567,12 +541,12 @@ class InventoryController extends GetxController {
       }
 
       Map<String, dynamic> params = {
-        ApiKeys.name: keyword,
+        ApiKeys.key: keyword,
         ApiKeys.page: page,
         ApiKeys.limit: limit,
       };
 
-      final responseModel = await InventoryRepo().fetchInventoryBasedSearchProductRepo(queryParams: params);
+      final responseModel = await ProductRepo().fetchSearchProductViaCategoryRepo(queryParams: params);
 
       if (responseModel.isSuccess) {
         searchProductResponse.value = ApiResponse.complete(responseModel);
@@ -583,9 +557,6 @@ class InventoryController extends GetxController {
 
         final List<VariantData> newVariants =
         List<VariantData>.from(inventoryBasedSearchProductResponse.data);
-
-        final List<UnUsedProduct> newProducts =
-        List<UnUsedProduct>.from(inventoryBasedSearchProductResponse.unUsedProduct);
 
        // Maintain a map for uniqueness
         final Map<String, VariantData> uniqueById = {
@@ -608,14 +579,8 @@ class InventoryController extends GetxController {
 
         searchProductVariantsList.assignAll(uniqueById.values.toList());
 
-        if (!isLoadMore) {
-          searchProductsList.assignAll(newProducts);
-        } else {
-          searchProductsList.addAll(newProducts);
-        }
-
-        log('total length-- ${newVariants.length + newProducts.length}');
-        if (newVariants.length + newProducts.length < limit) {
+        log('total length-- ${newVariants.length}');
+        if (newVariants.length < limit) {
           hasMoreData = false;
         } else {
           page++;
@@ -710,7 +675,7 @@ class InventoryController extends GetxController {
         ApiKeys.limit: 20,
       };
 
-      final responseModel = await InventoryRepo().fetchSuggestedProductRepo(queryParams: params);
+      final responseModel = await ProductRepo().fetchSuggestedProductRepo(queryParams: params);
 
       if (responseModel.isSuccess) {
         suggestedProductResponse.value = ApiResponse.complete(responseModel);
@@ -773,33 +738,28 @@ class InventoryController extends GetxController {
   }
 
   Future<void> cloneProductVariantApi(
-      { required String ownerID,
+      {
         required ProviderType providerType,
         required List<VariantData> variants,
       }
       ) async {
     cloneProductVariantLoading.value = true;
     try {
-      final clones = _buildSelectedVariantsPayload(variants);
+      // Payload mirrors grocery's `buildInventoryPayload` — a flat List
+      // of `{productVariant, pincode, cityName, batches[]}` items. The
+      // only addition for product is an `ownerType` field per row so
+      // the backend can route business vs. rider/self-employed clones.
+      final payload = _buildInventoryPayload(variants, providerType);
 
-      if (clones.isEmpty) {
+      if (payload.isEmpty) {
         print("No variants selected — skipping API call");
         return;
       }
 
-      // Construct body
-      final body = {
-        ApiKeys.owner: {
-          ApiKeys.id: ownerID,
-          ApiKeys.type: providerType.title,
-        },
-        ApiKeys.clones: clones,
-        //  'clones': jsonEncode(clones),
-      };
+      print("Final Clone Payload: $payload");
 
-      print("Final Clone Payload: $body");
-
-      final responseModel = await InventoryRepo().cloneProductVariantRepo(params: body);
+      final responseModel = await ProductRepo().cloneProductVariantRepo(
+          params: payload);
 
       if (responseModel.isSuccess) {
         cloneVariantProductResponse.value = ApiResponse.complete(responseModel);
@@ -841,6 +801,83 @@ class InventoryController extends GetxController {
     }
   }
 
+  /// Open the "Add more variant" dialog for a product. Mirrors
+  /// grocery's [GroceryController.openAddVariantDialog] flow — same
+  /// quantity / unit / mrp / sellingPrice form, same submit-handler
+  /// shape — only the downstream API and product id differ.
+  void openAddVariantDialog({
+    required BuildContext context,
+    required String productId,
+  }) {
+    showDialog(
+      context: context,
+      barrierDismissible: !isCreateNewProductVariantLoading.value,
+      builder: (_) {
+        return ProductVariantDialog(
+          title: AppStrings.productAddMoreVariant.tr,
+          onSubmit: (quantity, unit, mrp, sellingPrice) {
+            createNewProductVariantApi(
+              productId: productId,
+              quantity: quantity.trim(),
+              unit: unit.trim(),
+              mrp: mrp.trim(),
+              sellingPrice: sellingPrice.trim(),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  /// Create a brand-new variant on an existing product. Mirrors
+  /// grocery's [GroceryController.createNewGroceryProductNewVariant]
+  /// — identical payload shape, only the service URL differs
+  /// (grocery-service → product-service). On success we close the
+  /// dialog and surface a snackbar; the caller is responsible for
+  /// refreshing any list view that needs the new variant.
+  Future<void> createNewProductVariantApi({
+    required String productId,
+    required String quantity,
+    required String unit,
+    required String mrp,
+    required String sellingPrice,
+  }) async {
+    try {
+      isCreateNewProductVariantLoading.value = true;
+      final Map<String, dynamic> data = {
+        ApiKeys.variantData: jsonEncode({
+          ApiKeys.quantity: "$quantity $unit",
+          ApiKeys.pricing: [
+            {
+              ApiKeys.mrp: int.tryParse(mrp),
+              ApiKeys.sellingPrice: int.tryParse(sellingPrice),
+            }
+          ],
+        }),
+      };
+
+      final response = await ProductRepo().createNewProductVariantRepo(
+        productId: productId,
+        params: data,
+      );
+
+      if (!response.isSuccess) {
+        commonSnackBar(
+          message: response.message ?? AppStrings.somethingWentWrong,
+        );
+        return;
+      }
+
+      productDataNeedsRefresh = true;
+      commonSnackBar(message: 'Variant added successfully');
+      Get.back();
+    } catch (e, s) {
+      log('createNewProductVariantApi error: $e\n$s');
+    } finally {
+      isCreateNewProductVariantLoading.value = false;
+    }
+  }
+
   void navigateToProductSection() {
     Get.until((route) {
       print("🔍 Scanning route → ${route.settings.name}");
@@ -851,43 +888,85 @@ class InventoryController extends GetxController {
     });
   }
 
-    List<Map<String, dynamic>> _buildSelectedVariantsPayload(
-        List<VariantData> allVariants) {
+    /// Builds the publish payload in the same shape grocery uses
+    /// (`buildInventoryPayload` in GroceryController) — a flat list of
+    /// `{productVariant, pincode, cityName, batches[]}` items — with one
+    /// additional `ownerType` field per row so the backend can route
+    /// business vs. rider/self-employed clones.
+    List<Map<String, dynamic>> _buildInventoryPayload(
+        List<VariantData> allVariants, ProviderType providerType) {
       final payload = <Map<String, dynamic>>[];
 
+      final businessData = viewProfileController.businessProfileDetails.value?.data;
+      String city = (businessData?.cityStatePincode != null &&
+              businessData!.cityStatePincode!.isNotEmpty)
+          ? businessData.cityStatePincode!
+          : LocationService.userCurrentAddress.value.city;
+      String postalCode;
+      if (businessData?.pincode == null || businessData?.pincode == 0) {
+        postalCode = LocationService.userCurrentAddress.value.postalCode;
+      } else {
+        postalCode = businessData!.pincode.toString();
+      }
+
+      if (postalCode.isEmpty || postalCode == "0") {
+        commonSnackBar(message: AppStrings.groceryEnableGpsOrPincode.tr);
+      }
+
       variantSelection.forEach((variantId, isSelected) {
-        if (isSelected) {
-          final variantData = allVariants.firstWhere(
-                (v) => v.finalVariant.id == variantId,
-            orElse: () => throw Exception("Variant not found: $variantId"),
-          );
+        if (!isSelected) return;
 
-          // get selling price from controller OR fallback to default
-          final sellingPriceStr = variantSellingPrice[variantId];
-          final sellingPrice = double.tryParse(sellingPriceStr ?? '') ??
-              variantData.finalVariant.sellingPrice;
+        final variantData = allVariants.firstWhereOrNull(
+            (v) => v.finalVariant.id == variantId);
+        if (variantData == null) return;
 
-          print("----------------------------");
-          print("Selected Variant Debug Info");
-          print("Variant ID     : $variantId");
-          print("Product ID     : ${variantData.productInformation.id}");
-          print("Default Price  : ${variantData.finalVariant.sellingPrice}");
-          print("Updated Price  : $sellingPrice");
-          print("Product Name   : ${variantData.productInformation.name}");
-          print("Brand          : ${variantData.productInformation.brand}");
-          print("Media Count    : ${variantData.productInformation.media.length}");
-          print("----------------------------");
+        final variant = variantData.finalVariant;
 
-          payload.add({
-            "product_id": variantData.productInformation.id,
-            "variantId": variantId,
-            "sellingPrice": sellingPrice,
-          });
-        }
+        // User-entered price → fallback to API default selling price.
+        final sellingPriceStr = variantSellingPrice[variantId];
+        final sellingPrice =
+            double.tryParse(sellingPriceStr ?? '') ?? variant.sellingPrice;
+
+        payload.add({
+          "ownerType": providerType.title,
+          "productVariant": variantId,
+          "pincode": postalCode,
+          "cityName": city,
+          "batches": [
+            {
+              "quantity": _resolveVariantQuantity(variant),
+              "mrp": variant.mrp,
+              "sellingPrice": sellingPrice,
+            }
+          ],
+        });
       });
 
       return payload;
     }
+
+  String _resolveVariantQuantity(FinalVariant variant) {
+    String raw = '';
+    try {
+      raw = ((variant as dynamic).quantity ?? '').toString().trim();
+    } catch (_) {
+      raw = '';
+    }
+    if (raw.isNotEmpty) return raw;
+
+    final parts = variant.attributes.entries.map((entry) {
+      final key = entry.key.toLowerCase();
+      final value = entry.value;
+      if (key == 'color' && value is Map<String, dynamic>) {
+        return (value['color_name'] ?? '').toString();
+      }
+      if (value == null) return '';
+      return value.toString();
+    }).where((s) => s.isNotEmpty);
+
+    final derived = parts.join(' • ');
+    return derived.isNotEmpty ? derived : 'default';
+  }
 
   void dismissErrorBanner() {
     showErrorBanner.value = false;

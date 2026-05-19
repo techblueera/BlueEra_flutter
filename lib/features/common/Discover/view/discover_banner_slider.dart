@@ -9,11 +9,15 @@ import 'package:get/get.dart';
 class DiscoverBannerSlider extends StatefulWidget {
   final ScrollController parentScrollController;
   final GlobalKey targetKey;
+  final GlobalKey targetRiderKey;
+  final ValueChanged<int>? onTabSelected;
 
   const DiscoverBannerSlider({
     super.key,
     required this.parentScrollController,
     required this.targetKey,
+    required this.targetRiderKey,
+    this.onTabSelected,
   });
 
   @override
@@ -24,8 +28,10 @@ class _DiscoverBannerSliderState extends State<DiscoverBannerSlider> {
   int currentPage = 0;
 
   final List<Map<String, String>> sliderData = [
-    {"slugId": "FRANCHISE", "image": "assets/images/ban3.jpeg"},
-    {"slugId": "BDM", "image": "assets/images/ban2.jpeg"},
+    {"slugId": "RIDE", "image": "assets/images/ban_2.jpeg"},
+    // {"slugId": "FRANCHISE", "image": "assets/images/ban_2.jpeg"},
+    {"slugId": "SHOP", "image": "assets/images/ban_1.jpeg"},
+    // {"slugId": "BDM", "image": "assets/images/ban_1.jpeg"},
     {"slugId": "QR", "image":"assets/images/ban1.jpeg"},
   ];
   @override
@@ -86,8 +92,13 @@ class _DiscoverBannerSliderState extends State<DiscoverBannerSlider> {
       case 'FRANCHISE':
         Get.to(() => const FranchiseHome());
         break;
-      case 'BDM':
-        Get.to(() => const ReferralPage());
+      case 'RIDE':
+        Scrollable.ensureVisible(
+          widget.targetRiderKey.currentContext!,
+          duration: const Duration(milliseconds: 1000),
+          curve: Curves.easeInOut,
+        );
+        // Get.to(() => const ReferralPage());
         break;
       case 'QR':
         Scrollable.ensureVisible(
@@ -95,6 +106,9 @@ class _DiscoverBannerSliderState extends State<DiscoverBannerSlider> {
           duration: const Duration(milliseconds: 1000),
           curve: Curves.easeInOut,
         );
+        break;
+      case 'SHOP':
+        widget.onTabSelected?.call(3);
         break;
     }
   }

@@ -138,7 +138,8 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
               child: Obx(() => ProductFloatingCart(
                     selectedProducts: controller.selectedProducts.toList(),
                     onTap: () {
-                      Get.toNamed(RouteHelper.getProductCartScreenRoute());
+                      Get.toNamed(
+                          RouteHelper.getAddProductVariantScreenRoute());
                     },
                   )),
             ),

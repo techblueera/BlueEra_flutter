@@ -305,13 +305,12 @@ class ChannelController extends GetxController{
     try {
 
       Map<String, dynamic> queryParams = {
-        'DRAFT': false,
         'ownerId': channelId,
         'ownerType': ProviderType.channel.title,
       };
 
 
-      final response = await InventoryRepo().fetchOwnDraftedAndPublicProductsRepo(queryParams: queryParams);
+      final response = await ProductRepo().fetchProductsRepo(queryParams: queryParams);
       if (response.isSuccess) {
         ownChannelProductsResponse.value = ApiResponse.complete(response);
         final getProductModel =

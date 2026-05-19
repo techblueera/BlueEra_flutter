@@ -17,6 +17,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:BlueEra/widgets/snap_scan_loader.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
@@ -318,15 +319,9 @@ class _AddFoodSnapSearchScreenState extends State<AddFoodSnapSearchScreen> {
   }
 
   Widget _buildLoadingState() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 40.0),
-      child: Center(
-        child: Image.asset(
-          'assets/images/grocery_loading_indicator.gif',
-          fit: BoxFit.contain,
-          // height: 100,
-        ),
-      ),
+    return const Padding(
+      padding: EdgeInsets.symmetric(vertical: 24.0),
+      child: SnapScanLoader(),
     );
   }
 

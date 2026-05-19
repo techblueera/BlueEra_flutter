@@ -167,7 +167,7 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
                       .selectedIndex.value = index);
                   if (index == 1) {
                     final inventoryController = Get.put(InventoryController());
-                    inventoryController.fetchProducts();
+                    inventoryController.fetchBusinessProducts();
                   }
                 },
                 labelBuilder: (label) => label.title.tr,

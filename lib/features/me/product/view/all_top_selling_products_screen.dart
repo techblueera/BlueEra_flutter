@@ -52,7 +52,10 @@ class _AllTopSellingProductsScreenState
     // Defer the fetch until after the first frame so the controller's
     // observable mutations don't re-enter an in-flight build.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      controller.fetchProducts(visitBusinessId: widget.visitBusinessId);
+      controller.fetchBusinessProducts(
+          visitBusinessId: widget.visitBusinessId,
+          isDiscountedProducts: true
+      );
     });
   }
 
@@ -97,12 +100,18 @@ class _AllTopSellingProductsScreenState
     if (position.pixels >= position.maxScrollExtent - 200) {
       // Controller remembers the active owner id for the paginated run,
       // so we don't need to re-pass `visitBusinessId` here.
-      controller.fetchProducts(isLoadMore: true);
+      controller.fetchBusinessProducts(
+          visitBusinessId: widget.visitBusinessId,
+          isDiscountedProducts: true,
+          isLoadMore: true);
     }
   }
 
   Future<void> _onRefresh() async {
-    await controller.fetchProducts(visitBusinessId: widget.visitBusinessId);
+    await controller.fetchBusinessProducts(
+        visitBusinessId: widget.visitBusinessId,
+        isDiscountedProducts: true,
+    );
   }
 
   @override

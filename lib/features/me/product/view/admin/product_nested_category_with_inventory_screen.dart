@@ -42,10 +42,18 @@ class _ProductNestedCategoryWithInventoryScreenState
 
   @override
   void initState() {
+    super.initState();
     _argProductCategoryWithInventory = widget.argProductCategoryWithInventory;
     _argProductCatName = widget.argProductCatName;
-    updateProductCategory(widget.argProductCatKey);
-    super.initState();
+    _argProductCatKey = widget.argProductCatKey;
+    // The Obx-watched `productNestedCategoryList` is also bound on the
+    // previous screen (_ProductsTabBody). Mutating it synchronously in
+    // initState fires markNeedsBuild during that screen's build phase —
+    // defer to the next frame so navigation finishes first.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      updateProductCategory(widget.argProductCatKey);
+    });
   }
 
   @override

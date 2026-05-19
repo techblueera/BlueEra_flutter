@@ -5,18 +5,15 @@ import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
-import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/core/constants/app_enum.dart' hide MediaType;
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
-import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/hive_services.dart';
-import 'package:BlueEra/features/common/store/repo/product_repo.dart';
 import 'package:BlueEra/features/me/product/model/generate_ai_product_content.dart';
 import 'package:BlueEra/features/me/product/model/inventory_based_search_product_response.dart';
 import 'package:BlueEra/features/me/product/model/product_nested_category_response.dart';
@@ -488,7 +485,7 @@ class ProductController extends GetxController{
       params[ApiKeys.images] = imageByPart;
 
       // call repo
-      final responseModel = await InventoryRepo().generateAiProductContentRepo(params: params);
+      final responseModel = await ProductRepo().generateAiProductContentRepo(params: params);
 
       if (responseModel.isSuccess) {
         generateAiProductContentResponse.value = ApiResponse.complete(responseModel);
@@ -1044,13 +1041,13 @@ class ProductController extends GetxController{
     try {
       const int limit = 20;
       final Map<String, dynamic> params = {
-        ApiKeys.category_id: categoryId,
+        ApiKeys.categoryId: categoryId,
         ApiKeys.page: inventoryProductPage,
         ApiKeys.limit: limit,
       };
 
-      final responseModel = await InventoryRepo()
-          .fetchInventoryBasedSearchProductRepo(queryParams: params);
+      final responseModel = await ProductRepo()
+          .fetchSearchProductViaCategoryRepo(queryParams: params);
 
       if (responseModel.isSuccess) {
         final response = InventoryBasedSearchProductResponse.fromJson(

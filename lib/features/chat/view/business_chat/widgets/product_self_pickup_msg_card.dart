@@ -62,7 +62,7 @@ class _ProductSelfPickupMsgCardState extends State<ProductSelfPickupMsgCard> {
 
     try {
       final response =
-          await InventoryRepo().markProductOrderReadyRepo(orderId: orderId);
+          await ProductRepo().markProductOrderReadyRepo(orderId: orderId);
 
       if (!response.isSuccess) {
         commonSnackBar(

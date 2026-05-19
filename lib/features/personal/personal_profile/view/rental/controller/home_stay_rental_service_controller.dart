@@ -174,11 +174,7 @@ class HomeStayRentalServiceController extends GetxController{
       }
     }
 
-    Get.until(
-          (route) =>
-      route.settings.name ==
-          RouteHelper.getSelfEmployeeScreenRoute(),
-    );
+    Get.offAllNamed(RouteHelper.getBottomNavigationBarScreenRoute());
 
 
   }

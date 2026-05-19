@@ -362,12 +362,15 @@ class AuthController extends GetxController {
           }
 
           if (Get.isRegistered<BottomBarController>()) {
-            Get.find<BottomBarController>().currentIndex.value = 0;
+            Get.find<BottomBarController>().currentIndex.value = 1;
           }
 
-          Get.offAllNamed(RouteHelper.getBottomNavigationBarScreenRoute(),
-            arguments: {ApiKeys.initialIndex: 1},
-          );
+          // Already on the bottom-nav root — pop any profile-creation
+          // screens stacked on top, then push the Add Bio screen on top
+          // of bottom nav. Do NOT offAllNamed back to bottom nav:
+          // recreating it re-runs meScreens()'s post-frame init and
+          // re-opens the "complete profile" sheet on top of this screen.
+          Get.until((route) => route.isFirst);
           Get.toNamed(
             RouteHelper.getAddBioViaAiScreenRoute(),
             arguments: {
@@ -545,14 +548,15 @@ class AuthController extends GetxController {
           }
 
           if (Get.isRegistered<BottomBarController>()) {
-            Get.find<BottomBarController>().currentIndex.value = 0;
+            Get.find<BottomBarController>().currentIndex.value = 1;
           }
 
-          Get.offAllNamed(RouteHelper.getBottomNavigationBarScreenRoute(),
-
-            arguments: {ApiKeys.initialIndex: 1},
-
-          );
+          // Already on the bottom-nav root — pop any business-creation
+          // screens stacked on top, then push step 2 on top of bottom nav.
+          // Do NOT offAllNamed back to bottom nav: recreating it re-runs
+          // resolveBusinessScreen()'s post-frame init and re-opens the
+          // "complete profile" sheet underneath / on top of step 2.
+          Get.until((route) => route.isFirst);
           Get.toNamed(RouteHelper.getCreateBusinessAccountNewStepTwoRoute());
 
           addUserResponse = ApiResponse.complete(response);
@@ -817,7 +821,7 @@ class AuthController extends GetxController {
               SharedPreferenceUtils.accountType, AppConstants.guest);
           await getGuestUserLoginData();
           await Future.delayed(Duration(milliseconds: 350));
-          Get.offAll(() => const BottomNavigationBarScreen( initialIndex: 1,));
+          Get.offAll(() => const BottomNavigationBarScreen(initialIndex: 1));
           // Get.offAll(() => const ChooseAccountTypeScreen());
 
           clearAllData();

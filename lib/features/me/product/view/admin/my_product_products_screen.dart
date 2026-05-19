@@ -1,7 +1,7 @@
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/features/common/Discover/widget/common_generic_left_side_category_list.dart';
 import 'package:BlueEra/features/me/product/controller/inventory_controller.dart';
-import 'package:BlueEra/features/me/product/model/product_nested_category_response.dart';
+import 'package:BlueEra/features/me/product/model/product_category_with_inventory_model.dart';
 import 'package:BlueEra/features/me/product/view/admin/widget/own_product_card.dart';
 import 'package:BlueEra/widgets/common_search_bar.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
@@ -15,7 +15,7 @@ import '../../../../../widgets/common_back_app_bar.dart';
 import '../../../../../widgets/custom_text_cm.dart';
 
 class MyProductProductsScreen extends StatefulWidget {
-  final List<ProductNestedCategoryResponse> arrCategories;
+  final List<ProductCategoryWithInventoryModel> arrCategories;
 
   const MyProductProductsScreen({
     super.key,
@@ -137,7 +137,7 @@ class _MyProductProductsScreenState extends State<MyProductProductsScreen> {
   }
 
   Widget leftCategoryList() {
-    return CommonGenericLeftSideCategoryList<ProductNestedCategoryResponse>(
+    return CommonGenericLeftSideCategoryList<ProductCategoryWithInventoryModel>(
       items: widget.arrCategories,
       getIcon: (item) => item.image ?? '',
       getLabel: (item) => item.name ?? '',

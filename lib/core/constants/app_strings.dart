@@ -5637,4 +5637,19 @@ class AppStrings {
 
   //business profile
   static const String nodata = "NA";
+
+  // Product-side add/edit variant dialog. Parallel of the grocery
+  // `groceryView*` keys but kept distinct so the product flow does
+  // not borrow from grocery copy.
+  static const String productAddMoreVariant = "product_add_more_variant";
+  static const String productViewAddMoreVariant =
+      "product_view_add_more_variant";
+  static const String productViewQuantity = "product_view_quantity";
+  static const String productViewQuantityHint = "product_view_quantity_hint";
+  static const String productViewUnit = "product_view_unit";
+  static const String productViewUnitHint = "product_view_unit_hint";
+  static const String productViewMrp = "product_view_mrp";
+  static const String productViewSellingPrice = "product_view_selling_price";
+  static const String productViewPriceHint = "product_view_price_hint";
+  static const String productViewSubmit = "product_view_submit";
 }

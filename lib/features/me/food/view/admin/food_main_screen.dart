@@ -27,6 +27,7 @@ import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart'
 import 'package:BlueEra/features/chat/view/add_symbol/add_symbol_screen.dart';
 import 'package:BlueEra/features/chat/view/orders_chat/orders_chat_list.dart';
 import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
+import 'package:BlueEra/features/common/bottomNavigationBar/controller/bottom_bar_controller.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/contribution/controller/contribution_controller.dart';
 import 'package:BlueEra/features/contribution/view/contribution_screen.dart';
@@ -111,6 +112,14 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
     // paint when the business has no live photos yet.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
+      // Skip when the user isn't on the Me tab — the screen can mount
+      // transiently during initial bottom-nav routing (currentIndex
+      // starts at 0 → meScreens, then post-frame flips to the intended
+      // tab like Discover), and we don't want the sheet popping there.
+      if (Get.isRegistered<BottomBarController>() &&
+          Get.find<BottomBarController>().currentIndex.value != 0) {
+        return;
+      }
       showBusinessLivePhotoBottomSheetIfNeeded(
         context: context,
         controller: _businessController,
@@ -1324,17 +1333,18 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
             child: Row(
               children: [
                 _circleIconButton(icon: Icons.menu, onTap: _openDrawer),
-                SizedBox(width: SizeConfig.size8),
-                _nearbyRidersPill(),
-                SizedBox(width: SizeConfig.size8),
-                const ReferEarnPill(),
+                SizedBox(width: SizeConfig.size6),
+                // Pills wrapped in Flexible so their inner text can ellipsize
+                // instead of pushing the row past its width.
+                Flexible(child: _nearbyRidersPill()),
+                SizedBox(width: SizeConfig.size6),
+                Flexible(child: const ReferEarnPill()),
                 const Spacer(),
-                SizedBox(width: SizeConfig.size2),
                 _circleIconButton(
                   icon: Icons.notifications_none,
                   onTap: _openNotifications,
                 ),
-                SizedBox(width: SizeConfig.size8),
+                SizedBox(width: SizeConfig.size6),
                 _goLivePill(),
               ],
             ),
@@ -1425,11 +1435,15 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
                   width: 18,
                 ),
                 SizedBox(width: SizeConfig.size6),
-                CustomText(
-                  'Nearby Riders',
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.secondaryTextColor,
+                Flexible(
+                  child: CustomText(
+                    'Nearby Riders',
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.secondaryTextColor,
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
                 ),
               ],
             ),

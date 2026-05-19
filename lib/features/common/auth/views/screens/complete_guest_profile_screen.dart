@@ -363,7 +363,7 @@ class _CompleteGuestProfileScreenState
           onChange: (_) {
             if (_nameError.value != null) _nameError.value = null;
           },
-          onDone: (_) => _onContinue(),
+          onDone: (_) => FocusScope.of(context).unfocus(),
         ),
         Obx(() {
           final err = _nameError.value;

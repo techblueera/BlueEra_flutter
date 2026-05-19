@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:ui';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
+import 'package:BlueEra/widgets/snap_scan_loader.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
@@ -343,15 +344,9 @@ class _AddGrocerySnapSearchScreenState extends State<AddGrocerySnapSearchScreen>
   }
 
   Widget _buildLoadingState() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 40.0),
-      child: Center(
-        child: Image.asset(
-          'assets/images/grocery_loading_indicator.gif',
-          fit: BoxFit.cover,
-          gaplessPlayback: true,
-        ),
-      ),
+    return const Padding(
+      padding: EdgeInsets.symmetric(vertical: 24.0),
+      child: SnapScanLoader(),
     );
   }
 
@@ -594,3 +589,4 @@ class _AddGrocerySnapSearchScreenState extends State<AddGrocerySnapSearchScreen>
 
 
 }
+

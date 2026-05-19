@@ -189,11 +189,7 @@ class VehicleRentalServiceController extends GetxController {
       }
     }
 
-    Get.until(
-          (route) =>
-      route.settings.name ==
-          RouteHelper.getSelfEmployeeScreenRoute(),
-    );
+    Get.offAllNamed(RouteHelper.getBottomNavigationBarScreenRoute());
 
 
     // if (vehicleNumberPlateImages.isEmpty) {

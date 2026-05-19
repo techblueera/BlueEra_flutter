@@ -64,12 +64,15 @@ class ProductSnapFoundItem {
     final inventoryDetails = json['inventory_details'] as Map<String, dynamic>?;
 
     if (productInfo != null && inventoryDetails != null) {
-      final inventoryVariants = inventoryDetails['variants'] as List<dynamic>? ?? [];
+      final productInformation = ProductInformation.fromJson(productInfo);
+      final inventoryVariants =
+          inventoryDetails['variants'] as List<dynamic>? ?? [];
       for (final v in inventoryVariants) {
-        variants.add(VariantData.fromJson({
-          'product_information': productInfo,
-          'final_variant': v,
-        }));
+        if (v is! Map) continue;
+        variants.add(VariantData(
+          productInformation: productInformation,
+          finalVariant: FinalVariant.fromJson(Map<String, dynamic>.from(v)),
+        ));
       }
     }
   }

@@ -580,7 +580,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       return const HotelMain();
     } else if (businessTypeGlobal.toUpperCase() ==
         BusinessType.Product.name.toUpperCase()) {
-      return const ProductScreen(fromBottomNavBar: true);
+      return const ProductScreen();
     } else if (businessTypeGlobal.toUpperCase() ==
         BusinessType.Finance.name.toUpperCase()) {
       return const OthersMain();
@@ -590,7 +590,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     } else if (businessTypeGlobal.toUpperCase() ==
         BusinessType.Manufacturing.name.toUpperCase()) {
       // return const ManufactureMain();
-      return const ProductScreen(fromBottomNavBar: true);
+      return const ProductScreen();
     } else if (_isSpecificServiceAutomotive()) {
       return const VehicleHomeScreenV2();
     } else if (_isSpecificServiceSpecialAutomotive()) {

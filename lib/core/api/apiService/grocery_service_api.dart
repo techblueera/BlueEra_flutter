@@ -2,7 +2,7 @@
 ///
 /// Mixed into [BaseService] alongside the other per-service API mixins.
 mixin GroceryServiceApi {
-  final String searchGroceryCategory = 'grocery-service/api/products/search';
+  final String searchGroceryViaCategory = 'grocery-service/api/products/search';
   String GroceryCategoryOfChildren(String key) =>
       'grocery-service/api/categories/key/$key/children';
   String GroceryCategoryOfChildrenWithInventory(String key) =>

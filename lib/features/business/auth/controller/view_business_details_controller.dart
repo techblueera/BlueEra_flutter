@@ -14,6 +14,7 @@ import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
 import 'package:BlueEra/features/common/auth/repo/auth_repo.dart';
 import 'package:BlueEra/features/common/food/model/get_food_details_model.dart';
 import 'package:BlueEra/features/common/service/model/get_service_model.dart';
+import 'package:BlueEra/features/me/product/repo/product_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/profile_controller.dart';
 import 'package:BlueEra/features/me/product/model/get_product_model.dart';
 import 'package:dio/dio.dart' as dio;
@@ -608,21 +609,6 @@ class ViewBusinessDetailsController extends GetxController {
     }
   }
 
-  Future<void> getAllProductsApi(Map<String, dynamic> params) async {
-    try {
-      ResponseModel responseModel =
-          await BusinessProfileRepo().getAllProductsApi(params);
-      if (responseModel.isSuccess) {
-        final data = responseModel.response?.data;
-        getAllProductDetails?.value = GetAllProductDetailsModel.fromJson(data);
-        update();
-      } else {
-        commonSnackBar(
-            message: responseModel.message ?? AppStrings.somethingWentWrong);
-      }
-    } catch (e) {}
-  }
-
   Future<bool> submitPersonalRating({
     required String userId,
     required int rating,
@@ -696,8 +682,14 @@ class ViewBusinessDetailsController extends GetxController {
       }
 
       errorMessage.value = '';
-      final responseModel =
-          await BusinessProfileRepo().getProducts(businessId: visitBusinessId);
+      final Map<String, dynamic> queryParams = {
+        ApiKeys.ownerType: ProviderType.business.title,
+      };
+      queryParams[ApiKeys.businessId] = visitBusinessId;
+
+      final responseModel = await ProductRepo()
+          .fetchProductsRepo(queryParams: queryParams);
+
       final getOwnProductModel =
           GetProductModel.fromJson(responseModel.response!.data);
       if (isSilent != true) {
