@@ -56,20 +56,34 @@ class _SplashScreenState extends State<SplashScreen> {
     if (CallController.launchedForCall.value) return;
 
     // If shared media is pending and user is logged in, skip splash delay
-    if (isLoginStatus == "true" && pendingSharedMedia != null && !isGuestUser()) {
+    if (isLoginStatus == "true" &&
+        pendingSharedMedia != null &&
+        !isGuestUser()) {
       final media = pendingSharedMedia!;
       pendingSharedMedia = null; // consume it so it's never handled again
       // Also reset the platform-level initial media so _getSharedMedia()
       // won't pick it up a second time.
-      try { ShareHandlerPlatform.instance.resetInitialSharedMedia(); } catch (_) {}
+      try {
+        ShareHandlerPlatform.instance.resetInitialSharedMedia();
+      } catch (_) {}
       final sharedText = media.content;
       final attachments = media.attachments ?? [];
-      if ((sharedText != null && sharedText.isNotEmpty) || attachments.isNotEmpty) {
-        Navigator.of(context).pushNamedAndRemoveUntil(
-          RouteHelper.getBottomNavigationBarScreenRoute(),
-          arguments: {ApiKeys.initialIndex: 1},
-          (Route<dynamic> route) => false,
-        );
+      if ((sharedText != null && sharedText.isNotEmpty) ||
+          attachments.isNotEmpty) {
+        if (accountTypeGlobal.toUpperCase() == AppConstants.individual) {
+          Navigator.of(context).pushNamedAndRemoveUntil(
+            RouteHelper.getBottomNavigationBarScreenRoute(),
+            arguments: {ApiKeys.initialIndex: 1},
+            (Route<dynamic> route) => false,
+          );
+        } else {
+          Navigator.of(context).pushNamedAndRemoveUntil(
+            RouteHelper.getBottomNavigationBarScreenRoute(),
+            arguments: {ApiKeys.initialIndex: 0},
+            (Route<dynamic> route) => false,
+          );
+        }
+
         if (sharedText != null && sharedText.isNotEmpty) {
           Get.to(() => ChatForwardScreen(sharedText: sharedText));
         } else {
@@ -103,10 +117,9 @@ class _SplashScreenState extends State<SplashScreen> {
       // First-launch (or post-logout) language selection. Logged-in users skip
       // this since they have already picked a language during onboarding.
       if (isLoginStatus != "true") {
-        final hasSelectedLanguage =
-            await SharedPreferenceUtils.getSecureValue(
-                    SharedPreferenceUtils.hasSelectedLanguage) ??
-                "false";
+        final hasSelectedLanguage = await SharedPreferenceUtils.getSecureValue(
+                SharedPreferenceUtils.hasSelectedLanguage) ??
+            "false";
         if (hasSelectedLanguage != "true") {
           if (!mounted) return;
           Navigator.of(context).pushAndRemoveUntil(
@@ -122,14 +135,25 @@ class _SplashScreenState extends State<SplashScreen> {
           // handled deep link
         } else {
           final sharedMedia = await _getSharedMedia();
-          Navigator.of(context).pushNamedAndRemoveUntil(
-            RouteHelper.getBottomNavigationBarScreenRoute(),
-            arguments: {
-              ApiKeys.initialIndex: 1,
-              if (sharedMedia != null) 'sharedMedia': sharedMedia,
-            },
-            (Route<dynamic> route) => false,
-          );
+          if (accountTypeGlobal.toUpperCase() == AppConstants.individual) {
+            Navigator.of(context).pushNamedAndRemoveUntil(
+              RouteHelper.getBottomNavigationBarScreenRoute(),
+              arguments: {
+                ApiKeys.initialIndex: 1,
+                if (sharedMedia != null) 'sharedMedia': sharedMedia,
+              },
+              (Route<dynamic> route) => false,
+            );
+          } else {
+            Navigator.of(context).pushNamedAndRemoveUntil(
+              RouteHelper.getBottomNavigationBarScreenRoute(),
+              arguments: {
+                ApiKeys.initialIndex: 0,
+                if (sharedMedia != null) 'sharedMedia': sharedMedia,
+              },
+              (Route<dynamic> route) => false,
+            );
+          }
         }
       } else {
         Navigator.of(context).pushNamedAndRemoveUntil(
@@ -225,20 +249,20 @@ class _SplashScreenState extends State<SplashScreen> {
 
             if (chatType == 'business') {
               Get.to(() => BusinessChatScreenUpdated(
-                conversationId: conversationId,
-                userId: chatUserId,
-                type: chatType,
-                name: chatName,
-                isInitialMessage: false,
-              ));
+                    conversationId: conversationId,
+                    userId: chatUserId,
+                    type: chatType,
+                    name: chatName,
+                    isInitialMessage: false,
+                  ));
             } else {
               Get.to(() => PersonalChatScreen(
-                conversationId: conversationId,
-                userId: chatUserId,
-                type: chatType,
-                name: chatName,
-                isInitialMessage: false,
-              ));
+                    conversationId: conversationId,
+                    userId: chatUserId,
+                    type: chatType,
+                    name: chatName,
+                    isInitialMessage: false,
+                  ));
             }
             break;
           case 'profile':

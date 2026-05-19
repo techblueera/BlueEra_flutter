@@ -9,8 +9,8 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/model/personal_profession_model.dart';
-import 'package:BlueEra/features/common/auth/views/screens/guest_exit_handler.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
+import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
@@ -54,6 +54,15 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen>
 
   late final List<_AccountTab> _tabs;
   late final TabController _tabController;
+
+  /// Debounces the overscroll-auto-advance gesture so a single fling
+  /// doesn't skip past multiple tabs in one go.
+  DateTime _lastAutoAdvance = DateTime.fromMillisecondsSinceEpoch(0);
+
+  /// Pull distance (in logical pixels) past the bottom edge required to
+  /// trigger the auto-advance. Tuned so it feels like a deliberate pull,
+  /// not an accidental flick.
+  static const double _autoAdvanceThreshold = 70.0;
 
   @override
   void initState() {
@@ -115,6 +124,17 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen>
     }
   }
 
+  IconData _iconFor(_AccountTab tab) {
+    switch (tab) {
+      case _AccountTab.business:
+        return Icons.storefront_outlined;
+      case _AccountTab.professional:
+        return Icons.person_outline;
+      case _AccountTab.manufacturing:
+        return Icons.precision_manufacturing_outlined;
+    }
+  }
+
   void _onTabChanged(_AccountTab tab) {
     selectedItem.value = null;
     selectedSubCategory.value = null;
@@ -131,13 +151,43 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen>
     }
   }
 
+  /// Confirmation dialog shown for every exit attempt (app-bar back, system
+  /// back button, and edge-swipe gesture). "Yes" lands the user on the main
+  /// bottom-navigation home; "No" keeps them on this screen.
+  void _confirmExit() {
+    commonConformationDialog(
+      context: context,
+      text: langController.tr('Are you sure you want to leave this screen?'),
+      confirmCallback: () {
+        Navigator.of(context, rootNavigator: true).pop();
+        Get.offAllNamed(RouteHelper.getBottomNavigationBarScreenRoute());
+      },
+      cancelCallback: () {
+        Navigator.of(context, rootNavigator: true).pop();
+      },
+    );
+  }
+
+  /// Called by [_OverscrollAdvancer] once the user has pulled past the
+  /// bottom edge by [_autoAdvanceThreshold] pixels. Forward-only — bails
+  /// at the last tab so the user never wraps unexpectedly. Debounced so a
+  /// single fling can't skip past multiple tabs.
+  void _maybeAdvanceTab() {
+    final now = DateTime.now();
+    if (now.difference(_lastAutoAdvance).inMilliseconds < 600) return;
+    final next = _tabController.index + 1;
+    if (next >= _tabs.length) return;
+    _lastAutoAdvance = now;
+    _tabController.animateTo(next);
+  }
+
   @override
   Widget build(BuildContext context) {
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
-        GuestExitHandler.handleBack(context);
+        _confirmExit();
       },
       child: Scaffold(
         backgroundColor: AppColors.white,
@@ -145,29 +195,28 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen>
           isLeading: true,
           appBarColor: Colors.white,
           title: AppStrings.chooseYourAccountType,
-          onBackTap: () => GuestExitHandler.handleBack(context),
+          onBackTap: _confirmExit,
         ),
         body: SafeArea(
           child: Column(
             children: [
+              _buildHeader(),
               _buildTopTabs(),
               Expanded(
                 child: Container(
                   width: double.infinity,
-                  color: const Color(0xFFE9EFF7),
+                  color: const Color(0xFFF1F5FB),
                   child: Obx(() {
-                    // Single unified loading state — both master lists
-                    // hydrate together (cache-first, then silent API
-                    // refresh), so we no longer split the spinner check
-                    // by tab. While neither cache nor first API call
-                    // has populated the buckets, show a spinner.
                     if (authController.isInitialCategoriesLoading.value) {
                       return const Center(child: CircularProgressIndicator());
                     }
                     // Touch the selection Rx so the body rebuilds when a
                     // pill is tapped (so its highlight state updates).
                     selectedItem.value;
-                    return _buildBodyForTab(_tabs[_tabController.index]);
+                    return TabBarView(
+                      controller: _tabController,
+                      children: _tabs.map(_buildBodyForTab).toList(),
+                    );
                   }),
                 ),
               ),
@@ -175,6 +224,31 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen>
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Container(
+      width: double.infinity,
+      color: AppColors.white,
+      padding: EdgeInsets.fromLTRB(
+        SizeConfig.size20,
+        SizeConfig.size8,
+        SizeConfig.size20,
+        SizeConfig.size12,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          CustomText(
+            langController.tr('Pick what describes you best'),
+            fontSize: SizeConfig.size18,
+            fontWeight: FontWeight.w700,
+            color: AppColors.mainTextColor,
+          ),
+
+        ],
       ),
     );
   }
@@ -199,15 +273,30 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen>
           fontSize: SizeConfig.medium,
           fontWeight: FontWeight.w500,
         ),
-        tabs: _tabs.map((t) => Tab(text: _labelFor(t))).toList(),
+        tabs: _tabs
+            .map(
+              (t) => Tab(
+                height: SizeConfig.size48,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(_iconFor(t), size: SizeConfig.size18),
+                    SizedBox(width: SizeConfig.size6),
+                    Text(_labelFor(t)),
+                  ],
+                ),
+              ),
+            )
+            .toList(),
       ),
     );
   }
 
   Widget _buildBodyForTab(_AccountTab tab) {
+    Widget body;
     switch (tab) {
       case _AccountTab.business:
-        return _sectionedBusinessBody([
+        body = _sectionedBusinessBody([
           _Section(
             title: langController.tr('Grocery & Stationary Stores'),
             items: authController.businessOnboardingGroceriesCategories,
@@ -245,15 +334,17 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen>
             items: authController.businessOnboardingFinancialSectorsCategories,
           ),
         ]);
+        break;
       case _AccountTab.manufacturing:
-        return _sectionedBusinessBody([
+        body = _sectionedBusinessBody([
           _Section(
             title: langController.tr('Manufacturing'),
             items: authController.businessOnboardingManufacturingCategories,
           ),
         ]);
+        break;
       case _AccountTab.professional:
-        return _sectionedIndividualBody([
+        body = _sectionedIndividualBody([
           _IndividualSection(
             title: langController.tr('Skill Work'),
             items: authController.individualOnboardingSkillWorkList,
@@ -271,7 +362,13 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen>
             items: authController.individualOnboardingSocialProfileList,
           ),
         ]);
+        break;
     }
+    return _OverscrollAdvancer(
+      threshold: _autoAdvanceThreshold,
+      onTriggered: _maybeAdvanceTab,
+      child: body,
+    );
   }
 
   Widget _sectionedBusinessBody(List<_Section> sections) {
@@ -280,31 +377,31 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen>
       return EmptyStateWidget(message: langController.tr('No category found'));
     }
     return SingleChildScrollView(
-      padding: EdgeInsets.symmetric(
-        horizontal: SizeConfig.size16,
-        vertical: SizeConfig.size20,
+      physics: const AlwaysScrollableScrollPhysics(
+        parent: BouncingScrollPhysics(),
+      ),
+      padding: EdgeInsets.fromLTRB(
+        SizeConfig.size16,
+        SizeConfig.size16,
+        SizeConfig.size16,
+        SizeConfig.size20,
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           for (final section in nonEmpty) ...[
-            CustomText(
-              section.title,
-              fontSize: SizeConfig.size20,
-              fontWeight: FontWeight.w700,
-              color: AppColors.mainTextColor,
-              textAlign: TextAlign.center,
+            _sectionCard(
+              title: section.title,
+              child: Wrap(
+                alignment: WrapAlignment.center,
+                spacing: SizeConfig.size10,
+                runSpacing: SizeConfig.size12,
+                children: section.items.map(_businessPill).toList(),
+              ),
             ),
             SizedBox(height: SizeConfig.size16),
-            Wrap(
-              alignment: WrapAlignment.center,
-              spacing: SizeConfig.size10,
-              runSpacing: SizeConfig.size12,
-              children:
-                  section.items.map((c) => _businessPill(c)).toList(),
-            ),
-            SizedBox(height: SizeConfig.size24),
           ],
+          // _endOfListHint(),
         ],
       ),
     );
@@ -316,34 +413,71 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen>
       return EmptyStateWidget(message: langController.tr('No profession found'));
     }
     return SingleChildScrollView(
-      padding: EdgeInsets.symmetric(
-        horizontal: SizeConfig.size16,
-        vertical: SizeConfig.size20,
+      physics: const AlwaysScrollableScrollPhysics(
+        parent: BouncingScrollPhysics(),
+      ),
+      padding: EdgeInsets.fromLTRB(
+        SizeConfig.size16,
+        SizeConfig.size16,
+        SizeConfig.size16,
+        SizeConfig.size20,
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           for (final section in nonEmpty) ...[
-            CustomText(
-              section.title,
-              fontSize: SizeConfig.size20,
-              fontWeight: FontWeight.w700,
-              color: AppColors.mainTextColor,
-              textAlign: TextAlign.center,
+            _sectionCard(
+              title: section.title,
+              child: Wrap(
+                alignment: WrapAlignment.center,
+                spacing: SizeConfig.size10,
+                runSpacing: SizeConfig.size12,
+                children: section.items.map(_individualPill).toList(),
+              ),
             ),
             SizedBox(height: SizeConfig.size16),
-            Wrap(
-              alignment: WrapAlignment.center,
-              spacing: SizeConfig.size10,
-              runSpacing: SizeConfig.size12,
-              children: section.items.map(_individualPill).toList(),
-            ),
-            SizedBox(height: SizeConfig.size24),
           ],
+          // _endOfListHint(),
         ],
       ),
     );
   }
+
+  Widget _sectionCard({required String title, required Widget child}) {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(
+        horizontal: SizeConfig.size16,
+        vertical: SizeConfig.size16,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(SizeConfig.size16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          CustomText(
+            title,
+            fontSize: SizeConfig.size16,
+            fontWeight: FontWeight.w700,
+            color: AppColors.mainTextColor,
+            textAlign: TextAlign.center,
+          ),
+          SizedBox(height: SizeConfig.size12),
+          child,
+        ],
+      ),
+    );
+  }
+
 
   Widget _businessPill(CategoryData c) {
     final selected = identical(selectedItem.value, c);
@@ -402,7 +536,8 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen>
     return InkWell(
       borderRadius: BorderRadius.circular(SizeConfig.size30),
       onTap: onTap,
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
         padding: EdgeInsets.symmetric(
           horizontal: SizeConfig.size16,
           vertical: SizeConfig.size10,
@@ -410,21 +545,40 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen>
         decoration: BoxDecoration(
           color: selected ? AppColors.primaryColor : AppColors.white,
           borderRadius: BorderRadius.circular(SizeConfig.size30),
+          border: Border.all(
+            color: selected
+                ? AppColors.primaryColor
+                : AppColors.greyE5,
+            width: 1,
+          ),
           boxShadow: selected
-              ? null
-              : [
+              ? [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.06),
-                    blurRadius: 4,
+                    color: AppColors.primaryColor.withValues(alpha: 0.20),
+                    blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
-                ],
+                ]
+              : null,
         ),
-        child: CustomText(
-          label,
-          fontSize: SizeConfig.medium,
-          fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
-          color: selected ? AppColors.white : AppColors.mainTextColor,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (selected) ...[
+              Icon(
+                Icons.check_circle,
+                size: SizeConfig.size16,
+                color: AppColors.white,
+              ),
+              SizedBox(width: SizeConfig.size6),
+            ],
+            CustomText(
+              label,
+              fontSize: SizeConfig.medium,
+              fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+              color: selected ? AppColors.white : AppColors.mainTextColor,
+            ),
+          ],
         ),
       ),
     );
@@ -525,6 +679,67 @@ class _IndividualSection {
 class _SubCategoryPickResult {
   final SubCategories? subCategory;
   _SubCategoryPickResult(this.subCategory);
+}
+
+/// Wraps a scrollable child and fires [onTriggered] once the user has
+/// dragged past the bottom edge by [threshold] logical pixels in a single
+/// gesture. Accumulates [OverscrollNotification.overscroll] so a tiny flick
+/// past the edge doesn't count — the user has to deliberately pull. Resets
+/// every time scrolling settles, so each new gesture is fresh.
+class _OverscrollAdvancer extends StatefulWidget {
+  final Widget child;
+  final VoidCallback onTriggered;
+  final double threshold;
+
+  const _OverscrollAdvancer({
+    required this.child,
+    required this.onTriggered,
+    this.threshold = 70.0,
+  });
+
+  @override
+  State<_OverscrollAdvancer> createState() => _OverscrollAdvancerState();
+}
+
+class _OverscrollAdvancerState extends State<_OverscrollAdvancer> {
+  double _pulledPastEnd = 0;
+  bool _firedForGesture = false;
+
+  bool _onNotification(ScrollNotification n) {
+    if (n.metrics.axis != Axis.vertical) return false;
+
+    if (n is OverscrollNotification) {
+      // Positive overscroll == forward direction (dragging past the bottom
+      // edge of a vertical list). Ignore overscroll at the top.
+      if (n.overscroll > 0) {
+        _pulledPastEnd += n.overscroll;
+        if (!_firedForGesture && _pulledPastEnd >= widget.threshold) {
+          _firedForGesture = true;
+          widget.onTriggered();
+        }
+      }
+    } else if (n is ScrollUpdateNotification) {
+      // If the user reverses direction and scrolls back up, throw away the
+      // accumulated pull so they have to start over.
+      final delta = n.scrollDelta;
+      if (delta != null && delta < 0) {
+        _pulledPastEnd = 0;
+        _firedForGesture = false;
+      }
+    } else if (n is ScrollEndNotification) {
+      _pulledPastEnd = 0;
+      _firedForGesture = false;
+    }
+    return false;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return NotificationListener<ScrollNotification>(
+      onNotification: _onNotification,
+      child: widget.child,
+    );
+  }
 }
 
 class BusinessSubCategoryBottomSheet extends StatefulWidget {

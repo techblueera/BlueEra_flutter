@@ -210,6 +210,12 @@ class AuthController extends GetxController {
                   getOrPut(() => ViewBusinessDetailsController(), permanent: true);
 
               await viewProfileController.viewBusinessProfile();
+              Get.offNamedUntil(
+                RouteHelper.getBottomNavigationBarScreenRoute(),
+                    (route) => false,
+                arguments: {ApiKeys.initialIndex: 0},
+
+              );
             } else if (data.data?.accountType?.toUpperCase() ==
                 AppConstants.individual) {
               await SharedPreferenceUtils.setSecureValue(
@@ -229,22 +235,16 @@ class AuthController extends GetxController {
               final personalController =
                   Get.put(ViewPersonalDetailsController(), permanent: true);
               await personalController.viewPersonalProfile();
+              Get.offNamedUntil(
+                RouteHelper.getBottomNavigationBarScreenRoute(),
+                    (route) => false,
+                arguments: {ApiKeys.initialIndex: 1},
+
+              );
             }
 
             final wasDeletionCancelled = data.accountDeletionCancelled == true;
-            Get.offNamedUntil(
-              RouteHelper.getBottomNavigationBarScreenRoute(),
-              (route) => false,
-                arguments: {ApiKeys.initialIndex: 1},
 
-            );
-
-            // Navigator.pushNamedAndRemoveUntil(
-            //   context,
-            //   RouteHelper.getBottomNavigationBarScreenRoute(),
-            //   arguments: {ApiKeys.initialIndex: 3},
-            //       (route) => false,
-            // );
 
             if (wasDeletionCancelled) {
               Future.delayed(const Duration(milliseconds: 400), () {
