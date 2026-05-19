@@ -9,6 +9,7 @@ import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_chat_icon.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_map_widgets.dart';
+import 'package:BlueEra/features/common/Discover/widget/filter_capsule.dart';
 import 'package:BlueEra/features/common/Discover/widget/sticky_category_header_delegate.dart';
 import 'package:BlueEra/features/common/Discover/model/service_model_response.dart';
 import 'package:BlueEra/features/common/Discover/view/self_employee_view_screen.dart';
@@ -18,7 +19,6 @@ import 'package:BlueEra/features/common/auth/model/personal_profession_model.dar
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
-import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -93,6 +93,56 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
         : null;
     controller.fetchEarnServices(
         earnServiceType: earnServiceType, subType: serviceSubType);
+  }
+
+  /// Returns a new list sorted by the active filter. Mirrors the
+  /// professional-consultant screen so both Discover lists feel
+  /// identical. Items missing the comparator key sort to the end.
+  ///
+  /// `ServiceData` already carries a server-computed `distance` so we
+  /// don't have to read GPS here. There's no explicit experience
+  /// field on this model — we use `rating` (descending) as a stand-in
+  /// for the "Experienced" filter, which generally tracks tenure.
+  List<ServiceData> _applySort(
+      List<ServiceData> items, CategoryFilter filter) {
+    final sorted = List<ServiceData>.from(items);
+    switch (filter) {
+      case CategoryFilter.nearest:
+        sorted.sort((a, b) {
+          final da = (a.distance ?? double.infinity).toDouble();
+          final db = (b.distance ?? double.infinity).toDouble();
+          return da.compareTo(db);
+        });
+        break;
+      case CategoryFilter.experienced:
+        sorted.sort((a, b) {
+          final ar = (a.rating ?? 0).toDouble();
+          final br = (b.rating ?? 0).toDouble();
+          return br.compareTo(ar); // descending
+        });
+        break;
+      case CategoryFilter.priceLowToHigh:
+        sorted.sort((a, b) {
+          final ap = _priceFor(a);
+          final bp = _priceFor(b);
+          // Treat 0 as "unpriced" → push to end.
+          if (ap == 0 && bp == 0) return 0;
+          if (ap == 0) return 1;
+          if (bp == 0) return -1;
+          return ap.compareTo(bp);
+        });
+        break;
+    }
+    return sorted;
+  }
+
+  /// Effective price used for the Price (Low–High) sort.
+  /// `priceRange.min` for range pricing, `singlePrice` otherwise.
+  num _priceFor(ServiceData s) {
+    final pd = s.priceData;
+    if (pd == null) return 0;
+    if (pd.priceType == 'range') return pd.priceRange?.min ?? 0;
+    return pd.singlePrice ?? 0;
   }
 
   Widget _buildServicesMap(double statusBarHeight) {
@@ -386,57 +436,61 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
   }
 
   Widget _buildContent() {
-    return Obx(() => Padding(
-          padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // BookViaBlueEraPartnerBanner(onTap: () {}),
-              HorizontalTabSelector<CategoryFilter>(
-                tabs: controller.filters,
-                selectedIndex:
-                    controller.filters.indexOf(controller.selectedFilter.value),
-                horizontalMargin: 0.0,
-                verticalMargin: 8.0,
-                onTabSelected: (index, _) {
-                  final selectedEnum = controller.filters[index];
-                  if (controller.selectedFilter.value == selectedEnum) return;
-                  controller.selectedFilter.value = selectedEnum;
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(height: SizeConfig.size8),
+          // Segmented capsule — same widget the professional-consultant
+          // screen uses, so the Discover lists feel uniform. Tapping
+          // mutates `selectedFilter`; the Obx below re-sorts the
+          // loaded list client-side, no refetch needed.
+          Obx(() => FilterCapsule(
+                filters: controller.filters,
+                selected: controller.selectedFilter.value,
+                onChanged: (f) {
+                  if (controller.selectedFilter.value == f) return;
+                  controller.selectedFilter.value = f;
                 },
-                labelBuilder: (r) => r.localizedLabel,
-                unSelectedBackgroundColor: AppColors.white,
-              ),
-              Expanded(
-                child: Obx(() {
-                  if (controller.isEarnServiceLoading.value &&
-                      controller.earnServiceList.isEmpty) {
-                    return const Center(child: CircularProgressIndicator());
+              )),
+          SizedBox(height: SizeConfig.size10),
+          Expanded(
+            child: Obx(() {
+              if (controller.isEarnServiceLoading.value &&
+                  controller.earnServiceList.isEmpty) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              if (controller.earnServiceList.isEmpty) {
+                return Center(
+                    child: EmptyStateWidget(
+                        message: AppStrings.noServicesFound.tr));
+              }
+              final sorted = _applySort(
+                controller.earnServiceList,
+                controller.selectedFilter.value,
+              );
+              final showMoreSpinner =
+                  controller.isEarnServiceLoadingMore.value;
+              return ListView.builder(
+                itemCount: sorted.length + (showMoreSpinner ? 1 : 0),
+                padding: EdgeInsets.only(bottom: SizeConfig.paddingL),
+                itemBuilder: (context, index) {
+                  if (index == sorted.length) {
+                    return const Center(
+                        child: Padding(
+                            padding: EdgeInsets.all(16.0),
+                            child:
+                                CircularProgressIndicator(strokeWidth: 2)));
                   }
-                  if (controller.earnServiceList.isEmpty) {
-                    return Center(
-                        child: EmptyStateWidget(message: AppStrings.noServicesFound.tr));
-                  }
-                  return ListView.builder(
-                    itemCount: controller.earnServiceList.length +
-                        (controller.isEarnServiceLoadingMore.value ? 1 : 0),
-                    padding: EdgeInsets.only(bottom: SizeConfig.paddingL),
-                    itemBuilder: (context, index) {
-                      if (index == controller.earnServiceList.length) {
-                        return const Center(
-                            child: Padding(
-                                padding: EdgeInsets.all(16.0),
-                                child:
-                                    CircularProgressIndicator(strokeWidth: 2)));
-                      }
-                      return selfProfessionCard(
-                          controller.earnServiceList[index]);
-                    },
-                  );
-                }),
-              ),
-            ],
+                  return selfProfessionCard(sorted[index]);
+                },
+              );
+            }),
           ),
-        ));
+        ],
+      ),
+    );
   }
 
   _SelfProfessionPalette _paletteFor(ServiceData service) {

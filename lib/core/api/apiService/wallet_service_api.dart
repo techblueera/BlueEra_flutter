@@ -7,7 +7,6 @@
 /// the client currently sends.
 mixin WalletServiceApi {
   // Payment Setting;
-
   final String addAccountApi = "wallet-service/withdrawal-methods";
   final String getAccountApi = "/wallet-service/payment/getAccounts";
   final String updateAccountIdApi = "/wallet-service/payment/updateAccount/";

@@ -3,15 +3,14 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
-import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/Discover/widget/common_generic_left_side_category_list.dart';
 import 'package:BlueEra/features/me/food/controller/food_service_controller.dart';
 import 'package:BlueEra/features/me/food/model/category_food_product_res_model.dart';
+import 'package:BlueEra/features/me/food/view/widget/food_floating_cart.dart';
 import 'package:BlueEra/features/me/food/view/widget/food_product_card.dart';
 import 'package:BlueEra/features/me/food/view/widget/food_product_variant_bottom_sheet.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
-import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -86,7 +85,8 @@ class _FoodProductSelectionScreenState extends State<FoodProductSelectionScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      bottomNavigationBar: _buildBottomPublishBar(),
+      // Publish CTA lives in the floating cart overlay below; no
+      // docked bottomNavigationBar here.
       appBar: AppBar(
         leading: InkWell(
             onTap: () {
@@ -127,10 +127,23 @@ class _FoodProductSelectionScreenState extends State<FoodProductSelectionScreen>
         elevation: 0,
         backgroundColor: Colors.white,
       ),
-      body: Row(
+      body: Stack(
         children: [
-          _buildLeftSidebar(),
-          _buildRightContent()
+          Row(
+            children: [
+              _buildLeftSidebar(),
+              _buildRightContent(),
+            ],
+          ),
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: FoodFloatingCart(
+              controller: controller,
+              isSnapSearch: false,
+            ),
+          ),
         ],
       ),
     );
@@ -204,84 +217,29 @@ class _FoodProductSelectionScreenState extends State<FoodProductSelectionScreen>
 
           // Product List
           Obx(() => Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(8),
-              itemCount: controller.categoryFoundProductDataList.length,
-              itemBuilder: (context, index) {
-                final product = controller.categoryFoundProductDataList[index];
-                return FoodProductCard(
-                  product: product,
-                  onShowVariants: (p) => _showVariantSheet(context, p),
-                );
-              },
-            ),
-          )),
-
-          SizedBox(height: SizeConfig.size40)
+                child: ListView.builder(
+                  padding: EdgeInsets.fromLTRB(
+                    8,
+                    8,
+                    8,
+                    // Reserve space for the floating cart so the last
+                    // item never hides behind it.
+                    FoodFloatingCart.reservedSpace,
+                  ),
+                  itemCount: controller.categoryFoundProductDataList.length,
+                  itemBuilder: (context, index) {
+                    final product =
+                        controller.categoryFoundProductDataList[index];
+                    return FoodProductCard(
+                      product: product,
+                      onShowVariants: (p) => _showVariantSheet(context, p),
+                    );
+                  },
+                ),
+              )),
         ],
       ),
     );
-  }
-
-  Widget _buildBottomPublishBar() {
-    return Obx(() {
-      // 1. Count of unique Products (Keys in the Map)
-      final int productCount = controller.selectedVariantsMap.keys.length;
-
-      // 2. Count of total individual Variants (Sum of all list lengths)
-      final int totalVariantsCount = controller.selectedVariantsMap.values
-          .fold(0, (sum, list) => sum + list.length);
-
-      // Only show if at least one product is selected
-      if (productCount == 0) return const SizedBox.shrink();
-
-      return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
-              blurRadius: 10,
-              offset: const Offset(0, -2),
-            ),
-          ],
-        ),
-        child: SafeArea(
-          child: Row(
-            children: [
-              // Left Side: Summary Info
-              Expanded(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    CustomText(
-                      "$productCount Products Selected, $totalVariantsCount Total Variants ready",
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
-                    CustomText(
-                      "Ready to publish to product",
-                      fontSize: 12,
-                      color: Colors.grey.shade600,
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(
-                width: 140,
-                child: PositiveCustomBtn(
-                  onTap: () => controller.bulkPublishInventory(isSnapSearch: true),
-                  title: "Publish All",
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    });
   }
 
   // 3. Bottom Sheet Implementation

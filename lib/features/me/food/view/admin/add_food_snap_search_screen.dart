@@ -9,6 +9,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/me/food/controller/food_service_controller.dart';
 import 'package:BlueEra/features/me/food/model/category_food_product_res_model.dart';
+import 'package:BlueEra/features/me/food/view/widget/food_floating_cart.dart';
 import 'package:BlueEra/features/me/food/view/widget/food_product_card.dart';
 import 'package:BlueEra/features/me/food/view/widget/food_product_variant_bottom_sheet.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -50,20 +51,40 @@ class _AddFoodSnapSearchScreenState extends State<AddFoodSnapSearchScreen> {
       appBar: CommonBackAppBar(
         title: AppStrings.foodFoodItemsLabel.tr,
       ),
-      bottomNavigationBar: _buildBottomPublishBar(),
+      // The floating cart replaces the previous bottomNavigationBar
+      // publish button so newly-ticked variants accumulate visibly
+      // while the variant bottom sheet remains the place to actually
+      // tick them. See [FoodFloatingCart].
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: EdgeInsets.symmetric(
-              vertical: SizeConfig.size15,
-              horizontal: SizeConfig.size8
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildBulkUploadSection(),
-              _buildProductList(),
-            ],
-          ),
+        child: Stack(
+          children: [
+            SingleChildScrollView(
+              padding: EdgeInsets.only(
+                top: SizeConfig.size15,
+                left: SizeConfig.size8,
+                right: SizeConfig.size8,
+                // Reserve space below so the last row stays scrollable
+                // above the floating cart.
+                bottom: FoodFloatingCart.reservedSpace,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildBulkUploadSection(),
+                  _buildProductList(),
+                ],
+              ),
+            ),
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: FoodFloatingCart(
+                controller: controller,
+                isSnapSearch: true,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -392,67 +413,5 @@ class _AddFoodSnapSearchScreenState extends State<AddFoodSnapSearchScreen> {
       isScrollControlled: true,
     );
   }
-
-  Widget _buildBottomPublishBar() {
-    return Obx(() {
-      // 1. Count of unique Products (Keys in the Map)
-      final int productCount = controller.selectedVariantsMap.keys.length;
-
-      // 2. Count of total individual Variants (Sum of all list lengths)
-      final int totalVariantsCount = controller.selectedVariantsMap.values
-          .fold(0, (sum, list) => sum + list.length);
-
-      // Only show if at least one product is selected
-      if (productCount == 0) return const SizedBox.shrink();
-
-      return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
-              blurRadius: 10,
-              offset: const Offset(0, -2),
-            ),
-          ],
-        ),
-        child: SafeArea(
-          child: Row(
-            children: [
-              // Left Side: Summary Info
-              Expanded(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    CustomText(
-                      "$productCount ${AppStrings.foodProductsSelectedSuffix.tr} $totalVariantsCount ${AppStrings.foodTotalVariantsReady.tr}",
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
-                    CustomText(
-                      AppStrings.foodReadyToPublish.tr,
-                      fontSize: 12,
-                      color: Colors.grey.shade600,
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(
-                width: 140,
-                child: PositiveCustomBtn(
-                  onTap: () => controller.bulkPublishInventory(isSnapSearch: true),
-                  title: AppStrings.foodPublishAll.tr,
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    });
-  }
-
 
 }

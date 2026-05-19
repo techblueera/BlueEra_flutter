@@ -7,6 +7,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/core/constants/shimmer_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
@@ -221,11 +222,7 @@ class _FoodCategoryMenuScreenState extends State<FoodCategoryMenuScreen> {
                       child: CustomText(AppStrings.somethingWentWrong),
                   ));
                 }
-                return Center(
-                    child: Padding(
-                      padding: EdgeInsets.only(top: 10),
-                      child: CircularProgressIndicator(),
-                    ));
+                return buildCategoryGridSkeleton();
               }),
 
               CustomFormCard(

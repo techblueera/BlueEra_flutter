@@ -158,8 +158,8 @@ class _HomeMadeFoodScreenState extends State<HomeMadeFoodScreen> {
         children: [
           if (isIndividualUser()) ...[
             _buildPostButton(),
-            SizedBox(height: SizeConfig.size4),
           ],
+          SizedBox(height: SizeConfig.size8),
           if (catIndex == 0) _buildFilterTabs(),
           Expanded(child: _buildContentList(catIndex)),
         ],

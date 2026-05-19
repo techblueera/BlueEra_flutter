@@ -44,4 +44,9 @@ mixin EarnServiceApi {
 
   /// Earn Profiles
   final String earnProfiles = "earn-service/earn-profiles";
+
+  /// Admin posts feed — drives the testimonials, overview and tutorial
+  /// sections on the new BDM/referral dashboard. Filter by `type` query
+  /// param (`testimonial` | `overview` | `tutorial`) plus `page` / `limit`.
+  final String adminPosts = "earn-service/admin-posts";
 }
