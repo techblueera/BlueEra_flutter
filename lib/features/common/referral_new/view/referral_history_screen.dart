@@ -9,8 +9,8 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
-import 'package:BlueEra/features/common/referral/controller/referral_controller.dart';
-import 'package:BlueEra/features/common/referral/model/wallet_referral_history_response.dart';
+import 'package:BlueEra/features/common/referral_new/controller/referral_controller.dart';
+import 'package:BlueEra/features/common/referral_new/model/wallet_referral_history_model.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
@@ -23,31 +23,42 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:share_plus/share_plus.dart';
 
-class ReferralHistoryScreen extends StatefulWidget {
-  const ReferralHistoryScreen({super.key});
+/// History screen for the new referral flow.
+///
+/// Functionally a port of the legacy screen — same filter tabs, date
+/// range, PDF export — but driven by [ReferralControllerNew] and using
+/// the new history model so it compiles after the old package is
+/// removed.
+class ReferralHistoryScreenNew extends StatefulWidget {
+  const ReferralHistoryScreenNew({super.key});
 
   @override
-  State<ReferralHistoryScreen> createState() => _ReferralHistoryScreenState();
+  State<ReferralHistoryScreenNew> createState() =>
+      _ReferralHistoryScreenNewState();
 }
 
-class _ReferralHistoryScreenState extends State<ReferralHistoryScreen> {
-  final controller = Get.find<ReferralController>();
-  final chatViewController = Get.find<ChatViewController>();
+class _ReferralHistoryScreenNewState extends State<ReferralHistoryScreenNew> {
+  final ReferralControllerNew controller =
+      Get.find<ReferralControllerNew>();
+  late final ChatViewController _chatViewController;
 
   DateTimeRange? _dateRange;
   bool _isExporting = false;
 
   @override
-  initState() {
+  void initState() {
     super.initState();
-    controller.getWalletReferralHistoryApi(controller.selectedFilter.value);
+    _chatViewController = Get.isRegistered<ChatViewController>()
+        ? Get.find<ChatViewController>()
+        : Get.put(ChatViewController());
+    controller.fetchHistory(controller.selectedFilter.value);
   }
 
-  List<WalletReferralHistoryData> get _visibleRows {
-    final all = controller.referralHistoryData;
+  List<WalletReferralHistoryItem> get _visibleRows {
+    final all = controller.history;
     if (_dateRange == null) return all.toList();
-    final start = DateTime(
-        _dateRange!.start.year, _dateRange!.start.month, _dateRange!.start.day);
+    final start = DateTime(_dateRange!.start.year, _dateRange!.start.month,
+        _dateRange!.start.day);
     final endInclusive = DateTime(_dateRange!.end.year, _dateRange!.end.month,
             _dateRange!.end.day)
         .add(const Duration(days: 1));
@@ -62,41 +73,35 @@ class _ReferralHistoryScreenState extends State<ReferralHistoryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: _buildAppBar(),
-        body: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(height: SizeConfig.paddingXSL),
-            // Active date-range banner sits ABOVE the tabs so it reads as
-            // a scope filter for everything below it. Lives outside the
-            // Obx branch so it is reachable even when the range filters
-            // every row out.
-            if (_dateRange != null)
-              Padding(
-                padding: EdgeInsets.symmetric(
-                    horizontal: SizeConfig.size10,
-                    vertical: SizeConfig.size4),
-                child: _buildDateRangeChip(),
-              ),
-            _buildFilterTabs(),
-            SizedBox(height: SizeConfig.paddingXSL),
-            Expanded(child: Obx(() {
-              if (controller.walletReferralHistoryResponse.value.status ==
-                  Status.INITIAL) {
-                return Center(child: CircularProgressIndicator());
+      appBar: _buildAppBar(),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(height: SizeConfig.paddingXSL),
+          if (_dateRange != null)
+            Padding(
+              padding: EdgeInsets.symmetric(
+                  horizontal: SizeConfig.size10,
+                  vertical: SizeConfig.size4),
+              child: _buildDateRangeChip(),
+            ),
+          _buildFilterTabs(),
+          SizedBox(height: SizeConfig.paddingXSL),
+          Expanded(
+            child: Obx(() {
+              final status = controller.historyResponse.value.status;
+              if (status == Status.INITIAL || status == Status.LOADING) {
+                return const Center(child: CircularProgressIndicator());
               }
-
-              if (controller.walletReferralHistoryResponse.value.status ==
-                  Status.ERROR) {
+              if (status == Status.ERROR) {
                 return Center(
-                    child: CustomText(
-                  'Oops Something went wrong',
-                  fontSize: SizeConfig.extraLarge,
-                  color: AppColors.secondaryTextColor,
-                  fontWeight: FontWeight.w400,
-                ));
-              };
-
+                  child: CustomText(
+                    'Oops Something went wrong',
+                    fontSize: SizeConfig.extraLarge,
+                    color: AppColors.secondaryTextColor,
+                  ),
+                );
+              }
               final rows = _visibleRows;
               if (rows.isEmpty) {
                 return EmptyStateWidget(
@@ -105,7 +110,6 @@ class _ReferralHistoryScreenState extends State<ReferralHistoryScreen> {
                       : 'No ${controller.selectedFilter.value} found.',
                 );
               }
-
               return SingleChildScrollView(
                 child: CustomFormCard(
                   padding: EdgeInsets.all(SizeConfig.size10),
@@ -115,56 +119,50 @@ class _ReferralHistoryScreenState extends State<ReferralHistoryScreen> {
                     children: [
                       _buildHeaderInfo(rows),
                       ListView.separated(
-                        padding:
-                            const EdgeInsets.symmetric(vertical: 10.0),
+                        padding: const EdgeInsets.symmetric(vertical: 10),
                         itemCount: rows.length,
                         primary: false,
                         shrinkWrap: true,
-                        physics: NeverScrollableScrollPhysics(),
-                        separatorBuilder: (context, index) =>
+                        physics: const NeverScrollableScrollPhysics(),
+                        separatorBuilder: (_, __) =>
                             const SizedBox(height: 12),
-                        itemBuilder: (context, index) {
-                          return _buildRefHistoryCard(rows[index]);
-                        },
+                        itemBuilder: (_, i) => _buildRefHistoryCard(rows[i]),
                       ),
                     ],
                   ),
                 ),
               );
-            })),
-          ],
-        ));
+            }),
+          ),
+        ],
+      ),
+    );
   }
 
-  // --- APP BAR ---
+  // --- APP BAR -------------------------------------------------------------
   PreferredSizeWidget _buildAppBar() {
     return CommonBackAppBar(
-        title: 'History',
-        buildCustomActionWidget: () => Row(
-              children: [
-                _buildCalendarAction(),
-                const SizedBox(width: 8),
-                _buildAppbarActionIcon(
-                  Icons.ios_share,
-                  onTap: _isExporting ? null : _exportToPdf,
-                  loading: _isExporting,
-                  tooltip: 'Export',
-                ),
-                const SizedBox(width: 16),
-              ],
-            ));
+      title: 'History',
+      buildCustomActionWidget: () => Row(
+        children: [
+          _buildCalendarAction(),
+          const SizedBox(width: 8),
+          _buildAppbarActionIcon(
+            Icons.ios_share,
+            onTap: _isExporting ? null : _exportToPdf,
+            loading: _isExporting,
+            tooltip: 'Export',
+          ),
+          const SizedBox(width: 16),
+        ],
+      ),
+    );
   }
 
-  /// Calendar icon that doubles as filter status.
-  /// - Inactive → plain outlined calendar, tap opens the date range picker.
-  /// - Active  → tinted icon with a red dot badge; tap opens a menu so the
-  ///   user can Change Range or Remove the filter from the same control.
   Widget _buildCalendarAction() {
     final active = _dateRange != null;
     final iconBox = _buildAppbarActionIcon(
-      active
-          ? Icons.event_available_outlined
-          : Icons.calendar_today_outlined,
+      active ? Icons.event_available_outlined : Icons.calendar_today_outlined,
       onTap: active ? null : _pickDateRange,
       tinted: active,
       tooltip: active ? 'Date filter on' : 'Filter by date',
@@ -219,7 +217,6 @@ class _ReferralHistoryScreenState extends State<ReferralHistoryScreen> {
         clipBehavior: Clip.none,
         children: [
           iconBox,
-          // Active indicator dot.
           Positioned(
             right: 2,
             top: 4,
@@ -238,12 +235,14 @@ class _ReferralHistoryScreenState extends State<ReferralHistoryScreen> {
     );
   }
 
-  Widget _buildAppbarActionIcon(IconData icon,
-      {VoidCallback? onTap,
-      bool tinted = false,
-      bool loading = false,
-      bool danger = false,
-      String? tooltip}) {
+  Widget _buildAppbarActionIcon(
+    IconData icon, {
+    VoidCallback? onTap,
+    bool tinted = false,
+    bool loading = false,
+    bool danger = false,
+    String? tooltip,
+  }) {
     final Color borderColor = danger
         ? AppColors.red
         : tinted
@@ -275,7 +274,9 @@ class _ReferralHistoryScreenState extends State<ReferralHistoryScreen> {
                 width: 20,
                 height: 20,
                 child: CircularProgressIndicator(
-                    strokeWidth: 2, color: AppColors.primaryColor),
+                  strokeWidth: 2,
+                  color: AppColors.primaryColor,
+                ),
               )
             : Icon(icon, color: fgColor, size: 20),
       ),
@@ -286,7 +287,7 @@ class _ReferralHistoryScreenState extends State<ReferralHistoryScreen> {
     return widget;
   }
 
-  // --- CALENDAR ACTION ---
+  // --- CALENDAR ACTION ----------------------------------------------------
   Future<void> _pickDateRange() async {
     final now = DateTime.now();
     final initial = _dateRange ??
@@ -325,7 +326,6 @@ class _ReferralHistoryScreenState extends State<ReferralHistoryScreen> {
           EdgeInsets.only(top: SizeConfig.size4, bottom: SizeConfig.size10),
       child: Row(
         children: [
-          // Active-range info pill — tap to re-pick a range.
           Expanded(
             child: Material(
               color: AppColors.primaryColor.withValues(alpha: 0.08),
@@ -381,7 +381,6 @@ class _ReferralHistoryScreenState extends State<ReferralHistoryScreen> {
             ),
           ),
           const SizedBox(width: 8),
-          // Dedicated "Clear Filter" button — red, labelled, impossible to miss.
           Material(
             color: AppColors.red.withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(10),
@@ -392,8 +391,8 @@ class _ReferralHistoryScreenState extends State<ReferralHistoryScreen> {
                 commonSnackBar(message: 'Date filter cleared');
               },
               child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 10, vertical: 10),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
@@ -422,7 +421,7 @@ class _ReferralHistoryScreenState extends State<ReferralHistoryScreen> {
     );
   }
 
-  // --- EXPORT PDF ACTION ---
+  // --- EXPORT PDF ---------------------------------------------------------
   Future<void> _exportToPdf() async {
     final rows = _visibleRows;
     if (rows.isEmpty) {
@@ -512,7 +511,7 @@ class _ReferralHistoryScreenState extends State<ReferralHistoryScreen> {
   }
 
   Future<List<int>> _buildPdfBytes(
-      List<WalletReferralHistoryData> rows) async {
+      List<WalletReferralHistoryItem> rows) async {
     final pdf = pw.Document();
     final filterLabel = controller.selectedFilter.value;
     final rangeLabel = _dateRange == null
@@ -571,7 +570,7 @@ class _ReferralHistoryScreenState extends State<ReferralHistoryScreen> {
     return '${d.day}/${d.month}/${d.year}';
   }
 
-  // --- FILTER TABS ---
+  // --- FILTER TABS --------------------------------------------------------
   Widget _buildFilterTabs() {
     return Obx(() {
       final selectedIdx = controller.filters.indexOf(
@@ -584,8 +583,7 @@ class _ReferralHistoryScreenState extends State<ReferralHistoryScreen> {
         unSelectedBackgroundColor: Colors.white,
         onTabSelected: (index, label) {
           if (controller.selectedFilter.value == label) return;
-          controller.selectedFilter.value = label;
-          controller.getWalletReferralHistoryApi(label);
+          controller.fetchHistory(label);
         },
       );
     });
@@ -621,8 +619,7 @@ class _ReferralHistoryScreenState extends State<ReferralHistoryScreen> {
     }
   }
 
-  // --- MAIN CONTAINER HEADER ---
-  Widget _buildHeaderInfo(List<WalletReferralHistoryData> rows) {
+  Widget _buildHeaderInfo(List<WalletReferralHistoryItem> rows) {
     final isAll = controller.selectedFilter.value == 'All';
     final subscribedCount = isAll
         ? rows
@@ -668,8 +665,7 @@ class _ReferralHistoryScreenState extends State<ReferralHistoryScreen> {
     );
   }
 
-  // --- USER CARD ---
-  Widget _buildRefHistoryCard(WalletReferralHistoryData historyData) {
+  Widget _buildRefHistoryCard(WalletReferralHistoryItem historyData) {
     final style = _statusStyle(historyData.subscriptionStatus);
     final ago = timeAgo(historyData.createdAt);
     return Material(
@@ -682,12 +678,12 @@ class _ReferralHistoryScreenState extends State<ReferralHistoryScreen> {
             createProfileScreen();
             return;
           }
-          chatViewController.checkChatConnectionAndOpenChat(
+          _chatViewController.checkChatConnectionAndOpenChat(
             userId: historyData.userId ?? '',
           );
         },
         child: Ink(
-          padding: const EdgeInsets.all(12.0),
+          padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(12),
@@ -745,18 +741,18 @@ class _ReferralHistoryScreenState extends State<ReferralHistoryScreen> {
                         createProfileScreen();
                         return;
                       }
-                      chatViewController.checkChatConnectionAndOpenChat(
+                      _chatViewController.checkChatConnectionAndOpenChat(
                         userId: historyData.userId ?? '',
                       );
                     },
                     child: Container(
-                      padding: const EdgeInsets.all(8.0),
+                      padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: AppColors.primaryColor.withValues(alpha: 0.08),
+                        color:
+                            AppColors.primaryColor.withValues(alpha: 0.08),
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color:
-                              AppColors.primaryColor.withValues(alpha: 0.25),
+                          color: AppColors.primaryColor.withValues(alpha: 0.25),
                         ),
                       ),
                       child: LocalAssets(
@@ -772,9 +768,6 @@ class _ReferralHistoryScreenState extends State<ReferralHistoryScreen> {
               const SizedBox(height: 10),
               Row(
                 children: [
-                  // Left cluster (status pill + time-ago) wrapped in a
-                  // single Expanded so it flexes and ellipses — leaving
-                  // the income RichText pinned to the right.
                   Expanded(
                     child: Row(
                       children: [
@@ -817,7 +810,7 @@ class _ReferralHistoryScreenState extends State<ReferralHistoryScreen> {
                     text: TextSpan(
                       children: [
                         TextSpan(
-                          text: "₹${historyData.referralIncome ?? 0} ",
+                          text: '₹${historyData.referralIncome ?? 0} ',
                           style: TextStyle(
                             color: AppColors.primaryColor,
                             fontWeight: FontWeight.w700,
@@ -825,7 +818,7 @@ class _ReferralHistoryScreenState extends State<ReferralHistoryScreen> {
                           ),
                         ),
                         TextSpan(
-                          text: "/ ₹${historyData.planCost ?? 0}",
+                          text: '/ ₹${historyData.planCost ?? 0}',
                           style: TextStyle(
                             color: AppColors.secondaryTextColor,
                             fontWeight: FontWeight.w500,

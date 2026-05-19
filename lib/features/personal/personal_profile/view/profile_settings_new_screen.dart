@@ -8,6 +8,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/features/common/account_deletion/controller/account_deletion_controller.dart';
+import 'package:BlueEra/features/common/referral_new/view/referral_page.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/account_setting_screen/account_settings_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/help_and_support_screen/help_and_support_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -19,7 +20,6 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../../common/referral/view/referral_page.dart';
 
 class ProfileSettingsNewScreen extends StatelessWidget {
   const ProfileSettingsNewScreen({super.key});
@@ -53,7 +53,7 @@ class ProfileSettingsNewScreen extends StatelessWidget {
                               urlTitle: AppStrings.applyForFranchise,
                             ))),
                     _buildTile(AppIconAssets.referral, AppStrings.referral,
-                        onTap: () => Get.to(() => ReferralPage())),
+                        onTap: () => Get.to(() => ReferralPageNew())),
                     _buildTile(
                       AppIconAssets.helpSupport,
                       AppStrings.helpSupport,

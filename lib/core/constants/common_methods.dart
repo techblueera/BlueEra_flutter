@@ -7,7 +7,7 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
-import 'package:BlueEra/features/common/referral/controller/referral_controller.dart';
+import 'package:BlueEra/features/common/referral_new/controller/referral_controller.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:flutter/material.dart' hide Key;
 import 'package:flutter/services.dart';
@@ -135,16 +135,34 @@ String _withBdmReferral(String base) {
 }
 
 /// Returns the signed-in user's referral code only when their BDM
-/// application status is `COMPLETED` (per [ReferralController]). All
-/// lookups are guarded with `Get.isRegistered` + try/catch so URL
+/// application status is `COMPLETED` (per [ReferralControllerNew]).
+///
+/// Lookup order:
+///   1. `ReferralControllerNew.myReferralCode` — the canonical source
+///      on the new flow (mirrors `/wallet-stats.referralCode`).
+///   2. Fallback to the business / personal profile controllers when
+///      the wallet-stats fetch hasn't landed yet but the profile data
+///      already carries a `referral_code`.
+///
+/// Every lookup is guarded with `Get.isRegistered` + try/catch so URL
 /// generation can never throw if a controller hasn't been registered
 /// yet (e.g. share surfaces opened before the referral flow loads).
 String? _currentUserReferralCodeIfBdmCompleted() {
   try {
-    if (!Get.isRegistered<ReferralController>()) return null;
-    final referral = Get.find<ReferralController>();
-    if (referral.referralBdmDetails.value.status != 'COMPLETED') return null;
+    if (!Get.isRegistered<ReferralControllerNew>()) return null;
+    final referral = Get.find<ReferralControllerNew>();
+    // `bdmDetails` is a Rxn — reading `.value.status` directly would
+    // NPE the moment the API hasn't responded yet. The controller
+    // already provides an `isCompleted` getter that handles the null
+    // case, so use that.
+    if (!referral.isCompleted) return null;
 
+    // Prefer the new flow's canonical code (loaded from /wallet-stats).
+    final code = referral.myReferralCode;
+    if (code.isNotEmpty) return code;
+
+    // Fallback — profile controllers carry `referral_code` on the
+    // user/business record and tend to load earlier than /wallet-stats.
     if (accountTypeGlobal == AppConstants.business) {
       if (!Get.isRegistered<ViewBusinessDetailsController>()) return null;
       return Get.find<ViewBusinessDetailsController>()

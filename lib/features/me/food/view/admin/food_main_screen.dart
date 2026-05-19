@@ -100,7 +100,6 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
     _foodController = getOrPut(() => RestaurantController());
     _businessController =
         getOrPut(() => ViewBusinessDetailsController(), permanent: true);
-    _loadInitialData();
     // Hydrate the order chat list so the Order tab's incoming-orders
     // list has data ready when the user switches to it. Mirrors what
     // ConnectMainPage does for its Order tab.
@@ -108,6 +107,10 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
       ChatEmitEvents.ChatList,
       {ApiKeys.type: AppConstants.order_Chat_Type},
     );
+    // Fire the API(s) backing the tab the screen lands on (Overview by
+    // default). Switching tabs later will fire other tabs' APIs lazily
+    // via [_onTabTapped] — mirrors product_screen's per-tab discipline.
+    _fetchForTab(_selectedTab);
     // Mirrors grocery: prompt the live-photos upload sheet on first
     // paint when the business has no live photos yet.
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -127,11 +130,41 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
     });
   }
 
-  void _loadInitialData() {
-    final id = businessId;
-    if (id.isEmpty) return;
-    _foodController.fetchHomeData(businessId: id);
-    _foodController.fetchDiscountFoodProducts(businessId: id);
+  /// Per-tab API dispatcher. Each tab owns a different data set, so we
+  /// only fire the calls backing the visible tab when the user lands on
+  /// it. Other tabs stay quiet until they're opened.
+  void _fetchForTab(int tab) {
+    switch (tab) {
+      case 0:
+        // Order — order chat list is hydrated in initState; the
+        // ContributionController binds lazily when its slot renders.
+        break;
+      case 1:
+        // Overview — the joined-profile / contact / QR / share-banner
+        // sections all read from [ViewBusinessDetailsController], which
+        // is registered as a permanent singleton elsewhere on launch.
+        // No food-specific API is needed for this tab.
+        break;
+      case 2:
+        // Products — popular dishes + food menu grid.
+        final id = businessId;
+        if (id.isEmpty) return;
+        _foodController.fetchHomeData(businessId: id);
+        _foodController.fetchDiscountFoodProducts(businessId: id);
+        break;
+      case 3:
+        // Post — FeedScreen owns its own controller fetch on mount.
+        break;
+      case 4:
+        // Statistics — MedicalStatisticsScreen owns its own data.
+        break;
+    }
+  }
+
+  void _onTabTapped(int i) {
+    if (i == _selectedTab) return;
+    setState(() => _selectedTab = i);
+    _fetchForTab(i);
   }
 
   // ─────────────────────────────────────────────
@@ -157,60 +190,51 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
                 return false;
               },
               child: RefreshIndicator(
-                onRefresh: _onRefresh,
-                child: Obx(() {
-                  final isHomeLoading = _foodController
-                          .foodHomeDataResponse.value.status ==
-                      Status.INITIAL;
-                  return CustomScrollView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    slivers: [
-                      // Top bar — slides out of view on scroll-down,
-                      // snaps back on scroll-up (floating + snap).
-                      SliverAppBar(
-                        primary: false,
-                        pinned: false,
-                        floating: true,
-                        snap: true,
-                        backgroundColor: Colors.transparent,
-                        elevation: 0,
-                        scrolledUnderElevation: 0,
-                        surfaceTintColor: Colors.transparent,
-                        automaticallyImplyLeading: false,
-                        toolbarHeight: topBarHeight,
-                        flexibleSpace: _buildTopBar(),
+                onRefresh: _onRefreshCurrentTab,
+                // Each tab handles its own loading state (popular
+                // dishes shimmer, food-menu grid empty state, feed
+                // skeleton, etc.) so there's no global gate that blocks
+                // the chrome while one tab's API is in flight.
+                child: CustomScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  slivers: [
+                    // Top bar — slides out of view on scroll-down,
+                    // snaps back on scroll-up (floating + snap).
+                    SliverAppBar(
+                      primary: false,
+                      pinned: false,
+                      floating: true,
+                      snap: true,
+                      backgroundColor: Colors.transparent,
+                      elevation: 0,
+                      scrolledUnderElevation: 0,
+                      surfaceTintColor: Colors.transparent,
+                      automaticallyImplyLeading: false,
+                      toolbarHeight: topBarHeight,
+                      flexibleSpace: _buildTopBar(),
+                    ),
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(
+                            vertical: SizeConfig.size10),
+                        child: _buildTabsCard(),
                       ),
-                      if (isHomeLoading)
-                        const SliverFillRemaining(
-                          hasScrollBody: false,
-                          child:
-                              Center(child: CircularProgressIndicator()),
-                        )
-                      else ...[
-                        SliverToBoxAdapter(
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(
-                                vertical: SizeConfig.size10),
-                            child: _buildTabsCard(),
-                          ),
+                    ),
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: EdgeInsets.only(
+                          left: 20,
+                          top: SizeConfig.size4,
+                          bottom: kBottomNavigationBarHeight + 30,
                         ),
-                        SliverToBoxAdapter(
-                          child: Padding(
-                            padding: EdgeInsets.only(
-                              left: 20,
-                              top: SizeConfig.size4,
-                              bottom: kBottomNavigationBarHeight + 30,
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: _buildTabContent(),
-                            ),
-                          ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: _buildTabContent(),
                         ),
-                      ],
-                    ],
-                  );
-                }),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
             // Sticky overlay — only shown after the in-flow tabs have
@@ -253,11 +277,39 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
     );
   }
 
-  Future<void> _onRefresh() async {
-    final id = businessId;
-    if (id.isEmpty) return;
-    _foodController.fetchHomeData(businessId: id);
-    await _foodController.fetchDiscountFoodProducts(businessId: id);
+  /// Pull-to-refresh dispatcher — each tab owns a different data set,
+  /// so the refresh action fires only the API(s) backing the currently
+  /// visible tab. Avoids hammering unrelated endpoints on every pull.
+  Future<void> _onRefreshCurrentTab() async {
+    switch (_selectedTab) {
+      case 0:
+        _chatViewController.emitEvent(
+          ChatEmitEvents.ChatList,
+          {ApiKeys.type: AppConstants.order_Chat_Type},
+        );
+        if (Get.isRegistered<ContributionController>()) {
+          await Get.find<ContributionController>().fetchCurrent();
+        }
+        break;
+      case 1:
+        await _businessController.viewBusinessProfile();
+        break;
+      case 2:
+        final id = businessId;
+        if (id.isEmpty) return;
+        _foodController.fetchHomeData(businessId: id);
+        await _foodController.fetchDiscountFoodProducts(businessId: id);
+        break;
+      case 3:
+        if (Get.isRegistered<FeedController>()) {
+          await Get.find<FeedController>().getFeed(refresh: true);
+        }
+        break;
+      case 4:
+        // MedicalStatisticsScreen manages its own state and doesn't
+        // expose an external refresh hook — no-op for now.
+        break;
+    }
   }
 
   // ─────────────────────────────────────────────
@@ -1564,7 +1616,7 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
                     return Expanded(
                       child: GestureDetector(
                         behavior: HitTestBehavior.opaque,
-                        onTap: () => setState(() => _selectedTab = i),
+                        onTap: () => _onTabTapped(i),
                         child: Center(
                           child: AnimatedDefaultTextStyle(
                             duration: const Duration(milliseconds: 220),

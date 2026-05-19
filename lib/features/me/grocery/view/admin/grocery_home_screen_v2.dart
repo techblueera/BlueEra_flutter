@@ -88,16 +88,89 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
   void initState() {
     super.initState();
     _groceryController = getOrPut(() => GroceryController());
-    _groceryController.fetchAllGroceryData(widget.businessId, otherStore: false);
+    // Hydrate the order chat list so the Order tab's incoming-orders
+    // list has data ready when the user switches to it. Mirrors what
+    // ConnectMainPage does for its Order tab.
     _chatViewController.emitEvent(
       ChatEmitEvents.ChatList,
       {ApiKeys.type: AppConstants.order_Chat_Type},
     );
+    // Fire the API(s) backing the tab the screen lands on (Overview by
+    // default). Switching tabs later will fire other tabs' APIs lazily
+    // via [_onTabTapped] — mirrors product_screen's per-tab discipline.
+    _fetchForTab(_selectedTab);
   }
 
-  Future<void> _refresh() async {
-    await _groceryController.fetchAllGroceryData(widget.businessId,
-        otherStore: false);
+  /// Per-tab API dispatcher. Each tab owns a different data set, so we
+  /// only fire the calls backing the visible tab when the user lands on
+  /// it. Other tabs stay quiet until they're opened.
+  void _fetchForTab(int tab) {
+    switch (tab) {
+      case 0:
+        // Order — order chat list is hydrated in initState; the
+        // ContributionController binds lazily when its slot renders
+        // and fires its own /recharge/plans + /recharge/current.
+        break;
+      case 1:
+        // Overview — the joined-profile / contact / QR / share-banner
+        // sections all read from the permanent
+        // [ViewBusinessDetailsController]; no grocery API needed.
+        break;
+      case 2:
+        // Products — top-selling products + category-with-inventory.
+        _groceryController.fetchAllGroceryData(
+          widget.businessId,
+          otherStore: false,
+        );
+        break;
+      case 3:
+        // Post — FeedScreen owns its own controller fetch on mount.
+        break;
+      case 4:
+        // Statics — MedicalStatisticsScreen owns its own data.
+        break;
+    }
+  }
+
+  void _onTabTapped(int i) {
+    if (i == _selectedTab) return;
+    setState(() => _selectedTab = i);
+    _fetchForTab(i);
+  }
+
+  /// Pull-to-refresh dispatcher — each tab owns a different data set,
+  /// so the refresh action fires only the API(s) backing the currently
+  /// visible tab. Avoids hammering unrelated endpoints on every pull.
+  Future<void> _onRefreshCurrentTab() async {
+    switch (_selectedTab) {
+      case 0:
+        _chatViewController.emitEvent(
+          ChatEmitEvents.ChatList,
+          {ApiKeys.type: AppConstants.order_Chat_Type},
+        );
+        if (Get.isRegistered<ContributionController>()) {
+          await Get.find<ContributionController>().fetchCurrent();
+        }
+        break;
+      case 1:
+        await _businessController.viewBusinessProfile();
+        break;
+      case 2:
+        await _groceryController.fetchAllGroceryData(
+          widget.businessId,
+          otherStore: false,
+        );
+        break;
+      case 3:
+        if (Get.isRegistered<FeedController>()) {
+          await Get.find<FeedController>().getFeed(refresh: true);
+        }
+        break;
+      case 4:
+        // MedicalStatisticsScreen manages its own state and doesn't
+        // expose an external refresh hook — no-op for now.
+        break;
+    }
   }
 
   // ─────────────────────────────────────────────
@@ -127,7 +200,7 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
                 return false;
               },
               child: RefreshIndicator(
-                onRefresh: _refresh,
+                onRefresh: _onRefreshCurrentTab,
                 child: CustomScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
                   slivers: [
@@ -258,7 +331,7 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
                     return Expanded(
                       child: GestureDetector(
                         behavior: HitTestBehavior.opaque,
-                        onTap: () => setState(() => _selectedTab = i),
+                        onTap: () => _onTabTapped(i),
                         child: Center(
                           child: AnimatedDefaultTextStyle(
                             duration: const Duration(milliseconds: 220),

@@ -1,37 +1,35 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/me/food/controller/food_service_controller.dart';
 import 'package:BlueEra/features/me/food/model/category_food_product_res_model.dart';
 import 'package:BlueEra/features/me/food/view/widget/add_or_update_variant_bottom_sheet.dart';
-import 'package:BlueEra/features/me/food/view/widget/edit_variant_price_bottom_sheet.dart';
 import 'package:BlueEra/features/me/food/view/widget/food_dietary_and_tag_row.dart';
 import 'package:BlueEra/features/me/food/view/widget/food_product_des_widget.dart';
 import 'package:BlueEra/features/me/food/view/widget/food_product_image_widget.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+/// Variant selection sheet.
+///
+/// Behavior: every tick / untick is committed straight into
+/// `controller.selectedVariantsMap` — there is no "Save Selection"
+/// step. This way the floating cart counter on the parent screen
+/// reflects the selection live, and the review-and-publish flow lives
+/// entirely on the dedicated [FoodCartScreen]. Price editing also moves
+/// to the cart screen so this sheet is purely a picker.
 class ProductVariantBottomSheet extends StatelessWidget {
   final CategoryFoodProductData product;
   final FoodServiceController controller;
   final bool isSnapSearch;
 
-  final RxList<FoodVariants> tempSelectedVariants = <FoodVariants>[].obs;
-
-  ProductVariantBottomSheet({
+  const ProductVariantBottomSheet({
     super.key,
     required this.product,
     required this.controller,
     required this.isSnapSearch,
-  }){
-    // 2. Initialize with currently saved variants if any exist
-    final saved = controller.selectedVariantsMap[product.id] ?? [];
-    tempSelectedVariants.assignAll(saved);
-  }
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -44,25 +42,22 @@ class ProductVariantBottomSheet extends StatelessWidget {
       child: SafeArea(
         child: Obx(() {
           final String pId = product.id ?? "";
-          debugPrint("BottomSheet Obx Rebuilding for Product: $pId"); // ADD THIS LOG
-
           final liveProduct = controller.categoryFoundProductDataList
-              .firstWhereOrNull((p) => p.id == pId) ?? product;
-
-          debugPrint("Live Product Price: ${liveProduct.variants?.firstOrNull?.baseSellingPrice}"); // LOG CHECK
+                  .firstWhereOrNull((p) => p.id == pId) ??
+              product;
 
           return Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildHeader(),
+              _buildHeader(pId),
               _buildProductInfo(liveProduct),
               const Divider(),
-              _buildVariantList(liveProduct),
+              _buildVariantList(liveProduct, pId),
               _buildAddVariantButton(liveProduct),
-              const SizedBox(height: 20),
-              _buildAddVariantsIntoCartButton(liveProduct),
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
+              _buildDoneButton(pId),
+              const SizedBox(height: 16),
             ],
           );
         }),
@@ -70,12 +65,38 @@ class ProductVariantBottomSheet extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(String pId) {
+    final selectedCount =
+        (controller.selectedVariantsMap[pId] ?? []).length;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        CustomText(AppStrings.foodAllVariantLabel.tr,
-            fontSize: 18, fontWeight: FontWeight.bold),
+        Row(
+          children: [
+            CustomText(
+              AppStrings.foodAllVariantLabel.tr,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+            if (selectedCount > 0) ...[
+              const SizedBox(width: 8),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryColor.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: CustomText(
+                  '$selectedCount in cart',
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.primaryColor,
+                ),
+              ),
+            ],
+          ],
+        ),
         IconButton(
           icon: const Icon(Icons.close),
           onPressed: () => Get.back(),
@@ -114,30 +135,31 @@ class ProductVariantBottomSheet extends StatelessWidget {
               ),
             ],
           ),
-        )
+        ),
       ],
     );
   }
 
-  Widget _buildVariantList(CategoryFoodProductData liveProduct) {
-    final String pId = liveProduct.id ?? "";
+  Widget _buildVariantList(CategoryFoodProductData liveProduct, String pId) {
     final displayVariants = liveProduct.variants ?? [];
+    final selected = controller.selectedVariantsMap[pId] ?? const [];
 
     return Column(
       children: displayVariants.map((item) {
-        bool isSelected = tempSelectedVariants.any((v) => v.id == item.id);
-
+        final isSelected = selected.any((v) => v.id == item.id);
         return InkWell(
-          onTap: () => _toggleTempSelection(item),
+          onTap: () => _toggleVariantInCart(pId, item),
           borderRadius: BorderRadius.circular(10),
           child: Container(
             margin: const EdgeInsets.only(bottom: 12),
-            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+            padding:
+                const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(10),
               border: Border.all(
-                color: isSelected ? AppColors.primaryColor : AppColors.greyE5,
+                color:
+                    isSelected ? AppColors.primaryColor : AppColors.greyE5,
                 width: isSelected ? 1.5 : 1,
               ),
             ),
@@ -146,7 +168,9 @@ class ProductVariantBottomSheet extends StatelessWidget {
                 Checkbox(
                   value: isSelected,
                   side: BorderSide(
-                    color: isSelected ? AppColors.primaryColor : AppColors.greyE5,
+                    color: isSelected
+                        ? AppColors.primaryColor
+                        : AppColors.greyE5,
                     width: 1.5,
                   ),
                   activeColor: AppColors.primaryColor,
@@ -155,7 +179,7 @@ class ProductVariantBottomSheet extends StatelessWidget {
                     borderRadius: BorderRadius.circular(4),
                   ),
                   materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  onChanged: (_) => _toggleTempSelection(item),
+                  onChanged: (_) => _toggleVariantInCart(pId, item),
                 ),
                 Expanded(
                   child: Column(
@@ -190,53 +214,11 @@ class ProductVariantBottomSheet extends StatelessWidget {
                     ],
                   ),
                 ),
-                _buildEditButton(item, isSelected, pId),
               ],
             ),
           ),
         );
       }).toList(),
-    );
-  }
-
-  Widget _buildEditButton(FoodVariants item, bool isSelected, String pId) {
-    return IconButton(
-      onPressed: () {
-        if (isSelected) {
-          controller.clearAllField();
-          // No callback needed here anymore because Obx watches the controller list
-          showEditVariantPriceSheet(
-            vData: item,
-            productId: pId,
-            onUpdate: (newPrice, newMrp) {
-              controller.updateLocalVariantPrice(
-                pId,
-                item.id ?? "",
-                newPrice,
-                newMrp,
-              );
-
-              int localIndex = tempSelectedVariants.indexWhere((v) => v.id == item.id);
-              if (localIndex != -1) {
-                tempSelectedVariants[localIndex] = tempSelectedVariants[localIndex].copyWith(
-                  baseSellingPrice: newPrice,
-                  mrp: newMrp,
-                );
-              }
-              tempSelectedVariants.refresh();
-            },
-          );
-        } else {
-          commonSnackBar(
-            message: "Please select this variant first before editing.",
-          );
-        }
-      },
-      icon: LocalAssets(
-          imagePath: AppIconAssets.editIcon,
-          imgColor: AppColors.secondaryTextColor,
-          height: 20.0,
-          width: 20.0),
     );
   }
 
@@ -246,10 +228,8 @@ class ProductVariantBottomSheet extends StatelessWidget {
         Get.back();
         controller.clearAllField();
         addOrVariantBottomSheet(
-            foodID: liveProduct.id ?? "",
-            onAdd: (foodVariants){
-
-            }
+          foodID: liveProduct.id ?? "",
+          onAdd: (foodVariants) {},
         );
       },
       child: Row(
@@ -262,47 +242,36 @@ class ProductVariantBottomSheet extends StatelessWidget {
     );
   }
 
-  // 4. Local toggle logic
-  void _toggleTempSelection(FoodVariants variant) {
-    int index = tempSelectedVariants.indexWhere((v) => v.id == variant.id);
-    if (index != -1) {
-      tempSelectedVariants.removeAt(index);
-    } else {
-      tempSelectedVariants.add(variant);
-    }
+  Widget _buildDoneButton(String pId) {
+    final selectedCount =
+        (controller.selectedVariantsMap[pId] ?? []).length;
+    return PositiveCustomBtn(
+      onTap: () => Get.back(),
+      title: selectedCount > 0
+          ? 'Done  •  $selectedCount in cart'
+          : 'Done',
+    );
   }
 
-  Widget _buildAddVariantsIntoCartButton(CategoryFoodProductData liveProduct) {
-    return PositiveCustomBtn(
-      onTap: () {
-
-        final String pId = liveProduct.id.toString().trim();
-
-        // --- DEBUG PRINTS START ---
-        debugPrint("📦 Committing Selection for Product: $pId");
-        debugPrint("Total Variants to Save: ${tempSelectedVariants.length}");
-
-        for (var variant in tempSelectedVariants) {
-          debugPrint("-------------------------------------------");
-          debugPrint("🔹 Variant: ${variant.variantName}");
-          debugPrint("💰 Base Selling Price: ₹${variant.baseSellingPrice}");
-          debugPrint("🏷️ MRP: ₹${variant.mrp}");
-        }
-        debugPrint("-------------------------------------------");
-        // --- DEBUG PRINTS END ---
-
-        controller.selectedVariantsMap[pId] = List.from(tempSelectedVariants);
-        controller.selectedVariantsMap.refresh();
-
-        Get.back();
-        commonSnackBar(message: "Variants saved to selection.");
-      },
-      title: "Save Selection", // Changed for clarity
+  void _toggleVariantInCart(String productId, FoodVariants variant) {
+    final current = List<FoodVariants>.from(
+      controller.selectedVariantsMap[productId] ?? <FoodVariants>[],
     );
+    final idx = current.indexWhere((v) => v.id == variant.id);
+    if (idx != -1) {
+      current.removeAt(idx);
+    } else {
+      current.add(variant);
+    }
+    if (current.isEmpty) {
+      controller.selectedVariantsMap.remove(productId);
+    } else {
+      controller.selectedVariantsMap[productId] = current;
+    }
+    controller.selectedVariantsMap.refresh();
   }
 
   Widget _buildPriceDivider() {
     return Container(height: 15, width: 1.5, color: Colors.grey.shade300);
   }
-
 }

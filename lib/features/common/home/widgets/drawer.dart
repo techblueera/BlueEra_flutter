@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/features/common/referral_new/view/referral_page.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/core/constants/logout_helper.dart';
 import 'package:flutter/material.dart';
@@ -17,8 +18,6 @@ import '../../../business/auth/controller/view_business_details_controller.dart'
 import '../../../personal/auth/controller/view_personal_details_controller.dart';
 import '../../../personal/personal_profile/view/account_setting_screen/account_settings_screen.dart';
 import '../../../personal/personal_profile/view/app_tutorial/view/app_tutorial.dart';
-import '../../../personal/personal_profile/view/earn_with_blueera/view/choose_earn_service_screen.dart';
-import '../../../personal/personal_profile/view/earn_with_blueera/view/earn_service_dashboard_view.dart';
 import '../../../personal/personal_profile/view/franchise/request_to_franchise.dart';
 import '../../../personal/personal_profile/view/help_and_support_screen/help_and_support_screen.dart';
 import '../../../personal/personal_profile/view/manage_notification/notification.dart';
@@ -28,8 +27,6 @@ import '../../../personal/personal_profile/view/widget/changes_languages_screen.
 import '../../../contribution/view/contribution_screen.dart';
 import '../../auth/controller/auth_controller.dart';
 import '../../connect/view/connect_main_page.dart';
-import '../../referral/view/referral_page.dart';
-
 import '../view/saved_feed_screen.dart';
 
 /// Editorial profile drawer — frosted-glass shell over an aurora hero
@@ -544,7 +541,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
               icon: Icons.share_outlined,
               color: _violet,
               title: AppStrings.referAndEarn,
-              onTap: () => Get.to(() => ReferralPage()),
+              onTap: () => Get.to(() => ReferralPageNew()),
             ),
           if (isIndividual)
             _DrawerItem(

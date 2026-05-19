@@ -60,7 +60,8 @@ class FoodRepo extends BaseService {
     required dynamic params,
   }) async {
     final response = await ApiBaseHelper().postHTTP(
-      "${kitchenInventory}",
+      kitchenInventory,
+      showProgress: false,
       params: params,
       onError: (error) {},
       onSuccess: (data) {},
