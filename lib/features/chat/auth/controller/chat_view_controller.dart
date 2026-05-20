@@ -769,7 +769,9 @@ class ChatViewController extends GetxController {
     if (socketConnected.value == false) {
       socketConnected.value = true;
       chatSocket.listenEvent(ChatEmitEvents.ChatList, (data) async {
-        //1200000039
+
+
+
         final parsedData = GetChatListModel.fromJson(data);
         // The server doesn't always echo `type` back in the ChatList
         // response. When that happens, fall back to the type we asked for
@@ -1676,6 +1678,14 @@ class ChatViewController extends GetxController {
 
   Future<List<Messages>> loadOfflineMessages(String conversationId) async {
     if (conversationId.isEmpty) return [];
+    // Snapshot the current in-memory list and conversation BEFORE the
+    // async Hive read. `listenUserNewMessages` fires this method
+    // unawaited, so server `messageReceived` / socket `newMessageReceived`
+    // can populate the in-memory list while this future is in flight —
+    // we must not clobber that fresher state with stale cache.
+    final openConvId = userOpenConversationId.value;
+    final currentInMemory = List<Messages>.from(getListOfMessageData ?? []);
+
     final localMessages =
         await localStorageHelper.getMessagesByConversationId(conversationId);
     // Deduplicate by message ID from local storage (may contain duplicates
@@ -1691,14 +1701,55 @@ class ChatViewController extends GetxController {
     if (deduped.isNotEmpty) {
       await _resolveLocalMediaPaths(deduped);
     }
+
+    // If the user has moved on to a different conversation while we
+    // were reading Hive, don't paint anything into the now-open one.
+    if (openConvId.isNotEmpty &&
+        userOpenConversationId.value.isNotEmpty &&
+        openConvId != userOpenConversationId.value) {
+      return deduped;
+    }
+
+    // Merge with whatever the in-memory list contains right now. Anything
+    // added by socket events while we were on disk (server fetch reply,
+    // newMessageReceived, or an outgoing send echo) MUST win — disk lag
+    // would otherwise erase it. Messages without an id (pending temps)
+    // are kept as-is from both sides.
+    final byId = <String, Messages>{};
+    final noIdFromCache = <Messages>[];
+    final noIdFromMemory = <Messages>[];
+    for (final m in deduped) {
+      final id = m.id ?? '';
+      if (id.isEmpty) {
+        noIdFromCache.add(m);
+      } else {
+        byId[id] = m;
+      }
+    }
+    for (final m in currentInMemory) {
+      final id = m.id ?? '';
+      if (id.isEmpty) {
+        noIdFromMemory.add(m);
+      } else {
+        // In-memory wins: the socket / server / send path is the
+        // authoritative source for the live session.
+        byId[id] = m;
+      }
+    }
+    final merged = <Messages>[
+      ...byId.values,
+      ...noIdFromCache,
+      ...noIdFromMemory,
+    ];
+
     // Always settle the response — even when the cache is empty — so the
     // chat screen doesn't stay stuck on its "Initial"-state spinner while
     // offline (the server pagination call will never come back).
     // getListOfMessageData reads from the response's .data list, so we
     // install the fresh list through the observable.
-    getListOfMessageResponse.value = ApiResponse.complete(deduped);
-    if (deduped.isNotEmpty) scrollDown();
-    return deduped;
+    getListOfMessageResponse.value = ApiResponse.complete(merged);
+    if (merged.isNotEmpty) scrollDown();
+    return merged;
   }
 
   Future<bool?> sendProductMessages(Map<String, dynamic> params) async {
@@ -1858,6 +1909,7 @@ class ChatViewController extends GetxController {
         if (type is String && type.isNotEmpty) {
           final List<ChatList> localChats =
               await localStorageHelper.getChatListFromLocal(type);
+
           if (localChats.isNotEmpty) {
             loadChatListWithType(
                 chatListModel: GetChatListModel(
@@ -3308,7 +3360,15 @@ class ChatViewController extends GetxController {
         final data = responseModel.response?.data;
 
         Messages? message = Messages.fromJson(data['data']);
-
+        if (message.status != null) {
+          readMessageStatus.value = message.status!;
+        }
+        getListOfMessageData?.add(message);
+        getListOfMessageResponse.value =
+            ApiResponse.complete(getListOfMessageData);
+        if (chatFromBusinessProfile.value) {
+          canPopBusiness.value = true;
+        }
         scrollDown();
         saveSingleMessageToLocal(message.conversationId ?? '', message);
         emitEvent(ChatEmitEvents.ChatList,

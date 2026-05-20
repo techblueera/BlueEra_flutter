@@ -10,6 +10,7 @@ import '../../../../core/constants/getx_utils.dart';
 import '../../../../core/constants/size_config.dart';
 import '../../../../widgets/custom_text_cm.dart';
 import '../../../../widgets/horizontal_tab_selector.dart';
+import '../../auth/controller/chat_lock_controller.dart';
 import '../../auth/controller/chat_pin_archive_controller.dart';
 import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/model/GetChatListModel.dart';
@@ -60,12 +61,14 @@ class BusinessChatsList extends StatefulWidget {
 class _BusinessChatsListState extends State<BusinessChatsList> {
   final chatViewController = Get.find<ChatViewController>();
   late final ChatPinArchiveController pinArchiveController;
+  late final ChatLockController lockController;
 
   @override
   void initState() {
     super.initState();
 
     pinArchiveController =getOrPut(() => ChatPinArchiveController());
+    lockController = getOrPut(() => ChatLockController());
     if (chatViewController.canPopBusiness.value) {
       chatViewController.canPopBusiness.value = false;
     }
@@ -75,6 +78,7 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Obx(() {
+      print("dljnclsncsdc ${chatViewController.businessChatListResponse.value.status}");
       if (chatViewController.businessChatListResponse.value.status ==
           Status.COMPLETE) {
         GetChatListModel? data =
@@ -196,10 +200,17 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
     List<ChatList?> chatList = data?.chatList ?? [];
     final archivedIds = pinArchiveController.businessArchivedIds;
     final pinnedIds = pinArchiveController.businessPinnedIds;
+    final lockedIds = lockController.businessLockedIds;
 
     // Filter out archived
     chatList = chatList.where((chat) {
       return chat == null || !archivedIds.contains(chat.conversationId);
+    }).toList();
+
+    // Locked chats live behind the PIN-gated Locked Chats screen, so they
+    // must not appear in the main list (WhatsApp-style Chat Lock).
+    chatList = chatList.where((chat) {
+      return chat == null || !lockedIds.contains(chat.conversationId);
     }).toList();
 
     if (widget.excludeSenderId != null) {
