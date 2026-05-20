@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
@@ -15,7 +16,6 @@ import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_pictur
 import 'package:BlueEra/features/common/auth/views/screens/guest_exit_handler.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
-import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
@@ -426,11 +426,14 @@ class _CompleteGuestProfileScreenState
           mainAxisSize: MainAxisSize.min,
           children: [
             Obx(() {
-              final enabled = _isNameValid.value;
+              final loading = _authController
+                      .createGuestProfileResponse.value.status ==
+                  Status.LOADING;
+              final canSubmit = _isNameValid.value && !loading;
               return Container(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(10),
-                  boxShadow: enabled
+                  boxShadow: canSubmit
                       ? [
                           BoxShadow(
                             color: AppColors.primaryColor
@@ -441,16 +444,52 @@ class _CompleteGuestProfileScreenState
                         ]
                       : null,
                 ),
-                child: CustomBtn(
-                  onTap: enabled ? _onContinue : null,
-                  title: AppStrings.continueText.tr,
-                  isValidate: enabled,
-                  textColor: AppColors.white,
-                  radius: 10,
-                  height: SizeConfig.size50,
-                  fontSize: SizeConfig.medium,
-                  fontWeight: FontWeight.w700,
-                  isLoading: _authController.isCreateGuestAccountLoading.value,
+                child: SizedBox(
+                  width: double.infinity,
+                  height: SizeConfig.size44,
+                  child: ElevatedButton.icon(
+                    onPressed: canSubmit ? _onContinue : null,
+                    icon: loading
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor:
+                                  AlwaysStoppedAnimation(Colors.white),
+                            ),
+                          )
+                        : const SizedBox.shrink(),
+                    label: Text(
+                      loading
+                          ? '${AppStrings.continueText.tr}…'
+                          : AppStrings.continueText.tr,
+                      style: TextStyle(
+                        fontFamily: AppConstants.OpenSans,
+                        fontSize: SizeConfig.medium,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.white,
+                        letterSpacing: 0.2,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primaryColor,
+                      // Loading keeps the light-blue tint so the spinner
+                      // still reads as "in progress"; empty-name uses a
+                      // neutral grey so the button looks properly disabled.
+                      disabledBackgroundColor: loading
+                          ? AppColors.primaryColor.withValues(alpha: 0.5)
+                          : AppColors.greyB4,
+                      padding: EdgeInsets.symmetric(
+                        vertical: SizeConfig.size12,
+                        horizontal: SizeConfig.size16,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      elevation: 0,
+                    ),
+                  ),
                 ),
               );
             }),

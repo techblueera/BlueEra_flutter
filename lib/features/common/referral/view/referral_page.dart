@@ -50,16 +50,18 @@ class _ReferralPageState extends State<ReferralPage> {
         final isCompleted = controller.isCompleted;
         return Scaffold(
           appBar: CommonBackAppBar(
-            title: 'My code',
+            title: isCompleted ? 'My code' : 'Refer & Earn',
             isShadowShow: false,
-            buildCustomActionWidget: () => Padding(
-              padding: EdgeInsets.only(right: SizeConfig.size10),
-              child: Center(
-                child: Obx(
-                  () => MyCodeHeader(code: controller.myReferralCode),
-                ),
-              ),
-            ),
+            buildCustomActionWidget: isCompleted
+                ? () => Padding(
+                      padding: EdgeInsets.only(right: SizeConfig.size10),
+                      child: Center(
+                        child: Obx(
+                          () => MyCodeHeader(code: controller.myReferralCode),
+                        ),
+                      ),
+                    )
+                : null,
           ),
           body: _buildBody(status, isCompleted),
         );

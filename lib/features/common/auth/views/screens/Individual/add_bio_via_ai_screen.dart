@@ -244,38 +244,55 @@ class _AddBioViaAiScreenState extends State<AddBioViaAiScreen> {
                     width: SizeConfig.size10,
                   ),
                   Expanded(
-                    child: CustomBtn(
-                      radius: 10,
-                      onTap: () async {
-                        if (_formKey.currentState!.validate()) {
-                          await personalCreateProfileController
-                              .updateUserProfileDetails(
-                            params: {
-                              ApiKeys.bio: bioController.text.trim(),
-                            },
-                          );
-
-                          final bottomBarController = Get.find<BottomBarController>();
-
-                          // Go back until Bottom Navigation screen
-                          Get.until((route) =>
-                          route.settings.name ==
-                              RouteHelper.getBottomNavigationBarScreenRoute());
-
-                          // Check if profession belongs to Self Employed category
-                          if (widget.profession == SELF_EMPLOYED) {
-                            print("Self Employed Profession → ${widget.profession}");
-                            bottomBarController.currentIndex.value = 2; // Switch to Me tab
-                          } else {
-                            print("Social Individual Profession → ${widget.profession}");
-                            // If needed, you can set a different index here
-                            // bottomBarController.currentIndex.value = 0;
-                          }
-                        }
-                      },
-                      title: AppStrings.submit,
-                      isValidate: isFormValid,
-                    ),
+                    child: Obx(() {
+                      final loading = personalCreateProfileController
+                          .updateBtnLoading.value;
+                      final canSubmit = isFormValid && !loading;
+                      return SizedBox(
+                        height: SizeConfig.size44,
+                        child: ElevatedButton.icon(
+                          onPressed: canSubmit ? _onSubmit : null,
+                          icon: loading
+                              ? const SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation(
+                                        Colors.white),
+                                  ),
+                                )
+                              : const SizedBox.shrink(),
+                          label: Text(
+                            loading
+                                ? '${AppStrings.submit}…'
+                                : AppStrings.submit,
+                            style: TextStyle(
+                              fontFamily: AppConstants.OpenSans,
+                              fontSize: SizeConfig.medium,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.white,
+                              letterSpacing: 0.2,
+                            ),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primaryColor,
+                            disabledBackgroundColor: loading
+                                ? AppColors.primaryColor
+                                    .withValues(alpha: 0.5)
+                                : AppColors.greyB4,
+                            padding: EdgeInsets.symmetric(
+                              vertical: SizeConfig.size12,
+                              horizontal: SizeConfig.size16,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            elevation: 0,
+                          ),
+                        ),
+                      );
+                    }),
                   ),
                 ],
               ),
@@ -291,5 +308,27 @@ class _AddBioViaAiScreenState extends State<AddBioViaAiScreen> {
     log('validate');
     isFormValid = bioController.text.trim().isNotEmpty;
     setState(() {});
+  }
+
+  Future<void> _onSubmit() async {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+
+    await personalCreateProfileController.updateUserProfileDetails(
+      showProgress: false,
+      params: {
+        ApiKeys.bio: bioController.text.trim(),
+      },
+    );
+
+    final bottomBarController = Get.find<BottomBarController>();
+
+    // Pop everything back down to the BottomNavigation root.
+    Get.until((route) =>
+        route.settings.name ==
+        RouteHelper.getBottomNavigationBarScreenRoute());
+
+    if (widget.profession == SELF_EMPLOYED) {
+      bottomBarController.currentIndex.value = 2; // Me tab
+    }
   }
 }

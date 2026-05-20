@@ -5,8 +5,9 @@ import 'dart:developer';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
+import 'package:BlueEra/core/api/model/business_user_response_model.dart';
 import 'package:BlueEra/core/api/model/gst_verify_model.dart';
-import 'package:BlueEra/core/api/model/guest_model_response.dart';
+import 'package:BlueEra/core/api/model/individual_user_response_model.dart';
 import 'package:BlueEra/core/api/model/otp_verify_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
@@ -52,7 +53,8 @@ class AuthController extends GetxController {
   ApiResponse businessCategoryResponse = ApiResponse.initial('Initial');
   ApiResponse professionListingResponse = ApiResponse.initial('Initial');
   ApiResponse otpVerificationResponse = ApiResponse.initial('Initial');
-  ApiResponse addUserResponse = ApiResponse.initial('Initial');
+  final Rx<ApiResponse> addUserResponse =
+      Rx<ApiResponse>(ApiResponse.initial('Initial'));
   Rx<ApiResponse> gstVerifyResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> getUserNameCheckResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> deleteUserAccountResponse =
@@ -303,97 +305,110 @@ class AuthController extends GetxController {
 
   Future<void> addIndividualUser(
       {required Map<String, dynamic>? reqData}) async {
+    addUserResponse.value = ApiResponse.loading('loading');
     try {
       ResponseModel response = await AuthRepo()
           .updateIndividualAccountUserRepo(bodyRequest: reqData);
-      if (response.isSuccess) {
-        GuestUserResModel guestUserResModel =
-            GuestUserResModel.fromJson(response.response?.data);
-        if (guestUserResModel.status ?? false) {
-          await SharedPreferenceUtils.setSecureValue(
-              SharedPreferenceUtils.accountType, AppConstants.individual);
-
-          await SharedPreferenceUtils.setSecureValue(
-              SharedPreferenceUtils.authToken, guestUserResModel.token);
-
-          await getUserLoginAccountType();
-          await getUserAuthToken();
-          // Guest → individual upgrade: token just landed, open the chat
-          // socket so call/chat events flow without an app restart.
-          unawaited(ChatSocketService().connectToSocket());
-
-          commonSnackBar(message: response.message ?? AppStrings.success);
-          final personalController =
-              Get.put(ViewPersonalDetailsController(), permanent: true);
-          await personalController.viewPersonalProfile();
-
-          final dobJsonString = reqData?[ApiKeys.date_of_birth_Obj];
-          final dobMap = jsonDecode(dobJsonString);
-
-          ///FOR PROFESSIONAL....
-          if (reqData?['profileType'] == PROFESSIONAL) {
-            final controller = getOrPut(() => AiProfessionalsController());
-
-            Map<String, dynamic> data = {
-              "name": reqData?['name'],
-              "email": reqData?['email'],
-              "gender": reqData?['gender'],
-              "profileType": reqData?['profileType'],
-              "profession": reqData?['profession'],
-              "designation": reqData?['designation'],
-              "pincode": reqData?['pincode'],
-              "address": reqData?['address'],
-            };
-
-            await controller.createServiceController(reqParm: data);
-          }
-
-          ///FOR SELF_EMPLOYED — create a placeholder earn-service row
-          /// with just the minimum required fields. The user fills in
-          /// price / service type / description / etc. one by one from
-          /// the Service tab's section cards after onboarding.
-          if (reqData?['profileType'] == SELF_EMPLOYED) {
-            final controller = getOrPut(() => SelfWorkServiceController());
-            controller.designation = reqData?['designation'];
-            await controller.createMinimalEarnService(
-              serviceSubType: 'selfWork',
-              designationOverride: controller.designation?.toUpperCase(),
-            );
-          }
-
-          if (Get.isRegistered<BottomBarController>()) {
-            Get.find<BottomBarController>().currentIndex.value = 1;
-          }
-
-          // Already on the bottom-nav root — pop any profile-creation
-          // screens stacked on top, then push the Add Bio screen on top
-          // of bottom nav. Do NOT offAllNamed back to bottom nav:
-          // recreating it re-runs meScreens()'s post-frame init and
-          // re-opens the "complete profile" sheet on top of this screen.
-          Get.until((route) => route.isFirst);
-          Get.toNamed(
-            RouteHelper.getAddBioViaAiScreenRoute(),
-            arguments: {
-              ApiKeys.argProfession: reqData?[ApiKeys.profession],
-              ApiKeys.argDesignation: reqData?[ApiKeys.designation],
-              ApiKeys.argSelectedDay: dobMap[ApiKeys.date],
-              ApiKeys.argSelectedMonth: dobMap[ApiKeys.month],
-              ApiKeys.argSelectedYear: dobMap[ApiKeys.year]
-            },
-          );
-
-          clearAllData();
-          addUserResponse = ApiResponse.complete(response);
-        } else {
-          commonSnackBar(message: AppStrings.somethingWentWrong);
-        }
-      } else {
+      if (!response.isSuccess) {
         commonSnackBar(
             message: response.message ?? AppStrings.somethingWentWrong);
+        addUserResponse.value =
+            ApiResponse.error(response.message ?? AppStrings.somethingWentWrong);
+        return;
       }
+
+      final upgraded =
+          IndividualUserResponseModel.fromJson(response.response?.data ?? {});
+      if (!(upgraded.status ?? false)) {
+        commonSnackBar(message: AppStrings.somethingWentWrong);
+        addUserResponse.value =
+            ApiResponse.error(AppStrings.somethingWentWrong);
+        return;
+      }
+
+      await SharedPreferenceUtils.setSecureValue(
+          SharedPreferenceUtils.accountType, AppConstants.individual);
+      await SharedPreferenceUtils.setSecureValue(
+          SharedPreferenceUtils.authToken, upgraded.token);
+      await getUserLoginAccountType();
+      await getUserAuthToken();
+      // Guest → individual upgrade: token just landed, open the chat
+      // socket so call/chat events flow without an app restart. Fire
+      // and forget — UI must not block on socket handshake.
+      unawaited(ChatSocketService().connectToSocket());
+
+      // Parallelize the two slowest network steps so the user reaches
+      // the Add Bio screen ~one round-trip sooner:
+      //   1. viewPersonalProfile  — needed because the Add Bio screen
+      //      reads the freshly-created personal profile.
+      //   2. createServiceController / createMinimalEarnService —
+      //      placeholder earn-service for PROFESSIONAL / SELF_EMPLOYED.
+      //      Backend side-effect; navigation doesn't depend on it but
+      //      we wait so any failure surfaces to the user before they
+      //      leave this screen.
+      final personalController =
+          Get.put(ViewPersonalDetailsController(), permanent: true);
+      final pending = <Future<void>>[
+        personalController.viewPersonalProfile(),
+      ];
+      if (reqData?['profileType'] == PROFESSIONAL) {
+        final controller = getOrPut(() => AiProfessionalsController());
+        final data = {
+          "name": reqData?['name'],
+          "email": reqData?['email'],
+          "gender": reqData?['gender'],
+          "profileType": reqData?['profileType'],
+          "profession": reqData?['profession'],
+          "designation": reqData?['designation'],
+          "pincode": reqData?['pincode'],
+          "address": reqData?['address'],
+        };
+        pending.add(controller.createServiceController(reqParm: data));
+      }
+      else if (reqData?['profileType'] == SELF_EMPLOYED) {
+        final controller = getOrPut(() => SelfWorkServiceController());
+        controller.designation = reqData?['designation'];
+        pending.add(controller.createMinimalEarnService(
+          serviceSubType: 'selfWork',
+          designationOverride: controller.designation?.toUpperCase(),
+        ));
+      }
+      await Future.wait(pending);
+
+      // Cascade settled — only now surface the success message so the
+      // user sees it as a confirmation, not while the spinner is still
+      // running.
+      commonSnackBar(message: response.message ?? AppStrings.success);
+
+      final dobJsonString = reqData?[ApiKeys.date_of_birth_Obj];
+      final dobMap = jsonDecode(dobJsonString);
+
+      if (Get.isRegistered<BottomBarController>()) {
+        Get.find<BottomBarController>().currentIndex.value = 1;
+      }
+
+      // Already on the bottom-nav root — pop any profile-creation
+      // screens stacked on top, then push the Add Bio screen on top
+      // of bottom nav. Do NOT offAllNamed back to bottom nav:
+      // recreating it re-runs meScreens()'s post-frame init and
+      // re-opens the "complete profile" sheet on top of this screen.
+      Get.until((route) => route.isFirst);
+      Get.toNamed(
+        RouteHelper.getAddBioViaAiScreenRoute(),
+        arguments: {
+          ApiKeys.argProfession: reqData?[ApiKeys.profession],
+          ApiKeys.argDesignation: reqData?[ApiKeys.designation],
+          ApiKeys.argSelectedDay: dobMap[ApiKeys.date],
+          ApiKeys.argSelectedMonth: dobMap[ApiKeys.month],
+          ApiKeys.argSelectedYear: dobMap[ApiKeys.year]
+        },
+      );
+
+      clearAllData();
+      addUserResponse.value = ApiResponse.complete(response);
     } catch (e) {
       logs("ERRPR $e");
-      addUserResponse = ApiResponse.error('error');
+      addUserResponse.value = ApiResponse.error('error');
       commonSnackBar(message: AppStrings.somethingWentWrong);
     }
   }
@@ -406,19 +421,17 @@ class AuthController extends GetxController {
       ResponseModel response = await AuthRepo().updateBusinessAccountUserRepo(
           bodyRequest: reqData, showProgress: false);
       if (response.isSuccess) {
-        GuestUserResModel guestUserResModel =
-            GuestUserResModel.fromJson(response.response?.data);
-        if (guestUserResModel.status ?? false) {
+        final upgraded = BusinessUserResponseModel.fromJson(
+            response.response?.data ?? {});
+        if (upgraded.status ?? false) {
           commonSnackBar(message: response.message ?? AppStrings.success);
-          // await getUserLoginData();
 
           await SharedPreferenceUtils.setSecureValue(
               SharedPreferenceUtils.accountType, AppConstants.business);
           await SharedPreferenceUtils.setSecureValue(
-              SharedPreferenceUtils.userBusinessId,
-              guestUserResModel.businessId);
+              SharedPreferenceUtils.userBusinessId, upgraded.businessId);
           await SharedPreferenceUtils.setSecureValue(
-              SharedPreferenceUtils.authToken, guestUserResModel.token);
+              SharedPreferenceUtils.authToken, upgraded.token);
 
           await getUserLoginBusinessId();
           await getUserLoginAccountType();
@@ -559,7 +572,7 @@ class AuthController extends GetxController {
           Get.until((route) => route.isFirst);
           Get.toNamed(RouteHelper.getCreateBusinessAccountNewStepTwoRoute());
 
-          addUserResponse = ApiResponse.complete(response);
+          addUserResponse.value = ApiResponse.complete(response);
           clearAllData();
         } else {
           commonSnackBar(message: AppStrings.somethingWentWrong);
@@ -570,7 +583,7 @@ class AuthController extends GetxController {
       }
     } catch (e) {
       logs("ERRPR $e");
-      addUserResponse = ApiResponse.error('error');
+      addUserResponse.value = ApiResponse.error('error');
       commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {
       isAddBusinessUserLoading.value = false;
@@ -787,13 +800,18 @@ class AuthController extends GetxController {
     } finally {}
   }
 
-  RxBool isCreateGuestAccountLoading = false.obs;
+  /// Status of the guest-account creation request. Drives the
+  /// Continue button's inline loader on the Complete Guest Profile
+  /// screen — the screen reads `.status` and shows a spinner while
+  /// it's `Status.LOADING`.
+  Rx<ApiResponse> createGuestProfileResponse =
+      ApiResponse.initial('Initial').obs;
 
   ///Add User...
   Future<void> createGuestAccountUserController(
       {required Map<String, dynamic> reqData}) async {
+    createGuestProfileResponse.value = ApiResponse.loading('loading');
     try {
-      isCreateGuestAccountLoading.value = true;
       final imagePath = reqData[ApiKeys.profile_image];
       if (imagePath is String && imagePath.isNotEmpty) {
         final image = await multiPartImage(imagePath: imagePath);
@@ -809,7 +827,6 @@ class AuthController extends GetxController {
         GuestResModel guestResModel =
             guestResModelFromJson(jsonEncode(response.response?.data));
         if (guestResModel.success ?? false) {
-          commonSnackBar(message: response.message ?? AppStrings.success);
           await SharedPreferenceUtils.guestUserLoggedIn(
             loginUserId_: "${guestResModel.data?.id}",
             contactNo: "${guestResModel.data?.contactNo}",
@@ -822,23 +839,24 @@ class AuthController extends GetxController {
           await getGuestUserLoginData();
           await Future.delayed(Duration(milliseconds: 350));
           Get.offAll(() => const BottomNavigationBarScreen(initialIndex: 1));
-          // Get.offAll(() => const ChooseAccountTypeScreen());
-
           clearAllData();
-          addUserResponse = ApiResponse.complete(response);
+          createGuestProfileResponse.value = ApiResponse.complete(response);
+          commonSnackBar(message: response.message ?? AppStrings.success);
         } else {
           commonSnackBar(
               message: guestResModel.message ?? AppStrings.somethingWentWrong);
+          createGuestProfileResponse.value = ApiResponse.error(
+              guestResModel.message ?? AppStrings.somethingWentWrong);
         }
       } else {
         commonSnackBar(
             message: response.message ?? AppStrings.somethingWentWrong);
+        createGuestProfileResponse.value =
+            ApiResponse.error(response.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
-      addUserResponse = ApiResponse.error('error');
+      createGuestProfileResponse.value = ApiResponse.error('error');
       commonSnackBar(message: AppStrings.somethingWentWrong);
-    } finally {
-      isCreateGuestAccountLoading.value = false;
     }
   }
 
