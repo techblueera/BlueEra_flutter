@@ -38,12 +38,12 @@ class AppMaintenanceController extends GetxController {
     // Release builds fall through to the production check below — the
     // `kDebugMode` branch is a compile-time constant, so the dead arm is
     // tree-shaken out of release artifacts.
-    // if (kDebugMode) {
-    //   isInMaintenance.value = false;
-    //   message.value = '';
-    //   isLoading.value = false;
-    //   return;
-    // }
+    if (kDebugMode) {
+      isInMaintenance.value = false;
+      message.value = '';
+      isLoading.value = false;
+      return;
+    }
 
     try {
       isLoading.value = true;

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
@@ -356,9 +357,12 @@ class _CompleteGuestProfileScreenState
         CommonTextField(
           textEditController: _nameController,
           focusNode: _nameFocus,
+          inputLength: AppConstants.inputCharterLimit30,
+          keyBoardType: TextInputType.text,
+          regularExpression: RegularExpressionUtils.alphabetSpacePattern,
           hintText: AppStrings.fullNameHint.tr,
+          autoFillType: AutoFillType.name,
           isValidate: false,
-          inputLength: 30,
           textInputAction: TextInputAction.done,
           onChange: (_) {
             if (_nameError.value != null) _nameError.value = null;

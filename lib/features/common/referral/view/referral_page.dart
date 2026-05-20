@@ -2,40 +2,26 @@ import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/common/referral_new/controller/referral_controller.dart';
-import 'package:BlueEra/features/common/referral_new/view/referral_dashboard_page.dart';
-import 'package:BlueEra/features/common/referral_new/widgets/balance_total_earn_row.dart';
-import 'package:BlueEra/features/common/referral_new/widgets/generate_referral_section.dart';
-import 'package:BlueEra/features/common/referral_new/widgets/my_code_header.dart';
-import 'package:BlueEra/features/common/referral_new/widgets/testimonials_section.dart';
+import 'package:BlueEra/features/common/referral/controller/referral_controller.dart';
+import 'package:BlueEra/features/common/referral/view/referral_dashboard_page.dart';
+import 'package:BlueEra/features/common/referral/widgets/balance_total_earn_row.dart';
+import 'package:BlueEra/features/common/referral/widgets/generate_referral_section.dart';
+import 'package:BlueEra/features/common/referral/widgets/my_code_header.dart';
+import 'package:BlueEra/features/common/referral/widgets/testimonials_section.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/horizonatal_video_player.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-/// Entry point for the BDM / Refer-&-Earn feature (new flow).
-///
-/// Single-step registration:
-///   • NOT_STARTED / PENDING → welcome video + "Generate Your Referral
-///     Code" form + Balance/Total Earn + Testimonials. Submitting the
-///     form hits step-2 with just the code and re-reads /bdm/status,
-///     which flips to COMPLETED on success.
-///   • COMPLETED → AppBar title swaps to "My code" with the code pill
-///     in the action slot; body is the 4-tab dashboard
-///     (Overview / Tutorial / Post / Statics).
-///
-/// A soft chat-background texture fills the entire screen (behind the
-/// AppBar too) so the surface matches the wider Me-section visual
-/// language used by `product_screen` and `food_main_screen`.
-class ReferralPageNew extends StatefulWidget {
-  const ReferralPageNew({super.key});
+class ReferralPage extends StatefulWidget {
+  const ReferralPage({super.key});
 
   @override
-  State<ReferralPageNew> createState() => _ReferralPageNewState();
+  State<ReferralPage> createState() => _ReferralPageState();
 }
 
-class _ReferralPageNewState extends State<ReferralPageNew> {
-  final controller = getOrPut(() => ReferralControllerNew());
+class _ReferralPageState extends State<ReferralPage> {
+  final controller = getOrPut(() => ReferralController());
 
   @override
   void initState() {
@@ -50,17 +36,11 @@ class _ReferralPageNewState extends State<ReferralPageNew> {
 
   @override
   Widget build(BuildContext context) {
-    // Root container paints the pattern texture across the entire
-    // screen (status bar, AppBar and body). The Scaffold sits on top
-    // with transparent chrome so the pattern shows through.
     return Container(
       decoration: const BoxDecoration(
         image: DecorationImage(
           image: AssetImage(AppImageAssets.chatDefaultBg),
           fit: BoxFit.cover,
-          // If the asset is ever missing the DecorationImage simply
-          // shows the underlying container color — give it the same
-          // light-blue fallback used elsewhere in the app.
           onError: _onPatternError,
         ),
         color: Color(0xFFEAF2FB),
@@ -69,19 +49,9 @@ class _ReferralPageNewState extends State<ReferralPageNew> {
         final status = controller.bdmDetailsResponse.value.status;
         final isCompleted = controller.isCompleted;
         return Scaffold(
-          backgroundColor: Colors.transparent,
-          // Title is static — the code pill in the action slot reacts
-          // to the live referral code (placeholder until /bdm/status
-          // + /wallet-stats land).
           appBar: CommonBackAppBar(
             title: 'My code',
             isShadowShow: false,
-            // The action pill is wrapped in its own Obx so it tracks
-            // `stats.referralCode` independently of the outer Obx,
-            // which only watches the BDM-status response. Without this
-            // inner subscription the pill renders once with an empty
-            // code (because /wallet-stats hasn't returned yet) and
-            // never refreshes.
             buildCustomActionWidget: () => Padding(
               padding: EdgeInsets.only(right: SizeConfig.size10),
               child: Center(

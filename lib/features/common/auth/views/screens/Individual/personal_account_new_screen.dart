@@ -238,12 +238,13 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            CustomText(langController.tr(AppStrings.profileType),
+                            CustomText('${langController.tr(AppStrings.profileType)}: ' ,
                                 color: AppColors.secondaryTextColor,
                                 fontSize: SizeConfig.small,
                                 fontWeight: FontWeight.w400),
                             Expanded(
-                              child: CustomText(_selectedProfileType?.name,
+                              child: CustomText(
+                                  _selectedProfileType?.name,
                                   color: AppColors.primaryColor,
                                   fontSize: SizeConfig.small,
                                   fontWeight: FontWeight.w400),
@@ -260,7 +261,7 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              CustomText("${AppStrings.profession.tr}",
+                              CustomText("${AppStrings.profession.tr}: ",
                                   color: AppColors.secondaryTextColor,
                                   fontSize: SizeConfig.small,
                                   fontWeight: FontWeight.w400),

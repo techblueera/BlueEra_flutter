@@ -28,7 +28,7 @@ class StatDonutChart extends StatelessWidget {
     required this.segments,
     this.center,
     this.size = 110,
-    this.strokeWidth = 10,
+    this.strokeWidth = 8,
     this.trackColor = const Color(0xFFEDEFF4),
   });
 

@@ -9,8 +9,8 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
-import 'package:BlueEra/features/common/referral_new/controller/referral_controller.dart';
-import 'package:BlueEra/features/common/referral_new/model/wallet_referral_history_model.dart';
+import 'package:BlueEra/features/common/referral/controller/referral_controller.dart';
+import 'package:BlueEra/features/common/referral/model/wallet_referral_history_model.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
@@ -23,12 +23,6 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:share_plus/share_plus.dart';
 
-/// History screen for the new referral flow.
-///
-/// Functionally a port of the legacy screen — same filter tabs, date
-/// range, PDF export — but driven by [ReferralControllerNew] and using
-/// the new history model so it compiles after the old package is
-/// removed.
 class ReferralHistoryScreenNew extends StatefulWidget {
   const ReferralHistoryScreenNew({super.key});
 
@@ -38,8 +32,8 @@ class ReferralHistoryScreenNew extends StatefulWidget {
 }
 
 class _ReferralHistoryScreenNewState extends State<ReferralHistoryScreenNew> {
-  final ReferralControllerNew controller =
-      Get.find<ReferralControllerNew>();
+  final ReferralController controller =
+      Get.find<ReferralController>();
   late final ChatViewController _chatViewController;
 
   DateTimeRange? _dateRange;

@@ -30,6 +30,8 @@ mixin WalletServiceApi {
   final String walletReferralStats = 'wallet-service/wallet/referral-stats';
   final String walletReferralHistory =
       'wallet-service//wallet/referral-history';
+  final String walletDirectReferralIncome =
+      'wallet-service/wallet/direct-referral-income';
   final String BdmDocumentsUpload = 'wallet-service/bdm/documents/upload';
   String checkReferral(String referralCode) =>
       'wallet-service/wallet/check-referral/$referralCode';

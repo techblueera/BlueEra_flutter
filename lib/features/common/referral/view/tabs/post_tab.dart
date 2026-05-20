@@ -2,17 +2,17 @@ import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
-import 'package:BlueEra/features/common/referral_new/controller/referral_controller.dart';
-import 'package:BlueEra/features/common/referral_new/widgets/add_link_bottom_sheet.dart';
-import 'package:BlueEra/features/common/referral_new/widgets/admin_post_card.dart';
-import 'package:BlueEra/features/common/referral_new/widgets/post_empty_state.dart';
+import 'package:BlueEra/features/common/referral/controller/referral_controller.dart';
+import 'package:BlueEra/features/common/referral/widgets/add_link_bottom_sheet.dart';
+import 'package:BlueEra/features/common/referral/widgets/admin_post_card.dart';
+import 'package:BlueEra/features/common/referral/widgets/post_empty_state.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/horizonatal_video_player.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class PostTab extends StatefulWidget {
-  final ReferralControllerNew controller;
+  final ReferralController controller;
   const PostTab({super.key, required this.controller});
 
   @override

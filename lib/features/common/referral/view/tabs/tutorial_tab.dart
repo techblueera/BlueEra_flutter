@@ -1,18 +1,14 @@
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/common/referral_new/controller/referral_controller.dart';
-import 'package:BlueEra/features/common/referral_new/widgets/admin_post_card.dart';
+import 'package:BlueEra/features/common/referral/controller/referral_controller.dart';
+import 'package:BlueEra/features/common/referral/widgets/admin_post_card.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-/// Tutorial tab — vertical list of admin-post cards loaded from
-/// `GET /earn-service/admin-posts?type=tutorial`. Uses the same
-/// AdminPostCard the Overview tab uses, so the visual language stays
-/// consistent across the dashboard.
 class TutorialTab extends StatefulWidget {
-  final ReferralControllerNew controller;
+  final ReferralController controller;
   const TutorialTab({super.key, required this.controller});
 
   @override

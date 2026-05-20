@@ -55,13 +55,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:get/get.dart';
 
-/// Food main screen (v2) — same layout as MedicalHomeScreenV2:
-///   • Pattern background + custom top bar (drawer / earn / notifications / go-live)
-///   • Profile row with logo, name, type, verify-now and preview-as-visitor
-///   • Pill tab bar (Order / Overview / Products / Post / Statistics)
-///   • Body switches per selected tab — Overview composes banner, popular
-///     dishes, live photos, gallery and contact card from the existing
-///     [RestaurantController] and [ViewBusinessDetailsController] data.
 class FoodMainScreen extends StatefulWidget {
   final bool? fromBottomNavBar;
 

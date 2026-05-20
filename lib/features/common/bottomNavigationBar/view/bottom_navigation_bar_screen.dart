@@ -603,7 +603,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     } else if (_isSpecificProductAutomotive()) {
       return const ProductScreen();
     } else {
-      return SizedBox();
+      return const _UnknownBusinessFallback();
     }
   }
 
@@ -672,9 +672,184 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
         return const ProfessionalsMainScreen();
 
       default:
-        return const SizedBox();
-      // return const SelfEmployeeScreen(fromBottomNavBar: true);
+        return const _UnknownProfileFallback();
     }
+  }
+}
+
+/// Fallback shown on the "Me" tab when [userProfileTypeGlobal] doesn't
+/// match any of the known individual profile types. Surfaces the basic
+/// identity we have on hand (name + profile type + profession) so the
+/// user isn't staring at a blank screen.
+class _UnknownProfileFallback extends StatelessWidget {
+  const _UnknownProfileFallback();
+
+  @override
+  Widget build(BuildContext context) {
+    final name = userNameGlobal.isNotEmpty ? userNameGlobal : '—';
+    final type =
+        userProfileTypeGlobal.isNotEmpty ? userProfileTypeGlobal : '—';
+    final profession =
+        userProfessionGlobal.isNotEmpty ? userProfessionGlobal : '—';
+
+    return SafeArea(
+      child: Padding(
+        padding: EdgeInsets.symmetric(
+          horizontal: SizeConfig.size16,
+          vertical: SizeConfig.size16,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SizedBox(height: SizeConfig.size20),
+            Center(
+              child: Container(
+                width: 84,
+                height: 84,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.primaryColor.withValues(alpha: 0.10),
+                ),
+                child: Icon(
+                  Icons.person_outline,
+                  size: 44,
+                  color: AppColors.primaryColor,
+                ),
+              ),
+            ),
+            SizedBox(height: SizeConfig.size12),
+            CustomText(
+              name,
+              fontSize: SizeConfig.large18,
+              fontWeight: FontWeight.w700,
+              color: AppColors.mainTextColor,
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: SizeConfig.size20),
+            _infoRow('Profile Type', type),
+            Container(height: 1, color: AppColors.greyE5),
+            _infoRow('Profession', profession),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _infoRow(String label, String value) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: SizeConfig.size10),
+      child: Row(
+        children: [
+          Expanded(
+            child: CustomText(
+              label,
+              fontSize: SizeConfig.small,
+              color: AppColors.secondaryTextColor,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          CustomText(
+            value,
+            fontSize: SizeConfig.small,
+            color: AppColors.mainTextColor,
+            fontWeight: FontWeight.w600,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Fallback shown on the "Me" tab when [businessTypeGlobal] /
+/// [businessCategoryGlobal] don't match any of the known business
+/// modules. Surfaces the business identity (name + owner + type +
+/// category) so the user isn't staring at a blank screen.
+class _UnknownBusinessFallback extends StatelessWidget {
+  const _UnknownBusinessFallback();
+
+  @override
+  Widget build(BuildContext context) {
+    final name = businessNameGlobal.isNotEmpty ? businessNameGlobal : '—';
+    final owner = businessOwnerNameGlobal.isNotEmpty
+        ? businessOwnerNameGlobal
+        : '—';
+    final type =
+        businessTypeGlobal.isNotEmpty ? businessTypeGlobal : '—';
+    final category =
+        businessCategoryGlobal.isNotEmpty ? businessCategoryGlobal : '—';
+    final subCategory = businessSubCategoryGlobal.isNotEmpty
+        ? businessSubCategoryGlobal
+        : '—';
+
+    return SafeArea(
+      child: Padding(
+        padding: EdgeInsets.symmetric(
+          horizontal: SizeConfig.size16,
+          vertical: SizeConfig.size16,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SizedBox(height: SizeConfig.size20),
+            Center(
+              child: Container(
+                width: 84,
+                height: 84,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.primaryColor.withValues(alpha: 0.10),
+                ),
+                child: Icon(
+                  Icons.storefront_outlined,
+                  size: 44,
+                  color: AppColors.primaryColor,
+                ),
+              ),
+            ),
+            SizedBox(height: SizeConfig.size12),
+            CustomText(
+              name,
+              fontSize: SizeConfig.large18,
+              fontWeight: FontWeight.w700,
+              color: AppColors.mainTextColor,
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: SizeConfig.size20),
+            _infoRow('Owner', owner),
+            Container(height: 1, color: AppColors.greyE5),
+            _infoRow('Business Type', type),
+            Container(height: 1, color: AppColors.greyE5),
+            _infoRow('Category', category),
+            Container(height: 1, color: AppColors.greyE5),
+            _infoRow('Sub-Category', subCategory),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _infoRow(String label, String value) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: SizeConfig.size10),
+      child: Row(
+        children: [
+          Expanded(
+            child: CustomText(
+              label,
+              fontSize: SizeConfig.small,
+              color: AppColors.secondaryTextColor,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          CustomText(
+            value,
+            fontSize: SizeConfig.small,
+            color: AppColors.mainTextColor,
+            fontWeight: FontWeight.w600,
+          ),
+        ],
+      ),
+    );
   }
 }
 

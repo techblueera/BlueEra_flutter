@@ -7,6 +7,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/add_self_work_service_screen.dart';
@@ -65,10 +66,10 @@ class _SelfProfessionServiceScreenState
       // 2. Empty / Not-yet-created State — show an empty profile
       final service = this.controller.professionData.value;
       if (service.sId == null || service.sId!.isEmpty) {
-        return _buildEmptyProfile(service.category ?? OTHER);
+        return _buildEmptyProfile(userProfessionGlobal);
       }
 
-      // 3. Success State — editorial spec-sheet layout. Each section
+        // 3. Success State — editorial spec-sheet layout. Each section
         //    is a numbered card with an inline "Edit" affordance and a
         //    primary-colored vertical accent bar that ties the rhythm
         //    together with the rest of the v2 dashboard. List items
@@ -869,7 +870,7 @@ class _SelfProfessionServiceScreenState
 
   Widget _buildEmptyProfile(String designation) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       child: Container(
         padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
         decoration: BoxDecoration(

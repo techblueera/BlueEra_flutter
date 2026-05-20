@@ -2,17 +2,17 @@ import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
-import 'package:BlueEra/features/common/referral_new/controller/referral_controller.dart';
-import 'package:BlueEra/features/common/referral_new/view/referral_history_screen.dart';
-import 'package:BlueEra/features/common/referral_new/widgets/admin_post_card.dart';
-import 'package:BlueEra/features/common/referral_new/widgets/balance_total_earn_row.dart';
+import 'package:BlueEra/features/common/referral/controller/referral_controller.dart';
+import 'package:BlueEra/features/common/referral/view/referral_history_screen.dart';
+import 'package:BlueEra/features/common/referral/widgets/admin_post_card.dart';
+import 'package:BlueEra/features/common/referral/widgets/balance_total_earn_row.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class OverviewTab extends StatefulWidget {
-  final ReferralControllerNew controller;
+  final ReferralController controller;
   const OverviewTab({super.key, required this.controller});
 
   @override

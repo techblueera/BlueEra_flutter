@@ -1,34 +1,80 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
-import 'package:BlueEra/features/common/referral_new/controller/referral_controller.dart';
-import 'package:BlueEra/features/common/referral_new/view/referral_history_screen.dart';
-import 'package:BlueEra/features/common/referral_new/widgets/stat_donut_chart.dart';
+import 'package:BlueEra/features/common/referral/controller/referral_controller.dart';
+import 'package:BlueEra/features/common/referral/view/referral_history_screen.dart';
+import 'package:BlueEra/features/common/referral/widgets/stat_donut_chart.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-/// Statics tab — matches `assets/business_chat_window.png`.
-///
-/// Four white cards, each with a donut chart on the left and a
-/// colored-dot legend on the right:
-///   1. Joining Bonus            (Withdraw, no balance pill)
-///   2. Direct Referral Income   (3-column Estd/Total/Balance + full-
-///                                width Withdraw)
-///   3. Order Income             (Balance pill + Withdraw)
-///   4. Content Creation Income  (Balance pill + Withdraw)
-///
-/// Values are the dummy figures from the mockup; swap them with live
-/// controller fields when the matching endpoints ship.
-class StaticsTab extends StatelessWidget {
-  final ReferralControllerNew controller;
+class StaticsTab extends StatefulWidget {
+  final ReferralController controller;
   const StaticsTab({super.key, required this.controller});
 
+  @override
+  State<StaticsTab> createState() => _StaticsTabState();
+}
+
+class _StaticsTabState extends State<StaticsTab> {
   // ─── Palette used across the legend dots / donut segments ─────────
   static const _grey = Color(0xFFB6BBC4);
   static const _green = Color(0xFF34C77B);
   static const _yellow = Color(0xFFFFC93C);
   static const _red = Color(0xFFEF4444);
+
+  ReferralController get controller => widget.controller;
+
+  static const _filterAll = 'All';
+  static const _filterJoining = 'Joining Bonus';
+  static const _filterDirectReferral = 'Direct Referral Income';
+  static const _filterOrder = 'Order Income';
+  static const _filterContent = 'Content Creation Income';
+  static const _filters = <String>[
+    _filterAll,
+    _filterJoining,
+    _filterDirectReferral,
+    _filterOrder,
+    _filterContent,
+  ];
+
+  String _selectedFilter = _filterAll;
+
+  bool _showCard(String filter) =>
+      _selectedFilter == _filterAll || _selectedFilter == filter;
+
+  // Format a rupee amount: integers render without decimals, fractions
+  // keep two digits. Falls back to ₹0 when null.
+  String _money(num? v) {
+    final n = v ?? 0;
+    final body = n == n.truncateToDouble()
+        ? _withCommas(n.toInt())
+        : n.toStringAsFixed(2);
+    return '₹$body';
+  }
+
+  String _count(num? v) {
+    final n = v ?? 0;
+    return n == n.truncateToDouble()
+        ? _withCommas(n.toInt())
+        : n.toString();
+  }
+
+  String _withCommas(int v) {
+    final s = v.toString();
+    final buf = StringBuffer();
+    for (int i = 0; i < s.length; i++) {
+      if (i > 0 && (s.length - i) % 3 == 0) buf.write(',');
+      buf.write(s[i]);
+    }
+    return buf.toString();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    controller.fetchDirectReferralIncome();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -44,19 +90,25 @@ class StaticsTab extends StatelessWidget {
         children: [
           _myStaticsHeader(),
           SizedBox(height: SizeConfig.paddingXSL),
-          _joiningBonusCard(),
-          SizedBox(height: SizeConfig.paddingXSL),
-          _directReferralCard(),
-          SizedBox(height: SizeConfig.paddingXSL),
-          _orderIncomeCard(),
-          SizedBox(height: SizeConfig.paddingXSL),
-          _contentCreationCard(),
+          if (_showCard(_filterJoining)) ...[
+            _joiningBonusCard(),
+            SizedBox(height: SizeConfig.paddingXSL),
+          ],
+          if (_showCard(_filterDirectReferral)) ...[
+            _directReferralCard(),
+            SizedBox(height: SizeConfig.paddingXSL),
+          ],
+          if (_showCard(_filterOrder)) ...[
+            _orderIncomeCard(),
+            SizedBox(height: SizeConfig.paddingXSL),
+          ],
+          if (_showCard(_filterContent)) _contentCreationCard(),
         ],
       ),
     );
   }
 
-  // ─── "My Statics" / All ▼ filter header ───────────────────────────
+  // ─── "My Statics" / <filter> ▼ filter header ──────────────────────
   Widget _myStaticsHeader() {
     return Row(
       children: [
@@ -67,16 +119,42 @@ class StaticsTab extends StatelessWidget {
           color: AppColors.mainTextColor,
         ),
         const Spacer(),
-        InkWell(
-          onTap: () {},
-          borderRadius: BorderRadius.circular(8),
+        PopupMenuButton<String>(
+          initialValue: _selectedFilter,
+          tooltip: 'Filter',
+          position: PopupMenuPosition.under,
+          padding: EdgeInsets.zero,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          color: AppColors.white,
+          onSelected: (value) {
+            if (value == _selectedFilter) return;
+            setState(() => _selectedFilter = value);
+          },
+          itemBuilder: (context) => [
+            for (final f in _filters)
+              PopupMenuItem<String>(
+                value: f,
+                child: CustomText(
+                  f,
+                  fontSize: SizeConfig.small,
+                  fontWeight: f == _selectedFilter
+                      ? FontWeight.w700
+                      : FontWeight.w500,
+                  color: f == _selectedFilter
+                      ? AppColors.primaryColor
+                      : AppColors.mainTextColor,
+                ),
+              ),
+          ],
           child: Padding(
             padding:
                 const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
             child: Row(
               children: [
                 CustomText(
-                  'All',
+                  _selectedFilter,
                   fontSize: SizeConfig.medium,
                   fontWeight: FontWeight.w600,
                   color: AppColors.mainTextColor,
@@ -94,107 +172,179 @@ class StaticsTab extends StatelessWidget {
 
   // ─── Joining Bonus ────────────────────────────────────────────────
   Widget _joiningBonusCard() {
-    return _StatsCard(
-      title: 'Joining Bonus',
-      onViewDetails: () {},
-      body: _ChartRow(
-        donut: StatDonutChart(
-          segments: const [
-            DonutSegment(color: _grey, value: 1),     // Days 1/100
-            DonutSegment(color: _green, value: 2),    // Hours 2/580
-            DonutSegment(color: _yellow, value: 5),   // Tasks 5/20
+    return Obx(() {
+      final jb = controller.walletStatics.value?.joiningBonus;
+      final days = jb?.progress?.days;
+      final hours = jb?.progress?.workHours;
+      final tasks = jb?.progress?.assignTask;
+      return _StatsCard(
+        title: 'Joining Bonus',
+        onViewDetails: () {},
+        body: _ChartRow(
+          donut: StatDonutChart(
+            segments: [
+              DonutSegment(color: _grey, value: days?.current ?? 0),
+              DonutSegment(color: _green, value: hours?.current ?? 0),
+              DonutSegment(color: _yellow, value: tasks?.current ?? 0),
+            ],
+            center: _CenterText(
+              value: _money(jb?.totalBonus),
+              label: 'Total Bonus',
+            ),
+          ),
+          rows: [
+            _LegendRow(
+              color: _grey,
+              label: 'Days',
+              value:
+                  '${_count(days?.current)}/${_count(days?.target)} Days',
+            ),
+            _LegendRow(
+              color: _green,
+              label: 'Work Hours',
+              value:
+                  '${_count(hours?.current)}/${_count(hours?.target)} hrs.',
+            ),
+            _LegendRow(
+              color: _yellow,
+              label: 'Assign Task',
+              value:
+                  '${_count(tasks?.current)}/${_count(tasks?.target)} Tasks',
+            ),
           ],
-          center: const _CenterText(value: '₹400', label: 'Total Bonus'),
         ),
-        rows: const [
-          _LegendRow(color: _grey, label: 'Days', value: '1/100 Days'),
-          _LegendRow(
-              color: _green, label: 'Work Hours', value: '2/580 hrs.'),
-          _LegendRow(
-              color: _yellow, label: 'Assign Task', value: '5/20 Tasks'),
-        ],
-      ),
-      footer: const _FooterWithdrawOnly(),
-    );
+        footer: const _FooterWithdrawOnly(),
+      );
+    });
   }
 
   // ─── Direct Referral Income ───────────────────────────────────────
   Widget _directReferralCard() {
-    return _StatsCard(
-      title: 'Direct Referral Income',
-      onViewDetails: () => Get.to(() => const ReferralHistoryScreenNew()),
-      body: _ChartRow(
-        donut: StatDonutChart(
-          segments: const [
-            DonutSegment(color: _green, value: 20),    // Subscribe
-            DonutSegment(color: _yellow, value: 370),  // Pending
-            DonutSegment(color: _grey, value: 370),    // Un-Subscribe
-            DonutSegment(color: _red, value: 10),      // Expired
+    return Obx(() {
+      final dr = controller.walletStatics.value?.directReferralIncome;
+      final bk = dr?.breakdown;
+      final earn = dr?.earnings;
+      return _StatsCard(
+        title: 'Direct Referral Income',
+        onViewDetails: () => Get.to(() => const ReferralHistoryScreenNew()),
+        body: _ChartRow(
+          donut: StatDonutChart(
+            segments: [
+              DonutSegment(color: _green, value: bk?.subscribed ?? 0),
+              DonutSegment(color: _yellow, value: bk?.pending ?? 0),
+              DonutSegment(color: _grey, value: bk?.unsubscribed ?? 0),
+              DonutSegment(color: _red, value: bk?.expired ?? 0),
+            ],
+            center: _CenterText(
+              value: _count(dr?.referralCount),
+              label: 'Referral Count',
+            ),
+          ),
+          rows: [
+            _LegendRow(
+                color: _green,
+                label: 'Subscribe',
+                value: _count(bk?.subscribed)),
+            _LegendRow(
+                color: _yellow,
+                label: 'Pending',
+                value: _count(bk?.pending)),
+            _LegendRow(
+                color: _grey,
+                label: 'Un-Subscribe',
+                value: _count(bk?.unsubscribed)),
+            _LegendRow(
+                color: _red,
+                label: 'Expired',
+                value: _count(bk?.expired)),
           ],
-          center: const _CenterText(value: '400', label: 'Referral Count'),
         ),
-        rows: const [
-          _LegendRow(color: _green, label: 'Subscribe', value: '20'),
-          _LegendRow(color: _yellow, label: 'Pending', value: '370'),
-          _LegendRow(color: _grey, label: 'Un-Subscribe', value: '370'),
-          _LegendRow(color: _red, label: 'Expired', value: '10'),
-        ],
-      ),
-      footer: const _FooterReferral(
-        estdEarning: '₹ 1000',
-        totalEarn: '₹ 2000',
-        balance: '₹ 3000',
-      ),
-    );
+        footer: _FooterReferral(
+          estdEarning: _money(earn?.estimatedEarning),
+          totalEarn: _money(earn?.totalEarn),
+          balance: _money(earn?.balance),
+        ),
+      );
+    });
   }
 
   // ─── Order Income ─────────────────────────────────────────────────
   Widget _orderIncomeCard() {
-    return _StatsCard(
-      title: 'Order Income',
-      onViewDetails: () {},
-      body: _ChartRow(
-        donut: StatDonutChart(
-          segments: const [
-            DonutSegment(color: _grey, value: 100),   // My Order
-            DonutSegment(color: _green, value: 50),   // Referral Order
-            DonutSegment(color: _yellow, value: 200), // Bonus
+    return Obx(() {
+      final oi = controller.walletStatics.value?.orderIncome;
+      final bk = oi?.breakdown;
+      return _StatsCard(
+        title: 'Order Income',
+        onViewDetails: () {},
+        body: _ChartRow(
+          donut: StatDonutChart(
+            segments: [
+              DonutSegment(color: _grey, value: bk?.myOrder ?? 0),
+              DonutSegment(color: _green, value: bk?.referralOrder ?? 0),
+              DonutSegment(color: _yellow, value: bk?.bonus ?? 0),
+            ],
+            center: _CenterText(
+              value: _money(oi?.totalAmount),
+              label: 'Total Amount',
+            ),
+          ),
+          rows: [
+            _LegendRow(
+                color: _grey,
+                label: 'My Order',
+                value: _money(bk?.myOrder)),
+            _LegendRow(
+                color: _green,
+                label: 'Referral Order',
+                value: _money(bk?.referralOrder)),
+            _LegendRow(
+                color: _yellow,
+                label: 'Bonus',
+                value: _money(bk?.bonus)),
           ],
-          center: const _CenterText(value: '₹400', label: 'Total Amount'),
         ),
-        rows: const [
-          _LegendRow(color: _grey, label: 'My Order', value: '₹100'),
-          _LegendRow(
-              color: _green, label: 'Referral Order', value: '₹50'),
-          _LegendRow(color: _yellow, label: 'Bonus', value: '₹200'),
-        ],
-      ),
-      footer: const _FooterBalanceWithdraw(balance: '₹2500'),
-    );
+        footer: _FooterBalanceWithdraw(balance: _money(oi?.balance)),
+      );
+    });
   }
 
   // ─── Content Creation Income ──────────────────────────────────────
   Widget _contentCreationCard() {
-    return _StatsCard(
-      title: 'Content Creation Income',
-      onViewDetails: () {},
-      body: _ChartRow(
-        donut: StatDonutChart(
-          segments: const [
-            DonutSegment(color: _grey, value: 150),    // Total Video
-            DonutSegment(color: _green, value: 50000), // View Count
-            DonutSegment(color: _yellow, value: 200),  // Bonus
+    return Obx(() {
+      final cc = controller.walletStatics.value?.contentCreationIncome;
+      return _StatsCard(
+        title: 'Content Creation Income',
+        onViewDetails: () {},
+        body: _ChartRow(
+          donut: StatDonutChart(
+            segments: [
+              DonutSegment(color: _grey, value: cc?.totalVideo ?? 0),
+              DonutSegment(color: _green, value: cc?.viewCount ?? 0),
+              DonutSegment(color: _yellow, value: cc?.bonus ?? 0),
+            ],
+            center: _CenterText(
+              value: _money(cc?.totalIncome),
+              label: 'Total Income',
+            ),
+          ),
+          rows: [
+            _LegendRow(
+                color: _grey,
+                label: 'Total Video',
+                value: _count(cc?.totalVideo)),
+            _LegendRow(
+                color: _green,
+                label: 'View Count',
+                value: _count(cc?.viewCount)),
+            _LegendRow(
+                color: _yellow,
+                label: 'Bonus',
+                value: _money(cc?.bonus)),
           ],
-          center: const _CenterText(value: '₹400', label: 'Total Income'),
         ),
-        rows: const [
-          _LegendRow(color: _grey, label: 'Total Video', value: '150'),
-          _LegendRow(color: _green, label: 'View Count', value: '50,000'),
-          _LegendRow(color: _yellow, label: 'Bonus', value: '₹200'),
-        ],
-      ),
-      footer: const _FooterBalanceWithdraw(balance: '₹2500'),
-    );
+        footer: _FooterBalanceWithdraw(balance: _money(cc?.balance)),
+      );
+    });
   }
 }
 
@@ -225,9 +375,9 @@ class _StatsCard extends StatelessWidget {
         children: [
           Padding(
             padding: EdgeInsets.fromLTRB(
-              SizeConfig.size14,
-              SizeConfig.size12,
-              SizeConfig.size14,
+              SizeConfig.size10,
+              SizeConfig.size10,
+              SizeConfig.size10,
               SizeConfig.size10,
             ),
             child: Row(
@@ -236,7 +386,7 @@ class _StatsCard extends StatelessWidget {
                   child: CustomText(
                     title,
                     fontSize: SizeConfig.medium,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w500,
                     color: AppColors.mainTextColor,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -252,7 +402,7 @@ class _StatsCard extends StatelessWidget {
                     child: CustomText(
                       'View Details',
                       fontSize: SizeConfig.small,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w400,
                       color: AppColors.primaryColor,
                     ),
                   ),
@@ -260,7 +410,7 @@ class _StatsCard extends StatelessWidget {
               ],
             ),
           ),
-          Container(height: 1, color: const Color(0xFFEEF1F4)),
+          Container(height: 1, color: AppColors.greyE5),
           Padding(
             padding: EdgeInsets.fromLTRB(
               SizeConfig.size14,
@@ -270,6 +420,11 @@ class _StatsCard extends StatelessWidget {
             ),
             child: body,
           ),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: SizeConfig.size14),
+            child: const _DashedDivider(),
+          ),
+          SizedBox(height: SizeConfig.size12),
           footer,
         ],
       ),
@@ -393,9 +548,11 @@ class _FooterWithdrawOnly extends StatelessWidget {
         SizeConfig.size14,
         SizeConfig.size12,
       ),
-      child: Align(
-        alignment: Alignment.centerRight,
-        child: _WithdrawButton(width: 140, onTap: () {}),
+      child: Row(
+        children: [
+          const Spacer(),
+          Expanded(child: _WithdrawButton(onTap: () {})),
+        ],
       ),
     );
   }
@@ -424,8 +581,6 @@ class _FooterReferral extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Container(height: 1, color: const Color(0xFFEEF1F4)),
-          SizedBox(height: SizeConfig.size10),
           Row(
             children: [
               Expanded(child: _summaryCell('Estd. Earning', estdEarning)),
@@ -436,9 +591,11 @@ class _FooterReferral extends StatelessWidget {
             ],
           ),
           SizedBox(height: SizeConfig.size12),
-          SizedBox(
-            width: double.infinity,
-            child: _WithdrawButton(onTap: () {}),
+          Row(
+            children: [
+              const Spacer(),
+              Expanded(child: _WithdrawButton(onTap: () {})),
+            ],
           ),
         ],
       ),
@@ -482,7 +639,7 @@ class _FooterBalanceWithdraw extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.fromLTRB(
-        SizeConfig.size14,
+        SizeConfig.size20,
         0,
         SizeConfig.size14,
         SizeConfig.size12,
@@ -491,7 +648,7 @@ class _FooterBalanceWithdraw extends StatelessWidget {
         children: [
           Expanded(
             child: Container(
-              height: 40,
+              height: 36,
               decoration: BoxDecoration(
                 color: AppColors.white,
                 borderRadius: BorderRadius.circular(10),
@@ -517,13 +674,12 @@ class _FooterBalanceWithdraw extends StatelessWidget {
   }
 }
 
-/// Solid primary-blue Withdraw button. Width defaults to filling its
-/// parent — callers that need a fixed width (e.g. the Joining Bonus
-/// footer) pass [width].
+/// Solid primary-blue Withdraw button. Width is supplied by the
+/// parent (callers wrap it in [Expanded] so it scales across devices
+/// instead of carrying a hardcoded pixel width).
 class _WithdrawButton extends StatelessWidget {
   final VoidCallback onTap;
-  final double? width;
-  const _WithdrawButton({required this.onTap, this.width});
+  const _WithdrawButton({required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -531,8 +687,7 @@ class _WithdrawButton extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(10),
       child: Container(
-        height: 40,
-        width: width,
+        height: 36,
         decoration: BoxDecoration(
           color: AppColors.primaryColor,
           borderRadius: BorderRadius.circular(10),
@@ -548,10 +703,45 @@ class _WithdrawButton extends StatelessWidget {
         child: CustomText(
           'Withdraw',
           fontSize: SizeConfig.small,
-          fontWeight: FontWeight.w700,
+          fontWeight: FontWeight.w500,
           color: AppColors.white,
         ),
       ),
+    );
+  }
+}
+
+/// Horizontal dashed line. Renders as a row of evenly-spaced dashes
+/// that span the full available width, so it scales with the card
+/// across devices.
+class _DashedDivider extends StatelessWidget {
+  const _DashedDivider();
+
+  static const _color = Color(0xFFCFD4DA);
+  static const _thickness = 1.0;
+  static const _dashWidth = 4.0;
+  static const _dashSpace = 4.0;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final boxWidth = constraints.constrainWidth();
+        final dashCount =
+            (boxWidth / (_dashWidth + _dashSpace)).floor().clamp(0, 10000);
+        return Flex(
+          direction: Axis.horizontal,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: List.generate(
+            dashCount,
+            (_) => const SizedBox(
+              width: _dashWidth,
+              height: _thickness,
+              child: DecoratedBox(decoration: BoxDecoration(color: _color)),
+            ),
+          ),
+        );
+      },
     );
   }
 }

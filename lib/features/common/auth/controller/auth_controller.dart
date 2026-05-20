@@ -357,7 +357,7 @@ class AuthController extends GetxController {
             controller.designation = reqData?['designation'];
             await controller.createMinimalEarnService(
               serviceSubType: 'selfWork',
-              designationOverride: reqData?['designation'],
+              designationOverride: controller.designation?.toUpperCase(),
             );
           }
 

@@ -1,7 +1,6 @@
 import 'dart:ui';
-
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/features/common/referral_new/view/referral_page.dart';
+import 'package:BlueEra/features/common/referral/view/referral_page.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/core/constants/logout_helper.dart';
 import 'package:flutter/material.dart';
@@ -541,7 +540,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
               icon: Icons.share_outlined,
               color: _violet,
               title: AppStrings.referAndEarn,
-              onTap: () => Get.to(() => ReferralPageNew()),
+              onTap: () => Get.to(() => ReferralPage()),
             ),
           if (isIndividual)
             _DrawerItem(

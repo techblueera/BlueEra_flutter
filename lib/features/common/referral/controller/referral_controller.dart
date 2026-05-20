@@ -1,27 +1,17 @@
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/features/common/referral_new/model/admin_post_model.dart';
-import 'package:BlueEra/features/common/referral_new/model/referral_bdm_details_model.dart';
-import 'package:BlueEra/features/common/referral_new/model/referral_testimonial_model.dart';
-import 'package:BlueEra/features/common/referral_new/model/wallet_referral_history_model.dart';
-import 'package:BlueEra/features/common/referral_new/model/wallet_referral_stats_model.dart';
-import 'package:BlueEra/features/common/referral_new/repo/referral_repo.dart';
+import 'package:BlueEra/features/common/referral/model/admin_post_model.dart';
+import 'package:BlueEra/features/common/referral/model/referral_bdm_details_model.dart';
+import 'package:BlueEra/features/common/referral/model/referral_testimonial_model.dart';
+import 'package:BlueEra/features/common/referral/model/wallet_referral_history_model.dart';
+import 'package:BlueEra/features/common/referral/model/wallet_referral_stats_model.dart';
+import 'package:BlueEra/features/common/referral/model/wallet_statics_model.dart';
+import 'package:BlueEra/features/common/referral/repo/referral_repo.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-/// Single GetX controller for the new BDM/referral flow.
-///
-/// Responsibilities:
-///   • BDM status (NOT_STARTED / PENDING / COMPLETED)
-///   • Referral suggestions + chosen code
-///   • Register submit (referral code only — no documents in the new
-///     single-step flow)
-///   • Wallet stats + referral history (with filter tabs)
-///   • Admin-posts feed split into testimonial / overview / tutorial
-///     buckets (`GET /earn-service/admin-posts?type=...`)
-///   • Social posts the user pastes from Instagram/Twitter/YouTube
-class ReferralControllerNew extends GetxController {
+class ReferralController extends GetxController {
   final ReferralRepoNew _repo = ReferralRepoNew();
 
   // --- Async statuses ------------------------------------------------------
@@ -38,8 +28,14 @@ class ReferralControllerNew extends GetxController {
       ApiResponse.initial('Initial').obs;
   final Rx<ApiResponse> userPostsResponse =
       ApiResponse.initial('Initial').obs;
+  final Rx<ApiResponse> directReferralIncomeResponse =
+      ApiResponse.initial('Initial').obs;
   final RxBool registerLoading = false.obs;
   final RxBool creatingPost = false.obs;
+
+  // Parsed wallet statics payload from `direct-referral-income` —
+  // populates all four cards on the Statics tab.
+  final Rxn<WalletStaticsModel> walletStatics = Rxn<WalletStaticsModel>();
 
   // --- State ---------------------------------------------------------------
   final Rxn<ReferralBdmDetailsModel> bdmDetails =
@@ -180,6 +176,33 @@ class ReferralControllerNew extends GetxController {
   }
 
   // ---------------------------------------------------------------------------
+  // Direct referral income — populates the Statics tab's
+  // "Direct Referral Income" card. Stores raw payload; binding is done
+  // by the view layer.
+  // ---------------------------------------------------------------------------
+  Future<void> fetchDirectReferralIncome({
+    Map<String, dynamic>? queryParams,
+  }) async {
+    directReferralIncomeResponse.value = ApiResponse.loading('loading');
+    try {
+      final res = await _repo.getDirectReferralIncome(queryParams: queryParams);
+      if (res.isSuccess) {
+        final raw = res.response?.data;
+        final parsed = WalletStaticsResponse.fromJson(
+          raw is Map<String, dynamic> ? raw : <String, dynamic>{},
+        );
+        walletStatics.value = parsed.data;
+        directReferralIncomeResponse.value = ApiResponse.complete(raw);
+      } else {
+        directReferralIncomeResponse.value =
+            ApiResponse.error(res.message ?? AppStrings.somethingWentWrong.tr);
+      }
+    } catch (e) {
+      directReferralIncomeResponse.value = ApiResponse.error(e.toString());
+    }
+  }
+
+  // ---------------------------------------------------------------------------
   // Referral suggestions
   // ---------------------------------------------------------------------------
   Future<void> fetchSuggestions() async {
@@ -247,9 +270,7 @@ class ReferralControllerNew extends GetxController {
   // same endpoint and response shape; only the `?type=` param changes.
   // ---------------------------------------------------------------------------
 
-  /// Fetches testimonial-type admin posts and maps them onto the
-  /// existing [ReferralTestimonial] view model so the testimonial
-  /// section's UI doesn't need to change.
+  /// Fetches testimonial-type admin posts
   Future<void> fetchTestimonials() async {
     testimonialsResponse.value = ApiResponse.loading('loading');
     try {

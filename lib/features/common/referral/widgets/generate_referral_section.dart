@@ -5,7 +5,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/environment_config.dart';
-import 'package:BlueEra/features/common/referral_new/controller/referral_controller.dart';
+import 'package:BlueEra/features/common/referral/controller/referral_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -19,13 +19,13 @@ import 'package:get/get.dart';
 /// "Generate Your Referral Code" card — the entire registration form
 /// in the new single-step flow. The user types or picks a code, accepts
 /// the terms, and submits. Submission calls
-/// [ReferralControllerNew.submitRegistration], which POSTs to step-2
+/// [ReferralController.submitRegistration], which POSTs to step-2
 /// with the referral code and re-reads `/bdm/status`.
 ///
 /// [isEditable] gates the field and submit button so the card can also
 /// be rendered as a read-only preview (e.g. once the user is COMPLETED).
 class GenerateReferralSection extends StatefulWidget {
-  final ReferralControllerNew controller;
+  final ReferralController controller;
   final bool isEditable;
 
   const GenerateReferralSection({
@@ -155,7 +155,7 @@ class _GenerateReferralSectionState extends State<GenerateReferralSection> {
     );
   }
 
-  Widget _buildSuggestions(ReferralControllerNew c) {
+  Widget _buildSuggestions(ReferralController c) {
     return Obx(() {
       if (c.suggestionsResponse.value.status == Status.LOADING ||
           c.suggestionsResponse.value.status == Status.INITIAL) {
@@ -234,7 +234,7 @@ class _GenerateReferralSectionState extends State<GenerateReferralSection> {
     });
   }
 
-  Widget _buildTermsRow(ReferralControllerNew c) {
+  Widget _buildTermsRow(ReferralController c) {
     return Obx(
       () => Row(
         crossAxisAlignment: CrossAxisAlignment.start,
