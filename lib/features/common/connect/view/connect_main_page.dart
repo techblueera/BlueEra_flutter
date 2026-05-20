@@ -23,7 +23,7 @@ import 'package:BlueEra/features/chat/view/personal_chat/personal_chat_list.dart
 import 'package:BlueEra/features/chat/view/business_chat/business_chat_list.dart';
 import 'package:BlueEra/features/chat/view/orders_chat/orders_chat_list.dart';
 import 'package:BlueEra/features/chat/view/reminder_chat/reminder_todo_screen.dart';
-import 'package:BlueEra/features/chat/view/symbol_view/symbol_view_images.dart';
+// import 'package:BlueEra/features/chat/view/symbol_view/symbol_view_images.dart';
 import 'package:BlueEra/features/chat/view/wallet_chat/wallet_chat_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/manage_notification/notification.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
@@ -43,8 +43,10 @@ import 'package:share_handler/share_handler.dart';
 
 import '../../../../core/routes/route_helper.dart';
 import '../../../chat/auth/controller/chat_flag_controller.dart';
+import '../../../chat/auth/controller/chat_lock_controller.dart';
 import '../../../chat/auth/controller/chat_pin_archive_controller.dart';
 import '../../../chat/auth/controller/chat_view_controller.dart';
+import '../../../chat/view/lock_chat/locked_chats_screen.dart';
 import '../../../chat/auth/model/GetChatListModel.dart';
 import '../../../chat/view/forward_screen/chat_forward_screen.dart';
 import '../../../chat/view/widget/chat_flag_bottom_sheet.dart';
@@ -90,6 +92,8 @@ class _ConnectMainPageState extends State<ConnectMainPage>
       getOrPut(() => ChatPinArchiveController());
   final ChatFlagController chatFlagController =
       getOrPut(() => ChatFlagController());
+  final ChatLockController chatLockController =
+      getOrPut(() => ChatLockController());
   final LanguageListController langController =
       getOrPut(() => LanguageListController());
 
@@ -232,6 +236,7 @@ class _ConnectMainPageState extends State<ConnectMainPage>
   /// Hydrate the tab's chat list. Personal is also emitted in `initState`
   /// so the first paint isn't blank.
   void _emitChatListForTab(int index) {
+    print("sldjkclskdcsldkcmsldkcm $index");
     if (index == 0) {
       chatViewController.emitEvent(
         ChatEmitEvents.ChatList,
@@ -669,6 +674,13 @@ class _ConnectMainPageState extends State<ConnectMainPage>
           chatPinArchiveController.archiveMultiple(ids, isBusiness: isBiz);
           chatViewController.exitChatListSelectionMode();
         }),
+        _selectionActionIcon(Icons.lock_outline, () {
+          final ids =
+              chatViewController.selectedConversationIds.toList();
+          if (ids.isEmpty) return;
+          final isBiz = selectedIndex == 1;
+          _handleLockSelectedChats(ids, isBiz);
+        }),
         PopupMenuButton<String>(
           icon: const Icon(Icons.more_vert, color: Colors.black),
           offset: const Offset(0, 40),
@@ -682,17 +694,21 @@ class _ConnectMainPageState extends State<ConnectMainPage>
               case 'mark_unread':
                 break;
               case 'select_all':
-                final allChats = selectedIndex == 1
-                    ? chatViewController
-                            .getBusinessChatListModel?.value.chatList
-                            ?.whereType<ChatList>()
-                            .toList() ??
-                        []
-                    : chatViewController
-                            .getPersonalChatListModel?.value.chatList
-                            ?.whereType<ChatList>()
-                            .toList() ??
-                        [];
+                final isBiz = selectedIndex == 1;
+                final lockedIds = chatLockController.lockedIds(isBiz);
+                final allChats = (isBiz
+                        ? chatViewController
+                                .getBusinessChatListModel?.value.chatList
+                                ?.whereType<ChatList>()
+                                .toList() ??
+                            []
+                        : chatViewController
+                                .getPersonalChatListModel?.value.chatList
+                                ?.whereType<ChatList>()
+                                .toList() ??
+                            [])
+                    .where((c) => !lockedIds.contains(c.conversationId))
+                    .toList();
                 chatViewController.selectAllChats(allChats);
                 break;
               case 'lock_chats':
@@ -720,6 +736,72 @@ class _ConnectMainPageState extends State<ConnectMainPage>
     );
   }
 
+
+  /// Lock the currently-selected chats. If no PIN exists yet, route the
+  /// user through the [LockedChatsScreen] to create one first — once they
+  /// land there a snackbar reminds them to come back and re-select. If a
+  /// PIN does exist we just confirm and lock.
+  Future<void> _handleLockSelectedChats(
+      List<String> ids, bool isBusiness) async {
+    if (!chatLockController.hasPin.value) {
+      final created = await Get.to<bool>(() => const LockedChatsScreen());
+      // The PIN screen returns nothing on back; recheck the reactive state.
+      if (!chatLockController.hasPin.value) {
+        commonSnackBar(
+            message: "Set up a PIN first to lock chats.");
+        return;
+      }
+      // ignore: unused_local_variable
+      final _ = created; // discard — we trust the reactive `hasPin` value
+    }
+    final confirmed = await _confirmLockDialog(ids.length);
+    if (confirmed != true) return;
+    await chatLockController.lockMultiple(ids, isBusiness: isBusiness);
+    chatViewController.exitChatListSelectionMode();
+    commonSnackBar(message: "Locked ${ids.length} chat${ids.length > 1 ? 's' : ''}");
+  }
+
+  Future<bool?> _confirmLockDialog(int count) {
+    return showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+        ),
+        title: const CustomText(
+          "Lock Chats",
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+        ),
+        content: CustomText(
+          "Move $count chat${count > 1 ? 's' : ''} to your Locked Chats? "
+          "They will be hidden behind your PIN.",
+          fontSize: 14,
+          color: Colors.black87,
+          maxLines: 4,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const CustomText(
+              "Cancel",
+              color: Colors.grey,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const CustomText(
+              "Lock",
+              color: AppColors.primaryColor,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   void _onTabTapped(int index) {
     if (!mounted) return;
@@ -819,21 +901,21 @@ class _ConnectMainPageState extends State<ConnectMainPage>
                                 Get.to(() => AddChatSymbolScreen());
                               },
                             ),
-                            _drawerMenuItem(
-                              icon: Icons.auto_awesome_rounded,
-                              label: 'View Symbol',
-                              iconColor: const Color(0xFFE88D1A),
-                              bgColor: const Color(0xFFFFF3E0),
-                              onTap: () {
-                                Navigator.pop(context);
-                                final ctrl = Get
-                                        .isRegistered<AddChatSymbolController>()
-                                    ? Get.find<AddChatSymbolController>()
-                                    : Get.put(AddChatSymbolController());
-                                Get.to(() => SymbolViewImages(
-                                    mySymbols: ctrl.mySymbols));
-                              },
-                            ),
+                            // _drawerMenuItem(
+                            //   icon: Icons.auto_awesome_rounded,
+                            //   label: 'View Symbol',
+                            //   iconColor: const Color(0xFFE88D1A),
+                            //   bgColor: const Color(0xFFFFF3E0),
+                            //   onTap: () {
+                            //     Navigator.pop(context);
+                            //     final ctrl = Get
+                            //             .isRegistered<AddChatSymbolController>()
+                            //         ? Get.find<AddChatSymbolController>()
+                            //         : Get.put(AddChatSymbolController());
+                            //     Get.to(() => SymbolViewImages(
+                            //         mySymbols: ctrl.mySymbols));
+                            //   },
+                            // ),
                             _drawerMenuItem(
                               icon: Icons.group_add_rounded,
                               label: 'Create Group',
@@ -868,26 +950,26 @@ class _ConnectMainPageState extends State<ConnectMainPage>
                                 Get.to(() => const WalletChatScreen());
                               },
                             ),
-                            _drawerMenuItem(
-                              icon: Icons.shield_rounded,
-                              label: 'Private Room',
-                              iconColor: const Color(0xFFD94A42),
-                              bgColor: const Color(0xFFFFEBEE),
-                              onTap: () {
-                                Navigator.pop(context);
-                                commonSnackBar(message: "Coming soon....");
-                              },
-                            ),
-                            _drawerMenuItem(
-                              icon: Icons.devices_rounded,
-                              label: 'Linked Device',
-                              iconColor: const Color(0xFF505050),
-                              bgColor: const Color(0xFFF0F0F0),
-                              onTap: () {
-                                Navigator.pop(context);
-                                commonSnackBar(message: "Coming soon....");
-                              },
-                            ),
+                            // _drawerMenuItem(
+                            //   icon: Icons.shield_rounded,
+                            //   label: 'Private Room',
+                            //   iconColor: const Color(0xFFD94A42),
+                            //   bgColor: const Color(0xFFFFEBEE),
+                            //   onTap: () {
+                            //     Navigator.pop(context);
+                            //     commonSnackBar(message: "Coming soon....");
+                            //   },
+                            // ),
+                            // _drawerMenuItem(
+                            //   icon: Icons.devices_rounded,
+                            //   label: 'Linked Device',
+                            //   iconColor: const Color(0xFF505050),
+                            //   bgColor: const Color(0xFFF0F0F0),
+                            //   onTap: () {
+                            //     Navigator.pop(context);
+                            //     commonSnackBar(message: "Coming soon....");
+                            //   },
+                            // ),
                             _drawerMenuItem(
                               icon: Icons.lock_rounded,
                               label: 'Lock Chat',
@@ -895,7 +977,9 @@ class _ConnectMainPageState extends State<ConnectMainPage>
                               bgColor: const Color(0xFFFFF3E0),
                               onTap: () {
                                 Navigator.pop(context);
-                                commonSnackBar(message: "Coming soon....");
+                                Get.to(() => LockedChatsScreen(
+                                      initialIsBusiness: selectedIndex == 1,
+                                    ));
                               },
                             ),
                             _drawerMenuItem(

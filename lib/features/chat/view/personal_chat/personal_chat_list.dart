@@ -9,6 +9,7 @@ import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/constants/getx_utils.dart';
 import '../../../../core/constants/size_config.dart';
+import '../../auth/controller/chat_lock_controller.dart';
 import '../../auth/controller/chat_pin_archive_controller.dart';
 import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/model/GetChatListModel.dart';
@@ -42,6 +43,7 @@ class PersonalChatsList extends StatefulWidget {
 class _PersonalChatsListState extends State<PersonalChatsList> {
   final chatViewController = getOrPut(() => ChatViewController());
   final pinArchiveController = getOrPut(() => ChatPinArchiveController());
+  final lockController = getOrPut(() => ChatLockController());
 
 
   @override
@@ -142,6 +144,13 @@ Widget personalChatListWidget(GetChatListModel? data,ThemeData theme ){
     List<ChatList?> chatList = data?.chatList ?? [];
     final archivedIds = pinArchiveController.personalArchivedIds;
     final pinnedIds = pinArchiveController.personalPinnedIds;
+    final lockedIds = lockController.personalLockedIds;
+
+    // Locked chats live behind the PIN-gated Locked Chats screen, so they
+    // must not appear in the main list (WhatsApp-style Chat Lock).
+    chatList = chatList.where((chat) {
+      return chat == null || !lockedIds.contains(chat.conversationId);
+    }).toList();
 
     // Sort: pinned chats first, then unpinned
     chatList.sort((a, b) {

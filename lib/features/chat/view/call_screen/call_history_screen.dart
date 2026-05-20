@@ -495,7 +495,7 @@ class _CallHistoryScreenState extends State<CallHistoryScreen> {
                     ],
                     const Spacer(),
                     CustomText(
-                      _formatTime(call.createdAt),
+                      _formatTime(call.startedAt??DateTime.now()),
                       fontSize: 11,
                       color: AppColors.secondaryTextColor,
                     ),

@@ -225,15 +225,15 @@ class CallMessageCard extends StatelessWidget {
         child: LayoutBuilder(
           builder: (context, constraints) {
             final screenW = MediaQuery.of(context).size.width;
-            final maxCardW = (screenW - 70).clamp(180.0, 320.0);
+            final maxCardW = (screenW - 90).clamp(150.0, 240.0);
             return ConstrainedBox(
               constraints: BoxConstraints(maxWidth: maxCardW),
               child: Container(
                 margin: EdgeInsets.only(
-                  left: isReceive ? 10 : 60,
-                  right: isReceive ? 60 : 10,
-                  top: 4,
-                  bottom: 4,
+                  left: isReceive ? 8 : 60,
+                  right: isReceive ? 60 : 8,
+                  top: 2,
+                  bottom: 2,
                 ),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
@@ -244,7 +244,7 @@ class CallMessageCard extends StatelessWidget {
                       accent.withValues(alpha: 0.03),
                     ],
                   ),
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(12),
                   border:
                       Border.all(color: accent.withValues(alpha: 0.30), width: 1),
                 ),
@@ -254,18 +254,18 @@ class CallMessageCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Container(
-                        width: 4,
+                        width: 3,
                         decoration: BoxDecoration(
                           color: accent,
                           borderRadius: const BorderRadius.only(
-                            topLeft: Radius.circular(16),
-                            bottomLeft: Radius.circular(16),
+                            topLeft: Radius.circular(12),
+                            bottomLeft: Radius.circular(12),
                           ),
                         ),
                       ),
                       Flexible(
                         child: Padding(
-                          padding: const EdgeInsets.fromLTRB(12, 10, 8, 10),
+                          padding: const EdgeInsets.fromLTRB(8, 6, 6, 6),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             mainAxisSize: MainAxisSize.min,
@@ -281,7 +281,7 @@ class CallMessageCard extends StatelessWidget {
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style: TextStyle(
-                                        fontSize: 13,
+                                        fontSize: 11.5,
                                         fontWeight: FontWeight.w700,
                                         color: textColor,
                                         fontFamily: "Poppins",
@@ -289,10 +289,10 @@ class CallMessageCard extends StatelessWidget {
                                     ),
                                   ),
                                   if (_isOngoingCall) ...[
-                                    const SizedBox(width: 6),
+                                    const SizedBox(width: 5),
                                     Container(
-                                      width: 6,
-                                      height: 6,
+                                      width: 5,
+                                      height: 5,
                                       decoration: const BoxDecoration(
                                         color: Colors.green,
                                         shape: BoxShape.circle,
@@ -301,24 +301,24 @@ class CallMessageCard extends StatelessWidget {
                                   ],
                                 ],
                               ),
-                              const SizedBox(height: 4),
+                              const SizedBox(height: 2),
                               Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Icon(
                                     _callIcon,
-                                    size: 14,
+                                    size: 11,
                                     color:
                                         isNegative ? Colors.red : accent,
                                   ),
-                                  const SizedBox(width: 4),
+                                  const SizedBox(width: 3),
                                   Flexible(
                                     child: Text(
                                       _statusText,
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style: TextStyle(
-                                        fontSize: 11.5,
+                                        fontSize: 10,
                                         fontWeight: FontWeight.w500,
                                         color:
                                             isNegative ? Colors.red : accent,
@@ -328,11 +328,11 @@ class CallMessageCard extends StatelessWidget {
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 4),
+                              const SizedBox(height: 2),
                               Text(
                                 time,
                                 style: TextStyle(
-                                  fontSize: 10,
+                                  fontSize: 9,
                                   color: textColor.withValues(alpha: 0.5),
                                   fontFamily: "Poppins",
                                 ),
@@ -342,27 +342,27 @@ class CallMessageCard extends StatelessWidget {
                         ),
                       ),
                       Padding(
-                        padding: const EdgeInsets.fromLTRB(4, 10, 10, 10),
+                        padding: const EdgeInsets.fromLTRB(2, 6, 6, 6),
                         child: GestureDetector(
                           onTap:
                               _isOngoingCall ? _openCallScreen : _onCallBack,
                           child: Container(
-                            width: 40,
-                            height: 40,
+                            width: 30,
+                            height: 30,
                             decoration: BoxDecoration(
                               color: accent,
                               shape: BoxShape.circle,
                               boxShadow: [
                                 BoxShadow(
                                   color: accent.withValues(alpha: 0.35),
-                                  blurRadius: 8,
+                                  blurRadius: 6,
                                   offset: const Offset(0, 2),
                                 ),
                               ],
                             ),
                             child: Icon(
                               _isVideoCall ? Icons.videocam : Icons.call,
-                              size: 20,
+                              size: 16,
                               color: Colors.white,
                             ),
                           ),
