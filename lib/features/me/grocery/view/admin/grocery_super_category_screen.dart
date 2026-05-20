@@ -1,8 +1,7 @@
-import 'dart:ui';
-
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -55,7 +54,7 @@ class GrocerySuperCategoryScreen extends StatelessWidget {
           child: Column(
             children: [
 
-              // ── Bulk Upload Card (conditional) ──────────────────────────
+              // ── Snap-search suggestion (conditional) ─────────────────
               if (isAvailBulkUpload) ...[
                 CustomFormCard(
                   padding: EdgeInsets.all(SizeConfig.size10),
@@ -69,101 +68,10 @@ class GrocerySuperCategoryScreen extends StatelessWidget {
                         fontWeight: FontWeight.w600,
                       ),
                       SizedBox(height: SizeConfig.paddingXSL),
-                      MasonryGridView.count(
-                        shrinkWrap: true,
-                        primary: false,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: controller.grocerySnapSearchConfig.length,
-                        crossAxisCount: 2,
-                        crossAxisSpacing: 10,
-                        mainAxisSpacing: 10,
-                        padding: EdgeInsets.zero,
-                        itemBuilder: (context, index) {
-                          var item = controller.grocerySnapSearchConfig[index];
-                          return InkWell(
-                            onTap: () => Get.toNamed(
-                                RouteHelper.getAddGrocerySnapSearchScreenRoute()),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(10.0),
-                              child: Container(
-                                height: SizeConfig.size180,
-                                width: double.infinity,
-                                decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(10),
-                                    border: Border.all(color: AppColors.greyE5),
-                                    image: DecorationImage(
-                                      image: AssetImage(
-                                        item['image']!,
-                                      ),
-                                      fit: BoxFit.cover,
-                                    )
-                                ),
-                                child: Stack(
-                                  children: [
-
-                                    Positioned.fill(
-                                      child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(10),
-                                        child: BackdropFilter(
-                                          filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
-                                          child: Container(
-                                              decoration: BoxDecoration(
-                                                  borderRadius: BorderRadius.circular(10),
-                                                  color: AppColors.black.withValues(alpha: 0.6)
-                                              )
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-
-                                    Align(
-                                      alignment: Alignment.center,
-                                      child: Padding(
-                                        padding: EdgeInsets.all(10.0),
-                                        child: ClipRRect(
-                                          borderRadius: BorderRadius.circular(10),
-                                          child: BackdropFilter(
-                                            filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-                                            child: Container(
-                                              padding: EdgeInsets.all(10.0),
-                                              decoration: BoxDecoration(
-                                                color: AppColors.white.withValues(alpha: 0.1),
-                                                borderRadius: BorderRadius.circular(10),
-                                                border: Border.all(
-                                                    color: AppColors.white.withValues(alpha: 0.1
-                                                    )
-                                                ),
-                                              ),
-                                              child: Row(
-                                                mainAxisAlignment: MainAxisAlignment.center,
-                                                children: [
-                                                  LocalAssets(
-                                                    imagePath: item['icon']!,
-                                                    height: 18,
-                                                    width: 18,
-                                                    boxFix: BoxFit.scaleDown,
-                                                    imgColor: AppColors.white,
-                                                  ),
-                                                  SizedBox(width: 6),
-                                                  CustomText(
-                                                    item['title']!,
-                                                    fontSize: SizeConfig.small,
-                                                    color: AppColors.white,
-                                                    fontWeight: FontWeight.w400,
-                                                  )
-                                                ],
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          );
-                        },
+                      _snapSearchSuggestion(
+                        onTap: () => Get.toNamed(
+                          RouteHelper.getAddGrocerySnapSearchScreenRoute(),
+                        ),
                       ),
                     ],
                   ),
@@ -258,6 +166,76 @@ class GrocerySuperCategoryScreen extends StatelessWidget {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _snapSearchSuggestion({required VoidCallback onTap}) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        padding: EdgeInsets.symmetric(
+          horizontal: SizeConfig.size12,
+          vertical: SizeConfig.size10,
+        ),
+        decoration: BoxDecoration(
+          color: AppColors.primaryColor.withValues(alpha: 0.06),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: AppColors.primaryColor.withValues(alpha: 0.25),
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: EdgeInsets.all(SizeConfig.size8),
+              decoration: BoxDecoration(
+                color: AppColors.primaryColor.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: LocalAssets(
+                imagePath: AppIconAssets.cameraAddOutlineIcon,
+                height: 18,
+                width: 18,
+                boxFix: BoxFit.scaleDown,
+                imgColor: AppColors.primaryColor,
+              ),
+            ),
+            SizedBox(width: SizeConfig.size10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CustomText(
+                    'Search products by photo',
+                    fontSize: SizeConfig.small,
+                    color: AppColors.primaryColor,
+                    fontWeight: FontWeight.w600,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  SizedBox(height: 2),
+                  CustomText(
+                    'Upload a picture to find products instantly.',
+                    fontSize: SizeConfig.extraSmall,
+                    color: AppColors.secondaryTextColor,
+                    fontWeight: FontWeight.w400,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(width: SizeConfig.size6),
+            Icon(
+              Icons.chevron_right_rounded,
+              size: 20,
+              color: AppColors.primaryColor,
+            ),
+          ],
         ),
       ),
     );

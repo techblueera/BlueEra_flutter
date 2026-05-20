@@ -1,26 +1,14 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/common/referral_new/controller/referral_controller.dart';
-import 'package:BlueEra/features/common/referral_new/repo/referral_repo.dart';
+import 'package:BlueEra/features/common/referral/controller/referral_controller.dart';
+import 'package:BlueEra/features/common/referral/repo/referral_repo.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-/// "Add a video link" bottom sheet.
-///
-/// Two-step guided flow:
-///   ① PICK A PLATFORM — three branded chips (Instagram / X / YouTube)
-///      light up either on tap or automatically once the URL hints at
-///      a platform.
-///   ② PASTE YOUR URL — uses [HttpsTextField] so the input always
-///      starts with `https://` and gates http:// links out.
-///
-/// On submit the URL is POSTed to `/earn-service/admin-posts` via
-/// [ReferralControllerNew.createUserPost]; the platform inferred from
-/// the URL is sent as the `title` field.
 class AddSocialLinkSheet extends StatefulWidget {
-  final ReferralControllerNew controller;
+  final ReferralController controller;
   const AddSocialLinkSheet({super.key, required this.controller});
 
   @override
@@ -75,12 +63,6 @@ class _AddSocialLinkSheetState extends State<AddSocialLinkSheet> {
 
   void _onUrlChanged(String value) {
     final detected = ReferralRepoNew.detectPlatform(value);
-    // Paste triggers both the TextField's onChange AND the controller's
-    // addListener (HttpsTextField installs one to manage the https://
-    // prefix), so we get two callbacks per keystroke. Skip the
-    // setState when nothing meaningful changed to avoid rebuilding the
-    // sheet twice in a row — that's what the "skipped frames" warnings
-    // come from on slower devices.
     final newPlatform = _userSelectedChip ? _platform : detected;
     if (detected == _detectedFromUrl && newPlatform == _platform) return;
     setState(() {

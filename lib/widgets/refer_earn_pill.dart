@@ -1,7 +1,7 @@
 import 'dart:ui';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/common/referral_new/view/referral_page.dart';
+import 'package:BlueEra/features/common/referral/view/referral_page.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -14,7 +14,7 @@ class ReferEarnPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap ?? () => Get.to(() => ReferralPageNew()),
+      onTap: onTap ?? () => Get.to(() => ReferralPage()),
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(24),

@@ -34,6 +34,7 @@ class AuthRepo extends BaseService {
       {Map<String, dynamic>? bodyRequest}) async {
     final response = await ApiBaseHelper().putHTTP(
         "${updateIndividualAccountUser}$userId",
+        showProgress: false,
         params: bodyRequest,
         onError: (error) {},
         onSuccess: (data) {},

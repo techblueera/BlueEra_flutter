@@ -1,20 +1,10 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/common/referral_new/model/referral_testimonial_model.dart';
+import 'package:BlueEra/features/common/referral/model/referral_testimonial_model.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
-/// Refined testimonial card — keeps the existing business-card hierarchy
-/// from the BDM mockups (photo • name/role • quote • website • company)
-/// and adds a few subtle visual signals so it doesn't read as a plain
-/// rectangle:
-///
-///   • Decorative oversized quote glyph in the upper-right (low opacity,
-///     primary tint) — pure decoration, ignored by screen readers.
-///   • Soft 1px outer hairline + a thin primary accent strip on the left.
-///   • Avatar wrapped in a faint primary ring so the profile picture
-///     reads as the focal element regardless of source-image contrast.
 class TestimonialCard extends StatelessWidget {
   final ReferralTestimonial testimonial;
   final double? width;

@@ -2,21 +2,15 @@ import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
-import 'package:BlueEra/features/common/referral_new/controller/referral_controller.dart';
-import 'package:BlueEra/features/common/referral_new/view/all_testimonials_screen.dart';
-import 'package:BlueEra/features/common/referral_new/widgets/testimonial_card.dart';
+import 'package:BlueEra/features/common/referral/controller/referral_controller.dart';
+import 'package:BlueEra/features/common/referral/view/all_testimonials_screen.dart';
+import 'package:BlueEra/features/common/referral/widgets/testimonial_card.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-/// "Testimonials  •  View All" section.
-///
-/// The whole block — header, divider, horizontal carousel — sits inside
-/// a single [CustomFormCard] so it reads as one self-contained card on
-/// the page. The carousel renders the first [_kHomeLimit] entries and
-/// hands the rest off to a dedicated paginated page via "View All".
 class TestimonialsSection extends StatelessWidget {
-  final ReferralControllerNew controller;
+  final ReferralController controller;
 
   static const int _kHomeLimit = 10;
 

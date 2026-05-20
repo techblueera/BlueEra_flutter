@@ -7,7 +7,7 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
-import 'package:BlueEra/features/common/referral_new/controller/referral_controller.dart';
+import 'package:BlueEra/features/common/referral/controller/referral_controller.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:flutter/material.dart' hide Key;
 import 'package:flutter/services.dart';
@@ -135,7 +135,7 @@ String _withBdmReferral(String base) {
 }
 
 /// Returns the signed-in user's referral code only when their BDM
-/// application status is `COMPLETED` (per [ReferralControllerNew]).
+/// application status is `COMPLETED` (per [ReferralController]).
 ///
 /// Lookup order:
 ///   1. `ReferralControllerNew.myReferralCode` — the canonical source
@@ -149,8 +149,8 @@ String _withBdmReferral(String base) {
 /// yet (e.g. share surfaces opened before the referral flow loads).
 String? _currentUserReferralCodeIfBdmCompleted() {
   try {
-    if (!Get.isRegistered<ReferralControllerNew>()) return null;
-    final referral = Get.find<ReferralControllerNew>();
+    if (!Get.isRegistered<ReferralController>()) return null;
+    final referral = Get.find<ReferralController>();
     // `bdmDetails` is a Rxn — reading `.value.status` directly would
     // NPE the moment the API hasn't responded yet. The controller
     // already provides an `isCompleted` getter that handles the null

@@ -3,7 +3,6 @@ import 'dart:developer';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
-import 'package:BlueEra/core/api/model/guest_model_response.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/language_localization_service/language_model_new.dart';
 import 'package:BlueEra/core/language_localization_service/language_service_app.dart';
@@ -130,24 +129,11 @@ class LanguageControllerNew extends GetxController {
         formData: {ApiKeys.language: langCode},
         showProgress: false,
       );
-
-
-      // ResponseModel responseModel = await PersonalProfileRepo().updateUser(
-      //     formData: params,
-      //     showProgress: showProgress
-      // );
-
       if (responseModel.isSuccess) {
-        GuestUserResModel guestUserResModel =
-        GuestUserResModel.fromJson(responseModel.response?.data);
         await Get.find<ViewPersonalDetailsController>().viewPersonalProfile();
-
-        await SharedPreferenceUtils.setSecureValue(
-            SharedPreferenceUtils.authToken, guestUserResModel.token);
-        await getUserAuthToken();
       }
     } catch (e) {
-      log('⚠️ Failed to sync language preference to server: $e');
+      log('Failed to sync language preference to server: $e');
     }
   }
 }

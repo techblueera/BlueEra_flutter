@@ -317,6 +317,15 @@ class UserRepo extends BaseService {
     return response;
   }
 
+  Future<ResponseModel> getDirectReferralIncomeRepo({Map<String, dynamic>? queryParms}) async {
+    final response = await ApiBaseHelper().getHTTP(
+        walletDirectReferralIncome,
+        params: queryParms,
+        showProgress: false,
+        onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
+
 
   Future<ResponseModel> referralSuggestionsRepo() async {
     final response = await ApiBaseHelper().getHTTP(

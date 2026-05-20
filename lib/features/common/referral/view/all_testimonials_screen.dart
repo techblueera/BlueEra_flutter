@@ -1,8 +1,8 @@
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/common/referral_new/controller/referral_controller.dart';
-import 'package:BlueEra/features/common/referral_new/widgets/testimonial_card.dart';
+import 'package:BlueEra/features/common/referral/controller/referral_controller.dart';
+import 'package:BlueEra/features/common/referral/widgets/testimonial_card.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
@@ -13,7 +13,7 @@ import 'package:get/get.dart';
 /// or wire to a server endpoint by changing [_pageSize] and pointing
 /// `_page` at remote data.
 class AllTestimonialsScreen extends StatefulWidget {
-  final ReferralControllerNew controller;
+  final ReferralController controller;
   const AllTestimonialsScreen({super.key, required this.controller});
 
   @override

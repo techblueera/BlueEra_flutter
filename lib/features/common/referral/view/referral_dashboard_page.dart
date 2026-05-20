@@ -1,25 +1,15 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/common/referral_new/controller/referral_controller.dart';
-import 'package:BlueEra/features/common/referral_new/view/tabs/overview_tab.dart';
-import 'package:BlueEra/features/common/referral_new/view/tabs/post_tab.dart';
-import 'package:BlueEra/features/common/referral_new/view/tabs/statics_tab.dart';
-import 'package:BlueEra/features/common/referral_new/view/tabs/tutorial_tab.dart';
+import 'package:BlueEra/features/common/referral/controller/referral_controller.dart';
+import 'package:BlueEra/features/common/referral/view/tabs/overview_tab.dart';
+import 'package:BlueEra/features/common/referral/view/tabs/post_tab.dart';
+import 'package:BlueEra/features/common/referral/view/tabs/statics_tab.dart';
+import 'package:BlueEra/features/common/referral/view/tabs/tutorial_tab.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 
-/// The COMPLETED-state dashboard: 4-tab pager (Overview, Tutorial,
-/// Post, Statics).
-///
-/// The "My code" header lives in the parent [ReferralPageNew]'s AppBar
-/// — title on the left, code pill in the action slot — so this widget
-/// only owns the tab strip and its body.
-///
-/// The tab strip matches the mockup at `assets/overview_screen.png` —
-/// rounded card with the active tab filled in primary blue and inactive
-/// tabs displayed as light outlined pills.
 class ReferralDashboardPage extends StatefulWidget {
-  final ReferralControllerNew controller;
+  final ReferralController controller;
   const ReferralDashboardPage({super.key, required this.controller});
 
   @override

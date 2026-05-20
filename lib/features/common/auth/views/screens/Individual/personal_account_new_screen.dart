@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/common_singleton_class/user_session.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -23,7 +24,6 @@ import 'package:BlueEra/features/personal/personal_profile/controller/languge_li
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_drop_down-dialoge.dart';
-import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/new_common_date_selection_dropdown.dart';
@@ -87,7 +87,6 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
   final locationController = Get.put(LocationController());
   final LanguageListController langController =
       Get.find<LanguageListController>();
-  bool crBtnLoading = false;
 
   String? _imagePath;
   IndividualProfileType? _selectedProfileType;
@@ -238,12 +237,13 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            CustomText(langController.tr(AppStrings.profileType),
+                            CustomText('${langController.tr(AppStrings.profileType)}: ' ,
                                 color: AppColors.secondaryTextColor,
                                 fontSize: SizeConfig.small,
                                 fontWeight: FontWeight.w400),
                             Expanded(
-                              child: CustomText(_selectedProfileType?.name,
+                              child: CustomText(
+                                  _selectedProfileType?.name,
                                   color: AppColors.primaryColor,
                                   fontSize: SizeConfig.small,
                                   fontWeight: FontWeight.w400),
@@ -260,7 +260,7 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              CustomText("${AppStrings.profession.tr}",
+                              CustomText("${AppStrings.profession.tr}: ",
                                   color: AppColors.secondaryTextColor,
                                   fontSize: SizeConfig.small,
                                   fontWeight: FontWeight.w400),
@@ -1080,13 +1080,55 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                 bottom: SizeConfig.size20,
                 top: SizeConfig.size10),
             child: SafeArea(
-              child: CustomBtn(
-                isLoading: crBtnLoading,
-                onTap: () => _onSubmitPressed(),
-                title: AppStrings.submit,
-                isValidate: true,
-                radius: SizeConfig.size8,
-              ),
+              child: Obx(() {
+                final loading = authController
+                        .addUserResponse.value.status ==
+                    Status.LOADING;
+                return SizedBox(
+                  width: double.infinity,
+                  height: SizeConfig.size44,
+                  child: ElevatedButton.icon(
+                    onPressed: loading ? null : _onSubmitPressed,
+                    icon: loading
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor:
+                                  AlwaysStoppedAnimation(Colors.white),
+                            ),
+                          )
+                        : const SizedBox.shrink(),
+                    label: Text(
+                      loading
+                          ? '${AppStrings.submit}…'
+                          : AppStrings.submit,
+                      style: TextStyle(
+                        fontFamily: AppConstants.OpenSans,
+                        fontSize: SizeConfig.medium,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.white,
+                        letterSpacing: 0.2,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primaryColor,
+                      disabledBackgroundColor:
+                          AppColors.primaryColor.withValues(alpha: 0.5),
+                      padding: EdgeInsets.symmetric(
+                        vertical: SizeConfig.size12,
+                        horizontal: SizeConfig.size16,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius:
+                            BorderRadius.circular(SizeConfig.size8),
+                      ),
+                      elevation: 0,
+                    ),
+                  ),
+                );
+              }),
             ),
           ),
         ),
@@ -1149,10 +1191,6 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
         }
       }
 
-      setState(() {
-        crBtnLoading = true;
-      });
-      // final position = await getCurrentLocation();
       final locationData = await locationController.checkPermissionAndSetData();
       if (locationData != null) {
         final imageFile = (UserSession().imagePath != null)
@@ -1278,9 +1316,6 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
         };
         logs("requestData PERSONAL ==== ${requestData}");
         await authController.addIndividualUser(reqData: requestData);
-        setState(() {
-          crBtnLoading = false;
-        });
       } else {
         commonSnackBar(
             message: AppStrings.enableLocationPermission.tr);

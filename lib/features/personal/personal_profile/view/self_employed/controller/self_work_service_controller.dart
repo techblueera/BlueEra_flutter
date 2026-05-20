@@ -232,12 +232,7 @@ class SelfWorkServiceController extends GetxController{
   /// so a placeholder row exists in the backend. The user then fills
   /// in the rest (price, service type, description, hours, expertise,
   /// etc.) one by one from the Service tab's section cards.
-  ///
-  /// Called from two places:
-  ///   • SELF_EMPLOYED registration flow ([AuthController.addIndividualUser])
-  ///   • Empty-state CTA in [SelfProfessionHomeScreen] for users who
-  ///     registered before this method existed and never created an
-  ///     earn service.
+
   Future<void> createMinimalEarnService({
     required String serviceSubType,
     String? designationOverride,

@@ -28,6 +28,11 @@ class ReferralRepoNew extends BaseService {
   }) =>
       _userRepo.getWalletReferralHistoryRepo(queryParms: queryParams);
 
+  Future<ResponseModel> getDirectReferralIncome({
+    Map<String, dynamic>? queryParams,
+  }) =>
+      _userRepo.getDirectReferralIncomeRepo(queryParms: queryParams);
+
   Future<ResponseModel> getReferralSuggestions() =>
       _userRepo.referralSuggestionsRepo();
 
