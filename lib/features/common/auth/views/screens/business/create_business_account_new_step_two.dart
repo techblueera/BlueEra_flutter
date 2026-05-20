@@ -250,12 +250,9 @@ class _CreateBusinessAccountNewStepTwoState
                 padding: EdgeInsets.all(
                   SizeConfig.size10,
                 ),
-                child: AbsorbPointer(
-                  absorbing: viewBusinessDetailsController
-                      .isUpdateBusinessDetailsLoading.value,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                       Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -505,106 +502,55 @@ class _CreateBusinessAccountNewStepTwoState
                             width: SizeConfig.size10,
                           ),
                           Expanded(
-                            child: Obx(() => CustomBtn(
-                                  radius: 10,
-                                  onTap: isFormValid
-                                      ? () async {
-                                          if (selectedType ==
-                                              ContactType.Mobile) {
-                                            String? phoneError =
-                                                ValidationMethod.validatePhone(
-                                                    mobileController.text);
-                                            if (phoneError != null) {
-                                              commonSnackBar(
-                                                  message: phoneError);
-                                              return;
-                                            }
-                                          }
-
-                                          if (selectedType ==
-                                              ContactType.Landline) {
-                                            String? landlineError =
-                                                ValidationMethod
-                                                    .validateLandline(
-                                                        landlineNumberController
-                                                            .text);
-                                            if (landlineError != null) {
-                                              commonSnackBar(
-                                                  message: AppStrings
-                                                      .pleaseEnterValidLandline
-                                                      .tr);
-                                              return;
-                                            }
-                                          }
-
-                                          /// Submit action
-                                          Map<String, dynamic> reqParam = {
-                                            ApiKeys.businessId: businessId,
-                                            ApiKeys.office_mob_no_Pre: 91,
-                                            "business_number": {
-                                              "office_mob_no": mobileController
-                                                      .text.isNotEmpty
-                                                  ? {
-                                                      "pre": "91",
-                                                      "number":
-                                                          mobileController.text,
-                                                    }
-                                                  : null,
-                                              "office_landline_no":
-                                                  landlineNumberController
-                                                          .text.isNotEmpty
-                                                      ? {
-                                                          "pre":
-                                                              landlineCodeController
-                                                                  .text,
-                                                          "number":
-                                                              landlineNumberController
-                                                                  .text,
-                                                        }
-                                                      : null,
-                                            },
-                                            ApiKeys.city_state_pincode:
-                                                cityController.text,
-                                            ApiKeys.address:
-                                                fullBusinessAddressTextController
-                                                    .text,
-                                            ApiKeys.business_location:
-                                                jsonEncode({
-                                              ApiKeys.lat:
-                                                  viewBusinessDetailsController
-                                                      .addressLat?.value
-                                                      .toString(),
-                                              ApiKeys.lon:
-                                                  viewBusinessDetailsController
-                                                      .addressLong?.value
-                                                      .toString(),
-                                            }),
-                                            ApiKeys.pincode:
-                                                picCodeController.text,
-                                            ApiKeys.website_url:
-                                                websiteController.text,
-                                          };
-                                          await viewBusinessDetailsController
-                                              .updateBusinessDetails(reqParam,
-                                                  showProgress: false);
-                                          if (!mounted) return;
-                                          Get.toNamed(
-                                              RouteHelper
-                                                  .getCreateBusinessAccountNewStepThreeRoute(),
-                                              arguments: {
-                                                ApiKeys.city:
-                                                    cityController.text
-                                              });
-                                        }
-                                      : null,
-                                  title: viewBusinessDetailsController
-                                          .isUpdateBusinessDetailsLoading.value
-                                      ? null // hide text
-                                      : AppStrings.submit,
-                                  isLoading: viewBusinessDetailsController
-                                      .isUpdateBusinessDetailsLoading.value,
-                                  isValidate: isFormValid,
-                                )),
+                            child: Obx(() {
+                              final loading = viewBusinessDetailsController
+                                  .isUpdateBusinessDetailsLoading.value;
+                              final canSubmit = isFormValid && !loading;
+                              return SizedBox(
+                                height: SizeConfig.size44,
+                                child: ElevatedButton.icon(
+                                  onPressed: canSubmit ? _onSubmit : null,
+                                  icon: loading
+                                      ? const SizedBox(
+                                          width: 16,
+                                          height: 16,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            valueColor: AlwaysStoppedAnimation(
+                                                Colors.white),
+                                          ),
+                                        )
+                                      : const SizedBox.shrink(),
+                                  label: Text(
+                                    loading
+                                        ? '${AppStrings.submit}…'
+                                        : AppStrings.submit,
+                                    style: TextStyle(
+                                      fontFamily: AppConstants.OpenSans,
+                                      fontSize: SizeConfig.medium,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.white,
+                                      letterSpacing: 0.2,
+                                    ),
+                                  ),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppColors.primaryColor,
+                                    disabledBackgroundColor: loading
+                                        ? AppColors.primaryColor
+                                            .withValues(alpha: 0.5)
+                                        : AppColors.greyB4,
+                                    padding: EdgeInsets.symmetric(
+                                      vertical: SizeConfig.size12,
+                                      horizontal: SizeConfig.size16,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    elevation: 0,
+                                  ),
+                                ),
+                              );
+                            }),
                           ),
                         ],
                       ),
@@ -613,8 +559,63 @@ class _CreateBusinessAccountNewStepTwoState
                 ),
               ),
             ),
-          )),
+          ),
     );
   }
 
+  Future<void> _onSubmit() async {
+    if (selectedType == ContactType.Mobile) {
+      final phoneError =
+          ValidationMethod.validatePhone(mobileController.text);
+      if (phoneError != null) {
+        commonSnackBar(message: phoneError);
+        return;
+      }
+    }
+
+    if (selectedType == ContactType.Landline) {
+      final landlineError = ValidationMethod.validateLandline(
+          landlineNumberController.text);
+      if (landlineError != null) {
+        commonSnackBar(
+            message: AppStrings.pleaseEnterValidLandline.tr);
+        return;
+      }
+    }
+
+    final reqParam = <String, dynamic>{
+      ApiKeys.businessId: businessId,
+      ApiKeys.office_mob_no_Pre: 91,
+      "business_number": {
+        "office_mob_no": mobileController.text.isNotEmpty
+            ? {"pre": "91", "number": mobileController.text}
+            : null,
+        "office_landline_no": landlineNumberController.text.isNotEmpty
+            ? {
+                "pre": landlineCodeController.text,
+                "number": landlineNumberController.text,
+              }
+            : null,
+      },
+      ApiKeys.city_state_pincode: cityController.text,
+      ApiKeys.address: fullBusinessAddressTextController.text,
+      ApiKeys.business_location: jsonEncode({
+        ApiKeys.lat:
+            viewBusinessDetailsController.addressLat?.value.toString(),
+        ApiKeys.lon:
+            viewBusinessDetailsController.addressLong?.value.toString(),
+      }),
+      ApiKeys.pincode: picCodeController.text,
+      ApiKeys.website_url: websiteController.text,
+    };
+
+    await viewBusinessDetailsController.updateBusinessDetails(
+        reqParam,
+        showProgress: false);
+    if (!mounted) return;
+    Get.toNamed(
+      RouteHelper.getCreateBusinessAccountNewStepThreeRoute(),
+      arguments: {ApiKeys.city: cityController.text},
+    );
+  }
 }

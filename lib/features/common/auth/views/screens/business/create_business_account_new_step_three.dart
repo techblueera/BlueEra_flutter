@@ -103,11 +103,8 @@ class _CreateBusinessAccountNewStepThreeState
     return Scaffold(
         appBar: CommonBackAppBar(
             isLeading: true, title: AppStrings.businessDetailsTitle),
-        body: AbsorbPointer(
-          absorbing: viewBusinessDetailsController
-              .isUpdateBusinessDetailsLoading.value,
-          child: SingleChildScrollView(
-            child: Container(
+        body: SingleChildScrollView(
+          child: Container(
               margin: EdgeInsets.symmetric(
                   horizontal: SizeConfig.size16, vertical: SizeConfig.size16),
               decoration: BoxDecoration(
@@ -143,8 +140,8 @@ class _CreateBusinessAccountNewStepThreeState
                                   imagePath: AppIconAssets.ai_generative,
                                 ))
                             : SizedBox(
-                                height: 25,
-                                width: 25,
+                                height: 20,
+                                width: 20,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2.0,
                                 ),
@@ -277,80 +274,55 @@ class _CreateBusinessAccountNewStepThreeState
                           width: SizeConfig.size10,
                         ),
                         Expanded(
-                          child: Obx(() => CustomBtn(
-                                radius: 10,
-                                onTap: isFormValid
-                                    ? () async {
-                                        if (nameTextController.text
-                                                .trim()
-                                                .length <
-                                            4) {
-                                          commonSnackBar(
-                                              message:
-                                                  "Name must be at least 4 characters.");
-                                          return;
-                                        }
-                                        if (yourRoleController.text
-                                                .trim()
-                                                .length <
-                                            4) {
-                                          commonSnackBar(
-                                              message:
-                                                  "Role must be at least 4 characters.");
-                                          return;
-                                        }
-                                        if (emailTextController.text
-                                            .trim()
-                                            .isNotEmpty) {
-                                          String? emailError =
-                                              ValidationMethod.validateEmail(
-                                                  emailTextController.text
-                                                      .trim());
-                                          if (emailError != null) {
-                                            commonSnackBar(message: emailError);
-                                            return;
-                                          }
-                                        }
-
-                                        /// Submit action
-                                        Map<String, dynamic> reqParam = {
-                                          ApiKeys.businessId: businessId,
-                                          ApiKeys.business_description:
-                                              viewBusinessDetailsController
-                                                  .businessDescription.value,
-                                          ApiKeys.owner_details: jsonEncode([
-                                            {
-                                              ApiKeys.name:
-                                                  nameTextController.text,
-                                              ApiKeys.role_in_business:
-                                                  yourRoleController.text,
-                                              ApiKeys.email:
-                                                  emailTextController.text
-                                            }
-                                          ]),
-                                        };
-                                        await viewBusinessDetailsController
-                                            .updateBusinessDetails(
-                                                reqParam,
-                                                showProgress: false);
-                                        Get.offAllNamed(
-                                            RouteHelper.getBottomNavigationBarScreenRoute(),
-                                            arguments: {
-                                              ApiKeys.initialIndex: 1
-                                            }
-                                        );
-                                        // Get.toNamed(RouteHelper
-                                        //     .getAddBusinessLivePhotoRoute());
-                                      }
-                                    : null,
-                                title: viewBusinessDetailsController
-                                        .isUpdateBusinessDetailsLoading.value
-                                    ? null
-                                    : AppStrings.submit,
-                                isLoading: viewBusinessDetailsController
-                                    .isUpdateBusinessDetailsLoading.value,
-                                isValidate: isFormValid,
-                              )),
+                          child: Obx(() {
+                            final loading = viewBusinessDetailsController
+                                .isUpdateBusinessDetailsLoading.value;
+                            final canSubmit = isFormValid && !loading;
+                            return SizedBox(
+                              height: SizeConfig.size44,
+                              child: ElevatedButton.icon(
+                                onPressed: canSubmit ? _onSubmit : null,
+                                icon: loading
+                                    ? const SizedBox(
+                                        width: 16,
+                                        height: 16,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          valueColor: AlwaysStoppedAnimation(
+                                              Colors.white),
+                                        ),
+                                      )
+                                    : const SizedBox.shrink(),
+                                label: Text(
+                                  loading
+                                      ? '${AppStrings.submit}…'
+                                      : AppStrings.submit,
+                                  style: TextStyle(
+                                    fontFamily: AppConstants.OpenSans,
+                                    fontSize: SizeConfig.medium,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.white,
+                                    letterSpacing: 0.2,
+                                  ),
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.primaryColor,
+                                  disabledBackgroundColor: loading
+                                      ? AppColors.primaryColor
+                                          .withValues(alpha: 0.5)
+                                      : AppColors.greyB4,
+                                  padding: EdgeInsets.symmetric(
+                                    vertical: SizeConfig.size12,
+                                    horizontal: SizeConfig.size16,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  elevation: 0,
+                                ),
+                              ),
+                            );
+                          }),
                         ),
                       ],
                     ),
@@ -359,6 +331,47 @@ class _CreateBusinessAccountNewStepThreeState
               ),
             ),
           ),
-        ));
+        );
+  }
+
+  Future<void> _onSubmit() async {
+    if (nameTextController.text.trim().length < 4) {
+      commonSnackBar(message: "Name must be at least 4 characters.");
+      return;
+    }
+    if (yourRoleController.text.trim().length < 4) {
+      commonSnackBar(message: "Role must be at least 4 characters.");
+      return;
+    }
+    if (emailTextController.text.trim().isNotEmpty) {
+      final emailError =
+          ValidationMethod.validateEmail(emailTextController.text.trim());
+      if (emailError != null) {
+        commonSnackBar(message: emailError);
+        return;
+      }
+    }
+
+    final reqParam = <String, dynamic>{
+      ApiKeys.businessId: businessId,
+      ApiKeys.business_description:
+          viewBusinessDetailsController.businessDescription.value,
+      ApiKeys.owner_details: jsonEncode([
+        {
+          ApiKeys.name: nameTextController.text,
+          ApiKeys.role_in_business: yourRoleController.text,
+          ApiKeys.email: emailTextController.text,
+        }
+      ]),
+    };
+
+    await viewBusinessDetailsController.updateBusinessDetails(
+      reqParam,
+      showProgress: false,
+    );
+    Get.offAllNamed(
+      RouteHelper.getBottomNavigationBarScreenRoute(),
+      arguments: {ApiKeys.initialIndex: 1},
+    );
   }
 }

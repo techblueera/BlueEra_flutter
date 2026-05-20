@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/common_singleton_class/user_session.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -18,7 +19,6 @@ import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_pictur
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_drop_down-dialoge.dart';
-import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/new_common_date_selection_dropdown.dart';
@@ -59,12 +59,10 @@ class _CreateBusinessAccountNewStepOneState extends State<CreateBusinessAccountN
 
   @override
   Widget build(BuildContext context) {
-    return AbsorbPointer(
-      absorbing: authController.isAddBusinessUserLoading.value,
-      child: Scaffold(
-        appBar: CommonBackAppBar(
-          isLeading: true,
-        ),
+    return Scaffold(
+      appBar: CommonBackAppBar(
+        isLeading: true,
+      ),
         body: SafeArea(
           child: Form(
             key: _formKey,
@@ -153,6 +151,25 @@ class _CreateBusinessAccountNewStepOneState extends State<CreateBusinessAccountN
                                 ),
                                 child: Column(
                                   children: [
+                                    Row(
+                                      children: [
+                                        CustomText(
+                                            "Business - ",
+                                            color: AppColors.secondaryTextColor,
+                                            fontSize: SizeConfig.small,
+                                            fontWeight: FontWeight.w400
+                                        ),
+                                        Expanded(
+                                          child: CustomText(
+                                              authController.selectedTypeOfBusiness?.name,
+                                              color: AppColors.primaryColor,
+                                              fontSize: SizeConfig.small,
+                                              fontWeight: FontWeight.w400
+                                          ),
+                                        )
+                                      ],
+                                    ),
+                                    SizedBox(height: SizeConfig.paddingXSmall),
                                     Row(
                                       children: [
                                         CustomText(
@@ -538,20 +555,59 @@ class _CreateBusinessAccountNewStepOneState extends State<CreateBusinessAccountN
                  horizontal: SizeConfig.size15,
                         vertical: SizeConfig.size15),
                     child: SafeArea(
-                      child: Obx(()=> CustomBtn(
-                          onTap: () => _onSubmit(),
-                          isValidate: true,
-                          radius: SizeConfig.size8,
-                          title: authController.isAddBusinessUserLoading.value
-                              ? null // hide text
-                              : AppStrings.submit,
-                          isLoading: authController.isAddBusinessUserLoading.value
-                      )),
+                      child: Obx(() {
+                        final loading = authController
+                                .addUserResponse.value.status ==
+                            Status.LOADING;
+                        return SizedBox(
+                          width: double.infinity,
+                          height: SizeConfig.size44,
+                          child: ElevatedButton.icon(
+                            onPressed: loading ? null : _onSubmit,
+                            icon: loading
+                                ? const SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation(
+                                          Colors.white),
+                                    ),
+                                  )
+                                : const SizedBox.shrink(),
+                            label: Text(
+                              loading
+                                  ? '${AppStrings.submit}…'
+                                  : AppStrings.submit,
+                              style: TextStyle(
+                                fontFamily: AppConstants.OpenSans,
+                                fontSize: SizeConfig.medium,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.white,
+                                letterSpacing: 0.2,
+                              ),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primaryColor,
+                              disabledBackgroundColor: AppColors.primaryColor
+                                  .withValues(alpha: 0.5),
+                              padding: EdgeInsets.symmetric(
+                                vertical: SizeConfig.size12,
+                                horizontal: SizeConfig.size16,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(
+                                    SizeConfig.size8),
+                              ),
+                              elevation: 0,
+                            ),
+                          ),
+                        );
+                      }),
                     ),
                   ),
           ),
         ),
-      ),
     );
   }
 

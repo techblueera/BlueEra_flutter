@@ -4,6 +4,7 @@ import 'dart:async';
 
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
@@ -13,7 +14,6 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/common_dialog.dart';
-import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
@@ -143,7 +143,7 @@ class _OtpPageScreenState extends State<OtpPageScreen> with CodeAutoFill {
       return;
     }
     await Get.find<AuthController>().sendOTP();
-    if (Get.find<AuthController>().otpVerificationResponse.status ==
+    if (Get.find<AuthController>().otpVerificationResponse.value.status ==
         Status.COMPLETE) {
       _otpController.clear();
       _startTimer();
@@ -174,7 +174,9 @@ class _OtpPageScreenState extends State<OtpPageScreen> with CodeAutoFill {
       },
       child: Scaffold(
         backgroundColor: Colors.white,
-        body: Padding(
+        body: Stack(
+          children: [
+            Padding(
           padding: EdgeInsets.symmetric(horizontal: SizeConfig.size30),
           child: Form(
             key: _formKey,
@@ -249,13 +251,61 @@ class _OtpPageScreenState extends State<OtpPageScreen> with CodeAutoFill {
 
                       SizedBox(height: SizeConfig.size20),
 
-                      CustomBtn(
-                        onTap: _isSubmitDisabled
-                            ? () => _onVerifyOtpPressed(context)
-                            : null,
-                        title: AppStrings.submit.tr,
-                        isValidate: _isSubmitDisabled,
-                      ),
+                      Obx(() {
+                        final loading = Get.find<AuthController>()
+                                .otpVerificationResponse
+                                .value
+                                .status ==
+                            Status.LOADING;
+                        final canSubmit = _isSubmitDisabled && !loading;
+                        return SizedBox(
+                          width: double.infinity,
+                          height: SizeConfig.size44,
+                          child: ElevatedButton.icon(
+                            onPressed:
+                                canSubmit ? () => _onVerifyOtpPressed(context) : null,
+                            icon: loading
+                                ? const SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor:
+                                          AlwaysStoppedAnimation(Colors.white),
+                                    ),
+                                  )
+                                : const SizedBox.shrink(),
+                            label: Text(
+                              loading
+                                  ? '${AppStrings.submit.tr}…'
+                                  : AppStrings.submit.tr,
+                              style: TextStyle(
+                                fontFamily: AppConstants.OpenSans,
+                                fontSize: SizeConfig.medium,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.white,
+                                letterSpacing: 0.2,
+                              ),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primaryColor,
+                              disabledBackgroundColor: loading
+                                  ? AppColors.primaryColor
+                                      .withValues(alpha: 0.5)
+                                  : AppColors.greyB4,
+                              padding: EdgeInsets.symmetric(
+                                vertical: SizeConfig.size12,
+                                horizontal: SizeConfig.size16,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius:
+                                    BorderRadius.circular(SizeConfig.size8),
+                              ),
+                              elevation: 0,
+                            ),
+                          ),
+                        );
+                      }),
 
                       SizedBox(height: SizeConfig.size30),
 
@@ -330,6 +380,28 @@ class _OtpPageScreenState extends State<OtpPageScreen> with CodeAutoFill {
               ),
             ),
           ),
+        ),
+            // Dimmed full-screen overlay while verifyOTP is in flight —
+            // catches taps so the user can't double-submit or open the
+            // resend link mid-request. The inline button spinner above
+            // already signals "in progress"; this just adds the visual
+            // veil the user asked for.
+            Obx(() {
+              final loading = Get.find<AuthController>()
+                      .otpVerificationResponse
+                      .value
+                      .status ==
+                  Status.LOADING;
+              if (!loading) return const SizedBox.shrink();
+              return Positioned.fill(
+                child: AbsorbPointer(
+                  child: Container(
+                    color: Colors.black.withValues(alpha: 0.20),
+                  ),
+                ),
+              );
+            }),
+          ],
         ),
       ),
     );

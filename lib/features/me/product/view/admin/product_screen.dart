@@ -36,11 +36,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-/// Inventory home (v2) — pattern background, blue gradient top bar,
-/// white profile row, and a rounded-pill tab card. Pill order:
-/// Orders, Overview, Post, Add Product, Statistics. "Add Product" is
-/// action-only — it fires the existing add-product flow without
-/// switching the body.
 class ProductScreen extends StatefulWidget {
 
   const ProductScreen({

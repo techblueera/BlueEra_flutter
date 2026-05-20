@@ -52,7 +52,8 @@ class AuthController extends GetxController {
   ApiResponse mobileNoOtpSendResponse = ApiResponse.initial('Initial');
   ApiResponse businessCategoryResponse = ApiResponse.initial('Initial');
   ApiResponse professionListingResponse = ApiResponse.initial('Initial');
-  ApiResponse otpVerificationResponse = ApiResponse.initial('Initial');
+  final Rx<ApiResponse> otpVerificationResponse =
+      Rx<ApiResponse>(ApiResponse.initial('Initial'));
   final Rx<ApiResponse> addUserResponse =
       Rx<ApiResponse>(ApiResponse.initial('Initial'));
   Rx<ApiResponse> gstVerifyResponse = ApiResponse.initial('Initial').obs;
@@ -150,6 +151,7 @@ class AuthController extends GetxController {
 
   ///VERIFY OTP...
   Future<void> verifyOTP({required String? otp}) async {
+    otpVerificationResponse.value = ApiResponse.loading('loading');
     String? token;
     try {
       // Always force-refresh on login so the backend gets the latest FCM
@@ -182,8 +184,6 @@ class AuthController extends GetxController {
 
         ///if true user key the user created successfully....
         if (dataUser) {
-          commonSnackBar(message: response.message ?? AppStrings.success);
-
           if (data.token != null && (data.token?.isNotEmpty ?? false)) {
             // OnesignalService.setOneSignalUserIdentity(
             //     data.data?.username ?? '');
@@ -197,7 +197,6 @@ class AuthController extends GetxController {
                   SharedPreferenceUtils.authToken, data.token);
               await SharedPreferenceUtils.setSecureValue(
                   SharedPreferenceUtils.userLoginMobile, data.data?.contactNo);
-              // eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzZXNzaW9uSWQiOiI2OWM3NzE2MGI2OWQ3YzJhMzU5ODkwMWMiLCJfaWQiOnsiX2lkIjoiNjljNzcxNjA0YjAzNjI0ZTBhNTEzYWQ1IiwiaWQiOiI2OWM3NzE2MDRiMDM2MjRlMGE1MTNhZDUiLCJhY2NvdW50X3R5cGUiOiJHVUVTVCIsImNvbnRhY3Rfbm8iOiIwMDEzMzAwMDAwIiwiYnVzaW5lc3NfaWQiOm51bGwsIm5hbWUiOiJHdWVzdDAwMDAiLCJwcm9maWxlX2ltYWdlIjoiIn0sImlhdCI6MTc3NDY3ODM2OCwiZXhwIjoxNzkwMjMwMzY4fQ.BQoIDhS442PXg92LoOLfl7Xi6IX65PanzhKAFI5Bx2A
               await getMobileNo();
               await getUserLoginBusinessId();
               await getUserLoginAccountType();
@@ -208,15 +207,23 @@ class AuthController extends GetxController {
               // connect while logged out; this is the first authenticated
               // connect, on which buffered call-event listeners replay.
               unawaited(ChatSocketService().connectToSocket());
-              final viewProfileController =
-                  getOrPut(() => ViewBusinessDetailsController(), permanent: true);
-
+              // First-time login has no cached business profile yet, so
+              // `businessTypeGlobal` is still empty and `resolveBusinessScreen`
+              // would briefly route to `_UnknownBusinessFallback` while
+              // BottomNavigationBarScreen's post-frame init catches up.
+              // Awaiting the fetch here keeps the user on the OTP screen
+              // (under its dim overlay) until the prefs are populated;
+              // _handlePostFrameInitialization then no-ops because the
+              // response is already COMPLETE. Subsequent logins hit the
+              // BusinessProfileCache instantly so this stays cheap.
+              final viewProfileController = getOrPut(
+                  () => ViewBusinessDetailsController(),
+                  permanent: true);
               await viewProfileController.viewBusinessProfile();
               Get.offNamedUntil(
                 RouteHelper.getBottomNavigationBarScreenRoute(),
                     (route) => false,
                 arguments: {ApiKeys.initialIndex: 0},
-
               );
             } else if (data.data?.accountType?.toUpperCase() ==
                 AppConstants.individual) {
@@ -234,20 +241,31 @@ class AuthController extends GetxController {
               await getUserAuthToken();
               // First authenticated connect — see business branch above.
               unawaited(ChatSocketService().connectToSocket());
-              final personalController =
-                  Get.put(ViewPersonalDetailsController(), permanent: true);
+              // Same first-time rationale as the business branch:
+              // `userProfileTypeGlobal` is still empty until the personal
+              // profile lands, and resolveIndividualScreen would briefly
+              // show the fallback. Awaiting here keeps the user on the
+              // OTP screen's dim overlay until the prefs are populated.
+              // PersonalProfileCache makes this near-instant on subsequent
+              // logins.
+              final personalController = Get.put(
+                  ViewPersonalDetailsController(),
+                  permanent: true);
               await personalController.viewPersonalProfile();
               Get.offNamedUntil(
                 RouteHelper.getBottomNavigationBarScreenRoute(),
                     (route) => false,
                 arguments: {ApiKeys.initialIndex: 1},
-
               );
             }
 
+            // Now that the setup is done and we're navigating to the
+            // bottom-nav, surface the success message — the snackbar
+            // lands on the destination screen rather than flashing on
+            // the OTP screen while the spinner is still running.
+            commonSnackBar(message: response.message ?? AppStrings.success);
+
             final wasDeletionCancelled = data.accountDeletionCancelled == true;
-
-
             if (wasDeletionCancelled) {
               Future.delayed(const Duration(milliseconds: 400), () {
                 commonSnackBar(
@@ -259,7 +277,7 @@ class AuthController extends GetxController {
           } else {
             commonSnackBar(message: response.message ?? AppStrings.tokenIsNull);
           }
-          otpVerificationResponse = ApiResponse.complete(response);
+          otpVerificationResponse.value = ApiResponse.complete(response);
         }
 
         ///Guest create account but profile create.....
@@ -274,7 +292,7 @@ class AuthController extends GetxController {
           await SharedPreferenceUtils.setSecureValue(
               SharedPreferenceUtils.accountType, AppConstants.guest);
           await getGuestUserLoginData();
-          await Future.delayed(Duration(milliseconds: 350));
+          // await Future.delayed(Duration(milliseconds: 350));
           // Get.offAll(() => const ChooseAccountTypeScreen());
           Get.offAll(() => const CreateAccountTypeScreen());
           // Get.toNamed(RouteHelper.getCreateAccountTypeScreenRoute());
@@ -283,21 +301,24 @@ class AuthController extends GetxController {
           //   RouteHelper.getBottomNavigationBarScreenRoute(),
           //   (route) => false,
           // );
+          otpVerificationResponse.value = ApiResponse.complete(response);
         }
 
         ///GUEST ACCOUNT.....
         else {
           Get.offAll(() => const CompleteGuestProfileScreen());
+          otpVerificationResponse.value = ApiResponse.complete(response);
         }
       } else {
         commonSnackBar(
             message: response.message ?? AppStrings.somethingWentWrong);
-        // message:  response.response?.data?[ApiKeys.message]  ?? AppStrings.somethingWentWrong);
+        otpVerificationResponse.value = ApiResponse.error(
+            response.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e, s) {
       logs("ERROR ${e}");
       logs("STACK TRACE: $s");
-      otpVerificationResponse = ApiResponse.error('error');
+      otpVerificationResponse.value = ApiResponse.error('error');
       commonSnackBar(message: e.toString());
       // Get.dialog(CustomText(e.toString()));
     }
@@ -413,18 +434,15 @@ class AuthController extends GetxController {
     }
   }
 
-  RxBool isAddBusinessUserLoading = false.obs;
-
   Future<void> addBusinessUser({required Map<String, dynamic>? reqData}) async {
+    addUserResponse.value = ApiResponse.loading('loading');
     try {
-      isAddBusinessUserLoading.value = true;
       ResponseModel response = await AuthRepo().updateBusinessAccountUserRepo(
           bodyRequest: reqData, showProgress: false);
       if (response.isSuccess) {
         final upgraded = BusinessUserResponseModel.fromJson(
             response.response?.data ?? {});
         if (upgraded.status ?? false) {
-          commonSnackBar(message: response.message ?? AppStrings.success);
 
           await SharedPreferenceUtils.setSecureValue(
               SharedPreferenceUtils.accountType, AppConstants.business);
@@ -437,11 +455,9 @@ class AuthController extends GetxController {
           await getUserLoginAccountType();
           await getUserAuthToken();
           // Guest → business upgrade: token just landed, open the chat
-          // socket so call/chat events flow without an app restart.
+          // socket so call/chat events flow without an app restart. Fire
+          // and forget — UI must not block on socket handshake.
           unawaited(ChatSocketService().connectToSocket());
-          final viewProfileController =
-              getOrPut(() => ViewBusinessDetailsController(), permanent: true);
-          await viewProfileController.viewBusinessProfile();
 
           logs(
               " ApiKeys.category_Of_Business = ${reqData![ApiKeys.type_of_business]}");
@@ -449,145 +465,165 @@ class AuthController extends GetxController {
               " ApiKeys.ApiKeys.sub_category_Of_Business = ${reqData[ApiKeys.sub_category_Of_Business]}");
           logs(
               " ApiKeys.category_Of_Business = ${reqData[ApiKeys.category_Of_Business]}");
-          String typeOfBusiness =
+
+          final typeOfBusiness =
               reqData[ApiKeys.type_of_business].toString().toUpperCase();
-          Map<String, dynamic> reqBody = {
+          final categoryOfBusiness =
+              reqData[ApiKeys.category_Of_Business].toString().toUpperCase();
+          final reqBody = <String, dynamic>{
             ApiKeys.business_name: reqData[ApiKeys.business_name],
             ApiKeys.business_location: reqData[ApiKeys.business_location],
             ApiKeys.type_of_business: reqData[ApiKeys.type_of_business],
             ApiKeys.nature_of_business: reqData[ApiKeys.nature_of_business],
             ApiKeys.date_of_incorporation:
                 reqData[ApiKeys.date_of_incorporation],
-            ApiKeys.category_Of_Business: reqData[ApiKeys.category_Of_Business],
+            ApiKeys.category_Of_Business:
+                reqData[ApiKeys.category_Of_Business],
             ApiKeys.sub_category_Of_Business:
                 reqData[ApiKeys.sub_category_Of_Business],
             ApiKeys.number_of_Employees: reqData[ApiKeys.number_of_Employees],
             ApiKeys.number_of_branch: reqData[ApiKeys.number_of_branch],
           };
 
-          ///FOR SCHOOL....
+          // Parallelize the slowest network steps so the user reaches
+          // step 2 ~one round-trip sooner:
+          //   1. viewBusinessProfile — needed because the next screen
+          //      reads the freshly-created business profile.
+          //   2. createSchool / createLab / createHospital / createOther
+          //      / createHotel — placeholder side-effect for the
+          //      specific business type. Navigation doesn't depend on
+          //      it but we wait so any failure surfaces before the
+          //      user leaves this screen.
+          final viewProfileController =
+              getOrPut(() => ViewBusinessDetailsController(), permanent: true);
+          final pending = <Future<void>>[
+            viewProfileController.viewBusinessProfile(),
+          ];
+
           if (typeOfBusiness == BusinessType.Siksha.name.toUpperCase()) {
-            final controller = getOrPut(() => SchoolController());
-            await controller.createSchoolController(reqData: reqData);
-          }
-
-          ///FOR LAB....
-
-          else if (reqData[ApiKeys.category_Of_Business]
-                  .toString()
-                  .toUpperCase() ==
+            pending.add(getOrPut(() => SchoolController())
+                .createSchoolController(reqData: reqData));
+          } else if (categoryOfBusiness ==
               AppConstants.DIAGNOSTIC_TESTING_CENTERSWith_.toUpperCase()) {
-            final controller = getOrPut(() => LabServiceAiController());
-            await controller.createLabServiceController(reqData: reqBody);
-          } else if ((reqData[ApiKeys.category_Of_Business]
-                      .toString()
-                      .toUpperCase() ==
-                  AppConstants.HOSPITALS_SECTOR.toUpperCase()) ||
-              (reqData[ApiKeys.category_Of_Business].toString().toUpperCase() ==
-                  "ALTERNATIVE_WELLNESS") ||
-              (reqData[ApiKeys.category_Of_Business].toString().toUpperCase() ==
-                  "CLINIC_DOCTORS")) {
-            final controller = getOrPut(() => HospitalServiceAiController());
-            await controller.createHospitalServiceController(reqData: reqBody);
-          } else if ((reqData[ApiKeys.category_Of_Business]
-                      .toString()
-                      .toUpperCase() ==
-                  "SUPPORT_SERVICES") ||
-              (typeOfBusiness == BusinessType.Service.name.toUpperCase())) {
-            final controller = getOrPut(() => BusinessProfileFullController());
+            pending.add(getOrPut(() => LabServiceAiController())
+                .createLabServiceController(reqData: reqBody));
+          } else if (categoryOfBusiness ==
+                  AppConstants.HOSPITALS_SECTOR.toUpperCase() ||
+              categoryOfBusiness == "ALTERNATIVE_WELLNESS" ||
+              categoryOfBusiness == "CLINIC_DOCTORS") {
+            pending.add(getOrPut(() => HospitalServiceAiController())
+                .createHospitalServiceController(reqData: reqBody));
+          } else if (categoryOfBusiness == "SUPPORT_SERVICES" ||
+              typeOfBusiness == BusinessType.Service.name.toUpperCase()) {
+            final controller =
+                getOrPut(() => BusinessProfileFullController());
             reqBody['profileName'] = reqData[ApiKeys.business_name];
-            await controller.createOtherProfileController(reqParm: reqBody);
-          } else if ((typeOfBusiness == "FINANCE") ||
-              (typeOfBusiness == "BANKING_SECTOR")) {
-            final controller = getOrPut(() => BusinessProfileFullController());
+            pending.add(
+                controller.createOtherProfileController(reqParm: reqBody));
+          } else if (typeOfBusiness == "FINANCE" ||
+              typeOfBusiness == "BANKING_SECTOR") {
+            final controller =
+                getOrPut(() => BusinessProfileFullController());
             reqBody['profileName'] = reqData[ApiKeys.business_name];
             reqBody['type'] = "finance";
             reqBody['sub_type'] = typeOfBusiness;
-
-            await controller.createOtherProfileController(reqParm: reqBody);
-          } else if ((typeOfBusiness ==
-              BusinessType.Motel.name.toUpperCase())) {
-            final controller = getOrPut(() => HotelServiceController());
-
-            final locationMap = jsonDecode(reqData[ApiKeys.business_location]);
-            final lat = locationMap[ApiKeys.lat];
-            final lon = locationMap[ApiKeys.lon];
-
-            // Reverse-geocode lat/lon to fill city, state, pincode.
-            String city = '';
-            String state = '';
-            String pincode = '';
-            final double? latD =
-                lat is num ? lat.toDouble() : double.tryParse(lat.toString());
-            final double? lonD =
-                lon is num ? lon.toDouble() : double.tryParse(lon.toString());
-            if (latD != null && lonD != null) {
-              try {
-                final placemarks = await placemarkFromCoordinates(latD, lonD);
-                if (placemarks.isNotEmpty) {
-                  final p = placemarks.first;
-                  city = p.locality?.isNotEmpty == true
-                      ? p.locality!
-                      : (p.subAdministrativeArea ?? '');
-                  state = p.administrativeArea ?? '';
-                  pincode = p.postalCode ?? '';
-                }
-              } catch (e) {
-                log('Motel reverse-geocode failed: $e');
-              }
-            }
-
-            final reqDataParm = {
-              ApiKeys.businessId: businessId,
-              "name": reqData[ApiKeys.business_name],
-              "description": "",
-              "website": "",
-              "address": {"city": city, "state": state, "pincode": pincode},
-              "location": {
-                "name": "",
-                "type": "Point",
-                "coordinates": [lat, lon]
-
-                // "coordinates": [reqData[ApiKeys.business_location]['lat'],reqData[ApiKeys.business_location]['lon'],]
-              },
-              "bus_station_location": {
-                "name": "",
-                "type": "Point",
-                "coordinates": []
-              },
-              "category": businessCategoryGlobal
-            };
-            controller.createHotelServiceController(reqParm: reqDataParm);
+            pending.add(
+                controller.createOtherProfileController(reqParm: reqBody));
+          } else if (typeOfBusiness ==
+              BusinessType.Motel.name.toUpperCase()) {
+            pending.add(_createMotelService(reqData));
           }
+
+          await Future.wait(pending);
+
+          // Cascade settled — only now surface the success message so
+          // the user sees it as a confirmation, not while the spinner
+          // is still running.
+          commonSnackBar(message: response.message ?? AppStrings.success);
 
           if (Get.isRegistered<BottomBarController>()) {
             Get.find<BottomBarController>().currentIndex.value = 1;
           }
 
           // Already on the bottom-nav root — pop any business-creation
-          // screens stacked on top, then push step 2 on top of bottom nav.
-          // Do NOT offAllNamed back to bottom nav: recreating it re-runs
-          // resolveBusinessScreen()'s post-frame init and re-opens the
-          // "complete profile" sheet underneath / on top of step 2.
+          // screens stacked on top, then push step 2 on top of bottom
+          // nav. Do NOT offAllNamed back to bottom nav: recreating it
+          // re-runs resolveBusinessScreen()'s post-frame init and
+          // re-opens the "complete profile" sheet underneath / on top
+          // of step 2.
           Get.until((route) => route.isFirst);
           Get.toNamed(RouteHelper.getCreateBusinessAccountNewStepTwoRoute());
-
           addUserResponse.value = ApiResponse.complete(response);
           clearAllData();
         } else {
           commonSnackBar(message: AppStrings.somethingWentWrong);
+          addUserResponse.value =
+              ApiResponse.error(AppStrings.somethingWentWrong);
         }
       } else {
         commonSnackBar(
             message: response.message ?? AppStrings.somethingWentWrong);
+        addUserResponse.value = ApiResponse.error(
+            response.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
       logs("ERRPR $e");
       addUserResponse.value = ApiResponse.error('error');
       commonSnackBar(message: AppStrings.somethingWentWrong);
-    } finally {
-      isAddBusinessUserLoading.value = false;
     }
+  }
+
+  /// Motel branch helper for [addBusinessUser]: reverse-geocodes
+  /// lat/lon to city/state/pincode, then creates the hotel-service
+  /// placeholder. Extracted because the inline version was hard to
+  /// read alongside the other branch creations inside `Future.wait`.
+  Future<void> _createMotelService(Map<String, dynamic> reqData) async {
+    final controller = getOrPut(() => HotelServiceController());
+    final locationMap = jsonDecode(reqData[ApiKeys.business_location]);
+    final lat = locationMap[ApiKeys.lat];
+    final lon = locationMap[ApiKeys.lon];
+
+    String city = '';
+    String state = '';
+    String pincode = '';
+    final double? latD =
+        lat is num ? lat.toDouble() : double.tryParse(lat.toString());
+    final double? lonD =
+        lon is num ? lon.toDouble() : double.tryParse(lon.toString());
+    if (latD != null && lonD != null) {
+      try {
+        final placemarks = await placemarkFromCoordinates(latD, lonD);
+        if (placemarks.isNotEmpty) {
+          final p = placemarks.first;
+          city = p.locality?.isNotEmpty == true
+              ? p.locality!
+              : (p.subAdministrativeArea ?? '');
+          state = p.administrativeArea ?? '';
+          pincode = p.postalCode ?? '';
+        }
+      } catch (e) {
+        log('Motel reverse-geocode failed: $e');
+      }
+    }
+
+    await controller.createHotelServiceController(reqParm: {
+      ApiKeys.businessId: businessId,
+      "name": reqData[ApiKeys.business_name],
+      "description": "",
+      "website": "",
+      "address": {"city": city, "state": state, "pincode": pincode},
+      "location": {
+        "name": "",
+        "type": "Point",
+        "coordinates": [lat, lon]
+      },
+      "bus_station_location": {
+        "name": "",
+        "type": "Point",
+        "coordinates": []
+      },
+      "category": businessCategoryGlobal,
+    });
   }
 
   Rx<GstVerifyModel>? gstVerifyModel = GstVerifyModel().obs;
