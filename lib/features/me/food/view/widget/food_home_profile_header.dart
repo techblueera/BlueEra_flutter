@@ -8,7 +8,7 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/multipart_image_service.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
-import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
+import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/widgets/common_circular_profile_image.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
@@ -118,7 +118,7 @@ class FoodHomeProfileHeader extends StatelessWidget {
                         onTap: () async {
                           try {
                             final newPath =
-                                await SelectProfilePictureDialog.showLogoDialog(
+                                await PhotoPickerService.pickSinglePhoto(
                                         context, AppStrings.editCoverPicture.tr,
                                         cropAspectRatio:
                                             CropAspectRatio(width: 3, height: 1)

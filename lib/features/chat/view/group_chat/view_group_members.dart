@@ -19,7 +19,7 @@ import '../../../../widgets/common_back_app_bar.dart';
 import '../../../../widgets/expandable_text.dart';
 import '../../../../widgets/horizontal_tab_selector.dart';
 import '../../../../widgets/local_assets.dart';
-import '../../../common/auth/views/dialogs/select_profile_picture_dialog.dart';
+import 'package:BlueEra/core/services/photo_picker_service.dart';
 import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/model/group_details_model.dart';
 
@@ -361,8 +361,8 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
           right: 10,
           child: InkWell(
             onTap: () async{
-              final newPath = await SelectProfilePictureDialog
-                  .showLogoDialog(cropAspectRatio: CropAspectRatio(width: 300, height: 150),
+              final newPath = await PhotoPickerService
+                  .pickSinglePhoto(cropAspectRatio: CropAspectRatio(width: 300, height: 150),
                   context, "Change Group Cover Image");
 
               if (newPath != null && newPath.isNotEmpty) {
@@ -470,8 +470,8 @@ class _ViewGroupMembersState extends State<ViewGroupMembers> {
           left: 60,
           child: InkWell(
             onTap: () async {
-              final newPath = await SelectProfilePictureDialog
-                  .showLogoDialog(
+              final newPath = await PhotoPickerService
+                  .pickSinglePhoto(
                   context, "Change Group Profile");
 
               if (newPath != null && newPath.isNotEmpty) {

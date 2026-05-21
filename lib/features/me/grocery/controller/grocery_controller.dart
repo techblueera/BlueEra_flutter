@@ -21,7 +21,7 @@ import 'package:BlueEra/features/me/grocery/model/grocery_products_response.dart
 import 'package:BlueEra/features/me/grocery/model/grocery_category_with_inventory_model.dart';
 import 'package:BlueEra/features/me/grocery/view/admin/edit_grocery_varient_dialog.dart';
 import 'package:BlueEra/features/me/grocery/view/admin/grocery_varient_dialog.dart';
-import 'package:BlueEra/widgets/select_product_image_dialog.dart';
+import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -291,7 +291,7 @@ class GroceryController extends GetxController {
 
   Future<List<String>?> pickImages(String title) async {
     final List<String>? selected =
-    await SelectProductImageDialog.showLogoDialog(Get.context!, title);
+    await PhotoPickerService.pickMultiplePhotos(Get.context!, title);
     return (selected != null && selected.isNotEmpty) ? selected : null;
   }
 

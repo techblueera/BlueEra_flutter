@@ -8,7 +8,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
-import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
+import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/me/food/repo/food_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/model/add_food_response_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/model/food_item_model.dart';
@@ -237,7 +237,7 @@ class HomeMadeFoodController extends GetxController {
   }
 
   Future<void> pickImage() async {
-    final String? path = await SelectProfilePictureDialog.showLogoDialog(
+    final String? path = await PhotoPickerService.pickSinglePhoto(
         Get.context!, "Upload Picture");
     if (path != null && path.isNotEmpty) {
       foodImageFile.value = File(path);

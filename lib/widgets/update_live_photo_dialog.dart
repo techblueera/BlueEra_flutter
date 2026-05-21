@@ -6,7 +6,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
-import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
+import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -157,7 +157,7 @@ Widget _buildImageContainer(
               // text: 'Please upload all 3 live photos of your store.',
               confirmCallback: () async {
                 Get.back();
-                final imgStr = await SelectProfilePictureDialog.pickFromCamera(
+                final imgStr = await PhotoPickerService.pickFromCamera(
                     context,
                     cropAspectRatio: CropAspectRatio(width: 3, height: 4)
                 );

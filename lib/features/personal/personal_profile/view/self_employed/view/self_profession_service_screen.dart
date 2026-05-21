@@ -11,7 +11,7 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/add_self_work_service_screen.dart';
-import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
+import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/widget/availability_schedule_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/controller/self_work_service_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/service_selection_screen.dart';
@@ -849,7 +849,7 @@ class _SelfProfessionServiceScreenState
           message: 'You can showcase up to $_galleryMax work photos.');
       return;
     }
-    final imgStr = await SelectProfilePictureDialog.showLogoDialog(
+    final imgStr = await PhotoPickerService.pickSinglePhoto(
       context,
       AppStrings.gallery,
       cropAspectRatio: CropAspectRatio(width: 3, height: 4),

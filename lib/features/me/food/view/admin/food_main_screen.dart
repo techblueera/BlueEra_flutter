@@ -26,7 +26,7 @@ import 'package:BlueEra/widgets/common_business_live_photo.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/view/add_symbol/add_symbol_screen.dart';
 import 'package:BlueEra/features/chat/view/orders_chat/orders_chat_list.dart';
-import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
+import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/controller/bottom_bar_controller.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/contribution/controller/contribution_controller.dart';
@@ -2026,7 +2026,7 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
 
   Future<void> _onEditCover() async {
     try {
-      final newPath = await SelectProfilePictureDialog.showLogoDialog(
+      final newPath = await PhotoPickerService.pickSinglePhoto(
         context,
         AppStrings.editCoverPicture,
         cropAspectRatio: CropAspectRatio(width: 16, height: 9),
@@ -2524,7 +2524,7 @@ class _LivePhotoSlotState extends State<_LivePhotoSlot> {
       );
       return;
     }
-    final imgStr = await SelectProfilePictureDialog.pickFromCamera(
+    final imgStr = await PhotoPickerService.pickFromCamera(
       context,
       cropAspectRatio: CropAspectRatio(width: 1, height: 1),
     );

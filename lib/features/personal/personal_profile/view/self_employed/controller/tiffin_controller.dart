@@ -11,7 +11,7 @@ import 'package:BlueEra/core/constants/date_time_utils.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
-import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
+import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/model/add_tiffin_response_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/model/tiffin_meal_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/repo/tiffin_repo.dart';
@@ -344,7 +344,7 @@ class TiffinController extends GetxController {
   }
 
   Future<void> pickImage() async {
-    final String? path = await SelectProfilePictureDialog.showLogoDialog(
+    final String? path = await PhotoPickerService.pickSinglePhoto(
         Get.context!, "Upload Picture");
     if (path != null && path.isNotEmpty) {
       tiffinImageFile.value = File(path);

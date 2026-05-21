@@ -25,7 +25,7 @@ import 'package:BlueEra/features/business/widgets/business_verify_now_button.dar
 import 'package:BlueEra/features/chat/view/add_symbol/add_symbol_screen.dart';
 import 'package:BlueEra/features/me/medical_new/view/medical_statistics_screen.dart';
 import 'package:BlueEra/widgets/post_via_dialog.dart';
-import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
+import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
 import 'package:BlueEra/core/api/apiService/api_keys.dart' show ApiKeys;
 import 'package:BlueEra/core/constants/app_enum.dart';
@@ -1184,7 +1184,7 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2> {
 
   Future<void> _onEditCover(BusinessProfile? profile) async {
     try {
-      final newPath = await SelectProfilePictureDialog.showLogoDialog(
+      final newPath = await PhotoPickerService.pickSinglePhoto(
         context,
         AppStrings.editCoverPicture,
         cropAspectRatio: CropAspectRatio(width: 16, height: 9),
@@ -1977,7 +1977,7 @@ class _LivePhotoSlotState extends State<_LivePhotoSlot> {
                   ),
                 );
               } else {
-                final imgStr = await SelectProfilePictureDialog.pickFromCamera(
+                final imgStr = await PhotoPickerService.pickFromCamera(
                   context,
                   cropAspectRatio: CropAspectRatio(width: 1, height: 1),
                 );

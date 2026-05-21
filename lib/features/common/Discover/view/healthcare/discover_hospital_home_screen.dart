@@ -4,7 +4,7 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/features/common/store/controller/new_store_controller.dart';
+import 'package:BlueEra/features/common/store/controller/store_controller.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_service_ai_controller.dart';
@@ -42,7 +42,7 @@ class _DiscoverHospitalHomeScreenState
   final controller = Get.find<HospitalServiceAiController>();
   final viewBusinessDetailsController =
       Get.find<ViewBusinessDetailsController>();
-  final storeController = getOrPut(() => NewStoreController());
+  final storeController = getOrPut(() => StoreController());
 
   @override
   void initState() {

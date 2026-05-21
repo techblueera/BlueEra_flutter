@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
+import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/me/others/model/other_news_model.dart';
 import 'package:BlueEra/features/me/others/repo/other_repo.dart';
 import 'package:BlueEra/features/me/school/repo/upload_file_to_s3.dart';
@@ -42,7 +42,7 @@ class OtherNewsController extends GetxController {
   }
 
   Future<void> pickImage(BuildContext context) async {
-    final String? path = await SelectProfilePictureDialog.showLogoDialog(
+    final String? path = await PhotoPickerService.pickSinglePhoto(
         context, AppStrings.otherUploadPicture.tr);
     if (path != null && path.isNotEmpty) {
       selectedImage.value = File(path);

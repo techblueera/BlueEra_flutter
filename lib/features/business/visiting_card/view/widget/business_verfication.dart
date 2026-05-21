@@ -16,7 +16,7 @@ import '../../../../../widgets/common_box_shadow.dart';
 import '../../../../../widgets/common_document_picker.dart';
 import '../../../../../widgets/custom_text_cm.dart';
 import '../../../../common/auth/controller/auth_controller.dart';
-import '../../../../common/auth/views/dialogs/select_profile_picture_dialog.dart';
+import 'package:BlueEra/core/services/photo_picker_service.dart';
 import '../../../auth/controller/view_business_details_controller.dart';
 
 class BusinessVerification extends StatefulWidget {
@@ -123,7 +123,7 @@ class _BusinessVerificationState extends State<BusinessVerification> {
 
   selectImage(BuildContext context) async {
 
-    selectedImage = await SelectProfilePictureDialog.showLogoDialog(
+    selectedImage = await PhotoPickerService.pickSinglePhoto(
         context, AppStrings.uploadDocumentPhoto);
     setState(() {});
     if (selectedImage?.isNotEmpty ?? false) {

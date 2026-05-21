@@ -16,7 +16,7 @@ import 'package:get/get.dart';
 import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/snackbar_helper.dart';
-import '../../../common/auth/views/dialogs/select_profile_picture_dialog.dart';
+import 'package:BlueEra/core/services/photo_picker_service.dart';
 import '../../auth/controller/view_business_details_controller.dart';
 
 class OwnershipVerificationScreen extends StatefulWidget {
@@ -195,7 +195,7 @@ class _OwnershipVerificationScreenState extends State<OwnershipVerificationScree
   ///SELECT IMAGE AND SHOW DIALOG...
   selectImage(BuildContext context) async {
 
-    imagePath = await SelectProfilePictureDialog.showLogoDialog(
+    imagePath = await PhotoPickerService.pickSinglePhoto(
         context,
         AppStrings.uploadDocumentPhoto);
     imagePathUrl=null;

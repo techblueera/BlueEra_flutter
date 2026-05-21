@@ -5,7 +5,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
+import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
@@ -119,7 +119,7 @@ class CommonImageUploadTile extends StatelessWidget {
     String title = AppStrings.selectPhoto,
   }) async {
     try {
-      final String? selected = await SelectProfilePictureDialog.showLogoDialog(
+      final String? selected = await PhotoPickerService.pickSinglePhoto(
         context,
         title,
         quality: 60,
@@ -293,7 +293,7 @@ class CommonProfileImageUpload extends StatelessWidget {
     String title = AppStrings.selectPhoto,
   }) async {
     try {
-      final String? selected = await SelectProfilePictureDialog.showLogoDialog(
+      final String? selected = await PhotoPickerService.pickSinglePhoto(
         context,
         title,
       );

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/core/constants/shimmer_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/multipart_image_service.dart';
@@ -12,7 +13,7 @@ import 'package:BlueEra/features/common/bottomNavigationBar/controller/bottom_ba
 import 'package:BlueEra/features/business/widgets/business_description_card.dart';
 import 'package:BlueEra/features/business/widgets/business_qrcode_widget.dart';
 import 'package:BlueEra/features/business/widgets/business_share_banner.dart';
-import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
+import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/me/product/controller/inventory_controller.dart';
 import 'package:BlueEra/widgets/business_live_photo_bottom_sheet.dart';
 import 'package:BlueEra/widgets/common_business_live_photo.dart';
@@ -335,15 +336,35 @@ class _ProductHomeScreenState extends State<ProductHomeScreen> {
               borderRadius: BorderRadius.circular(12),
               child: AspectRatio(
                 aspectRatio: 16 / 9,
-                child: hasBanner
-                    ? CachedNetworkImage(
-                        imageUrl: cover,
-                        fit: BoxFit.cover,
-                        placeholder: (_, __) =>
-                            Container(color: Colors.grey.shade100),
-                        errorWidget: (_, __, ___) => _emptyCoverPlaceholder(),
-                      )
-                    : _emptyCoverPlaceholder(),
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    hasBanner
+                        ? CachedNetworkImage(
+                            imageUrl: cover,
+                            fit: BoxFit.cover,
+                            placeholder: (_, __) =>
+                                Container(color: Colors.grey.shade100),
+                            errorWidget: (_, __, ___) =>
+                                _emptyCoverPlaceholder(),
+                          )
+                        : _emptyCoverPlaceholder(),
+                    // Shimmer overlay while the new cover is uploading.
+                    // The Edit button on this card kicks off the API
+                    // call with `showProgress: false`, so the global
+                    // progress dialog is silenced and this surface
+                    // owns the "uploading" feedback.
+                    Obx(() {
+                      if (!_businessController
+                          .isUpdateBusinessProfileLoading.value) {
+                        return const SizedBox.shrink();
+                      }
+                      return buildLoadingShimmer(
+                        child: Container(color: Colors.white),
+                      );
+                    }),
+                  ],
+                ),
               ),
             ),
             SizedBox(height: SizeConfig.size10),
@@ -466,14 +487,17 @@ class _ProductHomeScreenState extends State<ProductHomeScreen> {
 
   Future<void> _onEditCover() async {
     try {
-      final newPath = await SelectProfilePictureDialog.showLogoDialog(
+      final newPath = await PhotoPickerService.pickSinglePhoto(
         context,
         AppStrings.editCoverPicture,
         cropAspectRatio: CropAspectRatio(width: 16, height: 9),
       );
       if (newPath == null || newPath.isEmpty) return;
 
-      _businessController.coverImage?.value = newPath;
+      // No optimistic `coverImage.value = newPath` — CachedNetworkImage
+      // can't render local file paths, and assigning one here would
+      // flash the "Add photo" placeholder behind the shimmer overlay
+      // until the server-confirmed URL lands.
       final file = File(newPath);
       final compressed = await FlutterImageCompress.compressAndGetFile(
         file.absolute.path,

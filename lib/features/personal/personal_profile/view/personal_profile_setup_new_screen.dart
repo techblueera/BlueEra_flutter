@@ -59,7 +59,7 @@ import 'package:croppy/croppy.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../common/auth/model/get_categories_model.dart';
-import '../../../common/auth/views/dialogs/select_profile_picture_dialog.dart';
+import 'package:BlueEra/core/services/photo_picker_service.dart';
 import '../../auth/controller/view_personal_details_controller.dart';
 
 class PostTabModel {
@@ -1754,7 +1754,7 @@ class _PersonalProfileSetupNewScreenState
                       child: InkWell(
                           onTap: () async {
                             final String? newPath =
-                                await SelectProfilePictureDialog.showLogoDialog(
+                                await PhotoPickerService.pickSinglePhoto(
                                     context, AppStrings.editCoverPicture,
                                     cropAspectRatio:
                                         CropAspectRatio(width: 3, height: 1)

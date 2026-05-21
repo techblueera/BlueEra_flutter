@@ -42,6 +42,11 @@ class StickyCategoryHeaderDelegate extends SliverPersistentHeaderDelegate {
   /// active tab.
   final Color? expandedLabelColor;
 
+  /// Tap handler for the search bar. The delegate paints the bar as a
+  /// non-editable affordance — callers route the tap to whatever
+  /// search screen they want (e.g. an AI search overlay).
+  final VoidCallback? onSearchTap;
+
   static const double _searchBarHeight = 44;
   static const double _searchGap = 10;
   static const double _tabsHeight = 95;
@@ -59,6 +64,7 @@ class StickyCategoryHeaderDelegate extends SliverPersistentHeaderDelegate {
     this.singleLineLabel = false,
     this.backgroundGradient,
     this.expandedLabelColor,
+    this.onSearchTap,
   });
 
   double get _effectiveTabsHeight =>
@@ -126,40 +132,44 @@ class StickyCategoryHeaderDelegate extends SliverPersistentHeaderDelegate {
                           Padding(
                             padding: EdgeInsets.symmetric(
                                 horizontal: SizeConfig.size12),
-                            child: Container(
-                              height: _searchBarHeight,
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 14),
-                              decoration: BoxDecoration(
-                                color: AppColors.white,
-                                border: Border.all(
-                                    width: 1, color: AppColors.greyE5),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Row(
-                                children: [
-                                  Icon(Icons.search,
-                                      color: AppColors.secondaryTextColor,
-                                      size: 20),
-                                  const SizedBox(width: 10),
-                                  Expanded(
-                                    child: CustomText(
-                                      AppStrings.searchAnything,
-                                      fontSize: 14,
-                                      color: AppColors.secondaryTextColor,
+                            child: GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onTap: onSearchTap,
+                              child: Container(
+                                height: _searchBarHeight,
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 14),
+                                decoration: BoxDecoration(
+                                  color: AppColors.white,
+                                  border: Border.all(
+                                      width: 1, color: AppColors.greyE5),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.search,
+                                        color: AppColors.secondaryTextColor,
+                                        size: 20),
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: CustomText(
+                                        AppStrings.searchAnything,
+                                        fontSize: 14,
+                                        color: AppColors.secondaryTextColor,
+                                      ),
                                     ),
-                                  ),
-                                  LocalAssets(
-                                    imagePath: AppIconAssets.mic,
-                                    width: 18,
-                                    height: 18,
-                                    imgColor: AppColors.secondaryTextColor,
-                                  ),
-                                  const SizedBox(width: 10),
-                                  LocalAssets(
-                                      imagePath:
-                                          AppIconAssets.camera_black),
-                                ],
+                                    LocalAssets(
+                                      imagePath: AppIconAssets.mic,
+                                      width: 18,
+                                      height: 18,
+                                      imgColor: AppColors.secondaryTextColor,
+                                    ),
+                                    const SizedBox(width: 10),
+                                    LocalAssets(
+                                        imagePath:
+                                            AppIconAssets.camera_black),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
@@ -353,7 +363,8 @@ class StickyCategoryHeaderDelegate extends SliverPersistentHeaderDelegate {
       onCategoryTap != oldDelegate.onCategoryTap ||
       onBack != oldDelegate.onBack ||
       backgroundGradient != oldDelegate.backgroundGradient ||
-      expandedLabelColor != oldDelegate.expandedLabelColor;
+      expandedLabelColor != oldDelegate.expandedLabelColor ||
+      onSearchTap != oldDelegate.onSearchTap;
 }
 
 /// The rounded tile behind each category icon.

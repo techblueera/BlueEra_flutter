@@ -6,7 +6,7 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/me/medical_new/controller/medical_controller.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/select_product_image_dialog.dart';
+import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -24,7 +24,7 @@ class _AddMedicalProductsScreenState extends State<AddMedicalProductsScreen> {
 
   Future<void> _pickAndSnapSearch() async {
     try {
-      final paths = await SelectProductImageDialog.showLogoDialog(
+      final paths = await PhotoPickerService.pickMultiplePhotos(
         context,
         AppStrings.medicalUploadProductPhotos.tr,
         isOnlyCamera: true,

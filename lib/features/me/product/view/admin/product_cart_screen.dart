@@ -8,7 +8,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/price_row.dart';
 import 'package:BlueEra/features/me/product/controller/inventory_controller.dart';
 import 'package:BlueEra/features/me/product/controller/product_controller.dart';
-import 'package:BlueEra/features/me/product/model/inventory_based_search_product_response.dart';
+import 'package:BlueEra/features/me/product/model/product_catalog_response.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -42,8 +42,7 @@ class _ProductCartScreenState extends State<ProductCartScreen> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       for (final product in productController.selectedProducts) {
-        final id = product.finalVariant.id;
-        inventoryController.variantSelection[id] = true;
+        inventoryController.variantSelection[product.id] = true;
       }
     });
   }
@@ -158,9 +157,9 @@ class _ProductCartScreenState extends State<ProductCartScreen> {
     );
   }
 
-  Widget _buildCartCard(VariantData variantData, int index) {
-    final product = variantData.productInformation;
-    final variant = variantData.finalVariant;
+  Widget _buildCartCard(SelectedVariant variantData, int index) {
+    final product = variantData.product;
+    final variant = variantData.variant;
 
     // Build variant attribute string
     final attrParts = variant.attributes.entries.map((entry) {
@@ -177,14 +176,7 @@ class _ProductCartScreenState extends State<ProductCartScreen> {
     final variantLabel = attrParts.isNotEmpty ? attrParts.join(', ') : '';
 
     // Pick best image: product media > variant media > placeholder
-    // Product media has full URLs; variant media may have relative paths
-    String imageUrl = '';
-    if (product.media.isNotEmpty && product.media.first.isNotEmpty) {
-      imageUrl = product.media.first;
-    } else if (variant.mediaRelatedToVarient.isNotEmpty &&
-        variant.mediaRelatedToVarient.first.isNotEmpty) {
-      imageUrl = variant.mediaRelatedToVarient.first;
-    }
+    final imageUrl = variantData.primaryImageUrl;
 
     final discount = variant.mrp > 0
         ? ((variant.mrp - variant.sellingPrice) / variant.mrp * 100).round()

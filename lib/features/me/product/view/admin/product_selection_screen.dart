@@ -8,7 +8,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/Discover/widget/common_generic_left_side_category_list.dart';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/features/me/product/controller/product_controller.dart';
-import 'package:BlueEra/features/me/product/model/inventory_based_search_product_response.dart';
+import 'package:BlueEra/features/me/product/model/product_catalog_response.dart';
 import 'package:BlueEra/features/me/product/model/product_nested_category_response.dart';
 import 'package:BlueEra/features/me/product/view/admin/product_preview_screen.dart';
 import 'package:BlueEra/features/me/product/view/admin/widget/product_variant_grid_card.dart';
@@ -278,7 +278,7 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
           }
           return Obx(() => ProductVariantGridCard(
                 variantData: products[i],
-                isSelected: controller.isProductSelected(products[i].finalVariant.id),
+                isSelected: controller.isProductSelected(products[i].id),
                 onTap: () => controller.toggleProductSelection(products[i]),
                 onPreviewTap: () => _openPreview(products[i]),
               ));
@@ -287,27 +287,25 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
     });
   }
 
-  void _openPreview(VariantData variantData) {
-    final product = variantData.productInformation;
-    final variant = variantData.finalVariant;
+  void _openPreview(SelectedVariant variantData) {
+    final product = variantData.product;
+    final variant = variantData.variant;
 
     final productPreviewArgs = ProductPreviewArgs(
       productId: product.id,
-      media: product.media.isNotEmpty
-          ? product.media
-          : variant.mediaRelatedToVarient,
+      media: product.media.isNotEmpty ? product.media : variant.media,
       name: product.name,
       description: product.description,
       tags: product.tags,
-      features: product.addProductFeatures.map((f) => f.title).toList(),
-      details: product.addMoreDetails
+      features: product.features.map((f) => f.title).toList(),
+      details: product.additionalDetails
           .map((d) => DetailPair(d.title, d.details))
           .toList(),
       sellingPrice: variant.sellingPrice.toString(),
       MRPPrice: variant.mrp.toString(),
-      warranty: product.productWarrenty,
+      warranty: product.productWarranty,
       expiry: '',
-      userGuide: product.guideLine,
+      userGuide: product.guidelines,
     );
 
     Get.toNamed(

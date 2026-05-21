@@ -21,7 +21,7 @@ import 'package:BlueEra/features/me/grocery/model/grocery_snap_search_response.d
 import 'package:BlueEra/features/me/grocery/repo/grocery_repo.dart';
 import 'package:BlueEra/features/me/grocery/stream/rider_grocery_stream.dart';
 import 'package:BlueEra/widgets/app_loader.dart';
-import 'package:BlueEra/widgets/select_product_image_dialog.dart';
+import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:get/get.dart';
 
@@ -61,7 +61,7 @@ class GroceryRiderConsumerController extends GetxController{
       return;
     }
     final List<String>? selected =
-        await SelectProductImageDialog.showLogoDialog(Get.context!, title);
+        await PhotoPickerService.pickMultiplePhotos(Get.context!, title);
     if (selected == null || selected.isEmpty) return;
 
     riderSnapSearchImagesMap[title] = File(selected.first);

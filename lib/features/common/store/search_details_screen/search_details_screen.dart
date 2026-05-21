@@ -125,7 +125,7 @@ class SearchDetailsScreen extends StatelessWidget {
                             final product = controller.filteredProducts[index];
                             return GestureDetector(
                                 onTap: (){
-                                  Get.to(()=>ProductDetailsScreen());
+                                  Get.to(()=> ProductDetailsScreen());
                                 },
                                 child: _buildProductCard(context, product, controller));
                           },

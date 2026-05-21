@@ -20,7 +20,7 @@ import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart'
 import 'package:BlueEra/features/chat/view/add_symbol/add_symbol_screen.dart';
 import 'package:BlueEra/features/chat/view/business_chat/business_chat_list.dart';
 import 'package:BlueEra/features/common/Discover/view/go_live_permission_screen.dart';
-import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
+import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
@@ -2173,7 +2173,7 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
   // ============================================================
 
   Future<void> _onCoverImageEdit(BuildContext context) async {
-    final String? newPath = await SelectProfilePictureDialog.showLogoDialog(
+    final String? newPath = await PhotoPickerService.pickSinglePhoto(
       context,
       AppStrings.editCoverPicture,
       cropAspectRatio: CropAspectRatio(width: 3, height: 1),

@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:developer';
-
 import 'package:BlueEra/core/api/model/admin_video_model_response.dart';
 import 'package:BlueEra/core/api/model/get_all_store_res_model.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
@@ -12,7 +11,6 @@ import 'package:BlueEra/features/common/food/model/get_food_details_model.dart';
 import 'package:BlueEra/features/common/service/model/get_service_model.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
 import 'package:BlueEra/features/me/medical_new/model/medical_nested_category_model.dart';
-import 'package:BlueEra/features/me/product/model/all_stores_feed_response_model.dart';
 import 'package:BlueEra/features/me/product/model/get_product_model.dart';
 import 'package:BlueEra/features/me/product/model/product_nested_category_response.dart';
 import 'package:hive/hive.dart';
@@ -201,57 +199,6 @@ class HiveServices{
   //   await box.delete('${userId}_$convoId');
   // }
 
-  /// Store Feed
-  Future<bool> saveAllStoresFeeds(
-      List<AllStoresFeedData> allStoresFeedData,
-      String userId,
-      ) async {
-    try {
-      final box = Hive.box(_savedAllNearByStoreFeed);
-      final String key = 'user_$userId'; // Better key naming
-
-      // Convert all items to JSON list
-      final List<Map<String, dynamic>> jsonList =
-      allStoresFeedData.map((item) => item.toJson()).toList();
-
-      await box.put(key, jsonList);
-
-      print('Saved ${jsonList.length} stores feed items for user: $userId');
-      return true;
-    } catch (e) {
-      print('Error saving stores feed: $e');
-      return false;
-    }
-  }
-
-  Future<List<AllStoresFeedData>?> getAllStoresFeeds(String userId) async {
-    try {
-      final box = Hive.box(_savedAllNearByStoreFeed);
-      final String key = 'user_$userId';
-
-      final data = box.get(key);
-
-      if (data == null) {
-        print('No cached stores feed found for user: $userId');
-        return null;
-      }
-
-      if (data is! List) {
-        print('Invalid data type in Hive: ${data.runtimeType}');
-        return null;
-      }
-
-      final List<AllStoresFeedData> feedList = data
-          .map((json) => AllStoresFeedData.fromJson(jsonDecode(jsonEncode(json)) as Map<String, dynamic>))
-          .toList();
-
-      print('Loaded ${feedList.length} stores feed items for user: $userId');
-      return feedList;
-    } catch (e) {
-      print('Error loading stores feed: $e');
-      return null;
-    }
-  }
 
   /// All Stores
   Future<bool> saveAllStore(

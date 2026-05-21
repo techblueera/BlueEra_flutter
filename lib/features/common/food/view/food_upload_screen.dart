@@ -4,7 +4,7 @@ import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
+import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/common/food/controller/food_upload_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -172,7 +172,7 @@ class _FoodUploadScreenState extends State<FoodUploadScreen> {
         Obx(() => GestureDetector(
           onTap: () async {
             final String? selected =
-            await SelectProfilePictureDialog.showLogoDialog(
+            await PhotoPickerService.pickSinglePhoto(
               context,
               AppStrings.selectPhoto.tr,
             );

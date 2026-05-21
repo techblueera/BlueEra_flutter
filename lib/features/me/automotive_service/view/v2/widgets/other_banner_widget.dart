@@ -4,7 +4,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
+import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/me/automotive_service/controller/business_profile_full_controller.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -32,7 +32,7 @@ class _OtherBannerWidgetState extends State<OtherBannerWidget> {
   Future<void> _onEditCover() async {
     if (_isUploading) return;
     try {
-      final newPath = await SelectProfilePictureDialog.showLogoDialog(
+      final newPath = await PhotoPickerService.pickSinglePhoto(
         context,
         AppStrings.editCoverPicture.tr,
         cropAspectRatio: const CropAspectRatio(width: 16, height: 9),

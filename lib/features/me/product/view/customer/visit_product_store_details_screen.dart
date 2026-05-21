@@ -7,12 +7,12 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/widgets/business_contact_map_card.dart';
-import 'package:BlueEra/features/common/store/controller/new_store_controller.dart';
+import 'package:BlueEra/features/common/store/controller/store_controller.dart';
 import 'package:BlueEra/features/common/store/widget/store_live_photo_widget.dart';
 import 'package:BlueEra/features/me/product/controller/inventory_controller.dart';
 import 'package:BlueEra/features/me/product/controller/product_selfpickup_controller.dart';
 import 'package:BlueEra/features/me/product/view/admin/widget/product_top_selling_tile.dart';
-import 'package:BlueEra/features/me/product/view/all_top_selling_products_screen.dart';
+import 'package:BlueEra/features/me/product/view/customer/customer_all_top_selling_products_screen.dart';
 import 'package:BlueEra/features/me/product/view/customer/visit_product_products_screen.dart';
 import 'package:BlueEra/features/me/product/view/customer/widget/product_self_pickup_cart.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
@@ -45,8 +45,8 @@ class _VisitProductStoreDetailsScreenState
       getOrPut<InventoryController>(() => InventoryController());
   final ViewBusinessDetailsController viewBusinessDetailsController =
       Get.find<ViewBusinessDetailsController>();
-  final NewStoreController storeController =
-      getOrPut<NewStoreController>(() => NewStoreController());
+  final StoreController storeController =
+      getOrPut<StoreController>(() => StoreController());
   // Session cart — registered by the products entry point. `getOrPut`
   // here returns the same instance the cart bar on the entry point is
   // watching, so add/remove on this screen flows through.
@@ -278,7 +278,7 @@ class _VisitProductStoreDetailsScreenState
               SizedBox(width: SizeConfig.size8),
               InkWell(
                 onTap: () => Get.to(
-                  () => AllTopSellingProductsScreen(
+                  () => CustomerAllTopSellingProductsScreen(
                     visitBusinessId: widget.visitBusinessId,
                   ),
                 ),

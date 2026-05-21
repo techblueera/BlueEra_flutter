@@ -26,7 +26,7 @@ import 'package:BlueEra/features/me/medical_new/view/medical_statistics_screen.d
 import 'package:BlueEra/features/me/me_tab_registry.dart';
 import 'package:BlueEra/features/me/product/controller/inventory_controller.dart';
 import 'package:BlueEra/features/me/product/model/product_category_with_inventory_model.dart';
-import 'package:BlueEra/features/me/product/view/all_top_selling_products_screen.dart';
+import 'package:BlueEra/features/me/product/view/admin/admin_all_top_selling_products_screen.dart';
 import 'package:BlueEra/features/me/product/view/admin/product_home_screen.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
@@ -931,6 +931,10 @@ class _ProductScreenState extends State<ProductScreen>
     );
     if (inventoryController.productDataNeedsRefresh) {
       inventoryController.productDataNeedsRefresh = false;
+      // After a publish the merchant wants to see the new item in the
+      // catalog, not whatever tab they launched the add flow from. Jump
+      // to the Products tab before kicking off the refresh.
+      _tabController?.animateTo(2);
       inventoryController.fetchAllProductData();
     }
   }
@@ -1449,7 +1453,7 @@ class _ProductsTabBodyState extends State<_ProductsTabBody> {
   // arrow badge on the right. Mirrors the other chip CTAs on the page.
   Widget _topSellingViewAllChip() {
     return GestureDetector(
-      onTap: () => Get.to(() => const AllTopSellingProductsScreen()),
+      onTap: () => Get.to(() => const AdminAllTopSellingProductsScreen()),
       behavior: HitTestBehavior.opaque,
       child: Container(
         padding: const EdgeInsets.fromLTRB(12, 4, 4, 4),
@@ -1512,7 +1516,7 @@ class _ProductsTabBodyState extends State<_ProductsTabBody> {
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: () => Get.to(() => const AllTopSellingProductsScreen()),
+      onTap: () => Get.to(() => const AdminAllTopSellingProductsScreen()),
       child: Container(
         width: 168,
         margin: const EdgeInsets.only(right: 12),

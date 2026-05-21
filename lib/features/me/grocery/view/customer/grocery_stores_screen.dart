@@ -9,7 +9,7 @@ import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
 import 'package:BlueEra/features/common/Discover/widget/banner_carousel.dart';
 import 'package:BlueEra/features/common/Discover/widget/sticky_category_header_delegate.dart';
-import 'package:BlueEra/features/common/store/controller/new_store_controller.dart';
+import 'package:BlueEra/features/common/store/controller/store_controller.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_selfpickup_consumer_controller.dart';
 import 'package:BlueEra/features/me/grocery/widget/customer_grocery_self_pickup_cart.dart';
@@ -30,7 +30,7 @@ class GroceryStoresScreen extends StatefulWidget {
 
 class _GroceryStoresScreenState extends State<GroceryStoresScreen>
     with SingleTickerProviderStateMixin {
-  final controller = getOrPut(() => NewStoreController());
+  final controller = getOrPut(() => StoreController());
   final groceryController = getOrPut(() => GroceryController());
   final groceryCustomerController =
       getOrPut(() => GrocerySelfPickupConsumerController());

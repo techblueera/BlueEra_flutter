@@ -7,7 +7,7 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/product/controller/inventory_controller.dart';
 import 'package:BlueEra/features/me/product/controller/product_controller.dart';
-import 'package:BlueEra/features/me/product/model/inventory_based_search_product_response.dart';
+import 'package:BlueEra/features/me/product/model/product_catalog_response.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -44,9 +44,8 @@ class _AddProductVariantScreenState extends State<AddProductVariantScreen> {
     // Make sure every visible variant is marked selected in the
     // inventory controller (publish reads from there).
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      for (final product in productController.selectedProducts) {
-        final id = product.finalVariant.id;
-        inventoryController.variantSelection[id] = true;
+      for (final row in productController.selectedProducts) {
+        inventoryController.variantSelection[row.id] = true;
       }
     });
   }
@@ -54,7 +53,7 @@ class _AddProductVariantScreenState extends State<AddProductVariantScreen> {
   /// Source of truth for "what's in the cart". Falls back to the
   /// inventory controller's [selectedVariantsList] when the product
   /// controller list is empty (snap-search flow assigns there first).
-  List<VariantData> get _allSelectedVariants {
+  List<SelectedVariant> get _allSelectedVariants {
     if (productController.selectedProducts.isNotEmpty) {
       return productController.selectedProducts.toList();
     }
@@ -64,23 +63,21 @@ class _AddProductVariantScreenState extends State<AddProductVariantScreen> {
   /// Group the flat variant list by product id so each product card
   /// renders once with its variants nested underneath (matches
   /// grocery's product → variants nesting).
-  Map<String, List<VariantData>> _groupedByProduct(List<VariantData> list) {
-    final grouped = <String, List<VariantData>>{};
+  Map<String, List<SelectedVariant>> _groupedByProduct(
+      List<SelectedVariant> list) {
+    final grouped = <String, List<SelectedVariant>>{};
     for (final v in list) {
-      final pid = v.productInformation.id;
-      grouped.putIfAbsent(pid, () => []).add(v);
+      grouped.putIfAbsent(v.product.id, () => []).add(v);
     }
     return grouped;
   }
 
-  double _effectiveSellingPrice(VariantData v) {
-    final overridden =
-        inventoryController.variantSellingPrice[v.finalVariant.id];
+  double _effectiveSellingPrice(SelectedVariant v) {
+    final overridden = inventoryController.variantSellingPrice[v.id];
     if (overridden != null && overridden.trim().isNotEmpty) {
-      return double.tryParse(overridden) ??
-          v.finalVariant.sellingPrice.toDouble();
+      return double.tryParse(overridden) ?? v.variant.sellingPrice;
     }
-    return v.finalVariant.sellingPrice.toDouble();
+    return v.variant.sellingPrice;
   }
 
   int _discountPercent(double mrp, double selling) {
@@ -88,13 +85,12 @@ class _AddProductVariantScreenState extends State<AddProductVariantScreen> {
     return (((mrp - selling) / mrp) * 100).round();
   }
 
-  void _removeVariant(VariantData variantData) {
-    final id = variantData.finalVariant.id;
+  void _removeVariant(SelectedVariant row) {
+    final id = row.id;
     inventoryController.variantSelection.remove(id);
     inventoryController.variantSellingPrice.remove(id);
-    inventoryController.selectedVariantsList
-        .removeWhere((v) => v.finalVariant.id == id);
-    productController.toggleProductSelection(variantData);
+    inventoryController.selectedVariantsList.removeWhere((v) => v.id == id);
+    productController.toggleProductSelection(row);
     setState(() => _priceErrors.remove(id));
   }
 
@@ -117,7 +113,7 @@ class _AddProductVariantScreenState extends State<AddProductVariantScreen> {
     inventoryController.updateSellingPrice(variantId, trimmed);
   }
 
-  String _variantLabel(FinalVariant variant) {
+  String _variantLabel(Variant variant) {
     final parts = variant.attributes.entries.map((entry) {
       final key = entry.key.toLowerCase();
       final value = entry.value;
@@ -165,7 +161,8 @@ class _AddProductVariantScreenState extends State<AddProductVariantScreen> {
                   ),
                   itemBuilder: (BuildContext context, int index) {
                     final pid = productIds[index];
-                    final variants = grouped[pid] ?? const <VariantData>[];
+                    final variants =
+                        grouped[pid] ?? const <SelectedVariant>[];
                     if (variants.isEmpty) return const SizedBox.shrink();
                     return _selectedProductCard(variants);
                   },
@@ -288,16 +285,9 @@ class _AddProductVariantScreenState extends State<AddProductVariantScreen> {
     );
   }
 
-  Widget _selectedProductCard(List<VariantData> variants) {
-    final product = variants.first.productInformation;
-    // Pick best image: product media > variant media > placeholder
-    String imageUrl = '';
-    if (product.media.isNotEmpty && product.media.first.isNotEmpty) {
-      imageUrl = product.media.first;
-    } else if (variants.first.finalVariant.mediaRelatedToVarient.isNotEmpty &&
-        variants.first.finalVariant.mediaRelatedToVarient.first.isNotEmpty) {
-      imageUrl = variants.first.finalVariant.mediaRelatedToVarient.first;
-    }
+  Widget _selectedProductCard(List<SelectedVariant> variants) {
+    final product = variants.first.product;
+    final imageUrl = variants.first.primaryImageUrl;
 
     return Container(
       margin: EdgeInsets.only(bottom: SizeConfig.size12),
@@ -477,8 +467,8 @@ class _AddProductVariantScreenState extends State<AddProductVariantScreen> {
           );
   }
 
-  Widget _variantRow(String productId, VariantData variantData) {
-    final variant = variantData.finalVariant;
+  Widget _variantRow(String productId, SelectedVariant variantData) {
+    final variant = variantData.variant;
     final variantLabel = _variantLabel(variant);
     final hasError = _priceErrors[variant.id] != null;
 
@@ -527,9 +517,9 @@ class _AddProductVariantScreenState extends State<AddProductVariantScreen> {
                 (overridden != null && overridden.trim().isNotEmpty)
                     ? overridden
                     : variant.sellingPrice.toStringAsFixed(0);
-            final sellingNum = double.tryParse(displaySelling) ??
-                variant.sellingPrice.toDouble();
-            final mrpNum = variant.mrp.toDouble();
+            final sellingNum =
+                double.tryParse(displaySelling) ?? variant.sellingPrice;
+            final mrpNum = variant.mrp;
             final discount = _discountPercent(mrpNum, sellingNum);
             final showStrike = mrpNum > sellingNum;
 
@@ -658,8 +648,8 @@ class _AddProductVariantScreenState extends State<AddProductVariantScreen> {
   /// Small dialog to update the selling price for a single variant —
   /// mirrors grocery's edit-variant dialog flow. Validates against
   /// MRP using the same rule as [ProductCartScreen].
-  void _openEditSellingPriceDialog(VariantData variantData) {
-    final variant = variantData.finalVariant;
+  void _openEditSellingPriceDialog(SelectedVariant variantData) {
+    final variant = variantData.variant;
     final initial = inventoryController.variantSellingPrice[variant.id] ??
         variant.sellingPrice.toStringAsFixed(0);
     final textController = TextEditingController(text: initial);
@@ -684,8 +674,8 @@ class _AddProductVariantScreenState extends State<AddProductVariantScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 CustomText(
-                  variantData.productInformation.name.isNotEmpty
-                      ? variantData.productInformation.name
+                  variantData.product.name.isNotEmpty
+                      ? variantData.product.name
                       : 'Edit selling price',
                   fontSize: SizeConfig.medium,
                   fontWeight: FontWeight.w700,

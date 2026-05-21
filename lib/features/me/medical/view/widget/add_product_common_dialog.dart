@@ -14,7 +14,7 @@ import '../../../../../core/constants/snackbar_helper.dart';
 import '../../../../../widgets/commom_textfield.dart';
 import '../../../../../widgets/custom_btn.dart';
 import '../../../../../widgets/custom_text_cm.dart';
-import '../../../../common/auth/views/dialogs/select_profile_picture_dialog.dart';
+import 'package:BlueEra/core/services/photo_picker_service.dart';
 import '../../controller/medical_model_controller.dart';
 import '../../model/medical_admin_product_details.dart';
 
@@ -65,7 +65,7 @@ class AddProductCommonDialog {
                     child: InkWell(
                       onTap: () async {
                         final String? image =
-                        await SelectProfilePictureDialog.showLogoDialog(
+                        await PhotoPickerService.pickSinglePhoto(
                             context, "Product Image");
                         if (image != null) {
                           controller.setPickedProductImage(File(image));

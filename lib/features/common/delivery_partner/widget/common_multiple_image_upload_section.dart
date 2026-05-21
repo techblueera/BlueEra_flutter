@@ -3,7 +3,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/select_product_image_dialog.dart';
+import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:flutter/material.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -165,7 +165,7 @@ class CommonMultipleImageSectionController extends GetxController {
 
   Future<List<String>?> pickImages(String title) async {
     final List<String>? selected =
-        await SelectProductImageDialog.showLogoDialog(Get.context!, title);
+        await PhotoPickerService.pickMultiplePhotos(Get.context!, title);
     if (selected != null && selected.isNotEmpty) {
       return selected;
     }

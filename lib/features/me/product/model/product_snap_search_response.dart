@@ -1,4 +1,4 @@
-import 'package:BlueEra/features/me/product/model/inventory_based_search_product_response.dart';
+import 'package:BlueEra/features/me/product/model/product_catalog_response.dart';
 
 class ProductSnapSearchResponseModel {
   bool? success;
@@ -50,30 +50,29 @@ class ProductSnapSearchData {
   }
 }
 
+/// One found item from the snap search response. The API splits the
+/// payload across `product_information` (product metadata) and
+/// `inventory_details` (variants list); we merge them into a single
+/// [Product] so the rest of the app handles snap-found items exactly
+/// like text-search results.
 class ProductSnapFoundItem {
   String? aiIdentifiedAs;
-  List<VariantData> variants;
+  Product? product;
 
-  ProductSnapFoundItem({this.aiIdentifiedAs, this.variants = const []});
+  ProductSnapFoundItem({this.aiIdentifiedAs, this.product});
 
-  ProductSnapFoundItem.fromJson(Map<String, dynamic> json)
-      : variants = [] {
+  ProductSnapFoundItem.fromJson(Map<String, dynamic> json) {
     aiIdentifiedAs = json['aiIdentifiedAs'];
 
-    final productInfo = json['product_information'] as Map<String, dynamic>?;
-    final inventoryDetails = json['inventory_details'] as Map<String, dynamic>?;
-
-    if (productInfo != null && inventoryDetails != null) {
-      final productInformation = ProductInformation.fromJson(productInfo);
-      final inventoryVariants =
-          inventoryDetails['variants'] as List<dynamic>? ?? [];
-      for (final v in inventoryVariants) {
-        if (v is! Map) continue;
-        variants.add(VariantData(
-          productInformation: productInformation,
-          finalVariant: FinalVariant.fromJson(Map<String, dynamic>.from(v)),
-        ));
-      }
+    final productInfo = json['product_information'];
+    final inventoryDetails = json['inventory_details'];
+    if (productInfo is Map && inventoryDetails is Map) {
+      // Merge: take product fields from product_information, splice in
+      // the variants list from inventory_details, then parse through
+      // the unified Product.fromJson.
+      final merged = Map<String, dynamic>.from(productInfo);
+      merged['variants'] = inventoryDetails['variants'] ?? const [];
+      product = Product.fromJson(merged);
     }
   }
 }

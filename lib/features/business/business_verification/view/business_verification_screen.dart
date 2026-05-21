@@ -13,7 +13,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../../common/auth/views/dialogs/select_profile_picture_dialog.dart';
+import 'package:BlueEra/core/services/photo_picker_service.dart';
 
 class BusinessVerificationScreen extends StatefulWidget {
   const BusinessVerificationScreen({super.key});
@@ -138,7 +138,7 @@ class _BusinessVerificationScreenState extends State<BusinessVerificationScreen>
   ///SELECT IMAGE AND SHOW DIALOG...
   selectImage(BuildContext context) async {
 
-    imagePath = await SelectProfilePictureDialog.showLogoDialog(
+    imagePath = await PhotoPickerService.pickSinglePhoto(
         context,
         AppStrings.uploadYourDocumentPhoto);
     if (imagePath?.isNotEmpty ?? false) {

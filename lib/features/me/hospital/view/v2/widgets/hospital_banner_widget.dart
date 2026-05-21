@@ -4,7 +4,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
+import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_service_ai_controller.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -33,7 +33,7 @@ class _HospitalBannerWidgetState extends State<HospitalBannerWidget> {
   Future<void> _onEditCover() async {
     if (_isUploading) return;
     try {
-      final newPath = await SelectProfilePictureDialog.showLogoDialog(
+      final newPath = await PhotoPickerService.pickSinglePhoto(
         context,
         AppStrings.editCoverPicture.tr,
         cropAspectRatio: CropAspectRatio(width: 16, height: 9),

@@ -7,7 +7,7 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
-import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
+import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/me/grocery/widget/food_type_indicator.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/controller/earn_profile_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/model/earn_profile_model.dart';
@@ -356,7 +356,7 @@ class EarnServiceProfileHeader extends StatelessWidget {
 
   // ── Image edit flows ──────────────────────────────────────
   Future<void> _onLogoEdit(BuildContext context) async {
-    final path = await SelectProfilePictureDialog.showLogoDialog(
+    final path = await PhotoPickerService.pickSinglePhoto(
       context,
       AppStrings.uploadBusinessLogo.tr,
     ).catchError((_) => null);
@@ -369,7 +369,7 @@ class EarnServiceProfileHeader extends StatelessWidget {
 
   Future<void> _onCoverEdit(BuildContext context) async {
     try {
-      final path = await SelectProfilePictureDialog.showLogoDialog(
+      final path = await PhotoPickerService.pickSinglePhoto(
         context,
         AppStrings.editCoverPicture.tr,
       ).catchError((_) => null);

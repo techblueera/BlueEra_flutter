@@ -12,7 +12,7 @@ import 'package:BlueEra/features/business/widgets/business_availability_widget.d
 import 'package:BlueEra/features/business/widgets/business_common_subcategory_widget.dart';
 import 'package:BlueEra/features/business/widgets/rating_widget.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
-import 'package:BlueEra/features/common/store/controller/new_store_controller.dart';
+import 'package:BlueEra/features/common/store/controller/store_controller.dart';
 import 'package:BlueEra/features/me/grocery/widget/food_type_indicator.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -54,7 +54,7 @@ class VisitBusinessCommonHeader extends StatefulWidget {
 }
 
 class _VisitBusinessCommonHeaderState extends State<VisitBusinessCommonHeader> {
-  final storeController = getOrPut(() => NewStoreController());
+  final storeController = getOrPut(() => StoreController());
   final chatViewController = Get.find<ChatViewController>();
   final RxBool _isFollowed = false.obs;
 

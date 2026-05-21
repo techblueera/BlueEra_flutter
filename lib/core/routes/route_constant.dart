@@ -100,6 +100,12 @@ class RouteConstant {
   // static const String storeFeedScreen = "/StoreFeedScreen";
   static const String selfEmployeeScreen = "/SelfEmployeeScreen";
   static const String inventoryBusinessCardsScreen = "/InventoryBusinessCardsScreen";
+  // Manufacturer fork — parallel to the product routes above. Same UI
+  // shape today; expected to diverge in future.
+  static const String manufacturerScreen = "/ManufacturerScreen";
+  static const String manufacturerStoreDetailsScreen = "/ManufacturerStoreDetailsScreen";
+  static const String manufacturerInventoryBusinessCardsScreen = "/ManufacturerInventoryBusinessCardsScreen";
+  static const String myManufacturerProductsScreen = "/MyManufacturerProductsScreen";
   static const String foodUploadScreen = "/FoodUploadScreen";
   static const String addFlatRoomRentalServiceScreen = "/AddFlatRoomRentalServiceScreen";
   // static const String personalInformationRidingScreen = "/PersonalInformationRidingScreen";

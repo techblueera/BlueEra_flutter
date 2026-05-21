@@ -5,7 +5,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
+import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/personal/resume/controller/awards_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -200,7 +200,7 @@ class _AddAwardsScreenState extends State<AddAwardsScreen> {
                         onSelect: (context) async {
 
                           final selected =
-                              await SelectProfilePictureDialog.showLogoDialog(
+                              await PhotoPickerService.pickSinglePhoto(
                             context,
                                   AppStrings.uploadDocumentPhoto
                           );

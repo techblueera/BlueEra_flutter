@@ -5,7 +5,7 @@ import 'package:BlueEra/core/constants/popup_menu_builders.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
+import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/common/post/controller/photo_post_controller.dart';
 import 'package:BlueEra/features/common/post/photo_post/single_photo_post_editing_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -394,7 +394,7 @@ class _PhotoPostEditingScreenState extends State<PhotoPostEditingScreen> {
     }
 
     for (final image in images) {
-      final compressedFile = await SelectProfilePictureDialog.compressImage(File(image.path));
+      final compressedFile = await PhotoPickerService.compressImage(File(image.path));
       if (compressedFile != null) {
         selectedPhotos.add(compressedFile.path);
         photoPostController.originalPhotos.add(compressedFile.path);

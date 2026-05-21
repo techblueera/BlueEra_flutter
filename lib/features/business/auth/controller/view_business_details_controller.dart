@@ -166,15 +166,21 @@ class ViewBusinessDetailsController extends GetxController {
     }
   }
 
-  Future<void> viewBusinessProfile() async {
+  /// Fetches the current business profile.
+  ///
+  /// [silent] = true skips the cache-replay step (used after an update
+  /// so the cover/avatar UI doesn't flash the stale cached version
+  /// between "shimmer off" and the server confirming the new asset).
+  Future<void> viewBusinessProfile({bool silent = false}) async {
     await getUserLoginBusinessId();
 
     // 1. Show cached business profile (if any) immediately so the UI
-    //    isn't blank while the network call is in flight. The repo call
-    //    already runs with `showProgress: false`, so the refresh below
-    //    is silent regardless.
+    //    isn't blank while the network call is in flight. Skipped in
+    //    `silent` mode — the caller (typically a post-update refresh)
+    //    already has fresher in-memory state than the cache, and
+    //    replaying the cache would visibly revert the change.
     final cacheKey = businessId.isNotEmpty ? businessId : userId;
-    final cached = await BusinessProfileCache.read(cacheKey);
+    final cached = silent ? null : await BusinessProfileCache.read(cacheKey);
     if (cached != null) {
       _applyBusinessProfileData(cached, persistPrefs: false);
     }
@@ -279,6 +285,12 @@ class ViewBusinessDetailsController extends GetxController {
 
   RxBool isUpdateBusinessDetailsLoading = false.obs;
 
+  /// True while [updateBusinessProfileDetails] is in flight — callers
+  /// (e.g. the cover-photo edit on each *HomeScreen) overlay a shimmer
+  /// on the affected UI section instead of relying on the global
+  /// progress dialog.
+  final RxBool isUpdateBusinessProfileLoading = false.obs;
+
   Future<void> updateBusinessDetails(Map<String, dynamic> params,
       {bool? showProgress}) async {
     try {
@@ -305,22 +317,26 @@ class ViewBusinessDetailsController extends GetxController {
     }
   }
 
-  Future<void> updateBusinessProfileDetails(Map<String, dynamic> params) async {
+  Future<void> updateBusinessProfileDetails(
+    Map<String, dynamic> params, {
+    bool showProgress = false,
+  }) async {
     try {
-      ResponseModel responseModel =
-          await BusinessProfileRepo().updateBusinessProfileDetails(params);
+      isUpdateBusinessProfileLoading.value = true;
+      final responseModel = await BusinessProfileRepo()
+          .updateBusinessProfileDetails(params, showProgress: showProgress);
 
       if (responseModel.isSuccess) {
         commonSnackBar(message: "${responseModel.message}");
-
-        viewBusinessProfile();
-        update();
+        await viewBusinessProfile(silent: true);
       } else {
         commonSnackBar(
             message: responseModel.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
       viewBusinessResponse = ApiResponse.error('error');
+    } finally {
+      isUpdateBusinessProfileLoading.value = false;
     }
   }
 

@@ -13,7 +13,7 @@ import 'package:BlueEra/core/services/multipart_image_service.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/business/widgets/business_share_banner.dart';
-import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
+import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/me/medical_new/model/medical_home_response_model.dart';
 import 'package:BlueEra/features/me/medical_new/controller/medical_gallery_controller.dart';
 import 'package:BlueEra/features/me/others/model/other_service_gallery_res_model.dart';
@@ -307,7 +307,7 @@ class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
   /// Upload new cover via business profile API
   Future<void> _onEditCover(BusinessProfile? profile) async {
     try {
-      final newPath = await SelectProfilePictureDialog.showLogoDialog(
+      final newPath = await PhotoPickerService.pickSinglePhoto(
         context,
         AppStrings.editCoverPicture,
         cropAspectRatio: CropAspectRatio(width: 3, height: 1),

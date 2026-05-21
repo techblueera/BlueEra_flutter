@@ -14,7 +14,7 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/chat/auth/model/GetBlueeraPiolotModel.dart';
 import 'package:BlueEra/features/common/delivery_partner/model/associated_shops_model.dart';
-import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
+import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/common/delivery_partner/model/rider_onboarding_status.dart';
 import 'package:BlueEra/features/common/delivery_partner/model/vehicle_enums_response.dart';
 import 'package:BlueEra/features/common/delivery_partner/repo/delivery_partner_repo.dart';
@@ -1010,7 +1010,7 @@ class DeliveryPartnerController extends GetxController {
   RxBool isRiderVehicleInformationLoading = false.obs;
 
   Future<void> addLivePhoto() async {
-    final selectedPath = await SelectProfilePictureDialog.pickFromCamera(
+    final selectedPath = await PhotoPickerService.pickFromCamera(
         Get.context!,
         cropAspectRatio: CropAspectRatio(width: 3, height: 4));
     if (selectedPath != null) {

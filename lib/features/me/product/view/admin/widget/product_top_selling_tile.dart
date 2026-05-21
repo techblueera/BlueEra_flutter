@@ -70,7 +70,7 @@ class ProductTopSellingImage extends StatelessWidget {
 
 /// Shared product-info section (below the image) used by both the horizontal
 /// top-selling list on [VisitProductStoreDetailsScreen] and the grid on
-/// [AllTopSellingProductsScreen].
+/// the admin/customer `AllTopSellingProductsScreen` pages.
 ///
 /// Tapping the section opens a [SimpleDialog] with the full details.
 class ProductTopSellingInfoSection extends StatelessWidget {

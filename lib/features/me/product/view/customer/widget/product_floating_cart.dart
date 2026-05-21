@@ -1,9 +1,9 @@
-import 'package:BlueEra/features/me/product/model/inventory_based_search_product_response.dart';
+import 'package:BlueEra/features/me/product/model/product_catalog_response.dart';
 import 'package:BlueEra/widgets/floating_cart_widget.dart';
 import 'package:flutter/material.dart';
 
 class ProductFloatingCart extends StatelessWidget {
-  final List<VariantData> selectedProducts;
+  final List<SelectedVariant> selectedProducts;
   final VoidCallback onTap;
 
   const ProductFloatingCart({
@@ -15,14 +15,8 @@ class ProductFloatingCart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final displayImages = selectedProducts.take(3).map((p) {
-      if (p.productInformation.media.isNotEmpty &&
-          p.productInformation.media.first.isNotEmpty) {
-        return p.productInformation.media.first;
-      } else if (p.finalVariant.mediaRelatedToVarient.isNotEmpty &&
-          p.finalVariant.mediaRelatedToVarient.first.isNotEmpty) {
-        return p.finalVariant.mediaRelatedToVarient.first;
-      }
-      return null;
+      final url = p.primaryImageUrl;
+      return url.isEmpty ? null : url;
     }).toList();
 
     return FloatingCartWidget(

@@ -15,7 +15,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:get/get.dart';
 import '../../../../widgets/common_card_widget.dart';
-import '../../auth/views/dialogs/select_profile_picture_dialog.dart';
+import 'package:BlueEra/core/services/photo_picker_service.dart';
 import '../controller/food_upload_controller.dart';
 import '../model/food_ai_res_model.dart';
 import '../../service/view/add_services_screen.dart';
@@ -343,8 +343,8 @@ class _SubmitFoodProductPageState extends State<SubmitFoodProductPage> {
                                   return InkWell(
                                     onTap: () async {
                                       final String? selected =
-                                      await SelectProfilePictureDialog
-                                          .showLogoDialog(
+                                      await PhotoPickerService
+                                          .pickSinglePhoto(
                                         context,
                                         AppStrings.selectPhoto.tr,
                                       );

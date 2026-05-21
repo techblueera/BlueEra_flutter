@@ -7,7 +7,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/onboarding/controller/business_onboarding_controller.dart';
 import 'package:BlueEra/features/business/onboarding/widget/business_onboarding_progress_bar.dart';
-import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
+import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -112,7 +112,7 @@ class BusinessOnboardingPhotoScreen extends StatelessWidget {
   }
 
   Future<void> _pickPhoto(BuildContext context) async {
-    final selected = await SelectProfilePictureDialog.showLogoDialog(
+    final selected = await PhotoPickerService.pickSinglePhoto(
       context,
       AppStrings.uploadProfilePicture,
     );

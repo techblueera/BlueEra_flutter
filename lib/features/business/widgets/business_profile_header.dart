@@ -23,7 +23,7 @@ import '../../../core/services/multipart_image_service.dart';
 import '../../../widgets/common_box_shadow.dart';
 import '../../../widgets/local_assets.dart';
 import '../../../widgets/update_live_photo_dialog.dart';
-import '../../common/auth/views/dialogs/select_profile_picture_dialog.dart';
+import 'package:BlueEra/core/services/photo_picker_service.dart';
 import '../../common/reel/view/channel/follower_following_screen.dart';
 import '../auth/controller/view_business_details_controller.dart';
 import '../auth/model/viewBusinessProfileModel.dart';
@@ -139,7 +139,7 @@ class BusinessProfileHeader extends StatelessWidget {
                         onTap: () async {
                           try {
                             final newPath =
-                                await SelectProfilePictureDialog.showLogoDialog(
+                                await PhotoPickerService.pickSinglePhoto(
                                         context, AppStrings.editCoverPicture.tr,
                                         cropAspectRatio:
                                             CropAspectRatio(width: 3, height: 1)

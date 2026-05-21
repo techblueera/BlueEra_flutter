@@ -16,7 +16,7 @@ import 'package:BlueEra/features/common/Discover/widget/discover_chat_icon.dart'
 import 'package:BlueEra/features/common/Discover/widget/sticky_category_header_delegate.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
-import 'package:BlueEra/features/common/store/controller/new_store_controller.dart';
+import 'package:BlueEra/features/common/store/controller/store_controller.dart';
 import 'package:BlueEra/features/me/food/controller/food_selfpickup_controller.dart';
 import 'package:BlueEra/features/me/food/view/widget/customer_food_self_pickup_cart.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
@@ -75,7 +75,7 @@ class RestaurantNearMeScreen extends StatefulWidget {
 }
 
 class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
-  final storeController = getOrPut(() => NewStoreController());
+  final storeController = getOrPut(() => StoreController());
   final AuthController _authController = Get.find<AuthController>();
   final RxInt selectedCategoryIndex = 0.obs;
 
@@ -794,13 +794,15 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
               overflow: TextOverflow.ellipsis,
             ),
             SizedBox(width: SizeConfig.size6),
-            CustomText(
-              label,
-              fontSize: SizeConfig.extraSmall,
-              color: AppColors.secondaryTextColor,
-              fontWeight: FontWeight.w400,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+            Flexible(
+              child: CustomText(
+                label,
+                fontSize: SizeConfig.extraSmall,
+                color: AppColors.secondaryTextColor,
+                fontWeight: FontWeight.w400,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
           ],
         ),

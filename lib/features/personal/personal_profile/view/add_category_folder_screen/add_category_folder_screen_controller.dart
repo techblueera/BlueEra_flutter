@@ -1,4 +1,4 @@
-import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
+import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -26,7 +26,7 @@ class AddCategoryFolderScreenController extends GetxController {
     try {
       print('Upload image tapped - opening dialog...');
       
-      final String? selected = await SelectProfilePictureDialog.showLogoDialog(
+      final String? selected = await PhotoPickerService.pickSinglePhoto(
         Get.context!,
         'Upload Category Image',
       );

@@ -10,7 +10,7 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
-import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
+import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/common/reel/controller/manage_channel_controller.dart';
 import 'package:BlueEra/features/common/reel/models/channel_model.dart';
 import 'package:BlueEra/features/common/reel/models/social_input_fields_model.dart';
@@ -480,12 +480,11 @@ class _ManageChannelScreenState extends State<ManageChannelScreen> {
   }
 
   void _selectImage(BuildContext context) async {
-    String imagePath = await SelectProfilePictureDialog.showLogoDialog(
+    final imagePath = await PhotoPickerService.pickSinglePhoto(
         context, AppStrings.uploadChannelLogo);
+    if (imagePath == null || imagePath.isEmpty) return;
     _profileImage = File(imagePath);
-    if (_profileImage?.path.isNotEmpty ?? false) {
-      setState(() {});
-    }
+    setState(() {});
   }
 
   Future<void> _onSubmit() async {

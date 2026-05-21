@@ -15,7 +15,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
-import 'package:BlueEra/features/common/store/controller/new_store_controller.dart';
+import 'package:BlueEra/features/common/store/controller/store_controller.dart';
 import 'package:BlueEra/widgets/visit_business_stats_card.dart';
 import 'package:BlueEra/widgets/service_home_title_widget.dart';
 import 'package:BlueEra/widgets/social_gallery_grid.dart';
@@ -39,7 +39,7 @@ class _MedicalPharmacyDetailScreenState
     extends State<MedicalPharmacyDetailScreen> {
   final viewBusinessDetailsController =
       Get.find<ViewBusinessDetailsController>();
-  final storeController = getOrPut(() => NewStoreController());
+  final storeController = getOrPut(() => StoreController());
   MedicalHomeResponseModel? _data;
   bool _isLoading = true;
 

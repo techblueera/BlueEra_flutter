@@ -11,7 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../../../core/constants/getx_utils.dart';
-import '../../../../../common/auth/views/dialogs/select_profile_picture_dialog.dart';
+import 'package:BlueEra/core/services/photo_picker_service.dart';
 import '../../../controller/help_and_support_controller.dart';
 
 class CreateSupportQueryPage extends StatefulWidget {
@@ -38,7 +38,7 @@ class _CreateSupportQueryPageState extends State<CreateSupportQueryPage> {
     }
 
     final String? image =
-    await SelectProfilePictureDialog.showLogoDialog(
+    await PhotoPickerService.pickSinglePhoto(
         context, "Choose Image");
 
     if (image != null) {

@@ -10,7 +10,7 @@ import 'package:BlueEra/features/common/Discover/controller/discover_controller.
 import 'package:BlueEra/features/common/Discover/widget/common_generic_left_side_category_list.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
-import 'package:BlueEra/features/common/store/controller/new_store_controller.dart';
+import 'package:BlueEra/features/common/store/controller/store_controller.dart';
 import 'package:BlueEra/features/common/store/models/product_consumer_nested_category_response.dart';
 import 'package:BlueEra/features/me/product/model/get_product_model.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
@@ -41,7 +41,7 @@ class AllBusinessProductsScreen extends StatefulWidget {
 
 class _AllBusinessProductsScreenState extends State<AllBusinessProductsScreen> {
   final controller = getOrPut(() => DiscoverController());
-  final storeController = getOrPut(() => NewStoreController());
+  final storeController = getOrPut(() => StoreController());
   final AuthController _authController = Get.find<AuthController>();
   final ScrollController storesScrollController = ScrollController();
   final ProviderType _providerType = ProviderType.business;

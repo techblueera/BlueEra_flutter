@@ -15,13 +15,13 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/hive_services.dart';
 import 'package:BlueEra/features/me/product/model/generate_ai_product_content.dart';
-import 'package:BlueEra/features/me/product/model/inventory_based_search_product_response.dart';
+import 'package:BlueEra/features/me/product/model/product_catalog_response.dart';
 import 'package:BlueEra/features/me/product/model/product_nested_category_response.dart';
 import 'package:BlueEra/features/me/product/model/single_product_model.dart';
 import 'package:BlueEra/features/me/product/repo/product_repo.dart';
 import 'package:BlueEra/features/me/product/view/admin/product_preview_screen.dart';
 import 'package:BlueEra/widgets/collapsible_grid_model.dart';
-import 'package:BlueEra/widgets/select_product_image_dialog.dart';
+import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -345,7 +345,7 @@ class ProductController extends GetxController{
 
   /// Pick images for Step 1
   Future<void> pickImagesStep1(BuildContext context) async {
-    final List<String>? selected = await SelectProductImageDialog.showLogoDialog(
+    final List<String>? selected = await PhotoPickerService.pickMultiplePhotos(
       context,
       AppStrings.productImage,
       // 'Product Image',
@@ -377,7 +377,7 @@ class ProductController extends GetxController{
   /// Pick new images for Step 2
   Future<void> pickImagesStep2(BuildContext context) async {
     try {
-      final List<String>? selected = await SelectProductImageDialog.showLogoDialog(
+      final List<String>? selected = await PhotoPickerService.pickMultiplePhotos(
         context,
         AppStrings.productImage,
 
@@ -1018,7 +1018,7 @@ class ProductController extends GetxController{
   ProviderType? ownerProviderType;
 
   // ── Inventory Product Search by Category ─────────────────────────────
-  RxList<VariantData> inventoryProductList = <VariantData>[].obs;
+  RxList<SelectedVariant> inventoryProductList = <SelectedVariant>[].obs;
   RxBool isInventoryProductFirstLoading = false.obs;
   RxBool isInventoryProductLoadingMore = false.obs;
   int inventoryProductPage = 1;
@@ -1050,10 +1050,10 @@ class ProductController extends GetxController{
           .fetchSearchProductViaCategoryRepo(queryParams: params);
 
       if (responseModel.isSuccess) {
-        final response = InventoryBasedSearchProductResponse.fromJson(
+        final response = ProductCatalogResponse.fromJson(
           responseModel.response?.data,
         );
-        final List<VariantData> newData = response.data;
+        final newData = flattenProducts(response.data);
 
         if (newData.isNotEmpty) {
           if (isLoadMore) {
@@ -1080,14 +1080,14 @@ class ProductController extends GetxController{
   }
 
   // ── Product Selection (Cart) ─────────────────────────────────────────
-  RxList<VariantData> selectedProducts = <VariantData>[].obs;
+  RxList<SelectedVariant> selectedProducts = <SelectedVariant>[].obs;
   int productMaxLimit = 10;
 
   bool get isProductMaxLimitHit => selectedProducts.length >= productMaxLimit;
 
-  void toggleProductSelection(VariantData product) {
-    final index = selectedProducts.indexWhere(
-        (p) => p.finalVariant.id == product.finalVariant.id);
+  void toggleProductSelection(SelectedVariant product) {
+    final index =
+        selectedProducts.indexWhere((p) => p.id == product.id);
     if (index >= 0) {
       selectedProducts.removeAt(index);
     } else {
@@ -1101,6 +1101,6 @@ class ProductController extends GetxController{
   }
 
   bool isProductSelected(String variantId) {
-    return selectedProducts.any((p) => p.finalVariant.id == variantId);
+    return selectedProducts.any((p) => p.id == variantId);
   }
 }

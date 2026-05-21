@@ -11,7 +11,7 @@ import 'package:BlueEra/features/common/Discover/widget/common_generic_left_side
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
-import 'package:BlueEra/features/common/store/controller/new_store_controller.dart';
+import 'package:BlueEra/features/common/store/controller/store_controller.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -41,7 +41,7 @@ class RiderLinkStoresScreen extends StatefulWidget {
 }
 
 class _RiderLinkStoresScreenState extends State<RiderLinkStoresScreen> {
-  final controller = getOrPut(() => NewStoreController());
+  final controller = getOrPut(() => StoreController());
   final deliveryPartnerController = getOrPut(() => DeliveryPartnerController());
   final AuthController _authController = Get.find<AuthController>();
   final ScrollController _scrollController = ScrollController();

@@ -6,7 +6,7 @@ import 'package:BlueEra/features/common/Discover/widget/banner_carousel.dart';
 import 'package:BlueEra/features/common/Discover/widget/sticky_category_header_delegate.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
-import 'package:BlueEra/features/common/store/controller/new_store_controller.dart';
+import 'package:BlueEra/features/common/store/controller/store_controller.dart';
 import 'package:BlueEra/features/me/product/view/customer/product_store_card.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:flutter/material.dart';
@@ -29,7 +29,7 @@ class ServicesNearMeScreen extends StatefulWidget {
 }
 
 class _ServicesNearMeScreenState extends State<ServicesNearMeScreen> {
-  final controller = getOrPut(() => NewStoreController());
+  final controller = getOrPut(() => StoreController());
   final AuthController _authController = Get.find<AuthController>();
   final RxInt _selectedIndex = 0.obs;
 

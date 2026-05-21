@@ -4,7 +4,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
+import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/personal/resume/controller/profile_pic_controller.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
@@ -43,7 +43,7 @@ class _ResumeProfileHeaderState extends State<ResumeProfileHeader> {
                     child: InkWell(
                       onTap: () async {
                         final newPath =
-                            await SelectProfilePictureDialog.showLogoDialog(
+                            await PhotoPickerService.pickSinglePhoto(
                           context,
                               AppStrings.editProfilePicture,
                           isOnlyCamera: true,

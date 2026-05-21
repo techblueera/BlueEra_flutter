@@ -7,7 +7,7 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/me/food/model/food_gen_ai_res_model.dart';
 import 'package:BlueEra/features/me/food/repo/food_repo.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
-import 'package:BlueEra/widgets/select_product_image_dialog.dart';
+import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -50,7 +50,7 @@ class FoodEntryController extends GetxController {
   }
 
   Future<void> pickImageForIndex(BuildContext context, int index) async {
-    final List<String>? selected = await SelectProductImageDialog.showLogoDialog(
+    final List<String>? selected = await PhotoPickerService.pickMultiplePhotos(
       context,
       AppStrings.productImage,
     );

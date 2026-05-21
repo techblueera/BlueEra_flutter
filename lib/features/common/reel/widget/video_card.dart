@@ -7,7 +7,7 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
-import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
+import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/common/feed/controller/video_controller.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/features/common/reel/widget/common_video_card.dart';
@@ -161,7 +161,7 @@ class VideoCard extends StatelessWidget {
   }
 
   void _pickImageFromGallery(BuildContext context) async {
-    final croppedPath = await SelectProfilePictureDialog.pickFromGallery(
+    final croppedPath = await PhotoPickerService.pickFromGallery(
       context,
       cropAspectRatio: const CropAspectRatio(width: 16, height: 9),
     );

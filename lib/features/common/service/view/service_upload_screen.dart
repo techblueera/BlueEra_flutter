@@ -10,7 +10,7 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
-import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
+import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/common/service/controller/service_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -301,7 +301,7 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
         Obx(() => GestureDetector(
               onTap: () async {
                 final String? selected =
-                    await SelectProfilePictureDialog.showLogoDialog(
+                    await PhotoPickerService.pickSinglePhoto(
                   context,
                       AppStrings.selectPhoto.tr,
                 );

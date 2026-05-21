@@ -7,7 +7,7 @@
 // import 'package:BlueEra/core/constants/size_config.dart';
 // import 'package:BlueEra/core/constants/typedef_utils.dart';
 // import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
-// import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
+// import 'package:BlueEra/core/services/photo_picker_service.dart';
 // import 'package:BlueEra/features/common/map/view/searchLocationScreen.dart';
 // import 'package:BlueEra/features/common/reelsModule/controller/reels_controller.dart';
 // import 'package:BlueEra/features/common/reelsModule/model/fetch_reels_model.dart';
@@ -103,7 +103,7 @@
 //
 //   ///SELECT COVER IMAGE AND SHOW DIALOG...
 //   selectImage(BuildContext context) async {
-//     String imagePath = await SelectProfilePictureDialog.showLogoDialog(context, "Upload Cover Photo");
+//     String imagePath = await PhotoPickerService.pickSinglePhoto(context, "Upload Cover Photo");
 //     coverPhoto = File(imagePath);
 //     if (coverPhoto?.path.isNotEmpty ?? false) {
 //       ///SET IMAGE PATH...

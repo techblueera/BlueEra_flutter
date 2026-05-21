@@ -12,7 +12,7 @@ import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
-import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
+import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/common/auth/views/screens/guest_exit_handler.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -60,7 +60,7 @@ class _CompleteGuestProfileScreenState
 
   Future<void> _pickPhoto() async {
     HapticFeedback.selectionClick();
-    final path = await SelectProfilePictureDialog.showLogoDialog(
+    final path = await PhotoPickerService.pickSinglePhoto(
       context,
       AppStrings.editProfilePicture.tr,
       isOnlyCamera: true,

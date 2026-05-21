@@ -7,7 +7,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
-import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
+import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
@@ -46,10 +46,10 @@ void postNavigations(
 
 Future<void> showVideosPickerDialog(BuildContext context,
     {PostVia? type}) async {
-  await SelectProfilePictureDialog.showVideoDialog(
+  await PhotoPickerService.showSourceChooserDialog(
     context,
     "Upload Video",
-    onPickFromCamera: () async {
+    onCamera: () async {
       Navigator.pop(Get.context!);
       Navigator.pushNamed(
         Get.context!,
@@ -57,7 +57,7 @@ Future<void> showVideosPickerDialog(BuildContext context,
         arguments: {ApiKeys.argPostVia: type},
       );
     },
-    onPickFromGallery: () async {
+    onGallery: () async {
       Navigator.pop(Get.context!);
       final picked = await ImagePicker().pickVideo(source: ImageSource.gallery);
       Navigator.pushNamed(

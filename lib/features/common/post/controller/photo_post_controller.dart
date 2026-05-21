@@ -10,7 +10,7 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/controller/navigation_helper_controller.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/get_current_location.dart';
-import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
+import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/post/controller/tag_user_controller.dart';
 import 'package:BlueEra/features/common/post/photo_post/photo_post_editing_screen.dart';
@@ -79,7 +79,7 @@ class PhotoPostController extends GetxController {
       final originalSize = await File(image.path).length();
 
       final compressedFile =
-          await SelectProfilePictureDialog.compressImage(File(image.path));
+          await PhotoPickerService.compressImage(File(image.path));
 
       if (compressedFile != null) {
         final newSize = await compressedFile.length();

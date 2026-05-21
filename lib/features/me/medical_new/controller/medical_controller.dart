@@ -20,7 +20,7 @@ import 'package:BlueEra/features/me/medical_new/model/snap_search_result_model.d
 import 'package:BlueEra/features/me/medical_new/view/edit_medical_varient_dialog.dart';
 import 'package:BlueEra/features/me/medical_new/widget/edit_medical_inventory_bottom_sheet.dart';
 import 'package:BlueEra/features/me/medical_new/widget/add_medical_variant_bottom_sheet.dart';
-import 'package:BlueEra/widgets/select_product_image_dialog.dart';
+import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -130,7 +130,7 @@ class MedicalController extends GetxController {
 
   Future<List<String>?> pickSnapSearchImages(String title) async {
     final List<String>? selected =
-        await SelectProductImageDialog.showLogoDialog(Get.context!, title);
+        await PhotoPickerService.pickMultiplePhotos(Get.context!, title);
     return (selected != null && selected.isNotEmpty) ? selected : null;
   }
 

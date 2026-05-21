@@ -4,7 +4,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
-import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
+import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/me/hotel/controller/hotel_home_detail_controller.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -34,7 +34,7 @@ class _HotelHeaderViewState extends State<HotelHeaderView> {
   File? _logoImage;
 
   Future<void> _pickImage({required bool isBanner}) async {
-    final String? imagePath = await SelectProfilePictureDialog.showLogoDialog(
+    final String? imagePath = await PhotoPickerService.pickSinglePhoto(
       context,
       isBanner
           ? AppStrings.editCoverPicture.tr

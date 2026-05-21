@@ -5,7 +5,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
+import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
@@ -274,7 +274,7 @@ class _CertificateScreenState extends State<CertificateScreen> {
 
   selectImage(BuildContext context) async {
 
-    imagePath = await SelectProfilePictureDialog.showLogoDialog(
+    imagePath = await PhotoPickerService.pickSinglePhoto(
         context, AppStrings.uploadDocumentPhoto);
     if (imagePath?.isNotEmpty ?? false) {
       final file = File(imagePath!);

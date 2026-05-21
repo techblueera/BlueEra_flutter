@@ -16,7 +16,7 @@ import 'package:BlueEra/features/common/service/model/service_ai_generate_model.
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/repo/earn_service_repo.dart';
 import 'package:BlueEra/features/me/product/model/detail_item.dart';
 import 'package:BlueEra/features/common/service/view/add_services_screen.dart';
-import 'package:BlueEra/widgets/select_product_image_dialog.dart';
+import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/widgets/uploading_progressing_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -177,7 +177,7 @@ class AddServiceController extends GetxController {
   Future<void> pickImages(BuildContext context,[int? maxImages]) async {
     try {
       final List<String>? selected =
-          await SelectProductImageDialog.showLogoDialog(maxImages: maxImages,
+          await PhotoPickerService.pickMultiplePhotos(maxImages: maxImages,
         context,
         AppStrings.serviceImage,
       );

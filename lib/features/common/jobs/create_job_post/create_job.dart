@@ -13,7 +13,7 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/routes/route_constant.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
-import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
+import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/common/jobs/controller/create_job_post_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -999,7 +999,7 @@ class _CreateJobPostScreenState extends State<CreateJobPostScreen> {
   }
 
   Future<void> _selectImage(BuildContext context) async {
-    final String? selected = await SelectProfilePictureDialog.showLogoDialog(
+    final String? selected = await PhotoPickerService.pickSinglePhoto(
       context,
       AppStrings.uploadProfilePicture,
     );

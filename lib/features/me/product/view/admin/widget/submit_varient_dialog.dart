@@ -5,7 +5,7 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/features/me/product/controller/product_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
-import 'package:BlueEra/widgets/select_product_image_dialog.dart';
+import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -40,7 +40,7 @@ class _SubmitVariantDialogState extends State<SubmitVariantDialog> {
 
   Future<void> pickProductImages(BuildContext context) async {
     try {
-      final List<String>? selected = await SelectProductImageDialog.showLogoDialog(
+      final List<String>? selected = await PhotoPickerService.pickMultiplePhotos(
         context,
         AppStrings.productImage,
       );

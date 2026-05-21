@@ -3,7 +3,7 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
+import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/personal/resume/controller/additional_info_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -206,8 +206,8 @@ class _JobSeekerAdditionalInfoFormScreenState extends State<JobSeekerAdditionalI
                                   },
                                   onSelect: (context) async {
                                     controller.selectedImagePath =
-                                        await SelectProfilePictureDialog
-                                            .showLogoDialog(
+                                        await PhotoPickerService
+                                            .pickSinglePhoto(
                                                 context,
                                             AppStrings
                                                     .uploadYourDocumentPhoto.tr);

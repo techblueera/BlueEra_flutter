@@ -9,7 +9,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
-import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
+import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -143,7 +143,7 @@ class _CommonBusinessLivePhotoState extends State<CommonBusinessLivePhoto> {
                 );
               } else {
                 final imgStr =
-                    await SelectProfilePictureDialog.pickFromCamera(
+                    await PhotoPickerService.pickFromCamera(
                   context,
                   cropAspectRatio: CropAspectRatio(width: 3, height: 4),
                 );

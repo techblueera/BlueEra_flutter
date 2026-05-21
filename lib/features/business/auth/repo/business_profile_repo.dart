@@ -12,10 +12,12 @@ class BusinessProfileRepo extends BaseService {
   }
 
   Future<ResponseModel> updateBusinessProfileDetails(
-      Map<String, dynamic> params) async {
+      Map<String, dynamic> params, {
+    bool showProgress = true,
+  }) async {
     final response = await ApiBaseHelper().putHTTP(
         params: params,
-        showProgress: true,
+        showProgress: showProgress,
         isMultipart: true,
         updateBusinessProfile,
         onError: (error) {},

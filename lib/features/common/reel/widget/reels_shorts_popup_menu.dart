@@ -6,7 +6,7 @@ import 'package:BlueEra/core/constants/popup_menu_builders.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
-import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
+import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/common/feed/controller/shorts_controller.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/features/common/reel/view/channel/reel_upload_details_screen.dart';
@@ -119,7 +119,7 @@ class ReelShortPopUpMenu extends StatelessWidget {
   }
 
   void pickImageFromGallery(BuildContext context) async {
-    final croppedPath = await SelectProfilePictureDialog.pickFromGallery(
+    final croppedPath = await PhotoPickerService.pickFromGallery(
         context,
         cropAspectRatio: CropAspectRatio(width: 9, height: 16));
     print('cropped path--> $croppedPath');

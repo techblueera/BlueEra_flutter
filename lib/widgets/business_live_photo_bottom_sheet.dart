@@ -4,7 +4,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
-import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
+import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/widgets/app_loader.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -279,7 +279,7 @@ class _LivePhotoSlot extends StatelessWidget {
   }
 
   Future<void> _handleUpload(BuildContext context) async {
-    final imgStr = await SelectProfilePictureDialog.pickFromCamera(
+    final imgStr = await PhotoPickerService.pickFromCamera(
       context, cropAspectRatio: CropAspectRatio(width: 3, height: 4),
     );
     if (imgStr != null) {

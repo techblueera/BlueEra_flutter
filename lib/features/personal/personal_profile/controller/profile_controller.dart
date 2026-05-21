@@ -9,7 +9,7 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/reel/models/channel_model.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
-import 'package:BlueEra/features/common/store/controller/new_store_controller.dart';
+import 'package:BlueEra/features/common/store/controller/store_controller.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
 import 'package:flutter/cupertino.dart';
@@ -272,7 +272,7 @@ class VisitProfileController extends GetxController {
 
   void updateFollowStatusForStore(String? candidateResumeId, bool isFollowed) {
 
-    final controller = getOrPut(() => NewStoreController());
+    final controller = getOrPut(() => StoreController());
 
     // Update in allStore
     final listStoreData = controller.allStore;

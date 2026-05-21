@@ -41,6 +41,12 @@ import 'package:BlueEra/features/me/product/view/admin/product_cart_screen.dart'
 import 'package:BlueEra/features/me/product/view/admin/product_nested_category_with_inventory_screen.dart';
 import 'package:BlueEra/features/me/product/view/admin/my_product_products_screen.dart';
 import 'package:BlueEra/features/me/product/view/admin/product_screen.dart';
+// Manufacturer fork — classes are Manufacturer-prefixed so no alias
+// is needed.
+import 'package:BlueEra/features/me/manufacturer/view/admin/manufacturer_product_screen.dart';
+import 'package:BlueEra/features/me/manufacturer/view/admin/my_manufacturer_products_screen.dart';
+import 'package:BlueEra/features/me/manufacturer/view/admin/manufacturer_inventory_business_cards_screen.dart';
+import 'package:BlueEra/features/me/manufacturer/view/customer/manufacturer_products_store_details_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/choose_earn_service_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_dashboard_view.dart';
 import 'package:share_handler/share_handler.dart';
@@ -446,6 +452,19 @@ class RouteHelper {
 
   static String getInventoryBusinessCardsScreenRoute() =>
       RouteConstant.inventoryBusinessCardsScreen;
+
+  // Manufacturer-fork route getters.
+  static String getManufacturerScreenRoute() =>
+      RouteConstant.manufacturerScreen;
+
+  static String getManufacturerStoreDetailsScreenRoute() =>
+      RouteConstant.manufacturerStoreDetailsScreen;
+
+  static String getManufacturerInventoryBusinessCardsScreenRoute() =>
+      RouteConstant.manufacturerInventoryBusinessCardsScreen;
+
+  static String getMyManufacturerProductsScreenRoute() =>
+      RouteConstant.myManufacturerProductsScreen;
 
   static String getFoodUploadScreenRoute() => 
       RouteConstant.foodUploadScreen;
@@ -1295,6 +1314,10 @@ class RouteHelper {
         return MaterialPageRoute(
             builder: (_) => ProductScreen(),
             settings: RouteSettings(name: getProductScreenRoute()));
+      case RouteConstant.manufacturerScreen:
+        return MaterialPageRoute(
+            builder: (_) => ManufacturerProductScreen(),
+            settings: RouteSettings(name: getManufacturerScreenRoute()));
       case RouteConstant.addServicesScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final ProviderType providerType =
@@ -1380,6 +1403,20 @@ class RouteHelper {
                 providerType: providerType),
             settings:
                 RouteSettings(name: getProductsStoreDetailsScreenRoute()));
+      case RouteConstant.manufacturerStoreDetailsScreen:
+        final args = settings.arguments as Map<String, dynamic>;
+        final ProductStore? productStore =
+            args[ApiKeys.argProductData] as ProductStore?;
+        final String id = args[ApiKeys.id] as String;
+        final ProviderType providerType =
+            args[ApiKeys.providerType] as ProviderType;
+        return MaterialPageRoute(
+            builder: (_) => ManufacturerProductsStoreDetailsScreen(
+                productStore: productStore,
+                id: id,
+                providerType: providerType),
+            settings: RouteSettings(
+                name: getManufacturerStoreDetailsScreenRoute()));
       case RouteConstant.createVariantScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final ProductController controller =
@@ -1405,6 +1442,11 @@ class RouteHelper {
             builder: (_) => InventoryBusinessCardsScreen(),
             settings:
                 RouteSettings(name: getInventoryBusinessCardsScreenRoute()));
+      case RouteConstant.manufacturerInventoryBusinessCardsScreen:
+        return MaterialPageRoute(
+            builder: (_) => ManufacturerInventoryBusinessCardsScreen(),
+            settings: RouteSettings(
+                name: getManufacturerInventoryBusinessCardsScreenRoute()));
       case RouteConstant.foodUploadScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final ProviderType providerType =
@@ -2041,6 +2083,18 @@ class RouteHelper {
                   arrCategories: argProductCategories,
                 ),
             settings: RouteSettings(name: getMyProductProductsScreenRoute()));
+
+      case RouteConstant.myManufacturerProductsScreen:
+        final args = settings.arguments as Map<String, dynamic>;
+        final List<ProductCategoryWithInventoryModel> argProductCategories =
+            args[ApiKeys.argProductCategories]
+                as List<ProductCategoryWithInventoryModel>;
+        return MaterialPageRoute(
+            builder: (_) => MyManufacturerProductsScreen(
+                  arrCategories: argProductCategories,
+                ),
+            settings:
+                RouteSettings(name: getMyManufacturerProductsScreenRoute()));
 
       case RouteConstant.foodEntryAiScreen:
         final args = settings.arguments as Map<String, dynamic>;

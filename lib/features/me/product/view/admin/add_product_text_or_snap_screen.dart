@@ -16,7 +16,7 @@ import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/widgets/price_row.dart';
 import 'package:BlueEra/features/me/product/controller/inventory_controller.dart';
 import 'package:BlueEra/features/me/product/controller/product_controller.dart';
-import 'package:BlueEra/features/me/product/model/inventory_based_search_product_response.dart';
+import 'package:BlueEra/features/me/product/model/product_catalog_response.dart';
 import 'package:BlueEra/features/me/product/view/admin/product_preview_screen.dart';
 import 'package:BlueEra/features/me/product/view/admin/widget/attribute_two_rows.dart';
 import 'package:BlueEra/features/me/product/view/admin/widget/product_variant_grid_card.dart';
@@ -81,6 +81,11 @@ class _AddProductTextOrSnapSearchScreenState
           children: [
             Column(
               children: [
+                // Persistent "Quick add" rail — surfaces suggested
+                // products above the mode tabs so the merchant can
+                // tap-to-add without committing to either search path,
+                // whether they're typing or snapping.
+                _buildQuickAddRail(),
                 _buildModeSelector(),
                 Expanded(
                   child: Obx(() =>
@@ -119,35 +124,32 @@ class _AddProductTextOrSnapSearchScreenState
 
     // Sync variant selections
     for (final v in controller.selectedVariantsList) {
-      final id = v.finalVariant.id;
       final inventoryCtrl = Get.find<InventoryController>();
-      inventoryCtrl.variantSelection[id] = true;
+      inventoryCtrl.variantSelection[v.id] = true;
     }
 
     Get.toNamed(RouteHelper.getAddProductVariantScreenRoute());
   }
 
-  void _openPreview(VariantData variantData) {
-    final product = variantData.productInformation;
-    final variant = variantData.finalVariant;
+  void _openPreview(SelectedVariant variantData) {
+    final product = variantData.product;
+    final variant = variantData.variant;
 
     final args = ProductPreviewArgs(
       productId: product.id,
-      media: product.media.isNotEmpty
-          ? product.media
-          : variant.mediaRelatedToVarient,
+      media: product.media.isNotEmpty ? product.media : variant.media,
       name: product.name,
       description: product.description,
       tags: product.tags,
-      features: product.addProductFeatures.map((f) => f.title).toList(),
-      details: product.addMoreDetails
+      features: product.features.map((f) => f.title).toList(),
+      details: product.additionalDetails
           .map((d) => DetailPair(d.title, d.details))
           .toList(),
       sellingPrice: variant.sellingPrice.toString(),
       MRPPrice: variant.mrp.toString(),
-      warranty: product.productWarrenty,
+      warranty: product.productWarranty,
       expiry: '',
-      userGuide: product.guideLine,
+      userGuide: product.guidelines,
     );
 
     Get.toNamed(
@@ -253,19 +255,13 @@ class _AddProductTextOrSnapSearchScreenState
     return NotificationListener<ScrollNotification>(
       onNotification: (scrollInfo) {
         if (scrollInfo.metrics.pixels ==
-            scrollInfo.metrics.maxScrollExtent) {
-          if (controller.searchProduct.isNotEmpty) {
-            if (controller.hasMoreData && !controller.isLoadingMore) {
-              controller.fetchListOfSearchProductApi(
-                  controller.searchProduct.value,
-                  isLoadMore: true);
-            }
-          } else {
-            if (controller.suggestedProductHasMoreData &&
-                !controller.isSuggestedProductLoadingLoadingMore.value) {
-              controller.fetchListOfSuggestedProductApi(isLoadMore: true);
-            }
-          }
+                scrollInfo.metrics.maxScrollExtent &&
+            controller.searchProduct.isNotEmpty &&
+            controller.hasMoreData &&
+            !controller.isLoadingMore) {
+          controller.fetchListOfSearchProductApi(
+              controller.searchProduct.value,
+              isLoadMore: true);
         }
         return false;
       },
@@ -325,16 +321,15 @@ class _AddProductTextOrSnapSearchScreenState
 
             SizedBox(height: SizeConfig.size15),
 
-            // Results — switches between three states based on the
-            // live keystroke count:
-            //   0 chars        → suggested products (browse)
-            //   1..2 chars     → typing hint (let the user know more
-            //                    characters are needed before search
-            //                    will fire)
-            //   >= 3 chars     → real results (skeleton while loading)
+            // Results — two-state switch driven by the live keystroke
+            // count. Browse/idle is handled by the persistent Quick
+            // add rail above the tabs, so this area is empty until
+            // the user starts typing.
+            //   1..n-1 chars   → typing hint
+            //   >= n chars     → real results (skeleton while loading)
             Obx(() {
               final length = _liveInput.value.trim().length;
-              if (length == 0) return _buildSuggestedProducts();
+              if (length == 0) return const SizedBox.shrink();
               if (length < _minSearchChars) {
                 return _SearchTypingHint(typed: length, required: _minSearchChars);
               }
@@ -347,30 +342,61 @@ class _AddProductTextOrSnapSearchScreenState
   }
 
   Widget _buildSearchResults() {
+    // "Pending" = user has typed a query the controller hasn't fired
+    // yet (the 500ms debounce window, or rapid typing that keeps
+    // resetting the timer). During this window `ProductSearchLoading`
+    // is still false but the prior `searchProductResponse` may still
+    // be `ERROR` — without this gate the error UI flashes for a frame
+    // before the skeleton appears.
+    final typed = _liveInput.value.trim();
+    final searchPending =
+        typed.length >= _minSearchChars && typed != controller.searchProduct.value;
+
     // Initial fetch — paint a placeholder grid that mirrors the real
     // variant card layout instead of a centered spinner. Gives the
     // merchant a preview of the layout they're about to receive and
     // avoids the "is anything happening?" pause.
-    if (controller.ProductSearchLoading.isTrue) {
+    if (controller.ProductSearchLoading.isTrue || searchPending) {
       return const Padding(
         padding: EdgeInsets.only(top: 4),
         child: _VariantGridSkeleton(count: 4),
       );
     }
 
+    // Server failed the search (e.g. 503). Surface a clear retry UI
+    // instead of leaving the area blank.
+    if (controller.searchProductResponse.value.status == Status.ERROR) {
+      return _SearchErrorState(
+        onRetry: () => controller.fetchListOfSearchProductApi(
+            controller.searchProduct.value),
+      );
+    }
+
+    // Search completed but returned nothing — mirror the snap-search
+    // "couldn't identify" empty state so the merchant gets clear
+    // feedback instead of a blank area.
+    if (controller.searchProductVariantsList.isEmpty) {
+      return _SearchEmptyState(
+        keyword: controller.searchProduct.value,
+        onClear: () {
+          controller.searchController.clear();
+          controller.searchProduct.value = '';
+          _liveInput.value = '';
+        },
+      );
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (controller.searchProductVariantsList.isNotEmpty) ...[
-          CustomText(
-            AppStrings.productVariants,
-            fontSize: SizeConfig.small,
-            fontWeight: FontWeight.w600,
-            color: AppColors.secondaryTextColor,
-          ),
-          SizedBox(height: SizeConfig.size10),
-          _buildVariantGrid(controller.searchProductVariantsList),
-        ],
+        CustomText(
+          AppStrings.productVariants,
+          fontSize: SizeConfig.small,
+          fontWeight: FontWeight.w600,
+          color: AppColors.secondaryTextColor,
+        ),
+        SizedBox(height: SizeConfig.size10),
+        _buildVariantGrid(controller.searchProductVariantsList),
 
         // Load-more — two-card skeleton row keeps the visual language
         // consistent with the initial fetch instead of jumping to a
@@ -384,53 +410,116 @@ class _AddProductTextOrSnapSearchScreenState
     );
   }
 
-  Widget _buildSuggestedProducts() {
-    return  controller.isSuggestedProductFirstLoading.isTrue
-          ? Padding(
-      padding: const EdgeInsets.all(30.0),
-      child: Align(
-        alignment: Alignment.center,
-        child: CircularProgressIndicator(),
-      ),
-    )
-            : controller.suggestedProductList.isNotEmpty
-               ? CustomFormCard(
-      padding: EdgeInsets.all(SizeConfig.size15),
-      borderRadius: BorderRadius.circular(12.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          CustomText(
-            AppStrings.suggestedProducts,
-            fontSize: SizeConfig.large,
-            fontWeight: FontWeight.bold,
-            color: AppColors.mainTextColor,
-          ),
-          Padding(
-                      padding: EdgeInsets.only(top: SizeConfig.size15),
-                      child: Column(
-                        children: [
-                          _buildVariantGrid(controller.suggestedProductList),
-                          if (controller
-                              .isSuggestedProductLoadingLoadingMore.isTrue)
-                            Padding(
-                              padding: const EdgeInsets.all(16.0),
-                              child: Center(
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor:
-                                      AlwaysStoppedAnimation<Color>(
-                                          AppColors.primaryColor),
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
+  // ════════════════════════════════════════════════════════════════════
+  // QUICK ADD RAIL — persistent horizontal carousel of suggested
+  // products. Lives above the mode selector so the merchant can
+  // tap-to-add without leaving Snap mode or having to clear the
+  // search field. Hidden when the suggestion list is empty.
+  // ════════════════════════════════════════════════════════════════════
+
+  Widget _buildQuickAddRail() {
+    return Obx(() {
+      final list = controller.suggestedProductList;
+      final firstLoad = controller.isSuggestedProductFirstLoading.value;
+
+      if (firstLoad && list.isEmpty) {
+        return _buildQuickAddRailSkeleton();
+      }
+      if (list.isEmpty) return const SizedBox.shrink();
+
+      return Container(
+        color: AppColors.white,
+        padding: EdgeInsets.only(
+          top: SizeConfig.size12,
+          bottom: SizeConfig.size10,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding:
+                  EdgeInsets.symmetric(horizontal: SizeConfig.size15),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.bolt_rounded,
+                    size: 18,
+                    color: AppColors.primaryColor,
+                  ),
+                  SizedBox(width: SizeConfig.size6),
+                  CustomText(
+                    'Quick Add',
+                    fontSize: SizeConfig.medium,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.mainTextColor,
+                  ),
+                  SizedBox(width: SizeConfig.size8),
+                  Expanded(
+                    child: CustomText(
+                      AppStrings.suggestedProducts,
+                      fontSize: SizeConfig.small,
+                      color: AppColors.secondaryTextColor,
+                      fontWeight: FontWeight.w400,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-        ],
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(height: SizeConfig.size10),
+            SizedBox(
+              height: SizeConfig.size220,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                padding: EdgeInsets.symmetric(
+                    horizontal: SizeConfig.size15),
+                itemCount: list.length,
+                separatorBuilder: (_, __) =>
+                    SizedBox(width: SizeConfig.size10),
+                itemBuilder: (_, index) {
+                  final variant = list[index];
+                  return SizedBox(
+                    width: SizeConfig.size140,
+                    child: Obx(() => ProductVariantGridCard(
+                          variantData: variant,
+                          isSelected:
+                              controller.isVariantSelected(variant.id),
+                          onTap: () =>
+                              controller.toggleVariantWithData(variant),
+                          onPreviewTap: () => _openPreview(variant),
+                        )),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      );
+    });
+  }
+
+  Widget _buildQuickAddRailSkeleton() {
+    return Container(
+      color: AppColors.white,
+      padding: EdgeInsets.only(
+        top: SizeConfig.size12,
+        bottom: SizeConfig.size10,
       ),
-    )
-                 : SizedBox.shrink();
+      child: SizedBox(
+        height: SizeConfig.size220,
+        child: ListView.separated(
+          scrollDirection: Axis.horizontal,
+          padding: EdgeInsets.symmetric(horizontal: SizeConfig.size15),
+          itemCount: 4,
+          separatorBuilder: (_, __) => SizedBox(width: SizeConfig.size10),
+          itemBuilder: (_, __) => SizedBox(
+            width: SizeConfig.size140,
+            child: _QuickAddRailSkeletonCard(),
+          ),
+        ),
+      ),
+    );
   }
 
   // ════════════════════════════════════════════════════════════════════
@@ -747,22 +836,16 @@ class _AddProductTextOrSnapSearchScreenState
     });
   }
 
-  Widget _buildSnapProductCard(VariantData variantData) {
-    final product = variantData.productInformation;
-    final variant = variantData.finalVariant;
-
-    String imageUrl = '';
-    if (product.media.isNotEmpty) {
-      imageUrl = product.media.first;
-    } else if (variant.mediaRelatedToVarient.isNotEmpty) {
-      imageUrl = variant.mediaRelatedToVarient.first;
-    }
+  Widget _buildSnapProductCard(SelectedVariant variantData) {
+    final product = variantData.product;
+    final variant = variantData.variant;
+    final imageUrl = variantData.primaryImageUrl;
 
     // Build unique attributes from product variants
     final Map<String, List<dynamic>> uniqueAttributes = {};
     final firstTwoKeys = <String>[];
-    for (var v in product.variants) {
-      for (var key in v.attributes.keys) {
+    for (final v in product.variants) {
+      for (final key in v.attributes.keys) {
         if (!firstTwoKeys.contains(key)) {
           firstTwoKeys.add(key);
         }
@@ -770,9 +853,9 @@ class _AddProductTextOrSnapSearchScreenState
       }
       if (firstTwoKeys.length == 1) break;
     }
-    for (var key in firstTwoKeys) {
+    for (final key in firstTwoKeys) {
       uniqueAttributes[key] = [];
-      for (var v in product.variants) {
+      for (final v in product.variants) {
         final value = v.attributes[key];
         if (value != null) {
           if (key == 'color' && value is Map<String, dynamic>) {
@@ -903,7 +986,7 @@ class _AddProductTextOrSnapSearchScreenState
   // SHARED: VARIANT GRID + ERROR BANNER
   // ════════════════════════════════════════════════════════════════════
 
-  Widget _buildVariantGrid(List<VariantData> variants) {
+  Widget _buildVariantGrid(List<SelectedVariant> variants) {
     return Obx(() => MasonryGridView.count(
           shrinkWrap: true,
           primary: false,
@@ -917,10 +1000,8 @@ class _AddProductTextOrSnapSearchScreenState
             final variant = variants[index];
             return ProductVariantGridCard(
               variantData: variant,
-              isSelected:
-                  controller.isVariantSelected(variant.finalVariant.id),
-              onTap: () =>
-                  controller.toggleVariantWithData(variant),
+              isSelected: controller.isVariantSelected(variant.id),
+              onTap: () => controller.toggleVariantWithData(variant),
               onPreviewTap: () => _openPreview(variant),
             );
           },
@@ -1282,6 +1363,123 @@ class _SkeletonVariantCard extends StatelessWidget {
   }
 }
 
+// ════════════════════════════════════════════════════════════════════
+// SEARCH EMPTY STATE — mirrors the snap-search "couldn't identify"
+// pattern: shared EmptyStateWidget message with the keyword echoed
+// back, and a "Clear search" CTA that drops the merchant back to the
+// idle Quick Add rail above.
+// ════════════════════════════════════════════════════════════════════
+
+class _SearchEmptyState extends StatelessWidget {
+  final String keyword;
+  final VoidCallback onClear;
+
+  const _SearchEmptyState({required this.keyword, required this.onClear});
+
+  @override
+  Widget build(BuildContext context) {
+    final trimmed = keyword.trim();
+    return Column(
+      children: [
+        SizedBox(height: SizeConfig.paddingL),
+        EmptyStateWidget(
+          message: trimmed.isEmpty
+              ? "We couldn't find any matching products.\n"
+                  'Try different keywords or check the spelling.'
+              : "We couldn't find any products for \"$trimmed\".\n"
+                  'Try different keywords or check the spelling.',
+        ),
+        SizedBox(height: SizeConfig.paddingL),
+        CustomBtn(
+          width: SizeConfig.size120,
+          title: 'Clear search',
+          textColor: AppColors.white,
+          bgColor: AppColors.primaryColor,
+          radius: 10.0,
+          onTap: onClear,
+        ),
+      ],
+    );
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════
+// SEARCH ERROR STATE — surfaces server failures (503/network) for the
+// text-search flow. Soft red-tinted card with an alert glyph, a short
+// human-readable message, and a retry CTA that re-fires the same
+// search keyword via the controller.
+// ════════════════════════════════════════════════════════════════════
+
+class _SearchErrorState extends StatelessWidget {
+  final VoidCallback onRetry;
+
+  const _SearchErrorState({required this.onRetry});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      margin: EdgeInsets.only(top: SizeConfig.size10),
+      padding: EdgeInsets.symmetric(
+        horizontal: SizeConfig.size20,
+        vertical: SizeConfig.size24,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.redLightOut,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppColors.red.withValues(alpha: 0.25),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: AppColors.red.withValues(alpha: 0.12),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.cloud_off_rounded,
+              size: 28,
+              color: AppColors.red,
+            ),
+          ),
+          SizedBox(height: SizeConfig.size12),
+          CustomText(
+            "Couldn't load results",
+            fontSize: SizeConfig.large,
+            fontWeight: FontWeight.w700,
+            color: AppColors.mainTextColor,
+          ),
+          SizedBox(height: SizeConfig.size6),
+          CustomText(
+            'The server is taking too long to respond. '
+            'Please check your connection and try again.',
+            fontSize: SizeConfig.small,
+            color: AppColors.secondaryTextColor,
+            fontWeight: FontWeight.w400,
+            textAlign: TextAlign.center,
+            height: 1.4,
+          ),
+          SizedBox(height: SizeConfig.size16),
+          CustomBtn(
+            width: SizeConfig.size120,
+            title: 'Retry',
+            textColor: AppColors.white,
+            bgColor: AppColors.primaryColor,
+            radius: 10.0,
+            onTap: onRetry,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _SkBar extends StatelessWidget {
   final double width;
   final double height;
@@ -1296,6 +1494,66 @@ class _SkBar extends StatelessWidget {
       decoration: BoxDecoration(
         color: _SkeletonVariantCard._base,
         borderRadius: BorderRadius.circular(height / 2),
+      ),
+    );
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════
+// QUICK ADD RAIL SKELETON CARD — static placeholder shown while the
+// first page of suggested products is loading. Mirrors the variant
+// card layout (image ▸ name ▸ price) without the shimmer animation —
+// the rail is small enough that a static block is calmer than a
+// running shimmer right under the app bar.
+// ════════════════════════════════════════════════════════════════════
+
+class _QuickAddRailSkeletonCard extends StatelessWidget {
+  static const Color _base = Color(0xFFEDEFF3);
+
+  const _QuickAddRailSkeletonCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFFE6E8EE), width: 1),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          SizedBox(
+            height: SizeConfig.size140,
+            child: const ColoredBox(color: _base),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(9, 8, 9, 10),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  height: 10,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: _base,
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  height: 12,
+                  width: 60,
+                  decoration: BoxDecoration(
+                    color: _base,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

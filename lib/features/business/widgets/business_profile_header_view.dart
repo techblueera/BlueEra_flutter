@@ -21,7 +21,7 @@ import 'package:BlueEra/features/business/widgets/business_card_ui.dart';
 import 'package:BlueEra/features/business/widgets/business_common_subcategory_widget.dart';
 import 'package:BlueEra/features/business/widgets/business_hours_sheet_content.dart';
 import 'package:BlueEra/features/business/widgets/business_verify_now_button.dart';
-import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
+import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/me/grocery/widget/food_type_indicator.dart';
 import 'package:BlueEra/features/common/visiting_card/view/all_visting_cards.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
@@ -690,7 +690,7 @@ class BusinessProfileHeaderView extends StatelessWidget {
 
   Future<void> _onCoverImageEdit(BuildContext context) async {
     try {
-      final newPath = await SelectProfilePictureDialog.showLogoDialog(
+      final newPath = await PhotoPickerService.pickSinglePhoto(
         context,
         AppStrings.editCoverPicture.tr,
         cropAspectRatio: CropAspectRatio(width: 3, height: 1),

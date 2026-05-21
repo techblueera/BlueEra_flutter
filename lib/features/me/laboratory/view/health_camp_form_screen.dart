@@ -17,7 +17,7 @@ import 'package:BlueEra/widgets/custom_check_box.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/new_common_date_selection_dropdown.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
-import 'package:BlueEra/widgets/select_product_image_dialog.dart';
+import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -292,7 +292,7 @@ class _HealthCampFormScreenState extends State<HealthCampFormScreen> {
         final remaining =
             HealthCampController.maxImages - controller.selectedImages.length;
         if (remaining <= 0) return;
-        final paths = await SelectProductImageDialog.showLogoDialog(
+        final paths = await PhotoPickerService.pickMultiplePhotos(
           context,
           AppStrings.addImages.tr,
           maxImages: remaining,

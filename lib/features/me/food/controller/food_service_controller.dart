@@ -19,7 +19,7 @@ import 'package:BlueEra/features/me/food/model/category_food_product_res_model.d
 import 'package:BlueEra/features/me/food/model/food_gen_ai_res_model.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
 import 'package:BlueEra/features/me/school/repo/upload_file_to_s3.dart';
-import 'package:BlueEra/widgets/select_product_image_dialog.dart';
+import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:flutter/material.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
@@ -74,7 +74,7 @@ class FoodServiceController extends GetxController {
 
   Future<List<String>?> pickImages(String title) async {
     final List<String>? selected =
-        await SelectProductImageDialog.showLogoDialog(Get.context!, title);
+        await PhotoPickerService.pickMultiplePhotos(Get.context!, title);
     if (selected != null && selected.isNotEmpty) {
       return selected;
     }
@@ -244,7 +244,7 @@ class FoodServiceController extends GetxController {
   /// Method for the second box only
   Future<void> pickSecondImage(BuildContext context) async {
     final List<String>? selected =
-        await SelectProductImageDialog.showLogoDialog(
+        await PhotoPickerService.pickMultiplePhotos(
       context,
       AppStrings.productImage,
     );

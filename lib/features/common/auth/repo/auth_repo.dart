@@ -6,11 +6,15 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 
 class AuthRepo extends BaseService {
   ///Mobile OTP Send REPO...
+  /// `showProgress: false` — the mobile-login / OTP screens render their
+  /// own inline loaders and dim overlay; the global progress dialog
+  /// would flash on top and look like a stray white screen.
   Future<ResponseModel> authMobileOtpSendRepo(
       {Map<String, dynamic>? bodyRequest}) async {
     final response = await ApiBaseHelper().postHTTP(
       sentOtp,
       params: bodyRequest,
+      showProgress: false,
       onError: (error) {},
       onSuccess: (data) {},
     );
@@ -18,11 +22,13 @@ class AuthRepo extends BaseService {
   }
 
   ///Mobile OTP Verify  REPO...
+  /// See note on [authMobileOtpSendRepo] for why `showProgress` is off.
   Future<ResponseModel> authMobileOtpVerifyRepo(
       {Map<String, dynamic>? bodyRequest}) async {
     final response = await ApiBaseHelper().postHTTP(
       verifyOtp,
       params: bodyRequest,
+      showProgress: false,
       onError: (error) {},
       onSuccess: (data) {},
     );

@@ -13,7 +13,7 @@ import '../../../../core/constants/app_constant.dart';
 import '../../../../core/constants/common_methods.dart';
 import '../../../../core/constants/regular_expression.dart';
 import '../../../../core/constants/app_colors.dart'; // ADDED
-import '../../../common/auth/views/dialogs/select_profile_picture_dialog.dart';
+import 'package:BlueEra/core/services/photo_picker_service.dart';
 import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/model/GetChatListModel.dart';
 import '../widget/component_widgets.dart';
@@ -117,7 +117,7 @@ class _AddNewGroupPageState extends State<AddNewGroupPage> {
   }
 
   Future<void> captureImageFromCamera() async {
-    String? imagePath = await SelectProfilePictureDialog.showLogoDialog(
+    String? imagePath = await PhotoPickerService.pickSinglePhoto(
         context, "Choose Group Icon");
     if (imagePath != null) {
       setState(() {

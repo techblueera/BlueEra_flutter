@@ -15,7 +15,7 @@ import 'package:BlueEra/core/services/share_service.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/widgets/business_share_banner.dart';
 import 'package:BlueEra/features/chat/view/business_chat/business_chat_list.dart';
-import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
+import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/delivery_partner_orders/delivery_partner_orders.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/rider_profile_status_screen.dart';
@@ -1779,7 +1779,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
   // COVER IMAGE EDIT
   // ============================================================
   Future<void> _onCoverImageEdit(BuildContext context) async {
-    final String? newPath = await SelectProfilePictureDialog.showLogoDialog(
+    final String? newPath = await PhotoPickerService.pickSinglePhoto(
       context,
       AppStrings.editCoverPicture,
       cropAspectRatio: CropAspectRatio(width: 3, height: 1),

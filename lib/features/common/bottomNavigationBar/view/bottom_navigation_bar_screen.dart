@@ -26,6 +26,7 @@ import 'package:BlueEra/features/me/grocery/view/admin/grocery_screen.dart';
 import 'package:BlueEra/features/me/hospital/view/hospital_main.dart';
 import 'package:BlueEra/features/me/hotel/view/hotel_main.dart';
 import 'package:BlueEra/features/me/laboratory/view/laboratory_main.dart';
+import 'package:BlueEra/features/me/manufacturer/view/admin/manufacturer_product_screen.dart';
 import 'package:BlueEra/features/me/medical_new/view/medical_screen.dart';
 import 'package:BlueEra/features/me/automotive_service/automotive_service_main.dart';
 import 'package:BlueEra/features/me/others/others_main.dart';
@@ -590,7 +591,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     } else if (businessTypeGlobal.toUpperCase() ==
         BusinessType.Manufacturing.name.toUpperCase()) {
       // return const ManufactureMain();
-      return const ProductScreen();
+      return const ManufacturerProductScreen();
     } else if (_isSpecificServiceAutomotive()) {
       return const VehicleHomeScreenV2();
     } else if (_isSpecificServiceSpecialAutomotive()) {

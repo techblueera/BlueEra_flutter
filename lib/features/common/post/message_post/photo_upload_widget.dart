@@ -6,7 +6,7 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
+import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/common/post/controller/message_post_controller.dart';
 import 'package:BlueEra/features/common/post/widget/video_trimmer_screen.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
@@ -248,7 +248,7 @@ void openVideoPreview(File file) async {
 
 void openImageCrop(BuildContext context, File file, int index) async {
   final msgController = Get.find<MessagePostController>();
-  String croppedPath = await SelectProfilePictureDialog.cropImage(context, file.path);
+  String croppedPath = await PhotoPickerService.cropImage(context, file.path);
   if (croppedPath.isNotEmpty) {
     print("✅ Cropped Image Path: $croppedPath");
     final croppedFile = File(croppedPath);

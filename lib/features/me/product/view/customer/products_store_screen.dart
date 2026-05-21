@@ -1,12 +1,15 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
+import 'package:BlueEra/features/chat/view/ai_chat/view/ai_common_search_screen.dart';
 import 'package:BlueEra/features/common/Discover/widget/banner_carousel.dart';
 import 'package:BlueEra/features/common/Discover/widget/sticky_category_header_delegate.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
-import 'package:BlueEra/features/common/store/controller/new_store_controller.dart';
+import 'package:BlueEra/features/common/store/controller/store_controller.dart';
 import 'package:BlueEra/features/me/product/view/customer/product_store_card.dart';
 import 'package:BlueEra/features/me/product/controller/product_selfpickup_controller.dart';
 import 'package:BlueEra/features/me/product/view/customer/product_self_pickup_cart_screen.dart';
@@ -34,7 +37,7 @@ class ProductsStoreScreen extends StatefulWidget {
 }
 
 class _ProductsStoreScreenState extends State<ProductsStoreScreen> {
-  final controller = getOrPut(() => NewStoreController());
+  final controller = getOrPut(() => StoreController());
   final AuthController _authController = Get.find<AuthController>();
   final RxInt _selectedIndex = 0.obs;
 
@@ -154,6 +157,21 @@ class _ProductsStoreScreenState extends State<ProductsStoreScreen> {
     controller.getAllStoreNearBy();
   }
 
+  void _openInventoryAiSearch() {
+    final chat = ChatViewController.inventoryAiChatListSearchModule;
+    Get.to(() => AiCommonSearchScreen(
+          chatType: AppConstants.askInventory_Chat_Type,
+          profileImage: chat?.sender?.profileImage,
+          name: chat?.sender?.name,
+          contactNo: chat?.sender?.contactNo,
+          conversationId: '',
+          userId: '',
+          businessId: '',
+          type: chat?.sender?.accountType,
+          isInitialMessage: false,
+        ));
+  }
+
   bool _onScrollNotification(ScrollNotification notification) {
     if (notification is ScrollUpdateNotification &&
         notification.metrics.pixels >=
@@ -218,6 +236,7 @@ class _ProductsStoreScreenState extends State<ProductsStoreScreen> {
                         setState(() {});
                       },
                       onBack: _handleBackWithCartWarning,
+                      onSearchTap: _openInventoryAiSearch,
                       expandedLabelColor: AppColors.white,
                       backgroundGradient: LinearGradient(
                         begin: Alignment.topCenter,

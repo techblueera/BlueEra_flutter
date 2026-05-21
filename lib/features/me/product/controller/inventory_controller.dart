@@ -18,14 +18,18 @@ import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/me/product/model/categoryinventory_model.dart';
-import 'package:BlueEra/features/me/product/model/get_product_model.dart';
-import 'package:BlueEra/features/me/product/model/inventory_based_search_product_response.dart';
+// `show` keeps `Variant` / `ProductFeature` from this module out of the
+// namespace — they conflict with the same names from
+// `product_catalog_response.dart` below.
+import 'package:BlueEra/features/me/product/model/get_product_model.dart'
+    show GetProductData, GetProductModel;
+import 'package:BlueEra/features/me/product/model/product_catalog_response.dart';
 import 'package:BlueEra/features/me/product/model/product_category_with_inventory_model.dart';
 import 'package:BlueEra/features/me/product/model/product_model.dart';
 import 'package:BlueEra/features/me/product/model/product_snap_search_response.dart';
 import 'package:BlueEra/features/me/product/repo/product_repo.dart';
 import 'package:BlueEra/features/me/product/view/admin/product_variant_dialog.dart';
-import 'package:BlueEra/widgets/select_product_image_dialog.dart';
+import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -89,11 +93,11 @@ class InventoryController extends GetxController {
 
   RxInt businessCardsSelectedIndex = 0.obs;
 
-  RxList<VariantData> searchProductVariantsList = <VariantData>[].obs;
+  RxList<SelectedVariant> searchProductVariantsList = <SelectedVariant>[].obs;
 
   final variantSelection = <String, bool>{}.obs;
   final variantSellingPrice = <String, String>{}.obs;
-  RxList<VariantData> selectedVariantsList = <VariantData>[].obs;
+  RxList<SelectedVariant> selectedVariantsList = <SelectedVariant>[].obs;
 
   final viewProfileController = getOrPut(() => ViewBusinessDetailsController(), permanent: true);
   final viewIndividualProfileController = getOrPut(() => ViewPersonalDetailsController(), permanent: true);
@@ -123,13 +127,13 @@ class InventoryController extends GetxController {
     if (!isSelected) {
       // was not selected, now selected — will be added via toggleVariantWithData
     } else {
-      selectedVariantsList.removeWhere((v) => v.finalVariant.id == id);
+      selectedVariantsList.removeWhere((v) => v.id == id);
     }
     log('id-- $id  selected=${variantSelection[id]}');
   }
 
-  void toggleVariantWithData(VariantData variantData) {
-    final id = variantData.finalVariant.id;
+  void toggleVariantWithData(SelectedVariant selected) {
+    final id = selected.id;
     final isSelected = variantSelection[id] ?? false;
 
     final currentlySelected = variantSelection.entries
@@ -146,10 +150,10 @@ class InventoryController extends GetxController {
 
     if (isSelected) {
       variantSelection[id] = false;
-      selectedVariantsList.removeWhere((v) => v.finalVariant.id == id);
+      selectedVariantsList.removeWhere((v) => v.id == id);
     } else {
       variantSelection[id] = true;
-      selectedVariantsList.add(variantData);
+      selectedVariantsList.add(selected);
     }
   }
 
@@ -163,7 +167,7 @@ class InventoryController extends GetxController {
   RxBool isSuggestedProductFirstLoading = false.obs;
   RxBool isSuggestedProductLoadingLoadingMore = false.obs;
   bool suggestedProductHasMoreData = true;
-  RxList<VariantData> suggestedProductList = <VariantData>[].obs;
+  RxList<SelectedVariant> suggestedProductList = <SelectedVariant>[].obs;
 
   // ── Product Nested Category With Inventory ──────────────────────────────────
   Rx<ApiResponse> fetchProductCategoryResponse = ApiResponse.initial('Initial').obs;
@@ -304,7 +308,7 @@ class InventoryController extends GetxController {
 
   final RxMap<String, File?> productSnapSearchImagesMap = <String, File?>{}.obs;
   Rx<ApiResponse> productSnapSearchResponse = ApiResponse.initial('Initial').obs;
-  RxList<VariantData> snapSearchProductList = <VariantData>[].obs;
+  RxList<SelectedVariant> snapSearchProductList = <SelectedVariant>[].obs;
   Rxn<ProductSnapSearchData> productSnapSearchData = Rxn<ProductSnapSearchData>();
 
   Future<void> addProductImagesBySlot(String title) async {
@@ -314,7 +318,7 @@ class InventoryController extends GetxController {
     }
 
     final List<String>? selectedImages =
-        await SelectProductImageDialog.showLogoDialog(Get.context!, title);
+        await PhotoPickerService.pickMultiplePhotos(Get.context!, title);
     if (selectedImages == null || selectedImages.isEmpty) return;
 
     productSnapSearchImagesMap[title] = File(selectedImages.first);
@@ -369,11 +373,15 @@ class InventoryController extends GetxController {
         productSnapSearchData.value = response.data;
 
         final foundItems = response.data?.foundProducts ?? [];
-        final variants = <VariantData>[];
+        final rows = <SelectedVariant>[];
         for (final item in foundItems) {
-          variants.addAll(item.variants);
+          final product = item.product;
+          if (product == null) continue;
+          for (final v in product.variants) {
+            rows.add(SelectedVariant(product: product, variant: v));
+          }
         }
-        snapSearchProductList.assignAll(variants);
+        snapSearchProductList.assignAll(rows);
       } else {
         productSnapSearchResponse.value = ApiResponse.error('error');
       }
@@ -551,17 +559,15 @@ class InventoryController extends GetxController {
       if (responseModel.isSuccess) {
         searchProductResponse.value = ApiResponse.complete(responseModel);
 
-        final inventoryBasedSearchProductResponse = InventoryBasedSearchProductResponse.fromJson(
+        final parsed = ProductCatalogResponse.fromJson(
           responseModel.response?.data,
         );
 
-        final List<VariantData> newVariants =
-        List<VariantData>.from(inventoryBasedSearchProductResponse.data);
+        final newRows = flattenProducts(parsed.data);
 
-       // Maintain a map for uniqueness
-        final Map<String, VariantData> uniqueById = {
-          for (var item in searchProductVariantsList)
-            item.finalVariant.id: item, // keep old data
+        // Maintain a map for uniqueness (by variant id).
+        final Map<String, SelectedVariant> uniqueById = {
+          for (final item in searchProductVariantsList) item.id: item,
         };
 
         if (!isLoadMore) {
@@ -569,18 +575,16 @@ class InventoryController extends GetxController {
           uniqueById.clear();
         }
 
-        for (final item in newVariants) {
-          final id = item.finalVariant.id;
-
-          if (!uniqueById.containsKey(id)) {
-            uniqueById[id] = item; // first occurrence only
+        for (final item in newRows) {
+          if (!uniqueById.containsKey(item.id)) {
+            uniqueById[item.id] = item; // first occurrence only
           }
         }
 
         searchProductVariantsList.assignAll(uniqueById.values.toList());
 
-        log('total length-- ${newVariants.length}');
-        if (newVariants.length < limit) {
+        log('total length-- ${newRows.length}');
+        if (newRows.length < limit) {
           hasMoreData = false;
         } else {
           page++;
@@ -604,7 +608,7 @@ class InventoryController extends GetxController {
     }
   }
 
-  List<String> validateSelectedVariants(List<VariantData> allVariants) {
+  List<String> validateSelectedVariants(List<SelectedVariant> allVariants) {
     final missingPriceIds = <String>[];
 
     for (final entry in variantSelection.entries) {
@@ -619,15 +623,14 @@ class InventoryController extends GetxController {
     return missingPriceIds;
   }
 
-  void fillMissingSellingPricesWithDefaults(List<VariantData> allVariants, List<String> missingPriceIds) {
+  void fillMissingSellingPricesWithDefaults(
+      List<SelectedVariant> allVariants, List<String> missingPriceIds) {
     for (final variantId in missingPriceIds) {
-      final variantData = allVariants.firstWhere(
-            (v) => v.finalVariant.id == variantId,
+      final row = allVariants.firstWhere(
+        (v) => v.id == variantId,
         orElse: () => throw Exception("Variant not found: $variantId"),
       );
-
-     updateSellingPrice(variantId, variantData.finalVariant.sellingPrice.toString());
-
+      updateSellingPrice(variantId, row.variant.sellingPrice.toString());
     }
   }
 
@@ -680,16 +683,15 @@ class InventoryController extends GetxController {
       if (responseModel.isSuccess) {
         suggestedProductResponse.value = ApiResponse.complete(responseModel);
 
-        final inventoryBasedSearchProductResponse = InventoryBasedSearchProductResponse.fromJson(
+        final parsed = ProductCatalogResponse.fromJson(
           responseModel.response?.data,
         );
 
-        final List<VariantData> newProducts = List<VariantData>.from(inventoryBasedSearchProductResponse.data);
+        final newRows = flattenProducts(parsed.data);
 
-        // Maintain a map for uniqueness
-        final Map<String, VariantData> uniqueById = {
-          for (var item in suggestedProductList)
-            item.finalVariant.id: item, // keep old data
+        // Maintain a map for uniqueness (by variant id).
+        final Map<String, SelectedVariant> uniqueById = {
+          for (final item in suggestedProductList) item.id: item,
         };
 
         if (!isLoadMore) {
@@ -697,25 +699,17 @@ class InventoryController extends GetxController {
           uniqueById.clear();
         }
 
-        for (final item in newProducts) {
-          final id = item.finalVariant.id;
-
-          if (!uniqueById.containsKey(id)) {
-            uniqueById[id] = item; // first occurrence only
+        for (final item in newRows) {
+          if (!uniqueById.containsKey(item.id)) {
+            uniqueById[item.id] = item; // first occurrence only
           }
         }
 
         suggestedProductList.assignAll(uniqueById.values.toList());
 
-        // if (!isLoadMore) {
-        //   suggestedProductList.assignAll(newProducts);
-        // } else {
-        //   suggestedProductList.addAll(newProducts);
-        // }
-
         log('total length-- ${suggestedProductList.length}');
 
-        if (newProducts.length < limit) {
+        if (newRows.length < limit) {
           suggestedProductHasMoreData = false;
         } else {
           suggestedProductPage++;
@@ -740,7 +734,7 @@ class InventoryController extends GetxController {
   Future<void> cloneProductVariantApi(
       {
         required ProviderType providerType,
-        required List<VariantData> variants,
+        required List<SelectedVariant> variants,
       }
       ) async {
     cloneProductVariantLoading.value = true;
@@ -894,7 +888,7 @@ class InventoryController extends GetxController {
     /// additional `ownerType` field per row so the backend can route
     /// business vs. rider/self-employed clones.
     List<Map<String, dynamic>> _buildInventoryPayload(
-        List<VariantData> allVariants, ProviderType providerType) {
+        List<SelectedVariant> allVariants, ProviderType providerType) {
       final payload = <Map<String, dynamic>>[];
 
       final businessData = viewProfileController.businessProfileDetails.value?.data;
@@ -916,11 +910,11 @@ class InventoryController extends GetxController {
       variantSelection.forEach((variantId, isSelected) {
         if (!isSelected) return;
 
-        final variantData = allVariants.firstWhereOrNull(
-            (v) => v.finalVariant.id == variantId);
-        if (variantData == null) return;
+        final row =
+            allVariants.firstWhereOrNull((v) => v.id == variantId);
+        if (row == null) return;
 
-        final variant = variantData.finalVariant;
+        final variant = row.variant;
 
         // User-entered price → fallback to API default selling price.
         final sellingPriceStr = variantSellingPrice[variantId];
@@ -945,13 +939,8 @@ class InventoryController extends GetxController {
       return payload;
     }
 
-  String _resolveVariantQuantity(FinalVariant variant) {
-    String raw = '';
-    try {
-      raw = ((variant as dynamic).quantity ?? '').toString().trim();
-    } catch (_) {
-      raw = '';
-    }
+  String _resolveVariantQuantity(Variant variant) {
+    final raw = variant.quantity.trim();
     if (raw.isNotEmpty) return raw;
 
     final parts = variant.attributes.entries.map((entry) {

@@ -9,7 +9,7 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
-import 'package:BlueEra/features/common/store/controller/new_store_controller.dart';
+import 'package:BlueEra/features/common/store/controller/store_controller.dart';
 import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
 import 'package:BlueEra/features/business/widgets/business_contact_map_card.dart';
 import 'package:BlueEra/features/me/food/view/customer/all_offer_dish_screen.dart';
@@ -50,7 +50,7 @@ class VisitFoodStoreDetailsScreen extends StatefulWidget {
 class _VisitFoodStoreDetailsScreenState
     extends State<VisitFoodStoreDetailsScreen> {
   final controller = getOrPut(() => RestaurantController());
-  final storeController = getOrPut(() => NewStoreController());
+  final storeController = getOrPut(() => StoreController());
   final viewBusinessDetailsController = Get.find<ViewBusinessDetailsController>();
 
   /// Session cart — registered by [RestaurantNearMeScreen] entry point.

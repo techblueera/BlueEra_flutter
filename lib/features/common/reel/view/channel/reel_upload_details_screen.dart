@@ -14,7 +14,7 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/constants/typedef_utils.dart';
 import 'package:BlueEra/core/routes/route_constant.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
-import 'package:BlueEra/features/common/auth/views/dialogs/select_profile_picture_dialog.dart';
+import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/features/common/reel/controller/reel_upload_details_controller.dart';
 import 'package:BlueEra/features/common/reel/models/song_model.dart';
@@ -1150,7 +1150,7 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
   }
 
   void selectImage(BuildContext context) async {
-    final croppedPath = await SelectProfilePictureDialog.pickFromGallery(
+    final croppedPath = await PhotoPickerService.pickFromGallery(
         context,
         cropAspectRatio: (reelUploadDetailsController.video == Video.video)
             ? CropAspectRatio(width: 16, height: 9)

@@ -54,7 +54,7 @@ class _VehicleImagesRidingWidgetState
   }
 
   // Pick exactly ONE photo via the single-image helper
-  // ([CommonImageUploadTile.pickImage] → SelectProfilePictureDialog),
+  // ([CommonImageUploadTile.pickImage] → PhotoPickerService),
   // then write it as the only entry in the slot's RxList. Mutating
   // the RxList notifies the wrapping Obx, no GetBuilder ids needed.
   Future<void> _onAdd(_VehicleSlot slot) async {
