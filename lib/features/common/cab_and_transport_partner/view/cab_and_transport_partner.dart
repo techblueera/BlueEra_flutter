@@ -1,4 +1,4 @@
-import 'dart:ui';
+﻿import 'dart:ui';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -24,7 +24,7 @@ import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
 import 'package:BlueEra/features/common/reel/view/channel/follower_following_screen.dart';
 import 'package:BlueEra/features/common/visiting_card/view/all_personal_visiting_cards.dart';
-import 'package:BlueEra/features/me/medical_new/view/medical_statistics_screen.dart';
+import 'package:BlueEra/features/common/statistics/view/business_statistics_screen.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/controller/rental_controller.dart';
@@ -44,20 +44,20 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
-/// Cab & Transport Partner dashboard — mirrors the self-employee v2 layout
+/// Cab & Transport Partner dashboard â€” mirrors the self-employee v2 layout
 /// so cab/auto/taxi drivers see the same modern shell as riders. Floating
 /// glassmorphic top bar, animated tab strip with sticky overlay, and
 /// five tab bodies:
-///   • Order / Document — single tab whose label flips between
+///   â€¢ Order / Document â€” single tab whose label flips between
 ///     "Document" (verification pending) and "My Order" (approved).
 ///     Body shows [CabsAndTransportPartnerOrders] when approved,
 ///     otherwise [RiderProfileStatusScreen] handles every other state.
-///   • Chat     — incoming order inquiries via [OrdersTabView] with
+///   â€¢ Chat     â€” incoming order inquiries via [OrdersTabView] with
 ///     `excludeSenderId: userId` so the partner only sees conversations
 ///     awaiting a reply.
-///   • Overview — personal profile (cover + identity + stats + actions)
-///   • Post     — embedded [FeedScreen] filtered to the user's posts
-///   • Statics  — chat-click analytics
+///   â€¢ Overview â€” personal profile (cover + identity + stats + actions)
+///   â€¢ Post     â€” embedded [FeedScreen] filtered to the user's posts
+///   â€¢ Statics  â€” chat-click analytics
 class CabAndTransportPartner extends StatefulWidget {
   final bool fromBottomNavBar;
 
@@ -78,7 +78,7 @@ class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
   int _selectedTab = 0;
   bool _showStickyTabs = false;
 
-  // Order/Document share a single tab — its label flips between
+  // Order/Document share a single tab â€” its label flips between
   // "Document" (KYC pending) and "My Order" (approved), matching
   // RiderServiceScreen's pattern. Chat is no longer a top-level
   // tab; it lives as a sub-tab inside My Order (only once the
@@ -132,9 +132,9 @@ class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
     deliveryPartnerController.ridersOnboardingStatusRepoApi();
   }
 
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // BUILD
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   @override
   Widget build(BuildContext context) {
     return _buildScaffold(context);
@@ -231,9 +231,9 @@ class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
     );
   }
 
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // BACKGROUND
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildPatternBackground() {
     return Positioned.fill(
       child: Image.asset(
@@ -245,10 +245,10 @@ class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
     );
   }
 
-  // ─────────────────────────────────────────────
-  // TOP BAR — glassmorphic strip:
-  //   [drawer] [Earn]   …   [bell] [Go Live]
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // TOP BAR â€” glassmorphic strip:
+  //   [drawer] [Earn]   â€¦   [bell] [Go Live]
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildTopBar() {
     final topInset = MediaQuery.of(context).padding.top;
     return DecoratedBox(
@@ -285,7 +285,7 @@ class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
                 ),
                 SizedBox(width: SizeConfig.size8),
                 // Earn lives in the drawer now; Refer & Earn stays on
-                // the top bar as the one earn-related shortcut — it
+                // the top bar as the one earn-related shortcut â€” it
                 // sits right of the drawer button so the bell +
                 // Go-live cluster keeps its right anchor via Spacer.
                 const ReferEarnPill(),
@@ -465,12 +465,12 @@ class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
     );
   }
 
-  // ─────────────────────────────────────────────
-  // TABS — solid white card with an animated underline that slides
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // TABS â€” solid white card with an animated underline that slides
   // beneath the selected tab. The first tab label flips between
   // "Document" (KYC pending) and "My Order" (approved), mirroring
-  // RiderServiceScreen — a single tab serves both flows.
-  // ─────────────────────────────────────────────
+  // RiderServiceScreen â€” a single tab serves both flows.
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildTabsCard() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 14),
@@ -569,9 +569,9 @@ class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
     );
   }
 
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // TAB CONTENT
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   List<Widget> _buildTabContent() {
     switch (_selectedTab) {
       case _orderIndex:
@@ -587,18 +587,18 @@ class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
     }
   }
 
-  // Order / Document tab — single source of truth: verification
+  // Order / Document tab â€” single source of truth: verification
   // status. Unapproved partners see [RiderProfileStatusScreen] which
   // walks them through KYC / pending-review / rejected on its own
   // surface. Approved partners see a two-pill sub-tab:
-  //   • Orders — [CabsAndTransportPartnerOrders].
-  //   • Chat   — incoming order inquiries (formerly its own
+  //   â€¢ Orders â€” [CabsAndTransportPartnerOrders].
+  //   â€¢ Chat   â€” incoming order inquiries (formerly its own
   //     top-level tab, now relocated here so the top strip stays
   //     compact while inquiries remain one tap from the orders).
   //
   // Both bodies run in `isInParentScroll: true` so their inner
   // Scaffold/Expanded chrome and ListViews collapse into shrink-wrap
-  // mode — the parent CustomScrollView/Column owns the vertical
+  // mode â€” the parent CustomScrollView/Column owns the vertical
   // scroll without needing a bounded height.
   List<Widget> _buildOrderTab() {
     return [
@@ -626,7 +626,7 @@ class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
     ];
   }
 
-  // Level 2 — solid pill segmented control inside My Order.
+  // Level 2 â€” solid pill segmented control inside My Order.
   // The previous tonal-on-tonal version (primary @ 4% track, @ 14%
   // indicator) disappeared against the dashboard's patterned blue
   // background. This version uses a SOLID white track + a SOLID
@@ -662,7 +662,7 @@ class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
             ),
             child: Stack(
               children: [
-                // Sliding primary indicator — solid fill, soft
+                // Sliding primary indicator â€” solid fill, soft
                 // primary-tinted drop shadow lifts it forward against
                 // the white track. 260ms easeOutCubic glide is the
                 // toggle's signature beat.
@@ -690,7 +690,7 @@ class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
                   ),
                 ),
                 // Positioned.fill makes the Row stretch to the full
-                // bounds of the Stack — without this the Row sizes
+                // bounds of the Stack â€” without this the Row sizes
                 // to its children's intrinsic height (~20pt) and the
                 // Stack's default topStart alignment leaves icon+label
                 // hugging the top edge instead of sitting dead-center
@@ -732,7 +732,7 @@ class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
   }) {
     final selected = _orderSubTab == index;
     // White text on the solid primary indicator, full-strength main
-    // text color on the inactive side — both sides stay readable
+    // text color on the inactive side â€” both sides stay readable
     // against the white track without needing muted greys.
     final fg = selected ? Colors.white : AppColors.mainTextColor;
     return GestureDetector(
@@ -817,16 +817,16 @@ class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
 
   List<Widget> _buildStaticsTab() {
     return [
-      MedicalStatisticsScreen(businessId: userId),
+      BusinessStatisticsScreen(businessId: userId),
     ];
   }
 
-  // ─────────────────────────────────────────────
-  // OVERVIEW TAB — refined editorial identity dossier (mirrors
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // OVERVIEW TAB â€” refined editorial identity dossier (mirrors
   // self_employee / social_main / rider_service):
   //   1. Identity card (cover + avatar + identity block).
   //   2. Stats card with hero-typed numerals.
-  //   3. Rental services CTA — entry point to the rental dashboard.
+  //   3. Rental services CTA â€” entry point to the rental dashboard.
   //      Used to be its own tab; we collapsed it into Overview so
   //      the tab strip stays uncluttered while the three rental
   //      categories are still one tap away (each chip primes the
@@ -835,7 +835,7 @@ class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
   //   5. Contact + map card (bio / website / phone / address / map).
   //   6. QR card with the profile deep link.
   //   7. Share banner.
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   List<Widget> _buildOverviewTab() {
     return [
       _buildIdentityCard(context),
@@ -843,7 +843,7 @@ class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
       _buildStatsCard(),
       SizedBox(height: SizeConfig.size12),
       // Dedicated bio tile lives between identity-level cards and the
-      // action/contact rows — bio reads as identity content, not
+      // action/contact rows â€” bio reads as identity content, not
       // secondary detail.
       const ProfileBioCard(),
       SizedBox(height: SizeConfig.size12),
@@ -989,7 +989,7 @@ class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
             final name = _capitalizeFirst(user?.name ?? '');
             final username = user?.username ?? '';
             final designation = user?.designation ?? '';
-            // Address is rendered in [ProfileLocationCard] now — don't
+            // Address is rendered in [ProfileLocationCard] now â€” don't
             // duplicate it inside the identity card.
             final email = user?.email ?? '';
 
@@ -1141,7 +1141,7 @@ class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
             ),
             const SizedBox(width: 4),
             Text(
-              'Member · $since',
+              'Member Â· $since',
               style: TextStyle(
                 fontFamily: AppConstants.OpenSans,
                 fontSize: 10,
@@ -1386,7 +1386,7 @@ class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
     );
   }
 
-  // ─── STATS CARD ────────────────────────────────────────────────
+  // â”€â”€â”€ STATS CARD â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildStatsCard() {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 14),
@@ -1489,7 +1489,7 @@ class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
     );
   }
 
-  // ─── RENTAL CTA CARD ───────────────────────────────────────────
+  // â”€â”€â”€ RENTAL CTA CARD â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // Surfaces the rental dashboard as a single card. Header (icon +
   // title + chevron) opens it with the controller's current filter;
   // each category chip below pre-selects its filter on
@@ -1646,7 +1646,7 @@ class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
     Get.to(() => const RentalServicesDashboardScreen());
   }
 
-  // ─── ACTION ROW ────────────────────────────────────────────────
+  // â”€â”€â”€ ACTION ROW â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildActionRow() {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 14),
@@ -1740,14 +1740,14 @@ class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
     );
   }
 
-  // Legacy `_buildContactMapCard` was retired — the address/map flow
+  // Legacy `_buildContactMapCard` was retired â€” the address/map flow
   // lives in [ProfileLocationCard] now, the bio in [ProfileBioCard].
   // Website/phone edit lands through the identity card's edit
   // affordance.
 
-  // ─── QR CODE CARD (Overview tab) ──────────────────────────────
+  // â”€â”€â”€ QR CODE CARD (Overview tab) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // Delegates to [PersonalQrCodeWidget] so the cab/transport partner
-  // QR card matches the business card's UI and behaviour exactly —
+  // QR card matches the business card's UI and behaviour exactly â€”
   // capturable RepaintBoundary, Download to gallery, Share PNG.
   Widget _buildQrCard() {
     return Obx(() {
@@ -1763,7 +1763,7 @@ class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
     });
   }
 
-  // ─── SHARE BANNER (Overview tab) ──────────────────────────────
+  // â”€â”€â”€ SHARE BANNER (Overview tab) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildShareBanner() {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 14),

@@ -1,4 +1,4 @@
-import 'dart:io';
+﻿import 'dart:io';
 import 'dart:ui';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
@@ -21,6 +21,7 @@ import 'package:BlueEra/features/business/widgets/business_contact_map_card.dart
 import 'package:BlueEra/features/business/widgets/business_description_card.dart';
 import 'package:BlueEra/features/business/widgets/business_qrcode_widget.dart';
 import 'package:BlueEra/features/business/widgets/business_share_banner.dart';
+import 'package:BlueEra/features/common/statistics/view/business_statistics_screen.dart';
 import 'package:BlueEra/widgets/business_live_photo_bottom_sheet.dart';
 import 'package:BlueEra/widgets/common_business_live_photo.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
@@ -36,7 +37,6 @@ import 'package:BlueEra/features/common/home/widgets/drawer.dart';
 import 'package:BlueEra/features/me/food/controller/restaurant_controller.dart';
 import 'package:BlueEra/features/me/food/model/category_food_product_res_model.dart';
 import 'package:BlueEra/features/me/food/view/admin/discount_food_products_screen.dart';
-import 'package:BlueEra/features/me/medical_new/view/medical_statistics_screen.dart';
 import 'package:BlueEra/features/me/food/view/admin/food_category_screen.dart';
 import 'package:BlueEra/features/me/food/view/admin/my_food_product_screen.dart';
 import 'package:BlueEra/features/me/food/view/widget/food_product_variant_sheet.dart';
@@ -102,15 +102,15 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
     );
     // Fire the API(s) backing the tab the screen lands on (Overview by
     // default). Switching tabs later will fire other tabs' APIs lazily
-    // via [_onTabTapped] — mirrors product_screen's per-tab discipline.
+    // via [_onTabTapped] â€” mirrors product_screen's per-tab discipline.
     _fetchForTab(_selectedTab);
     // Mirrors grocery: prompt the live-photos upload sheet on first
     // paint when the business has no live photos yet.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      // Skip when the user isn't on the Me tab — the screen can mount
+      // Skip when the user isn't on the Me tab â€” the screen can mount
       // transiently during initial bottom-nav routing (currentIndex
-      // starts at 0 → meScreens, then post-frame flips to the intended
+      // starts at 0 â†’ meScreens, then post-frame flips to the intended
       // tab like Discover), and we don't want the sheet popping there.
       if (Get.isRegistered<BottomBarController>() &&
           Get.find<BottomBarController>().currentIndex.value != 0) {
@@ -129,27 +129,27 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
   void _fetchForTab(int tab) {
     switch (tab) {
       case 0:
-        // Order — order chat list is hydrated in initState; the
+        // Order â€” order chat list is hydrated in initState; the
         // ContributionController binds lazily when its slot renders.
         break;
       case 1:
-        // Overview — the joined-profile / contact / QR / share-banner
+        // Overview â€” the joined-profile / contact / QR / share-banner
         // sections all read from [ViewBusinessDetailsController], which
         // is registered as a permanent singleton elsewhere on launch.
         // No food-specific API is needed for this tab.
         break;
       case 2:
-        // Products — popular dishes + food menu grid.
+        // Products â€” popular dishes + food menu grid.
         final id = businessId;
         if (id.isEmpty) return;
         _foodController.fetchHomeData(businessId: id);
         _foodController.fetchDiscountFoodProducts(businessId: id);
         break;
       case 3:
-        // Post — FeedScreen owns its own controller fetch on mount.
+        // Post â€” FeedScreen owns its own controller fetch on mount.
         break;
       case 4:
-        // Statistics — MedicalStatisticsScreen owns its own data.
+        // Statistics â€” BusinessStatisticsScreen owns its own data.
         break;
     }
   }
@@ -160,9 +160,9 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
     _fetchForTab(i);
   }
 
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // BUILD
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   @override
   Widget build(BuildContext context) {
     final topInset = MediaQuery.of(context).padding.top;
@@ -191,7 +191,7 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
                 child: CustomScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
                   slivers: [
-                    // Top bar — slides out of view on scroll-down,
+                    // Top bar â€” slides out of view on scroll-down,
                     // snaps back on scroll-up (floating + snap).
                     SliverAppBar(
                       primary: false,
@@ -230,7 +230,7 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
                 ),
               ),
             ),
-            // Sticky overlay — only shown after the in-flow tabs have
+            // Sticky overlay â€” only shown after the in-flow tabs have
             // scrolled past. Padded for the status bar so it doesn't
             // sit under the notch.
             if (_showStickyTabs)
@@ -270,7 +270,7 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
     );
   }
 
-  /// Pull-to-refresh dispatcher — each tab owns a different data set,
+  /// Pull-to-refresh dispatcher â€” each tab owns a different data set,
   /// so the refresh action fires only the API(s) backing the currently
   /// visible tab. Avoids hammering unrelated endpoints on every pull.
   Future<void> _onRefreshCurrentTab() async {
@@ -299,16 +299,16 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
         }
         break;
       case 4:
-        // MedicalStatisticsScreen manages its own state and doesn't
-        // expose an external refresh hook — no-op for now.
+        // BusinessStatisticsScreen manages its own state and doesn't
+        // expose an external refresh hook â€” no-op for now.
         break;
     }
   }
 
-  // ─────────────────────────────────────────────
-  // TAB CONTENT — switches body by _selectedTab
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // TAB CONTENT â€” switches body by _selectedTab
   //   0 Order, 1 Overview, 2 Products, 3 Post, 4 Statistics
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   List<Widget> _buildTabContent() {
     switch (_selectedTab) {
       case 0:
@@ -321,7 +321,7 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
         return _buildPostTab();
       case 4:
         return [
-          MedicalStatisticsScreen(
+          BusinessStatisticsScreen(
             businessId: businessId.isNotEmpty ? businessId : userId,
           ),
         ];
@@ -330,16 +330,16 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
     }
   }
 
-  // ─────────────────────────────────────────────
-  // ORDER TAB — top slot is reactive to the contribution status:
-  //   • Active recharge present → premium "membership peek" card with
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ORDER TAB â€” top slot is reactive to the contribution status:
+  //   â€¢ Active recharge present â†’ premium "membership peek" card with
   //     plan name, perks-remaining strip, and a forward chevron that
   //     pushes ContributionScreen.
-  //   • Otherwise → the lavender "Contribute now" CTA.
+  //   â€¢ Otherwise â†’ the lavender "Contribute now" CTA.
   // The orders list itself is still a coming-soon placeholder.
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   List<Widget> _buildOrderTab() {
-    // Lazy-register the contribution controller — its `onInit` fires
+    // Lazy-register the contribution controller â€” its `onInit` fires
     // /recharge/plans + /recharge/current. Bound here (only when the
     // Order tab actually builds) so the APIs don't run on every Me-tab
     // landing or on bottom-nav startup. Subsequent rebuilds reuse the
@@ -365,7 +365,7 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
         ),
       ),
       SizedBox(height: SizeConfig.size12),
-      // Incoming orders — same widget the Connect screen renders under
+      // Incoming orders â€” same widget the Connect screen renders under
       // its Orders tab. Wrapped in a SizedBox because OrdersTabView
       // uses an Expanded ListView internally and needs a bounded
       // height. Translated -20 on x (and given matching width) to
@@ -373,13 +373,13 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
       // the filter pills and chat tiles align edge-to-edge like on
       // ConnectMainPage. `excludeSenderId: userId` hides chats whose
       // last message was authored by the merchant, leaving only
-      // incoming order pings — same approach as the Grocery screen.
+      // incoming order pings â€” same approach as the Grocery screen.
       // `isInParentScroll: true` makes OrdersTabView drop its inner
       // `Expanded` and switch the orders ListView to
       // NeverScrollableScrollPhysics so the surrounding
-      // CustomScrollView owns the scroll — no fixed height needed.
+      // CustomScrollView owns the scroll â€” no fixed height needed.
       // The parent SliverToBoxAdapter's left: 20 padding insets the
-      // orders list naturally — no Transform needed.
+      // orders list naturally â€” no Transform needed.
       OrdersTabView(
         excludeSenderId: userId,
         isInParentScroll: true,
@@ -387,11 +387,11 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
     ];
   }
 
-  // ─────────────────────────────────────────────
-  // PEEK SKELETON — placeholder shown while /recharge/current is
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // PEEK SKELETON â€” placeholder shown while /recharge/current is
   // in-flight. Matches the active-plan peek silhouette so the slot
   // doesn't jump height when the answer lands.
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _planPeekSkeleton() {
     return DecoratedBox(
       decoration: BoxDecoration(
@@ -484,13 +484,13 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
     );
   }
 
-  // ─────────────────────────────────────────────
-  // ACTIVE PLAN PEEK — compact aurora card mirroring the hero on
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ACTIVE PLAN PEEK â€” compact aurora card mirroring the hero on
   // ContributionScreen so recognition is instant. Gold tier badge on
   // the left, plan name + ACTIVE pill on top, perks-remaining strip
   // on the bottom, and a glass forward chevron on the right. Tapping
   // anywhere pushes ContributionScreen for the full membership view.
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _activePlanPeekCard(Map<String, dynamic> data) {
     final plan = (data['rechargePlanId'] is Map<String, dynamic>)
         ? data['rechargePlanId'] as Map<String, dynamic>
@@ -724,11 +724,11 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
     return int.tryParse(v?.toString() ?? '') ?? 0;
   }
 
-  // ─────────────────────────────────────────────
-  // CONTRIBUTE-NOW BANNER — frosted lavender CTA, identical to the
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // CONTRIBUTE-NOW BANNER â€” frosted lavender CTA, identical to the
   // grocery v2 implementation. Shadow lives on the outer DecoratedBox
   // so it casts cleanly outside the ClipRRect that hosts the blur.
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _contributeNowBanner() {
     return GestureDetector(
       onTap: () => Get.to(() => const ContributionScreen()),
@@ -859,9 +859,9 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
     ];
   }
 
-  // ─────────────────────────────────────────────
-  // PRODUCTS TAB — food menu categories grid
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // PRODUCTS TAB â€” food menu categories grid
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   List<Widget> _buildProductsTab() {
     return [
       _buildPopularDishesSection(),
@@ -924,7 +924,7 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
     );
   }
 
-  // Refined CTA chip — feels like a navigation chip rather than a
+  // Refined CTA chip â€” feels like a navigation chip rather than a
   // stamped Material button. Circular filled `+` badge anchors the
   // left, brand-color label on the right, all inside a thin
   // primary-tinted outline with the section's standard shadow.
@@ -1023,7 +1023,7 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
   // Two-tone storefront card. Top zone is a soft brand-tinted "shelf"
   // that holds the icon as the hero; bottom zone is a crisp white
   // footer with the name + a tiny circular chevron. The whole card is
-  // a single tap target — no separate "View Products" CTA — so the
+  // a single tap target â€” no separate "View Products" CTA â€” so the
   // information density is high and the silhouette stays clean.
   Widget _foodMenuCategoryCard(GroceryNestedCategoryModel item) {
     final hasImage = (item.image ?? '').isNotEmpty;
@@ -1050,7 +1050,7 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
           clipBehavior: Clip.antiAlias,
           child: Column(
             children: [
-              // Hero shelf — full-bleed photo covering the entire upper
+              // Hero shelf â€” full-bleed photo covering the entire upper
               // zone. Pale brand tint sits behind as a fallback so the
               // hero never looks empty when the image is missing or
               // still loading.
@@ -1096,7 +1096,7 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
                   ),
                 ),
               ),
-              // Footer — name on the left, brand-color chevron on the
+              // Footer â€” name on the left, brand-color chevron on the
               // right inside a tiny pill. Hairline top divider keeps
               // the two zones visually distinct.
               Container(
@@ -1160,9 +1160,9 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
     }
   }
 
-  // ─────────────────────────────────────────────
-  // POST TAB — embeds FeedScreen filtered to current user's posts.
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // POST TAB â€” embeds FeedScreen filtered to current user's posts.
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   List<Widget> _buildPostTab() {
     if (!Get.isRegistered<FeedController>()) {
       Get.put(FeedController());
@@ -1327,9 +1327,9 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
     );
   }
 
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // BACKGROUND
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildPatternBackground() {
     return Positioned.fill(
       child: Image.asset(
@@ -1341,9 +1341,9 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
     );
   }
 
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // TOP BAR
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildTopBar() {
     final topInset = MediaQuery.of(context).padding.top;
     return DecoratedBox(
@@ -1448,7 +1448,7 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
     );
   }
 
-  /// Quick-action pill in the top bar — jumps to the nearby-riders
+  /// Quick-action pill in the top bar â€” jumps to the nearby-riders
   /// screen so the merchant can dispatch self-pickup or delivery.
   /// Visually identical to the grocery v2 pill: glass white surface,
   /// rider icon, neutral grey label, thin #C9CDD5 border.
@@ -1563,9 +1563,9 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
     );
   }
 
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // PROFILE ROW
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   Widget _logoFallback() => Container(
         color: Colors.grey.shade200,
@@ -1573,11 +1573,11 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
             size: 20, color: AppColors.secondaryTextColor),
       );
 
-  // ─────────────────────────────────────────────
-  // TABS — solid white card with high-contrast labels and an animated
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // TABS â€” solid white card with high-contrast labels and an animated
   // underline that glides under the selected tab. Mirrors the grocery
   // home v2 design.
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildTabsCard() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 14),
@@ -1661,15 +1661,15 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
     );
   }
 
-  // ─────────────────────────────────────────────
-  // JOINED + IDENTITY + COVER STACK — three stacked cards mirroring
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // JOINED + IDENTITY + COVER STACK â€” three stacked cards mirroring
   // the grocery v2 overview header:
   //   Card 1. Joined-date pill (calendar + DD/MM/YYYY)
   //   Card 2. Identity card (avatar w/ edit pin, name, sub-cat, rating)
   //   Card 3. Cover-photo banner with footer Edit pill
   // Card containers share the #00112042 / blur-10 shadow language used
   // across other section cards.
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildJoinedProfileCard() {
     return Obx(() {
       final details =
@@ -2010,9 +2010,9 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
     );
   }
 
-  // ─────────────────────────────────────────────
-  // QR CODE — share/download the business profile
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // QR CODE â€” share/download the business profile
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildQrCodeSection() {
     return Obx(() {
       final details = _businessController.businessProfileDetails.value?.data;
@@ -2063,9 +2063,9 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
     }
   }
 
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // POPULAR DISHES (discount foods, horizontal)
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildPopularDishesSection() {
     return Obx(() {
       final isInitialLoading =
@@ -2280,10 +2280,10 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
     );
   }
 
-  // ─────────────────────────────────────────────
-  // BUSINESS LIVE PHOTOS — same shared widget the grocery v2 home uses,
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // BUSINESS LIVE PHOTOS â€” same shared widget the grocery v2 home uses,
   // so styling and behavior stay in sync.
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildLivePhotosSection() {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
@@ -2309,9 +2309,9 @@ class _PostMenuEntry {
   });
 }
 
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // SHARED SECTION CARD WRAPPER
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 class _SectionCard extends StatelessWidget {
   final String title;
   final String? trailingLabel;
@@ -2369,9 +2369,9 @@ class _SectionCard extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // LIVE PHOTO SLOT
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 class _LivePhotoSlot extends StatefulWidget {
   final int index;
   final String? photoUrl;

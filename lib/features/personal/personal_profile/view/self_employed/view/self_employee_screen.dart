@@ -1,4 +1,4 @@
-import 'dart:io';
+﻿import 'dart:io';
 import 'dart:ui';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
@@ -28,7 +28,7 @@ import 'package:BlueEra/features/common/reel/view/channel/follower_following_scr
 import 'package:BlueEra/features/common/visiting_card/view/all_personal_visiting_cards.dart';
 import 'package:BlueEra/features/contribution/controller/contribution_controller.dart';
 import 'package:BlueEra/features/contribution/view/contribution_screen.dart';
-import 'package:BlueEra/features/me/medical_new/view/medical_statistics_screen.dart';
+import 'package:BlueEra/features/common/statistics/view/business_statistics_screen.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/controller/rental_controller.dart';
@@ -103,11 +103,11 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
     return _buildScaffold(context);
   }
 
-  // ─────────────────────────────────────────────
-  // SCAFFOLD — fixed glassmorphic top bar + scrolling tab content,
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // SCAFFOLD â€” fixed glassmorphic top bar + scrolling tab content,
   // with a sticky tab overlay that engages once the in-flow tabs
   // have scrolled past the top bar (mirrors grocery v2).
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildScaffold(BuildContext context) {
     final topInset = MediaQuery.of(context).padding.top;
     final topBarHeight = topInset + 56;
@@ -199,9 +199,9 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
     );
   }
 
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // BACKGROUND
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildPatternBackground() {
     return Positioned.fill(
       child: Image.asset(
@@ -212,10 +212,10 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
     );
   }
 
-  // ─────────────────────────────────────────────
-  // TOP BAR — glassmorphic strip:
-  //   [drawer] [Earn/profile selector]   …   [bell] [Go Live]
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // TOP BAR â€” glassmorphic strip:
+  //   [drawer] [Earn/profile selector]   â€¦   [bell] [Go Live]
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildTopBar() {
     final topInset = MediaQuery.of(context).padding.top;
     return DecoratedBox(
@@ -252,7 +252,7 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
                 ),
                 SizedBox(width: SizeConfig.size8),
                 // Earn entry now lives in the drawer; Refer & Earn takes
-                // the top-bar slot — same pill the rider dashboard uses.
+                // the top-bar slot â€” same pill the rider dashboard uses.
                 const ReferEarnPill(),
                 const Spacer(),
                 if (!isGuestUser()) ...[
@@ -447,10 +447,10 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
     );
   }
 
-  // ─────────────────────────────────────────────
-  // TABS — solid white card with an animated underline that slides
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // TABS â€” solid white card with an animated underline that slides
   // beneath the selected tab.
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildTabsCard() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 14),
@@ -532,13 +532,13 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
     );
   }
 
-  // ─────────────────────────────────────────────
-  // TAB CONTENT — switches body by _selectedTab.
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // TAB CONTENT â€” switches body by _selectedTab.
   //   0 Order, 1 Overview, 2 Service, 3 Post, 4 Statics
-  // Rentals used to be their own tab — collapsed into Overview
+  // Rentals used to be their own tab â€” collapsed into Overview
   // (see _buildRentalCard) so the top strip stays compact while
   // the three rental categories are still one tap away.
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   List<Widget> _buildTabContent() {
     switch (_selectedTab) {
       case 0:
@@ -556,11 +556,11 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
     }
   }
 
-  // Order tab — top slot is reactive to the contribution status:
-  //   • Active recharge present → premium "membership peek" card with
+  // Order tab â€” top slot is reactive to the contribution status:
+  //   â€¢ Active recharge present â†’ premium "membership peek" card with
   //     plan name, perks-remaining strip, and a forward chevron that
   //     pushes ContributionScreen.
-  //   • Otherwise → the lavender "Contribute now" CTA.
+  //   â€¢ Otherwise â†’ the lavender "Contribute now" CTA.
   // Below the slot sits the legacy [SelfEmployeeOrders] body. Lazy-
   // registers ContributionController so /recharge/* fires only when
   // the Order tab actually builds.
@@ -593,11 +593,11 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
     ];
   }
 
-  // ─────────────────────────────────────────────
-  // PEEK SKELETON — placeholder shown while /recharge/current is
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // PEEK SKELETON â€” placeholder shown while /recharge/current is
   // in-flight. Matches the active-plan peek silhouette so the slot
   // doesn't jump height when the answer lands.
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _planPeekSkeleton() {
     return DecoratedBox(
       decoration: BoxDecoration(
@@ -689,10 +689,10 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
     );
   }
 
-  // ─────────────────────────────────────────────
-  // ACTIVE PLAN PEEK — compact aurora card mirroring the hero on
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ACTIVE PLAN PEEK â€” compact aurora card mirroring the hero on
   // ContributionScreen so recognition is instant.
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _activePlanPeekCard(Map<String, dynamic> data) {
     final plan = (data['rechargePlanId'] is Map<String, dynamic>)
         ? data['rechargePlanId'] as Map<String, dynamic>
@@ -926,10 +926,10 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
     return int.tryParse(v?.toString() ?? '') ?? 0;
   }
 
-  // ─────────────────────────────────────────────
-  // CONTRIBUTE-NOW BANNER — frosted lavender CTA. Border #844CD5/0.5,
-  // gradient #FAF3FF → #E7C8FF, backdrop blur 100, soft navy shadow.
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // CONTRIBUTE-NOW BANNER â€” frosted lavender CTA. Border #844CD5/0.5,
+  // gradient #FAF3FF â†’ #E7C8FF, backdrop blur 100, soft navy shadow.
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _contributeNowBanner() {
     return GestureDetector(
       onTap: () => Get.to(() => const ContributionScreen()),
@@ -1027,7 +1027,7 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
     );
   }
 
-  // Service tab — embeds [SelfProfessionHomeScreen] directly into
+  // Service tab â€” embeds [SelfProfessionHomeScreen] directly into
   // the parent CustomScrollView so its sections share the page's
   // scroll. That lets the sticky-tab overlay engage when the user
   // scrolls past the top bar (matches the Post tab's behavior).
@@ -1035,11 +1035,11 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
     return const [SelfProfessionServiceScreen()];
   }
 
-  // ─────────────────────────────────────────────
-  // POST TAB — embeds FeedScreen filtered to the current user's
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // POST TAB â€” embeds FeedScreen filtered to the current user's
   // posts. Mirrors grocery v2's post tab so creators see the same
   // CTA + feed treatment across me-section dashboards.
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   List<Widget> _buildPostTab() {
     if (!Get.isRegistered<FeedController>()) {
       Get.put(FeedController());
@@ -1182,25 +1182,25 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
     }
   }
 
-  // Statics tab — chat-click analytics, same as grocery/medical
+  // Statics tab â€” chat-click analytics, same as grocery/medical
   // dashboards' last tab. Uses the current user's id as the analytics
   // key since self-employed accounts don't have a separate businessId.
   List<Widget> _buildStaticsTab() {
     return [
-      MedicalStatisticsScreen(businessId: userId),
+      BusinessStatisticsScreen(businessId: userId),
     ];
   }
 
-  // ─────────────────────────────────────────────
-  // OVERVIEW TAB — refined editorial identity dossier:
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // OVERVIEW TAB â€” refined editorial identity dossier:
   //   1. Single hero card unifying the cover banner, the avatar
   //      (straddling the photo/sheet boundary), and the identity
-  //      block (designation eyebrow → name → username · member-since
-  //      → location/email rows). Hairline divides photo from sheet.
+  //      block (designation eyebrow â†’ name â†’ username Â· member-since
+  //      â†’ location/email rows). Hairline divides photo from sheet.
   //   2. Stats card with hero-typed numerals and primary-color
   //      accent bars stamped beneath each metric.
   //   3. Action row with explicit Share + Business-Card pills.
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   List<Widget> _buildOverviewTab() {
     return [
       _buildIdentityCard(context),
@@ -1221,7 +1221,7 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
     ];
   }
 
-  // ─── RENTAL CTA CARD ───────────────────────────────────────────
+  // â”€â”€â”€ RENTAL CTA CARD â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildRentalCard() {
     return Container(
       margin: const EdgeInsets.only(top: 10, left: 20, right: 10),
@@ -1368,7 +1368,7 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
     Get.to(() => const RentalServicesDashboardScreen());
   }
 
-  // ─── IDENTITY CARD ──────────────────────────────────────────────
+  // â”€â”€â”€ IDENTITY CARD â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // The cover banner, profile avatar, and identity block live in
   // ONE rounded sheet so the eye reads them as a single dossier
   // rather than three disconnected stripes. The avatar straddles the
@@ -1486,7 +1486,7 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
         ),
       );
 
-  // Identity block — sits directly under the banner Stack. The
+  // Identity block â€” sits directly under the banner Stack. The
   // avatar already lives inside the banner Stack's bounds (so it's
   // hit-testable), so this block only needs a small top breathing
   // gap before its first row.
@@ -1506,7 +1506,7 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
             final name = _capitalizeFirst(user?.name ?? '');
             final username = user?.username ?? '';
             final designation = user?.designation ?? '';
-            // Address is rendered in [ProfileLocationCard] now — don't
+            // Address is rendered in [ProfileLocationCard] now â€” don't
             // duplicate it inside the identity card.
             final email = user?.email ?? '';
 
@@ -1519,7 +1519,7 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
                 hasDesignation || hasName || hasUsername || hasContact;
 
             // Build children dynamically so empty fields claim
-            // zero vertical space — no placeholder rows, no
+            // zero vertical space â€” no placeholder rows, no
             // dangling spacers.
             final children = <Widget>[];
 
@@ -1623,7 +1623,7 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
     );
   }
 
-  // Joined-date pill rendered on the photo side of the seam — small
+  // Joined-date pill rendered on the photo side of the seam â€” small
   // brass-colored badge with a calendar tick. Adds a "membership
   // card" cue without being noisy.
   Widget _memberSincePill() {
@@ -1663,7 +1663,7 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
             ),
             const SizedBox(width: 4),
             Text(
-              'Member · $since',
+              'Member Â· $since',
               style: TextStyle(
                 fontFamily: AppConstants.OpenSans,
                 fontSize: 10,
@@ -1678,7 +1678,7 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
     });
   }
 
-  // Designation eyebrow — tracked uppercase, primary colored,
+  // Designation eyebrow â€” tracked uppercase, primary colored,
   // tappable to open the designation sheet. Skipped entirely when
   // no designation is set.
   Widget _designationEyebrow(String designation) {
@@ -1757,7 +1757,7 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
     );
   }
 
-  // Empty-profile fallback — a single full-width CTA shown when the
+  // Empty-profile fallback â€” a single full-width CTA shown when the
   // user has no name, designation, username, location, or email.
   // Replaces the whole identity stack so we don't render a column of
   // empty placeholder rows.
@@ -1921,7 +1921,7 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
     );
   }
 
-  // ─── STATS CARD ────────────────────────────────────────────────
+  // â”€â”€â”€ STATS CARD â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // Three columns with hero-typed numerals + small captions and a
   // 16-px primary-color accent bar stamped under each value. Whole
   // tile is tappable for Followers / Following so the count and the
@@ -2028,7 +2028,7 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
     );
   }
 
-  // ─── ACTION ROW ────────────────────────────────────────────────
+  // â”€â”€â”€ ACTION ROW â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // Two equal-width pills: Share (outlined) and Personal Cards
   // (filled primary). Replaces the trio of tiny floating buttons
   // that used to clutter the cover photo.
@@ -2118,11 +2118,11 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
   }
 
   // Note: the legacy `_buildContactMapCard` + `_contactItem` helpers
-  // were retired — the address/map flow lives in [ProfileLocationCard]
+  // were retired â€” the address/map flow lives in [ProfileLocationCard]
   // and the bio in [ProfileBioCard]. Website/phone are surfaced via
   // the identity card's edit flow instead of being re-rendered here.
 
-  // ─── QR CODE CARD ──────────────────────────────────────────────
+  // â”€â”€â”€ QR CODE CARD â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // Reuses [PersonalQrCodeWidget] so the personal QR card looks and
   // behaves the same as the business one (capturable RepaintBoundary,
   // Download to gallery, Share PNG). The wrapper just feeds it the
@@ -2141,7 +2141,7 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
     });
   }
 
-  // ─── SHARE BANNER ──────────────────────────────────────────────
+  // â”€â”€â”€ SHARE BANNER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // Reuses the same [BusinessShareBanner] grocery v2 ships, but
   // passes individual-profile overrides so the banner renders with
   // the user's name, profile photo and designation. Account type is

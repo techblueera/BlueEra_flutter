@@ -1,4 +1,4 @@
-import 'dart:ui';
+﻿import 'dart:ui';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -24,7 +24,7 @@ import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
 import 'package:BlueEra/features/common/reel/view/channel/follower_following_screen.dart';
 import 'package:BlueEra/features/common/visiting_card/view/all_personal_visiting_cards.dart';
-import 'package:BlueEra/features/me/medical_new/view/medical_statistics_screen.dart';
+import 'package:BlueEra/features/common/statistics/view/business_statistics_screen.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/controller/rental_controller.dart';
@@ -65,7 +65,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
   // Chat was its own top-level tab; it now lives as a sub-tab inside
   // My Order (once verification is approved). _orderSubTab tracks
   // which of the two sub-tabs is active. Rentals are not a tab either
-  // — they're surfaced as a CTA card inside the Overview tab (see
+  // â€” they're surfaced as a CTA card inside the Overview tab (see
   // _buildRentalCard), so the top strip stays at four entries.
   static const _orderSubOrders = 0;
   static const _orderSubChat = 1;
@@ -113,9 +113,9 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
     controller.ridersOnboardingStatusRepoApi();
   }
 
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // BUILD
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   @override
   Widget build(BuildContext context) {
     return _buildScaffold(context);
@@ -215,9 +215,9 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
     );
   }
 
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // BACKGROUND
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildPatternBackground() {
     return Positioned.fill(
       child: Image.asset(
@@ -229,10 +229,10 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
     );
   }
 
-  // ─────────────────────────────────────────────
-  // TOP BAR — glassmorphic strip:
-  //   [drawer] [Earn]   …   [bell] [Go Live]
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // TOP BAR â€” glassmorphic strip:
+  //   [drawer] [Earn]   â€¦   [bell] [Go Live]
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildTopBar() {
     final topInset = MediaQuery.of(context).padding.top;
     return DecoratedBox(
@@ -269,7 +269,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
                 ),
                 SizedBox(width: SizeConfig.size8),
                 // Earn lives in the drawer now; Refer & Earn stays on
-                // the top bar as the one earn-related shortcut — it
+                // the top bar as the one earn-related shortcut â€” it
                 // sits right of the drawer button so the bell +
                 // Go-live cluster keeps its right anchor via Spacer.
                 const ReferEarnPill(),
@@ -449,12 +449,12 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
     );
   }
 
-  // ─────────────────────────────────────────────
-  // TABS — solid white card with an animated underline that slides
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // TABS â€” solid white card with an animated underline that slides
   // beneath the selected tab. The first tab label flips between
   // "Order" and "Document" depending on verification status, mirroring
   // the original rider screen's behaviour.
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildTabsCard() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 14),
@@ -553,9 +553,9 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
     );
   }
 
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // TAB CONTENT
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   List<Widget> _buildTabContent() {
     switch (_selectedTab) {
       case _orderIndex:
@@ -571,18 +571,18 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
     }
   }
 
-  // Order / Document tab — single source of truth: verification
+  // Order / Document tab â€” single source of truth: verification
   // status. Unapproved riders see [RiderProfileStatusScreen] which
   // walks them through KYC / pending-review / rejected on its own
   // surface. Approved riders see a two-pill sub-tab:
-  //   • Orders — the delivery-partner orders list.
-  //   • Chat   — incoming order inquiries (formerly its own
+  //   â€¢ Orders â€” the delivery-partner orders list.
+  //   â€¢ Chat   â€” incoming order inquiries (formerly its own
   //     top-level tab, now relocated here so the top strip stays
   //     compact while inquiries remain one tap from the orders).
   //
   // Both bodies run in `isInParentScroll: true` so their inner
   // Scaffold/Expanded chrome and ListViews collapse into shrink-wrap
-  // mode — the parent CustomScrollView/Column owns the vertical
+  // mode â€” the parent CustomScrollView/Column owns the vertical
   // scroll without needing a bounded height.
   List<Widget> _buildOrderTab() {
     return [
@@ -610,7 +610,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
     ];
   }
 
-  // Level 2 — solid pill segmented control inside My Order.
+  // Level 2 â€” solid pill segmented control inside My Order.
   // The previous tonal-on-tonal version (primary @ 4% track, @ 14%
   // indicator) disappeared against the dashboard's patterned blue
   // background. This version uses a SOLID white track + a SOLID
@@ -646,7 +646,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
             ),
             child: Stack(
               children: [
-                // Sliding primary indicator — solid fill, soft
+                // Sliding primary indicator â€” solid fill, soft
                 // primary-tinted drop shadow lifts it forward against
                 // the white track. 260ms easeOutCubic glide is the
                 // toggle's signature beat.
@@ -674,7 +674,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
                   ),
                 ),
                 // Positioned.fill makes the Row stretch to the full
-                // bounds of the Stack — without this the Row sizes
+                // bounds of the Stack â€” without this the Row sizes
                 // to its children's intrinsic height (~20pt) and the
                 // Stack's default topStart alignment leaves icon+label
                 // hugging the top edge instead of sitting dead-center
@@ -716,7 +716,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
   }) {
     final selected = _orderSubTab == index;
     // White text on the solid primary indicator, full-strength main
-    // text color on the inactive side — both sides stay readable
+    // text color on the inactive side â€” both sides stay readable
     // against the white track without needing muted greys.
     final fg = selected ? Colors.white : AppColors.mainTextColor;
     return GestureDetector(
@@ -784,7 +784,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
     );
   }
 
-  // Post tab — embeds FeedScreen filtered to the user's posts.
+  // Post tab â€” embeds FeedScreen filtered to the user's posts.
   // Mirrors self-employee v2 so creators see the same CTA + feed
   // treatment across me-section dashboards.
   List<Widget> _buildPostTab() {
@@ -802,20 +802,20 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
     ];
   }
 
-  // Statics tab — chat-click analytics, same component grocery /
+  // Statics tab â€” chat-click analytics, same component grocery /
   // medical / self-employee dashboards use. Riders don't have a
   // separate businessId so the analytics key is the user id.
   List<Widget> _buildStaticsTab() {
     return [
-      MedicalStatisticsScreen(businessId: userId),
+      BusinessStatisticsScreen(businessId: userId),
     ];
   }
 
-  // ─────────────────────────────────────────────
-  // OVERVIEW TAB — refined editorial identity dossier:
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // OVERVIEW TAB â€” refined editorial identity dossier:
   //   1. Identity card (cover + avatar + identity block).
   //   2. Stats card with hero-typed numerals.
-  //   3. Rental services CTA — entry point to the rental dashboard.
+  //   3. Rental services CTA â€” entry point to the rental dashboard.
   //      Used to be its own tab; we collapsed it into Overview so
   //      the tab strip stays uncluttered while the three rental
   //      categories are still one tap away (each chip primes the
@@ -824,7 +824,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
   //   5. Contact + map card (bio / website / phone / address / map).
   //   6. QR card with the profile deep link.
   //   7. Share banner.
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   List<Widget> _buildOverviewTab() {
     return [
       _buildIdentityCard(context),
@@ -832,7 +832,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
       _buildStatsCard(),
       SizedBox(height: SizeConfig.size12),
       // Dedicated bio tile lives between identity-level cards and the
-      // action/contact rows — bio reads as identity content, not
+      // action/contact rows â€” bio reads as identity content, not
       // secondary detail.
       const ProfileBioCard(),
       SizedBox(height: SizeConfig.size12),
@@ -849,7 +849,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
     ];
   }
 
-  // ─── IDENTITY CARD ──────────────────────────────────────────────
+  // â”€â”€â”€ IDENTITY CARD â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildIdentityCard(BuildContext context) {
     const bannerHeight = 200.0;
     const avatarSize = 88.0;
@@ -979,7 +979,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
             final name = _capitalizeFirst(user?.name ?? '');
             final username = user?.username ?? '';
             final designation = user?.designation ?? '';
-            // Address is rendered in [ProfileLocationCard] now — don't
+            // Address is rendered in [ProfileLocationCard] now â€” don't
             // duplicate it inside the identity card.
             final email = user?.email ?? '';
 
@@ -1131,7 +1131,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
             ),
             const SizedBox(width: 4),
             Text(
-              'Member · $since',
+              'Member Â· $since',
               style: TextStyle(
                 fontFamily: AppConstants.OpenSans,
                 fontSize: 10,
@@ -1376,7 +1376,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
     );
   }
 
-  // ─── STATS CARD ────────────────────────────────────────────────
+  // â”€â”€â”€ STATS CARD â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildStatsCard() {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 14),
@@ -1479,7 +1479,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
     );
   }
 
-  // ─── RENTAL CTA CARD ───────────────────────────────────────────
+  // â”€â”€â”€ RENTAL CTA CARD â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // Surfaces the rental dashboard as a single card. Header (icon +
   // title + chevron) opens it with the controller's current filter;
   // each category chip below pre-selects its filter on
@@ -1636,7 +1636,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
     Get.to(() => const RentalServicesDashboardScreen());
   }
 
-  // ─── ACTION ROW ────────────────────────────────────────────────
+  // â”€â”€â”€ ACTION ROW â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildActionRow() {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 14),
@@ -1730,14 +1730,14 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
     );
   }
 
-  // Legacy `_buildContactMapCard` + `_contactItem` were retired — the
+  // Legacy `_buildContactMapCard` + `_contactItem` were retired â€” the
   // address/map flow lives in [ProfileLocationCard] now, the bio in
   // [ProfileBioCard]. Website/phone edit lands through the identity
   // card's edit affordance.
 
-  // ─── QR CODE CARD (Overview tab) ──────────────────────────────
+  // â”€â”€â”€ QR CODE CARD (Overview tab) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // Delegates to [PersonalQrCodeWidget] so the rider QR card matches
-  // the business card's UI and behaviour exactly — capturable
+  // the business card's UI and behaviour exactly â€” capturable
   // RepaintBoundary, Download to gallery, Share PNG.
   Widget _buildQrCard() {
     return Obx(() {
@@ -1753,7 +1753,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
     });
   }
 
-  // ─── SHARE BANNER (Overview tab) ──────────────────────────────
+  // â”€â”€â”€ SHARE BANNER (Overview tab) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildShareBanner() {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 14),

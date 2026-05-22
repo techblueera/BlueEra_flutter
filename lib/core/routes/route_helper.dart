@@ -1,4 +1,4 @@
-import 'package:BlueEra/core/api/apiService/api_keys.dart';
+﻿import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/routes/route_constant.dart';
 import 'package:BlueEra/features/chat/view/call_screen/audio_calling_handler.dart';
@@ -33,15 +33,18 @@ import 'package:BlueEra/features/me/grocery/view/customer/grocery_via_rider/groc
 import 'package:BlueEra/features/me/grocery/view/customer/grocery_via_self_pickup/visit_grocery_products_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/customer/grocery_via_self_pickup/visit_grocery_store_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/admin/grocery_nested_category_with_inventory_screen.dart';
-import 'package:BlueEra/features/me/medical_new/view/add_medical_snap_search_screen.dart';
-import 'package:BlueEra/features/me/medical_new/view/medical_home_screen_v2.dart';
+import 'package:BlueEra/features/me/medical/model/medical_nested_category_model.dart';
+import 'package:BlueEra/features/me/medical/view/medical_category_screen.dart';
+import 'package:BlueEra/features/me/medical/view/medical_screen.dart';
+import 'package:BlueEra/features/me/medical/view/add_medical_snap_search_screen.dart';
+import 'package:BlueEra/features/me/medical/view/medical_home_screen_v2.dart';
 import 'package:BlueEra/features/me/product/model/product_category_with_inventory_model.dart';
 import 'package:BlueEra/features/me/product/view/admin/add_product_variant_screen.dart';
 import 'package:BlueEra/features/me/product/view/admin/product_cart_screen.dart';
 import 'package:BlueEra/features/me/product/view/admin/product_nested_category_with_inventory_screen.dart';
 import 'package:BlueEra/features/me/product/view/admin/my_product_products_screen.dart';
 import 'package:BlueEra/features/me/product/view/admin/product_screen.dart';
-// Manufacturer fork — classes are Manufacturer-prefixed so no alias
+// Manufacturer fork â€” classes are Manufacturer-prefixed so no alias
 // is needed.
 import 'package:BlueEra/features/me/manufacturer/view/admin/manufacturer_product_screen.dart';
 import 'package:BlueEra/features/me/manufacturer/view/admin/my_manufacturer_products_screen.dart';
@@ -123,18 +126,15 @@ import 'package:BlueEra/features/me/product/view/admin/product_nested_category_s
 import 'package:BlueEra/features/me/product/view/admin/product_selection_screen.dart';
 import 'package:BlueEra/features/me/product/model/product_nested_category_response.dart';
 import 'package:BlueEra/features/me/grocery/view/admin/grocery_screen.dart';
-import 'package:BlueEra/features/me/medical_new/model/medical_nested_category_model.dart';
-import 'package:BlueEra/features/me/medical_new/model/my_medical_products_response.dart';
-import 'package:BlueEra/features/me/medical_new/view/add_medical_screen.dart';
-import 'package:BlueEra/features/me/medical_new/view/add_medical_variant_screen.dart';
-import 'package:BlueEra/features/me/medical_new/view/medical_category_screen.dart';
-import 'package:BlueEra/features/me/medical_new/view/medical_listing/medical_cart_screen.dart';
-import 'package:BlueEra/features/me/medical_new/view/medical_listing/medical_confirm_screen.dart';
-import 'package:BlueEra/features/me/medical_new/view/medical_listing/medical_listing_screen.dart';
-import 'package:BlueEra/features/me/medical_new/view/medical_subcategory_screen.dart';
-import 'package:BlueEra/features/me/medical_new/view/medical_screen.dart';
-import 'package:BlueEra/features/me/medical_new/view/my_medical_listing/my_medical_products_screen.dart';
-import 'package:BlueEra/features/me/medical_new/view/my_medical_listing/my_medical_variant_screen.dart';
+import 'package:BlueEra/features/me/medical/model/my_medical_products_response.dart';
+import 'package:BlueEra/features/me/medical/view/add_medical_screen.dart';
+import 'package:BlueEra/features/me/medical/view/add_medical_variant_screen.dart';
+import 'package:BlueEra/features/me/medical/view/medical_listing/medical_cart_screen.dart';
+import 'package:BlueEra/features/me/medical/view/medical_listing/medical_confirm_screen.dart';
+import 'package:BlueEra/features/me/medical/view/medical_listing/medical_listing_screen.dart';
+import 'package:BlueEra/features/me/medical/view/medical_subcategory_screen.dart';
+import 'package:BlueEra/features/me/medical/view/my_medical_listing/my_medical_products_screen.dart';
+import 'package:BlueEra/features/me/medical/view/my_medical_listing/my_medical_variant_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/my_enquires_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/received_enquiries_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/send_enquiry_screen.dart';
@@ -174,7 +174,6 @@ import 'package:flutter/material.dart';
 import '../../features/chat/view/contacts/view/contact_list_page.dart';
 import '../../features/common/store/add_update_product/add_update_product_screen.dart';
 import '../../features/common/store/models/get_channel_product_model.dart';
-import '../../features/me/medical/view/category/otc_items_page.dart';
 import '../../features/personal/personal_profile/view/booking_enquiries_screen/appointment_booking_form.dart';
 import '../../features/personal/personal_profile/view/booking_enquiries_screen/bookings_enquiries.dart';
 import '../../features/personal/personal_profile/view/booking_enquiries_screen/my_booking_screen.dart';
@@ -502,7 +501,7 @@ class RouteHelper {
   static String getRentalServiceFullDetailsScreenRoute() =>
       RouteConstant.rentalServiceFullDetailsScreen;
 
-  // ── be_vehicle_service routes ────────────────────────────────────
+  // â”€â”€ be_vehicle_service routes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   static String getVehicleHomeScreenRoute() =>
       RouteConstant.vehicleHomeScreen;
   
@@ -581,8 +580,8 @@ class RouteHelper {
   static String getPaymentSettingScreenRoute() =>
       RouteConstant.paymentSettingScreen;
 
-  static String getMedicalOtcItemsScreen() =>
-      RouteConstant.medicalOtcItemsScreen;
+  // static String getMedicalOtcItemsScreen() =>
+  //     RouteConstant.medicalOtcItemsScreen;
 
   static String getHospitalOptCategory() => 
       RouteConstant.hospitalOptCategory;
@@ -1831,13 +1830,13 @@ class RouteHelper {
             builder: (_) => PaymentSettingScreen(),
             settings: RouteSettings(name: getPaymentSettingScreenRoute()));
 
-      case RouteConstant.medicalOtcItemsScreen:
-        final args = settings.arguments as Map<String, dynamic>;
-        String title = args[ApiKeys.title] as String;
-        String categoryId = args[ApiKeys.category_id] as String;
-        return MaterialPageRoute(
-            builder: (_) => OTCItemsPage(categoryId: categoryId, title: title),
-            settings: RouteSettings(name: getMedicalOtcItemsScreen()));
+      // case RouteConstant.medicalOtcItemsScreen:
+      //   final args = settings.arguments as Map<String, dynamic>;
+      //   String title = args[ApiKeys.title] as String;
+      //   String categoryId = args[ApiKeys.category_id] as String;
+      //   return MaterialPageRoute(
+      //       builder: (_) => OTCItemsPage(categoryId: categoryId, title: title),
+      //       settings: RouteSettings(name: getMedicalOtcItemsScreen()));
       case RouteConstant.riderStoreScreen:
         return MaterialPageRoute(
             builder: (_) => RiderStoreScreen(),
@@ -2173,7 +2172,7 @@ class RouteHelper {
           settings: const RouteSettings(name: '/IncomingRiderOrderScreen'),
         );
 
-      // ── be_vehicle_service screens ──────────────────────────────
+      // â”€â”€ be_vehicle_service screens â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
       case RouteConstant.vehicleHomeScreen:
         return MaterialPageRoute(
           builder: (_) => const VehicleHomeScreenV2(),

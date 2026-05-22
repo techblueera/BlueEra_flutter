@@ -1,9 +1,9 @@
-import 'package:BlueEra/core/constants/app_colors.dart';
+﻿import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/medical/controller/nearest_pharmacies_controller.dart';
-import 'package:BlueEra/features/me/medical_new/view/medical_category_selector_widget.dart';
-import 'package:BlueEra/features/me/medical_new/view/medical_pharmacy_detail_screen.dart';
+import 'package:BlueEra/features/me/medical/view/medical_category_selector_widget.dart';
+import 'package:BlueEra/features/me/medical/view/medical_pharmacy_detail_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';

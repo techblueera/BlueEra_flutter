@@ -1,4 +1,4 @@
-import 'dart:ui';
+﻿import 'dart:ui';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -8,7 +8,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/me/medical_new/view/medical_statistics_screen.dart';
+import 'package:BlueEra/features/common/statistics/view/business_statistics_screen.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/controller/earn_profile_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/home_made_food_home_page.dart';
@@ -143,9 +143,9 @@ class _EarnServiceDashboardViewState extends State<EarnServiceDashboardView> {
     );
   }
 
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // BACKGROUND
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildPatternBackground() {
     return Positioned.fill(
       child: Image.asset(
@@ -157,14 +157,14 @@ class _EarnServiceDashboardViewState extends State<EarnServiceDashboardView> {
     );
   }
 
-  // ─────────────────────────────────────────────
-  // TOP BAR — glassmorphic strip:
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // TOP BAR â€” glassmorphic strip:
   //   [back arrow]  [earn-type title]
   // The title mirrors the active home-tab body so users always know
   // which earn flavour (Food / Product / Service) they're on. Title is
   // reactive on [earnProfileType] so it follows the controller's
   // current selection without an extra setState.
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildTopBar() {
     final topInset = MediaQuery.of(context).padding.top;
     return DecoratedBox(
@@ -284,10 +284,10 @@ class _EarnServiceDashboardViewState extends State<EarnServiceDashboardView> {
     );
   }
 
-  // ─────────────────────────────────────────────
-  // TABS — solid white card with an animated underline that slides
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // TABS â€” solid white card with an animated underline that slides
   // beneath the selected tab. Same style as self_employee_screen.dart.
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildTabsCard() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 14),
@@ -371,10 +371,10 @@ class _EarnServiceDashboardViewState extends State<EarnServiceDashboardView> {
     );
   }
 
-  // ─────────────────────────────────────────────
-  // TAB CONTENT — switches body by _selectedTab.
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // TAB CONTENT â€” switches body by _selectedTab.
   //   0 Home, 1 Statics
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   List<Widget> _buildTabContent() {
     switch (_selectedTab) {
       case 0:
@@ -386,7 +386,7 @@ class _EarnServiceDashboardViewState extends State<EarnServiceDashboardView> {
     }
   }
 
-  // Home tab — dashboard header (cover/profile) + the matching earn-
+  // Home tab â€” dashboard header (cover/profile) + the matching earn-
   // profile page unchanged + website card when one is linked.
   List<Widget> _buildHomeTab() {
     return [
@@ -435,11 +435,11 @@ class _EarnServiceDashboardViewState extends State<EarnServiceDashboardView> {
     }
   }
 
-  // Statics tab — chat-click analytics, same as grocery / medical /
+  // Statics tab â€” chat-click analytics, same as grocery / medical /
   // self-employee dashboards' last tab.
   List<Widget> _buildStaticsTab() {
     return [
-      MedicalStatisticsScreen(businessId: userId),
+      BusinessStatisticsScreen(businessId: userId),
     ];
   }
 }

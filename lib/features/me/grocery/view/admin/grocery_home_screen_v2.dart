@@ -1,4 +1,4 @@
-import 'dart:io';
+﻿import 'dart:io';
 import 'dart:ui';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
@@ -21,6 +21,7 @@ import 'package:BlueEra/features/business/widgets/business_contact_map_card.dart
 import 'package:BlueEra/features/business/widgets/business_description_card.dart';
 import 'package:BlueEra/features/business/widgets/business_qrcode_widget.dart';
 import 'package:BlueEra/features/business/widgets/business_share_banner.dart';
+import 'package:BlueEra/features/common/statistics/view/business_statistics_screen.dart';
 import 'package:BlueEra/widgets/common_business_live_photo.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/view/add_symbol/add_symbol_screen.dart';
@@ -36,7 +37,6 @@ import 'package:BlueEra/features/me/grocery/model/grocery_business_products_mode
 import 'package:BlueEra/features/me/grocery/model/grocery_category_with_inventory_model.dart';
 import 'package:BlueEra/features/me/grocery/view/all_top_selling_grocery_products_screen.dart';
 import 'package:BlueEra/features/me/grocery/widget/food_type_indicator.dart';
-import 'package:BlueEra/features/me/medical_new/view/medical_statistics_screen.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -45,11 +45,10 @@ import 'package:BlueEra/widgets/refer_earn_pill.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:croppy/croppy.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:get/get.dart';
 
-/// Grocery Home screen (v2) — mirrors the medical home v2 layout so the
+/// Grocery Home screen (v2) â€” mirrors the medical home v2 layout so the
 /// business owner sees a consistent, modern profile across me-section
 /// services. Reuses [ViewBusinessDetailsController] for the profile data
 /// and [GroceryController] for top-selling products & categories.
@@ -71,7 +70,7 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
   final _businessController =
   getOrPut(() => ViewBusinessDetailsController(), permanent: true);
   // Chat controller drives the Orders list shown under the Order tab.
-  // Mirrors `ConnectMainPage._emitChatListForTab(2)` — same controller,
+  // Mirrors `ConnectMainPage._emitChatListForTab(2)` â€” same controller,
   // same event, so the data is shared with the Connect screen and
   // receives socket-driven updates while the user is on this screen.
   final ChatViewController _chatViewController =
@@ -98,7 +97,7 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
     );
     // Fire the API(s) backing the tab the screen lands on (Overview by
     // default). Switching tabs later will fire other tabs' APIs lazily
-    // via [_onTabTapped] — mirrors product_screen's per-tab discipline.
+    // via [_onTabTapped] â€” mirrors product_screen's per-tab discipline.
     _fetchForTab(_selectedTab);
   }
 
@@ -108,27 +107,27 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
   void _fetchForTab(int tab) {
     switch (tab) {
       case 0:
-        // Order — order chat list is hydrated in initState; the
+        // Order â€” order chat list is hydrated in initState; the
         // ContributionController binds lazily when its slot renders
         // and fires its own /recharge/plans + /recharge/current.
         break;
       case 1:
-        // Overview — the joined-profile / contact / QR / share-banner
+        // Overview â€” the joined-profile / contact / QR / share-banner
         // sections all read from the permanent
         // [ViewBusinessDetailsController]; no grocery API needed.
         break;
       case 2:
-        // Products — top-selling products + category-with-inventory.
+        // Products â€” top-selling products + category-with-inventory.
         _groceryController.fetchAllGroceryData(
           widget.businessId,
           otherStore: false,
         );
         break;
       case 3:
-        // Post — FeedScreen owns its own controller fetch on mount.
+        // Post â€” FeedScreen owns its own controller fetch on mount.
         break;
       case 4:
-        // Statics — MedicalStatisticsScreen owns its own data.
+        // Statics â€” BusinessStatisticsScreen owns its own data.
         break;
     }
   }
@@ -139,7 +138,7 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
     _fetchForTab(i);
   }
 
-  /// Pull-to-refresh dispatcher — each tab owns a different data set,
+  /// Pull-to-refresh dispatcher â€” each tab owns a different data set,
   /// so the refresh action fires only the API(s) backing the currently
   /// visible tab. Avoids hammering unrelated endpoints on every pull.
   Future<void> _onRefreshCurrentTab() async {
@@ -168,17 +167,17 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
         }
         break;
       case 4:
-        // MedicalStatisticsScreen manages its own state and doesn't
-        // expose an external refresh hook — no-op for now.
+        // BusinessStatisticsScreen manages its own state and doesn't
+        // expose an external refresh hook â€” no-op for now.
         break;
     }
   }
 
-  // ─────────────────────────────────────────────
-  // BUILD — fixed header (top bar + profile row + tabs row) with only
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // BUILD â€” fixed header (top bar + profile row + tabs row) with only
   // the tab content scrolling underneath it. Mirrors the reference
   // mock at assets/img1.png: the chrome stays put while content moves.
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   @override
   Widget build(BuildContext context) {
     final topInset = MediaQuery.of(context).padding.top;
@@ -205,7 +204,7 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
                 child: CustomScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
                   slivers: [
-                    // Top bar — slides out of view on scroll-down,
+                    // Top bar â€” slides out of view on scroll-down,
                     // snaps back on scroll-up (floating + snap).
                     SliverAppBar(
                       primary: false,
@@ -246,7 +245,7 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
                 ),
               ),
             ),
-            // Sticky overlay — only shown after the in-flow tabs have
+            // Sticky overlay â€” only shown after the in-flow tabs have
             // scrolled past. Padded for the status bar so it doesn't
             // sit under the notch.
             if (_showStickyTabs)
@@ -285,19 +284,19 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
     );
   }
 
-  // ─────────────────────────────────────────────
-  // TABS — glass-pill container with a smoothly-sliding gradient
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // TABS â€” glass-pill container with a smoothly-sliding gradient
   // indicator that morphs between tabs. Selected tab text fades from
-  // secondary grey → white and from medium → bold weight in a single
+  // secondary grey â†’ white and from medium â†’ bold weight in a single
   // continuous transition. The indicator carries the brand-colored
   // glow + a 1-px inner top highlight for a "lifted glass" feel.
-  // ─────────────────────────────────────────────
-  // ─────────────────────────────────────────────
-  // TABS — solid white card with high-contrast labels and an animated
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // TABS â€” solid white card with high-contrast labels and an animated
   // underline that glides under the selected tab. The underline carries
   // a small brand-colored glow so the selection reads at a glance even
   // on busy backgrounds.
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildTabsCard() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 14),
@@ -354,7 +353,7 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
                     );
                   }),
                 ),
-                // Animated underline — slides between tabs. Soft
+                // Animated underline â€” slides between tabs. Soft
                 // brand-color glow gives the indicator a touch of
                 // emphasis without dominating the card.
                 AnimatedPositioned(
@@ -387,10 +386,10 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
     );
   }
 
-  // ─────────────────────────────────────────────
-  // TAB CONTENT — switches body by _selectedTab
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // TAB CONTENT â€” switches body by _selectedTab
   //   0 Order, 1 Overview, 2 Products, 3 Post, 4 Statics
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   List<Widget> _buildTabContent() {
     switch (_selectedTab) {
       case 0:
@@ -402,22 +401,22 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
       case 3:
         return _buildPostTab();
       case 4:
-        return [MedicalStatisticsScreen(businessId: widget.businessId)];
+        return [BusinessStatisticsScreen(businessId: widget.businessId)];
       default:
         return [_buildComingSoon()];
     }
   }
 
-  // ─────────────────────────────────────────────
-  // ORDER TAB — top slot is reactive to the contribution status:
-  //   • Active recharge present → premium "membership peek" card with
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ORDER TAB â€” top slot is reactive to the contribution status:
+  //   â€¢ Active recharge present â†’ premium "membership peek" card with
   //     plan name, perks-remaining strip, and a forward chevron that
   //     pushes ContributionScreen.
-  //   • Otherwise → the lavender "Contribute now" CTA.
+  //   â€¢ Otherwise â†’ the lavender "Contribute now" CTA.
   // Below the slot sits the legacy [MyGroceryOrders] list region.
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   List<Widget> _buildOrderTab() {
-    // Lazy-register the contribution controller — its `onInit` fires
+    // Lazy-register the contribution controller â€” its `onInit` fires
     // /recharge/plans + /recharge/current. Bound here (only when the
     // Order tab actually builds) so the APIs don't run on every Me-tab
     // landing or on bottom-nav startup. Subsequent rebuilds reuse the
@@ -454,11 +453,11 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
     ];
   }
 
-  // ─────────────────────────────────────────────
-  // PEEK SKELETON — placeholder shown while /recharge/current is
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // PEEK SKELETON â€” placeholder shown while /recharge/current is
   // in-flight. Matches the active-plan peek silhouette so the slot
   // doesn't jump height when the answer lands.
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _planPeekSkeleton() {
     return DecoratedBox(
       decoration: BoxDecoration(
@@ -551,13 +550,13 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
     );
   }
 
-  // ─────────────────────────────────────────────
-  // ACTIVE PLAN PEEK — compact aurora card mirroring the hero on
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ACTIVE PLAN PEEK â€” compact aurora card mirroring the hero on
   // ContributionScreen so recognition is instant. Gold tier badge on
   // the left, plan name + ACTIVE pill on top, perks-remaining strip
   // on the bottom, and a glass forward chevron on the right. Tapping
   // anywhere pushes ContributionScreen for the full membership view.
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _activePlanPeekCard(Map<String, dynamic> data) {
     final plan = (data['rechargePlanId'] is Map<String, dynamic>)
         ? data['rechargePlanId'] as Map<String, dynamic>
@@ -791,15 +790,15 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
     return int.tryParse(v?.toString() ?? '') ?? 0;
   }
 
-  // ─────────────────────────────────────────────
-  // CONTRIBUTE-NOW BANNER — frosted lavender CTA per assets/img1.png.
-  //   • Border: #844CD5 / 0.5 px
-  //   • Gradient: #FAF3FF → #E7C8FF
-  //   • Backdrop blur: 100
-  //   • Shadow: #020122 @ 5% / blur 10 / offset (0, 2)
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // CONTRIBUTE-NOW BANNER â€” frosted lavender CTA per assets/img1.png.
+  //   â€¢ Border: #844CD5 / 0.5 px
+  //   â€¢ Gradient: #FAF3FF â†’ #E7C8FF
+  //   â€¢ Backdrop blur: 100
+  //   â€¢ Shadow: #020122 @ 5% / blur 10 / offset (0, 2)
   // The shadow lives on the outer DecoratedBox so it casts cleanly
   // outside the ClipRRect that hosts the BackdropFilter.
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _contributeNowBanner() {
     return GestureDetector(
       onTap: () => Get.to(() => const ContributionScreen()),
@@ -840,7 +839,7 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Crown badge — frosted dark-purple gradient circle
+                  // Crown badge â€” frosted dark-purple gradient circle
                   // with a thin lavender ring and a white crown icon.
                   // Backdrop blur (1000) is clipped to the circle so
                   // the chrome behind the badge is heavily diffused.
@@ -940,15 +939,15 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
     ];
   }
 
-  // ─────────────────────────────────────────────
-  // PROFILE CARDS — three INDEPENDENT containers with 12-px gaps:
-  //   Card 1. Joined-date pill   → small left-aligned pill with calendar
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // PROFILE CARDS â€” three INDEPENDENT containers with 12-px gaps:
+  //   Card 1. Joined-date pill   â†’ small left-aligned pill with calendar
   //                                 icon + "Joined - DD/MM/YYYY"
-  //   Card 2. Identity + rating  → bigger logo, name, sub-cat pill, rating
-  //   Card 3. Cover photo banner → editable 16:9 cover with "Edit" chip
+  //   Card 2. Identity + rating  â†’ bigger logo, name, sub-cat pill, rating
+  //   Card 3. Cover photo banner â†’ editable 16:9 cover with "Edit" chip
   // Card 1 uses a different visual treatment (self-sized pill) than
   // cards 2 and 3 (full-width white cards) per assets/img_1.png.
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildJoinedProfileCard() {
     return Obx(() {
       final details =
@@ -958,10 +957,10 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Card 1 — content-sized pill, horizontally centered.
+            // Card 1 â€” content-sized pill, horizontally centered.
             _section1JoinedDate(details),
             SizedBox(height: SizeConfig.size12),
-            // Card 2 — content-sized identity card, horizontally centered.
+            // Card 2 â€” content-sized identity card, horizontally centered.
             // IntrinsicWidth gives the inner Column a bounded width so
             // the hairline divider + Expanded children inside the row
             // still get a finite parent extent.
@@ -971,7 +970,7 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
               ),
             ),
             SizedBox(height: SizeConfig.size12),
-            // Card 3 — full-width cover-photo card. The inner photo is
+            // Card 3 â€” full-width cover-photo card. The inner photo is
             // already inset + rounded by the section itself, so the
             // outer wrap doesn't need `clip: true`.
             _profileCardWrap(child: _section3CoverBanner()),
@@ -981,7 +980,7 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
     });
   }
 
-  // Card 1 — small left-aligned pill: calendar + "Joined - DD/MM/YYYY".
+  // Card 1 â€” small left-aligned pill: calendar + "Joined - DD/MM/YYYY".
   // Per assets/img_1.png, this is its own self-sized container, not a
   // full-width card.
   Widget _section1JoinedDate(dynamic details) {
@@ -1022,7 +1021,7 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
     );
   }
 
-  // Format `createdAt` (ISO-8601) as "D/MM/YYYY" — no zero pad on day,
+  // Format `createdAt` (ISO-8601) as "D/MM/YYYY" â€” no zero pad on day,
   // 2-digit month, 4-digit year. Returns "--" when the input is empty
   // or unparseable so the pill always renders cleanly.
   String _formatJoinedDate(String? raw) {
@@ -1051,11 +1050,11 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
     );
   }
 
-  // Section 2 — identity card per assets/img_2.png:
+  // Section 2 â€” identity card per assets/img_2.png:
   //   Row 1: [logo with edit pin] McDonald's
   //                                Automotive
   //   Hairline divider
-  //   Row 2: ★ 4.8 (48 reviews)
+  //   Row 2: â˜… 4.8 (48 reviews)
   Widget _section2IdentityRating(dynamic details) {
     final logo =
         _businessController.imagePath?.value ?? details?.logo ?? '';
@@ -1078,7 +1077,7 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          // ── Row 1: avatar (with edit pin) + name + sub-category ──
+          // â”€â”€ Row 1: avatar (with edit pin) + name + sub-category â”€â”€
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
@@ -1112,10 +1111,10 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
             ],
           ),
           SizedBox(height: SizeConfig.size12),
-          // ── Hairline divider ──
+          // â”€â”€ Hairline divider â”€â”€
           Container(height: 1, color: Colors.grey.shade200),
           SizedBox(height: SizeConfig.size10),
-          // ── Row 2: star + rating value + (reviews) ──
+          // â”€â”€ Row 2: star + rating value + (reviews) â”€â”€
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -1192,10 +1191,10 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
     );
   }
 
-  // Section 3 — cover-photo card per assets/img_3.png:
-  //   • Inset photo (rounded on all four corners)
-  //   • Pagination dots centered near the bottom of the photo
-  //   • Footer row: "Cover Photo" label on left, "Edit" pill on right
+  // Section 3 â€” cover-photo card per assets/img_3.png:
+  //   â€¢ Inset photo (rounded on all four corners)
+  //   â€¢ Pagination dots centered near the bottom of the photo
+  //   â€¢ Footer row: "Cover Photo" label on left, "Edit" pill on right
   Widget _section3CoverBanner() {
     return Obx(() {
       final cover = _businessController.coverImage?.value ?? '';
@@ -1206,7 +1205,7 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // ── Inset rounded photo (single banner — no carousel) ──
+            // â”€â”€ Inset rounded photo (single banner â€” no carousel) â”€â”€
             ClipRRect(
               borderRadius: BorderRadius.circular(12),
               child: AspectRatio(
@@ -1243,7 +1242,7 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
               ),
             ),
             SizedBox(height: SizeConfig.size10),
-            // ── Footer: label + edit pill ──
+            // â”€â”€ Footer: label + edit pill â”€â”€
             Padding(
               padding: EdgeInsets.symmetric(horizontal: SizeConfig.size4),
               child: Row(
@@ -1319,7 +1318,7 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
     );
   }
 
-  // Shared circular avatar — used by sections 1 and 2 with different
+  // Shared circular avatar â€” used by sections 1 and 2 with different
   // sizes/ring treatments.
   Widget _avatar({
     required String url,
@@ -1345,9 +1344,9 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
     );
   }
 
-  // ─────────────────────────────────────────────
-  // QR CODE — share/download the business profile
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // QR CODE â€” share/download the business profile
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildQrCodeSection() {
     return Obx(() {
       final details = _businessController.businessProfileDetails.value?.data;
@@ -1359,12 +1358,12 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
     });
   }
 
-  // ─────────────────────────────────────────────
-  // PRODUCTS TAB — top-level "Add Grocery" CTA, then the same
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // PRODUCTS TAB â€” top-level "Add Grocery" CTA, then the same
   // top-selling and category-with-inventory cards as Overview.
   // The category section keeps its inline "Update Inventory" link;
   // this top button is the dedicated bulk-upload entry point.
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   List<Widget> _buildProductsTab() {
     return [
       _buildTopSellingSection(),
@@ -1386,9 +1385,9 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
     }
   }
 
-  // ─────────────────────────────────────────────
-  // POST TAB — embeds FeedScreen filtered to current user's posts.
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // POST TAB â€” embeds FeedScreen filtered to current user's posts.
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   List<Widget> _buildPostTab() {
     if (!Get.isRegistered<FeedController>()) {
       Get.put(FeedController());
@@ -1552,9 +1551,9 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
     );
   }
 
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // BACKGROUND
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildPatternBackground() {
     return Positioned.fill(
       child: Image.asset(
@@ -1565,9 +1564,9 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
     );
   }
 
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // TOP BAR
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildTopBar() {
     final topInset = MediaQuery.of(context).padding.top;
     return DecoratedBox(
@@ -1680,7 +1679,7 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
     );
   }
 
-  /// Grocery-specific quick action — replaces medical's "Earn" pill so
+  /// Grocery-specific quick action â€” replaces medical's "Earn" pill so
   /// the merchant can hop straight to nearby riders for self-pickup
   /// or delivery dispatch.
   Widget _nearbyRidersPill() {
@@ -1816,12 +1815,12 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
     );
   }
 
-  // ─────────────────────────────────────────────
-  // PROFILE ROW — owner-identity strip per assets/img1.png:
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // PROFILE ROW â€” owner-identity strip per assets/img1.png:
   // [logo] businessName [+1]   [edit] [eye]
   //        typeOfBusiness
-  // Fixed at top — does NOT scroll with the content.
-  // ─────────────────────────────────────────────
+  // Fixed at top â€” does NOT scroll with the content.
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   Widget _logoFallback() => Container(
     color: Colors.grey.shade200,
@@ -1838,7 +1837,7 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
       );
       if (newPath == null || newPath.isEmpty) return;
 
-      // No optimistic `coverImage.value = newPath` — CachedNetworkImage
+      // No optimistic `coverImage.value = newPath` â€” CachedNetworkImage
       // can't render local file paths, and assigning one here would
       // flash the "Add photo" placeholder behind the shimmer overlay
       // until the server-confirmed URL lands.
@@ -1866,14 +1865,14 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
     }
   }
 
-  // ─────────────────────────────────────────────
-  // TOP-SELLING PRODUCTS — editorial-style horizontal scroller. Each
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // TOP-SELLING PRODUCTS â€” editorial-style horizontal scroller. Each
   // tile is a ranked chart entry with a brand-tinted image hero, a
   // small "#01" rank pill, the green-gradient discount sticker, a
   // bold name, and a prominent price. A 3-px brand-blue gradient
   // ribbon caps the bottom edge so the section reads as one curated
   // shelf. Header uses the page's vertical-bar pattern + chip CTA.
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildTopSellingSection() {
     return Obx(() {
       final isLoading =
@@ -1960,7 +1959,7 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
     );
   }
 
-  // "View All" chip — label on the left, solid primary circular
+  // "View All" chip â€” label on the left, solid primary circular
   // arrow badge on the right. Mirrors the chip language used by the
   // category section's CTA on the opposite end.
   Widget _viewAllCta() {
@@ -2017,7 +2016,7 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
   // padded inside a brand-tinted gradient backdrop so product shots
   // never crop awkwardly. A small "#NN" pill in the top-right marks
   // the chart position; the green discount sticker sits opposite. The
-  // info zone uses a clear three-row hierarchy (chips → name → price)
+  // info zone uses a clear three-row hierarchy (chips â†’ name â†’ price)
   // and the card is finished with a brand-blue gradient ribbon at
   // the bottom edge to anchor the silhouette.
   Widget _productCard(BusinessProductData item, int rank) {
@@ -2035,7 +2034,7 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: const Color(0xFFE6E8EE), width: 1),
         boxShadow: const [
-          // Grocery-flavoured shadow — soft green halo (matches the
+          // Grocery-flavoured shadow â€” soft green halo (matches the
           // discount sticker palette) instead of the page's neutral
           // navy shadow, so the shelf reads as "fresh / produce".
           BoxShadow(
@@ -2049,7 +2048,7 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Image hero — brand-tinted backdrop with the photo
+            // Image hero â€” brand-tinted backdrop with the photo
             // centered (BoxFit.contain so packaged products never
             // crop). Discount sticker top-left, rank pill top-right.
             AspectRatio(
@@ -2100,7 +2099,7 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 8, vertical: 6),
                           decoration: const BoxDecoration(
-                            // Grocery palette — fresh-leaf →
+                            // Grocery palette â€” fresh-leaf â†’
                             // deep-produce green pulled from AppColors
                             // so the sticker visibly belongs to the
                             // grocery section's brand language.
@@ -2155,7 +2154,7 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
                 ],
               ),
             ),
-            // Info zone — chips row, name, price hierarchy.
+            // Info zone â€” chips row, name, price hierarchy.
             Padding(
               padding: const EdgeInsets.fromLTRB(10, 10, 10, 12),
               child: Column(
@@ -2230,7 +2229,7 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
                 ],
               ),
             ),
-            // Brand-blue gradient ribbon — the subtle "section
+            // Brand-blue gradient ribbon â€” the subtle "section
             // signature" that ties the shelf together.
             Container(
               height: 3,
@@ -2251,13 +2250,13 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
       );
   }
 
-  // ─────────────────────────────────────────────
-  // CATEGORIES WITH INVENTORY — header strip + two-tone storefront
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // CATEGORIES WITH INVENTORY â€” header strip + two-tone storefront
   // card grid. Same design language used in food's products tab:
   // a vertical brand-accent bar with title + helper, a refined chip
   // CTA on the right, and full-bleed photo cards below with a tinted
   // hero zone and a crisp footer carrying the name + a brand chevron.
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildCategoryWithInventorySection() {
     return Obx(() {
       final groceryCategoryList = List<GroceryCategoryWithInventoryModel>.from(
@@ -2357,7 +2356,7 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
     );
   }
 
-  // Refined CTA chip — solid primary circular `+` badge anchors a
+  // Refined CTA chip â€” solid primary circular `+` badge anchors a
   // brand-outlined chip. Same shadow + border treatment as other
   // section chips so the rhythm reads as a single design language.
   Widget _addGroceryCta() {
@@ -2408,8 +2407,8 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
 
   // Two-tone storefront card. Tinted hero zone with the full image
   // (BoxFit.contain so nothing crops), crisp white footer with the
-  // name + a small filled brand-blue chevron. Single tap target —
-  // no separate "View Products" CTA — for a clean silhouette.
+  // name + a small filled brand-blue chevron. Single tap target â€”
+  // no separate "View Products" CTA â€” for a clean silhouette.
   Widget _groceryCategoryCard(
     GroceryCategoryWithInventoryModel item,
     List<GroceryCategoryWithInventoryModel> all,

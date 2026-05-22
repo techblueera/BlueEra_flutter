@@ -32,7 +32,6 @@ import '../../../../../core/constants/shared_preference_utils.dart';
 import '../features/business/visiting_card/view/business_own_profile_screen.dart';
 import '../features/chat/view/contacts/view/be_available_contacts_list.dart';
 import '../features/common/home/widgets/drawer.dart';
-import '../features/me/medical/view/widget/add_product_common_dialog.dart';
 
 class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
   const CommonBackAppBar(
@@ -1063,21 +1062,21 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
               ),
             ),
           ),
-        if (isAddProductButton ?? false)
-          Padding(
-            padding: const EdgeInsets.only(right: 10.0),
-            child: CustomBtn(
-              width: 80,
-              isValidate: true,
-              onTap: () {
-                AddProductCommonDialog.showAddProduct(
-                  context: context,
-                  categoryId: categoryId ?? "",
-                );
-              },
-              title: "Add Product",
-            ),
-          ),
+        // if (isAddProductButton ?? false)
+        //   Padding(
+        //     padding: const EdgeInsets.only(right: 10.0),
+        //     child: CustomBtn(
+        //       width: 80,
+        //       isValidate: true,
+        //       onTap: () {
+        //         AddProductCommonDialog.showAddProduct(
+        //           context: context,
+        //           categoryId: categoryId ?? "",
+        //         );
+        //       },
+        //       title: "Add Product",
+        //     ),
+        //   ),
         if (isCreateButton ?? false)
           InkWell(
             onTap: () {

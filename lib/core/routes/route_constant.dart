@@ -146,7 +146,7 @@ class RouteConstant {
   // static const String RiderProfileStatusScreen = "/RiderProfileStatusScreen";
   static const String grocerySuperCategoryScreen = "/GrocerySuperCategoryScreen";
   static const String paymentSettingScreen = "/PaymentSettingScreen";
-  static const String medicalOtcItemsScreen = "/MedicalOtcItemsScreen";
+  // static const String medicalOtcItemsScreen = "/MedicalOtcItemsScreen";
   static const String riderStoreScreen = "/RiderStoreScreen";
   static const String groceryConfirmScreen = "/GroceryConfirmScreen";
   static const String hospitalOptCategory = "/GetHospitalOptCategory";

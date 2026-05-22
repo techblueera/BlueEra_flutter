@@ -1,4 +1,4 @@
-import 'dart:ui';
+﻿import 'dart:ui';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
@@ -22,7 +22,7 @@ import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
 import 'package:BlueEra/features/contribution/controller/contribution_controller.dart';
 import 'package:BlueEra/features/contribution/view/contribution_screen.dart';
-import 'package:BlueEra/features/me/medical_new/view/medical_statistics_screen.dart';
+import 'package:BlueEra/features/common/statistics/view/business_statistics_screen.dart';
 import 'package:BlueEra/features/me/me_tab_registry.dart';
 import 'package:BlueEra/features/me/product/controller/inventory_controller.dart';
 import 'package:BlueEra/features/me/product/model/product_category_with_inventory_model.dart';
@@ -84,7 +84,7 @@ class _ProductScreenState extends State<ProductScreen>
       const ProductHomeScreen(),
       _ProductsTabBody(onAddProduct: _onAddProduct),
       _PostTabBody(),
-      MedicalStatisticsScreen(businessId: userId),
+      BusinessStatisticsScreen(businessId: userId),
     ];
 
     _tabController = TabController(
@@ -105,7 +105,7 @@ class _ProductScreenState extends State<ProductScreen>
     // the lazy product fetch fires for tap-driven changes too.
     if (_selectedTab != c.index) {
       setState(() => _selectedTab = c.index);
-      // Fetch product data lazily — only when the merchant actually
+      // Fetch product data lazily â€” only when the merchant actually
       // opens the Products tab, not on every Me-tab landing.
       print('index--> ${c.index}');
       if (c.index == 2) {
@@ -114,7 +114,7 @@ class _ProductScreenState extends State<ProductScreen>
     }
   }
 
-  /// Pull-to-refresh dispatcher — each tab owns a different data set,
+  /// Pull-to-refresh dispatcher â€” each tab owns a different data set,
   /// so the refresh action fires only the API(s) backing the currently
   /// visible tab. Avoids hammering unrelated endpoints on every pull.
   Future<void> _onRefreshCurrentTab() async {
@@ -145,8 +145,8 @@ class _ProductScreenState extends State<ProductScreen>
         }
         break;
       case 4:
-        // Statics: MedicalStatisticsScreen manages its own state and
-        // doesn't expose an external refresh hook — no-op for now.
+        // Statics: BusinessStatisticsScreen manages its own state and
+        // doesn't expose an external refresh hook â€” no-op for now.
         break;
     }
   }
@@ -161,9 +161,9 @@ class _ProductScreenState extends State<ProductScreen>
     super.dispose();
   }
 
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // BUILD
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   @override
   Widget build(BuildContext context) {
     if (_isLoading || _tabController == null) {
@@ -195,7 +195,7 @@ class _ProductScreenState extends State<ProductScreen>
                 child: CustomScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
                   slivers: [
-                    // Top bar — slides out of view on scroll-down,
+                    // Top bar â€” slides out of view on scroll-down,
                     // snaps back on scroll-up (floating + snap).
                     SliverAppBar(
                       primary: false,
@@ -236,7 +236,7 @@ class _ProductScreenState extends State<ProductScreen>
                 ),
               ),
             ),
-            // Sticky overlay — only shown after the in-flow tabs have
+            // Sticky overlay â€” only shown after the in-flow tabs have
             // scrolled past. Padded for the status bar so it doesn't
             // sit under the notch.
             if (_showStickyTabs)
@@ -276,12 +276,12 @@ class _ProductScreenState extends State<ProductScreen>
     );
   }
 
-  // ─────────────────────────────────────────────
-  // TAB CONTENT — rebuilt per tab. Each branch returns the body
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // TAB CONTENT â€” rebuilt per tab. Each branch returns the body
   // widgets the inner scroll content should host. Mirrors grocery's
   // _buildTabContent pattern so the outer CustomScrollView controls
   // the scroll for every tab.
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   List<Widget> _buildTabContent() {
     switch (_selectedTab) {
       case 0:
@@ -297,7 +297,7 @@ class _ProductScreenState extends State<ProductScreen>
         return [
           SizedBox(
             height: MediaQuery.of(context).size.height * 0.7,
-            child: MedicalStatisticsScreen(businessId: userId),
+            child: BusinessStatisticsScreen(businessId: userId),
           ),
         ];
       default:
@@ -305,19 +305,19 @@ class _ProductScreenState extends State<ProductScreen>
     }
   }
 
-  // ─────────────────────────────────────────────
-  // ORDER TAB — top slot is reactive to the contribution status:
-  //   • Active recharge present → premium "membership peek" card with
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ORDER TAB â€” top slot is reactive to the contribution status:
+  //   â€¢ Active recharge present â†’ premium "membership peek" card with
   //     plan name, perks-remaining strip, and a forward chevron that
   //     pushes ContributionScreen.
-  //   • Otherwise → the lavender "Contribute now" CTA, identical to
+  //   â€¢ Otherwise â†’ the lavender "Contribute now" CTA, identical to
   //     grocery v2.
   // Below the slot sits the orders list region. Outer CustomScrollView
-  // owns the scroll — body is a fixed-height window so the merchant
+  // owns the scroll â€” body is a fixed-height window so the merchant
   // sees the orders list within the same surface.
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   List<Widget> _buildOrderTab() {
-    // Lazy-register the contribution controller — its `onInit` fires
+    // Lazy-register the contribution controller â€” its `onInit` fires
     // /recharge/plans + /recharge/current. Bound here (only when the
     // Order tab actually builds) so the APIs don't run on every Me-tab
     // landing or on bottom-nav startup. Subsequent rebuilds reuse the
@@ -346,7 +346,7 @@ class _ProductScreenState extends State<ProductScreen>
         ),
       ),
       SizedBox(height: SizeConfig.size12),
-      // Incoming orders — same widget the Connect screen renders under
+      // Incoming orders â€” same widget the Connect screen renders under
       // its Orders tab. Wrapped in a SizedBox because OrdersTabView
       // uses an Expanded ListView internally and needs a bounded
       // height. Translated -20 on x (and given matching width) to
@@ -354,13 +354,13 @@ class _ProductScreenState extends State<ProductScreen>
       // the filter pills and chat tiles align edge-to-edge like on
       // ConnectMainPage. `excludeSenderId: userId` hides chats whose
       // last message was authored by the merchant, leaving only
-      // incoming order pings — same approach as the Grocery screen.
+      // incoming order pings â€” same approach as the Grocery screen.
       // `isInParentScroll: true` makes OrdersTabView drop its inner
       // `Expanded` and switch the orders ListView to
       // NeverScrollableScrollPhysics so the surrounding
-      // CustomScrollView owns the scroll — no fixed height needed.
+      // CustomScrollView owns the scroll â€” no fixed height needed.
       // The parent SliverToBoxAdapter's left: 20 padding insets the
-      // orders list naturally — no Transform needed.
+      // orders list naturally â€” no Transform needed.
       OrdersTabView(
         excludeSenderId: userId,
         isInParentScroll: true,
@@ -368,13 +368,13 @@ class _ProductScreenState extends State<ProductScreen>
     ];
   }
 
-  // ─────────────────────────────────────────────
-  // PEEK SKELETON — placeholder shown while /recharge/current is
-  // in-flight. Matches the active-plan peek silhouette (badge ▸ two
-  // text bars ▸ chevron ▸ progress strip) so the slot doesn't jump
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // PEEK SKELETON â€” placeholder shown while /recharge/current is
+  // in-flight. Matches the active-plan peek silhouette (badge â–¸ two
+  // text bars â–¸ chevron â–¸ progress strip) so the slot doesn't jump
   // height when the answer lands. Uses a shimmering frosted-glass
   // gradient so it reads as "loading" without looking like a CTA.
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _planPeekSkeleton() {
     return DecoratedBox(
       decoration: BoxDecoration(
@@ -471,13 +471,13 @@ class _ProductScreenState extends State<ProductScreen>
     );
   }
 
-  // ─────────────────────────────────────────────
-  // ACTIVE PLAN PEEK — compact aurora card mirroring the hero on
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ACTIVE PLAN PEEK â€” compact aurora card mirroring the hero on
   // ContributionScreen so recognition is instant. Gold tier badge on
   // the left, plan name + ACTIVE pill on top, perks-remaining strip
   // on the bottom, and a glass forward chevron on the right. Tapping
   // anywhere pushes ContributionScreen for the full membership view.
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _activePlanPeekCard(Map<String, dynamic> data) {
     final plan = (data['rechargePlanId'] is Map<String, dynamic>)
         ? data['rechargePlanId'] as Map<String, dynamic>
@@ -516,7 +516,7 @@ class _ProductScreenState extends State<ProductScreen>
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  // Aurora — same indigo → violet → magenta tri-stop
+                  // Aurora â€” same indigo â†’ violet â†’ magenta tri-stop
                   // the ContributionScreen hero card uses.
                   Color(0xFF1F1B5C),
                   Color(0xFF5E2BA8),
@@ -532,7 +532,7 @@ class _ProductScreenState extends State<ProductScreen>
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    // Gold tier badge — warm sun gradient with glow.
+                    // Gold tier badge â€” warm sun gradient with glow.
                     Container(
                       width: 44,
                       height: 44,
@@ -596,7 +596,7 @@ class _ProductScreenState extends State<ProductScreen>
                       ),
                     ),
                     SizedBox(width: SizeConfig.size8),
-                    // Glass forward chevron — translucent disc with a
+                    // Glass forward chevron â€” translucent disc with a
                     // 1px white rim so it pops on the aurora.
                     Container(
                       width: 34,
@@ -717,10 +717,10 @@ class _ProductScreenState extends State<ProductScreen>
     return int.tryParse(v?.toString() ?? '') ?? 0;
   }
 
-  // ─────────────────────────────────────────────
-  // CONTRIBUTE-NOW BANNER — frosted lavender CTA, identical to the
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // CONTRIBUTE-NOW BANNER â€” frosted lavender CTA, identical to the
   // grocery v2 implementation. Tapping pushes ContributionScreen.
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _contributeNowBanner() {
     return GestureDetector(
       onTap: () => Get.to(() => const ContributionScreen()),
@@ -819,9 +819,9 @@ class _ProductScreenState extends State<ProductScreen>
     );
   }
 
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // BACKGROUND
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildPatternBackground() {
     return Positioned.fill(
       child: Image.asset(
@@ -832,13 +832,13 @@ class _ProductScreenState extends State<ProductScreen>
     );
   }
 
-  // ─────────────────────────────────────────────
-  // TOP BAR — glass-morphic chrome mirroring the grocery v2 home:
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // TOP BAR â€” glass-morphic chrome mirroring the grocery v2 home:
   // backdrop blur (50), translucent white fill (#FFFFFF33), white
   // border, and a soft outer #00112042 / blur-16 shadow that paints
   // outside the ClipRect via BlurStyle.outer so the glass interior
   // stays clean.
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildTopBar() {
     final topInset = MediaQuery.of(context).padding.top;
     final isGuest = isGuestUser();
@@ -919,7 +919,7 @@ class _ProductScreenState extends State<ProductScreen>
   }
 
   /// Same flow that was previously triggered by the top-bar "Add Product"
-  /// pill — now reused by the "Add Product" tab pill.
+  /// pill â€” now reused by the "Add Product" tab pill.
   Future<void> _onAddProduct() async {
     if (businessId.isEmpty) return;
     await Get.toNamed(
@@ -968,7 +968,7 @@ class _ProductScreenState extends State<ProductScreen>
     );
   }
 
-  /// Quick-action pill — jumps to the nearby-riders screen so the
+  /// Quick-action pill â€” jumps to the nearby-riders screen so the
   /// merchant can dispatch self-pickup or delivery. Glass white
   /// surface + #C9CDD5 outline matching the grocery v2 pill.
   Widget _nearbyRidersPill() {
@@ -1086,16 +1086,16 @@ class _ProductScreenState extends State<ProductScreen>
     );
   }
 
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // PROFILE ROW
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 
-  // ─────────────────────────────────────────────
-  // TABS — solid white card with high-contrast labels and an animated
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // TABS â€” solid white card with high-contrast labels and an animated
   // underline that glides under the selected tab. Mirrors the grocery
   // v2 home design so styling stays consistent across me-section.
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildTabsCard() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 14),
@@ -1185,15 +1185,15 @@ class _ProductScreenState extends State<ProductScreen>
     if (i < 0 || i >= c.length) return;
     if (i == c.index) return;
     // _selectedTab is updated by _onTabChanged when animateTo
-    // notifies — no preemptive setState here, otherwise the listener
+    // notifies â€” no preemptive setState here, otherwise the listener
     // sees `_selectedTab == c.index` and skips the fetch on tap.
     c.animateTo(i);
   }
 }
 
-// ─────────────────────────────────────────────
-// POST TAB — embeds FeedScreen filtered to the current user's posts.
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// POST TAB â€” embeds FeedScreen filtered to the current user's posts.
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 class _PostTabBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -1210,12 +1210,12 @@ class _PostTabBody extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────
-// PRODUCTS TAB — surfaces the merchant's top-selling preview and the
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// PRODUCTS TAB â€” surfaces the merchant's top-selling preview and the
 // category-with-inventory grid. The Overview tab no longer carries
 // these sections; this dedicated lane makes catalog management the
 // primary action of the Products tab.
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 class _ProductsTabBody extends StatefulWidget {
   final VoidCallback onAddProduct;
 
@@ -1230,7 +1230,7 @@ class _ProductsTabBodyState extends State<_ProductsTabBody> {
 
   @override
   Widget build(BuildContext context) {
-    // Content-only — outer CustomScrollView in InventoryScreen owns
+    // Content-only â€” outer CustomScrollView in InventoryScreen owns
     // the scroll + RefreshIndicator. This widget just lays out its
     // sections in a Column.
     return Column(
@@ -1250,7 +1250,7 @@ class _ProductsTabBodyState extends State<_ProductsTabBody> {
               : const SizedBox.shrink();
         }),
 
-        // --- Section header — vertical brand-bar + 2-line title +
+        // --- Section header â€” vertical brand-bar + 2-line title +
         // refined "Add Product" chip CTA.
         Padding(
           padding: EdgeInsets.symmetric(
@@ -1259,7 +1259,7 @@ class _ProductsTabBodyState extends State<_ProductsTabBody> {
           child: _productsSectionHeader(),
         ),
 
-        // --- Category — two-tone storefront cards.
+        // --- Category â€” two-tone storefront cards.
         Obx(() {
           if (controller.fetchProductCategoryResponse.value.status ==
               Status.INITIAL) {
@@ -1315,7 +1315,7 @@ class _ProductsTabBodyState extends State<_ProductsTabBody> {
     );
   }
 
-  // Refined CTA chip — solid primary circular `+` badge anchors the
+  // Refined CTA chip â€” solid primary circular `+` badge anchors the
   // outlined chip. Same chip language used in food's products tab.
   Widget _addProductCta() {
     return GestureDetector(
@@ -1363,9 +1363,9 @@ class _ProductsTabBodyState extends State<_ProductsTabBody> {
     );
   }
 
-  // Editorial "best-seller chart" shelf — vertical-bar header + chip
+  // Editorial "best-seller chart" shelf â€” vertical-bar header + chip
   // CTA up top, horizontal scroller of ranked tiles below. Card uses
-  // a brand-tinted hero, orange→pink discount sticker, "#NN" rank
+  // a brand-tinted hero, orangeâ†’pink discount sticker, "#NN" rank
   // pill, three-row info hierarchy, and a brand-blue gradient ribbon
   // at the bottom edge so the entire shelf reads as one curated row.
   Widget _topSellingProduct() {
@@ -1449,7 +1449,7 @@ class _ProductsTabBodyState extends State<_ProductsTabBody> {
     );
   }
 
-  // "View All" chip — label on the left, solid primary circular
+  // "View All" chip â€” label on the left, solid primary circular
   // arrow badge on the right. Mirrors the other chip CTAs on the page.
   Widget _topSellingViewAllChip() {
     return GestureDetector(
@@ -1529,7 +1529,7 @@ class _ProductsTabBodyState extends State<_ProductsTabBody> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Hero zone — brand-tinted backdrop with the photo
+            // Hero zone â€” brand-tinted backdrop with the photo
             // centered (BoxFit.contain so product shots never crop).
             // Discount sticker top-left, rank pill top-right.
             AspectRatio(
@@ -1581,7 +1581,7 @@ class _ProductsTabBodyState extends State<_ProductsTabBody> {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 8, vertical: 6),
                           decoration: const BoxDecoration(
-                            // Fresh-leaf → deep-produce green pulled
+                            // Fresh-leaf â†’ deep-produce green pulled
                             // from AppColors so the sticker reads as
                             // part of the brand green palette.
                             gradient: LinearGradient(
@@ -1635,7 +1635,7 @@ class _ProductsTabBodyState extends State<_ProductsTabBody> {
                 ],
               ),
             ),
-            // Info zone — name + price hierarchy.
+            // Info zone â€” name + price hierarchy.
             Padding(
               padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
               child: Column(
@@ -1680,7 +1680,7 @@ class _ProductsTabBodyState extends State<_ProductsTabBody> {
                 ],
               ),
             ),
-            // Brand-blue gradient ribbon — section "signature" that
+            // Brand-blue gradient ribbon â€” section "signature" that
             // anchors every tile and ties the shelf together.
             Container(
               height: 3,
@@ -1742,10 +1742,10 @@ class _ProductsTabBodyState extends State<_ProductsTabBody> {
     );
   }
 
-  // Two-tone storefront card — tinted hero zone with the full image
+  // Two-tone storefront card â€” tinted hero zone with the full image
   // (BoxFit.contain so nothing crops), crisp white footer with the
-  // name + a small filled brand-blue chevron. Single tap target —
-  // no separate "View Products" CTA — for a clean silhouette.
+  // name + a small filled brand-blue chevron. Single tap target â€”
+  // no separate "View Products" CTA â€” for a clean silhouette.
   Widget _inventoryCategoryCard(
     ProductCategoryWithInventoryModel item,
     List<ProductCategoryWithInventoryModel> categoryList,
@@ -1872,9 +1872,9 @@ class _ProductsTabBodyState extends State<_ProductsTabBody> {
   }
 }
 
-// ─────────────────────────────────────────────
-// ORDERS TAB — placeholder until product orders ships.
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ORDERS TAB â€” placeholder until product orders ships.
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 class _OrdersTabBody extends StatelessWidget {
   const _OrdersTabBody();
 

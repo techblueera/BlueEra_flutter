@@ -1,4 +1,4 @@
-import 'dart:convert';
+﻿import 'dart:convert';
 import 'dart:developer';
 import 'package:BlueEra/core/api/model/admin_video_model_response.dart';
 import 'package:BlueEra/core/api/model/get_all_store_res_model.dart';
@@ -10,7 +10,7 @@ import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/features/common/food/model/get_food_details_model.dart';
 import 'package:BlueEra/features/common/service/model/get_service_model.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
-import 'package:BlueEra/features/me/medical_new/model/medical_nested_category_model.dart';
+import 'package:BlueEra/features/me/medical/model/medical_nested_category_model.dart';
 import 'package:BlueEra/features/me/product/model/get_product_model.dart';
 import 'package:BlueEra/features/me/product/model/product_nested_category_response.dart';
 import 'package:hive/hive.dart';
@@ -451,7 +451,7 @@ class HiveServices{
 
   /// Save the master list of profession types. Save BEFORE the controller
   /// runs `updateIndividualCategoriesFromApi(...)` so each item's
-  /// `individualProfileType` enum is still null at serialize time — the
+  /// `individualProfileType` enum is still null at serialize time â€” the
   /// enum is rebuilt in memory from `profileType` on every load and is
   /// not part of the API payload.
   Future<void> saveProfessionList(List<ProfessionTypeData> professions) async {
