@@ -55,6 +55,8 @@ class HotelStayServiceCard extends StatelessWidget {
                             stayCategories: stayItemsCategories,
                             selectedStayCategory: item));
                       },
+                      splashColor: AppColors.primaryColor.withValues(alpha: 0.18),
+                      highlightColor: AppColors.primaryColor.withValues(alpha: 0.08),
                       child: AspectRatio(
                         aspectRatio: 1.0,
                         child: Container(
@@ -128,6 +130,8 @@ class HotelStayServiceCard extends StatelessWidget {
                                 stayCategories: stayItemsCategories,
                                 selectedStayCategory: item));
                           },
+                          splashColor: AppColors.primaryColor.withValues(alpha: 0.18),
+                          highlightColor: AppColors.primaryColor.withValues(alpha: 0.08),
                           child: Container(
                             width: SizeConfig.size150,
                             margin: EdgeInsets.only(right: SizeConfig.size8),

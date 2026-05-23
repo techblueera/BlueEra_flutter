@@ -19,6 +19,7 @@ import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/delivery_partner_orders/delivery_partner_orders.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/rider_profile_status_screen.dart';
+import 'package:BlueEra/features/common/rental/widget/rental_property_card_v2.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
@@ -837,6 +838,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
       const ProfileBioCard(),
       SizedBox(height: SizeConfig.size12),
       _buildRentalCard(),
+      // const RentalPropertyCardV2(),
       SizedBox(height: SizeConfig.size12),
       _buildActionRow(),
       SizedBox(height: SizeConfig.size12),

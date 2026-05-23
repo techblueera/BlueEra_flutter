@@ -47,6 +47,8 @@ class HomeMadeProductWidget extends StatelessWidget {
                           Get.to(() => HomeMadeProductScreen());
                         }
                       },
+                      splashColor: AppColors.primaryColor.withValues(alpha: 0.18),
+                      highlightColor: AppColors.primaryColor.withValues(alpha: 0.08),
                       child: Stack(
                         children: [
                           CommonCardWidget(

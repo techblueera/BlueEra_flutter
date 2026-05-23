@@ -47,6 +47,8 @@ class FinancialSectors extends StatelessWidget {
                               selectedCategory: categoryItem,
                             ));
                       },
+                      splashColor: AppColors.primaryColor.withValues(alpha: 0.18),
+                      highlightColor: AppColors.primaryColor.withValues(alpha: 0.08),
                       child: Container(
                         padding: EdgeInsets.all(SizeConfig.size10),
                         decoration: BoxDecoration(
@@ -122,6 +124,8 @@ class FinancialSectors extends StatelessWidget {
                                 selectedCategory: categoryItem,
                               ));
                         },
+                        splashColor: AppColors.primaryColor.withValues(alpha: 0.18),
+                        highlightColor: AppColors.primaryColor.withValues(alpha: 0.08),
                         child: Container(
                           width: cardWidth,
                           padding: EdgeInsets.symmetric(

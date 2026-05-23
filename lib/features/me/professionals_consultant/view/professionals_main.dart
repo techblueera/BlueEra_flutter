@@ -34,6 +34,7 @@ import 'package:BlueEra/features/me/professionals_consultant/view/professionals_
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/controller/rental_controller.dart';
+import 'package:BlueEra/features/common/rental/widget/rental_property_card_v2.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/widget/rental_services_dashboard_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/edit_profile_bottom_sheet.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/profile_designation_bottom_sheet.dart';
@@ -565,6 +566,7 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
       const ProfileBioCard(),
       SizedBox(height: SizeConfig.size12),
       _buildRentalCard(),
+      // const RentalPropertyCardV2(),
       SizedBox(height: SizeConfig.size12),
       _buildActionRow(),
       SizedBox(height: SizeConfig.size12),
