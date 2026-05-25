@@ -21,6 +21,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart' hide Response;
 import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/api/apiService/api_response.dart';
+import '../../../../core/api/model/business_user_response_model.dart';
 import '../../../../core/constants/app_enum.dart';
 import '../../../../core/constants/shared_preference_utils.dart';
 import '../../../chat/auth/controller/chat_view_controller.dart';
@@ -304,6 +305,18 @@ class ViewBusinessDetailsController extends GetxController {
       if (responseModel.isSuccess) {
         commonSnackBar(message: responseModel.response?.data['message']);
         viewBusinessResponse = ApiResponse.complete(responseModel);
+        final upgraded = BusinessUserResponseModel.fromJson(
+            responseModel.response?.data ?? {});
+
+        await SharedPreferenceUtils.setSecureValue(
+            SharedPreferenceUtils.userBusinessId, upgraded.businessId);
+
+        await SharedPreferenceUtils.setSecureValue(
+            SharedPreferenceUtils.authToken, upgraded.token);
+
+        await getUserLoginBusinessId();
+        await getUserAuthToken();
+
         viewBusinessProfile();
         update();
       } else {

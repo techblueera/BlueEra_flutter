@@ -452,8 +452,9 @@ class AuthController extends GetxController {
               SharedPreferenceUtils.authToken, upgraded.token);
 
           await getUserLoginBusinessId();
-          await getUserLoginAccountType();
           await getUserAuthToken();
+          await getUserLoginAccountType();
+
           // Guest → business upgrade: token just landed, open the chat
           // socket so call/chat events flow without an app restart. Fire
           // and forget — UI must not block on socket handshake.
