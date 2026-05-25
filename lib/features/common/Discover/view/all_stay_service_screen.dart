@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
@@ -7,18 +8,17 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
+import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
+import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/hotel_search_model.dart';
 import 'package:BlueEra/features/common/Discover/view/hotel_discover_home_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/book_via_blueera_partner_banner.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_map_widgets.dart';
-import 'package:BlueEra/features/common/Discover/widget/sticky_category_header_delegate.dart';
-import 'package:BlueEra/core/services/location/location_service.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:BlueEra/core/api/apiService/api_response.dart';
-import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/widget/home_stay_details_widget.dart';
 import 'package:BlueEra/features/common/Discover/widget/hotel_stay_details_widget.dart';
+import 'package:BlueEra/features/common/Discover/widget/sticky_category_header_delegate.dart';
 import 'package:BlueEra/features/common/Discover/widget/vehicle_details_widget.dart';
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/model/rental_service_response.dart';
@@ -33,14 +33,13 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class AllStayServiceScreen extends StatefulWidget {
   final List<OnboardingCategoryModel> stayCategories;
   final OnboardingCategoryModel? selectedStayCategory;
 
-  const AllStayServiceScreen(
-      {super.key, required this.stayCategories, this.selectedStayCategory});
+  const AllStayServiceScreen({super.key, required this.stayCategories, this.selectedStayCategory});
 
   @override
   State<AllStayServiceScreen> createState() => _AllStayServiceScreenState();
@@ -60,8 +59,7 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
     _category = controller.selectedStayCategory.value!.slugId;
 
     if (controller.selectedStayCategory.value != null) {
-      if (controller.selectedStayCategory.value?.accountType.toUpperCase() ==
-          AppConstants.individual) {
+      if (controller.selectedStayCategory.value?.accountType.toUpperCase() == AppConstants.individual) {
         var serviceType = _category.toRentalServiceType();
         controller.fetchRentalServices(
           rentalServiceType: serviceType,
@@ -69,10 +67,8 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
 
         // Listener for Pagination
         scrollController.addListener(() {
-          if (scrollController.position.pixels ==
-              scrollController.position.maxScrollExtent) {
-            controller.fetchRentalServices(
-                rentalServiceType: serviceType, isLoadMore: true);
+          if (scrollController.position.pixels == scrollController.position.maxScrollExtent) {
+            controller.fetchRentalServices(rentalServiceType: serviceType, isLoadMore: true);
           }
         });
       } else {
@@ -81,10 +77,8 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
 
         // Listener for Pagination
         scrollController.addListener(() {
-          if (scrollController.position.pixels ==
-              scrollController.position.maxScrollExtent) {
-            controller.fetchHotelServices(
-                category: _category, isLoadMore: true);
+          if (scrollController.position.pixels == scrollController.position.maxScrollExtent) {
+            controller.fetchHotelServices(category: _category, isLoadMore: true);
           }
         });
       }
@@ -98,8 +92,7 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
   void _openStayMapScreen() {
     final cat = controller.selectedStayCategory.value;
     if (cat == null) return;
-    final isIndividual =
-        cat.accountType.toUpperCase() == AppConstants.individual;
+    final isIndividual = cat.accountType.toUpperCase() == AppConstants.individual;
 
     if (isIndividual) {
       final serviceType = _category.toRentalServiceType();
@@ -160,11 +153,13 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
                   pinned: true,
                   delegate: StickyCategoryHeaderDelegate(
                     topPadding: statusBarHeight,
-                    categories: _stayCategories.map((c) => StickyCategory(
-                      id: c.slugId,
-                      name: c.name,
-                      imageUrl: c.icon,
-                    )).toList(),
+                    categories: _stayCategories
+                        .map((c) => StickyCategory(
+                              id: c.slugId,
+                              name: c.name,
+                              imageUrl: c.icon,
+                            ))
+                        .toList(),
                     selectedId: controller.selectedStayCategory.value?.slugId,
                     onCategoryTap: (item) {
                       final cat = _stayCategories.firstWhere((c) => c.slugId == item.id);
@@ -203,9 +198,7 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
     );
   }
 
-
-  ({String label, String route, IconData icon})? _addRentalSpec(
-      OnboardingCategoryModel? cat) {
+  ({String label, String route, IconData icon})? _addRentalSpec(OnboardingCategoryModel? cat) {
     if (cat == null) return null;
     if (cat.accountType.toUpperCase() != AppConstants.individual) {
       return null;
@@ -235,13 +228,10 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
 
   Widget _buildListSliver() {
     return Obx(() {
-      final isIndividual =
-          controller.selectedStayCategory.value?.accountType ==
-              AppConstants.individual;
+      final isIndividual = controller.selectedStayCategory.value?.accountType == AppConstants.individual;
 
       if (isIndividual) {
-        if (controller.isRentalServiceLoading.value &&
-            controller.rentalServices.isEmpty) {
+        if (controller.isRentalServiceLoading.value && controller.rentalServices.isEmpty) {
           return const SliverFillRemaining(
             hasScrollBody: false,
             child: Center(child: CircularProgressIndicator()),
@@ -257,8 +247,7 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
                   'We couldn\'t find any stays or rooms in this area. Try another category or change your location.',
               onRetry: () {
                 final serviceType = _category.toRentalServiceType();
-                controller.fetchRentalServices(
-                    rentalServiceType: serviceType);
+                controller.fetchRentalServices(rentalServiceType: serviceType);
               },
             ),
           );
@@ -291,8 +280,7 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
       }
 
       // Business (hotel) branch
-      if (controller.isRentalServiceLoading.value &&
-          controller.hotelServices.isEmpty) {
+      if (controller.isRentalServiceLoading.value && controller.hotelServices.isEmpty) {
         return const SliverFillRemaining(
           hasScrollBody: false,
           child: Center(child: CircularProgressIndicator()),
@@ -306,8 +294,7 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
             title: 'No hotels & rooms available',
             subtitle:
                 'No hotels or rooms found nearby. Try a different category or change your location to explore more stays.',
-            onRetry: () =>
-                controller.fetchHotelServices(category: _category),
+            onRetry: () => controller.fetchHotelServices(category: _category),
           ),
         );
       }
@@ -342,15 +329,12 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
   Widget rentalServiceCard(RentalServiceData service) {
     final rentalCoords = service.location?.coordinates;
     final distanceData = (rentalCoords != null && rentalCoords.length >= 2)
-        ? calculateDistance(
-            rentalCoords[1].toDouble(),
-            rentalCoords[0].toDouble())
+        ? calculateDistance(rentalCoords[1].toDouble(), rentalCoords[0].toDouble())
         : null;
 
     return InkWell(
       onTap: () {
-        (service.type == AppConstants.property ||
-                service.type == AppConstants.flat)
+        (service.type == AppConstants.property || service.type == AppConstants.flat)
             ? Get.to(HomeStayDetailsWidget(service: service))
             : Get.to(VehicleDetailsWidget(service: service));
       },
@@ -379,8 +363,7 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
                           ),
                         )
                       : ClipRRect(
-                          borderRadius:
-                              BorderRadius.circular(SizeConfig.size20),
+                          borderRadius: BorderRadius.circular(SizeConfig.size20),
                           child: LocalAssets(
                             imagePath: AppIconAssets.place_holder_image,
                             height: SizeConfig.size40,
@@ -399,8 +382,7 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
                           fontWeight: FontWeight.w600),
                       SizedBox(height: SizeConfig.size6),
                       CommonRatingRow(
-                        rating:
-                            double.tryParse(service.rating.toString()) ?? 0.0,
+                        rating: double.tryParse(service.rating.toString()) ?? 0.0,
                         reviews: service.reviews ?? 0,
                         distance: distanceData != null ? '$distanceData KM' : '',
                       )
@@ -425,8 +407,7 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
                   color: AppColors.mainTextColor,
                 ),
               SizedBox(height: SizeConfig.size8),
-              if (service.type == AppConstants.property ||
-                  service.type == AppConstants.flat)
+              if (service.type == AppConstants.property || service.type == AppConstants.flat)
                 FittedBox(
                   fit: BoxFit.scaleDown,
                   child: Row(
@@ -516,22 +497,19 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
   Widget hotelServiceCard(HotelServiceData service) {
     final coords = service.profile?.location?.coordinates;
     final distance = (coords != null && coords.length >= 2)
-        ? calculateDistanceInt(
-            coords[1].toDouble(),
-            coords[0].toDouble())
+        ? calculateDistanceInt(coords[1].toDouble(), coords[0].toDouble())
         : 0;
     List<String> allImages = service.profile?.photos
-            ?.expand((photo) =>
-                photo.imageReferences ?? []) // Flatten all image lists
+            ?.expand((photo) => photo.imageReferences ?? []) // Flatten all image lists
             .map((url) => url.toString()) // Ensure they are strings
             .take(5) // Stop after 5 items
             .toList() ??
         []; // Fallback to empty list
     return InkWell(
       onTap: () {
-        Get.to(()=> HotelDiscoverHomeScreen(
-          data: service,
-        ));
+        Get.to(() => HotelDiscoverHomeScreen(
+              data: service,
+            ));
       },
       child: PropertyCard(
         imageUrls: allImages,
@@ -709,8 +687,7 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
                 _dragHandle(),
                 _header(context),
                 const SizedBox(height: 4),
-                (service.type == AppConstants.property ||
-                        service.type == AppConstants.flat)
+                (service.type == AppConstants.property || service.type == AppConstants.flat)
                     ? HomeStayDetailsWidget(service: service)
                     : VehicleDetailsWidget(service: service),
                 SizedBox(height: SizeConfig.paddingL)
@@ -848,15 +825,13 @@ class _PropertyCardState extends State<PropertyCard> {
       'name': 'Vikram Rao',
       'rating': 3.5,
       'date': '1 month ago',
-      'comment':
-          'Decent stay. Rooms could be a little more spacious but the service made up for it.',
+      'comment': 'Decent stay. Rooms could be a little more spacious but the service made up for it.',
     },
   ];
 
   Future<void> _openInquiryChat() async {
     if (widget.businessId.isEmpty) {
-      Get.snackbar(AppStrings.na, 'Business not available for chat',
-          snackPosition: SnackPosition.BOTTOM);
+      Get.snackbar(AppStrings.na, 'Business not available for chat', snackPosition: SnackPosition.BOTTOM);
       return;
     }
     final chatViewController = Get.find<ChatViewController>();
@@ -901,16 +876,14 @@ class _PropertyCardState extends State<PropertyCard> {
                           height: imageHeight,
                           viewportFraction: 1.0,
                           enableInfiniteScroll: hasMultipleImages,
-                          onPageChanged: (index, _) =>
-                              setState(() => _currentIndex = index),
+                          onPageChanged: (index, _) => setState(() => _currentIndex = index),
                         ),
                         items: widget.imageUrls.map((url) {
                           return Image.network(
                             url,
                             fit: BoxFit.cover,
                             width: double.infinity,
-                            errorBuilder: (_, __, ___) =>
-                                _brokenImage(imageHeight),
+                            errorBuilder: (_, __, ___) => _brokenImage(imageHeight),
                           );
                         }).toList(),
                       ),
@@ -920,8 +893,7 @@ class _PropertyCardState extends State<PropertyCard> {
                   bottom: 10,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children:
-                        widget.imageUrls.asMap().entries.map((entry) {
+                    children: widget.imageUrls.asMap().entries.map((entry) {
                       final active = _currentIndex == entry.key;
                       return AnimatedContainer(
                         duration: const Duration(milliseconds: 250),
@@ -929,8 +901,7 @@ class _PropertyCardState extends State<PropertyCard> {
                         height: 6,
                         margin: const EdgeInsets.symmetric(horizontal: 3),
                         decoration: BoxDecoration(
-                          color: AppColors.white.withValues(
-                              alpha: active ? 1.0 : 0.55),
+                          color: AppColors.white.withValues(alpha: active ? 1.0 : 0.55),
                           borderRadius: BorderRadius.circular(10),
                         ),
                       );
@@ -961,20 +932,18 @@ class _PropertyCardState extends State<PropertyCard> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                  if (widget.subCategory.isNotEmpty) ...[
-
-                    CustomText(
-                      widget.subCategory,
-                      fontSize: SizeConfig.small,
-                      color: AppColors.secondaryTextColor,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
+                    if (widget.subCategory.isNotEmpty) ...[
+                      CustomText(
+                        widget.subCategory,
+                        fontSize: SizeConfig.small,
+                        color: AppColors.secondaryTextColor,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                   ],
                 ),
               ),
-
             ],
           ),
 
@@ -983,8 +952,7 @@ class _PropertyCardState extends State<PropertyCard> {
           // Rating + reviews
           Row(
             children: [
-              Icon(Icons.star_rounded,
-                  size: SizeConfig.size18, color: Colors.amber),
+              Icon(Icons.star_rounded, size: SizeConfig.size18, color: Colors.amber),
               SizedBox(width: SizeConfig.size2),
               CustomText(
                 widget.rating.toStringAsFixed(1),
@@ -1009,8 +977,7 @@ class _PropertyCardState extends State<PropertyCard> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Icon(Icons.location_on_outlined,
-                    size: SizeConfig.size16,
-                    color: AppColors.secondaryTextColor),
+                    size: SizeConfig.size16, color: AppColors.secondaryTextColor),
                 SizedBox(width: SizeConfig.size2),
                 Expanded(
                   child: CustomText(
@@ -1029,9 +996,7 @@ class _PropertyCardState extends State<PropertyCard> {
           // Distance + price
           Row(
             children: [
-              Icon(Icons.near_me_outlined,
-                  size: SizeConfig.size16,
-                  color: AppColors.secondaryTextColor),
+              Icon(Icons.near_me_outlined, size: SizeConfig.size16, color: AppColors.secondaryTextColor),
               SizedBox(width: SizeConfig.size2),
               Flexible(
                 child: CustomText(
@@ -1128,9 +1093,7 @@ class _PropertyCardState extends State<PropertyCard> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.broken_image_outlined,
-                size: SizeConfig.size40,
-                color: AppColors.secondaryTextColor),
+            Icon(Icons.broken_image_outlined, size: SizeConfig.size40, color: AppColors.secondaryTextColor),
             SizedBox(height: SizeConfig.size6),
             CustomText(
               'Image unavailable',
@@ -1140,7 +1103,6 @@ class _PropertyCardState extends State<PropertyCard> {
           ],
         ),
       );
-
 
   Widget _actionButton({
     required IconData icon,
@@ -1205,10 +1167,7 @@ class _ReviewsBottomSheet extends StatelessWidget {
       builder: (scrollController) {
         final avg = reviews.isEmpty
             ? rating
-            : reviews
-                    .map((r) => (r['rating'] as num).toDouble())
-                    .reduce((a, b) => a + b) /
-                reviews.length;
+            : reviews.map((r) => (r['rating'] as num).toDouble()).reduce((a, b) => a + b) / reviews.length;
 
         return ListView(
           controller: scrollController,
@@ -1245,8 +1204,7 @@ class _ReviewsBottomSheet extends StatelessWidget {
             SizedBox(height: SizeConfig.size6),
             Row(
               children: [
-                Icon(Icons.star_rounded,
-                    color: Colors.amber, size: SizeConfig.size22),
+                Icon(Icons.star_rounded, color: Colors.amber, size: SizeConfig.size22),
                 SizedBox(width: SizeConfig.size4),
                 CustomText(
                   avg.toStringAsFixed(1),
@@ -1287,8 +1245,7 @@ class _ReviewsBottomSheet extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: SizeConfig.size16,
-                backgroundColor:
-                    AppColors.primaryColor.withValues(alpha: 0.15),
+                backgroundColor: AppColors.primaryColor.withValues(alpha: 0.15),
                 child: CustomText(
                   name.isNotEmpty ? name[0].toUpperCase() : '?',
                   fontWeight: FontWeight.w700,
@@ -1322,9 +1279,7 @@ class _ReviewsBottomSheet extends StatelessWidget {
                   return Icon(
                     half
                         ? Icons.star_half_rounded
-                        : (filled
-                            ? Icons.star_rounded
-                            : Icons.star_border_rounded),
+                        : (filled ? Icons.star_rounded : Icons.star_border_rounded),
                     size: SizeConfig.size16,
                     color: Colors.amber,
                   );
@@ -1357,105 +1312,199 @@ class _NoHotelsFound extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final isCompact = constraints.maxHeight < 380;
-        final illustrationSize = isCompact
-            ? SizeConfig.size80
-            : (constraints.maxWidth * 0.35).clamp(
-                SizeConfig.size80,
-                SizeConfig.size150,
-              );
+    final screenWidth = MediaQuery.of(context).size.width;
 
-        return Center(
-          child: SingleChildScrollView(
-            padding: EdgeInsets.symmetric(
-              horizontal: SizeConfig.size24,
-              vertical: SizeConfig.size16,
+    final illustrationSize = (screenWidth * 0.35).clamp(
+      SizeConfig.size80,
+      SizeConfig.size150,
+    );
+
+    return Center(
+      child: Padding(
+        padding: EdgeInsets.symmetric(
+          horizontal: SizeConfig.size24,
+          vertical: SizeConfig.size16,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Container(
+              width: illustrationSize,
+              height: illustrationSize,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    AppColors.primaryColor.withValues(alpha: 0.12),
+                    AppColors.primaryColor.withValues(alpha: 0.04),
+                  ],
+                ),
+              ),
+              alignment: Alignment.center,
+              child: Icon(
+                Icons.hotel_outlined,
+                size: illustrationSize * 0.5,
+                color: AppColors.primaryColor,
+              ),
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Container(
-                  width: illustrationSize,
-                  height: illustrationSize,
+            SizedBox(height: SizeConfig.size16),
+            CustomText(
+              title,
+              fontSize: SizeConfig.large,
+              fontWeight: FontWeight.w700,
+              color: AppColors.mainTextColor,
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: SizeConfig.size8),
+            CustomText(
+              subtitle,
+              fontSize: SizeConfig.small,
+              color: AppColors.secondaryTextColor,
+              textAlign: TextAlign.center,
+            ),
+            if (onRetry != null) ...[
+              SizedBox(height: SizeConfig.size16),
+              InkWell(
+                onTap: onRetry,
+                borderRadius: BorderRadius.circular(24),
+                child: Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: SizeConfig.size20,
+                    vertical: SizeConfig.size10,
+                  ),
                   decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        AppColors.primaryColor.withValues(alpha: 0.12),
-                        AppColors.primaryColor.withValues(alpha: 0.04),
-                      ],
-                    ),
-                  ),
-                  alignment: Alignment.center,
-                  child: Icon(
-                    Icons.hotel_outlined,
-                    size: illustrationSize * 0.5,
                     color: AppColors.primaryColor,
-                  ),
-                ),
-                SizedBox(height: SizeConfig.size16),
-                CustomText(
-                  title,
-                  fontSize: SizeConfig.large,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.mainTextColor,
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                SizedBox(height: SizeConfig.size8),
-                CustomText(
-                  subtitle,
-                  fontSize: SizeConfig.small,
-                  color: AppColors.secondaryTextColor,
-                  textAlign: TextAlign.center,
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                if (onRetry != null) ...[
-                  SizedBox(height: SizeConfig.size16),
-                  InkWell(
-                    onTap: onRetry,
                     borderRadius: BorderRadius.circular(24),
-                    child: Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: SizeConfig.size20,
-                        vertical: SizeConfig.size10,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryColor,
-                        borderRadius: BorderRadius.circular(24),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.refresh,
-                              color: AppColors.white,
-                              size: SizeConfig.size18),
-                          SizedBox(width: SizeConfig.size6),
-                          CustomText(
-                            'Retry',
-                            fontSize: SizeConfig.small,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.white,
-                          ),
-                        ],
-                      ),
-                    ),
                   ),
-                ],
-              ],
-            ),
-          ),
-        );
-      },
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.refresh,
+                        color: AppColors.white,
+                        size: SizeConfig.size18,
+                      ),
+                      SizedBox(width: SizeConfig.size6),
+                      CustomText(
+                        'Retry',
+                        fontSize: SizeConfig.small,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.white,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
     );
   }
+  // @override
+  // Widget build(BuildContext context) {
+  //   return LayoutBuilder(
+  //     builder: (context, constraints) {
+  //       final isCompact = constraints.maxHeight < 200;
+  //
+  //       final illustrationSize =
+  //       isCompact
+  //           ? SizeConfig.size80
+  //           : (constraints.maxWidth * 0.35).clamp(
+  //         SizeConfig.size80,
+  //         SizeConfig.size150,
+  //       );
+  //
+  //       return Center(
+  //         child: SingleChildScrollView(
+  //           padding: EdgeInsets.symmetric(
+  //             horizontal: SizeConfig.size24,
+  //             vertical: SizeConfig.size16,
+  //           ),
+  //           child: Column(
+  //             mainAxisSize: MainAxisSize.min,
+  //             crossAxisAlignment: CrossAxisAlignment.center,
+  //             children: [
+  //               Container(
+  //                 width: illustrationSize,
+  //                 height: illustrationSize,
+  //                 decoration: BoxDecoration(
+  //                   shape: BoxShape.circle,
+  //                   gradient: LinearGradient(
+  //                     begin: Alignment.topLeft,
+  //                     end: Alignment.bottomRight,
+  //                     colors: [
+  //                       AppColors.primaryColor.withValues(alpha: 0.12),
+  //                       AppColors.primaryColor.withValues(alpha: 0.04),
+  //                     ],
+  //                   ),
+  //                 ),
+  //                 alignment: Alignment.center,
+  //                 child: Icon(
+  //                   Icons.hotel_outlined,
+  //                   size: illustrationSize * 0.5,
+  //                   color: AppColors.primaryColor,
+  //                 ),
+  //               ),
+  //               SizedBox(height: SizeConfig.size16),
+  //               CustomText(
+  //                 title,
+  //                 fontSize: SizeConfig.large,
+  //                 fontWeight: FontWeight.w700,
+  //                 color: AppColors.mainTextColor,
+  //                 textAlign: TextAlign.center,
+  //                 maxLines: 2,
+  //                 overflow: TextOverflow.ellipsis,
+  //               ),
+  //               SizedBox(height: SizeConfig.size8),
+  //               CustomText(
+  //                 subtitle,
+  //                 fontSize: SizeConfig.small,
+  //                 color: AppColors.secondaryTextColor,
+  //                 textAlign: TextAlign.center,
+  //                 maxLines: 3,
+  //                 overflow: TextOverflow.ellipsis,
+  //               ),
+  //               if (onRetry != null) ...[
+  //                 SizedBox(height: SizeConfig.size16),
+  //                 InkWell(
+  //                   onTap: onRetry,
+  //                   borderRadius: BorderRadius.circular(24),
+  //                   child: Container(
+  //                     padding: EdgeInsets.symmetric(
+  //                       horizontal: SizeConfig.size20,
+  //                       vertical: SizeConfig.size10,
+  //                     ),
+  //                     decoration: BoxDecoration(
+  //                       color: AppColors.primaryColor,
+  //                       borderRadius: BorderRadius.circular(24),
+  //                     ),
+  //                     child: Row(
+  //                       mainAxisSize: MainAxisSize.min,
+  //                       children: [
+  //                         Icon(Icons.refresh, color: AppColors.white, size: SizeConfig.size18),
+  //                         SizedBox(width: SizeConfig.size6),
+  //                         CustomText(
+  //                           'Retry',
+  //                           fontSize: SizeConfig.small,
+  //                           fontWeight: FontWeight.w600,
+  //                           color: AppColors.white,
+  //                         ),
+  //                       ],
+  //                     ),
+  //                   ),
+  //                 ),
+  //               ],
+  //             ],
+  //           ),
+  //         ),
+  //       );
+  //     },
+  //   );
+  // }
 }
 
 /// Full-screen cluster map for the stay categories. Mirrors the design
@@ -1477,16 +1526,13 @@ class _StayMapScreenState extends State<_StayMapScreen> {
   BitmapDescriptor? _stayIcon;
 
   final DiscoverController _ctrl = Get.find<DiscoverController>();
-  static const ClusterManagerId _clusterManagerId =
-      ClusterManagerId('stay_services');
+  static const ClusterManagerId _clusterManagerId = ClusterManagerId('stay_services');
 
   @override
   void initState() {
     super.initState();
     DiscoverMarkerIcons.circle(
-      icon: widget.isIndividual
-          ? Icons.home_work_outlined
-          : Icons.hotel_outlined,
+      icon: widget.isIndividual ? Icons.home_work_outlined : Icons.hotel_outlined,
     ).then((d) {
       if (mounted) setState(() => _stayIcon = d);
     });
@@ -1534,8 +1580,7 @@ class _StayMapScreenState extends State<_StayMapScreen> {
         if (lat == 0 && lng == 0) continue;
         markers.add(
           Marker(
-            markerId: MarkerId(
-                s.profile?.businessId ?? '${s.profile?.name}_$lat,$lng'),
+            markerId: MarkerId(s.profile?.businessId ?? '${s.profile?.name}_$lat,$lng'),
             position: LatLng(lat, lng),
             clusterManagerId: _clusterManagerId,
             icon: _stayIcon ?? BitmapDescriptor.defaultMarker,
@@ -1553,8 +1598,7 @@ class _StayMapScreenState extends State<_StayMapScreen> {
   }
 
   void _openRentalDetails(RentalServiceData service) {
-    if (service.type == AppConstants.property ||
-        service.type == AppConstants.flat) {
+    if (service.type == AppConstants.property || service.type == AppConstants.flat) {
       Get.to(HomeStayDetailsWidget(service: service));
     } else {
       Get.to(VehicleDetailsWidget(service: service));
@@ -1580,10 +1624,8 @@ class _StayMapScreenState extends State<_StayMapScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final initialLat =
-        LocationService.lat != 0.0 ? LocationService.lat : 28.6139;
-    final initialLng =
-        LocationService.lng != 0.0 ? LocationService.lng : 77.2090;
+    final initialLat = LocationService.lat != 0.0 ? LocationService.lat : 28.6139;
+    final initialLng = LocationService.lng != 0.0 ? LocationService.lng : 77.2090;
     final statusBarHeight = MediaQuery.of(context).padding.top;
 
     return Scaffold(
@@ -1591,9 +1633,8 @@ class _StayMapScreenState extends State<_StayMapScreen> {
         children: [
           Obx(() {
             // Rebuild markers reactively as the unpaginated lists arrive.
-            final _ = widget.isIndividual
-                ? _ctrl.rentalServicesMapList.length
-                : _ctrl.hotelServicesMapList.length;
+            final _ =
+                widget.isIndividual ? _ctrl.rentalServicesMapList.length : _ctrl.hotelServicesMapList.length;
             final markers = _buildMarkers();
             return GoogleMap(
               initialCameraPosition: CameraPosition(
@@ -1616,8 +1657,7 @@ class _StayMapScreenState extends State<_StayMapScreen> {
             );
           }),
           Obx(() {
-            final isLoading =
-                _ctrl.staysMapResponse.value.status == Status.INITIAL;
+            final isLoading = _ctrl.staysMapResponse.value.status == Status.INITIAL;
             if (!isLoading) return const SizedBox.shrink();
             return const Center(
               child: SizedBox(
@@ -1662,27 +1702,21 @@ class _StayMapScreenState extends State<_StayMapScreen> {
               final count = widget.isIndividual
                   ? _ctrl.rentalServicesMapList.where((s) {
                       final c = s.location?.coordinates;
-                      return c != null &&
-                          c.length >= 2 &&
-                          !(c[0] == 0 && c[1] == 0);
+                      return c != null && c.length >= 2 && !(c[0] == 0 && c[1] == 0);
                     }).length
                   : _ctrl.hotelServicesMapList.where((s) {
                       final c = s.profile?.location?.coordinates;
-                      return c != null &&
-                          c.length >= 2 &&
-                          !(c[0] == 0 && c[1] == 0);
+                      return c != null && c.length >= 2 && !(c[0] == 0 && c[1] == 0);
                     }).length;
               return Material(
                 color: AppColors.white,
                 borderRadius: BorderRadius.circular(12),
                 elevation: 4,
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 12, vertical: 10),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                   child: Row(
                     children: [
-                      Icon(Icons.location_on_rounded,
-                          size: 18, color: AppColors.primaryColor),
+                      Icon(Icons.location_on_rounded, size: 18, color: AppColors.primaryColor),
                       const SizedBox(width: 8),
                       Expanded(
                         child: CustomText(
