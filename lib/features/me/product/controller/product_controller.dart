@@ -978,14 +978,11 @@ class ProductController extends GetxController{
       nestedProductCategoryResponse.value = ApiResponse.initial('Initial');
       productsNestedCategoryList.clear();
 
-      // Cache-first for the top-level (no category key) fetch. Nested
-      // sub-levels (groceryCatKey != null) always hit the network.
       if (groceryCatKey == null) {
         final cached = HiveServices().getProductNestedCategories();
         if (cached != null && cached.isNotEmpty) {
           productsNestedCategoryList.assignAll(cached);
           nestedProductCategoryResponse.value = ApiResponse.complete();
-          return;
         }
       }
 
@@ -1004,7 +1001,7 @@ class ProductController extends GetxController{
           await HiveServices()
               .saveProductNestedCategories(productsNestedCategoryList);
         }
-      } else {
+      } else if (productsNestedCategoryList.isEmpty) {
         nestedProductCategoryResponse.value = ApiResponse.error('error');
       }
     } catch (e, s) {

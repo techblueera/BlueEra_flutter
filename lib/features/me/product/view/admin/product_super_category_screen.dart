@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/shimmer_utils.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -95,30 +96,8 @@ class ProductSuperCategoryScreen extends StatelessWidget {
                     SizedBox(height: SizeConfig.paddingXSL),
 
                     Obx(() {
-                      // ── Loading state ──
-                      if (
-                      controller.nestedProductCategoryResponse.value.status == Status.INITIAL
-                      ) {
-                        return const Center(
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(vertical: 32),
-                            child: CircularProgressIndicator(),
-                          ),
-                        );
-                      }
-
-                      // ── Empty state ──
-                      if (controller.productsNestedCategoryList.isEmpty) {
-                        return const Center(
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(vertical: 32),
-                            child: Text('No categories found.'),
-                          ),
-                        );
-                      }
-
-                      // ── Populated grid ──
-                      return MasonryGridView.count(
+                      if (controller.productsNestedCategoryList.isNotEmpty) {
+                        return MasonryGridView.count(
                         shrinkWrap: true,
                         primary: false,
                         physics: const NeverScrollableScrollPhysics(),
@@ -133,7 +112,7 @@ class ProductSuperCategoryScreen extends StatelessWidget {
                           return CommonServiceCard<ProductNestedCategoryResponse>(
                             service: category,
                             getName: (item) => item.name ?? '',
-                            getIcon: (item) => '',
+                            getIcon: (item) => item.image ?? '',
                             iconHeight: SizeConfig.size60,
                             boxShadow: [],
                             onTap: (item) {
@@ -150,6 +129,22 @@ class ProductSuperCategoryScreen extends StatelessWidget {
                           );
                         },
                       );
+                      } else if (controller.nestedProductCategoryResponse.value.status == Status.ERROR) {
+                        return Center(
+                          child: Padding(
+                            padding: EdgeInsets.only(top: 10),
+                            child: CustomText(AppStrings.somethingWentWrong),
+                          ),
+                        );
+                      } else if (controller.nestedProductCategoryResponse.value.status == Status.COMPLETE) {
+                        return Center(
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(vertical: 32),
+                            child: CustomText('No categories found.'),
+                          ),
+                        );
+                      }
+                      return buildCategoryGridSkeleton();
                     }),
                   ],
                 ),

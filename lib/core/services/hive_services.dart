@@ -589,17 +589,24 @@ class HiveServices{
 
   /// Save all nested categories (Product)
   Future<void> saveProductNestedCategories(List<ProductNestedCategoryResponse> nestedCategories) async {
-    final box = Hive.box(_savedProductNestedCategoryBox);
-    final String key = 'productData';
+    try {
+      final box = Hive.isBoxOpen(_savedProductNestedCategoryBox)
+          ? Hive.box(_savedProductNestedCategoryBox)
+          : await Hive.openBox(_savedProductNestedCategoryBox);
+      final String key = 'productData';
 
-    final List<Map<String, dynamic>> jsonList = nestedCategories.map((item) => item.toJson()).toList();
+      final List<Map<String, dynamic>> jsonList = nestedCategories.map((item) => item.toJson()).toList();
 
-    await box.put(key, jsonList);
+      await box.put(key, jsonList);
+    } catch (e) {
+      print('Error saving product nested categories: $e');
+    }
   }
 
   /// Get all nested categories (Product)
   List<ProductNestedCategoryResponse>? getProductNestedCategories() {
     try {
+      if (!Hive.isBoxOpen(_savedProductNestedCategoryBox)) return null;
       final box = Hive.box(_savedProductNestedCategoryBox);
       const String key = 'productData';
       final data = box.get(key);
