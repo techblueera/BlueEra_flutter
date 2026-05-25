@@ -1029,11 +1029,9 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
     return const [SelfProfessionServiceScreen()];
   }
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // POST TAB â€” embeds FeedScreen filtered to the current user's
   // posts. Mirrors grocery v2's post tab so creators see the same
   // CTA + feed treatment across me-section dashboards.
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   List<Widget> _buildPostTab() {
     if (!Get.isRegistered<FeedController>()) {
       Get.put(FeedController());
@@ -1185,7 +1183,6 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
     ];
   }
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // OVERVIEW TAB â€” refined editorial identity dossier:
   //   1. Single hero card unifying the cover banner, the avatar
   //      (straddling the photo/sheet boundary), and the identity
@@ -1194,7 +1191,6 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
   //   2. Stats card with hero-typed numerals and primary-color
   //      accent bars stamped beneath each metric.
   //   3. Action row with explicit Share + Business-Card pills.
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   List<Widget> _buildOverviewTab() {
     return [
       _buildIdentityCard(context),

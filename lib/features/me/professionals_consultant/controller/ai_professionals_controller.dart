@@ -275,7 +275,7 @@ class AiProfessionalsController extends GetxController {
       if (response.isSuccess) {
         refreshFullData();
         commonSnackBar(message: "Profile updated successfully");
-        Get.back();
+        Get.back(result: true);
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);
       }
@@ -304,7 +304,7 @@ class AiProfessionalsController extends GetxController {
           await repo.createProfessionalsRepo(bodyREQ: bodyReq);
 
       if (response.isSuccess) {
-        Get.back();
+        Get.back(result: true);
         refreshFullData();
         commonSnackBar(message: "Profile updated successfully");
       } else {
@@ -332,7 +332,7 @@ class AiProfessionalsController extends GetxController {
           await repo.createProfessionalsRepo(bodyREQ: bodyReq);
 
       if (response.isSuccess) {
-        Get.back();
+        Get.back(result: true);
         refreshFullData();
         commonSnackBar(message: "Profile updated successfully");
       } else {
@@ -432,7 +432,7 @@ class AiProfessionalsController extends GetxController {
         updateServicesOfferedResponse.value = ApiResponse.complete(responseModel);
         // await professionalsFullDetailsController(showProgress: false);
         commonSnackBar(message: 'update services offered');
-        Get.back();
+        Get.back(result: true);
       } else {
         updateServicesOfferedResponse.value = ApiResponse.error('error');
         commonSnackBar(message: responseModel.message);

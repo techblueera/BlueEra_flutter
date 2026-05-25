@@ -746,7 +746,7 @@ const String SOCIAL_PROFILE = "SOCIAL_PROFILE";
 const String MANUFACTURING = "MANUFACTURING";
 
 // Grocery
-const String KIRANA_STORE = "KIRANA_STORE";
+const String MOHALLA_KIRANA = "MOHALLA_KIRANA";
 const String GENERAL_STORE = "GENERAL_STORE";
 const String VEGETABLE_FRUIT = "VEGETABLE_FRUIT";
 const String DAIRY_BAKERY = "DAIRY_BAKERY";
@@ -754,12 +754,12 @@ const String HOME_ESSENTIALS = "HOME_ESSENTIALS";
 const String STATIONARY_SHOP = "STATIONARY_SHOP";
 
 // Food
-const String MULTI_CUISINE_RESTAURANTS = "MULTI_CUISINE_RESTAURANTS";
+const String MULTI_CUISINE_RESTAURANT = "MULTI_CUISINE_RESTAURANT";
 const String PURE_VEG_RESTAURANT = "PURE_VEG_RESTAURANT";
 const String NON_VEG_RESTAURANT = "NON_VEG_RESTAURANT";
 const String ECONOMY_DHABA = "ECONOMY_DHABA";
 const String GARDEN_BUFFET_RESTAURANT = "GARDEN_BUFFET_RESTAURANT";
-const String CLOUD_KITCHEN = "CLOUD_KITCHEN";
+const String CLOUD_KITCHEN_MESS = "CLOUD_KITCHEN_MESS";
 const String BREAKFAST_FAST_FOOD = "BREAKFAST_FAST_FOOD";
 const String SWEET_NAMKEEN_SHOP = "SWEET_NAMKEEN_SHOP";
 const String ICE_CREAM_CORNER = "ICE_CREAM_CORNER";
@@ -773,7 +773,7 @@ const String ELECTRONICS_APPLIANCES_STORE = "ELECTRONICS_APPLIANCES_STORE";
 const String BOOKS_STATIONERY_GIFTS_STORE = "BOOKS_STATIONERY_GIFTS_STORE";
 const String SPORTS_FITNESS_STORE = "SPORTS_FITNESS_STORE";
 const String TOYS_BABY_PRODUCTS_STORE = "TOYS_BABY_PRODUCTS_STORE";
-const String JEWELRY_LUXURY_STORE = "JEWELRY_LUXURY_STORE";
+const String JEWELLERY_LUXURY_STORE = "JEWELLERY_LUXURY_STORE";
 const String CONSTRUCTION_HOME_ESSENTIALS = "CONSTRUCTION_HOME_ESSENTIALS";
 const String AUTOMOTIVE_STORE_SHOWROOM = "AUTOMOTIVE_STORE_SHOWROOM";
 const String PET_SUPPLIES_STORE = "PET_SUPPLIES_STORE";
@@ -808,23 +808,24 @@ const String SPORTS_HEALTH_OFFICE = "SPORTS_HEALTH_OFFICE";
 const String TOOLS_GARDEN_PET = "TOOLS_GARDEN_PET";
 
 // Services
-const String CONSULTING_HR_SERVICE = "CONSULTING_HR_SERVICE";
+const String CONSULTING_BUSINESS_SERVICES = "CONSULTING_BUSINESS_SERVICES";
+const String BEAUTY_FITNESS_PERSONAL_CARE = "BEAUTY_FITNESS_PERSONAL_CARE";
 const String HEALTHCARE_MEDICAL_SERVICES = "HEALTHCARE_MEDICAL_SERVICES";
+const String REPAIR_ESSENTIAL_SERVICES = "REPAIR_ESSENTIAL_SERVICES";
+const String HOME_SERVICES_CONTRACTORS = "HOME_SERVICES_CONTRACTORS";
+const String IT_DIGITAL_SERVICES = "IT_DIGITAL_SERVICES";
+const String MEDIA_NEWS_CREATIVE = "MEDIA_NEWS_CREATIVE";
+const String TRAVEL_HOSPITALITY = "TRAVEL_HOSPITALITY";
+const String REAL_ESTATE_PROPERTY = "REAL_ESTATE_PROPERTY";
+
+
 const String INSTRUMENTS_PHARMACY_ = "INSTRUMENTS PHARMACY";
 const String EDUCATION_TRAINING = "EDUCATION_TRAINING";
 const String HOTELS_STAY_SERVICE = "HOTELS_STAY_SERVICE";
-const String BEAUTY_PERSONAL_CARE = "BEAUTY_PERSONAL_CARE";
 const String FINANCIAL_SERVICES = "FINANCIAL_SERVICES";
-const String SERVICE_CENTRE_ESSENTIAL_UTILITY =
-    "SERVICE_CENTRE_ESSENTIAL_UTILITY";
-const String HOME_SERVICES_UTILITY = "HOME_SERVICES_UTILITY";
-const String IT_COMMUNICATION = "IT_COMMUNICATION";
-const String MEDIA_PUBLICITY_CREATIVE = "MEDIA_PUBLICITY_CREATIVE";
 const String AUTOMOTIVE_SERVICES = "AUTOMOTIVE_SERVICES";
 const String LOGISTICS_TRANSPORTATION = "LOGISTICS_TRANSPORTATION";
 // const String CELEBRATION_EVENT_SERVICES = "CELEBRATION_EVENT_SERVICES";
-const String TOUR_TRAVEL_TOURISM = "TOUR_TRAVEL_TOURISM";
-const String REAL_ESTATE_PROPERTY_SERVICES = "REAL_ESTATE_PROPERTY_SERVICES";
 const String TECHNICAL_TESTING_QUALITY_SERVICE =
     "TECHNICAL_TESTING_QUALITY_SERVICE";
 
@@ -1233,156 +1234,72 @@ final List<OnboardingCategoryModel> serviceContactCategories = [
 final List<OnboardingCategoryModel> findServiceByContactSubCate = [
   OnboardingCategoryModel(
       name: 'Consulting',
-      slugId: CONSULTING_HR_SERVICE,
+      slugId: CONSULTING_BUSINESS_SERVICES,
       accountType: AppConstants.business,
       businessType: BusinessType.Service),
   OnboardingCategoryModel(
       name: 'Beauty',
-      slugId: BEAUTY_PERSONAL_CARE,
+      slugId: BEAUTY_FITNESS_PERSONAL_CARE,
       accountType: AppConstants.business,
       businessType: BusinessType.Service),
-  OnboardingCategoryModel(
-      name: 'Financial',
-      slugId: FINANCIAL_SERVICES,
-      accountType: AppConstants.business,
-      businessType: BusinessType.Service),
+  // OnboardingCategoryModel(
+  //     name: 'Financial',
+  //     slugId: FINANCIAL_SERVICES,
+  //     accountType: AppConstants.business,
+  //     businessType: BusinessType.Service),
   OnboardingCategoryModel(
       name: 'Service Centre',
-      slugId: SERVICE_CENTRE_ESSENTIAL_UTILITY,
+      slugId: REPAIR_ESSENTIAL_SERVICES,
       accountType: AppConstants.business,
       businessType: BusinessType.Service),
   OnboardingCategoryModel(
       name: 'Home & Utility',
-      slugId: HOME_SERVICES_UTILITY,
+      slugId: HOME_SERVICES_CONTRACTORS,
       accountType: AppConstants.business,
       businessType: BusinessType.Service),
   OnboardingCategoryModel(
       name: 'IT & Comm',
-      slugId: IT_COMMUNICATION,
+      slugId: IT_DIGITAL_SERVICES,
       accountType: AppConstants.business,
       businessType: BusinessType.Service),
   OnboardingCategoryModel(
       name: 'Publicity',
-      slugId: MEDIA_PUBLICITY_CREATIVE,
+      slugId: MEDIA_NEWS_CREATIVE,
       accountType: AppConstants.business,
       businessType: BusinessType.Service),
-  OnboardingCategoryModel(
-      name: 'Automotive',
-      slugId: AUTOMOTIVE_SERVICES,
-      accountType: AppConstants.business,
-      businessType: BusinessType.Service),
-  OnboardingCategoryModel(
-      name: 'Logistics',
-      slugId: LOGISTICS_TRANSPORTATION,
-      accountType: AppConstants.business,
-      businessType: BusinessType.Service),
-  OnboardingCategoryModel(
-      name: 'Events',
-      slugId: CELEBRATION_EVENT_SERVICES,
-      accountType: AppConstants.business,
-      businessType: BusinessType.Service),
+  // OnboardingCategoryModel(
+  //     name: 'Automotive',
+  //     slugId: AUTOMOTIVE_SERVICES,
+  //     accountType: AppConstants.business,
+  //     businessType: BusinessType.Service),
+  // OnboardingCategoryModel(
+  //     name: 'Logistics',
+  //     slugId: LOGISTICS_TRANSPORTATION,
+  //     accountType: AppConstants.business,
+  //     businessType: BusinessType.Service),
+  // OnboardingCategoryModel(
+  //     name: 'Events',
+  //     slugId: CELEBRATION_EVENT_SERVICES,
+  //     accountType: AppConstants.business,
+  //     businessType: BusinessType.Service),
   OnboardingCategoryModel(
       name: 'Tourism',
-      slugId: TOUR_TRAVEL_TOURISM,
+      slugId: TRAVEL_HOSPITALITY,
       accountType: AppConstants.business,
       businessType: BusinessType.Service),
   OnboardingCategoryModel(
       name: 'Real Estate',
-      slugId: REAL_ESTATE_PROPERTY_SERVICES,
+      slugId: REAL_ESTATE_PROPERTY,
       accountType: AppConstants.business,
       businessType: BusinessType.Service),
-  OnboardingCategoryModel(
-      name: 'Quality Labs',
-      slugId: TECHNICAL_TESTING_QUALITY_SERVICE,
-      accountType: AppConstants.business,
-      businessType: BusinessType.Service),
+  // OnboardingCategoryModel(
+  //     name: 'Quality Labs',
+  //     slugId: TECHNICAL_TESTING_QUALITY_SERVICE,
+  //     accountType: AppConstants.business,
+  //     businessType: BusinessType.Service),
 ];
 
 // --- OnBoarding Category ---
-
-
-
-// final List<OnboardingCategoryModel> businessOnboardingFoodsCategories = [
-//   OnboardingCategoryModel(
-//       name: 'Multicuisine\nRestaurant',
-//       slugId: MULTI_CUISINE_RESTAURANTS,
-//       icon: OnboardingBusinessAssets.multicuisineRestaurant,
-//       accountType: AppConstants.business,
-//       colorCode: Color(0xffFFF8EC),
-//       businessType: BusinessType.Food),
-//   OnboardingCategoryModel(
-//       name: 'Pure Veg\nRestaurant',
-//       slugId: PURE_VEG_RESTAURANT,
-//       icon: OnboardingBusinessAssets.pureVegRestaurant,
-//       accountType: AppConstants.business,
-//       colorCode: Color(0xffF0FFF4),
-//
-//       businessType: BusinessType.Food),
-//   OnboardingCategoryModel(
-//       name: 'Coffee / Beverages\nShop',
-//       slugId: COFFEE_BEVERAGES_SHOP,
-//       icon: OnboardingBusinessAssets.coffeeBeveragesShop,
-//       accountType: AppConstants.business,
-//       colorCode: Color(0xffFFF2EF),
-//
-//       businessType: BusinessType.Food),
-//   OnboardingCategoryModel(
-//       name: 'Economy\nDhaba',
-//       slugId: ECONOMY_DHABA,
-//       icon: OnboardingBusinessAssets.economyDhaba,
-//       accountType: AppConstants.business,
-//       colorCode: Color(0xffFFF2E3),
-//
-//       businessType: BusinessType.Food),
-//   OnboardingCategoryModel(
-//       name: 'Sweet & Namkeen\nShop',
-//       slugId: SWEET_NAMKEEN_SHOP,
-//       icon: OnboardingBusinessAssets.sweetNamkeenShop,
-//       accountType: AppConstants.business,
-//       colorCode: Color(0xffF0F6FF),
-//
-//       businessType: BusinessType.Food),
-//   OnboardingCategoryModel(
-//       name: 'Breakfast/\nFast-food',
-//       slugId: BREAKFAST_FAST_FOOD,
-//       icon: OnboardingBusinessAssets.breakfastFastFood,
-//       accountType: AppConstants.business,
-//       colorCode: Color(0xffFFF8EC),
-//
-//       businessType: BusinessType.Food),
-//   OnboardingCategoryModel(
-//       name: 'Garden/Buffet\nRestaurant',
-//       slugId: GARDEN_BUFFET_RESTAURANT,
-//       icon: OnboardingBusinessAssets.gardenBuffetRestaurant,
-//       accountType: AppConstants.business,
-//       colorCode: Color(0xffF0FFF4),
-//
-//       businessType: BusinessType.Food),
-//   OnboardingCategoryModel(
-//       name: 'Cloud Kitchen,\nMess',
-//       slugId: CLOUD_KITCHEN,
-//       icon: OnboardingBusinessAssets.cloudKitchenMess,
-//       accountType: AppConstants.business,
-//       colorCode: Color(0xffFFF2EF),
-//
-//       businessType: BusinessType.Food),
-//   OnboardingCategoryModel(
-//       name: 'Non-Veg\nRestaurant',
-//       slugId: NON_VEG_RESTAURANT,
-//       icon: OnboardingBusinessAssets.nonVegRestaurant,
-//       accountType: AppConstants.business,
-//       colorCode: Color(0xffFFF2E3),
-//
-//       businessType: BusinessType.Food),
-//   OnboardingCategoryModel(
-//       name: 'Ice Cream\nCorner',
-//       slugId: ICE_CREAM_CORNER,
-//       icon: OnboardingBusinessAssets.iceCreamCorner,
-//       accountType: AppConstants.business,
-//       colorCode: Color(0xffF0F6FF),
-//
-//       businessType: BusinessType.Food),
-// ];
 
 final List<OnboardingCategoryModel>
 businessOnboardingEducationTrainingCategories = [
@@ -1967,7 +1884,7 @@ final Map<String, String> productCategoryIcons = {
   FURNITURE_CONSTRUCTION: AppImageAssets.furnitureHomeDecor,
   // FASHION_LIFESTYLE: AppImageAssets.fashionLifestyle, // will changed
   FASHION_LIFESTYLE: AppImageAssets.artsCraftsSewing, // will changed
-  JEWELRY_LUXURY_STORE: AppImageAssets.jewelleryLuxuryStore,
+  JEWELLERY_LUXURY_STORE: AppImageAssets.jewelleryLuxuryStore,
   BEAUTY_WELLNESS: AppImageAssets.beautyAndCosmetics,
   BOOKS_TOYS_BABY: AppImageAssets.booksStationary,
   HOME_APPLIANCES_KITCHEN: AppImageAssets.homeKitchenUtensils,
@@ -1978,6 +1895,24 @@ final Map<String, String> productCategoryIcons = {
 
 String getProductCategoryIcon(String? tagId) {
   return productCategoryIcons[tagId] ?? '';
+}
+
+/// tagId → local icon mapping for service categories (Find Services
+/// grid on the Discover home).
+final Map<String, String> serviceCategoryIcons = {
+  BEAUTY_FITNESS_PERSONAL_CARE: OnboardingBusinessAssets.beautyAndPersonalCare,
+  CONSULTING_BUSINESS_SERVICES: OnboardingBusinessAssets.consultingFirm,
+  REPAIR_ESSENTIAL_SERVICES: OnboardingBusinessAssets.serviceCenterAndEssentialUtils,
+  HOME_SERVICES_CONTRACTORS: OnboardingBusinessAssets.homeServiceAndUtility,
+  IT_DIGITAL_SERVICES: OnboardingBusinessAssets.itAndCommunication,
+  MEDIA_NEWS_CREATIVE: OnboardingBusinessAssets.mediaPublicityAndCreative,
+  TRAVEL_HOSPITALITY: OnboardingBusinessAssets.tourTravelsAndTourism,
+  REAL_ESTATE_PROPERTY: OnboardingBusinessAssets.realEstateProperty,
+  // TECHNICAL_TESTING_QUALITY_SERVICE: OnboardingBusinessAssets.technicalTestingAndQualityLabs,
+};
+
+String getServiceCategoryIcon(String? tagId) {
+  return serviceCategoryIcons[tagId] ?? '';
 }
 
 final List<OnboardingCategoryModel> professionalContactCategories = [
@@ -2068,7 +2003,7 @@ final List<OnboardingCategoryModel> findShoppingByContactCate = [
       businessType: BusinessType.Product),
   OnboardingCategoryModel(
       name: 'Jewellery',
-      slugId: JEWELRY_LUXURY_STORE,
+      slugId: JEWELLERY_LUXURY_STORE,
       accountType: AppConstants.business,
       businessType: BusinessType.Product),
   OnboardingCategoryModel(

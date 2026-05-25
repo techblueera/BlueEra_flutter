@@ -81,50 +81,46 @@ class FoodFloatingCart extends StatelessWidget {
               ),
             ],
           ),
-          child: SafeArea(
-            top: false,
-            minimum: EdgeInsets.zero,
-            child: Row(
-              children: [
-                _cartBadge(productCount),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      CustomText(
-                        '$productCount Products  •  $totalVariantsCount Variants',
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.mainTextColor,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 2),
-                      CustomText(
-                        'Tap review to set prices and publish',
-                        fontSize: 11,
-                        color: AppColors.secondaryTextColor,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 10),
-                SizedBox(
-                  width: 130,
-                  height: 40,
-                  child: PositiveCustomBtn(
-                    onTap: () => Get.to(
-                      () => FoodCartScreen(isSnapSearch: isSnapSearch),
+          child: Row(
+            children: [
+              _cartBadge(productCount),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CustomText(
+                      '$productCount Products  •  $totalVariantsCount Variants',
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.mainTextColor,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    title: 'Review & Publish',
-                  ),
+                    const SizedBox(height: 2),
+                    CustomText(
+                      'Tap review to set prices and publish',
+                      fontSize: 11,
+                      color: AppColors.secondaryTextColor,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(width: 10),
+              SizedBox(
+                width: 130,
+                height: 40,
+                child: PositiveCustomBtn(
+                  onTap: () => Get.to(
+                    () => FoodCartScreen(isSnapSearch: isSnapSearch),
+                  ),
+                  title: 'Review & Publish',
+                ),
+              ),
+            ],
           ),
         ),
       ),

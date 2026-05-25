@@ -221,11 +221,15 @@ class _ProductsStoreScreenState extends State<ProductsStoreScreen> {
                     pinned: true,
                     delegate: StickyCategoryHeaderDelegate(
                       topPadding: statusBarHeight,
-                      categories: _categories.map((c) => StickyCategory(
+                      categories: _categories.map((c) {
+                        debugPrint('Products tagId=${c.tagId} name=${c.name}');
+                        return StickyCategory(
                         id: c.tagId ?? '',
                         name: c.name ?? '',
-                        imageUrl: c.imageUrl,
-                      )).toList(),
+                        imageUrl: getProductCategoryIcon(c.tagId),
+                        // imageUrl: c.imageUrl,
+                      );
+                      }).toList(),
                       selectedId: _categories.isNotEmpty &&
                               _selectedIndex.value < _categories.length
                           ? _categories[_selectedIndex.value].tagId

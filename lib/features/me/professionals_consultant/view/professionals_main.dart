@@ -30,11 +30,10 @@ import 'package:BlueEra/features/contribution/controller/contribution_controller
 import 'package:BlueEra/features/contribution/view/contribution_screen.dart';
 import 'package:BlueEra/features/common/statistics/view/business_statistics_screen.dart';
 import 'package:BlueEra/features/me/professionals_consultant/controller/ai_professionals_controller.dart';
-import 'package:BlueEra/features/me/professionals_consultant/view/professionals_home_screen.dart';
+import 'package:BlueEra/features/me/professionals_consultant/view/professionals_service_screen.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/controller/rental_controller.dart';
-import 'package:BlueEra/features/common/rental/widget/rental_property_card_v2.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/widget/rental_services_dashboard_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/edit_profile_bottom_sheet.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/profile_designation_bottom_sheet.dart';
@@ -57,7 +56,7 @@ import 'package:intl/intl.dart';
 /// tabs card with a sticky overlay on scroll, and five tab bodies:
 ///   â€¢ Order    â€” contribution peek
 ///   â€¢ Overview â€” cover + profile + stats + share/business-card
-///   â€¢ Service  â€” [ProfessionalsHomeScreen] (expertise, services,
+///   â€¢ Service  â€” [ProfessionalsServiceScreen] (expertise, services,
 ///                portfolio, certificates, gallery, contact, hours)
 ///   â€¢ Post     â€” embedded [FeedScreen] filtered to the user's posts
 ///   â€¢ Statics  â€” chat-click analytics
@@ -115,9 +114,6 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
     return _buildScaffold(context);
   }
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  // SCAFFOLD â€” same shell as self_employee_screen.dart.
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildScaffold(BuildContext context) {
     final topInset = MediaQuery.of(context).padding.top;
     final topBarHeight = topInset + 56;
@@ -220,9 +216,6 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
     );
   }
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  // TOP BAR â€” drawer Â· earn slot Â· notifications Â· Go-Live.
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildTopBar() {
     final topInset = MediaQuery.of(context).padding.top;
     return DecoratedBox(
@@ -258,10 +251,6 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
                   onTap: () => _openDrawer(context),
                 ),
                 SizedBox(width: SizeConfig.size6),
-                // Pills wrapped in Flexible so their inner text can ellipsize
-                // instead of pushing the row past its width.
-                // Earn entry now lives in the drawer; Refer & Earn takes
-                // the top-bar slot â€” same pill the rider dashboard uses.
                 Flexible(child: const ReferEarnPill()),
                 const Spacer(),
                 if (!isGuestUser()) ...[
@@ -437,9 +426,6 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
     );
   }
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  // TABS â€” animated underline card with sticky overlay.
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildTabsCard() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 14),
@@ -523,13 +509,6 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
     );
   }
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  // TAB CONTENT â€” switches body by _selectedTab.
-  //   0 Order, 1 Overview, 2 Service, 3 Post, 4 Statics
-  // Rentals used to be their own tab â€” collapsed into Overview
-  // (see _buildRentalCard) so the top strip stays compact while
-  // the three rental categories are still one tap away.
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   List<Widget> _buildTabContent() {
     switch (_selectedTab) {
       case 0:
@@ -547,13 +526,6 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
     }
   }
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  // OVERVIEW TAB â€” cover banner + profile info + stats + share /
-  // business-card actions. The professional service home (expertise,
-  // services, portfolio, certificates, gallery, contact, hours)
-  // lives on its own [Service] tab so this view stays focused on
-  // identity.
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   List<Widget> _buildOverviewTab() {
     return [
       _buildIdentityCard(context),
@@ -579,14 +551,6 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
     ];
   }
 
-  // â”€â”€â”€ RENTAL CTA CARD â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  // Rentals were demoted from their own tab to a single Overview
-  // card (same treatment rider_service_screen.dart uses). Header
-  // opens the rental dashboard with the controller's current
-  // filter; each category chip pre-selects its filter on
-  // [RentalController.selectedRentalTabs] before pushing, so
-  // [RentalTabBody]'s initState lands the destination already
-  // filtered to the bucket the user tapped.
   Widget _buildRentalCard() {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20),
@@ -737,15 +701,6 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
     Get.to(() => const RentalServicesDashboardScreen());
   }
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  // SERVICE TAB â€” when the user has a professional profile, embed
-  // [ProfessionalsHomeScreen] directly so its sections share the
-  // parent CustomScrollView's scroll (sticky tabs work). When no
-  // profile exists yet (existing users who registered before the
-  // PROFESSIONAL auto-create branch existed), render an empty-state
-  // card with a Create-Professional-Service CTA â€” same pattern the
-  // self-employed dashboard uses for its earn-service create.
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   List<Widget> _buildServiceTab() {
     return [
       Container(
@@ -754,7 +709,7 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
           final hasProfile = _ctrl.hasProfile.value;
           final data = _ctrl.getProfessionalServiceRes?.value.data;
           if (hasProfile && data != null) {
-            return ProfessionalsHomeScreen();
+            return ProfessionalsServiceScreen();
           }
           return _buildCreateProfessionalCta();
         }),
@@ -762,11 +717,6 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
     ];
   }
 
-  // Empty-state CTA shown when the user hasn't yet created a
-  // professional profile. Tapping the button posts a minimal record
-  // built from whatever they already have on their personal profile
-  // (name / email / designation / address etc.). Matches the
-  // self-employed dashboard's empty-state design language.
   Widget _buildCreateProfessionalCta() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
@@ -891,7 +841,6 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
     });
   }
 
-  // â”€â”€â”€ IDENTITY CARD â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // Cover banner with the avatar straddling the seam, followed by
   // the professional-specific name / designation / bio / contact
   // rows. Mirrors the layout used by self_employee_screen.dart.
@@ -1641,7 +1590,6 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
         subject: userName);
   }
 
-  // â”€â”€â”€ QR CODE CARD â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // Delegates to [PersonalQrCodeWidget] so the professional QR card
   // matches the business card's UI and behaviour exactly. Prefers
   // the professional-service basic details when available, falling
@@ -1664,7 +1612,6 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
     });
   }
 
-  // â”€â”€â”€ SHARE BANNER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // Reuses the same [BusinessShareBanner] grocery v2 ships, but
   // passes professional/individual overrides so the banner renders
   // with the user's name, profile photo and designation â€” the

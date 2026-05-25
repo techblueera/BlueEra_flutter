@@ -92,7 +92,7 @@ class ProfessionalsController extends GetxController {
         commonSnackBar(
             message: response.response?.data['message'] ??
                 "Branch details added successfully");
-        Get.back();
+        Get.back(result: true);
         fetchHomeData();
       } else {
         commonSnackBar(message: AppStrings.somethingWentWrong);

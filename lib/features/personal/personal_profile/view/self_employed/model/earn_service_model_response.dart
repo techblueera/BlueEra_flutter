@@ -408,8 +408,8 @@ class SocialLinks {
 }
 
 class UserLocation {
-  int? lat;
-  int? lon;
+  double? lat;
+  double? lon;
 
   UserLocation({this.lat, this.lon});
 

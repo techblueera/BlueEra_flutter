@@ -318,7 +318,7 @@ class ProfessionalsCertificatesScreen extends StatelessWidget {
                                 ? null
                                 : () async {
                                     if (await certController.save()) {
-                                      Get.back();
+                                      Get.back(result: true);
                                     }
                                   },
                           )),

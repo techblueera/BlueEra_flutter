@@ -134,6 +134,22 @@ class _AllProfessionConsultantScreenState
   double? _distanceFor(ProfessionalConsData item) =>
       _distances[item.id ?? item.userId ?? ''];
 
+  /// Converts an all-caps category name like "ADVOCATE" or
+  /// "TAX_CONSULTANT" into a human-readable label like "Advocate" /
+  /// "Tax Consultant" for the empty-state message. Leaves already
+  /// mixed-case names untouched.
+  String _prettyCategoryName(String raw) {
+    if (raw.isEmpty) return raw;
+    final cleaned = raw.replaceAll('_', ' ').trim();
+    if (cleaned != cleaned.toUpperCase()) return cleaned;
+    return cleaned
+        .split(RegExp(r'\s+'))
+        .map((w) => w.isEmpty
+            ? w
+            : '${w[0].toUpperCase()}${w.substring(1).toLowerCase()}')
+        .join(' ');
+  }
+
   /// Returns a new list sorted by the active filter. Items missing
   /// the comparator key sort to the end so they don't crowd the top
   /// of a sorted list with stale rows.
@@ -185,8 +201,8 @@ class _AllProfessionConsultantScreenState
   Widget build(BuildContext context) {
     final statusBarHeight = MediaQuery.of(context).padding.top;
     final stickyCategories = [
-      StickyCategory(
-          id: 'ALL_OPTION', name: 'All', imageUrl: AppImageAssets.all),
+      // StickyCategory(
+      //     id: 'ALL_OPTION', name: 'All', imageUrl: AppImageAssets.all),
       ..._professionalConsultantCategories.map((c) => StickyCategory(
             id: c.tagId ?? '',
             name: c.name ?? '',
@@ -225,21 +241,22 @@ class _AllProfessionConsultantScreenState
                   delegate: StickyCategoryHeaderDelegate(
                     topPadding: statusBarHeight,
                     categories: stickyCategories,
-                    selectedId: controller
-                            .selectedProfessionalConsultantData.value?.slugId ??
-                        'ALL_OPTION',
+                    selectedId: controller.selectedProfessionalConsultantData.value?.slugId ?? ADVERTISING_CONSULTANT,
+                    // selectedId: controller
+                    //         .selectedProfessionalConsultantData.value?.slugId ??
+                    //     'ALL_OPTION',
                     onCategoryTap: (item) {
-                      if (item.id == 'ALL_OPTION') {
-                        controller.selectedProfessionalConsultantData.value =
-                            null;
-                      } else {
+                      // if (item.id == 'ALL_OPTION') {
+                      //   controller.selectedProfessionalConsultantData.value =
+                      //       null;
+                      // } else {
                         controller.selectedProfessionalConsultantData.value =
                             OnboardingCategoryModel(
                           name: item.name,
                           slugId: item.id,
                           accountType: AppConstants.individual,
                         );
-                      }
+                      // }
                       controller.fetchProfessionalConsultantServices();
                       setState(() {});
                     },
@@ -294,9 +311,18 @@ class _AllProfessionConsultantScreenState
                 return const Center(child: CircularProgressIndicator());
               }
               if (controller.professionalConsDataList.isEmpty) {
+                final selectedName = controller
+                        .selectedProfessionalConsultantData.value?.name ??
+                    '';
+                // Server returns categories in upper-case (e.g.
+                // "ADVOCATE"); flip to title-case for the message so
+                // it reads naturally ("No Advocate consultants…").
+                final pretty = _prettyCategoryName(selectedName);
+                final message = pretty.isNotEmpty
+                    ? 'No $pretty consultants found near you'
+                    : AppStrings.noServicesFound.tr;
                 return Center(
-                    child: EmptyStateWidget(
-                        message: AppStrings.noServicesFound.tr));
+                    child: EmptyStateWidget(message: message));
               }
               // Recompute distance cache cheaply for any new items
               // appended by the load-more sentinel, then sort by the
