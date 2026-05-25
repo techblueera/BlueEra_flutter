@@ -10,6 +10,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
+import 'package:BlueEra/features/common/Discover/view/widget/rental_card_widget.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/Discover/view/discover_banner_slider.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/automotive_service_card_widget.dart';
@@ -23,7 +24,7 @@ import 'package:BlueEra/features/common/Discover/view/widget/home_made_product_w
 import 'package:BlueEra/features/common/Discover/view/widget/hotel_stay_service_card.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/job_service_card_widget.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/professionals_card_widget.dart';
-import 'package:BlueEra/features/common/Discover/view/widget/rental_card_widget.dart';
+import 'package:BlueEra/features/common/Discover/view/widget/rental_card_widget_v2.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/shopping_card_widget.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/transport_service_widget.dart';
 import 'package:BlueEra/features/common/qr_code/view/emergency_qr_screen.dart';
@@ -76,7 +77,8 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
       (widget: ShoppingCardWidget(), tabs: {3}),
       (widget: HomeMadeProductWidget(), tabs: {3}),
       (widget: FindServiceCardWidget(), tabs: {4}),
-      (widget: RentalCardWidget(), tabs: {4}),
+      // (widget: RentalCardWidget(), tabs: {4}),
+      (widget: RentalCardWidgetV2(), tabs: {4}),
       (widget: HotelStayServiceCard(isShowInGrid: inGrid), tabs: {1}),
       (widget: AutomotiveServiceCardWidget(), tabs: {4}),
       (widget: FinancialSectors(isShowInGrid: inGrid), tabs: {4}),

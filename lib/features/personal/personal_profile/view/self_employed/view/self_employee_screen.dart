@@ -33,6 +33,7 @@ import 'package:BlueEra/features/personal/auth/controller/view_personal_details_
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/controller/rental_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/widget/rental_services_dashboard_screen.dart';
+import 'package:BlueEra/features/common/rental/widget/rental_property_card_v2.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/self_profession_service_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/edit_profile_bottom_sheet.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/profile_designation_bottom_sheet.dart';
@@ -532,13 +533,6 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
     );
   }
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  // TAB CONTENT â€” switches body by _selectedTab.
-  //   0 Order, 1 Overview, 2 Service, 3 Post, 4 Statics
-  // Rentals used to be their own tab â€” collapsed into Overview
-  // (see _buildRentalCard) so the top strip stays compact while
-  // the three rental categories are still one tap away.
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   List<Widget> _buildTabContent() {
     switch (_selectedTab) {
       case 0:
@@ -1209,8 +1203,11 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
         padding: const EdgeInsets.only(top: 10, left: 20, right: 10),
         child: const ProfileBioCard(margin: EdgeInsets.zero),
       ),
-      _buildRentalCard(),
       _buildActionRow(),
+      _buildRentalCard(),
+      // const RentalPropertyCardV2(
+      //   margin: EdgeInsets.only(top: 10, left: 20, right: 10),
+      // ),
       Padding(
         padding: const EdgeInsets.only(top: 10, left: 20, right: 10),
         child: const ProfileLocationCard(margin: EdgeInsets.zero),
@@ -1221,7 +1218,6 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
     ];
   }
 
-  // â”€â”€â”€ RENTAL CTA CARD â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildRentalCard() {
     return Container(
       margin: const EdgeInsets.only(top: 10, left: 20, right: 10),
@@ -1367,6 +1363,12 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
     }
     Get.to(() => const RentalServicesDashboardScreen());
   }
+
+  // V2 opener + inline `_buildRentalCardV2` + `_rentalPropertyTile`
+  // moved to the shared widget `RentalPropertyCardV2`
+  // (lib/features/common/rental/widget/rental_property_card_v2.dart)
+  // so cab / rider / professionals / self-employee dashboards all
+  // render the same V2 card with one source of truth.
 
   // â”€â”€â”€ IDENTITY CARD â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // The cover banner, profile avatar, and identity block live in
