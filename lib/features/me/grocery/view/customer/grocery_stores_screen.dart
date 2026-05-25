@@ -109,7 +109,7 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
 
   String? _localCategoryIcon(String? tagId) {
     switch (tagId) {
-      case KIRANA_STORE:
+      case MOHALLA_KIRANA:
         return AppImageAssets.kiranaStore;
       case GENERAL_STORE:
         return AppImageAssets.generalStore;
@@ -194,11 +194,14 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
                     pinned: true,
                     delegate: StickyCategoryHeaderDelegate(
                       topPadding: statusBarHeight,
-                      categories: _arrCategories.map((c) => StickyCategory(
-                        id: c.tagId ?? '',
-                        name: c.name ?? '',
-                        imageUrl: _localCategoryIcon(c.tagId),
-                      )).toList(),
+                      categories: _arrCategories.map((c) {
+                        debugPrint('GroceryCategory tagId=${c.tagId} name=${c.name}');
+                        return StickyCategory(
+                          id: c.tagId ?? '',
+                          name: c.name ?? '',
+                          imageUrl: _localCategoryIcon(c.tagId),
+                        );
+                      }).toList(),
                       selectedId: controller.selectedGroceryCategoryData.value?.tagId,
                       onCategoryTap: (item) {
                         final cat = _arrCategories.firstWhere((c) => c.tagId == item.id);

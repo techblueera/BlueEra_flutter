@@ -85,14 +85,14 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
   List<CategoryData> get _categories => _authController.businessOnboardingFoodsCategories;
 
   static final Map<String, String> _foodCategoryIcons = {
-    MULTI_CUISINE_RESTAURANTS: OnboardingBusinessAssets.multicuisineRestaurant,
+    MULTI_CUISINE_RESTAURANT: OnboardingBusinessAssets.multicuisineRestaurant,
     PURE_VEG_RESTAURANT: OnboardingBusinessAssets.pureVegRestaurant,
     COFFEE_BEVERAGES_SHOP: OnboardingBusinessAssets.coffeeBeveragesShop,
     ECONOMY_DHABA: OnboardingBusinessAssets.economyDhaba,
     SWEET_NAMKEEN_SHOP: OnboardingBusinessAssets.sweetNamkeenShop,
     BREAKFAST_FAST_FOOD: OnboardingBusinessAssets.breakfastFastFood,
     GARDEN_BUFFET_RESTAURANT: OnboardingBusinessAssets.gardenBuffetRestaurant,
-    CLOUD_KITCHEN: OnboardingBusinessAssets.cloudKitchenMess,
+    CLOUD_KITCHEN_MESS: OnboardingBusinessAssets.cloudKitchenMess,
     NON_VEG_RESTAURANT: OnboardingBusinessAssets.nonVegRestaurant,
     ICE_CREAM_CORNER: OnboardingBusinessAssets.iceCreamCorner,
   };
@@ -247,11 +247,14 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
                     pinned: true,
                     delegate: StickyCategoryHeaderDelegate(
                       topPadding: statusBarHeight,
-                      categories: _categories.map((c) => StickyCategory(
+                      categories: _categories.map((c) {
+                        debugPrint('FoodCategory tagId=${c.tagId} name=${c.name}');
+                        return StickyCategory(
                         id: c.tagId ?? '',
                         name: c.name ?? '',
                         imageUrl: _getCategoryIcon(c),
-                      )).toList(),
+                      );
+                      }).toList(),
                       selectedId: _categories.isNotEmpty &&
                               selectedCategoryIndex.value < _categories.length
                           ? _categories[selectedCategoryIndex.value].tagId

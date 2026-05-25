@@ -60,11 +60,12 @@ class _ShoppingCardWidgetState extends State<ShoppingCardWidget> {
                 return Wrap(
                   spacing: spacing,
                   runSpacing: spacing,
-                  children: displayCategories.map((categoryItem) {
+                  children: displayCategories.map((c) {
+                    debugPrint('Products tagId=${c.tagId} name=${c.name}');
                     return SizedBox(
                       width: itemWidth,
                       child: CommonServiceCard(
-                        service: categoryItem,
+                        service: c,
                         getName: (item) => item.name ?? '',
                         getIcon: (item) => getProductCategoryIcon(item.tagId),
                         onTap: (item) {

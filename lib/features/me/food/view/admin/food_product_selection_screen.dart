@@ -138,7 +138,7 @@ class _FoodProductSelectionScreenState extends State<FoodProductSelectionScreen>
           Positioned(
             left: 0,
             right: 0,
-            bottom: 0,
+            bottom: 20,
             child: FoodFloatingCart(
               controller: controller,
               isSnapSearch: false,

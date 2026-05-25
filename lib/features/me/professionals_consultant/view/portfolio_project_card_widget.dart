@@ -329,7 +329,7 @@ class PortfolioProjectCardWidget extends StatelessWidget {
                                 ? null
                                 : () async {
                                     await portfolioController.save();
-                                    Get.back();
+                                    Get.back(result: true);
                                   },
                           )),
                       SizedBox(height: SizeConfig.size20),

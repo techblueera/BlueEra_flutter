@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -110,7 +111,8 @@ class _ServicesNearMeScreenState extends State<ServicesNearMeScreen> {
                     .map((c) => StickyCategory(
                           id: c.tagId ?? '',
                           name: c.name ?? '',
-                          imageUrl: c.imageUrl,
+                          imageUrl: getServiceCategoryIcon(c.tagId),
+                          // imageUrl: c.imageUrl,
                         ))
                     .toList(),
                 selectedId: _categories.isNotEmpty &&

@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/features/me/food/controller/food_selfpickup_controller.dart';
 import 'package:BlueEra/features/me/food/model/category_food_product_res_model.dart';
+import 'package:BlueEra/features/me/food/view/customer/food_self_pickup_cart_screen.dart';
 import 'package:BlueEra/features/me/food/view/widget/food_product_des_widget.dart';
 import 'package:BlueEra/features/me/food/view/widget/food_product_image_widget.dart';
 import 'package:BlueEra/widgets/price_row.dart';
@@ -149,11 +150,128 @@ class _FoodSelfPickupVariantsSheet extends StatelessWidget {
                 ),
               ),
             ),
+            _inSheetCartStrip(context),
             const SizedBox(height: 12),
           ],
         ),
       ),
     );
+  }
+
+  /// Sticky strip at the bottom of the sheet that confirms items are
+  /// landing in the cart (the screen's floating cart is hidden behind the
+  /// sheet, so we surface the same info inline). Tapping "View Cart"
+  /// closes the sheet and pushes the self-pickup cart screen.
+  Widget _inSheetCartStrip(BuildContext context) {
+    return Obx(() {
+      final cart = controller.selectedFoodVariants;
+      final count = cart.length;
+      if (count == 0) return const SizedBox.shrink();
+
+      final subtotal = cart.fold<int>(
+        0,
+        (sum, v) => sum + (v.baseSellingPrice ?? 0),
+      );
+
+      return AnimatedSize(
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOutCubic,
+        child: Padding(
+          padding: const EdgeInsets.only(top: 10),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: () {
+              Navigator.of(context).pop();
+              Get.to(() => const FoodSelfPickUpCartScreen());
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 14,
+                vertical: 12,
+              ),
+              decoration: BoxDecoration(
+                color: AppColors.primaryColor,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primaryColor.withValues(alpha: 0.25),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 30,
+                    height: 30,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.18),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.shopping_bag_outlined,
+                      color: Colors.white,
+                      size: 16,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        CustomText(
+                          '$count ${count == 1 ? "item" : "items"} in cart',
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                        ),
+                        const SizedBox(height: 2),
+                        CustomText(
+                          'Subtotal ${AppConstants.rupeeSymbol}$subtotal',
+                          color: Colors.white.withValues(alpha: 0.85),
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        CustomText(
+                          'View Cart',
+                          fontSize: 12,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.primaryColor,
+                        ),
+                        const SizedBox(width: 4),
+                        Icon(
+                          Icons.arrow_forward_rounded,
+                          size: 14,
+                          color: AppColors.primaryColor,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    });
   }
 
   Widget _variantRow(BuildContext context, FoodVariants variant) {

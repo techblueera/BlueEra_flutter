@@ -26,17 +26,22 @@ import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 // ignore: must_be_immutable
-class ProfessionalsHomeScreen extends StatelessWidget {
-  ProfessionalsHomeScreen({super.key});
+class ProfessionalsServiceScreen extends StatelessWidget {
+  ProfessionalsServiceScreen({super.key});
 
   final viewProfileController =
       getOrPut(() => ViewPersonalDetailsController(), permanent: true);
 
   final controller = Get.find<AiProfessionalsController>();
 
+  /// Push [screen] for editing; only refresh the dashboard when the
+  /// child explicitly reports a save (`Get.back(result: true)`). A
+  /// plain back-press returns `null`, so we skip the refetch.
   void _navigateToEdit(Widget screen) async {
-    await Get.to(() => screen);
-    controller.professionalsFullDetailsController();
+    final didSave = await Get.to(() => screen);
+    if (didSave == true) {
+      controller.professionalsFullDetailsController();
+    }
   }
 
   @override
@@ -273,8 +278,9 @@ class ProfessionalsHomeScreen extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _sectionHeader("Expertise",
-              onEdit: () =>
-                  _navigateToEdit(ProfessionalProfileScreen())),
+              onEdit: hasData
+                  ? () => _navigateToEdit(ProfessionalProfileScreen())
+                  : null),
           if (hasData)
             Wrap(
               spacing: 8,
@@ -330,8 +336,9 @@ class ProfessionalsHomeScreen extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _sectionHeader("Our Services",
-              onEdit: () =>
-                  _navigateToEdit(ProfessionalServiceOffered())),
+              onEdit: hasData
+                  ? () => _navigateToEdit(ProfessionalServiceOffered())
+                  : null),
           if (hasData)
             ...services.map((s) => Padding(
                   padding: const EdgeInsets.symmetric(vertical: 4),
@@ -377,7 +384,8 @@ class ProfessionalsHomeScreen extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _sectionHeader("Portfolio / Case Studies",
-              onEdit: () => _navigateToEdit(PortfolioScreen())),
+              onEdit:
+                  hasData ? () => _navigateToEdit(PortfolioScreen()) : null),
           if (hasData)
             SizedBox(
               height: 160,
@@ -425,8 +433,9 @@ class ProfessionalsHomeScreen extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _sectionHeader("Certificate & Awards",
-              onEdit: () =>
-                  _navigateToEdit(ProfessionalsCertificatesScreen())),
+              onEdit: hasData
+                  ? () => _navigateToEdit(ProfessionalsCertificatesScreen())
+                  : null),
           if (hasData)
             SizedBox(
               height: 260,
@@ -548,8 +557,9 @@ class ProfessionalsHomeScreen extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _sectionHeader("Gallery",
-              onEdit: () =>
-                  _navigateToEdit(ProfessionalsCertificatesScreen())),
+              onEdit: hasData
+                  ? () => _navigateToEdit(ProfessionalsCertificatesScreen())
+                  : null),
           if (hasData)
             _buildGalleryGrid(urls, context)
           else
@@ -744,8 +754,9 @@ class ProfessionalsHomeScreen extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _sectionHeader("Contact Us",
-              onEdit: () =>
-                  _navigateToEdit(ProfessionalContactUsScreen())),
+              onEdit: hasData
+                  ? () => _navigateToEdit(ProfessionalContactUsScreen())
+                  : null),
           if (hasData)
             Container(
               padding: EdgeInsets.all(SizeConfig.size12),
@@ -845,8 +856,9 @@ class ProfessionalsHomeScreen extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _sectionHeader("Working Hours",
-              onEdit: () =>
-                  _navigateToEdit(ProfessionalsTimingScreen())),
+              onEdit: hasData
+                  ? () => _navigateToEdit(ProfessionalsTimingScreen())
+                  : null),
           if (hasData)
             _buildTimingsGrid(timings!)
           else

@@ -496,6 +496,18 @@ class FoodServiceController extends GetxController {
           await FoodRepo().addKitchenInventoryRepo(params: tempReqList);
 
       if (responseModel.isSuccess) {
+        // Refresh FoodMainScreen's Products tab data (popular dishes +
+        // discount products) so the newly-added items show up when the
+        // user lands back on it via Get.until below. Fire-and-forget;
+        // both calls own their own loading state.
+        if (Get.isRegistered<RestaurantController>() &&
+            businessId.isNotEmpty) {
+          final restaurantController = Get.find<RestaurantController>();
+          restaurantController.fetchHomeData(businessId: businessId);
+          restaurantController.fetchDiscountFoodProducts(
+              businessId: businessId);
+        }
+
         final bool hasNoMissingProducts =
             (productSnapSearchData?.missingProducts ?? []).isEmpty;
         final bool shouldGoToHome = !isSnapSearch || hasNoMissingProducts;

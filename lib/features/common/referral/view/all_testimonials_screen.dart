@@ -8,10 +8,6 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-/// Paginated all-testimonials page. Pagination is client-side (the
-/// dummy dataset is small and fully prefetched). Switch the page-size
-/// or wire to a server endpoint by changing [_pageSize] and pointing
-/// `_page` at remote data.
 class AllTestimonialsScreen extends StatefulWidget {
   final ReferralController controller;
   const AllTestimonialsScreen({super.key, required this.controller});

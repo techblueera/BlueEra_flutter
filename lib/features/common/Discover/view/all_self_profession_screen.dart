@@ -1,13 +1,11 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
-import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
-import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
-import 'package:BlueEra/features/common/Discover/widget/discover_chat_icon.dart';
+import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_map_widgets.dart';
 import 'package:BlueEra/features/common/Discover/widget/filter_capsule.dart';
 import 'package:BlueEra/features/common/Discover/widget/sticky_category_header_delegate.dart';
@@ -16,9 +14,11 @@ import 'package:BlueEra/features/common/Discover/view/self_employee_view_screen.
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
 import 'package:BlueEra/features/common/auth/model/personal_profession_model.dart';
+import 'package:BlueEra/features/common/store/widget/store_live_photo_widget.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
+import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -26,35 +26,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-
-class _SelfProfessionPalette {
-  final Color cardBg;
-  final Color cardBorder;
-  final Color tileBorder;
-  final Color dividerLine;
-
-  const _SelfProfessionPalette({
-    required this.cardBg,
-    required this.cardBorder,
-    required this.tileBorder,
-    required this.dividerLine,
-  });
-}
-
-const _selfProfessionPalettes = <_SelfProfessionPalette>[
-  _SelfProfessionPalette(
-    cardBg: Color(0xFFEDFDFF),
-    cardBorder: Color(0xFFC0DDE1),
-    tileBorder: Color(0xFFD0EEF2),
-    dividerLine: Color(0xFFBBE3E8),
-  ),
-  _SelfProfessionPalette(
-    cardBg: Color(0xFFFCF5FF),
-    cardBorder: Color(0xFFECD3F6),
-    tileBorder: Color(0xFFF7E3FF),
-    dividerLine: Color(0xFFE3D4E9),
-  ),
-];
 
 // ─── AllSelfProfessionScreen ───
 class AllSelfProfessionScreen extends StatefulWidget {
@@ -77,7 +48,6 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
   late List<ProfessionTypeData> _selfEmployedCategories;
   final String serviceSubType = 'selfWork';
   final String earnServiceType = AppConstants.service;
-
 
   @override
   void initState() {
@@ -134,6 +104,22 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
         break;
     }
     return sorted;
+  }
+
+  /// Converts an all-caps category name like "ELECTRICIAN" or
+  /// "HOME_TUTOR" into a human-readable label like "Electrician" /
+  /// "Home Tutor" for the empty-state message. Leaves already
+  /// mixed-case names untouched.
+  String _prettyCategoryName(String raw) {
+    if (raw.isEmpty) return raw;
+    final cleaned = raw.replaceAll('_', ' ').trim();
+    if (cleaned != cleaned.toUpperCase()) return cleaned;
+    return cleaned
+        .split(RegExp(r'\s+'))
+        .map((w) => w.isEmpty
+            ? w
+            : '${w[0].toUpperCase()}${w.substring(1).toLowerCase()}')
+        .join(' ');
   }
 
   /// Effective price used for the Price (Low–High) sort.
@@ -367,7 +353,7 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
   Widget build(BuildContext context) {
     final statusBarHeight = MediaQuery.of(context).padding.top;
     final stickyCategories = [
-      StickyCategory(id: 'ALL_OPTION', name: 'All', imageUrl: AppImageAssets.all),
+      // StickyCategory(id: 'ALL_OPTION', name: 'All', imageUrl: AppImageAssets.all),
       ..._selfEmployedCategories.map((c) => StickyCategory(
         id: c.tagId ?? '',
         name: c.name ?? '',
@@ -399,14 +385,20 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
                     topPadding: statusBarHeight,
                     categories: stickyCategories,
                     singleLineLabel: true,
-                    selectedId: controller.selectedEarnServiceData.value?.slugId ?? 'ALL_OPTION',
+                    selectedId: controller.selectedEarnServiceData.value?.slugId ?? ELECTRICIAN,
+                    // selectedId: controller.selectedEarnServiceData.value?.slugId ?? 'ALL_OPTION',
                     onCategoryTap: (item) {
-                      controller.selectedEarnServiceData.value =
-                          item.id == 'ALL_OPTION' ? null : OnboardingCategoryModel(
-                            name: item.name,
-                            slugId: item.id,
-                            accountType: AppConstants.individual,
-                          );
+                      // controller.selectedEarnServiceData.value =
+                      //     item.id == 'ALL_OPTION' ? null : OnboardingCategoryModel(
+                      //       name: item.name,
+                      //       slugId: item.id,
+                      //       accountType: AppConstants.individual,
+                      //     );
+                      controller.selectedEarnServiceData.value = OnboardingCategoryModel(
+                        name: item.name,
+                        slugId: item.id,
+                        accountType: AppConstants.individual,
+                      );
                       controller.fetchEarnServices(
                           earnServiceType: earnServiceType, subType: serviceSubType);
                       setState(() {});
@@ -462,9 +454,17 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
                 return const Center(child: CircularProgressIndicator());
               }
               if (controller.earnServiceList.isEmpty) {
+                final selectedName =
+                    controller.selectedEarnServiceData.value?.name ?? '';
+                // Server returns categories in upper-case (e.g.
+                // "ELECTRICIAN"); flip to title-case for the message
+                // so it reads naturally ("No Electrician providers…").
+                final pretty = _prettyCategoryName(selectedName);
+                final message = pretty.isNotEmpty
+                    ? 'No $pretty providers found near you'
+                    : AppStrings.noServicesFound.tr;
                 return Center(
-                    child: EmptyStateWidget(
-                        message: AppStrings.noServicesFound.tr));
+                    child: EmptyStateWidget(message: message));
               }
               final sorted = _applySort(
                 controller.earnServiceList,
@@ -483,7 +483,7 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
                             child:
                                 CircularProgressIndicator(strokeWidth: 2)));
                   }
-                  return selfProfessionCard(sorted[index]);
+                  return _buildSpecCard(sorted[index]);
                 },
               );
             }),
@@ -493,41 +493,78 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
     );
   }
 
-  _SelfProfessionPalette _paletteFor(ServiceData service) {
-    final key = (service.id ?? service.name ?? '').hashCode;
-    return _selfProfessionPalettes[
-        key.abs() % _selfProfessionPalettes.length];
-  }
+  /// **Spec-Sheet Card** — mirrors the consultant directory entry.
+  /// Eyebrow (designation/profession) + oversized name + tagline →
+  /// hairline → 4-column spec strip (RATING / PRICE / NEAR / HOURS) →
+  /// optional 200px gallery hero → hairline → ghost View + filled
+  /// Enquire footer. Visual structure identical to
+  /// [AllProfessionConsultantScreen] so the two Discover lists feel
+  /// uniform; only the data extraction differs because the underlying
+  /// model is [ServiceData].
+  Widget _buildSpecCard(ServiceData service) {
+    // ─── Data extraction with sensible fallbacks ──────────────────
+    final designation = (service.designation?.trim().isNotEmpty ?? false)
+        ? service.designation!.trim()
+        : (service.profession ?? '').trim();
+    final name = (service.name?.trim().isNotEmpty ?? false)
+        ? service.name!
+        : AppStrings.unknownUser.tr;
+    final taglineRaw =
+        (service.bio ?? '').split('\n').firstWhere((s) => s.trim().isNotEmpty,
+            orElse: () => '');
 
-  Widget selfProfessionCard(ServiceData service) {
-    final timingMap = getMinMaxTimings(service.service?.timings);
+    final rating = service.rating ?? 0;
     final priceData = service.priceData;
     final isRange = priceData?.priceType == 'range';
-    final priceDisplay = isRange
-        ? "₹${formatIndianNumber(priceData?.priceRange?.min ?? 0)}-${formatIndianNumber(priceData?.priceRange?.max ?? 0)}"
-        : "₹${formatIndianNumber(priceData?.singlePrice ?? 0)}";
-    final badgeColor = isRange ? AppColors.green1A : AppColors.primaryColor;
-    final badgeText = priceData?.priceType.toString().capitalizeFirst ?? '';
-    final priceUnit =
-        (priceData?.perUnit?.trim().isNotEmpty ?? false)
-            ? priceData!.perUnit!
-            : 'Hour';
+    final priceMin =
+        isRange ? (priceData?.priceRange?.min ?? 0) : (priceData?.singlePrice ?? 0);
+    final priceMax = isRange ? (priceData?.priceRange?.max ?? 0) : 0;
+    final distance = (service.distance ?? 0).toDouble();
+    final timingMap = getMinMaxTimings(service.service?.timings);
+    final timingStart = timingMap['start'] ?? '--';
+    final timingEnd = timingMap['end'] ?? '--';
 
-    final palette = _paletteFor(service);
     final livePhotos = (service.serviceMedia?.photos ?? const <String>[])
         .where((p) => p.trim().isNotEmpty)
         .toList();
-    final logo = service.profileImage ?? '';
-    final hasLogo = logo.isNotEmpty;
-    final heroImage = livePhotos.isNotEmpty
-        ? livePhotos.first
-        : (hasLogo ? logo : '');
-    final extraPhotos = livePhotos.length > 1 ? livePhotos.length - 1 : 0;
-    final expertise = (service.service?.expertise ?? const <String>[])
-        .where((e) => e.trim().isNotEmpty)
-        .toList();
+    final profileImage = service.profileImage ?? '';
 
-    void openPreview() => Get.to(() => SelfEmployeeViewScreen(
+    // ─── Spec-strip value formatters ──────────────────────────────
+    final ratingStr =
+        rating == 0 ? '—' : rating.toDouble().toStringAsFixed(1);
+    final priceStr = priceMin == 0
+        ? '—'
+        : (isRange
+            ? '₹${formatIndianNumber(priceMin)}-${formatIndianNumber(priceMax)}'
+            : '₹${formatIndianNumber(priceMin)}');
+    final distStr = distance == 0
+        ? '—'
+        : '${distance < 10 ? distance.toStringAsFixed(1) : distance.toStringAsFixed(0)} km';
+    // Compact hours: "9:00 AM - 6:00 PM" → "9AM-6PM" so the narrow
+    // spec column doesn't FittedBox down to an unreadable size.
+    String compactTime(String t) {
+      final m = RegExp(r'(\d+):(\d+)\s*(AM|PM)', caseSensitive: false)
+          .firstMatch(t.trim());
+      if (m == null) return t;
+      final hh = m.group(1)!;
+      final mm = m.group(2)!;
+      final pm = m.group(3)!.toUpperCase();
+      return mm == '00' ? '$hh$pm' : '$hh:$mm$pm';
+    }
+
+    final hoursStr = (timingStart == '--' && timingEnd == '--')
+        ? '—'
+        : '${compactTime(timingStart)}-${compactTime(timingEnd)}';
+
+    // For the price badge inside SelfEmployeeViewScreen — kept
+    // identical to the legacy card so the detail page reads the same.
+    final priceDisplay = isRange
+        ? "₹${formatIndianNumber(priceMin)}-${formatIndianNumber(priceMax)}"
+        : "₹${formatIndianNumber(priceMin)}";
+    final badgeColor = isRange ? AppColors.green1A : AppColors.primaryColor;
+    final badgeText = priceData?.priceType.toString().capitalizeFirst ?? '';
+
+    void openDetail() => Get.to(() => SelfEmployeeViewScreen(
           service: service,
           timingMap: timingMap,
           priceDisplay: priceDisplay,
@@ -536,546 +573,331 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
         ));
 
     return InkWell(
-      onTap: openPreview,
-      borderRadius: BorderRadius.circular(12),
+      onTap: openDetail,
+      borderRadius: BorderRadius.circular(16),
       child: Container(
-        margin: EdgeInsets.only(bottom: SizeConfig.size10),
+        margin: EdgeInsets.only(bottom: SizeConfig.size12),
+        padding: EdgeInsets.all(SizeConfig.size14),
         decoration: BoxDecoration(
-          color: palette.cardBg,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: palette.cardBorder, width: 1),
-          boxShadow: [
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFEDEFF4), width: 1),
+          boxShadow: const [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03),
-              blurRadius: 6,
-              offset: const Offset(0, 2),
+              color: Color(0x14001120),
+              blurRadius: 14,
+              offset: Offset(0, 4),
             ),
           ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Padding(
-              padding: EdgeInsets.all(SizeConfig.size12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+            // ─── Eyebrow: bullet + DESIGNATION ────────────────────
+            if (designation.isNotEmpty)
+              Row(
                 children: [
-                  _buildHeader(service),
-                  SizedBox(height: SizeConfig.size10),
-                  _buildDottedLine(palette.dividerLine),
-                  SizedBox(height: SizeConfig.size10),
-                  _buildBodyRow(
-                    service: service,
-                    timingMap: timingMap,
-                    expertise: expertise,
-                    heroImage: heroImage,
-                    livePhotos: livePhotos,
-                    extraPhotos: extraPhotos,
-                    palette: palette,
+                  Container(
+                    width: 5,
+                    height: 5,
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryColor,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  SizedBox(width: SizeConfig.size8),
+                  Flexible(
+                    child: Text(
+                      designation.toUpperCase(),
+                      style: TextStyle(
+                        fontFamily: AppConstants.OpenSans,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.primaryColor,
+                        letterSpacing: 1.4,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
                 ],
               ),
-            ),
-            _buildFooter(
-              priceDisplay: priceDisplay,
-              priceUnit: priceUnit,
-              palette: palette,
-              onTap: openPreview,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+            SizedBox(height: SizeConfig.size8),
 
-  // ─── Header: avatar (online dot) + name + rating/distance/online + chat ─
-  Widget _buildHeader(ServiceData service) {
-    final ratingValue = service.rating != null && service.rating != 0
-        ? service.rating.toString()
-        : '0';
-    final distance = '${service.distance ?? 0} km';
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Stack(
-          children: [
-            CachedAvatarWidget(
-              imageUrl: service.profileImage ?? '',
-              size: SizeConfig.size50,
-              borderColor: Colors.white,
-              borderRadius: SizeConfig.size25,
-            ),
-            Positioned(
-              bottom: 2,
-              right: 2,
-              child: Container(
-                width: 10,
-                height: 10,
-                decoration: BoxDecoration(
-                  color: Colors.green,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 1.5),
-                ),
-              ),
-            ),
-          ],
-        ),
-        SizedBox(width: SizeConfig.size10),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              CustomText(
-                service.name ?? AppStrings.unknownUser.tr,
-                fontSize: SizeConfig.large18,
-                color: AppColors.mainTextColor,
-                fontWeight: FontWeight.w800,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              SizedBox(height: SizeConfig.size6),
-              Wrap(
-                spacing: 6,
-                runSpacing: 6,
-                children: [
-                  _buildRatingBadge(ratingValue),
-                  _buildDistanceBadge(distance),
-                  _buildOnlineBadge(),
-                ],
-              ),
-            ],
-          ),
-        ),
-        SizedBox(width: SizeConfig.size6),
-        DiscoverChatIcon(
-          userId: service.id ?? '',
-          name: service.name,
-          profile: service.profileImage,
-          businessId: service.id,
-          trackingSource: ChatClickSource.searchResult,
-        ),
-      ],
-    );
-  }
-
-  // ─── Body: timing tile + expertise bullets on left, hero image right ───
-  Widget _buildBodyRow({
-    required ServiceData service,
-    required Map<String, String> timingMap,
-    required List<String> expertise,
-    required String heroImage,
-    required List<String> livePhotos,
-    required int extraPhotos,
-    required _SelfProfessionPalette palette,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 15.0),
-      child: IntrinsicHeight(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Expanded(
-              flex: 7,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _buildTimingTile(timingMap, palette),
-                  SizedBox(height: SizeConfig.size6),
-                  _buildExpertiseList(expertise, palette),
-                ],
-              ),
-            ),
-            SizedBox(width: SizeConfig.size8),
-            Expanded(
-              flex: 5,
-              child: _buildHeroImage(
-                service: service,
-                heroImage: heroImage,
-                livePhotos: livePhotos,
-                extraPhotos: extraPhotos,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTimingTile(
-      Map<String, String> timingMap, _SelfProfessionPalette palette) {
-    final start = timingMap['start'] ?? '--';
-    final end = timingMap['end'] ?? '--';
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: SizeConfig.size8,
-        vertical: SizeConfig.size8,
-      ),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: palette.tileBorder, width: 1),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.access_time_rounded,
-              size: 14, color: AppColors.secondaryTextColor),
-          SizedBox(width: SizeConfig.size6),
-          Expanded(
-            child: RichText(
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              text: TextSpan(
-                style: TextStyle(
-                  fontSize: SizeConfig.small,
-                  color: AppColors.secondaryTextColor,
-                  fontWeight: FontWeight.w500,
-                ),
-                children: [
-                  const TextSpan(text: 'Mon – Fri: '),
-                  TextSpan(
-                    text: '$start – $end',
+            // ─── Name + small avatar ──────────────────────────────
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: Text(
+                    name,
                     style: TextStyle(
+                      fontFamily: AppConstants.OpenSans,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
                       color: AppColors.mainTextColor,
-                      fontWeight: FontWeight.w700,
+                      letterSpacing: -0.3,
+                      height: 1.15,
                     ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                ],
-              ),
-            ),
-          ),
-          Icon(Icons.expand_more_rounded,
-              size: 16, color: AppColors.secondaryTextColor),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildExpertiseList(
-      List<String> expertise, _SelfProfessionPalette palette) {
-    if (expertise.isEmpty) {
-      return CustomText(
-        '—',
-        fontSize: SizeConfig.small,
-        color: AppColors.secondaryTextColor,
-        fontWeight: FontWeight.w400,
-      );
-    }
-    final visible = expertise.take(2).toList();
-    final extra = expertise.length - visible.length;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          padding: EdgeInsets.symmetric(
-            horizontal: SizeConfig.size8,
-            vertical: SizeConfig.size8,
-          ),
-          decoration: BoxDecoration(
-            color: AppColors.white,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: palette.tileBorder, width: 1),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              for (var i = 0; i < visible.length; i++) ...[
-                if (i > 0) const SizedBox(height: 2),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Container(
-                      width: 4,
-                      height: 4,
-                      margin: const EdgeInsets.only(right: 6),
-                      decoration: BoxDecoration(
-                        color: AppColors.secondaryTextColor,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    Expanded(
-                      child: CustomText(
-                        visible[i],
-                        fontSize: SizeConfig.small,
-                        color: AppColors.secondaryTextColor,
-                        fontWeight: FontWeight.w500,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
+                ),
+                SizedBox(width: SizeConfig.size10),
+                CachedAvatarWidget(
+                  imageUrl: profileImage,
+                  size: SizeConfig.size40,
+                  borderColor: Colors.white,
+                  borderRadius: SizeConfig.size20,
                 ),
               ],
-            ],
-          ),
-        ),
-        if (extra > 0)
-          Padding(
-            padding: EdgeInsets.only(
-              top: SizeConfig.size4,
-              left: SizeConfig.size8,
             ),
-            child: GestureDetector(
-              onTap: () => _showExpertiseSheet(expertise),
-              child: CustomText(
-                '+$extra More',
-                fontSize: SizeConfig.small,
-                color: AppColors.primaryColor,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-      ],
-    );
-  }
 
-  /// Opens a bottom sheet with the full expertise list, used by the
-  /// "+N More" tap target inside [_buildExpertiseList].
-  void _showExpertiseSheet(List<String> expertise) {
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) {
-        return Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-          ),
-          padding: EdgeInsets.fromLTRB(
-              SizeConfig.size16, SizeConfig.size12, SizeConfig.size16, SizeConfig.size16),
-          child: SafeArea(
-            top: false,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
+            if (taglineRaw.isNotEmpty) ...[
+              SizedBox(height: SizeConfig.size6),
+              Text(
+                taglineRaw,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.secondaryTextColor,
+                  height: 1.4,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+
+            SizedBox(height: SizeConfig.size12),
+            Container(height: 1, color: const Color(0xFFEDEFF4)),
+            SizedBox(height: SizeConfig.size12),
+
+            // ─── 4-column spec strip ──────────────────────────────
+            Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Center(
-                  child: Container(
-                    width: 40,
-                    height: 4,
-                    margin: const EdgeInsets.only(bottom: 12),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[300],
-                      borderRadius: BorderRadius.circular(2),
+                Expanded(child: _specColumn('RATING', ratingStr)),
+                Expanded(child: _specColumn('PRICE', priceStr)),
+                Expanded(child: _specColumn('NEAR', distStr)),
+                Expanded(child: _specColumn('HOURS', hoursStr)),
+              ],
+            ),
+
+            // ─── Live-photo carousel OR profile-image fallback ────
+            // Mirrors the consultant card so the gallery experience
+            // stays consistent across both Discover lists. The 200px
+            // height holds the card silhouette steady even when a
+            // provider hasn't uploaded service photos yet.
+            if (livePhotos.isNotEmpty) ...[
+              SizedBox(height: SizeConfig.size12),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: StoreLivePhotoWidget(
+                  livePhotos: livePhotos,
+                  natureOfBusiness: service.profession ?? 'Service',
+                  height: 200,
+                  onViewFullScreen: ({
+                    required int index,
+                    required List<String> storeImage,
+                    required String natureOfBusiness,
+                  }) {
+                    navigatePushTo(
+                      context,
+                      ImageViewScreen(
+                        subTitle: natureOfBusiness,
+                        appBarTitle: AppStrings.imageViewer,
+                        imageUrls: storeImage,
+                        initialIndex: index,
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ] else if (profileImage.isNotEmpty) ...[
+              SizedBox(height: SizeConfig.size12),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: GestureDetector(
+                  onTap: () => navigatePushTo(
+                    context,
+                    ImageViewScreen(
+                      subTitle: service.profession ?? 'Service',
+                      appBarTitle: AppStrings.imageViewer,
+                      imageUrls: [profileImage],
+                      initialIndex: 0,
+                    ),
+                  ),
+                  child: SizedBox(
+                    height: 200,
+                    width: double.infinity,
+                    child: CachedNetworkImage(
+                      imageUrl: profileImage,
+                      fit: BoxFit.cover,
+                      memCacheWidth: 800,
+                      memCacheHeight: 600,
+                      placeholder: (_, __) => LocalAssets(
+                        imagePath: AppIconAssets.place_holder_image,
+                        boxFix: BoxFit.fill,
+                      ),
+                      errorWidget: (_, __, ___) => LocalAssets(
+                        imagePath: AppIconAssets.place_holder_image,
+                        boxFix: BoxFit.fill,
+                      ),
                     ),
                   ),
                 ),
-                Row(
-                  children: [
-                    Expanded(
-                      child: CustomText(
-                        'Expertise',
-                        fontSize: SizeConfig.large18,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.mainTextColor,
-                      ),
-                    ),
-                    const CloseButton(),
-                  ],
+              ),
+            ],
+
+            SizedBox(height: SizeConfig.size12),
+            Container(height: 1, color: const Color(0xFFEDEFF4)),
+            SizedBox(height: SizeConfig.size10),
+
+            // ─── Footer: View (ghost) + Enquire (filled) ──────────
+            Row(
+              children: [
+                Expanded(
+                  child: _ghostButton(
+                    label: 'View',
+                    icon: Icons.arrow_outward_rounded,
+                    onTap: openDetail,
+                  ),
                 ),
-                SizedBox(height: SizeConfig.size8),
-                Flexible(
-                  child: ListView.separated(
-                    shrinkWrap: true,
-                    itemCount: expertise.length,
-                    separatorBuilder: (_, __) => SizedBox(height: SizeConfig.size6),
-                    itemBuilder: (_, index) {
-                      return Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.only(top: 7, right: 8),
-                            child: Container(
-                              width: 5,
-                              height: 5,
-                              decoration: BoxDecoration(
-                                color: AppColors.primaryColor,
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                          ),
-                          Expanded(
-                            child: CustomText(
-                              expertise[index],
-                              fontSize: SizeConfig.medium,
-                              color: AppColors.mainTextColor,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      );
+                SizedBox(width: SizeConfig.size10),
+                Expanded(
+                  child: _filledButton(
+                    label: 'Enquire',
+                    icon: Icons.chat_outlined,
+                    onTap: () {
+                      final targetUserId = service.id ?? '';
+                      if (targetUserId.isEmpty) return;
+                      final chatViewController =
+                          getOrPut(() => ChatViewController());
+                      chatViewController.checkChatConnectionAndOpenChat(
+                          userId: targetUserId);
                     },
                   ),
                 ),
               ],
             ),
-          ),
-        );
-      },
+          ],
+        ),
+      ),
     );
   }
 
-  Widget _buildHeroImage({
-    required ServiceData service,
-    required String heroImage,
-    required List<String> livePhotos,
-    required int extraPhotos,
-  }) {
-    final natureOfBusiness = service.profession ?? 'Service';
-    final fullList = livePhotos.isNotEmpty
-        ? livePhotos
-        : (heroImage.isNotEmpty ? [heroImage] : <String>[]);
+  /// Single column of the 4-column spec strip — label on top in
+  /// uppercase eyebrow style, value below in body weight with tabular
+  /// figures so digit columns align across rows.
+  Widget _specColumn(String label, String value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontFamily: AppConstants.OpenSans,
+            fontSize: 9,
+            fontWeight: FontWeight.w800,
+            color: AppColors.secondaryTextColor,
+            letterSpacing: 1.2,
+          ),
+        ),
+        const SizedBox(height: 4),
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: Text(
+            value,
+            style: TextStyle(
+              fontFamily: AppConstants.OpenSans,
+              fontSize: 13,
+              fontWeight: FontWeight.w800,
+              color: AppColors.mainTextColor,
+              letterSpacing: 0.2,
+              fontFeatures: const [FontFeature.tabularFigures()],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 
-    return GestureDetector(
-      onTap: fullList.isEmpty
-          ? null
-          : () => _showPhotoDialog(
-                images: fullList,
-                initialIndex: 0,
-                title: natureOfBusiness,
-              ),
+  Widget _ghostButton({
+    required String label,
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(10),
       child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10),
         decoration: BoxDecoration(
+          color: Colors.white,
           borderRadius: BorderRadius.circular(10),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x33000000),
-              blurRadius: 10,
-              offset: Offset(0, 1),
+          border: Border.all(
+            color: AppColors.primaryColor.withValues(alpha: 0.30),
+            width: 1,
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 14, color: AppColors.primaryColor),
+            const SizedBox(width: 6),
+            CustomText(
+              label,
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: AppColors.primaryColor,
             ),
           ],
         ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(10),
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              if (heroImage.isNotEmpty)
-                CachedNetworkImage(
-                  imageUrl: heroImage,
-                  fit: BoxFit.cover,
-                  memCacheWidth: 600,
-                  memCacheHeight: 600,
-                  placeholder: (_, __) => LocalAssets(
-                    imagePath: AppIconAssets.place_holder_image,
-                    boxFix: BoxFit.cover,
-                  ),
-                  errorWidget: (_, __, ___) => LocalAssets(
-                    imagePath: AppIconAssets.place_holder_image,
-                    boxFix: BoxFit.cover,
-                  ),
-                )
-              else
-                LocalAssets(
-                  imagePath: AppIconAssets.place_holder_image,
-                  boxFix: BoxFit.cover,
-                ),
-              if (extraPhotos > 0)
-                Positioned(
-                  right: 6,
-                  bottom: 6,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.65),
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                    child: CustomText(
-                      '+$extraPhotos',
-                      fontSize: SizeConfig.small,
-                      color: Colors.white,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        ),
       ),
     );
   }
 
-  Widget _buildFooter({
-    required String priceDisplay,
-    required String priceUnit,
-    required _SelfProfessionPalette palette,
+  Widget _filledButton({
+    required String label,
+    required IconData icon,
     required VoidCallback onTap,
   }) {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.symmetric(
-          vertical: SizeConfig.size10, horizontal: SizeConfig.size12),
-      decoration: BoxDecoration(
-        color: Colors.transparent,
-        border: Border(
-          top: BorderSide(color: palette.cardBorder, width: 1),
-        ),
-        borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(12),
-          bottomRight: Radius.circular(12),
-        ),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: RichText(
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              text: TextSpan(
-                style: TextStyle(
-                  fontSize: SizeConfig.medium,
-                  color: AppColors.mainTextColor,
-                  fontWeight: FontWeight.w800,
-                ),
-                children: [
-                  TextSpan(text: priceDisplay),
-                  TextSpan(
-                    text: '/ $priceUnit',
-                    style: TextStyle(
-                      fontSize: SizeConfig.small,
-                      color: AppColors.secondaryTextColor,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          color: AppColors.primaryColor,
+          borderRadius: BorderRadius.circular(10),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primaryColor.withValues(alpha: 0.30),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
             ),
-          ),
-          InkWell(
-            onTap: onTap,
-            borderRadius: BorderRadius.circular(20),
-            child: Container(
-              padding: EdgeInsets.symmetric(
-                  horizontal: SizeConfig.size16, vertical: SizeConfig.size6),
-              decoration: BoxDecoration(
-                color: AppColors.primaryColor,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.primaryColor.withValues(alpha: 0.25),
-                    blurRadius: 6,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: CustomText(
-                AppStrings.viewProfile,
-                fontSize: SizeConfig.small,
-                color: Colors.white,
-                fontWeight: FontWeight.w700,
-              ),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 14, color: Colors.white),
+            const SizedBox(width: 6),
+            CustomText(
+              label,
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  // ─── Badges ─────────────────────────────────────────────────────────────
+  // ─── Badges (still used by the map-marker bottom sheet) ─────────
   Widget _buildRatingBadge(String rating) {
     const goldFg = Color(0xFFB8860B);
     const goldBg = Color(0xFFFFF3D1);
@@ -1169,46 +991,6 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
             fontWeight: FontWeight.w700,
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildDottedLine(Color color) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        const dashWidth = 4.0;
-        const dashSpace = 3.0;
-        final dashCount =
-            (constraints.maxWidth / (dashWidth + dashSpace)).floor();
-        return Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: List.generate(dashCount, (_) {
-            return SizedBox(
-              width: dashWidth,
-              height: 1,
-              child: DecoratedBox(
-                decoration: BoxDecoration(color: color),
-              ),
-            );
-          }),
-        );
-      },
-    );
-  }
-
-  void _showPhotoDialog({
-    required List<String> images,
-    required int initialIndex,
-    required String title,
-  }) {
-    if (images.isEmpty) return;
-    showDialog<void>(
-      context: context,
-      barrierColor: Colors.black.withValues(alpha: 0.75),
-      builder: (_) => _SelfProfessionPhotoDialog(
-        images: images,
-        initialIndex: initialIndex,
-        title: title,
       ),
     );
   }
@@ -1453,287 +1235,6 @@ class _SelfProfessionMapScreenState extends State<_SelfProfessionMapScreen> {
             }),
           ),
         ],
-      ),
-    );
-  }
-}
-
-/// Premium photo lightbox shown as a bordered, rounded dialog (not
-/// full-page). Inside: a faint primary halo radial backdrop, a clean
-/// header with a title pill + counter + circular close, an
-/// `InteractiveViewer` PageView with double-tap-to-zoom, and an
-/// animated dot indicator below — the active dot stretches into a
-/// pill in the primary color.
-class _SelfProfessionPhotoDialog extends StatefulWidget {
-  final List<String> images;
-  final int initialIndex;
-  final String title;
-
-  const _SelfProfessionPhotoDialog({
-    required this.images,
-    required this.initialIndex,
-    required this.title,
-  });
-
-  @override
-  State<_SelfProfessionPhotoDialog> createState() =>
-      _SelfProfessionPhotoDialogState();
-}
-
-class _SelfProfessionPhotoDialogState
-    extends State<_SelfProfessionPhotoDialog>
-    with SingleTickerProviderStateMixin {
-  late final PageController _controller;
-  late final AnimationController _entry;
-  late int _index;
-  final Map<int, TransformationController> _transformers = {};
-  TapDownDetails? _lastDoubleTap;
-
-  @override
-  void initState() {
-    super.initState();
-    _index = widget.initialIndex.clamp(0, widget.images.length - 1);
-    _controller = PageController(initialPage: _index);
-    _entry = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 380),
-    )..forward();
-  }
-
-  TransformationController _transformerFor(int i) =>
-      _transformers.putIfAbsent(i, TransformationController.new);
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    _entry.dispose();
-    for (final t in _transformers.values) {
-      t.dispose();
-    }
-    super.dispose();
-  }
-
-  void _toggleZoom(int i) {
-    final t = _transformerFor(i);
-    final details = _lastDoubleTap;
-    if (t.value != Matrix4.identity()) {
-      t.value = Matrix4.identity();
-    } else if (details != null) {
-      const scale = 2.5;
-      final pos = details.localPosition;
-      t.value = Matrix4.identity()
-        ..translate(-pos.dx * (scale - 1), -pos.dy * (scale - 1))
-        ..scale(scale);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-    return Dialog(
-      backgroundColor: Colors.transparent,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-      child: AnimatedBuilder(
-        animation: _entry,
-        builder: (_, __) => Opacity(
-          opacity: _entry.value,
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(20),
-            child: Container(
-              width: size.width,
-              decoration: BoxDecoration(
-                gradient: RadialGradient(
-                  radius: 1.1,
-                  colors: [
-                    AppColors.primaryColor.withValues(alpha: 0.14),
-                    Colors.black.withValues(alpha: 0.96),
-                    Colors.black,
-                  ],
-                  stops: const [0.0, 0.6, 1.0],
-                ),
-                border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.08),
-                  width: 0.5,
-                ),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Align(
-                            alignment: Alignment.centerLeft,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 5),
-                              decoration: BoxDecoration(
-                                color: AppColors.primaryColor
-                                    .withValues(alpha: 0.22),
-                                borderRadius: BorderRadius.circular(999),
-                                border: Border.all(
-                                  color: AppColors.primaryColor
-                                      .withValues(alpha: 0.32),
-                                  width: 0.5,
-                                ),
-                              ),
-                              child: CustomText(
-                                widget.title,
-                                fontSize: SizeConfig.small,
-                                color: Colors.white,
-                                fontWeight: FontWeight.w700,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 5),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.10),
-                            borderRadius: BorderRadius.circular(999),
-                            border: Border.all(
-                              color: Colors.white.withValues(alpha: 0.20),
-                              width: 0.5,
-                            ),
-                          ),
-                          child: CustomText(
-                            '${_index + 1} / ${widget.images.length}',
-                            fontSize: SizeConfig.small,
-                            color: Colors.white,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        GestureDetector(
-                          onTap: () => Navigator.of(context).pop(),
-                          child: Container(
-                            width: 32,
-                            height: 32,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Colors.white.withValues(alpha: 0.12),
-                              border: Border.all(
-                                color: Colors.white.withValues(alpha: 0.20),
-                                width: 0.5,
-                              ),
-                            ),
-                            child: const Icon(Icons.close_rounded,
-                                color: Colors.white, size: 18),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(
-                    height: size.height * 0.5,
-                    child: PageView.builder(
-                      controller: _controller,
-                      itemCount: widget.images.length,
-                      physics: const BouncingScrollPhysics(),
-                      onPageChanged: (i) => setState(() => _index = i),
-                      itemBuilder: (_, i) {
-                        return GestureDetector(
-                          onDoubleTapDown: (d) => _lastDoubleTap = d,
-                          onDoubleTap: () => _toggleZoom(i),
-                          child: Hero(
-                            tag: 'photo_${widget.images[i]}_$i',
-                            child: InteractiveViewer(
-                              transformationController:
-                                  _transformerFor(i),
-                              minScale: 1,
-                              maxScale: 5,
-                              child: Center(
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 8),
-                                  child: ClipRRect(
-                                    borderRadius:
-                                        BorderRadius.circular(12),
-                                    child: CachedNetworkImage(
-                                      imageUrl: widget.images[i],
-                                      fit: BoxFit.contain,
-                                      placeholder: (_, __) => Container(
-                                        color: Colors.white
-                                            .withValues(alpha: 0.04),
-                                        child: Center(
-                                          child: SizedBox(
-                                            width: 26,
-                                            height: 26,
-                                            child:
-                                                CircularProgressIndicator(
-                                              strokeWidth: 2,
-                                              valueColor:
-                                                  AlwaysStoppedAnimation<
-                                                      Color>(Colors.white
-                                                          .withValues(
-                                                              alpha:
-                                                                  0.55)),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      errorWidget: (_, __, ___) =>
-                                          LocalAssets(
-                                        imagePath: AppIconAssets
-                                            .place_holder_image,
-                                        boxFix: BoxFit.contain,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 14, horizontal: 16),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: List.generate(widget.images.length, (i) {
-                        final active = i == _index;
-                        return AnimatedContainer(
-                          duration: const Duration(milliseconds: 260),
-                          curve: Curves.easeOutCubic,
-                          margin:
-                              const EdgeInsets.symmetric(horizontal: 3),
-                          width: active ? 22 : 6,
-                          height: 6,
-                          decoration: BoxDecoration(
-                            color: active
-                                ? AppColors.primaryColor
-                                : Colors.white.withValues(alpha: 0.35),
-                            borderRadius: BorderRadius.circular(999),
-                            boxShadow: active
-                                ? [
-                                    BoxShadow(
-                                      color: AppColors.primaryColor
-                                          .withValues(alpha: 0.55),
-                                      blurRadius: 8,
-                                      offset: const Offset(0, 2),
-                                    ),
-                                  ]
-                                : null,
-                          ),
-                        );
-                      }),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
       ),
     );
   }

@@ -1,6 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
@@ -12,25 +11,12 @@ import 'package:flutter/material.dart';
 
 import 'package:get/get.dart';
 
-final Map<String, String> _serviceIconByTagId = {
-  BEAUTY_PERSONAL_CARE: OnboardingBusinessAssets.beautyAndPersonalCare,
-  CONSULTING_HR_SERVICE: OnboardingBusinessAssets.consultingFirm,
-  HOME_SERVICES_UTILITY: OnboardingBusinessAssets.homeServiceAndUtility,
-  SERVICE_CENTRE_ESSENTIAL_UTILITY: OnboardingBusinessAssets.serviceCenterAndEssentialUtils,
-  MEDIA_PUBLICITY_CREATIVE: OnboardingBusinessAssets.mediaPublicityAndCreative,
-  REAL_ESTATE_PROPERTY_SERVICES: OnboardingBusinessAssets.realEstateProperty,
-  IT_COMMUNICATION: OnboardingBusinessAssets.itAndCommunication,
-  TOUR_TRAVEL_TOURISM: OnboardingBusinessAssets.tourTravelsAndTourism,
-  TECHNICAL_TESTING_QUALITY_SERVICE: OnboardingBusinessAssets.technicalTestingAndQualityLabs,
-};
-
 class FindServiceCardWidget extends StatelessWidget {
   const FindServiceCardWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final categories =
-        Get.find<AuthController>().businessOnboardingServicesCategories;
+    final categories = Get.find<AuthController>().businessOnboardingServicesCategories;
 
     return CustomFormCard(
       color: AppColors.white,
@@ -57,14 +43,14 @@ class FindServiceCardWidget extends StatelessWidget {
               return Wrap(
                 spacing: spacing,
                 runSpacing: spacing,
-                children: categories.take(9).map((categoryItem) {
+                children: categories.take(9).map((c) {
+                  debugPrint('Services tagId=${c.tagId} name=${c.name}');
                   return SizedBox(
                     width: itemWidth,
                     child: CommonServiceCard(
-                      service: categoryItem,
+                      service: c,
                       getName: (item) => item.name ?? '',
-                      getIcon: (item) =>
-                          _serviceIconByTagId[item.tagId] ?? '',
+                      getIcon: (item) => getServiceCategoryIcon(item.tagId),
                       iconHeight: SizeConfig.size80,
                       onTap: (item) {
                         Get.to(() => ServicesNearMeScreen(

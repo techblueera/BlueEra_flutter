@@ -49,9 +49,42 @@ class _ProfessionalProfileScreenState
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(title: "About Professional"),
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+          child: Obx(() => CustomBtn(
+                title: AppStrings.save.tr,
+                isValidate: controller.isProfessionalValid.value,
+                onTap: controller.isProfessionalValid.value
+                    ? () async {
+                        if (int.tryParse(
+                                    controller.expYearController.text) !=
+                                null &&
+                            int.parse(controller.expYearController.text) >
+                                100) {
+                          commonSnackBar(
+                              message:
+                                  "Please enter valid years of experience");
+                          return;
+                        } else if (int.tryParse(
+                                    controller.expMonthController.text) !=
+                                null &&
+                            int.parse(
+                                    controller.expMonthController.text) >
+                                12) {
+                          commonSnackBar(
+                              message: "Please enter valid months");
+                          return;
+                        }
+                        await controller.saveAboutProfessional();
+                      }
+                    : null,
+              )),
+        ),
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: EdgeInsets.all(SizeConfig.size14),
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
           child: Column(
             children: [
               // --- Expertise ---
@@ -105,7 +138,7 @@ class _ProfessionalProfileScreenState
                   ),
                 ),
               ),
-              SizedBox(height: SizeConfig.size14),
+              const SizedBox(height: 10),
 
               // --- Experience ---
               CommonCardWidget(
@@ -162,7 +195,7 @@ class _ProfessionalProfileScreenState
                   ),
                 ),
               ),
-              SizedBox(height: SizeConfig.size14),
+              const SizedBox(height: 10),
 
               // --- Major Projects ---
               CommonCardWidget(
@@ -206,42 +239,6 @@ class _ProfessionalProfileScreenState
                   ),
                 ),
               ),
-              const SizedBox(height: 30),
-
-              // --- Save ---
-              Obx(() => CustomBtn(
-                    title: AppStrings.save.tr,
-                    isValidate:
-                        controller.isProfessionalValid.value,
-                    onTap: controller.isProfessionalValid.value
-                        ? () async {
-                            if (int.tryParse(controller
-                                        .expYearController.text) !=
-                                    null &&
-                                int.parse(controller
-                                        .expYearController.text) >
-                                    100) {
-                              commonSnackBar(
-                                  message:
-                                      "Please enter valid years of experience");
-                              return;
-                            } else if (int.tryParse(controller
-                                        .expMonthController.text) !=
-                                    null &&
-                                int.parse(controller
-                                        .expMonthController.text) >
-                                    12) {
-                              commonSnackBar(
-                                  message:
-                                      "Please enter valid months");
-                              return;
-                            }
-                            await controller
-                                .saveAboutProfessional();
-                          }
-                        : null,
-                  )),
-              SizedBox(height: SizeConfig.size20),
             ],
           ),
         ),

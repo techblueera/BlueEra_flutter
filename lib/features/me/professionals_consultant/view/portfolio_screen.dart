@@ -202,7 +202,7 @@ class PortfolioScreen extends StatelessWidget {
                                       return;
                                     }
                                     await portfolioController.save();
-                                    Get.back();
+                                    Get.back(result: true);
                                   },
                           )),
                       SizedBox(height: SizeConfig.size20),

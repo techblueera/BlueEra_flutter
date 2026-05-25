@@ -305,7 +305,7 @@ class _VisitFoodStoreDetailsScreenState
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   Widget _buildDiscountFoodList() {
     return Obx(() => SizedBox(
-          height: 250,
+          height: 240,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             itemCount: controller.discountFoodItems.length,
@@ -323,10 +323,7 @@ class _VisitFoodStoreDetailsScreenState
                       ? (((mrp - sellingPrice) / mrp) * 100).round()
                       : 0;
 
-              return GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: () => _openVariantsSheetForOfferDish(item),
-                child: Container(
+              return Container(
                 width: 170,
                 margin: const EdgeInsets.only(right: 12),
                 decoration: BoxDecoration(
@@ -405,11 +402,46 @@ class _VisitFoodStoreDetailsScreenState
                             size: 8,
                           ),
                         ),
+                        Positioned(
+                          bottom: 8,
+                          right: 8,
+                          child: GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: () =>
+                                _openVariantsSheetForOfferDish(item),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: AppColors.white,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: AppColors.primaryColor,
+                                  width: 1,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black
+                                        .withValues(alpha: 0.12),
+                                    blurRadius: 6,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: CustomText(
+                                'ADD',
+                                fontSize: 12,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.primaryColor,
+                                letterSpacing: 0.6,
+                              ),
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                     FoodOfferDishInfoSection(item: item),
                   ],
-                ),
                 ),
               );
             },
