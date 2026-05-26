@@ -2768,6 +2768,7 @@ class ChatViewController extends GetxController {
 
         final data = responseModel.response?.data;
         Messages? message = Messages.fromJson(data['data']);
+
         if (message.subType != "comment") {
           // Reset conversation-level status to match the new message's actual
           // status from the server. Without this, a stale 'read' value from a
@@ -2779,7 +2780,12 @@ class ChatViewController extends GetxController {
 
           // Deduplicate: newMessageReceived socket event may have already added this
 
+          final alreadyExists = message.id != null &&
+              (getListOfMessageData?.any((m) => m.id == message.id) ?? false);
+     if (!alreadyExists) {
+    getListOfMessageData?.add(message);
 
+    }
           getListOfMessageResponse.value =
               ApiResponse.complete(getListOfMessageData);
           saveSingleMessageToLocal(

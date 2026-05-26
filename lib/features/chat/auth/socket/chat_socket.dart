@@ -19,6 +19,7 @@ class ChatSocketService {
   static IO.Socket? _socket;
 
   bool _isConnected = false;
+  bool _isConnecting = false;
 
   // Exponential backoff for reconnection
   int _reconnectAttempts = 0;
@@ -51,6 +52,13 @@ class ChatSocketService {
       return;
     }
 
+    // Prevent concurrent connect attempts from disposing an in-flight socket
+    if (_isConnecting) {
+      return;
+    }
+
+    _isConnecting = true;
+
     try {
       // Dispose old socket if exists
       _socket?.dispose();
@@ -78,15 +86,11 @@ class ChatSocketService {
 
       _socket!.onConnect((_) {
         _isConnected = true;
+        _isConnecting = false;
         _reconnectAttempts = 0;
         _reconnectTimer?.cancel();
 
-
-        _socket!.emit(ChatEmitEvents.screenRoom, {ApiKeys.conversation_id: "online"});
-        _socket!.emit(ChatEmitEvents.isOnlineFromChatList, {});
-        _socket!.emit(ChatEmitEvents.ChatList, {ApiKeys.type: AppConstants.personal_Chat_Type});
-
-        // Re-register ALL known listeners on the new socket
+        // Re-register ALL known listeners on the new socket BEFORE emitting
         for (final entry in _registeredListeners) {
           _socket!.off(entry.key);
           _socket!.on(entry.key, entry.value);
@@ -100,20 +104,27 @@ class ChatSocketService {
         }
         _pendingListeners.clear();
 
+        _socket!.emit(ChatEmitEvents.screenRoom, {ApiKeys.conversation_id: "online"});
+        _socket!.emit(ChatEmitEvents.isOnlineFromChatList, {});
+        _socket!.emit(ChatEmitEvents.ChatList, {ApiKeys.type: AppConstants.personal_Chat_Type});
+
         // Socket reconnect is also a strong signal that the network is back —
         // flush any pending chat messages in the background.
         unawaited(PendingMessageDrainer.instance.drainNow());
       });
 
       _socket!.onConnectError((err) {
+        _isConnecting = false;
       });
 
       _socket!.onDisconnect((reason) {
         _isConnected = false;
+        _isConnecting = false;
         _scheduleReconnect();
       });
 
     } catch (e) {
+      _isConnecting = false;
 print("SOCKET ERROR catch ${e}");
       rethrow;
     }
@@ -122,7 +133,11 @@ print("SOCKET ERROR catch ${e}");
   // ─── Generic Emit / Listen ─────────────────────────────────────────────────
 
   void emitEvent(String event, dynamic data) async {
-    if (_isConnected && _socket != null) {
+    if (_socket != null) {
+      // Socket exists — emit directly. If still connecting, socket_io
+      // buffers the message and flushes it on connect.
+      log("ksdjcksjcnksjcscd  88 ${data}");
+
       _socket!.emit(event, data);
     } else {
       // Skip the lazy-connect when logged out — connectToSocket() will
@@ -130,8 +145,9 @@ print("SOCKET ERROR catch ${e}");
       // for callers that fire from late teardown paths.
       if (!isLoggedIn()) return;
       await connectToSocket();
-      _socket?.emit(event, data);
+      log("ksdjcksjcnksjcscd 99 ${data}");
 
+      _socket?.emit(event, data);
     }
   }
 
@@ -189,6 +205,7 @@ print("SOCKET ERROR catch ${e}");
     if (_isConnected) return;
     _reconnectAttempts = 0;
     _reconnectTimer?.cancel();
+    _isConnecting = false;
     connectToSocket();
   }
 
@@ -198,6 +215,7 @@ print("SOCKET ERROR catch ${e}");
 
   void disposeSocket() {
     _isConnected = false;
+    _isConnecting = false;
     _reconnectAttempts = 0;
     _reconnectTimer?.cancel();
     _registeredListeners.clear();

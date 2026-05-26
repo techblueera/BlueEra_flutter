@@ -102,4 +102,20 @@ class SymbolRepo extends BaseService {
         onError: (error) {}, onSuccess: (data) {});
     return response;
   }
+
+  Future<ResponseModel> getSymbolLikes(String symbolId) async {
+    final response = await ApiBaseHelper().getHTTP(
+        symbolGetLikesApi(symbolId),
+        showProgress: false,
+        onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
+
+  Future<ResponseModel> getSymbolViews(String symbolId) async {
+    final response = await ApiBaseHelper().getHTTP(
+        symbolGetViewsApi(symbolId),
+        showProgress: false,
+        onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
 }

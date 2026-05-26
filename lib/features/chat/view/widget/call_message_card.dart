@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/features/chat/auth/controller/call_controller.dart';
 import 'package:BlueEra/features/chat/auth/model/GetListOfMessageData.dart';
 import 'package:BlueEra/features/chat/auth/service/call_activity_service.dart';
@@ -80,20 +79,19 @@ class CallMessageCard extends StatelessWidget {
 
   IconData get _callIcon {
     if (_isMissedCall || _isDeclined) {
-      return Icons.call_missed;
+      return isReceive ? Icons.call_missed : Icons.call_missed_outgoing;
     }
-    if (_isVideoCall) {
-      return Icons.videocam;
+    if (isReceive) {
+      return Icons.call_received;
     }
-    return Icons.call;
+    return Icons.call_made;
   }
 
-  Color get _statusColor {
-    if (_isMissedCall || _isDeclined) {
-      return Colors.red;
-    }
-    return AppColors.primaryColor;
+  Color get _arrowColor {
+    if (_isMissedCall || _isDeclined) return const Color(0xFFFF3B30);
+    return const Color(0xFF34C759);
   }
+
 
 
   /// Open the active call screen. On Android the call runs inside a separate
@@ -208,9 +206,21 @@ class CallMessageCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final chatThemeController = Get.find<ChatThemeController>();
-    final textColor = chatThemeController.chatTextColor.value;
-    final accent = _statusColor;
+    final isDark = chatThemeController.isDarkMode.value;
     final isNegative = _isMissedCall || _isDeclined;
+
+    final bubbleColor = isReceive
+        ? (isDark ? const Color(0xFF1F2C34) : Colors.white)
+        : chatThemeController.myMessageBgColor.value;
+    final primaryText = isReceive
+        ? (isDark ? Colors.white : const Color(0xFF111B21))
+        : Colors.white;
+    final secondaryText = isReceive
+        ? (isDark ? const Color(0xFF8696A0) : const Color(0xFF667781))
+        : Colors.white.withValues(alpha: 0.75);
+    final callBackIconColor = isReceive
+        ? const Color(0xFF00A884)
+        : Colors.white;
 
     return GestureDetector(
       onTap: () {
@@ -222,158 +232,136 @@ class CallMessageCard extends StatelessWidget {
       },
       child: Align(
         alignment: isReceive ? Alignment.centerLeft : Alignment.centerRight,
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final screenW = MediaQuery.of(context).size.width;
-            final maxCardW = (screenW - 90).clamp(150.0, 240.0);
-            return ConstrainedBox(
-              constraints: BoxConstraints(maxWidth: maxCardW),
-              child: Container(
-                margin: EdgeInsets.only(
-                  left: isReceive ? 8 : 60,
-                  right: isReceive ? 60 : 8,
-                  top: 2,
-                  bottom: 2,
-                ),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      accent.withValues(alpha: 0.12),
-                      accent.withValues(alpha: 0.03),
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(12),
-                  border:
-                      Border.all(color: accent.withValues(alpha: 0.30), width: 1),
-                ),
-                child: IntrinsicHeight(
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Container(
-                        width: 3,
-                        decoration: BoxDecoration(
-                          color: accent,
-                          borderRadius: const BorderRadius.only(
-                            topLeft: Radius.circular(12),
-                            bottomLeft: Radius.circular(12),
+        child: Container(
+          margin: EdgeInsets.only(
+            left: isReceive ? 8 : 80,
+            right: isReceive ? 80 : 8,
+            top: 1,
+            bottom: 1,
+          ),
+          padding: const EdgeInsets.fromLTRB(10, 8, 8, 8),
+          decoration: BoxDecoration(
+            color: bubbleColor,
+            borderRadius: BorderRadius.only(
+              topLeft: const Radius.circular(12),
+              topRight: const Radius.circular(12),
+              bottomLeft: Radius.circular(isReceive ? 0 : 12),
+              bottomRight: Radius.circular(isReceive ? 12 : 0),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.06),
+                blurRadius: 3,
+                offset: const Offset(0, 1),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Direction arrow icon
+              Icon(
+                _callIcon,
+                size: 16,
+                color: isNegative ? const Color(0xFFFF3B30) : _arrowColor,
+              ),
+              const SizedBox(width: 8),
+              // Call info column
+              Flexible(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Call type + ongoing indicator
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          _isVideoCall ? Icons.videocam_rounded : Icons.call_rounded,
+                          size: 14,
+                          color: primaryText,
+                        ),
+                        const SizedBox(width: 4),
+                        Flexible(
+                          child: Text(
+                            _isVideoCall ? 'Video call' : 'Voice call',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: primaryText,
+                              fontFamily: 'Poppins',
+                            ),
                           ),
                         ),
-                      ),
-                      Flexible(
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(8, 6, 6, 6),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Flexible(
-                                    child: Text(
-                                      _isVideoCall
-                                          ? 'Video Call'
-                                          : 'Audio Call',
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(
-                                        fontSize: 11.5,
-                                        fontWeight: FontWeight.w700,
-                                        color: textColor,
-                                        fontFamily: "Poppins",
-                                      ),
-                                    ),
-                                  ),
-                                  if (_isOngoingCall) ...[
-                                    const SizedBox(width: 5),
-                                    Container(
-                                      width: 5,
-                                      height: 5,
-                                      decoration: const BoxDecoration(
-                                        color: Colors.green,
-                                        shape: BoxShape.circle,
-                                      ),
-                                    ),
-                                  ],
-                                ],
-                              ),
-                              const SizedBox(height: 2),
-                              Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    _callIcon,
-                                    size: 11,
-                                    color:
-                                        isNegative ? Colors.red : accent,
-                                  ),
-                                  const SizedBox(width: 3),
-                                  Flexible(
-                                    child: Text(
-                                      _statusText,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.w500,
-                                        color:
-                                            isNegative ? Colors.red : accent,
-                                        fontFamily: "Poppins",
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                time,
-                                style: TextStyle(
-                                  fontSize: 9,
-                                  color: textColor.withValues(alpha: 0.5),
-                                  fontFamily: "Poppins",
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(2, 6, 6, 6),
-                        child: GestureDetector(
-                          onTap:
-                              _isOngoingCall ? _openCallScreen : _onCallBack,
-                          child: Container(
-                            width: 30,
-                            height: 30,
-                            decoration: BoxDecoration(
-                              color: accent,
+                        if (_isOngoingCall) ...[
+                          const SizedBox(width: 6),
+                          Container(
+                            width: 7,
+                            height: 7,
+                            decoration: const BoxDecoration(
+                              color: Color(0xFF34C759),
                               shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: accent.withValues(alpha: 0.35),
-                                  blurRadius: 6,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
                             ),
-                            child: Icon(
-                              _isVideoCall ? Icons.videocam : Icons.call,
-                              size: 16,
-                              color: Colors.white,
+                          ),
+                        ],
+                      ],
+                    ),
+                    const SizedBox(height: 2),
+                    // Status + time row
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          _statusText,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w400,
+                            color: isNegative
+                                ? const Color(0xFFFF3B30)
+                                : secondaryText,
+                            fontFamily: 'Poppins',
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          child: Text(
+                            '·',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: secondaryText,
+                              fontFamily: 'Poppins',
                             ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
+                        Text(
+                          time,
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: secondaryText,
+                            fontFamily: 'Poppins',
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
-            );
-          },
+              const SizedBox(width: 10),
+              // Call-back button
+              GestureDetector(
+                onTap: _isOngoingCall ? _openCallScreen : _onCallBack,
+                child: Icon(
+                  _isVideoCall ? Icons.videocam_rounded : Icons.call_rounded,
+                  size: 22,
+                  color: callBackIconColor,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

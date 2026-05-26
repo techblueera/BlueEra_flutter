@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
@@ -21,6 +22,7 @@ import 'package:permission_handler/permission_handler.dart';
 import '../model/Generate_Upload_Ulr_Model.dart';
 import '../model/contactListModel.dart';
 import '../model/symbol_details_model.dart';
+import '../model/symbol_interaction_model.dart';
 import '../repo/chat_view_repo.dart';
 import '../repo/symbol_repo.dart';
 
@@ -383,6 +385,7 @@ class AddChatSymbolController extends GetxController {
     ResponseModel responseModel =
         await symbolRepo.getAllSymbolsSingleUser(userId);
     if (responseModel.isSuccess) {
+      log("sjdckjslclkssdc ${responseModel.response?.data}");
       mySymbols.value = (responseModel.response?.data as List)
           .map((e) => SymbolDetailsModel.fromJson(e))
           .toList();
@@ -420,5 +423,60 @@ class AddChatSymbolController extends GetxController {
     captionController.clear();
     linkTextSymbolController.clear();
     imagesList.clear();
+  }
+
+  RxList<SymbolLikeEntry> symbolLikes = <SymbolLikeEntry>[].obs;
+  RxList<SymbolViewEntry> symbolViews = <SymbolViewEntry>[].obs;
+  RxBool isLoadingLikes = false.obs;
+  RxBool isLoadingViews = false.obs;
+
+  Future<void> fetchSymbolLikes(String symbolId) async {
+    isLoadingLikes.value = true;
+    try {
+      ResponseModel response = await symbolRepo.getSymbolLikes(symbolId);
+      if (response.isSuccess) {
+        final data = response.response?.data;
+        final list = data is List ? data : (data is Map ? data['data'] ?? [] : []);
+        symbolLikes.value = (list as List)
+            .map((e) => SymbolLikeEntry.fromJson(e))
+            .toList();
+      }
+    } catch (_) {}
+    isLoadingLikes.value = false;
+  }
+
+  Future<void> fetchSymbolViews(String symbolId) async {
+    isLoadingViews.value = true;
+    try {
+      ResponseModel response = await symbolRepo.getSymbolViews(symbolId);
+      if (response.isSuccess) {
+        final data = response.response?.data;
+        final list = data is List ? data : (data is Map ? data['data'] ?? [] : []);
+        symbolViews.value = (list as List)
+            .map((e) => SymbolViewEntry.fromJson(e))
+            .toList();
+      }
+    } catch (_) {}
+    isLoadingViews.value = false;
+  }
+
+  Future<bool> toggleLikeSymbol(String symbolId, {required bool isLiked}) async {
+    try {
+      ResponseModel response;
+      if (isLiked) {
+        response = await symbolRepo.unlikeSymbol(symbolId);
+      } else {
+        response = await symbolRepo.likeSymbol(symbolId);
+      }
+      return response.isSuccess;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<void> markViewed(String symbolId) async {
+    try {
+      await symbolRepo.markSymbolViewed(symbolId);
+    } catch (_) {}
   }
 }

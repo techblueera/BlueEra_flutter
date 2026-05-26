@@ -1195,7 +1195,7 @@ class CallController extends GetxController {
       final metadata = data['metadata'];
       if (metadata is Map && metadata['orderType'] == 'fare-call') {
         print('[FARE_CALL] _handleCallAccepted → idle + fare-call metadata, bootstrapping call state');
-        final acceptedCallId = (data['call_Id'] ?? '').toString();
+        final acceptedCallId = (data['call_id'] ?? '').toString();
         final acceptedRoomId = (data['room_Id'] ?? '').toString();
         final acceptedBy = (data['accepted_by'] ?? '').toString();
         if (acceptedCallId.isNotEmpty && acceptedRoomId.isNotEmpty && acceptedBy.isNotEmpty) {
