@@ -5652,4 +5652,21 @@ class AppStrings {
   static const String productViewSellingPrice = "product_view_selling_price";
   static const String productViewPriceHint = "product_view_price_hint";
   static const String productViewSubmit = "product_view_submit";
+
+  // Self-employee dashboard (lib/features/personal/personal_profile/view/self_employed/view/self_employee_screen.dart).
+  static const String statics = "statics";
+  static const String activeContribution = "activeContribution";
+  static const String memberLabel = "memberLabel";
+  static const String perksRemaining = "perksRemaining";
+  static const String remainingLabel = "remainingLabel";
+  static const String outOf = "outOf";
+  static const String contributeNow = "contributeNow";
+  static const String toGetOrderVisibility = "toGetOrderVisibility";
+  static const String createPost = "createPost";
+  static const String manageHomestaysRoomsVehicles =
+      "manageHomestaysRoomsVehicles";
+  static const String editCover = "editCover";
+  static const String memberShortLabel = "memberShortLabel";
+  static const String shareProfile = "shareProfile";
+  static const String personalCards = "personalCards";
 }

@@ -3658,5 +3658,20 @@
   "partnerTypeRequired": "कृपया भागीदार प्रकार चुनें",
   "investmentAmountRequired": "कृपया निवेश राशि दर्ज करें",
   "cityRequired": "शहर आवश्यक है",
-  "acceptTermsRequired": "कृपया नियम और शर्तें स्वीकार करें"
+  "acceptTermsRequired": "कृपया नियम और शर्तें स्वीकार करें",
+  "statics": "आँकड़े",
+  "activeContribution": "सक्रिय योगदान",
+  "memberLabel": "सदस्य",
+  "perksRemaining": "शेष लाभ",
+  "remainingLabel": "शेष",
+  "outOf": "में से",
+  "contributeNow": "अभी योगदान करें",
+  "toGetOrderVisibility": "ऑर्डर और दृश्यता प्राप्त करें",
+  "createPost": "पोस्ट बनाएं",
+  "manageHomestaysRoomsVehicles": "होमस्टे, कमरे और वाहन प्रबंधित करें",
+  "editCover": "कवर संपादित करें",
+  "memberShortLabel": "सदस्य",
+  "shareProfile": "प्रोफ़ाइल साझा करें",
+  "personalCards": "व्यक्तिगत कार्ड",
+  "confirmLocation": "लोकेशन कन्फर्म करें"
 }
