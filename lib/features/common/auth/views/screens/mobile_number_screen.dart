@@ -35,13 +35,33 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
   final _authController = Get.put(AuthController());
   late LanguageListController langController;
   bool _acceptedTerms = false;
+  bool _isMobileValid = false;
+
+  bool get _canSubmit => _isMobileValid && _acceptedTerms;
 
   @override
   void initState() {
     _getPhoneNumber();
     langController = Get.find<LanguageListController>();
+    _authController.mobileNumberEditController.addListener(_onMobileChanged);
 
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    _authController.mobileNumberEditController.removeListener(_onMobileChanged);
+    super.dispose();
+  }
+
+  void _onMobileChanged() {
+    final isValid =
+        _authController.mobileNumberEditController.text.length == 10;
+    if (isValid != _isMobileValid) {
+      setState(() {
+        _isMobileValid = isValid;
+      });
+    }
   }
 
   @override
@@ -180,36 +200,36 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
                                 ),
                               ),
                               TextSpan(
-                                text: " ${AppStrings.termsConditions.tr}",
+                                text: " ${AppStrings.termsConditions.tr} ",
                                 style: const TextStyle(
                                   color: AppColors.primaryColor,
                                   fontFamily: AppConstants.OpenSans,
                                   fontSize: 14,
-
                                 ),
                                 recognizer: TapGestureRecognizer()
                                   ..onTap = () {
-                                    Get.to(()=> CommonWebView(
-                                      urlLink: tncLink,
-                                      urlTitle: AppStrings.termsConditions.tr,
-                                    ));
+                                    Get.to(() => CommonWebView(
+                                          urlLink: tncLink,
+                                          urlTitle:
+                                              AppStrings.termsConditions.tr,
+                                        ));
                                   },
                               ),
-                              TextSpan(text: " ${AppStrings.andText.tr} "),
+                              TextSpan(text: "${AppStrings.andText.tr} "),
                               TextSpan(
-                                text: " ${AppStrings.privacyPolicyDot.tr}",
-                                style: TextStyle(
+                                text: AppStrings.privacyPolicyDot.tr,
+                                style: const TextStyle(
                                   color: AppColors.primaryColor,
                                   fontSize: 14,
-
                                   fontFamily: AppConstants.OpenSans,
                                 ),
                                 recognizer: TapGestureRecognizer()
                                   ..onTap = () {
-                                    Get.to(()=> CommonWebView(
-                                      urlLink: privacyLink,
-                                      urlTitle: AppStrings.privacyPolicy.tr,
-                                    ));
+                                    Get.to(() => CommonWebView(
+                                          urlLink: privacyLink,
+                                          urlTitle:
+                                              AppStrings.privacyPolicy.tr,
+                                        ));
                                   },
                               ),
                             ],
@@ -222,10 +242,13 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
                   SizedBox(height: SizeConfig.size20),
 
                   CustomBtn(
-                    bgColor: AppColors.primaryColor,
+                    bgColor:
+                        _canSubmit ? AppColors.primaryColor : AppColors.grey9B,
                     textColor: AppColors.white,
                     title: AppStrings.getOtp.tr,
-                    onTap: () => _onNextButtonPressed(context),
+                    onTap: _canSubmit
+                        ? () => _onNextButtonPressed(context)
+                        : null,
                   ),
 
                   SizedBox(height: SizeConfig.size22),
