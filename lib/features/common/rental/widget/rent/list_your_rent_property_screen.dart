@@ -1,22 +1,23 @@
 import 'package:BlueEra/features/common/rental/controller/property_controller.dart';
 import 'package:BlueEra/features/common/rental/widget/land_plots_specifications_screen.dart';
-import 'package:BlueEra/features/common/rental/widget/new_project_specifications_screen.dart';
-import 'package:BlueEra/features/common/rental/widget/property_specifications_screen.dart';
+import 'package:BlueEra/features/common/rental/widget/rent/houses_apartments_rent_screen.dart';
+import 'package:BlueEra/features/common/rental/widget/rent/pg_guest_house_rent_screen.dart';
+import 'package:BlueEra/features/common/rental/widget/rent/shops_offices_rent_screen.dart';
 import 'package:BlueEra/features/common/rental/widget/rental_form_widgets.dart';
-import 'package:BlueEra/features/common/rental/widget/shops_offices_specifications_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class ListYourPropertyScreen extends StatefulWidget {
-  const ListYourPropertyScreen({super.key});
+class ListYourRentPropertyScreen extends StatefulWidget {
+  const ListYourRentPropertyScreen({super.key});
 
   @override
-  State<ListYourPropertyScreen> createState() =>
-      _ListYourPropertyScreenState();
+  State<ListYourRentPropertyScreen> createState() =>
+      _ListYourRentPropertyScreenState();
 }
 
-class _ListYourPropertyScreenState extends State<ListYourPropertyScreen> {
+class _ListYourRentPropertyScreenState
+    extends State<ListYourRentPropertyScreen> {
   late final PropertyController _ctrl;
   final _formKey = GlobalKey<FormState>();
   var _autovalidate = AutovalidateMode.disabled;
@@ -27,7 +28,7 @@ class _ListYourPropertyScreenState extends State<ListYourPropertyScreen> {
   void initState() {
     super.initState();
     _ctrl = Get.put(PropertyController());
-    _ctrl.listingType.value = 'Sell';
+    _ctrl.listingType.value = 'Rent';
     _ctrl.resetAll();
   }
 
@@ -58,17 +59,10 @@ class _ListYourPropertyScreenState extends State<ListYourPropertyScreen> {
                     children: [
                       RentalFormCard(
                         child: RentalChipSelector(
-                          label: 'Select Sale Type',
-                          options: PropertyController.saleTypes,
+                          label: 'Select Rent Type',
+                          options: PropertyController.rentTypes,
                           onChanged: (i) =>
                               _ctrl.selectedPropertyTypeIndex.value = i,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      const RentalFormCard(
-                        child: RentalChipSelector(
-                          label: 'What Kind Of Property',
-                          options: ['Residential', 'Commercial'],
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -93,7 +87,7 @@ class _ListYourPropertyScreenState extends State<ListYourPropertyScreen> {
                             ),
                             const SizedBox(height: 14),
                             RentalLabeledField(
-                              label: 'Describe What You Are Selling',
+                              label: 'Describe What You Are Renting',
                               hint: 'Text',
                               maxLength: 2000,
                               maxLines: 5,
@@ -138,13 +132,13 @@ class _ListYourPropertyScreenState extends State<ListYourPropertyScreen> {
   Widget _step2ForIndex(int index) {
     switch (index) {
       case 1:
-        return const NewProjectSpecificationsScreen();
+        return const LandPlotsSpecificationsScreen(isRent: true);
       case 2:
-        return const LandPlotsSpecificationsScreen();
+        return const ShopsOfficesRentScreen();
       case 3:
-        return const ShopsOfficesSpecificationsScreen();
+        return const PgGuestHouseRentScreen();
       default:
-        return const PropertySpecificationsScreen();
+        return const HousesApartmentsRentScreen();
     }
   }
 }

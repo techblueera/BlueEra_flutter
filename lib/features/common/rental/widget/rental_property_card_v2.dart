@@ -1,27 +1,11 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/core/constants/app_image_assets.dart';
-import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/rental/view/rental_services_dashboard_screen_v2.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-/// Shared overview-tab CTA for the rental flow — a header strip + a
-/// 3×2 grid of "For Sale / For Rent" property tiles. Replaces the
-/// legacy `_buildRentalCard` (homestay / flat-room / vehicle chips)
-/// across every dashboard surface (self-employee, rider, cab/transport
-/// partner, professionals consultant). Tapping the header or any
-/// tile navigates to [RentalServicesDashboardScreenV2].
-///
-/// Lives under `common/rental/widget/` so both personal and business
-/// dashboards can drop it in without duplicating the property catalog.
 class RentalPropertyCardV2 extends StatelessWidget {
-  /// Outer margin around the card. Defaults to the standard
-  /// `EdgeInsets.symmetric(horizontal: 14)` used by all overview tabs.
   final EdgeInsetsGeometry margin;
 
   const RentalPropertyCardV2({
@@ -31,191 +15,197 @@ class RentalPropertyCardV2 extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tiles = <({String image, String label, bool isSale})>[
-      (
-        image: AppImageAssets.propertyHouseSale,
-        label: 'For Sale:\nHouses & Apartments',
-        isSale: true,
-      ),
-      (
-        image: AppImageAssets.propertyHouseRent,
-        label: 'For Rent:\nHouses & Apartments',
-        isSale: false,
-      ),
-      (
-        image: AppImageAssets.propertyNewProjectSale,
-        label: 'For Sale:\nNew Projects & Properties',
-        isSale: true,
-      ),
-      (
-        image: AppImageAssets.propertyLandPlotSale,
-        label: 'Lands & Plots\nFor Sale',
-        isSale: true,
-      ),
-      (
-        image: AppImageAssets.propertyShopOfficeRent,
-        label: 'For Rent:\nShops & Offices',
-        isSale: false,
-      ),
-      (
-        image: AppImageAssets.propertyShopOfficeSale,
-        label: 'For Sale:\nShops & Offices',
-        isSale: true,
-      ),
-    ];
-
     return Container(
       margin: margin,
-      child: CustomFormCard(
-        padding: EdgeInsets.all(SizeConfig.size14),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFFEDEFF4), width: 1),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppColors.primaryColor.withValues(alpha: 0.12),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primaryColor.withValues(alpha: 0.06),
+            blurRadius: 20,
+            offset: const Offset(0, 6),
+          ),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 4,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            InkWell(
-              onTap: () => _openRentalDashboardV2(),
-              borderRadius: BorderRadius.circular(8),
+            _buildHeader(),
+            Padding(
+              padding: EdgeInsets.fromLTRB(
+                SizeConfig.size14,
+                0,
+                SizeConfig.size14,
+                SizeConfig.size14,
+              ),
               child: Row(
                 children: [
-                  Container(
-                    width: 36,
-                    height: 36,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryColor.withValues(alpha: 0.10),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Icon(Icons.holiday_village_outlined,
-                        color: AppColors.primaryColor, size: 20),
-                  ),
-                  SizedBox(width: SizeConfig.size12),
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          AppStrings.rentalServices.tr,
-                          style: TextStyle(
-                            fontFamily: AppConstants.OpenSans,
-                            fontSize: 15,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.mainTextColor,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          'Browse properties for sale & rent',
-                          style: TextStyle(
-                            fontFamily: AppConstants.OpenSans,
-                            fontSize: 11.5,
-                            fontWeight: FontWeight.w500,
-                            color: AppColors.secondaryTextColor,
-                          ),
-                        ),
-                      ],
+                    child: _optionChip(
+                      icon: Icons.sell_rounded,
+                      label: 'For Sale',
+                      accentColor: const Color(0xFF0086FF),
+                      bgColor: const Color(0xFFEBF5FF),
+                      onTap: () => Get.to(
+                          () => const RentalServicesDashboardScreenV2()),
                     ),
                   ),
-                  Icon(Icons.chevron_right_rounded,
-                      color: AppColors.secondaryTextColor),
+                  SizedBox(width: SizeConfig.size10),
+                  Expanded(
+                    child: _optionChip(
+                      icon: Icons.vpn_key_rounded,
+                      label: 'For Rent',
+                      accentColor: const Color(0xFF00B87A),
+                      bgColor: const Color(0xFFE6FAF3),
+                      onTap: () => Get.to(
+                          () => const RentalServicesDashboardScreenV2()),
+                    ),
+                  ),
                 ],
               ),
             ),
-            SizedBox(height: SizeConfig.size12),
-            LayoutBuilder(builder: (ctx, constraints) {
-              const double spacing = 8;
-              const int columns = 3;
-              final double itemWidth =
-                  (constraints.maxWidth - spacing * (columns - 1)) / columns;
-              final double itemHeight = itemWidth / 0.72;
-              return Wrap(
-                spacing: spacing,
-                runSpacing: spacing,
-                children: tiles
-                    .map((tile) => SizedBox(
-                          width: itemWidth,
-                          height: itemHeight,
-                          child:
-                              _rentalPropertyTile(tile, _openRentalDashboardV2),
-                        ))
-                    .toList(),
-              );
-            }),
           ],
         ),
       ),
     );
   }
 
-  /// V2 opener — navigates to the shared 6-section dashboard. Kept as
-  /// a private function (not a method on a State) so this widget can
-  /// stay `StatelessWidget`.
-  void _openRentalDashboardV2() {
-    Get.to(() => const RentalServicesDashboardScreenV2());
+  Widget _buildHeader() {
+    return InkWell(
+      onTap: () =>
+          Get.to(() => const RentalServicesDashboardScreenV2()),
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+      splashColor: AppColors.primaryColor.withValues(alpha: 0.08),
+      highlightColor: AppColors.primaryColor.withValues(alpha: 0.04),
+      child: Padding(
+        padding: EdgeInsets.all(SizeConfig.size14),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    AppColors.primaryColor,
+                    AppColors.primaryColor.withValues(alpha: 0.80),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primaryColor.withValues(alpha: 0.25),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: const Icon(
+                Icons.holiday_village_rounded,
+                color: Colors.white,
+                size: 20,
+              ),
+            ),
+            SizedBox(width: SizeConfig.size12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CustomText(
+                    'Property Listing',
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.mainTextColor,
+                  ),
+                  const SizedBox(height: 2),
+                  CustomText(
+                    'List your property for sale or rent',
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.secondaryTextColor,
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              width: 28,
+              height: 28,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.primaryColor.withValues(alpha: 0.08),
+              ),
+              child: Icon(
+                Icons.arrow_forward_ios_rounded,
+                size: 13,
+                color: AppColors.primaryColor,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
-  Widget _rentalPropertyTile(
-    ({String image, String label, bool isSale}) tile,
-    VoidCallback onTap,
-  ) {
-    final radius = BorderRadius.circular(10);
+  Widget _optionChip({
+    required IconData icon,
+    required String label,
+    required Color accentColor,
+    required Color bgColor,
+    required VoidCallback onTap,
+  }) {
+    final radius = BorderRadius.circular(12);
     return InkWell(
       onTap: onTap,
       borderRadius: radius,
-      splashColor: AppColors.primaryColor.withValues(alpha: 0.18),
-      highlightColor: AppColors.primaryColor.withValues(alpha: 0.08),
+      splashColor: accentColor.withValues(alpha: 0.12),
+      highlightColor: accentColor.withValues(alpha: 0.06),
       child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: radius,
-          border: Border.all(color: const Color(0xFFDDE2EE)),
+        padding: EdgeInsets.symmetric(
+          horizontal: SizeConfig.size12,
+          vertical: SizeConfig.size10,
         ),
-        child: Column(
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: radius,
+          border: Border.all(
+            color: accentColor.withValues(alpha: 0.15),
+            width: 1,
+          ),
+        ),
+        child: Row(
           children: [
-            Align(
-              alignment: Alignment.topRight,
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: AppColors.primaryColor.withValues(alpha: 0.1),
-                  borderRadius: const BorderRadius.only(
-                    topRight: Radius.circular(10),
-                    bottomLeft: Radius.circular(6),
-                  ),
-                ),
-                child: CustomText(
-                  tile.isSale ? 'FOR SALE' : 'FOR RENT',
-                  color: AppColors.primaryColor,
-                  fontSize: 8,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
+            Icon(icon, color: accentColor, size: 18),
+            SizedBox(width: SizeConfig.size8),
             Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4),
-                child: Center(
-                  child: LocalAssets(
-                    imagePath: tile.image,
-                    boxFix: BoxFit.contain,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 4),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4),
               child: CustomText(
-                tile.label,
-                textAlign: TextAlign.center,
-                fontSize: 9,
-                fontWeight: FontWeight.w500,
-                maxLines: 3,
-                color: AppColors.secondaryTextColor,
+                label,
+                fontSize: SizeConfig.small,
+                fontWeight: FontWeight.w700,
+                color: accentColor,
               ),
             ),
-            const SizedBox(height: 6),
+            Icon(
+              Icons.chevron_right_rounded,
+              size: 18,
+              color: accentColor.withValues(alpha: 0.6),
+            ),
           ],
         ),
       ),

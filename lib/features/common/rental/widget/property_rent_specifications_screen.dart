@@ -14,9 +14,11 @@ class PropertyRentSpecificationsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: kRentalScreenBg,
       appBar: CommonBackAppBar(title: 'Property Specifications'),
-      body: SingleChildScrollView(
+      body: Column(
+        children: [
+          const RentalStepProgressBar(progress: 0.66),
+          Expanded(child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
         child: const RentalFormCard(
           child: Column(
@@ -118,14 +120,13 @@ class PropertyRentSpecificationsScreen extends StatelessWidget {
             ],
           ),
         ),
+      )),
+        ],
       ),
-      bottomNavigationBar: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(14),
-          child: RentalPrimaryButton(
-            label: 'Next',
-            onTap: () => Get.to(() => const CompleteYourListingScreen()),
-          ),
+      bottomNavigationBar: RentalBottomBar(
+        child: RentalPrimaryButton(
+          label: 'Next',
+          onTap: () => Get.to(() => const CompleteYourListingScreen()),
         ),
       ),
     );

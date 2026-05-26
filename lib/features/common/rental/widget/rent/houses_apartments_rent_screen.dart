@@ -1,22 +1,22 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/features/common/rental/controller/property_controller.dart';
-import 'package:BlueEra/features/common/rental/widget/complete_your_listing_screen.dart';
+import 'package:BlueEra/features/common/rental/widget/rent/complete_your_rent_listing_screen.dart';
 import 'package:BlueEra/features/common/rental/widget/rental_form_widgets.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class PropertySpecificationsScreen extends StatefulWidget {
-  const PropertySpecificationsScreen({super.key});
+class HousesApartmentsRentScreen extends StatefulWidget {
+  const HousesApartmentsRentScreen({super.key});
 
   @override
-  State<PropertySpecificationsScreen> createState() =>
-      _PropertySpecificationsScreenState();
+  State<HousesApartmentsRentScreen> createState() =>
+      _HousesApartmentsRentScreenState();
 }
 
-class _PropertySpecificationsScreenState
-    extends State<PropertySpecificationsScreen> {
+class _HousesApartmentsRentScreenState
+    extends State<HousesApartmentsRentScreen> {
   late final PropertyController _ctrl;
   final _formKey = GlobalKey<FormState>();
   var _autovalidate = AutovalidateMode.disabled;
@@ -57,32 +57,41 @@ class _PropertySpecificationsScreenState
                             'House & Villa',
                             'Duplex',
                           ],
-                          onChanged: (i) => _ctrl.haType.value = i,
+                          onChanged: (v) => _ctrl.haType.value = v,
                         ),
                         const SizedBox(height: 18),
                         RentalChipSelector(
                           label: 'BHK',
                           options: const ['1', '2', '3', '4+'],
-                          onChanged: (i) => _ctrl.haBhk.value = i,
+                          onChanged: (v) => _ctrl.haBhk.value = v,
                         ),
                         const SizedBox(height: 18),
                         RentalChipSelector(
                           label: 'Bathrooms',
                           options: const ['1', '2', '3', '4+'],
-                          onChanged: (i) => _ctrl.haBathrooms.value = i,
+                          onChanged: (v) => _ctrl.haBathrooms.value = v,
                         ),
                         const SizedBox(height: 18),
                         RentalChipSelector(
-                          label: 'Availability Status',
-                          options: const ['Ready to Move', 'Under Construction'],
-                          onChanged: (i) =>
-                              _ctrl.haAvailabilityStatus.value = i,
+                          label: 'Furnishing',
+                          options: const [
+                            'Furnished',
+                            'Semi-Furnished',
+                            'Unfurnished'
+                          ],
+                          onChanged: (v) => _ctrl.haFurnishing.value = v,
                         ),
                         const SizedBox(height: 18),
                         RentalChipSelector(
                           label: 'Listed By',
                           options: const ['Owner', 'Builder', 'Dealer'],
-                          onChanged: (i) => _ctrl.haListedBy.value = i,
+                          onChanged: (v) => _ctrl.haListedBy.value = v,
+                        ),
+                        const SizedBox(height: 18),
+                        RentalChipSelector(
+                          label: 'Bachelors Allowed',
+                          options: const ['Yes Allowed', 'Not Allowed'],
+                          onChanged: (v) => _ctrl.haBachelorsAllowed.value = v,
                         ),
                         const SizedBox(height: 18),
                         RentalAreaField(
@@ -128,7 +137,7 @@ class _PropertySpecificationsScreenState
                         RentalChipSelector(
                           label: 'Car Parking',
                           options: const ['1', '2', '3', '4+'],
-                          onChanged: (i) => _ctrl.haCarParking.value = i,
+                          onChanged: (v) => _ctrl.haCarParking.value = v,
                         ),
                         const SizedBox(height: 18),
                         RentalChipSelector(
@@ -143,7 +152,7 @@ class _PropertySpecificationsScreenState
                             'South-East',
                             'South-West',
                           ],
-                          onChanged: (i) => _ctrl.haFacing.value = i,
+                          onChanged: (v) => _ctrl.haFacing.value = v,
                         ),
                       ],
                     ),
@@ -160,7 +169,7 @@ class _PropertySpecificationsScreenState
               FocusScope.of(context).unfocus();
               setState(() => _autovalidate = AutovalidateMode.onUserInteraction);
               if (!_formKey.currentState!.validate()) return;
-              Get.to(() => const CompleteYourListingScreen());
+              Get.to(() => const CompleteYourRentListingScreen());
             },
           ),
         ),

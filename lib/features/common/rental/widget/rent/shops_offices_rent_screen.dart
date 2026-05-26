@@ -1,23 +1,18 @@
 import 'package:BlueEra/features/common/rental/controller/property_controller.dart';
-import 'package:BlueEra/features/common/rental/widget/complete_your_listing_screen.dart';
 import 'package:BlueEra/features/common/rental/widget/rent/complete_your_rent_listing_screen.dart';
 import 'package:BlueEra/features/common/rental/widget/rental_form_widgets.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class LandPlotsSpecificationsScreen extends StatefulWidget {
-  final bool isRent;
-
-  const LandPlotsSpecificationsScreen({super.key, this.isRent = false});
+class ShopsOfficesRentScreen extends StatefulWidget {
+  const ShopsOfficesRentScreen({super.key});
 
   @override
-  State<LandPlotsSpecificationsScreen> createState() =>
-      _LandPlotsSpecificationsScreenState();
+  State<ShopsOfficesRentScreen> createState() => _ShopsOfficesRentScreenState();
 }
 
-class _LandPlotsSpecificationsScreenState
-    extends State<LandPlotsSpecificationsScreen> {
+class _ShopsOfficesRentScreenState extends State<ShopsOfficesRentScreen> {
   late final PropertyController _ctrl;
   final _formKey = GlobalKey<FormState>();
   var _autovalidate = AutovalidateMode.disabled;
@@ -33,9 +28,7 @@ class _LandPlotsSpecificationsScreenState
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
-        appBar: CommonBackAppBar(
-          title: RentalCategory.landsPlotsSale.specificationsTitle,
-        ),
+        appBar: CommonBackAppBar(title: 'Property Specifications'),
         body: Column(
           children: [
             const RentalStepProgressBar(progress: 0.66),
@@ -52,36 +45,47 @@ class _LandPlotsSpecificationsScreenState
                         RentalLocationField(),
                         const SizedBox(height: 18),
                         RentalChipSelector(
-                          label: 'Project Type',
-                          options: const ['For Rent', 'For Sale'],
-                          onChanged: (i) => _ctrl.lpProjectType.value = i,
+                          label: 'Furnishing',
+                          options: const [
+                            'Furnished',
+                            'Semi-Furnished',
+                            'Unfurnished'
+                          ],
+                          onChanged: (v) => _ctrl.soFurnishing.value = v,
                         ),
                         const SizedBox(height: 18),
                         RentalChipSelector(
                           label: 'Listed By',
                           options: const ['Owner', 'Builder', 'Dealer'],
-                          onChanged: (i) => _ctrl.lpListedBy.value = i,
+                          onChanged: (v) => _ctrl.soListedBy.value = v,
                         ),
                         const SizedBox(height: 18),
-                        RentalAreaField(label: 'Add Plot Area Details', hint: 'E.g. 4060', onChanged: (v) => _ctrl.lpPlotArea.value = v),
+                        RentalAreaField(
+                          label: 'Super Built-Up Area Details',
+                          hint: 'E.g. 4060',
+                          onChanged: (v) => _ctrl.soArea.value = v,
+                        ),
                         const SizedBox(height: 14),
-                        RentalAreaField(label: 'Enter Length', hint: 'Enter Length', onChanged: (v) => _ctrl.lpLength.value = v),
-                        const SizedBox(height: 14),
-                        RentalAreaField(label: 'Enter Breadth', hint: 'Enter Breadth', onChanged: (v) => _ctrl.lpBreadth.value = v),
+                        RentalLabeledField(
+                          label: 'Maintenance (Monthly)',
+                          hint: 'E.g. ₹40,660',
+                          keyboardType: TextInputType.number,
+                          onChanged: (v) => _ctrl.soMaintenance.value = v,
+                          validator: (v) => v == null || v.trim().isEmpty
+                              ? 'Please enter maintenance'
+                              : null,
+                        ),
                         const SizedBox(height: 18),
                         RentalChipSelector(
-                          label: 'Facing',
-                          options: const [
-                            'North',
-                            'South',
-                            'East',
-                            'West',
-                            'North-East',
-                            'North-West',
-                            'South-East',
-                            'South-West',
-                          ],
-                          onChanged: (i) => _ctrl.lpFacing.value = i,
+                          label: 'Car Parking',
+                          options: const ['1', '2', '3', '4+'],
+                          onChanged: (v) => _ctrl.soCarParking.value = v,
+                        ),
+                        const SizedBox(height: 18),
+                        RentalChipSelector(
+                          label: 'Washrooms',
+                          options: const ['1', '2', '3', '4+'],
+                          onChanged: (v) => _ctrl.soWashrooms.value = v,
                         ),
                       ],
                     ),
@@ -98,9 +102,7 @@ class _LandPlotsSpecificationsScreenState
               FocusScope.of(context).unfocus();
               setState(() => _autovalidate = AutovalidateMode.onUserInteraction);
               if (!_formKey.currentState!.validate()) return;
-              Get.to(() => widget.isRent
-                  ? const CompleteYourRentListingScreen()
-                  : const CompleteYourListingScreen());
+              Get.to(() => const CompleteYourRentListingScreen());
             },
           ),
         ),

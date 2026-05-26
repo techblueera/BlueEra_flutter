@@ -17,9 +17,11 @@ class CompleteYourListingProjectScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: kRentalScreenBg,
       appBar: CommonBackAppBar(title: 'Complete Your Listing'),
-      body: SingleChildScrollView(
+      body: Column(
+        children: [
+          const RentalStepProgressBar(progress: 1.0),
+          Expanded(child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -92,24 +94,23 @@ class CompleteYourListingProjectScreen extends StatelessWidget {
             ),
           ],
         ),
+      )),
+        ],
       ),
-      bottomNavigationBar: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(14),
-          child: RentalPrimaryButton(
-            label: 'Post Now',
-            onTap: () {
-              Get.snackbar(
-                'Listing Posted',
-                'Your project listing has been submitted.',
-                snackPosition: SnackPosition.BOTTOM,
-                backgroundColor: AppColors.primaryColor,
-                colorText: Colors.white,
-                margin: const EdgeInsets.all(14),
-              );
-              Get.close(3);
-            },
-          ),
+      bottomNavigationBar: RentalBottomBar(
+        child: RentalPrimaryButton(
+          label: 'Post Now',
+          onTap: () {
+            Get.snackbar(
+              'Listing Posted',
+              'Your project listing has been submitted.',
+              snackPosition: SnackPosition.BOTTOM,
+              backgroundColor: AppColors.primaryColor,
+              colorText: Colors.white,
+              margin: const EdgeInsets.all(14),
+            );
+            Get.close(3);
+          },
         ),
       ),
     );
