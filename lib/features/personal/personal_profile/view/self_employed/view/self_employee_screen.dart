@@ -73,13 +73,13 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
   final ChatViewController _chatViewController =
       getOrPut(() => ChatViewController());
 
-  static const _tabs = [
-    'Order',
-    'Overview',
-    'Service',
-    'Post',
-    'Statics',
-  ];
+  List<String> get _tabs => [
+        AppStrings.order.tr,
+        AppStrings.overview.tr,
+        AppStrings.service.tr,
+        AppStrings.post.tr,
+        AppStrings.statics.tr,
+      ];
 
   @override
   void initState() {
@@ -351,7 +351,7 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    CustomText('Go live',
+                    CustomText(AppStrings.goLive.tr,
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
                         color: AppColors.secondaryTextColor),
@@ -692,7 +692,7 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
         ? data['rechargePlanId'] as Map<String, dynamic>
         : <String, dynamic>{};
 
-    final name = (plan['name'] ?? 'Active Contribution').toString();
+    final name = (plan['name'] ?? AppStrings.activeContribution.tr).toString();
     final tier = (plan['tier'] ?? '').toString();
     final perkType = (plan['perk_type'] ?? '').toString();
     final totalPerks = _asInt(data['total_perks']);
@@ -792,8 +792,8 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
                           const SizedBox(height: 2),
                           CustomText(
                             tier.isNotEmpty
-                                ? '${tier.toUpperCase()} MEMBER'
-                                : 'MEMBER',
+                                ? '${tier.toUpperCase()} ${AppStrings.memberLabel.tr}'
+                                : AppStrings.memberLabel.tr,
                             fontSize: 10,
                             fontWeight: FontWeight.w600,
                             color: const Color(0xFFE9D9FF),
@@ -828,14 +828,14 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
                     children: [
                       CustomText(
                         perkType.isEmpty
-                            ? 'Perks remaining'
-                            : '${perkType[0].toUpperCase()}${perkType.substring(1)} remaining',
+                            ? AppStrings.perksRemaining.tr
+                            : '${perkType[0].toUpperCase()}${perkType.substring(1)} ${AppStrings.remainingLabel.tr}',
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
                         color: const Color(0xFFE9D9FF),
                       ),
                       CustomText(
-                        '$perksRemaining of $totalPerks',
+                        '$perksRemaining ${AppStrings.outOf.tr} $totalPerks',
                         fontSize: 12,
                         fontWeight: FontWeight.w800,
                         color: const Color(0xFFFCD34D),
@@ -900,9 +900,9 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
             ),
           ),
           const SizedBox(width: 4),
-          const Text(
-            'ACTIVE',
-            style: TextStyle(
+          Text(
+            AppStrings.active.tr.toUpperCase(),
+            style: const TextStyle(
               fontSize: 9,
               fontWeight: FontWeight.w800,
               color: Colors.white,
@@ -998,14 +998,14 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       CustomText(
-                        'Contribute now',
+                        AppStrings.contributeNow.tr,
                         fontSize: 26,
                         fontWeight: FontWeight.w800,
                         color: const Color(0xFF221831),
                       ),
                       const SizedBox(height: 2),
                       CustomText(
-                        'to get order & Visibility',
+                        AppStrings.toGetOrderVisibility.tr,
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
                         color: const Color(0xFF6E5F8E),
@@ -1058,7 +1058,7 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
       child: ElevatedButton.icon(
         onPressed: _showCreatePostDialog,
         icon: const Icon(Icons.add, size: 18, color: Colors.white),
-        label: CustomText('Create Post',
+        label: CustomText(AppStrings.createPost.tr,
             fontSize: 13, fontWeight: FontWeight.w700, color: Colors.white),
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primaryColor,
@@ -1113,7 +1113,7 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               CustomText(
-                'Create Post',
+                AppStrings.createPost.tr,
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
                 color: AppColors.mainTextColor,
@@ -1256,7 +1256,7 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          'Manage homestays, rooms & vehicles',
+                          AppStrings.manageHomestaysRoomsVehicles.tr,
                           style: TextStyle(
                             fontFamily: AppConstants.OpenSans,
                             fontSize: 11.5,
@@ -1418,7 +1418,7 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
                             right: 12,
                             child: _glassActionPill(
                               icon: Icons.camera_alt_rounded,
-                              label: 'Edit cover',
+                              label: AppStrings.editCover.tr,
                               onTap: () => _onCoverImageEdit(context),
                             ),
                           ),
@@ -1539,7 +1539,7 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
                   alignment: Alignment.centerRight,
                   child: _editChip(
                     onTap: () => EditProfileBottomSheet.show(Get.context!),
-                    label: 'Edit',
+                    label: AppStrings.edit.tr,
                     icon: Icons.edit_outlined,
                   ),
                 ),
@@ -1661,7 +1661,7 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
             ),
             const SizedBox(width: 4),
             Text(
-              'Member Â· $since',
+              '${AppStrings.memberShortLabel.tr} · $since',
               style: TextStyle(
                 fontFamily: AppConstants.OpenSans,
                 fontSize: 10,
@@ -1736,7 +1736,7 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
         SizedBox(width: SizeConfig.size8),
         _editChip(
           onTap: () => EditProfileBottomSheet.show(Get.context!),
-          label: 'Edit',
+          label: AppStrings.edit.tr,
           icon: Icons.edit_outlined,
         ),
       ],
@@ -1786,7 +1786,7 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
               SizedBox(width: SizeConfig.size10),
               Expanded(
                 child: Text(
-                  'Complete your profile',
+                  AppStrings.completeProfile.tr,
                   style: TextStyle(
                     fontFamily: AppConstants.OpenSans,
                     fontSize: 13,
@@ -1940,11 +1940,13 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
           final posts = _viewCtrl.postsCount.value;
           return Row(
             children: [
-              Expanded(child: _statTile(label: 'Posts', value: '$posts')),
+              Expanded(
+                  child: _statTile(
+                      label: AppStrings.posts.tr, value: '$posts')),
               _statSeam(),
               Expanded(
                 child: _statTile(
-                  label: 'Followers',
+                  label: AppStrings.followers.tr,
                   value: _formatCount(followers),
                   onTap: () => Get.to(() =>
                       FollowersFollowingPage(tabIndex: 1, userID: userId)),
@@ -1953,7 +1955,7 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
               _statSeam(),
               Expanded(
                 child: _statTile(
-                  label: 'Following',
+                  label: AppStrings.following.tr,
                   value: _formatCount(following),
                   onTap: () => Get.to(() =>
                       FollowersFollowingPage(tabIndex: 0, userID: userId)),
@@ -2038,7 +2040,7 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
           Expanded(
             child: _actionPill(
               icon: Icons.share_outlined,
-              label: 'Share Profile',
+              label: AppStrings.shareProfile.tr,
               filled: false,
               onTap: _onShareProfile,
             ),
@@ -2047,7 +2049,7 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
           Expanded(
             child: _actionPill(
               icon: Icons.contact_page_outlined,
-              label: 'Personal Cards',
+              label: AppStrings.personalCards.tr,
               filled: true,
               onTap: () => Get.to(() => AllPersonalVisitingCards(
                     personalDetails: _viewCtrl.personalProfileDetails.value,
@@ -2128,7 +2130,7 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
   Widget _buildQrCard() {
     return Obx(() {
       final user = _viewCtrl.personalProfileDetails.value.user;
-      final name = _capitalizeFirst(user?.name ?? 'Profile');
+      final name = _capitalizeFirst(user?.name ?? AppStrings.profile.tr);
       final designation = user?.designation ?? '';
       return PersonalQrCodeWidget(
         userId: userId,

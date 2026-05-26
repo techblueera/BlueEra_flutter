@@ -556,7 +556,7 @@ class _StickySearchBarDelegate extends SliverPersistentHeaderDelegate {
                                 const SizedBox(width: 10),
                                 Expanded(
                                   child: CustomText(
-                                    AppStrings.searchAnything,
+                                    AppStrings.searchAnything.tr,
                                     fontSize: 16,
                                     color: AppColors.secondaryTextColor,
                                   ),
