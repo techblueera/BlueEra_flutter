@@ -9,21 +9,21 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class CompleteYourListingScreen extends StatefulWidget {
-  const CompleteYourListingScreen({super.key});
+class CompleteYourRentListingScreen extends StatefulWidget {
+  const CompleteYourRentListingScreen({super.key});
 
   @override
-  State<CompleteYourListingScreen> createState() =>
-      _CompleteYourListingScreenState();
+  State<CompleteYourRentListingScreen> createState() =>
+      _CompleteYourRentListingScreenState();
 }
 
-class _CompleteYourListingScreenState extends State<CompleteYourListingScreen> {
+class _CompleteYourRentListingScreenState
+    extends State<CompleteYourRentListingScreen> {
   static const int _maxPhotos = 4;
   static const Color _uploadFill = Color(0xFFE9F0FB);
 
-  final List<String> _photoPaths = [];
-
   late final PropertyController _ctrl;
+  final List<String> _photoPaths = [];
 
   @override
   void initState() {
@@ -136,7 +136,7 @@ class _CompleteYourListingScreenState extends State<CompleteYourListingScreen> {
                   ),
                   const SizedBox(height: 12),
                   const RentalFormCard(
-                    child: _PriceDetailsSection(),
+                    child: _RentPriceDetailsSection(),
                   ),
                 ],
               ),
@@ -164,10 +164,7 @@ class _CompleteYourListingScreenState extends State<CompleteYourListingScreen> {
       child: Stack(
         fit: StackFit.expand,
         children: [
-          Image.file(
-            File(path),
-            fit: BoxFit.cover,
-          ),
+          Image.file(File(path), fit: BoxFit.cover),
           Positioned(
             top: 6,
             right: 6,
@@ -195,19 +192,21 @@ class _CompleteYourListingScreenState extends State<CompleteYourListingScreen> {
   }
 }
 
-class _PriceDetailsSection extends StatefulWidget {
-  const _PriceDetailsSection();
+class _RentPriceDetailsSection extends StatefulWidget {
+  const _RentPriceDetailsSection();
 
   @override
-  State<_PriceDetailsSection> createState() => _PriceDetailsSectionState();
+  State<_RentPriceDetailsSection> createState() =>
+      _RentPriceDetailsSectionState();
 }
 
-class _PriceDetailsSectionState extends State<_PriceDetailsSection> {
+class _RentPriceDetailsSectionState extends State<_RentPriceDetailsSection> {
   late final PropertyController _ctrl;
   bool _isRange = false;
   bool _allInclusive = false;
-  bool _negotiable = false;
-  bool _taxExcluded = false;
+  bool _securityDeposit = false;
+  bool _electricityIncluded = false;
+  bool _waterIncluded = false;
 
   @override
   void initState() {
@@ -262,30 +261,33 @@ class _PriceDetailsSectionState extends State<_PriceDetailsSection> {
           Row(
             children: [
               Expanded(
-                child: RentalLabeledField(
+                child: RentalFieldWithSuffix(
                   label: '',
                   hint: 'Min Price',
                   keyboardType: TextInputType.number,
                   onChanged: (v) => _ctrl.priceFrom.value = v,
+                  suffix: _priceTypeSuffix(),
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: RentalLabeledField(
+                child: RentalFieldWithSuffix(
                   label: '',
                   hint: 'Max Price',
                   keyboardType: TextInputType.number,
                   onChanged: (v) => _ctrl.priceTo.value = v,
+                  suffix: _priceTypeSuffix(),
                 ),
               ),
             ],
           )
         else
-          RentalLabeledField(
+          RentalFieldWithSuffix(
             label: '',
             hint: 'E.g. ₹40,660',
             keyboardType: TextInputType.number,
             onChanged: (v) => _ctrl.price.value = v,
+            suffix: _priceTypeSuffix(),
           ),
         const SizedBox(height: 12),
         _checkRow('All Inclusive Price', _allInclusive, (v) {
@@ -293,16 +295,119 @@ class _PriceDetailsSectionState extends State<_PriceDetailsSection> {
           _ctrl.allInclusivePrice.value = v;
         }),
         const SizedBox(height: 8),
-        _checkRow('Price Negotiable', _negotiable, (v) {
-          setState(() => _negotiable = v);
-          _ctrl.priceNegotiable.value = v;
+        _checkRow('Security Deposit', _securityDeposit, (v) {
+          setState(() => _securityDeposit = v);
+          _ctrl.securityDeposit.value = v;
         }),
         const SizedBox(height: 8),
-        _checkRow('Tax And Govt. Charges Excluded', _taxExcluded, (v) {
-          setState(() => _taxExcluded = v);
-          _ctrl.taxAndGovtChargeExcluded.value = v;
+        _checkRow('Electricity Included', _electricityIncluded, (v) {
+          setState(() => _electricityIncluded = v);
+          _ctrl.electricityIncluded.value = v;
+        }),
+        const SizedBox(height: 8),
+        _checkRow('Water Charges Included', _waterIncluded, (v) {
+          setState(() => _waterIncluded = v);
+          _ctrl.waterChargesIncluded.value = v;
         }),
       ],
+    );
+  }
+
+  Widget _priceTypeSuffix() {
+    return GestureDetector(
+      onTap: () => _showPriceTypePicker(),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          border: Border(
+            left: BorderSide(
+              color: AppColors.secondaryTextColor.withValues(alpha: 0.2),
+            ),
+          ),
+        ),
+        child: Obx(() => Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CustomText(
+                  PropertyController.priceTypeLabels[_ctrl.priceType.value] ??
+                      _ctrl.priceType.value,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.secondaryTextColor,
+                ),
+                const SizedBox(width: 2),
+                Icon(
+                  Icons.keyboard_arrow_down,
+                  size: 16,
+                  color: AppColors.secondaryTextColor,
+                ),
+              ],
+            )),
+      ),
+    );
+  }
+
+  void _showPriceTypePicker() {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (_) {
+        return SafeArea(
+          top: false,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 12),
+              Container(
+                width: 36,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFDDE2EE),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 12),
+              CustomText(
+                'Select Price Type',
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: AppColors.mainTextColor,
+              ),
+              const SizedBox(height: 8),
+              ...PropertyController.priceTypeOptions.map(
+                (type) {
+                  final label =
+                      PropertyController.priceTypeLabels[type] ?? type;
+                  return Obx(() => ListTile(
+                        title: CustomText(
+                          label,
+                          fontSize: 14,
+                          fontWeight: _ctrl.priceType.value == type
+                              ? FontWeight.w700
+                              : FontWeight.w500,
+                          color: _ctrl.priceType.value == type
+                              ? AppColors.primaryColor
+                              : AppColors.mainTextColor,
+                        ),
+                        trailing: _ctrl.priceType.value == type
+                            ? Icon(Icons.check_circle,
+                                color: AppColors.primaryColor, size: 20)
+                            : null,
+                        onTap: () {
+                          _ctrl.priceType.value = type;
+                          Navigator.of(context).pop();
+                        },
+                      ));
+                },
+              ),
+              const SizedBox(height: 8),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -371,7 +476,7 @@ class _UploadTile extends StatelessWidget {
             children: [
               Container(
                 decoration: BoxDecoration(
-                  color: _CompleteYourListingScreenState._uploadFill,
+                  color: _CompleteYourRentListingScreenState._uploadFill,
                   borderRadius: radius,
                 ),
               ),

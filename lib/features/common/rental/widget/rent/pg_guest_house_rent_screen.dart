@@ -1,20 +1,19 @@
 import 'package:BlueEra/features/common/rental/controller/property_controller.dart';
-import 'package:BlueEra/features/common/rental/widget/complete_your_listing_screen.dart';
+import 'package:BlueEra/features/common/rental/widget/rent/complete_your_rent_listing_screen.dart';
 import 'package:BlueEra/features/common/rental/widget/rental_form_widgets.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class ShopsOfficesSpecificationsScreen extends StatefulWidget {
-  const ShopsOfficesSpecificationsScreen({super.key});
+class PgGuestHouseRentScreen extends StatefulWidget {
+  const PgGuestHouseRentScreen({super.key});
 
   @override
-  State<ShopsOfficesSpecificationsScreen> createState() =>
-      _ShopsOfficesSpecificationsScreenState();
+  State<PgGuestHouseRentScreen> createState() =>
+      _PgGuestHouseRentScreenState();
 }
 
-class _ShopsOfficesSpecificationsScreenState
-    extends State<ShopsOfficesSpecificationsScreen> {
+class _PgGuestHouseRentScreenState extends State<PgGuestHouseRentScreen> {
   late final PropertyController _ctrl;
   final _formKey = GlobalKey<FormState>();
   var _autovalidate = AutovalidateMode.disabled;
@@ -30,7 +29,7 @@ class _ShopsOfficesSpecificationsScreenState
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
-        appBar: CommonBackAppBar(title: 'Shops & Offices Specifications'),
+        appBar: CommonBackAppBar(title: 'Property Specifications'),
         body: Column(
           children: [
             const RentalStepProgressBar(progress: 0.66),
@@ -47,56 +46,63 @@ class _ShopsOfficesSpecificationsScreenState
                         RentalLocationField(),
                         const SizedBox(height: 18),
                         RentalChipSelector(
+                          label: 'Subtype',
+                          options: const ['Guest House', 'PG', 'Roommate'],
+                          onChanged: (v) => _ctrl.pgSubtype.value = v,
+                        ),
+                        const SizedBox(height: 18),
+                        RentalChipSelector(
+                          label: 'Room Type',
+                          options: const [
+                            'Single Sharing',
+                            'Double Sharing',
+                            'Triple Sharing',
+                            'Dormitory',
+                          ],
+                          onChanged: (v) => _ctrl.pgRoomType.value = v,
+                        ),
+                        const SizedBox(height: 18),
+                        RentalChipSelector(
+                          label: 'Attached Bathroom',
+                          options: const ['Yes Attached', 'Not Attached'],
+                          onChanged: (v) =>
+                              _ctrl.pgAttachedBathroom.value = v,
+                        ),
+                        const SizedBox(height: 18),
+                        RentalChipSelector(
                           label: 'Furnishing',
                           options: const [
                             'Furnished',
                             'Semi-Furnished',
                             'Unfurnished'
                           ],
-                          onChanged: (i) => _ctrl.soFurnishing.value = i,
-                        ),
-                        const SizedBox(height: 18),
-                        RentalChipSelector(
-                          label: 'Project Status',
-                          options: const [
-                            'New Launch',
-                            'Ready to Move',
-                            'Under Construction',
-                          ],
-                          onChanged: (i) => _ctrl.soProjectStatus.value = i,
+                          onChanged: (v) => _ctrl.pgFurnishing.value = v,
                         ),
                         const SizedBox(height: 18),
                         RentalChipSelector(
                           label: 'Listed By',
                           options: const ['Owner', 'Builder', 'Dealer'],
-                          onChanged: (i) => _ctrl.soListedBy.value = i,
-                        ),
-                        const SizedBox(height: 18),
-                        RentalAreaField(
-                          label: 'Super Built-Up Area Details',
-                          hint: 'E.g. 4060',
-                          onChanged: (v) => _ctrl.soArea.value = v,
+                          onChanged: (v) => _ctrl.pgListedBy.value = v,
                         ),
                         const SizedBox(height: 18),
                         RentalChipSelector(
                           label: 'Car Parking',
                           options: const ['1', '2', '3', '4+'],
-                          onChanged: (i) => _ctrl.soCarParking.value = i,
+                          onChanged: (v) => _ctrl.pgCarParking.value = v,
                         ),
                         const SizedBox(height: 18),
                         RentalChipSelector(
-                          label: 'Washrooms',
-                          options: const ['1', '2', '3', '4+'],
-                          onChanged: (i) => _ctrl.soWashrooms.value = i,
+                          label: 'Meals Included',
+                          options: const ['Yes Included', 'Not Included'],
+                          onChanged: (v) => _ctrl.pgMealsIncluded.value = v,
                         ),
                         const SizedBox(height: 18),
                         RentalLabeledField(
-                          label: 'Maintenance (Monthly)',
-                          hint: 'E.g. ₹40,660',
-                          keyboardType: TextInputType.number,
-                          onChanged: (v) => _ctrl.soMaintenance.value = v,
+                          label: 'Key Amenities',
+                          hint: 'E.g. Lorem Ipsum Dolor',
+                          onChanged: (v) => _ctrl.pgKeyAmenities.value = v,
                           validator: (v) => v == null || v.trim().isEmpty
-                              ? 'Please enter maintenance'
+                              ? 'Please enter key amenities'
                               : null,
                         ),
                       ],
@@ -114,7 +120,7 @@ class _ShopsOfficesSpecificationsScreenState
               FocusScope.of(context).unfocus();
               setState(() => _autovalidate = AutovalidateMode.onUserInteraction);
               if (!_formKey.currentState!.validate()) return;
-              Get.to(() => const CompleteYourListingScreen());
+              Get.to(() => const CompleteYourRentListingScreen());
             },
           ),
         ),

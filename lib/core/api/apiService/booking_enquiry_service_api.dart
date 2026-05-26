@@ -41,4 +41,11 @@ mixin BookingEnquiryServiceApi {
       "booking-enquiry-service/rentals/$rentalId/upload-images";
   String deleteRentalService(String rentalId) =>
       "booking-enquiry-service/rentals/$rentalId";
+
+  final String properties = 'booking-enquiry-service/properties';
+  final String propertyStats = 'booking-enquiry-service/properties/stats';
+  String propertyById(String id) =>
+      'booking-enquiry-service/properties/$id';
+  String propertiesByFilter(String listingType, String propertyType) =>
+      'booking-enquiry-service/properties?listingType=$listingType&propertyType=$propertyType';
 }

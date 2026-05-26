@@ -1,8 +1,13 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/services/location/location_service.dart';
+import 'package:BlueEra/features/common/rental/controller/property_controller.dart';
+import 'package:BlueEra/widgets/common_location_search_field.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 /// Shared form-building primitives for the "List Your Property"
 /// (For Sale: Houses & Apartments) static create flow. Used across
@@ -11,7 +16,6 @@ import 'package:flutter/material.dart';
 
 const Color _kFieldFill = Color(0xFFF4F6FA);
 const Color _kFieldBorder = Color(0xFFDDE2EE);
-const Color kRentalScreenBg = Color(0xFFEEF1F6);
 
 /// The six top-level "Rent & Properties" categories that the v2
 /// dashboard's chip strip + bottom-sheet grid expose. The screens use
@@ -112,6 +116,136 @@ enum RentalCategory {
       case RentalCategory.newProjectsSale:
         return 'Property Specifications';
     }
+  }
+}
+
+/// Step progress bar — blue fill that animates to [progress] (0.0–1.0).
+/// Sits below the app bar on every rental flow screen.
+class RentalStepProgressBar extends StatelessWidget {
+  final double progress;
+
+  const RentalStepProgressBar({super.key, required this.progress});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 4,
+      color: const Color(0xFFDDE2EE),
+      alignment: Alignment.centerLeft,
+      child: FractionallySizedBox(
+        widthFactor: progress.clamp(0.0, 1.0),
+        child: Container(
+          decoration: BoxDecoration(
+            color: AppColors.primaryColor,
+            borderRadius: BorderRadius.circular(2),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// White container wrapping the bottom "Next" / "Post Now" button.
+class RentalBottomBar extends StatelessWidget {
+  final Widget child;
+
+  const RentalBottomBar({super.key, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Colors.white,
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: child,
+        ),
+      ),
+    );
+  }
+}
+
+/// Location picker field with inline Google Places autocomplete and
+/// "Direct My Location" button. Syncs to [PropertyController].
+class RentalLocationField extends StatefulWidget {
+  const RentalLocationField({super.key});
+
+  @override
+  State<RentalLocationField> createState() => _RentalLocationFieldState();
+}
+
+class _RentalLocationFieldState extends State<RentalLocationField> {
+  late final PropertyController _ctrl;
+  final _locationCtrl = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = Get.find<PropertyController>();
+    if (_ctrl.locationAddress.value.isNotEmpty) {
+      _locationCtrl.text = _ctrl.locationAddress.value;
+    }
+  }
+
+  @override
+  void dispose() {
+    _locationCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CommonLocationSearchField(
+          controller: _locationCtrl,
+          title: 'Where Is Your Property Located',
+          hintText: 'E.g. Gomti Nagar, Lucknow...',
+          isShowLeading: false,
+          onSelected: (placeId, lat, lng, address) {
+            _locationCtrl.text = address;
+            _ctrl.locationAddress.value = address;
+            _ctrl.locationLat.value = lat;
+            _ctrl.locationLng.value = lng;
+          },
+        ),
+        const SizedBox(height: 6),
+        GestureDetector(
+          onTap: _useCurrentLocation,
+          child: Row(
+            children: [
+              CustomText(
+                'Direct My Location',
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: AppColors.primaryColor,
+              ),
+              const SizedBox(width: 4),
+              Icon(
+                Icons.my_location,
+                size: 14,
+                color: AppColors.primaryColor,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _useCurrentLocation() async {
+    await LocationService.fetchLocation();
+    _ctrl.locationLat.value = LocationService.lat;
+    _ctrl.locationLng.value = LocationService.lng;
+    final addr = LocationService.userCurrentAddress.value;
+    final parts = [addr.street, addr.city, addr.state]
+        .where((e) => e.isNotEmpty)
+        .toList();
+    final address = parts.isNotEmpty ? parts.join(', ') : 'Current Location';
+    _ctrl.locationAddress.value = address;
+    _locationCtrl.text = address;
   }
 }
 
@@ -218,6 +352,10 @@ class RentalLabeledField extends StatefulWidget {
   final int? maxLength;
   final int maxLines;
   final TextInputType? keyboardType;
+  final TextEditingController? controller;
+  final ValueChanged<String>? onChanged;
+  final String? Function(String?)? validator;
+  final TextInputAction? textInputAction;
 
   const RentalLabeledField({
     super.key,
@@ -226,6 +364,10 @@ class RentalLabeledField extends StatefulWidget {
     this.maxLength,
     this.maxLines = 1,
     this.keyboardType,
+    this.controller,
+    this.onChanged,
+    this.validator,
+    this.textInputAction,
   });
 
   @override
@@ -233,11 +375,18 @@ class RentalLabeledField extends StatefulWidget {
 }
 
 class _RentalLabeledFieldState extends State<RentalLabeledField> {
-  final _controller = TextEditingController();
+  late final TextEditingController _controller;
+  bool _ownsController = false;
 
   @override
   void initState() {
     super.initState();
+    if (widget.controller != null) {
+      _controller = widget.controller!;
+    } else {
+      _controller = TextEditingController();
+      _ownsController = true;
+    }
     if (widget.maxLength != null) {
       _controller.addListener(() => setState(() {}));
     }
@@ -245,7 +394,7 @@ class _RentalLabeledFieldState extends State<RentalLabeledField> {
 
   @override
   void dispose() {
-    _controller.dispose();
+    if (_ownsController) _controller.dispose();
     super.dispose();
   }
 
@@ -254,18 +403,23 @@ class _RentalLabeledFieldState extends State<RentalLabeledField> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        CustomText(
-          widget.label,
-          fontSize: 14,
-          fontWeight: FontWeight.w700,
-          color: AppColors.mainTextColor,
-        ),
-        const SizedBox(height: 8),
-        TextField(
+        if (widget.label.isNotEmpty) ...[
+          CustomText(
+            widget.label,
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+            color: AppColors.mainTextColor,
+          ),
+          const SizedBox(height: 8),
+        ],
+        TextFormField(
           controller: _controller,
           maxLines: widget.maxLines,
           maxLength: widget.maxLength,
           keyboardType: widget.keyboardType,
+          textInputAction: widget.textInputAction,
+          onChanged: widget.onChanged,
+          validator: widget.validator,
           buildCounter:
               (_, {required currentLength, required isFocused, maxLength}) =>
                   null,
@@ -363,15 +517,370 @@ InputDecoration _fieldDecoration(String hint) {
   );
 }
 
+/// Labeled wrap-chip selector — renders a bold label, then a [Wrap]
+/// of rounded pill chips. Tapping a chip selects it (single-select).
+class RentalChipSelector extends StatefulWidget {
+  final String label;
+  final List<String> options;
+  final int initialIndex;
+  final ValueChanged<int>? onChanged;
+
+  const RentalChipSelector({
+    super.key,
+    required this.label,
+    required this.options,
+    this.initialIndex = 0,
+    this.onChanged,
+  });
+
+  @override
+  State<RentalChipSelector> createState() => _RentalChipSelectorState();
+}
+
+class _RentalChipSelectorState extends State<RentalChipSelector> {
+  late int _selected;
+
+  @override
+  void initState() {
+    super.initState();
+    _selected = widget.initialIndex;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CustomText(
+          widget.label,
+          fontSize: 14,
+          fontWeight: FontWeight.w700,
+          color: AppColors.mainTextColor,
+        ),
+        const SizedBox(height: 10),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: List.generate(widget.options.length, (i) {
+            final selected = i == _selected;
+            return GestureDetector(
+              onTap: () {
+                setState(() => _selected = i);
+                widget.onChanged?.call(i);
+              },
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                decoration: BoxDecoration(
+                  color: selected
+                      ? AppColors.primaryColor.withValues(alpha: 0.08)
+                      : Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: selected
+                        ? AppColors.primaryColor
+                        : _kFieldBorder,
+                    width: selected ? 1.4 : 1,
+                  ),
+                ),
+                child: CustomText(
+                  widget.options[i],
+                  fontSize: 13,
+                  fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+                  color: selected
+                      ? AppColors.primaryColor
+                      : AppColors.secondaryTextColor,
+                ),
+              ),
+            );
+          }),
+        ),
+      ],
+    );
+  }
+}
+
+/// Labeled text field with an inline suffix widget (e.g. a unit
+/// dropdown like "sq.ft."). Used for area fields on step 2.
+class RentalFieldWithSuffix extends StatefulWidget {
+  final String label;
+  final String hint;
+  final Widget suffix;
+  final TextInputType? keyboardType;
+  final ValueChanged<String>? onChanged;
+
+  const RentalFieldWithSuffix({
+    super.key,
+    required this.label,
+    required this.hint,
+    required this.suffix,
+    this.keyboardType,
+    this.onChanged,
+  });
+
+  @override
+  State<RentalFieldWithSuffix> createState() => _RentalFieldWithSuffixState();
+}
+
+class _RentalFieldWithSuffixState extends State<RentalFieldWithSuffix> {
+  final _controller = TextEditingController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (widget.label.isNotEmpty) ...[
+          CustomText(
+            widget.label,
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+            color: AppColors.mainTextColor,
+          ),
+          const SizedBox(height: 8),
+        ],
+        TextField(
+          controller: _controller,
+          keyboardType: widget.keyboardType,
+          onChanged: widget.onChanged,
+          decoration: InputDecoration(
+            hintText: widget.hint,
+            hintStyle: TextStyle(
+              color: AppColors.secondaryTextColor.withValues(alpha: 0.75),
+              fontWeight: FontWeight.w500,
+              fontSize: 14,
+            ),
+            filled: true,
+            fillColor: _kFieldFill,
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            suffixIcon: Padding(
+              padding: const EdgeInsets.only(right: 4),
+              child: widget.suffix,
+            ),
+            suffixIconConstraints:
+                const BoxConstraints(minHeight: 0, minWidth: 0),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: const BorderSide(color: _kFieldBorder),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: const BorderSide(color: _kFieldBorder),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(
+                  color: AppColors.primaryColor.withValues(alpha: 0.5)),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Area text field with a unit dropdown (sq.ft., sq.m., sq.yd., acres).
+/// Syncs value and unit to [PropertyController].
+class RentalAreaField extends StatefulWidget {
+  final String label;
+  final String hint;
+  final ValueChanged<String>? onChanged;
+
+  const RentalAreaField({
+    super.key,
+    this.label = 'Add Area Details',
+    this.hint = 'E.g. 4060',
+    this.onChanged,
+  });
+
+  @override
+  State<RentalAreaField> createState() => _RentalAreaFieldState();
+}
+
+class _RentalAreaFieldState extends State<RentalAreaField> {
+  late final PropertyController _ctrl;
+  final _textCtrl = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = Get.find<PropertyController>();
+  }
+
+  @override
+  void dispose() {
+    _textCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CustomText(
+          widget.label,
+          fontSize: 14,
+          fontWeight: FontWeight.w700,
+          color: AppColors.mainTextColor,
+        ),
+        const SizedBox(height: 8),
+        TextFormField(
+          controller: _textCtrl,
+          keyboardType: TextInputType.number,
+          onChanged: (v) {
+            widget.onChanged?.call(v);
+          },
+          decoration: InputDecoration(
+            hintText: widget.hint,
+            hintStyle: TextStyle(
+              color: AppColors.secondaryTextColor.withValues(alpha: 0.75),
+              fontWeight: FontWeight.w500,
+              fontSize: 14,
+            ),
+            filled: true,
+            fillColor: _kFieldFill,
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            suffixIcon: Padding(
+              padding: const EdgeInsets.only(right: 4),
+              child: _unitDropdown(),
+            ),
+            suffixIconConstraints:
+                const BoxConstraints(minHeight: 0, minWidth: 0),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: const BorderSide(color: _kFieldBorder),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: const BorderSide(color: _kFieldBorder),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(
+                  color: AppColors.primaryColor.withValues(alpha: 0.5)),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _unitDropdown() {
+    return Obx(() => GestureDetector(
+          onTap: () => _showUnitPicker(context),
+          child: Container(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              border: Border(
+                left: BorderSide(
+                  color:
+                      AppColors.secondaryTextColor.withValues(alpha: 0.2),
+                ),
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CustomText(
+                  _ctrl.areaUnit.value,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.secondaryTextColor,
+                ),
+                const SizedBox(width: 2),
+                Icon(
+                  Icons.keyboard_arrow_down,
+                  size: 16,
+                  color: AppColors.secondaryTextColor,
+                ),
+              ],
+            ),
+          ),
+        ));
+  }
+
+  void _showUnitPicker(BuildContext context) {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (_) {
+        return SafeArea(
+          top: false,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 12),
+              Container(
+                width: 36,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFDDE2EE),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 12),
+              CustomText(
+                'Select Unit',
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: AppColors.mainTextColor,
+              ),
+              const SizedBox(height: 8),
+              ...PropertyController.areaUnitOptions.map(
+                (unit) => ListTile(
+                  title: CustomText(
+                    unit,
+                    fontSize: 14,
+                    fontWeight: _ctrl.areaUnit.value == unit
+                        ? FontWeight.w700
+                        : FontWeight.w500,
+                    color: _ctrl.areaUnit.value == unit
+                        ? AppColors.primaryColor
+                        : AppColors.mainTextColor,
+                  ),
+                  trailing: _ctrl.areaUnit.value == unit
+                      ? Icon(Icons.check_circle,
+                          color: AppColors.primaryColor, size: 20)
+                      : null,
+                  onTap: () {
+                    _ctrl.areaUnit.value = unit;
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ),
+              const SizedBox(height: 8),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
 /// Full-width primary blue CTA used at the bottom of each step.
 class RentalPrimaryButton extends StatelessWidget {
   final String label;
   final VoidCallback onTap;
+  final bool isLoading;
 
   const RentalPrimaryButton({
     super.key,
     required this.label,
     required this.onTap,
+    this.isLoading = false,
   });
 
   @override
@@ -379,18 +888,25 @@ class RentalPrimaryButton extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: onTap,
+        onTap: isLoading ? null : onTap,
         borderRadius: BorderRadius.circular(12),
         splashColor: Colors.white.withValues(alpha: 0.18),
         highlightColor: Colors.white.withValues(alpha: 0.08),
         child: Container(
-          height: 52,
+          height: 40,
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: AppColors.primaryColor,
+            color: isLoading
+                ? AppColors.primaryColor.withValues(alpha: 0.7)
+                : AppColors.primaryColor,
             borderRadius: BorderRadius.circular(12),
           ),
-          child: CustomText(
+          child: isLoading
+              ? staggeredDotsWaveLoading(
+                  color: Colors.white,
+                  padding: EdgeInsets.zero,
+                )
+              : CustomText(
             label,
             color: Colors.white,
             fontSize: 16,

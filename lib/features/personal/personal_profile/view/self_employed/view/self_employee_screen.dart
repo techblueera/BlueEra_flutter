@@ -25,6 +25,7 @@ import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
 import 'package:BlueEra/features/common/reel/view/channel/follower_following_screen.dart';
+import 'package:BlueEra/features/common/rental/widget/rental_property_card_v2.dart';
 import 'package:BlueEra/features/common/visiting_card/view/all_personal_visiting_cards.dart';
 import 'package:BlueEra/features/contribution/controller/contribution_controller.dart';
 import 'package:BlueEra/features/contribution/view/contribution_screen.dart';
@@ -33,7 +34,6 @@ import 'package:BlueEra/features/personal/auth/controller/view_personal_details_
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/controller/rental_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/widget/rental_services_dashboard_screen.dart';
-import 'package:BlueEra/features/common/rental/widget/rental_property_card_v2.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/self_profession_service_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/edit_profile_bottom_sheet.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/profile_designation_bottom_sheet.dart';
@@ -1200,10 +1200,10 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
         child: const ProfileBioCard(margin: EdgeInsets.zero),
       ),
       _buildActionRow(),
-      _buildRentalCard(),
-      // const RentalPropertyCardV2(
-      //   margin: EdgeInsets.only(top: 10, left: 20, right: 10),
-      // ),
+      // _buildRentalCard(),
+      const RentalPropertyCardV2(
+        margin: EdgeInsets.only(top: 10, left: 20, right: 10),
+      ),
       Padding(
         padding: const EdgeInsets.only(top: 10, left: 20, right: 10),
         child: const ProfileLocationCard(margin: EdgeInsets.zero),
