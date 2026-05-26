@@ -16,6 +16,7 @@ import 'package:http/http.dart' as http;
 class LanguageControllerNew extends GetxController {
   static const String _boxName = 'translations';
   static const String _fallbackLang = 'en';
+  static const List<String> _supportedLangCodes = ['en', 'hi', 'kn','gu','mr'];
 
   final languages = <LanguageModelNew>[].obs;
   Box? _box;
@@ -60,8 +61,10 @@ class LanguageControllerNew extends GetxController {
           box.get('selectedLanguage', defaultValue: _fallbackLang) as String;
       selectedLang.value = savedLangCode;
 
-      final response =
-          await http.get(Uri.parse('${baseUrl}language-service/languages/names?languages=en%2Chi'));
+      final langsParam = _supportedLangCodes.join(',');
+      final uri = Uri.parse('${baseUrl}language-service/languages/names')
+          .replace(queryParameters: {'languages': langsParam});
+      final response = await http.get(uri);
       if (response.statusCode == 200) {
         final List data = jsonDecode(response.body);
         final freshBox = await _safeBox();
