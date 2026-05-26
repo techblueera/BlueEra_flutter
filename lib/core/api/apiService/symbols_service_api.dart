@@ -20,4 +20,8 @@ mixin SymbolsServiceApi {
       "symbols-service/symbols/comment/$commentId";
   String symbolDeleteCommentApi(String commentId) =>
       "symbols-service/symbols/comment/$commentId";
+  String symbolGetLikesApi(String symbolId) =>
+      "symbols-service/symbols/$symbolId/likes";
+  String symbolGetViewsApi(String symbolId) =>
+      "symbols-service/symbols/$symbolId/views";
 }

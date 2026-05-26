@@ -57,7 +57,7 @@ class _OrderMainChatScreenState extends State<OrderMainChatScreen>
   void initState() {
 
     super.initState();
-    addSymbolController.getSymbolsForPartUser(userId);
+
 
     getOrPut(() => ChatFlagController());
     getOrPut(() => ChatPinArchiveController());

@@ -23,7 +23,7 @@ import 'package:BlueEra/features/chat/view/personal_chat/personal_chat_list.dart
 import 'package:BlueEra/features/chat/view/business_chat/business_chat_list.dart';
 import 'package:BlueEra/features/chat/view/orders_chat/orders_chat_list.dart';
 import 'package:BlueEra/features/chat/view/reminder_chat/reminder_todo_screen.dart';
-// import 'package:BlueEra/features/chat/view/symbol_view/symbol_view_images.dart';
+import 'package:BlueEra/features/chat/view/symbol_view/symbol_view_images.dart';
 import 'package:BlueEra/features/chat/view/wallet_chat/wallet_chat_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/manage_notification/notification.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
@@ -115,6 +115,7 @@ class _ConnectMainPageState extends State<ConnectMainPage>
     // opens directly on the Orders tab. Clamp to the valid range and
     // clear the flag afterwards so subsequent opens default back to
     // Chat unless explicitly requested again.
+    addSymbolController.getSymbolsForPartUser(userId);
     final pendingTab = chatViewController.selectedChatTabIndex.value;
     final initialTab =
         (pendingTab >= 0 && pendingTab < postTab.length) ? pendingTab : 0;
@@ -236,7 +237,7 @@ class _ConnectMainPageState extends State<ConnectMainPage>
   /// Hydrate the tab's chat list. Personal is also emitted in `initState`
   /// so the first paint isn't blank.
   void _emitChatListForTab(int index) {
-    print("sldjkclskdcsldkcmsldkcm $index");
+
     if (index == 0) {
       chatViewController.emitEvent(
         ChatEmitEvents.ChatList,
@@ -821,6 +822,7 @@ class _ConnectMainPageState extends State<ConnectMainPage>
   void _openProfileDrawer(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final authController = Get.find<AuthController>();
+    final ctrl = getOrPut(() => AddChatSymbolController());
 
     showGeneralDialog(
       context: context,
@@ -853,31 +855,39 @@ class _ConnectMainPageState extends State<ConnectMainPage>
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Container(
-                            padding: const EdgeInsets.all(2.5),
-                            decoration: const BoxDecoration(
-                              shape: BoxShape.circle,
-                              gradient: SweepGradient(
-                                colors: [
-                                  AppColors.symbolBorderRed,
-                                  AppColors.symbolBorderBlue,
-                                  AppColors.symbolBorderYellow,
-                                  AppColors.symbolBorderGreen,
-                                  AppColors.symbolBorderRed,
-                                ],
-                              ),
-                            ),
+                          InkWell(
+                            onTap: (){
+                              Navigator.pop(context);
+
+                              Get.to(() => SymbolViewImages(
+                                  mySymbols: ctrl.mySymbols));
+                            },
                             child: Container(
-                              padding: const EdgeInsets.all(2),
-                              decoration: const BoxDecoration(
+                              padding: const EdgeInsets.all(2.5),
+                              decoration:  BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: Colors.white,
+                                gradient: (ctrl.mySymbols.isEmpty)?null:SweepGradient(
+                                  colors: [
+                                    AppColors.symbolBorderRed,
+                                    AppColors.symbolBorderBlue,
+                                    AppColors.symbolBorderYellow,
+                                    AppColors.symbolBorderGreen,
+                                    AppColors.symbolBorderRed,
+                                  ],
+                                ),
                               ),
-                              child: CachedAvatarWidget(
-                                imageUrl: authController.imgPath.value,
-                                size: 52,
-                                borderRadius: 26,
-                                showProfileOnFullScreen: false,
+                              child: Container(
+                                padding: const EdgeInsets.all(2),
+                                decoration: const BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Colors.white,
+                                ),
+                                child: CachedAvatarWidget(
+                                  imageUrl: authController.imgPath.value,
+                                  size: 52,
+                                  borderRadius: 26,
+                                  showProfileOnFullScreen: false,
+                                ),
                               ),
                             ),
                           ),

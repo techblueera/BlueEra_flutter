@@ -154,18 +154,21 @@ class _ChatCustomVideoPlayerState extends State<ChatCustomVideoPlayer>
             ],
           )
               : Container(
-            color: Colors.white,
+            color: Colors.black,
                 padding: EdgeInsets.symmetric(vertical: 18),
-                child: Stack(
-                  children: [
-
-                    Positioned(
-                        bottom: 74,
-                        left: 0,
-                        right: 0,
-                        child: Icon(Icons.play_arrow,size: 18,)),
-                    Center(child: CircularProgressIndicator())
-                  ],
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: const [
+                      Icon(Icons.play_circle_outline, size: 48, color: Colors.white54),
+                      SizedBox(height: 12),
+                      SizedBox(
+                        height: 24,
+                        width: 24,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white54),
+                      ),
+                    ],
+                  ),
                 ),
               ),
         ),

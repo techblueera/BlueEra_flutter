@@ -6,12 +6,14 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
 import 'package:any_link_preview/any_link_preview.dart';
+import '../../../../core/constants/shared_preference_utils.dart';
 import '../../auth/controller/add_chat_symbol_controller.dart';
 import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/model/symbol_details_model.dart';
@@ -86,6 +88,7 @@ class _SymbolViewImagesState extends State<SymbolViewImages> with SingleTickerPr
     _pageController = PageController();
     if (widget.mySymbols != null) {
       allImages = widget.mySymbols;
+      addSymbolController.getSymbolsForPartUser(userId);
     } else if (widget.initialSymbol != null) {
       allImages = [widget.initialSymbol!];
     } else if (widget.userId != null) {
@@ -101,6 +104,13 @@ class _SymbolViewImagesState extends State<SymbolViewImages> with SingleTickerPr
       CurvedAnimation(parent: _fadeController, curve: Curves.easeInOut),
     );
     _fadeController.forward();
+
+    if (!_isMySymbols && _hasImages) {
+      final firstId = allImages!.first.id;
+      if (firstId != null && firstId.isNotEmpty) {
+        addSymbolController.markViewed(firstId);
+      }
+    }
   }
 
   @override
@@ -147,17 +157,28 @@ class _SymbolViewImagesState extends State<SymbolViewImages> with SingleTickerPr
     return Color(int.parse(hex, radix: 16));
   }
 
-  void _toggleLike() {
+  void _toggleLike() async {
     if (!_isValidIndex) return;
     final symbol = allImages![currentIndex];
     final id = symbol.id ?? '';
+    final wasLiked = _likedSymbolIds.contains(id);
     setState(() {
-      if (_likedSymbolIds.contains(id)) {
+      if (wasLiked) {
         _likedSymbolIds.remove(id);
       } else {
         _likedSymbolIds.add(id);
       }
     });
+    final success = await addSymbolController.toggleLikeSymbol(id, isLiked: wasLiked);
+    if (!success && mounted) {
+      setState(() {
+        if (wasLiked) {
+          _likedSymbolIds.add(id);
+        } else {
+          _likedSymbolIds.remove(id);
+        }
+      });
+    }
   }
 
   Map<String, dynamic> _buildSymbolSnapshot(SymbolDetailsModel symbol) {
@@ -259,21 +280,26 @@ class _SymbolViewImagesState extends State<SymbolViewImages> with SingleTickerPr
           child: PageView.builder(
             controller: _pageController,
             itemCount: allImages!.length,
-            onPageChanged: (i) => setState(() => currentIndex = i),
+            onPageChanged: (i) {
+              setState(() => currentIndex = i);
+              if (!_isMySymbols && allImages != null && i < allImages!.length) {
+                final id = allImages![i].id;
+                if (id != null && id.isNotEmpty) {
+                  addSymbolController.markViewed(id);
+                }
+              }
+            },
             itemBuilder: (_, index) {
               final url = allImages![index];
 
               if (url.type == 'photo' || url.type == "video") {
-                final isVideo = url.content?.toLowerCase().contains('.mp4') ?? false;
+                final isVideo = url.type == "video";
                 return Stack(
                   children: [
                     if (isVideo)
-                      Center(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8.0),
-                          child: ChatCustomVideoPlayer(
-                            videoUrl: url.content ?? "",
-                          ),
+                      Positioned.fill(
+                        child: ChatCustomVideoPlayer(
+                          videoUrl: url.content ?? "",
                         ),
                       )
                     else
@@ -290,7 +316,7 @@ class _SymbolViewImagesState extends State<SymbolViewImages> with SingleTickerPr
                     Positioned(
                       left: 0,
                       right: 0,
-                      bottom: _isMySymbols ? 0 : 80,
+                      bottom: _isMySymbols ? 80 : 80,
                       child: (url.caption?.isNotEmpty ?? false)
                           ? Container(
                               width: double.infinity,
@@ -468,7 +494,7 @@ class _SymbolViewImagesState extends State<SymbolViewImages> with SingleTickerPr
         /// Page indicator
         if (allImages!.length > 1)
           Positioned(
-            bottom: _isMySymbols ? 25 : 90,
+            bottom: _isMySymbols ? 70 : 90,
             left: 0,
             right: 0,
             child: Row(
@@ -484,6 +510,72 @@ class _SymbolViewImagesState extends State<SymbolViewImages> with SingleTickerPr
                     color: currentIndex == i ? Colors.white : Colors.white54,
                     borderRadius: BorderRadius.circular(20),
                   ),
+                ),
+              ),
+            ),
+          ),
+
+        /// Bottom likes/views bar (only for my symbols) — tap or swipe up to open
+        if (_isMySymbols && _isValidIndex)
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: GestureDetector(
+              onVerticalDragEnd: (details) {
+                if ((details.primaryVelocity ?? 0) < -200) {
+                  _showInteractionsSheet(0);
+                }
+              },
+              onTap: () => _showInteractionsSheet(0),
+              child: Container(
+                padding: const EdgeInsets.fromLTRB(16, 6, 16, 18),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.6),
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.keyboard_arrow_up_rounded, color: Colors.white54, size: 22),
+                    const SizedBox(height: 2),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        GestureDetector(
+                          onTap: () => _showInteractionsSheet(0),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.favorite, color: Colors.redAccent, size: 22),
+                              const SizedBox(width: 6),
+                              CustomText(
+                                "${allImages![currentIndex].likesCount ?? 0} Likes",
+                                color: Colors.white,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 30),
+                        GestureDetector(
+                          onTap: () => _showInteractionsSheet(1),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.visibility, color: Colors.lightBlueAccent, size: 22),
+                              const SizedBox(width: 6),
+                              CustomText(
+                                "${allImages![currentIndex].seenCount ?? 0} Views",
+                                color: Colors.white,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -588,6 +680,25 @@ class _SymbolViewImagesState extends State<SymbolViewImages> with SingleTickerPr
             ),
           ),
       ],
+    );
+  }
+
+  void _showInteractionsSheet(int initialTab) {
+    if (!_isValidIndex) return;
+    final symbolId = allImages![currentIndex].id ?? '';
+    if (symbolId.isEmpty) return;
+
+    addSymbolController.fetchSymbolLikes(symbolId);
+    addSymbolController.fetchSymbolViews(symbolId);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _SymbolInteractionsSheet(
+        controller: addSymbolController,
+        initialTab: initialTab,
+      ),
     );
   }
 
@@ -850,6 +961,229 @@ class _SymbolViewImagesState extends State<SymbolViewImages> with SingleTickerPr
           ),
         ),
       ),
+    );
+  }
+}
+
+class _SymbolInteractionsSheet extends StatefulWidget {
+  final AddChatSymbolController controller;
+  final int initialTab;
+
+  const _SymbolInteractionsSheet({
+    required this.controller,
+    this.initialTab = 0,
+  });
+
+  @override
+  State<_SymbolInteractionsSheet> createState() => _SymbolInteractionsSheetState();
+}
+
+class _SymbolInteractionsSheetState extends State<_SymbolInteractionsSheet>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(
+      length: 2,
+      vsync: this,
+      initialIndex: widget.initialTab,
+    );
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  String _formatTime(DateTime? dateTime) {
+    if (dateTime == null) return '';
+    final diff = DateTime.now().difference(dateTime);
+    if (diff.inMinutes < 1) return 'Just now';
+    if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
+    if (diff.inHours < 24) return '${diff.inHours}h ago';
+    if (diff.inDays == 1) return 'Yesterday';
+    return '${diff.inDays}d ago';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return DraggableScrollableSheet(
+      initialChildSize: 0.55,
+      minChildSize: 0.3,
+      maxChildSize: 0.85,
+      builder: (context, scrollController) {
+        return Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: Column(
+            children: [
+              Container(
+                margin: const EdgeInsets.symmetric(vertical: 12),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              Obx(() {
+                final likesCount = widget.controller.symbolLikes.length;
+                final viewsCount = widget.controller.symbolViews.length;
+                return TabBar(
+                  controller: _tabController,
+                  labelColor: Colors.black,
+                  unselectedLabelColor: Colors.grey,
+                  indicatorColor: AppColors.primaryColor,
+                  tabs: [
+                    Tab(
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.favorite, size: 18, color: Colors.redAccent),
+                          const SizedBox(width: 6),
+                          Text('Likes ($likesCount)'),
+                        ],
+                      ),
+                    ),
+                    Tab(
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.visibility, size: 18, color: Colors.lightBlueAccent),
+                          const SizedBox(width: 6),
+                          Text('Views ($viewsCount)'),
+                        ],
+                      ),
+                    ),
+                  ],
+                );
+              }),
+              const Divider(height: 1),
+              Expanded(
+                child: TabBarView(
+                  controller: _tabController,
+                  children: [
+                    _buildLikesTab(),
+                    _buildViewsTab(),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildLikesTab() {
+    return Obx(() {
+      if (widget.controller.isLoadingLikes.value) {
+        return const Center(
+          child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primaryColor),
+        );
+      }
+      if (widget.controller.symbolLikes.isEmpty) {
+        return Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.favorite_border, size: 48, color: Colors.grey[400]),
+              const SizedBox(height: 12),
+              CustomText("No likes yet", fontSize: 16, color: Colors.grey),
+            ],
+          ),
+        );
+      }
+      return ListView.builder(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        itemCount: widget.controller.symbolLikes.length,
+        itemBuilder: (context, index) {
+          final like = widget.controller.symbolLikes[index];
+          return _buildUserTile(
+            user: like.user,
+            subtitle: _formatTime(like.createdAt),
+            trailingIcon: Icons.favorite,
+            trailingColor: Colors.redAccent,
+          );
+        },
+      );
+    });
+  }
+
+  Widget _buildViewsTab() {
+    return Obx(() {
+      if (widget.controller.isLoadingViews.value) {
+        return const Center(
+          child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primaryColor),
+        );
+      }
+      if (widget.controller.symbolViews.isEmpty) {
+        return Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.visibility_off, size: 48, color: Colors.grey[400]),
+              const SizedBox(height: 12),
+              CustomText("No views yet", fontSize: 16, color: Colors.grey),
+            ],
+          ),
+        );
+      }
+      return ListView.builder(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        itemCount: widget.controller.symbolViews.length,
+        itemBuilder: (context, index) {
+          final view = widget.controller.symbolViews[index];
+          return _buildUserTile(
+            user: view.user,
+            subtitle: _formatTime(view.seenAt),
+            trailingIcon: Icons.visibility,
+            trailingColor: Colors.lightBlueAccent,
+          );
+        },
+      );
+    });
+  }
+
+  Widget _buildUserTile({
+    required UserModel? user,
+    required String subtitle,
+    required IconData trailingIcon,
+    required Color trailingColor,
+  }) {
+    return ListTile(
+      leading: CachedAvatarWidget(
+        imageUrl: user?.profileImage,
+        size: 42,
+        borderRadius: 21,
+        showProfileOnFullScreen: false,
+      ),
+      title: Row(
+        children: [
+          Flexible(
+            child: CustomText(
+              user?.name ?? 'Unknown',
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          if (user?.accountType?.toUpperCase() == 'BUSINESS') ...[
+            const SizedBox(width: 4),
+            Icon(Icons.verified, size: 16, color: Colors.blue[600]),
+          ],
+        ],
+      ),
+      subtitle: subtitle.isNotEmpty
+          ? CustomText(subtitle, fontSize: 12, color: Colors.grey)
+          : null,
+      trailing: Icon(trailingIcon, color: trailingColor, size: 20),
     );
   }
 }
