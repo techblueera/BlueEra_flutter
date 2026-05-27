@@ -108,13 +108,15 @@ class Metadata {
   String? jobId;
   String? senderName;
   String? message;
+  String? symbolId;
 
-  Metadata({this.jobId, this.senderName, this.message});
+  Metadata({this.jobId, this.senderName, this.message, this.symbolId});
 
   Metadata.fromJson(Map<String, dynamic> json) {
     jobId = json['jobId']??json['post_id'];
     senderName = json['senderName'];
     message = json['message'];
+    symbolId = json['symbol_id'];
   }
 
   Map<String, dynamic> toJson() {
@@ -122,6 +124,7 @@ class Metadata {
     data['jobId'] = this.jobId;
     data['senderName'] = this.senderName;
     data['message'] = this.message;
+    data['symbol_id'] = this.symbolId;
     return data;
   }
 }

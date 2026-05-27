@@ -68,7 +68,7 @@ void onForegroundNotificationResponse(NotificationResponse response) {
     if (response.payload == null) return;
     final data = json.decode(response.payload!) as Map<String, dynamic>;
     final actionId = response.actionId ?? '';
-print("actionId==== ${actionId}");
+    print("actionId==== ${actionId}");
     // Incoming call: Accept (Android local-notification path)
     if (actionId.startsWith('incoming_call_accept_')) {
       final callId = (data['callId'] ?? '').toString();
@@ -88,7 +88,8 @@ print("actionId==== ${actionId}");
     }
 
     // Incoming call: Decline
-    print("Get.isRegistered<CallController>()=== ${Get.isRegistered<CallController>()}");
+    print(
+        "Get.isRegistered<CallController>()=== ${Get.isRegistered<CallController>()}");
     if (actionId.startsWith('incoming_call_decline_')) {
       final callId = (data['callId'] ?? '').toString();
       cancelIncomingCallLocalNotification(callId);
@@ -129,10 +130,9 @@ print("actionId==== ${actionId}");
       AppNotificationHandler._handleActionButtonTap(
         actionId,
         data,
-        replyText:
-            (response.input != null && response.input!.isNotEmpty)
-                ? response.input
-                : null,
+        replyText: (response.input != null && response.input!.isNotEmpty)
+            ? response.input
+            : null,
       );
     } else {
       AppNotificationHandler._onTapNotificationFromStatusBar(data);
@@ -146,7 +146,7 @@ Future<void> _handleBackgroundNotificationResponse(
     NotificationResponse response) async {
   print("NOTI 1 ");
   print("NOTI 1 ${response}");
-  print("NOTI 2 ${response.payload==null}");
+  print("NOTI 2 ${response.payload == null}");
   if (response.payload == null) return;
   final data = json.decode(response.payload!) as Map<String, dynamic>;
   logs("NOTIFICATION DATA 1 ${data}");
@@ -192,7 +192,8 @@ Future<void> _handleBackgroundNotificationResponse(
         // Use call service base URL (matches foreground CallRepo).
         // Hardcoded because `callBaseUrl` global isn't initialized in the
         // FCM/notification background isolate.
-        final apiUrl = (callBaseUrl ?? 'https://call.beapp.in/') + 'call/decline';
+        final apiUrl =
+            (callBaseUrl ?? 'https://call.beapp.in/') + 'call/decline';
         final dioClient = dio.Dio();
         await dioClient.post(
           apiUrl,
@@ -356,8 +357,7 @@ Future<void> stashPendingIncomingCallExtras(Map<String, dynamic> extras) async {
 Future<void> markPendingIncomingCallAccepted(String callId) async {
   try {
     const storage = FlutterSecureStorage();
-    await storage.write(
-        key: _kPendingIncomingCallAcceptKey, value: callId);
+    await storage.write(key: _kPendingIncomingCallAcceptKey, value: callId);
   } catch (_) {}
 }
 
@@ -431,7 +431,8 @@ Future<void> showIncomingCallLocalNotification({
   // foreground FCM). Falls back to flutter_local_notifications for the FCM
   // background isolate where the MethodChannel isn't registered.
   try {
-    const nativeChannel = MethodChannel('com.bluehr.incoming_call_notification');
+    const nativeChannel =
+        MethodChannel('com.bluehr.incoming_call_notification');
     await nativeChannel.invokeMethod('show', {
       'callId': callId,
       'roomId': roomId,
@@ -498,7 +499,7 @@ Future<void> showIncomingCallLocalNotification({
       ),
       AndroidNotificationAction(
         'incoming_call_accept_$callId',
-        isVideo?'Video':'Accept',
+        isVideo ? 'Video' : 'Accept',
         showsUserInterface: true,
         cancelNotification: true,
         titleColor: Color(0xFF4CAF50),
@@ -520,7 +521,8 @@ Future<void> showIncomingCallLocalNotification({
 Future<void> cancelIncomingCallLocalNotification(String callId) async {
   try {
     // Cancel from native notification (custom filled buttons)
-    const nativeChannel = MethodChannel('com.bluehr.incoming_call_notification');
+    const nativeChannel =
+        MethodChannel('com.bluehr.incoming_call_notification');
     await nativeChannel.invokeMethod('cancel', {
       'notifId': incomingCallNotificationId(callId),
     });
@@ -797,8 +799,7 @@ class AppNotificationHandler {
         badge: true,
         sound: true,
       );
-      print(
-          "===ios-notification-auth=== ${settings.authorizationStatus}");
+      print("===ios-notification-auth=== ${settings.authorizationStatus}");
       if (settings.authorizationStatus != AuthorizationStatus.authorized &&
           settings.authorizationStatus != AuthorizationStatus.provisional) {
         print(
@@ -901,8 +902,7 @@ class AppNotificationHandler {
     // token cache.
     const String voipCacheKey = 'voipTokenCache';
     try {
-      final cached =
-          await SharedPreferenceUtils.getSecureValue(voipCacheKey);
+      final cached = await SharedPreferenceUtils.getSecureValue(voipCacheKey);
       if (cached is String && cached == voipToken) {
         print("===voip-token-sync=== skipped (unchanged)");
         return;
@@ -985,8 +985,7 @@ class AppNotificationHandler {
         if (Platform.isIOS) {
           final apns = await firebaseMessaging.getAPNSToken();
           if (apns == null || apns.isEmpty) {
-            print(
-                "=========fcm- skipped: APNS token not ready on iOS");
+            print("=========fcm- skipped: APNS token not ready on iOS");
             return;
           }
         }
@@ -1050,7 +1049,8 @@ class AppNotificationHandler {
       try {
         newToken = await FirebaseMessaging.instance.getToken();
       } catch (e) {
-        print("===fcm-refresh=== getToken error (attempt ${i + 1}/$maxAttempts): $e");
+        print(
+            "===fcm-refresh=== getToken error (attempt ${i + 1}/$maxAttempts): $e");
       }
       final hasNewToken = newToken != null && newToken.isNotEmpty;
       final isDifferent = hasNewToken && newToken != oldToken;
@@ -1071,7 +1071,8 @@ class AppNotificationHandler {
     // GMS never handed us a new token. Keep the old one in cache so
     // verifyOTP still sends something addressable; onTokenRefresh will
     // upgrade the server-side token when GMS comes back.
-    print("===fcm-refresh=== failed to obtain new token, keeping old: $oldToken");
+    print(
+        "===fcm-refresh=== failed to obtain new token, keeping old: $oldToken");
     if (oldToken != null) {
       await SharedPreferenceUtils.setSecureValue(
           SharedPreferenceUtils.notificationDeviceToken, oldToken);
@@ -1237,8 +1238,8 @@ class AppNotificationHandler {
   Future<void> showMsg(RemoteMessage message) async {
     final operation =
         (message.data['operation'] ?? '').toString().toLowerCase();
-print("ORDER SCREEN NAME ${operation}");
-print("ORDER SCREEN NAME message.data ${message.data}");
+    print("ORDER SCREEN NAME ${operation}");
+    print("ORDER SCREEN NAME message.data ${message.data}");
     // Handle fare-call incoming call — show IncomingRiderOrderScreen with ride details.
     // Regular calls are handled by socket `call:incoming` in CallController.
     if (operation == 'fare_ride_incoming_call') {
@@ -1725,8 +1726,7 @@ print("ORDER SCREEN NAME message.data ${message.data}");
       // already showing.
       if (Get.isRegistered<CallController>()) {
         final ctrl = Get.find<CallController>();
-        final alreadyHandling =
-            ctrl.callStatus.value != CallStatus.idle &&
+        final alreadyHandling = ctrl.callStatus.value != CallStatus.idle &&
             ctrl.callId.value == callId;
         if (alreadyHandling) {
           log('[CALL_DEBUG] _handleIncomingCallPush → already handled by socket, skipping');
@@ -1743,7 +1743,8 @@ print("ORDER SCREEN NAME message.data ${message.data}");
           ctrl.callId.value = callId;
           ctrl.roomId.value = roomId;
           ctrl.conversationId.value =
-              (data['conversationId'] ?? payload['conversation_id'] ?? '').toString();
+              (data['conversationId'] ?? payload['conversation_id'] ?? '')
+                  .toString();
           ctrl.callType.value =
               callType == 'video_call' ? CallType.video : CallType.audio;
           ctrl.isGroupCall.value = payload['is_group'] == true;
@@ -1779,9 +1780,10 @@ print("ORDER SCREEN NAME message.data ${message.data}");
             ? (callerName.isNotEmpty ? callerName : 'Ride Request')
             : callerName,
         desiginations: designation,
-        callerImage: (callerData['profile_image']?.toString().isNotEmpty ?? false)
-            ? callerData['profile_image']
-            : (callerImage.isNotEmpty ? callerImage : null),
+        callerImage:
+            (callerData['profile_image']?.toString().isNotEmpty ?? false)
+                ? callerData['profile_image']
+                : (callerImage.isNotEmpty ? callerImage : null),
         callType: callType,
         extra: {
           'senderId': (data['senderId'] ?? '').toString(),
@@ -1793,7 +1795,8 @@ print("ORDER SCREEN NAME message.data ${message.data}");
           'roomId': roomId,
           'operation': 'incoming_call',
           if (isFareCall) 'isFareCall': 'true',
-          if (isFareCall) 'fareCallOrderId': (metadata['orderId'] ?? '').toString(),
+          if (isFareCall)
+            'fareCallOrderId': (metadata['orderId'] ?? '').toString(),
           if (isFareCall)
             'fareCallRideDetails': jsonEncode(metadata['rideDetails'] ?? {}),
         },
@@ -1858,7 +1861,9 @@ print("ORDER SCREEN NAME message.data ${message.data}");
           }
           // Dismiss CallKit on iOS
           if (Platform.isIOS && cId.isNotEmpty) {
-            try { FlutterCallkitIncoming.endCall(cId); } catch (_) {}
+            try {
+              FlutterCallkitIncoming.endCall(cId);
+            } catch (_) {}
           }
         } catch (e) {
           debugPrint('[CALL_DEBUG] foreground missed_call handler error: $e');
@@ -1874,8 +1879,10 @@ print("ORDER SCREEN NAME message.data ${message.data}");
             final dc = Get.find<DiscoverController>();
             if (!dc.isFareCallRideStarted.value) {
               dc.isFareCallRideStarted.value = true;
-              dc.fareCallRideStartedData.value = message.data.cast<String, dynamic>();
-              debugPrint('[RIDE_DEBUG] foreground FCM ride_started → set isFareCallRideStarted=true');
+              dc.fareCallRideStartedData.value =
+                  message.data.cast<String, dynamic>();
+              debugPrint(
+                  '[RIDE_DEBUG] foreground FCM ride_started → set isFareCallRideStarted=true');
             }
           }
         } catch (e) {
@@ -1884,18 +1891,22 @@ print("ORDER SCREEN NAME message.data ${message.data}");
       }
 
       // Ride completed push — same fallback for ride:completed socket event
-      if (operation == 'ride_completed' || operation == 'ride_order_completed') {
+      if (operation == 'ride_completed' ||
+          operation == 'ride_order_completed') {
         try {
           if (Get.isRegistered<DiscoverController>()) {
             final dc = Get.find<DiscoverController>();
             if (!dc.isFareCallRideCompleted.value) {
               dc.isFareCallRideCompleted.value = true;
-              dc.fareCallRideCompletedData.value = message.data.cast<String, dynamic>();
-              debugPrint('[RIDE_DEBUG] foreground FCM ride_completed → set isFareCallRideCompleted=true');
+              dc.fareCallRideCompletedData.value =
+                  message.data.cast<String, dynamic>();
+              debugPrint(
+                  '[RIDE_DEBUG] foreground FCM ride_completed → set isFareCallRideCompleted=true');
             }
           }
         } catch (e) {
-          debugPrint('[RIDE_DEBUG] foreground ride_completed handler error: $e');
+          debugPrint(
+              '[RIDE_DEBUG] foreground ride_completed handler error: $e');
         }
       }
 
@@ -2002,8 +2013,8 @@ print("ORDER SCREEN NAME message.data ${message.data}");
       case 'reacted_to_post':
       case 'reacted_to_comment':
       case 'replied_on_comment':
-      _handlePostNavigation(data);
-      break;
+        _handlePostNavigation(data);
+        break;
       case 'answered_question':
         Get.toNamed(RouteHelper.getNotificationScreenRoute());
         break;
@@ -2085,6 +2096,7 @@ print("ORDER SCREEN NAME message.data ${message.data}");
 
       // Symbol operations
       case 'symbol_created':
+      case 'SYMBOL_CREATED':
         _openSymbolFromNotification(data);
         break;
 
@@ -2096,6 +2108,7 @@ print("ORDER SCREEN NAME message.data ${message.data}");
     /// Clear all local notifications
     flutterLocalNotificationsPlugin.cancelAll();
   }
+
   /// Build a SymbolDetailsModel from a SYMBOL_CREATED FCM payload and open
   /// the symbol viewer. Falls back to opening the sender's chat if the
   /// payload is malformed (so the tap never becomes a dead-end).
@@ -2159,7 +2172,7 @@ print("ORDER SCREEN NAME message.data ${message.data}");
       final String? repostId = payloadMap['repost_id'];
 
       Get.to(
-            () => PostDeatilPage(),
+        () => PostDeatilPage(),
         arguments: {
           "postId": (operation == 'reposted_post' && repostId != null)
               ? repostId
@@ -2168,6 +2181,7 @@ print("ORDER SCREEN NAME message.data ${message.data}");
       );
     }
   }
+
   /// Extract a chat message out of an FCM data payload and persist it to the
   /// local Hive cache so the chat screen shows it immediately on open — even
   /// when the socket hasn't reconnected yet (cold-start from killed state).
@@ -2206,8 +2220,7 @@ print("ORDER SCREEN NAME message.data ${message.data}");
                 .toString(),
         'message_type':
             (data['message_type'] ?? data['messageType'] ?? 'text').toString(),
-        'sender_id':
-            (data['senderId'] ?? data['sender_id'] ?? '').toString(),
+        'sender_id': (data['senderId'] ?? data['sender_id'] ?? '').toString(),
         'conversation_id': conversationId,
         'createdAt':
             (data['createdAt'] ?? DateTime.now().toUtc().toIso8601String())
@@ -2220,8 +2233,8 @@ print("ORDER SCREEN NAME message.data ${message.data}");
 
       final Messages message = Messages.fromJson(messageJson);
       message.conversationId = conversationId;
-      await LocalStorageHelper().saveSingleMessageToConversationId(
-          conversationId, message);
+      await LocalStorageHelper()
+          .saveSingleMessageToConversationId(conversationId, message);
     } catch (e) {
       // Best-effort — navigation must still proceed even if this fails.
       logs('[_persistFcmMessageToLocal] failed: $e');
@@ -2368,8 +2381,7 @@ print("ORDER SCREEN NAME message.data ${message.data}");
                     Get.back();
 
                     // Request permission
-                    final newStatus =
-                        await Permission.notification.request();
+                    final newStatus = await Permission.notification.request();
                     if (!newStatus.isGranted) {
                       // If still denied, open settings
                       await openAppSettings();
@@ -2462,8 +2474,7 @@ print("ORDER SCREEN NAME message.data ${message.data}");
             title: "Enable",
           ),
         ],
-        actionsPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       ),
       barrierDismissible: true,
     );

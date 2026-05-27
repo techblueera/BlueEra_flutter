@@ -5,6 +5,9 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/features/chat/auth/model/symbol_details_model.dart';
+import 'package:BlueEra/features/chat/auth/repo/symbol_repo.dart';
+import 'package:BlueEra/features/chat/view/symbol_view/symbol_view_images.dart';
 import 'package:BlueEra/features/common/feed/view/post_detail_screen.dart';
 import 'package:BlueEra/features/common/jobs/view/job_details_screen.dart';
 import 'package:BlueEra/features/common/notification/model/notification_model.dart';
@@ -258,12 +261,14 @@ class _NotificationScreenState extends State<NotificationScreen> {
                         NotificationListRepo().notificationReadRepo(
                             notificationId: data.sId ?? "");
                       }
-                      if (data.notification_type == "jobs") {
+                      if (data.type == "SYMBOL_CREATED") {
+                        _openSymbol(data);
+                      }
+                      else if (data.notification_type == "jobs") {
                         redirectJobPost(jobID: data.metadata?.jobId ?? "");
                       }
                       else if(data.notification_type == "posts"){
                         Get.to(() => PostDeatilPage(), arguments: {"postId": data.metadata?.jobId ?? ""});
-
                       }
                       else {
                         redirectToProfileScreen(
@@ -388,6 +393,32 @@ class _NotificationScreenState extends State<NotificationScreen> {
                 },
               )
             : EmptyStateWidget(message: AppStrings.noNotificationsFound.tr));
+  }
+
+  Future<void> _openSymbol(NotificationDataList data) async {
+    final symbolId = data.metadata?.symbolId ?? "";
+    if (symbolId.isEmpty) return;
+    try {
+      final response = await SymbolRepo().getSymbolById(symbolId);
+      if (response.isSuccess && response.data != null) {
+        final responseData = Map<String, dynamic>.from(response.data);
+        final symbolJson = Map<String, dynamic>.from(responseData['symbol'] ?? {});
+        if (responseData['creator'] != null) {
+          symbolJson['user'] = responseData['creator'];
+        }
+        final symbol = SymbolDetailsModel.fromJson(symbolJson);
+        Get.to(() => SymbolViewImages(
+              initialSymbol: symbol,
+              userId: symbol.userId,
+              name: symbol.user?.name,
+              profileImage: symbol.user?.profileImage,
+            ));
+      } else {
+        commonSnackBar(message: AppStrings.somethingWentWrong);
+      }
+    } catch (e) {
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    }
   }
 
   void redirectJobPost({required String jobID}) {

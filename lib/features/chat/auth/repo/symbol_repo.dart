@@ -103,6 +103,24 @@ class SymbolRepo extends BaseService {
     return response;
   }
 
+  Future<ResponseModel> getSymbolById(String symbolId) async {
+    final response = await ApiBaseHelper().getHTTP(
+        getSymbolByIdApi(symbolId),
+        params: {
+          'include': 'creator,comments,likes',
+          'commentsLimit': '10',
+          'commentsPage': '1',
+          'likesLimit': '10',
+          'likesPage': '1',
+          'seenLimit': '10',
+          'seenPage': '1',
+        },
+        showProgress: false,
+        onError: (error) {},
+        onSuccess: (data) {});
+    return response;
+  }
+
   Future<ResponseModel> getSymbolLikes(String symbolId) async {
     final response = await ApiBaseHelper().getHTTP(
         symbolGetLikesApi(symbolId),

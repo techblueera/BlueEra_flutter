@@ -557,6 +557,7 @@ class AppStrings {
   static const myResume = "myResume";
   static const myProfile = "myProfile";
   static const posts = "posts";
+  static const symbols = "symbols";
   static const testimonials = "testimonials";
   static const myStore = "myStore";
   static const myChannel = "myChannel";
@@ -5591,6 +5592,7 @@ class AppStrings {
   static const String otherAddOrganization = "otherAddOrganization";
   static const String otherEditOrganization = "otherEditOrganization";
   static const String otherTellAboutOrganization = "otherTellAboutOrganization";
+  static const String otherOfficeFacilityTitle = "otherOfficeFacilityTitle";
 
   static const String otherPrivacyTncTitle = "otherPrivacyTncTitle";
   static const String otherNoPrivacyTncFound = "otherNoPrivacyTncFound";

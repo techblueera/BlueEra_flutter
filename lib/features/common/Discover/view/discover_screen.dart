@@ -42,6 +42,7 @@ class DiscoverScreen extends StatefulWidget {
 
   @override
   State<DiscoverScreen> createState() => _DiscoverScreenState();
+
 }
 
 class _DiscoverScreenState extends State<DiscoverScreen> {

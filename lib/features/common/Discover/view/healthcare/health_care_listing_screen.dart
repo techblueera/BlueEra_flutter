@@ -127,13 +127,18 @@ class _HealthCareListingScreenState extends State<HealthCareListingScreen> {
       if (slug == PHARMACY) {
         return NearestPharmaciesListScreen(
           key: ValueKey('pharmacy_$v'),
-          category: INSTRUMENTS_PHARMACY,
+          category: "PHARMACY",
+          // category: "INSTRUMENTS_PHARMACY",
         );
       } else if (slug == LABTEST) {
-        return LabProfilesListScreen(key: ValueKey('lab_$v'));
+        return LabProfilesListScreen(
+          key: ValueKey('lab_$v'),
+          category: "LABTEST",
+        );
       } else if (slug == HOSPITAL) {
         return HospitalListScreen(
-          serviceType: 'HOSPITAL_SECTOR',
+          serviceType: 'HOSPITAL',
+          // serviceType: 'HOSPITAL_SECTOR',
           // serviceType: 'hospital',
           key: ValueKey('hospital_$v'),
         );

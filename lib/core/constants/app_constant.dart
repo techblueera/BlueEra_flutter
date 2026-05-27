@@ -279,7 +279,6 @@ class AppConstants {
       "Medical Education Institutions";
   static const DIAGNOSTIC_TESTING_CENTERSWith_ = "DIAGNOSTIC_SECTOR";
   static const DIAGNOSTIC_TESTING_CENTERS = "DIAGNOSTIC SECTOR";
-  static const INSTRUMENTS_PHARMACY = "Instruments Pharmacy";
 
   /// Automotive Categories
   static const SALES_SECTOR = "Sales Sector";
@@ -898,9 +897,7 @@ const String RENTAL_SECTOR = "RENTAL_SECTOR";
 const String SUPPORT_SECTOR = "SUPPORT_SECTOR";
 
 // Health Care
-const String HOSPITAL_SECTOR = "HOSPITAL_SECTOR";
 const String INSTRUMENTS_PHARMACY = "INSTRUMENTS_PHARMACY";
-const String DIAGNOSTIC_SECTOR = "DIAGNOSTIC_SECTOR";
 const String CLINIC_DOCTORS = "CLINIC_DOCTORS";
 const String ALTERNATIVE_WELLNESS = "ALTERNATIVE_WELLNESS";
 const String SURGICAL = "SURGICAL";
@@ -927,14 +924,6 @@ const String TECHNICAL_SKILL_TRAINING = "TECHNICAL_SKILL_TRAINING";
 const String COACHING_EXAM_PREPARATION = "COACHING_EXAM_PREPARATION";
 const String CREATIVE_SPORT_HOBBY = "CREATIVE_SPORT_HOBBY";
 const String PROFESSIONAL_SUPPORT_EDUCATION = "PROFESSIONAL_SUPPORT_EDUCATION";
-
-// Finance
-const String BANKING_SECTOR = "BANKING_SECTOR";
-const String LOAN_SECTOR = "LOAN_SECTOR";
-const String INSURANCE_SECTOR = "INSURANCE_SECTOR";
-const String CAPITAL_MARKET = "CAPITAL_MARKET";
-const String DATA_SECTOR = "DATA_SECTOR";
-const String ADVISORY_SECTOR = "ADVISORY_SECTOR";
 
 double calculateDistanceKm(double lat1, double lon1, double lat2, double lon2) {
   const R = 6371; // Radius of Earth in kilometers
@@ -2467,7 +2456,8 @@ final List<OnboardingCategoryModel> stayHomeItemsCategories = [
 final List<OnboardingCategoryModel> stayItemsCategories = [
   OnboardingCategoryModel(
       name: 'Hotel Stay',
-      slugId: HOTELS_RESORT,
+      slugId: "HOTEL",
+      // slugId: HOTELS_RESORT,
       icon: AppImageAssets.hotelStay,
       colorCode: Color(0xFFEBF5FF),
       subtitle: "Premium Rooms",

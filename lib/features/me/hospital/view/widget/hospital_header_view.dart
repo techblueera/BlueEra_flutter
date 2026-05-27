@@ -180,7 +180,7 @@ class _HospitalHeaderViewState extends State<HospitalHeaderView> {
   /// Stats row: Rating | Reviews | Distance.
   Widget _buildStatsRow(dynamic data) {
     final coordinates =
-        data?.contacts?.firstOrNull?.branch?.location?.coordinates;
+        (data?.contacts?.isNotEmpty == true) ? data.contacts.first.branch?.location?.coordinates : null;
 
     String? distanceText;
     if (coordinates != null && coordinates.length >= 2) {

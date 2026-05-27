@@ -31,11 +31,13 @@ class _DeliveryPartnerOrdersState extends State<DeliveryPartnerOrders> {
 
   @override
   void initState() {
+    super.initState();
     if (deliveryPartnerController.riderVerificationState ==
         RiderVerificationState.completed) {
-      controller.fetchStream();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        controller.fetchStream();
+      });
     }
-    super.initState();
   }
 
   @override

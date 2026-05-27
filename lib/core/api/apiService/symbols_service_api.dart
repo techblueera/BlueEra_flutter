@@ -24,4 +24,6 @@ mixin SymbolsServiceApi {
       "symbols-service/symbols/$symbolId/likes";
   String symbolGetViewsApi(String symbolId) =>
       "symbols-service/symbols/$symbolId/views";
+  String getSymbolByIdApi(String symbolId) =>
+      "symbols-service/symbols/$symbolId";
 }
