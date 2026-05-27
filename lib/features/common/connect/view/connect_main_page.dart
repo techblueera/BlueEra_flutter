@@ -832,21 +832,26 @@ class _ConnectMainPageState extends State<ConnectMainPage>
       transitionDuration: const Duration(milliseconds: 250),
       pageBuilder: (context, animation, secondaryAnimation) {
         return Align(
-          alignment: Alignment.centerLeft,
-          child: Material(
-            color: Colors.transparent,
-            child: Container(
-              width: screenWidth * 0.5,
-              height: double.infinity,
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.only(
-                  topRight: Radius.circular(20),
-                  bottomRight: Radius.circular(20),
+          alignment: Alignment.topLeft,
+          child: SafeArea(
+            child: Material(
+              color: Colors.transparent,
+              child: Container(
+                width: screenWidth * 0.55,
+                margin: const EdgeInsets.only(top: 8, left: 4),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.15),
+                      blurRadius: 20,
+                      offset: const Offset(2, 4),
+                    ),
+                  ],
                 ),
-              ),
-              child: SafeArea(
                 child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 24),
@@ -897,10 +902,9 @@ class _ConnectMainPageState extends State<ConnectMainPage>
                     const SizedBox(height: 16),
                     const Divider(height: 1),
                     const SizedBox(height: 8),
-                    Expanded(
-                      child: SingleChildScrollView(
-                        child: Column(
-                          children: [
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
                             _drawerMenuItem(
                               icon: Icons.add_circle_outline_rounded,
                               label: 'Add Symbol',
@@ -911,21 +915,7 @@ class _ConnectMainPageState extends State<ConnectMainPage>
                                 Get.to(() => AddChatSymbolScreen());
                               },
                             ),
-                            // _drawerMenuItem(
-                            //   icon: Icons.auto_awesome_rounded,
-                            //   label: 'View Symbol',
-                            //   iconColor: const Color(0xFFE88D1A),
-                            //   bgColor: const Color(0xFFFFF3E0),
-                            //   onTap: () {
-                            //     Navigator.pop(context);
-                            //     final ctrl = Get
-                            //             .isRegistered<AddChatSymbolController>()
-                            //         ? Get.find<AddChatSymbolController>()
-                            //         : Get.put(AddChatSymbolController());
-                            //     Get.to(() => SymbolViewImages(
-                            //         mySymbols: ctrl.mySymbols));
-                            //   },
-                            // ),
+                            _menuDivider(),
                             _drawerMenuItem(
                               icon: Icons.group_add_rounded,
                               label: 'Create Group',
@@ -936,6 +926,7 @@ class _ConnectMainPageState extends State<ConnectMainPage>
                                 Get.to(() => ContactsPage(from: "group"));
                               },
                             ),
+                            _menuDivider(),
                             _drawerMenuItem(
                               icon: Icons.palette_rounded,
                               label: 'Background',
@@ -946,10 +937,7 @@ class _ConnectMainPageState extends State<ConnectMainPage>
                                 Get.to(() => ChatBackgroundScreen());
                               },
                             ),
-                            const Padding(
-                              padding: EdgeInsets.symmetric(vertical: 4),
-                              child: Divider(height: 1),
-                            ),
+                            _menuDivider(),
                             _drawerMenuItem(
                               icon: Icons.account_balance_wallet_rounded,
                               label: 'Wallet',
@@ -960,26 +948,7 @@ class _ConnectMainPageState extends State<ConnectMainPage>
                                 Get.to(() => const WalletChatScreen());
                               },
                             ),
-                            // _drawerMenuItem(
-                            //   icon: Icons.shield_rounded,
-                            //   label: 'Private Room',
-                            //   iconColor: const Color(0xFFD94A42),
-                            //   bgColor: const Color(0xFFFFEBEE),
-                            //   onTap: () {
-                            //     Navigator.pop(context);
-                            //     commonSnackBar(message: "Coming soon....");
-                            //   },
-                            // ),
-                            // _drawerMenuItem(
-                            //   icon: Icons.devices_rounded,
-                            //   label: 'Linked Device',
-                            //   iconColor: const Color(0xFF505050),
-                            //   bgColor: const Color(0xFFF0F0F0),
-                            //   onTap: () {
-                            //     Navigator.pop(context);
-                            //     commonSnackBar(message: "Coming soon....");
-                            //   },
-                            // ),
+                            _menuDivider(),
                             _drawerMenuItem(
                               icon: Icons.lock_rounded,
                               label: 'Lock Chat',
@@ -992,6 +961,7 @@ class _ConnectMainPageState extends State<ConnectMainPage>
                                     ));
                               },
                             ),
+                            _menuDivider(),
                             _drawerMenuItem(
                               icon: Icons.notifications_rounded,
                               label: 'Notification',
@@ -1002,6 +972,7 @@ class _ConnectMainPageState extends State<ConnectMainPage>
                                 Get.to(() => NotificationSettingScreen());
                               },
                             ),
+                            _menuDivider(),
                             _drawerMenuItem(
                               icon: Icons.person_add_alt_rounded,
                               label: 'Invite Friend',
@@ -1014,8 +985,7 @@ class _ConnectMainPageState extends State<ConnectMainPage>
                             ),
                           ],
                         ),
-                      ),
-                    ),
+                    const SizedBox(height: 16),
                   ],
                 ),
               ),
@@ -1035,6 +1005,13 @@ class _ConnectMainPageState extends State<ConnectMainPage>
           child: child,
         );
       },
+    );
+  }
+
+  Widget _menuDivider() {
+    return const Padding(
+      padding: EdgeInsets.symmetric(horizontal: 14),
+      child: Divider(height: 1, thickness: 0.5, color: Color(0xFFE0E0E0)),
     );
   }
 
