@@ -1293,37 +1293,37 @@ final List<OnboardingCategoryModel> findServiceByContactSubCate = [
 final List<OnboardingCategoryModel>
 businessOnboardingEducationTrainingCategories = [
   OnboardingCategoryModel(
-      name: 'School\nEducation',
+      name: AppStrings.schoolEducation,
       slugId: SCHOOL_EDUCATION,
       icon: OnboardingBusinessAssets.EduSchoolEducation,
       accountType: AppConstants.business,
       businessType: BusinessType.Siksha),
   OnboardingCategoryModel(
-      name: 'Collage/\nUniversity',
+      name: AppStrings.collageUniversity,
       slugId: COLLEGE_UNIVERSITY,
       icon: OnboardingBusinessAssets.EduUniversity,
       accountType: AppConstants.business,
       businessType: BusinessType.Siksha),
   OnboardingCategoryModel(
-      name: 'Coaching/\nInstitute',
+      name: AppStrings.coachingInstitute,
       slugId: COACHING_EXAM_PREPARATION,
       icon: OnboardingBusinessAssets.EduCoaching,
       accountType: AppConstants.business,
       businessType: BusinessType.Siksha),
   OnboardingCategoryModel(
-      name: 'Sports &\nHobby',
+      name: AppStrings.sportsAndHobby,
       slugId: CREATIVE_SPORT_HOBBY,
       icon: OnboardingBusinessAssets.EduSports,
       accountType: AppConstants.business,
       businessType: BusinessType.Siksha),
   OnboardingCategoryModel(
-      name: 'Professional\nLearn',
+      name: AppStrings.professionalLearn,
       slugId: PROFESSIONAL_SUPPORT_EDUCATION,
       icon: OnboardingBusinessAssets.EduProfessional,
       accountType: AppConstants.business,
       businessType: BusinessType.Siksha),
   OnboardingCategoryModel(
-      name: 'Skill\nTraining',
+      name: AppStrings.skillTraining,
       slugId: TECHNICAL_SKILL_TRAINING,
       icon: OnboardingBusinessAssets.EduSkill,
       accountType: AppConstants.business,
@@ -2867,17 +2867,17 @@ final List<CollapsibleGridModel> bookingList = [
 
 const List<CollapsibleGridModel> groceryOrFoodCategories = [
   CollapsibleGridModel(
-    name: 'Grocery & Stationary',
+    name: AppStrings.groceryNdStationary,
     slugId: AppConstants.grocery,
     icon: AppImageAssets.groceryItemsDiscover,
   ),
   CollapsibleGridModel(
-    name: 'Food & Restaurant',
+    name: AppStrings.foodAndRestaurant,
     slugId: AppConstants.food,
     icon: AppImageAssets.foodItemsDiscover,
   ),
   CollapsibleGridModel(
-    name: 'Home Made Food',
+    name: AppStrings.homeMadeFood,
     slugId: "HOME_MADE_FOOD",
     icon: AppImageAssets.homeMadeFoodDiscover,
   ),

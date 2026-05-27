@@ -765,6 +765,7 @@ class AppStrings {
   static const selfWork = "selfWork";
   static const deliveryPartner = "deliveryPartner";
   static const homeMadeProducts = "homeMadeProducts";
+  static const homeMadeFood = "homeMadeFood";
   static const homeMadeFoodItems = "homeMadeFoodItems";
   static const homeServices = "homeServices";
   static const rentalServices = "rentalServices";
@@ -2045,6 +2046,12 @@ class AppStrings {
   /// Discover widgets — inline labels
   static const String educationTrainingAndSectors =
       "educationTrainingAndSectors";
+  static const String schoolEducation = "schoolEducation";
+  static const String collageUniversity = "collageUniversity";
+  static const String coachingInstitute = "coachingInstitute";
+  static const String sportsAndHobby = "sportsAndHobby";
+  static const String professionalLearn = "professionalLearn";
+  static const String skillTraining = "skillTraining";
   static const String jobNearMe = "jobNearMe";
   static const String toLabel = "toLabel";
   static const String forRent = "forRent";
@@ -4731,6 +4738,10 @@ class AppStrings {
   static const String foodErrorUploadAtLeastImage =
       "food_error_upload_at_least_image";
 
+  static const String hospitalInquiry = "hospitalInquiry";
+  static const String hospitalDepartments = "hospitalDepartments";
+  static const String hospitalStats = "hospitalStats";
+
   /// Hospital Controllers — snackbar / dialog messages
   static const String hospitalCtrlServiceCreatedSuccess =
       "hospital_ctrl_service_created_success";
@@ -5516,6 +5527,8 @@ class AppStrings {
   static const String otherOurBlogs = "otherOurBlogs";
   static const String otherAddBlogPosts = "otherAddBlogPosts";
   static const String otherAddEdit = "otherAddEdit";
+  static const String otherManage = "otherManage";
+  static const String otherAddYourBannerHere = "otherAddYourBannerHere";
   static const String otherAddGalleryPhotos = "otherAddGalleryPhotos";
   static const String otherNoOrganisationInfoAdded =
       "otherNoOrganisationInfoAdded";
@@ -5528,6 +5541,11 @@ class AppStrings {
 
   static const String otherServicePhotos = "otherServicePhotos";
   static const String otherUploadServicePhoto = "otherUploadServicePhoto";
+  static const String otherProfileQr = "otherProfileQr";
+  static const String otherScanToViewProfile = "otherScanToViewProfile";
+  static const String otherCopyProfileId = "otherCopyProfileId";
+  static const String otherContactUs = "otherContactUs";
+  static const String otherNoPhotosYet = "otherNoPhotosYet";
 
   static const String otherNewsTitle = "otherNewsTitle";
   static const String otherNoNewsFound = "otherNoNewsFound";
@@ -5554,6 +5572,10 @@ class AppStrings {
   static const String otherAnnouncements = "otherAnnouncements";
   static const String otherJobsTitle = "otherJobsTitle";
   static const String otherCreateJob = "otherCreateJob";
+  static const String otherNotPostedJob = "otherNotPostedJob";
+  static const String otherPostNow = "otherPostNow";
+  static const String otherNotPostedService = "otherNotPostedService";
+  static const String otherNotPostedGallery = "otherNotPostedGallery";
 
   static const String otherNoContactUsFound = "otherNoContactUsFound";
   static const String otherBranchPrefix = "otherBranchPrefix";
@@ -5585,6 +5607,7 @@ class AppStrings {
   static const String otherConfirmDeleteStaff = "otherConfirmDeleteStaff";
 
   static const String otherAboutUsTitle = "otherAboutUsTitle";
+  static const String otherOfficeFacility = "otherOfficeFacility";
   static const String otherAboutOrganizationTitle =
       "otherAboutOrganizationTitle";
   static const String otherNoOrganizationFound = "otherNoOrganizationFound";

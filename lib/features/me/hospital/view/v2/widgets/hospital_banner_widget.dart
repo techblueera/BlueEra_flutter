@@ -122,7 +122,7 @@ class _HospitalBannerWidgetState extends State<HospitalBannerWidget> {
                     size: 20, color: AppColors.primaryColor),
                 SizedBox(width: SizeConfig.size6),
                 CustomText(
-                  'Add Your Banner Here',
+                  AppStrings.otherAddYourBannerHere.tr,
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
                   color: AppColors.primaryColor,
@@ -171,7 +171,7 @@ class _HospitalBannerWidgetState extends State<HospitalBannerWidget> {
                     size: 16, color: AppColors.primaryColor),
                 SizedBox(width: SizeConfig.size4),
                 CustomText(
-                  'Edit',
+                  AppStrings.edit.tr,
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
                   color: AppColors.primaryColor,

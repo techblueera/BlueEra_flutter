@@ -108,7 +108,7 @@ class FoodServicePhotoPhotoController extends GetxController {
   // Logic to build the JSON request body
 
   Future buildRequestBody() async {
-    AppLoader.show(message: 'Uploading photos...');
+    AppLoader.show();
     try {
       List<String> urlList = [];
       for (var filePath in selectedImages) {
@@ -147,7 +147,7 @@ class FoodServicePhotoPhotoController extends GetxController {
     required String imgId,
     required String imgUrl,
   }) async {
-    AppLoader.show(message: 'Removing photo...');
+    AppLoader.show();
     try {
       ResponseModel response = await _repo.deleteFoodServicePhotosRepo(
           imgID: imgId, reqBody: {"imageUrl": imgUrl});

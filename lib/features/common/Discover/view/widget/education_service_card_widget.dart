@@ -39,7 +39,7 @@ class EducationServiceCardWidget extends StatelessWidget {
                     child: CommonServiceCard(
                       service: item,
                       flex: 2,
-                      getName: (i) => i.name,
+                      getName: (i) => i.name.tr,
                       getIcon: (i) => i.icon ?? "",
                       iconHeight: SizeConfig.size60,
                       onTap: (i) {

@@ -36,7 +36,7 @@ class _AddOthersServicesState extends State<OthersAboutUs> {
       page: () => StaffScreen(),
     ),
     ServiceMenuItem(
-      title: AppStrings.otherOfficeFacilityTitle.tr,
+      title: AppStrings.otherOfficeFacility.tr,
       icon: AppIconAssets.other_office_facility,
       page: () => ComingSoon(),
     ),

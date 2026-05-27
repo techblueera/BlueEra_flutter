@@ -92,7 +92,7 @@ class _OtherServicesTabV2State extends State<OtherServicesTabV2> {
                           ),
                         ),
                         child: CustomText(
-                          hasServices ? 'Manage' : AppStrings.viewAll.tr,
+                          hasServices ? AppStrings.otherManage.tr : AppStrings.viewAll.tr,
                           color: AppColors.primaryColor,
                           fontWeight: FontWeight.w600,
                         ),
@@ -105,7 +105,7 @@ class _OtherServicesTabV2State extends State<OtherServicesTabV2> {
                   else
                     EmptySectionPlaceholder(
                       imageAsset: 'assets/images/other_service_add.png',
-                      ctaLabel: 'Add Service',
+                      ctaLabel: AppStrings.addService.tr,
                       ctaIcon: Icons.add_business_outlined,
                       onTap: _onAddServiceTap,
                     ),

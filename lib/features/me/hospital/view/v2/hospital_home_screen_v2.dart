@@ -2,6 +2,7 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
@@ -19,6 +20,7 @@ import 'package:BlueEra/features/me/hospital/view/v2/tabs/hospital_stats_tab_v2.
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/refer_earn_pill.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get_utils/src/extensions/internacionalization.dart';
 
 /// Hospital "me" profile home (v2) — redesigned to match the layout used by
 /// `MedicalHomeScreenV2` while preserving every action surfaced by the
@@ -32,35 +34,31 @@ class HospitalHomeScreenV2 extends StatefulWidget {
 
 class _HospitalHomeScreenV2State extends State<HospitalHomeScreenV2> {
   late final HospitalServiceAiController _hospitalController;
-  final _businessController =
-      getOrPut(() => ViewBusinessDetailsController(), permanent: true);
+  final _businessController = getOrPut(() => ViewBusinessDetailsController(), permanent: true);
 
   bool _isGoLive = false;
   int _selectedTab = 0;
 
-  static const _tabs = [
-    'Inquiry',
-
-    'Overview',
-    'Departments',
-    'Facilities',
-    'Posts',
-    'Stats',
+  static final _tabs = [
+    AppStrings.hospitalInquiry.tr,
+    AppStrings.overview.tr,
+    AppStrings.hospitalDepartments.tr,
+    AppStrings.facilities.tr,
+    AppStrings.posts.tr,
+    AppStrings.hospitalStats.tr,
   ];
 
   // Drives the inquiry list shown under the Inquiry tab — same controller
   // the Connect screen uses, so socket-driven updates land on both.
   // Mirrors `_chatViewController` in `professionals_main.dart`.
-  final ChatViewController _chatViewController =
-      getOrPut(() => ChatViewController());
+  final ChatViewController _chatViewController = getOrPut(() => ChatViewController());
 
   // Pre-registered so the Flagged sub-tab inside `BusinessChatsList`
   // (`BusinessFlagChatList` → `Get.find<ChatFlagController>()`) doesn't
   // crash when this is the first screen the user touches.
   // Mirrors `connect_main_page.dart`'s top-level `chatFlagController`.
   // ignore: unused_field
-  final ChatFlagController _chatFlagController =
-      getOrPut(() => ChatFlagController());
+  final ChatFlagController _chatFlagController = getOrPut(() => ChatFlagController());
 
   @override
   void initState() {
@@ -99,8 +97,7 @@ class _HospitalHomeScreenV2State extends State<HospitalHomeScreenV2> {
                 Expanded(
                   child: RefreshIndicator(
                     onRefresh: () async {
-                      await _hospitalController
-                          .getHospitalFullDetailsController();
+                      await _hospitalController.getHospitalFullDetailsController();
                     },
                     child: SingleChildScrollView(
                       physics: const AlwaysScrollableScrollPhysics(),
@@ -158,8 +155,7 @@ class _HospitalHomeScreenV2State extends State<HospitalHomeScreenV2> {
       child: Image.asset(
         AppImageAssets.chatDefaultBg,
         fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) =>
-            Container(color: const Color(0xFFEAF2FB)),
+        errorBuilder: (_, __, ___) => Container(color: const Color(0xFFEAF2FB)),
       ),
     );
   }
@@ -258,7 +254,7 @@ class _HospitalHomeScreenV2State extends State<HospitalHomeScreenV2> {
           mainAxisSize: MainAxisSize.min,
           children: [
             CustomText(
-              'Go live',
+              AppStrings.goLive.tr,
               fontSize: 13,
               fontWeight: FontWeight.w600,
               color: AppColors.mainTextColor,
@@ -269,14 +265,12 @@ class _HospitalHomeScreenV2State extends State<HospitalHomeScreenV2> {
               height: 18,
               padding: const EdgeInsets.all(2),
               decoration: BoxDecoration(
-                color:
-                    _isGoLive ? AppColors.primaryColor : Colors.grey.shade400,
+                color: _isGoLive ? AppColors.primaryColor : Colors.grey.shade400,
                 borderRadius: BorderRadius.circular(20),
               ),
               child: AnimatedAlign(
                 duration: const Duration(milliseconds: 180),
-                alignment:
-                    _isGoLive ? Alignment.centerRight : Alignment.centerLeft,
+                alignment: _isGoLive ? Alignment.centerRight : Alignment.centerLeft,
                 child: Container(
                   height: 14,
                   width: 14,
@@ -297,7 +291,6 @@ class _HospitalHomeScreenV2State extends State<HospitalHomeScreenV2> {
   // PROFILE ROW
   // ─────────────────────────────────────────────
 
-
   // ─────────────────────────────────────────────
   // TABS CARD
   // ─────────────────────────────────────────────
@@ -305,7 +298,6 @@ class _HospitalHomeScreenV2State extends State<HospitalHomeScreenV2> {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
       child: Container(
-
         child: SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: Row(
@@ -324,9 +316,7 @@ class _HospitalHomeScreenV2State extends State<HospitalHomeScreenV2> {
                       color: selected ? AppColors.primaryColor : Colors.white,
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: selected
-                            ? AppColors.primaryColor
-                            : Colors.grey.shade300,
+                        color: selected ? AppColors.primaryColor : Colors.grey.shade300,
                       ),
                     ),
                     alignment: Alignment.center,
@@ -334,8 +324,7 @@ class _HospitalHomeScreenV2State extends State<HospitalHomeScreenV2> {
                       _tabs[i],
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
-                      color:
-                          selected ? Colors.white : AppColors.mainTextColor,
+                      color: selected ? Colors.white : AppColors.mainTextColor,
                     ),
                   ),
                 ),
