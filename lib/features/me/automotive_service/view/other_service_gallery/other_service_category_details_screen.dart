@@ -234,7 +234,7 @@ class OtherServiceCategoryDetailsScreen extends StatelessWidget {
               ),
               SizedBox(width: SizeConfig.size8),
               CustomText(
-                'Profile QR',
+                AppStrings.otherProfileQr.tr,
                 fontSize: SizeConfig.medium,
                 fontWeight: FontWeight.w600,
                 color: AppColors.mainTextColor,
@@ -260,7 +260,7 @@ class OtherServiceCategoryDetailsScreen extends StatelessWidget {
           ),
           SizedBox(height: SizeConfig.size10),
           CustomText(
-            'Scan to view this profile',
+            AppStrings.otherScanToViewProfile.tr,
             fontSize: SizeConfig.small,
             fontWeight: FontWeight.w500,
             color: AppColors.secondaryTextColor,
@@ -288,7 +288,7 @@ class OtherServiceCategoryDetailsScreen extends StatelessWidget {
                       size: 14, color: AppColors.primaryColor),
                   SizedBox(width: SizeConfig.size6),
                   CustomText(
-                    'Copy profile ID',
+                    AppStrings.otherCopyProfileId.tr,
                     fontSize: SizeConfig.small,
                     fontWeight: FontWeight.w600,
                     color: AppColors.primaryColor,
@@ -382,7 +382,7 @@ class OtherServiceCategoryDetailsScreen extends StatelessWidget {
               ),
               SizedBox(width: SizeConfig.size8),
               CustomText(
-                'Contact Us',
+                AppStrings.otherContactUs.tr,
                 fontSize: SizeConfig.medium,
                 fontWeight: FontWeight.w600,
                 color: AppColors.mainTextColor,
@@ -451,7 +451,7 @@ class OtherServiceCategoryDetailsScreen extends StatelessWidget {
               color: AppColors.secondaryTextColor.withValues(alpha: 0.6)),
           SizedBox(height: SizeConfig.size8),
           CustomText(
-            'No photos yet',
+            AppStrings.otherNoPhotosYet.tr,
             fontSize: SizeConfig.medium,
             fontWeight: FontWeight.w600,
             color: AppColors.secondaryTextColor,

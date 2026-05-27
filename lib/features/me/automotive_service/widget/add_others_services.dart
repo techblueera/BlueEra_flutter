@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/api/model/service_option_model.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/service/view/service_upload_screen.dart';
@@ -24,50 +25,49 @@ class AddOthersServices extends StatefulWidget {
 }
 
 class _AddOthersServicesState extends State<AddOthersServices> {
-  final List<ServiceMenuItem> serviceMenus = [
+  late final List<ServiceMenuItem> serviceMenus = [
     ServiceMenuItem(
-      title: "About US",
-      icon: AppIconAssets.about_us, // Replace with your actual icon asset
+      title: AppStrings.aboutUs.tr,
+      icon: AppIconAssets.about_us,
       page: () => OthersAboutUs(),
     ),
     ServiceMenuItem(
-      title: "Products",
+      title: AppStrings.products.tr,
       icon: AppIconAssets.other_products,
       page: () => AddProductTextOrSnapSearchScreen(id: businessId, providerType: ProviderType.business),
-      // page: () => InventoryScreen(fromBottomNavBar: false,isShowScreen: BusinessType.Product.name,), // Update to your actual page
     ),
     ServiceMenuItem(
-      title: "Services",
+      title: AppStrings.services.tr,
       icon: AppIconAssets.other_services,
       page: () => ServiceUploadScreen(providerType: ProviderType.business),
     ),
     ServiceMenuItem(
-      title: "Announcements",
+      title: AppStrings.otherAnnouncements.tr,
       icon: AppIconAssets.other_announcements,
       page: () => AnnouncementsScreen(),
     ),
     ServiceMenuItem(
-      title: "Gallery",
+      title: AppStrings.gallery.tr,
       icon: AppIconAssets.other_gallery,
       page: () => OtherServicePhotosPhotoScreen(),
     ),
     ServiceMenuItem(
-      title: "Privacy Policy, Terms & Condition",
+      title: AppStrings.otherPrivacyTncTitle.tr,
       icon: AppIconAssets.other_privacy,
       page: () => OtherPrivacyConditionScreen(),
     ),
     ServiceMenuItem(
-      title: "Careers",
+      title: AppStrings.careers.tr,
       icon: AppIconAssets.other_careers,
       page: () => OtherJobListingScreen(),
     ),
     ServiceMenuItem(
-      title: "Timing",
+      title: AppStrings.otherTimingTitle.tr,
       icon: AppIconAssets.other_timing,
       page: () => TimingScreen(),
     ),
     ServiceMenuItem(
-      title: "Contact US",
+      title: AppStrings.contactUs.tr,
       icon: AppIconAssets.contact_us,
       page: () => OtherContactUs(),
     ),

@@ -488,7 +488,7 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
                         size: 40, color: Colors.white),
                     const SizedBox(height: 10),
                     CustomText(
-                     "You Have Not Update Your Team Management",
+                     AppStrings.otherTeamManagementEmpty.tr,
                       color: Colors.white,
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
@@ -503,7 +503,7 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: CustomText(
-                       "Add Now",
+                       AppStrings.otherAddNow.tr,
                         color: Colors.white,
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
@@ -528,7 +528,7 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
         InkWell(
           onTap: () => Get.to(() => const OtherJobListingScreen()),
           child: CustomText(
-            "View All",
+            AppStrings.viewAll.tr,
             color: AppColors.primaryColor,
             fontWeight: FontWeight.w600,
           ),
@@ -565,7 +565,7 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
                         size: 40, color: Colors.white),
                     const SizedBox(height: 10),
                     CustomText(
-                      "You Have Not Post Any Job",
+                      AppStrings.otherNotPostedJob.tr,
                       color: Colors.white,
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
@@ -580,7 +580,7 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: CustomText(
-                        "Post Now",
+                        AppStrings.otherPostNow.tr,
                         color: Colors.white,
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
@@ -610,7 +610,7 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
             ),
           ),
           child: CustomText(
-            hasServices ? "Manage" : AppStrings.viewAll.tr,
+            hasServices ? AppStrings.otherManage.tr : AppStrings.viewAll.tr,
             color: AppColors.primaryColor,
             fontWeight: FontWeight.w600,
           ),
@@ -733,7 +733,7 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
                         size: 40, color: Colors.white),
                     const SizedBox(height: 10),
                     CustomText(
-                      "You Have Not Post\nAny Service",
+                      AppStrings.otherNotPostedService.tr,
                       color: Colors.white,
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
@@ -748,7 +748,7 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: CustomText(
-                        "Add Service",
+                        AppStrings.addService.tr,
                         color: Colors.white,
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
@@ -812,7 +812,7 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
                         size: 40, color: Colors.white),
                     const SizedBox(height: 10),
                     CustomText(
-                      "You Have Not Post Photo In Your Gallery",
+                      AppStrings.otherNotPostedGallery.tr,
                       color: Colors.white,
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
@@ -827,7 +827,7 @@ class _BusinessProfileFullScreenState extends State<BusinessProfileFullScreen> {
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: CustomText(
-                        "Upload Photo",
+                        AppStrings.otherUploadPhoto.tr,
                         color: Colors.white,
                         fontSize: 13,
                         fontWeight: FontWeight.w600,

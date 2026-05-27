@@ -33,7 +33,7 @@ class GroceryCardWidget extends StatelessWidget {
               child: GridIconImageWidget(
                 items: groceryOrFoodCategories,
                 crossAxisCount: 3,
-                getName: (item) => item.name,
+                getName: (item) => item.name.tr,
                 getIcon: (item) => item.icon,
                 onTap: (item) {
                   if (item.slugId == AppConstants.grocery) {

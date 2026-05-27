@@ -18,24 +18,22 @@ class AnnouncementsScreen extends StatefulWidget {
 }
 
 class _AnnouncementsScreenState extends State<AnnouncementsScreen> {
-  final List<ServiceMenuItem> serviceMenus = [
+  List<ServiceMenuItem> get serviceMenus => [
     ServiceMenuItem(
-      title: "Blog",
+      title: AppStrings.otherBlogLabel.tr,
       icon: AppIconAssets.other_blog,
-      // Replace with your actual icon asset
       page: () => OtherBlogsScreen(),
     ),
     ServiceMenuItem(
-      title: "News",
+      title: AppStrings.otherNewsFieldLabel.tr,
       icon: AppIconAssets.other_news,
-      page: () => OtherNewsScreen(), // Update to your actual page
+      page: () => OtherNewsScreen(),
     ),
     ServiceMenuItem(
-      title: "Downloads",
+      title: AppStrings.otherDownloadsTitle.tr,
       icon: AppIconAssets.other_download,
       page: () => OtherDownloadsScreen(),
     ),
-
   ];
 
   @override

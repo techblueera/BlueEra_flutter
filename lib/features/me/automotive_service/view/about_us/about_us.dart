@@ -19,25 +19,24 @@ class OthersAboutUs extends StatefulWidget {
 }
 
 class _AddOthersServicesState extends State<OthersAboutUs> {
-  final List<ServiceMenuItem> serviceMenus = [
+  late final List<ServiceMenuItem> serviceMenus = [
     ServiceMenuItem(
-      title: "About Organisation",
+      title: AppStrings.otherAboutOrganizationTitle.tr,
       icon: AppIconAssets.other_org_about,
-      // Replace with your actual icon asset
       page: () => AboutOrganization(),
     ),
     ServiceMenuItem(
-      title: "Management",
+      title: AppStrings.otherManagementTitle.tr,
       icon: AppIconAssets.other_management,
-      page: () => ManagementScreen(), // Update to your actual page
+      page: () => ManagementScreen(),
     ),
     ServiceMenuItem(
-      title: "Staffs",
+      title: AppStrings.otherStaffsTitle.tr,
       icon: AppIconAssets.other_staffs,
       page: () => StaffScreen(),
     ),
     ServiceMenuItem(
-      title: "Office Facility",
+      title: AppStrings.otherOfficeFacility.tr,
       icon: AppIconAssets.other_office_facility,
       page: () => ComingSoon(),
     ),

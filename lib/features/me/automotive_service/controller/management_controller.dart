@@ -63,7 +63,7 @@ class ManagementController extends GetxController {
 
   Future<void> pickImage(BuildContext context) async {
     final String? path = await PhotoPickerService.pickSinglePhoto(
-        context, "Upload Picture");
+        context, AppStrings.otherUploadPicture.tr);
     if (path != null && path.isNotEmpty) {
       selectedImage.value = File(path);
     }
