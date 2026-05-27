@@ -20,6 +20,7 @@ class FoodEntryController extends GetxController {
 
   // Observable for validation
   var isFormValid = false.obs;
+  var isGenerating = false.obs;
 
   RxList<File?> foodSearchImages = <File?>[null].obs;
   RxList<String> selectedCookingMethods = <String>[].obs;
@@ -72,6 +73,7 @@ class FoodEntryController extends GetxController {
     required Map<String, dynamic> reqParams,
     int? createMissingProductIndex}) async {
       try {
+        isGenerating.value = true;
         ResponseModel response =
             await FoodRepo().getFoodAiGenerateRepo(reqBody: reqParams);
         if (response.isSuccess) {
@@ -91,6 +93,8 @@ class FoodEntryController extends GetxController {
         }
       } on Exception catch (e) {
         commonSnackBar(message: e.toString());
+      } finally {
+        isGenerating.value = false;
       }
   }
 

@@ -37,7 +37,7 @@ class SelfWorkServiceController extends GetxController{
   Rx<ApiResponse> updateServiceResponse =
       ApiResponse.initial('Initial').obs;
 
-  String? designation;
+  String? professionCategory;
 
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
@@ -158,13 +158,13 @@ class SelfWorkServiceController extends GetxController{
 
   RxBool isPredefinedCategoryServiceTypeLoading = false.obs;
   Future<void> fetchPredefinedCategoryServiceType({
-    required String designation,
+    required String professionCategory,
     required String selectedServiceKey}) async {
     try {
       isPredefinedCategoryServiceTypeLoading.value = true;
 
       final response = await EarnServiceRepo().predefinedServiceCategoryRepo(
-        designation: designation,
+        professionCategory: professionCategory,
         queryParams: {
           ApiKeys.segment : selectedServiceKey,
         },
@@ -187,13 +187,13 @@ class SelfWorkServiceController extends GetxController{
 
   RxBool isServiceSelectionLoading = false.obs;
   Future<void> fetchServiceSelectionOptions({
-  required String designation,
+  required String professionCategory,
   required String selectedServiceKey}) async {
     try {
       isServiceSelectionLoading.value = true;
 
       final response = await EarnServiceRepo().predefinedServiceCategoryRepo(
-        designation: designation,
+        professionCategory: professionCategory,
         queryParams: {
           ApiKeys.segment : selectedServiceKey,
         },
@@ -235,13 +235,13 @@ class SelfWorkServiceController extends GetxController{
 
   Future<void> createMinimalEarnService({
     required String serviceSubType,
-    String? designationOverride,
+    String? professionCategoryOverride,
   }) async {
     try {
       isCreateServiceLoading.value = true;
-      final cat = (designationOverride?.trim().isNotEmpty ?? false)
-          ? designationOverride!
-          : (designation ?? ELECTRICIAN);
+      final cat = (professionCategoryOverride?.trim().isNotEmpty ?? false)
+          ? professionCategoryOverride!
+          : (professionCategory ?? ELECTRICIAN);
       final params = <String, dynamic>{
         ApiKeys.type: AppConstants.service,
         ApiKeys.providerType: ProviderType.user.title,
@@ -325,7 +325,7 @@ class SelfWorkServiceController extends GetxController{
         ApiKeys.type: AppConstants.service,
         ApiKeys.providerType: ProviderType.user.title,
         ApiKeys.subType: serviceSubType,
-        ApiKeys.category: designation ?? ELECTRICIAN,
+        ApiKeys.category: professionCategory ?? ELECTRICIAN,
         ApiKeys.serviceType: selectedServiceTypes,
         // ApiKeys.serviceType: selectedServiceTypes,
         ApiKeys.description: aboutController.text.trim(),

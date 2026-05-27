@@ -1,45 +1,55 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
+import 'package:BlueEra/features/common/rental/controller/property_controller.dart';
+import 'package:BlueEra/features/common/rental/model/property_model.dart';
+import 'package:BlueEra/features/common/rental/repo/property_repo.dart';
+import 'package:BlueEra/features/common/rental/widget/rental_form_widgets.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:dio/dio.dart' as dio;
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
+import 'package:get/get.dart';
+import 'dart:io';
 
 class PropertyDetailsScreen extends StatefulWidget {
-  final Map<String, dynamic> property;
+  final PropertyModel property;
+  final bool isOwner;
 
-  const PropertyDetailsScreen({super.key, required this.property});
+  const PropertyDetailsScreen({
+    super.key,
+    required this.property,
+    this.isOwner = true,
+  });
 
   @override
   State<PropertyDetailsScreen> createState() => _PropertyDetailsScreenState();
 }
 
 class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
-  late final Map<String, dynamic> p;
+  late PropertyModel _property;
   int _currentImage = 0;
   bool _showFullDesc = false;
 
-  String get _name => p['propertyName'] ?? '';
-  String get _desc => p['description'] ?? '';
-  String get _type => p['propertyType'] ?? '';
-  String get _listingType => p['listingType'] ?? '';
-  double get _rating => (p['rating'] ?? 0).toDouble();
-  int get _reviews => (p['reviews'] ?? 0);
-  List get _images => p['propertyImages'] ?? [];
+  PropertyModel get p => _property;
+  bool get _isOwner => widget.isOwner;
 
   @override
   void initState() {
     super.initState();
-    p = widget.property;
+    _property = widget.property;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: _name,
+        title: p.propertyName,
         isShadowShow: false,
         showElevation: 0,
       ),
@@ -53,7 +63,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
             _buildKeyHighlightsCard(),
             SizedBox(height: SizeConfig.size10),
             _buildPropertyInfoCard(),
-            if (_images.length > 1) ...[
+            if (p.propertyImages.length > 1) ...[
               SizedBox(height: SizeConfig.size10),
               _buildGalleryCard(),
             ],
@@ -61,22 +71,87 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
           ],
         ),
       ),
+      bottomNavigationBar: _isOwner
+          ? null
+          : Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.08),
+                  blurRadius: 10,
+                  offset: const Offset(0, -3),
+                ),
+              ],
+            ),
+            padding: const EdgeInsets.all(14),
+            child: SafeArea(
+              child: InkWell(
+                onTap: _openChat,
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  height: 48,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryColor,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.chat_bubble_outline,
+                          size: 20, color: Colors.white),
+                      const SizedBox(width: 8),
+                      CustomText(
+                        'Chat with Owner',
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
     );
   }
 
-  // ── Image Slider ──
+  void _openChat() {
+    final ownerId = p.userId;
+    if (ownerId == null || ownerId.isEmpty) {
+      commonSnackBar(message: 'Owner not available for chat');
+      return;
+    }
+    final chatController = Get.find<ChatViewController>();
+    chatController.checkChatConnectionAndOpenChat(userId: ownerId);
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // BUILD METHODS
+  // ═══════════════════════════════════════════════════════════
 
   Widget _buildImageSlider() {
-    if (_images.isEmpty) {
+    final images = p.propertyImages;
+    if (images.isEmpty) {
       return ClipRRect(
         borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
         child: Container(
           height: 220,
           color: AppColors.primaryColor.withValues(alpha: 0.06),
-          child: Center(
-            child: Icon(Icons.holiday_village_outlined,
-                size: 60,
-                color: AppColors.primaryColor.withValues(alpha: 0.3)),
+          child: Stack(
+            children: [
+              Center(
+                child: Icon(Icons.holiday_village_outlined,
+                    size: 60,
+                    color: AppColors.primaryColor.withValues(alpha: 0.3)),
+              ),
+              Positioned(
+                top: 12,
+                right: 12,
+                child: _circleEditButton(onTap: _showEditImagesSheet),
+              ),
+            ],
           ),
         ),
       );
@@ -88,10 +163,10 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
         child: Stack(
           children: [
             PageView.builder(
-              itemCount: _images.length,
+              itemCount: images.length,
               onPageChanged: (i) => setState(() => _currentImage = i),
               itemBuilder: (_, i) => Image.network(
-                _images[i],
+                images[i],
                 fit: BoxFit.cover,
                 width: double.infinity,
                 errorBuilder: (_, __, ___) => Container(
@@ -104,29 +179,9 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
             Positioned(
               top: 12,
               right: 12,
-              child: GestureDetector(
-                onTap: () {},
-                child: Container(
-                  width: 36,
-                  height: 36,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: AppColors.mainTextColor.withValues(alpha: 0.6),
-                    shape: BoxShape.circle,
-                  ),
-                  child: SvgPicture.asset(
-                    AppIconAssets.pencilEditIcon,
-                    width: 18,
-                    height: 18,
-                    colorFilter: const ColorFilter.mode(
-                      Colors.white,
-                      BlendMode.srcIn,
-                    ),
-                  ),
-                ),
-              ),
+              child: _circleEditButton(onTap: _showEditImagesSheet),
             ),
-            if (_images.length > 1)
+            if (images.length > 1)
               Positioned(
                 bottom: 12,
                 left: 0,
@@ -134,7 +189,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: List.generate(
-                    _images.length,
+                    images.length,
                     (i) => Container(
                       width: _currentImage == i ? 20 : 7,
                       height: 7,
@@ -155,9 +210,8 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
     );
   }
 
-  // ── Title + Price + Location Card ──
-
   Widget _buildTitleCard() {
+    final desc = p.description;
     return Container(
       margin: EdgeInsets.symmetric(horizontal: SizeConfig.size14),
       decoration: BoxDecoration(
@@ -192,62 +246,77 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                   children: [
                     Expanded(
                       child: CustomText(
-                        _name,
-                        fontSize: SizeConfig.large18,
-                        fontWeight: FontWeight.w800,
+                        p.propertyName,
+                        fontSize: SizeConfig.extraLarge,
+                        fontWeight: FontWeight.w600,
                         color: AppColors.mainTextColor,
                         maxLines: 2,
                       ),
                     ),
                     const SizedBox(width: 8),
-                    _editIcon(),
+                    _editIcon(onTap: _showEditTitleCardSheet),
                   ],
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 10),
                 Row(
                   children: [
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 3),
+                          horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
+                        color: AppColors.lightYellowShade,
+                        borderRadius: BorderRadius.circular(10),
                         border: Border.all(
-                          color: AppColors.secondaryTextColor
-                              .withValues(alpha: 0.3),
+                          color: AppColors.yellowCB,
+                          width: 0.5,
                         ),
                       ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.star_rounded,
+                              size: 14, color: AppColors.rating),
+                          const SizedBox(width: 3),
+                          CustomText(
+                            p.rating.toStringAsFixed(1),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.mainTextColor,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 7, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: AppColors.geryFC,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: AppColors.greyE0),
+                      ),
                       child: CustomText(
-                        _typeLabel(_type),
-                        fontSize: 11,
+                        p.typeLabel,
+                        fontSize: 12,
                         fontWeight: FontWeight.w500,
                         color: AppColors.secondaryTextColor,
                       ),
                     ),
-                    const SizedBox(width: 10),
-                    const Icon(Icons.star_rounded,
-                        size: 15, color: AppColors.rating),
-                    const SizedBox(width: 3),
-                    CustomText(
-                      '${_rating.toStringAsFixed(1)} ($_reviews reviews)',
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.secondaryTextColor,
-                    ),
                   ],
                 ),
-                if (_desc.isNotEmpty) ...[
+                if (desc.isNotEmpty) ...[
                   const SizedBox(height: 10),
                   CustomText(
                     _showFullDesc
-                        ? _desc
-                        : (_desc.length > 120
-                            ? '${_desc.substring(0, 120)}...'
-                            : _desc),
+                        ? desc
+                        : (desc.length > 120
+                            ? '${desc.substring(0, 120)}...'
+                            : desc),
                     fontSize: SizeConfig.small,
                     fontWeight: FontWeight.w500,
                     color: AppColors.secondaryTextColor,
                   ),
-                  if (_desc.length > 120)
+                  if (desc.length > 120)
                     GestureDetector(
                       onTap: () =>
                           setState(() => _showFullDesc = !_showFullDesc),
@@ -260,11 +329,11 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                     ),
                 ],
                 const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(child: _buildPrice()),
-                    _editIcon(),
-                  ],
+                CustomText(
+                  p.formattedPrice,
+                  fontSize: SizeConfig.large18,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.mainTextColor,
                 ),
                 const SizedBox(height: 10),
                 _buildLocationStrip(),
@@ -276,62 +345,34 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
     );
   }
 
-  Widget _buildPrice() {
-    final priceRange = p['priceRange'];
-    final hasRange = priceRange != null &&
-        priceRange is Map &&
-        (priceRange['min'] ?? 0) > 0;
-    final num price = p['price'] ?? 0;
-
-    String priceStr;
-    if (hasRange) {
-      priceStr =
-          '₹${_fmtPrice(priceRange['min'])} - ₹${_fmtPrice(priceRange['max'])}';
-    } else {
-      priceStr = '₹${_fmtPrice(price)}';
-    }
-    if (_listingType == 'Rent') priceStr += '/mo';
-
-    return CustomText(
-      priceStr,
-      fontSize: SizeConfig.extraLarge,
-      fontWeight: FontWeight.w800,
-      color: AppColors.mainTextColor,
-    );
-  }
-
   Widget _buildLocationStrip() {
-    final loc = _extractLocation();
+    final loc = p.displayLocation;
     if (loc.isEmpty) return const SizedBox.shrink();
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
-        color: const Color(0xFFF5F6FA),
+        color: AppColors.geryFC,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
         children: [
           Icon(Icons.location_on_outlined,
-              size: 15, color: AppColors.primaryColor),
-          const SizedBox(width: 6),
+              size: 14, color: AppColors.secondaryTextColor),
+          const SizedBox(width: 4),
           Expanded(
             child: CustomText(
               loc,
-              fontSize: SizeConfig.small,
+              fontSize: 12,
               fontWeight: FontWeight.w500,
               color: AppColors.secondaryTextColor,
               maxLines: 2,
             ),
           ),
-          const SizedBox(width: 6),
-          _editIcon(),
         ],
       ),
     );
   }
-
-  // ── Key Highlights Card ──
 
   Widget _buildKeyHighlightsCard() {
     final highlights = _extractHighlights();
@@ -387,8 +428,6 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
     );
   }
 
-  // ── Property Information Card ──
-
   Widget _buildPropertyInfoCard() {
     final info = _extractPropertyInfo();
     if (info.isEmpty) return const SizedBox.shrink();
@@ -399,11 +438,18 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CustomText(
-            'Property Information',
-            fontSize: SizeConfig.large,
-            fontWeight: FontWeight.w800,
-            color: AppColors.mainTextColor,
+          Row(
+            children: [
+              Expanded(
+                child: CustomText(
+                  'Property Information',
+                  fontSize: SizeConfig.large,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.mainTextColor,
+                ),
+              ),
+              _editIcon(onTap: _showEditSpecsSheet),
+            ],
           ),
           const SizedBox(height: 10),
           for (var i = 0; i < info.length; i++) ...[
@@ -434,8 +480,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
             if (i < info.length - 1)
               Divider(
                 height: 1,
-                color:
-                    AppColors.secondaryTextColor.withValues(alpha: 0.1),
+                color: AppColors.secondaryTextColor.withValues(alpha: 0.1),
               ),
           ],
         ],
@@ -443,20 +488,25 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
     );
   }
 
-  // ── Gallery Card ──
-
-  Widget _buildGalleryCard() {
+  Widget _buildGalleryCard () {
     return CustomFormCard(
       margin: EdgeInsets.symmetric(horizontal: SizeConfig.size14),
       isBoxShadowAvail: true,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CustomText(
-            'Gallery',
-            fontSize: SizeConfig.large,
-            fontWeight: FontWeight.w800,
-            color: AppColors.mainTextColor,
+          Row(
+            children: [
+              Expanded(
+                child: CustomText(
+                  'Gallery',
+                  fontSize: SizeConfig.large,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.mainTextColor,
+                ),
+              ),
+              _editIcon(onTap: _showEditImagesSheet),
+            ],
           ),
           const SizedBox(height: 10),
           _buildStaggeredGallery(),
@@ -466,7 +516,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
   }
 
   Widget _buildStaggeredGallery() {
-    final imgs = _images;
+    final imgs = p.propertyImages;
     final rows = <Widget>[];
 
     for (var i = 0; i < imgs.length; i += 2) {
@@ -514,11 +564,14 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
     );
   }
 
-  // ── Edit Icon ──
+  // ═══════════════════════════════════════════════════════════
+  // EDIT ICONS
+  // ═══════════════════════════════════════════════════════════
 
-  Widget _editIcon() {
+  Widget _editIcon({VoidCallback? onTap}) {
+    if (!_isOwner) return const SizedBox.shrink();
     return GestureDetector(
-      onTap: () {},
+      onTap: onTap,
       child: SvgPicture.asset(
         AppIconAssets.pencilEditIcon,
         width: 24,
@@ -531,170 +584,1291 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
     );
   }
 
-  // ── Data Extractors ──
-
-  String _extractLocation() {
-    for (final key in [
-      'houseAndApartment',
-      'landAndPlots',
-      'shopAndOffices',
-      'newProjectsAndProperties',
-      'pgAndGuestHouse',
-    ]) {
-      final s = p[key];
-      if (s != null && s['propertyLocation'] != null) {
-        return s['propertyLocation'];
-      }
-    }
-    return '';
+  Widget _circleEditButton({VoidCallback? onTap}) {
+    if (!_isOwner) return const SizedBox.shrink();
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 36,
+        height: 36,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: AppColors.mainTextColor.withValues(alpha: 0.6),
+          shape: BoxShape.circle,
+        ),
+        child: SvgPicture.asset(
+          AppIconAssets.pencilEditIcon,
+          width: 18,
+          height: 18,
+          colorFilter: const ColorFilter.mode(
+            Colors.white,
+            BlendMode.srcIn,
+          ),
+        ),
+      ),
+    );
   }
+
+  // ═══════════════════════════════════════════════════════════
+  // EDIT BOTTOM SHEETS
+  // ═══════════════════════════════════════════════════════════
+
+  void _openEditSheet({
+    required String title,
+    required List<Widget> children,
+    required VoidCallback onSave,
+  }) {
+    Get.bottomSheet(
+      Container(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.85,
+        ),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+              child: Column(
+                children: [
+                  Container(
+                    width: 36,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFDDE2EE),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: CustomText(
+                          title,
+                          fontSize: SizeConfig.large18,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.mainTextColor,
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () => Get.back(),
+                        child: Container(
+                          width: 34,
+                          height: 34,
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: const Color(0xFFF4F6FA),
+                            border:
+                                Border.all(color: const Color(0xFFDDE2EE)),
+                          ),
+                          child: const Icon(Icons.close_rounded,
+                              size: 18, color: Color(0xFF505050)),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              ),
+            ),
+            Flexible(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: children,
+                ),
+              ),
+            ),
+            SafeArea(
+              top: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
+                child: RentalPrimaryButton(label: 'Update', onTap: onSave),
+              ),
+            ),
+          ],
+        ),
+      ),
+      isScrollControlled: true,
+    );
+  }
+
+  // ── Edit Title Card (Name, Description, Price, Location) ──
+
+  void _showEditTitleCardSheet() {
+    final nameCtrl = TextEditingController(text: p.propertyName);
+    final descCtrl = TextEditingController(text: p.description);
+    final locCtrl = TextEditingController(text: p.displayLocation);
+
+    final hasRange = p.hasPriceRange;
+    final priceCtrl = TextEditingController(
+      text: hasRange ? '' : (p.price > 0 ? p.price.toString() : ''),
+    );
+    final fromCtrl = TextEditingController(
+      text: hasRange ? p.priceRange!.min.toString() : '',
+    );
+    final toCtrl = TextEditingController(
+      text: hasRange ? p.priceRange!.max.toString() : '',
+    );
+
+    bool isRange = hasRange;
+
+    _openEditSheet(
+      title: 'Edit Property Details',
+      children: [
+        RentalLabeledField(
+          label: 'Property Name',
+          hint: 'Enter property name',
+          controller: nameCtrl,
+          maxLength: 70,
+        ),
+        const SizedBox(height: 16),
+        RentalLabeledField(
+          label: 'Description',
+          hint: 'Enter description',
+          controller: descCtrl,
+          maxLines: 4,
+          maxLength: 2000,
+        ),
+        const SizedBox(height: 16),
+        StatefulBuilder(
+          builder: (ctx, setLocal) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                RentalChipSelector(
+                  label: 'Price Type',
+                  options: const ['Fixed Price', 'Price Range'],
+                  initialIndex: isRange ? 1 : 0,
+                  onChanged: (i) => setLocal(() => isRange = i == 1),
+                ),
+                const SizedBox(height: 16),
+                if (!isRange)
+                  RentalLabeledField(
+                    label: 'Price',
+                    hint: 'Enter price',
+                    controller: priceCtrl,
+                    keyboardType: TextInputType.number,
+                  )
+                else ...[
+                  RentalLabeledField(
+                    label: 'Minimum Price',
+                    hint: 'Enter min price',
+                    controller: fromCtrl,
+                    keyboardType: TextInputType.number,
+                  ),
+                  const SizedBox(height: 12),
+                  RentalLabeledField(
+                    label: 'Maximum Price',
+                    hint: 'Enter max price',
+                    controller: toCtrl,
+                    keyboardType: TextInputType.number,
+                  ),
+                ],
+              ],
+            );
+          },
+        ),
+        const SizedBox(height: 16),
+        RentalLabeledField(
+          label: 'Property Location',
+          hint: 'Enter address',
+          controller: locCtrl,
+          maxLines: 2,
+        ),
+      ],
+      onSave: () {
+        final updates = <String, dynamic>{
+          'propertyName': nameCtrl.text.trim(),
+          'description': descCtrl.text.trim(),
+        };
+
+        if (isRange) {
+          updates['priceRange'] = {
+            'min': int.tryParse(fromCtrl.text.trim()) ?? 0,
+            'max': int.tryParse(toCtrl.text.trim()) ?? 0,
+          };
+        } else {
+          updates['price'] = int.tryParse(priceCtrl.text.trim()) ?? 0;
+        }
+
+        final typeKey = _subTypeKey();
+        if (typeKey != null) {
+          updates[typeKey] = {'propertyLocation': locCtrl.text.trim()};
+        }
+
+        _updateFields(updates);
+      },
+    );
+  }
+
+  // ── Edit Images ──
+
+  void _showEditImagesSheet() {
+    final newPaths = <String>[];
+
+    Get.bottomSheet(
+      StatefulBuilder(
+        builder: (ctx, setLocal) {
+          final allImages = [...p.propertyImages];
+          return Container(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.85,
+            ),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius:
+                  BorderRadius.vertical(top: Radius.circular(24)),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+                  child: Column(
+                    children: [
+                      Container(
+                        width: 36,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFDDE2EE),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: CustomText(
+                              'Edit Photos',
+                              fontSize: SizeConfig.large18,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.mainTextColor,
+                            ),
+                          ),
+                          GestureDetector(
+                            onTap: () => Get.back(),
+                            child: Container(
+                              width: 34,
+                              height: 34,
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: const Color(0xFFF4F6FA),
+                                border: Border.all(
+                                    color: const Color(0xFFDDE2EE)),
+                              ),
+                              child: const Icon(Icons.close_rounded,
+                                  size: 18, color: Color(0xFF505050)),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+                  ),
+                ),
+                Flexible(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        CustomText(
+                          'Current Photos (${allImages.length})',
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.mainTextColor,
+                        ),
+                        const SizedBox(height: 10),
+                        if (allImages.isNotEmpty)
+                          GridView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            gridDelegate:
+                                const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              mainAxisSpacing: 10,
+                              crossAxisSpacing: 10,
+                            ),
+                            itemCount: allImages.length,
+                            itemBuilder: (_, i) => ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: Image.network(
+                                allImages[i],
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => Container(
+                                  color: AppColors.primaryColor
+                                      .withValues(alpha: 0.06),
+                                  child: const Center(
+                                      child: Icon(
+                                          Icons.broken_image_outlined,
+                                          size: 24)),
+                                ),
+                              ),
+                            ),
+                          ),
+                        if (newPaths.isNotEmpty) ...[
+                          const SizedBox(height: 16),
+                          CustomText(
+                            'New Photos (${newPaths.length})',
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.mainTextColor,
+                          ),
+                          const SizedBox(height: 10),
+                          GridView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            gridDelegate:
+                                const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              mainAxisSpacing: 10,
+                              crossAxisSpacing: 10,
+                            ),
+                            itemCount: newPaths.length,
+                            itemBuilder: (_, i) => Stack(
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(10),
+                                  child: Image.file(
+                                    File(newPaths[i]),
+                                    fit: BoxFit.cover,
+                                    width: double.infinity,
+                                    height: double.infinity,
+                                  ),
+                                ),
+                                Positioned(
+                                  top: 4,
+                                  right: 4,
+                                  child: GestureDetector(
+                                    onTap: () => setLocal(
+                                        () => newPaths.removeAt(i)),
+                                    child: Container(
+                                      width: 24,
+                                      height: 24,
+                                      decoration: const BoxDecoration(
+                                        color: Colors.red,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: const Icon(Icons.close,
+                                          size: 14, color: Colors.white),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                        const SizedBox(height: 16),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _photoPickTile(
+                                icon: Icons.camera_alt_outlined,
+                                label: 'Camera',
+                                onTap: () async {
+                                  final path =
+                                      await PhotoPickerService.pickFromCamera(
+                                          ctx);
+                                  if (path != null) {
+                                    setLocal(() => newPaths.add(path));
+                                  }
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: _photoPickTile(
+                                icon: Icons.photo_library_outlined,
+                                label: 'Gallery',
+                                onTap: () async {
+                                  final paths = await PhotoPickerService
+                                      .pickMultipleFromGallery(ctx,
+                                          maxImages: 4);
+                                  if (paths != null && paths.isNotEmpty) {
+                                    setLocal(() => newPaths.addAll(paths));
+                                  }
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                if (newPaths.isNotEmpty)
+                  SafeArea(
+                    top: false,
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
+                      child: RentalPrimaryButton(
+                        label: 'Upload Photos',
+                        onTap: () => _uploadImages(newPaths),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          );
+        },
+      ),
+      isScrollControlled: true,
+    );
+  }
+
+  Widget _photoPickTile({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        decoration: BoxDecoration(
+          color: const Color(0xFFE9F0FB),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: AppColors.primaryColor.withValues(alpha: 0.2),
+          ),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, size: 28, color: AppColors.primaryColor),
+            const SizedBox(height: 6),
+            CustomText(
+              label,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: AppColors.primaryColor,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ── Edit Property Specs ──
+
+  void _showEditSpecsSheet() {
+    switch (p.propertyType) {
+      case 'HouseAndApartment':
+        _showHouseSpecsSheet();
+        break;
+      case 'LandAndPlots':
+        _showLandSpecsSheet();
+        break;
+      case 'ShopAndOffices':
+        _showShopSpecsSheet();
+        break;
+      case 'NewProjectsAndProperties':
+        _showNewProjectSpecsSheet();
+        break;
+      case 'PGAndGuestHouse':
+        _showPgSpecsSheet();
+        break;
+    }
+  }
+
+  void _showHouseSpecsSheet() {
+    final ha = p.houseAndApartment;
+    int typeIdx =
+        _indexOf(PropertyController.haTypeOptions, ha?.houseApartmentType);
+    int bhkIdx = _indexOf(PropertyController.bhkOptions, ha?.bhk);
+    int bathIdx = _indexOf(PropertyController.bathroomOptions, ha?.bathrooms);
+    int furnIdx =
+        _indexOf(PropertyController.furnishingOptions, ha?.furnishing);
+    int availIdx =
+        _indexOf(PropertyController.availabilityOptions, ha?.availabilityStatus);
+    int listedIdx =
+        _indexOf(PropertyController.listedByOptions, ha?.listedBy);
+    int bachIdx =
+        _indexOf(PropertyController.bachelorOptions, ha?.bachelorsAllowed);
+    int parkIdx =
+        _indexOf(PropertyController.parkingOptions, ha?.carParking);
+    int faceIdx = _indexOf(PropertyController.facingOptions, ha?.facing);
+
+    final areaCtrl = TextEditingController(text: ha?.areaDetails ?? '');
+    final maintCtrl = TextEditingController(text: ha?.maintenance ?? '');
+    final floorsCtrl = TextEditingController(text: ha?.totalFloors ?? '');
+
+    final isRent = p.listingType == 'Rent';
+
+    _openEditSheet(
+      title: 'Edit Property Details',
+      children: [
+        RentalChipSelector(
+          label: 'Type',
+          options: PropertyController.haTypeOptions,
+          initialIndex: typeIdx,
+          onChanged: (i) => typeIdx = i,
+        ),
+        const SizedBox(height: 16),
+        RentalChipSelector(
+          label: 'BHK',
+          options: PropertyController.bhkOptions,
+          initialIndex: bhkIdx,
+          onChanged: (i) => bhkIdx = i,
+        ),
+        const SizedBox(height: 16),
+        RentalChipSelector(
+          label: 'Bathrooms',
+          options: PropertyController.bathroomOptions,
+          initialIndex: bathIdx,
+          onChanged: (i) => bathIdx = i,
+        ),
+        const SizedBox(height: 16),
+        if (isRent) ...[
+          RentalChipSelector(
+            label: 'Furnishing',
+            options: PropertyController.furnishingOptions,
+            initialIndex: furnIdx,
+            onChanged: (i) => furnIdx = i,
+          ),
+          const SizedBox(height: 16),
+          RentalChipSelector(
+            label: 'Bachelors Allowed',
+            options: PropertyController.bachelorOptions,
+            initialIndex: bachIdx,
+            onChanged: (i) => bachIdx = i,
+          ),
+        ] else ...[
+          RentalChipSelector(
+            label: 'Availability',
+            options: PropertyController.availabilityOptions,
+            initialIndex: availIdx,
+            onChanged: (i) => availIdx = i,
+          ),
+        ],
+        const SizedBox(height: 16),
+        RentalChipSelector(
+          label: 'Listed By',
+          options: PropertyController.listedByOptions,
+          initialIndex: listedIdx,
+          onChanged: (i) => listedIdx = i,
+        ),
+        const SizedBox(height: 16),
+        RentalLabeledField(
+          label: 'Area Details',
+          hint: 'E.g. 1200 sq.ft.',
+          controller: areaCtrl,
+        ),
+        const SizedBox(height: 16),
+        RentalLabeledField(
+          label: 'Maintenance (Monthly)',
+          hint: 'Enter amount',
+          controller: maintCtrl,
+          keyboardType: TextInputType.number,
+        ),
+        const SizedBox(height: 16),
+        RentalLabeledField(
+          label: 'Total Floors',
+          hint: 'Enter total floors',
+          controller: floorsCtrl,
+          keyboardType: TextInputType.number,
+        ),
+        const SizedBox(height: 16),
+        RentalChipSelector(
+          label: 'Car Parking',
+          options: PropertyController.parkingOptions,
+          initialIndex: parkIdx,
+          onChanged: (i) => parkIdx = i,
+        ),
+        const SizedBox(height: 16),
+        RentalChipSelector(
+          label: 'Facing',
+          options: PropertyController.facingOptions,
+          initialIndex: faceIdx,
+          onChanged: (i) => faceIdx = i,
+        ),
+      ],
+      onSave: () {
+        final model = HouseAndApartment(
+          propertyLocation: p.displayLocation,
+          houseApartmentType: PropertyController.haTypeOptions[typeIdx],
+          bhk: PropertyController.bhkOptions[bhkIdx],
+          bathrooms: PropertyController.bathroomOptions[bathIdx],
+          listedBy: PropertyController.listedByOptions[listedIdx],
+          areaDetails: areaCtrl.text.trim().isNotEmpty
+              ? areaCtrl.text.trim()
+              : null,
+          maintenance: maintCtrl.text.trim().isNotEmpty
+              ? maintCtrl.text.trim()
+              : null,
+          totalFloors: floorsCtrl.text.trim().isNotEmpty
+              ? floorsCtrl.text.trim()
+              : null,
+          carParking: PropertyController.parkingOptions[parkIdx],
+          facing: PropertyController.facingOptions[faceIdx],
+          availabilityStatus: !isRent
+              ? PropertyController.availabilityOptions[availIdx]
+              : null,
+          furnishing: isRent
+              ? PropertyController.furnishingOptions[furnIdx]
+              : null,
+          bachelorsAllowed: isRent
+              ? PropertyController.bachelorOptions[bachIdx]
+              : null,
+        );
+        _updateFields({'houseAndApartment': model.toJson()});
+      },
+    );
+  }
+
+  void _showLandSpecsSheet() {
+    final lp = p.landAndPlots;
+    int projIdx =
+        _indexOf(PropertyController.lpProjectTypeOptions, lp?.projectType);
+    int listedIdx =
+        _indexOf(PropertyController.listedByOptions, lp?.listedBy);
+    int faceIdx = _indexOf(PropertyController.facingOptions, lp?.facing);
+
+    final areaCtrl =
+        TextEditingController(text: lp?.plotAreaDetails?.totalArea ?? '');
+    final lenCtrl =
+        TextEditingController(text: lp?.plotAreaDetails?.length ?? '');
+    final brCtrl =
+        TextEditingController(text: lp?.plotAreaDetails?.breadth ?? '');
+
+    _openEditSheet(
+      title: 'Edit Land Details',
+      children: [
+        RentalChipSelector(
+          label: 'Project Type',
+          options: PropertyController.lpProjectTypeOptions,
+          initialIndex: projIdx,
+          onChanged: (i) => projIdx = i,
+        ),
+        const SizedBox(height: 16),
+        RentalChipSelector(
+          label: 'Listed By',
+          options: PropertyController.listedByOptions,
+          initialIndex: listedIdx,
+          onChanged: (i) => listedIdx = i,
+        ),
+        const SizedBox(height: 16),
+        RentalLabeledField(
+          label: 'Plot Area',
+          hint: 'Total area',
+          controller: areaCtrl,
+        ),
+        const SizedBox(height: 16),
+        RentalLabeledField(
+          label: 'Length',
+          hint: 'Enter length',
+          controller: lenCtrl,
+        ),
+        const SizedBox(height: 16),
+        RentalLabeledField(
+          label: 'Breadth',
+          hint: 'Enter breadth',
+          controller: brCtrl,
+        ),
+        const SizedBox(height: 16),
+        RentalChipSelector(
+          label: 'Facing',
+          options: PropertyController.facingOptions,
+          initialIndex: faceIdx,
+          onChanged: (i) => faceIdx = i,
+        ),
+      ],
+      onSave: () {
+        final model = LandAndPlots(
+          propertyLocation: p.displayLocation,
+          projectType: PropertyController.lpProjectTypeOptions[projIdx],
+          listedBy: PropertyController.listedByOptions[listedIdx],
+          plotAreaDetails: PlotAreaDetails(
+            totalArea: areaCtrl.text.trim(),
+            length: lenCtrl.text.trim(),
+            breadth: brCtrl.text.trim(),
+          ),
+          facing: PropertyController.facingOptions[faceIdx],
+        );
+        _updateFields({'landAndPlots': model.toJson()});
+      },
+    );
+  }
+
+  void _showShopSpecsSheet() {
+    final so = p.shopAndOffices;
+    int furnIdx =
+        _indexOf(PropertyController.furnishingOptions, so?.furnishing);
+    int statusIdx = _indexOf(
+        PropertyController.soProjectStatusOptions, so?.projectStatus);
+    int listedIdx =
+        _indexOf(PropertyController.listedByOptions, so?.listedBy);
+    int parkIdx =
+        _indexOf(PropertyController.parkingOptions, so?.carParkings);
+    int washIdx =
+        _indexOf(PropertyController.washroomOptions, so?.washrooms);
+
+    final areaCtrl =
+        TextEditingController(text: so?.superBuiltupArea ?? '');
+    final maintCtrl = TextEditingController(text: so?.maintenance ?? '');
+
+    _openEditSheet(
+      title: 'Edit Shop Details',
+      children: [
+        RentalChipSelector(
+          label: 'Furnishing',
+          options: PropertyController.furnishingOptions,
+          initialIndex: furnIdx,
+          onChanged: (i) => furnIdx = i,
+        ),
+        if (p.listingType == 'Sell') ...[
+          const SizedBox(height: 16),
+          RentalChipSelector(
+            label: 'Project Status',
+            options: PropertyController.soProjectStatusOptions,
+            initialIndex: statusIdx,
+            onChanged: (i) => statusIdx = i,
+          ),
+        ],
+        const SizedBox(height: 16),
+        RentalChipSelector(
+          label: 'Listed By',
+          options: PropertyController.listedByOptions,
+          initialIndex: listedIdx,
+          onChanged: (i) => listedIdx = i,
+        ),
+        const SizedBox(height: 16),
+        RentalLabeledField(
+          label: 'Super Built-Up Area',
+          hint: 'Enter area',
+          controller: areaCtrl,
+        ),
+        const SizedBox(height: 16),
+        RentalLabeledField(
+          label: 'Maintenance (Monthly)',
+          hint: 'Enter amount',
+          controller: maintCtrl,
+          keyboardType: TextInputType.number,
+        ),
+        const SizedBox(height: 16),
+        RentalChipSelector(
+          label: 'Car Parking',
+          options: PropertyController.parkingOptions,
+          initialIndex: parkIdx,
+          onChanged: (i) => parkIdx = i,
+        ),
+        const SizedBox(height: 16),
+        RentalChipSelector(
+          label: 'Washrooms',
+          options: PropertyController.washroomOptions,
+          initialIndex: washIdx,
+          onChanged: (i) => washIdx = i,
+        ),
+      ],
+      onSave: () {
+        final model = ShopAndOffices(
+          propertyLocation: p.displayLocation,
+          furnishing: PropertyController.furnishingOptions[furnIdx],
+          listedBy: PropertyController.listedByOptions[listedIdx],
+          superBuiltupArea: areaCtrl.text.trim(),
+          carParkings: PropertyController.parkingOptions[parkIdx],
+          washrooms: PropertyController.washroomOptions[washIdx],
+          projectStatus: p.listingType == 'Sell'
+              ? PropertyController.soProjectStatusOptions[statusIdx]
+              : null,
+          maintenance: maintCtrl.text.trim().isNotEmpty
+              ? maintCtrl.text.trim()
+              : null,
+        );
+        _updateFields({'shopAndOffices': model.toJson()});
+      },
+    );
+  }
+
+  void _showNewProjectSpecsSheet() {
+    final np = p.newProjectsAndProperties;
+    int projIdx =
+        _indexOf(PropertyController.propertyKindOptions, np?.projectType);
+    int statusIdx = _indexOf(
+        PropertyController.availabilityOptions, np?.projectStatus);
+    int typeIdx = _indexOf(
+        PropertyController.npPropertyTypeOptions, np?.typeOfProperty);
+    int towerIdx =
+        _indexOf(PropertyController.towersOptions, np?.noOfTowers);
+    int floorIdx =
+        _indexOf(PropertyController.floorsOptions, np?.noOfFloors);
+    int faceIdx = _indexOf(PropertyController.facingOptions, np?.facing);
+
+    final areaCtrl = TextEditingController(text: np?.area ?? '');
+    final builderCtrl = TextEditingController(
+        text: np?.projectLaunchInformation?.builderName ?? '');
+    final reraCtrl = TextEditingController(
+        text: np?.projectLaunchInformation?.reraRegistrationNumber ?? '');
+    final amenCtrl = TextEditingController(
+        text: np?.keyAmenities?.join(', ') ?? '');
+
+    _openEditSheet(
+      title: 'Edit Project Details',
+      children: [
+        RentalChipSelector(
+          label: 'Project Type',
+          options: PropertyController.propertyKindOptions,
+          initialIndex: projIdx,
+          onChanged: (i) => projIdx = i,
+        ),
+        const SizedBox(height: 16),
+        RentalChipSelector(
+          label: 'Project Status',
+          options: PropertyController.availabilityOptions,
+          initialIndex: statusIdx,
+          onChanged: (i) => statusIdx = i,
+        ),
+        const SizedBox(height: 16),
+        RentalChipSelector(
+          label: 'Property Type',
+          options: PropertyController.npPropertyTypeOptions,
+          initialIndex: typeIdx,
+          onChanged: (i) => typeIdx = i,
+        ),
+        const SizedBox(height: 16),
+        RentalLabeledField(
+          label: 'Area',
+          hint: 'Enter area',
+          controller: areaCtrl,
+        ),
+        const SizedBox(height: 16),
+        RentalLabeledField(
+          label: 'Builder Name',
+          hint: 'Enter builder name',
+          controller: builderCtrl,
+        ),
+        const SizedBox(height: 16),
+        RentalLabeledField(
+          label: 'RERA Registration No.',
+          hint: 'Enter RERA number',
+          controller: reraCtrl,
+        ),
+        const SizedBox(height: 16),
+        RentalChipSelector(
+          label: 'No. of Towers',
+          options: PropertyController.towersOptions,
+          initialIndex: towerIdx,
+          onChanged: (i) => towerIdx = i,
+        ),
+        const SizedBox(height: 16),
+        RentalChipSelector(
+          label: 'No. of Floors',
+          options: PropertyController.floorsOptions,
+          initialIndex: floorIdx,
+          onChanged: (i) => floorIdx = i,
+        ),
+        const SizedBox(height: 16),
+        RentalChipSelector(
+          label: 'Facing',
+          options: PropertyController.facingOptions,
+          initialIndex: faceIdx,
+          onChanged: (i) => faceIdx = i,
+        ),
+        const SizedBox(height: 16),
+        RentalLabeledField(
+          label: 'Key Amenities',
+          hint: 'E.g. Swimming Pool, Gym, Park',
+          controller: amenCtrl,
+        ),
+      ],
+      onSave: () {
+        final model = NewProjectsAndProperties(
+          propertyLocation: p.displayLocation,
+          projectType: PropertyController.propertyKindOptions[projIdx],
+          projectStatus: PropertyController.availabilityOptions[statusIdx],
+          typeOfProperty:
+              PropertyController.npPropertyTypeOptions[typeIdx],
+          area: areaCtrl.text.trim(),
+          projectLaunchInformation: ProjectLaunchInfo(
+            builderName: builderCtrl.text.trim().isNotEmpty
+                ? builderCtrl.text.trim()
+                : null,
+            reraRegistrationNumber: reraCtrl.text.trim().isNotEmpty
+                ? reraCtrl.text.trim()
+                : null,
+          ),
+          noOfTowers: PropertyController.towersOptions[towerIdx],
+          noOfFloors: PropertyController.floorsOptions[floorIdx],
+          facing: PropertyController.facingOptions[faceIdx],
+          keyAmenities: amenCtrl.text.trim().isNotEmpty
+              ? amenCtrl.text
+                  .trim()
+                  .split(',')
+                  .map((e) => e.trim())
+                  .where((e) => e.isNotEmpty)
+                  .toList()
+              : null,
+        );
+        _updateFields(
+            {'newProjectsAndProperties': model.toJson()});
+      },
+    );
+  }
+
+  void _showPgSpecsSheet() {
+    final pg = p.pgAndGuestHouse;
+    int subIdx =
+        _indexOf(PropertyController.pgSubtypeOptions, pg?.subType);
+    int roomIdx =
+        _indexOf(PropertyController.pgRoomTypeOptions, pg?.roomType);
+    int bathIdx = _indexOf(
+        PropertyController.attachedBathroomOptions, pg?.attachedBathroom);
+    int furnIdx =
+        _indexOf(PropertyController.furnishingOptions, pg?.furnishing);
+    int listedIdx =
+        _indexOf(PropertyController.listedByOptions, pg?.listedBy);
+    int parkIdx =
+        _indexOf(PropertyController.parkingOptions, pg?.carParking);
+    int mealIdx =
+        _indexOf(PropertyController.mealsOptions, pg?.mealsIncluded);
+
+    final amenCtrl = TextEditingController(
+        text: pg?.keyAmenities?.join(', ') ?? '');
+
+    _openEditSheet(
+      title: 'Edit PG Details',
+      children: [
+        RentalChipSelector(
+          label: 'Subtype',
+          options: PropertyController.pgSubtypeOptions,
+          initialIndex: subIdx,
+          onChanged: (i) => subIdx = i,
+        ),
+        const SizedBox(height: 16),
+        RentalChipSelector(
+          label: 'Room Type',
+          options: PropertyController.pgRoomTypeOptions,
+          initialIndex: roomIdx,
+          onChanged: (i) => roomIdx = i,
+        ),
+        const SizedBox(height: 16),
+        RentalChipSelector(
+          label: 'Attached Bathroom',
+          options: PropertyController.attachedBathroomOptions,
+          initialIndex: bathIdx,
+          onChanged: (i) => bathIdx = i,
+        ),
+        const SizedBox(height: 16),
+        RentalChipSelector(
+          label: 'Furnishing',
+          options: PropertyController.furnishingOptions,
+          initialIndex: furnIdx,
+          onChanged: (i) => furnIdx = i,
+        ),
+        const SizedBox(height: 16),
+        RentalChipSelector(
+          label: 'Listed By',
+          options: PropertyController.listedByOptions,
+          initialIndex: listedIdx,
+          onChanged: (i) => listedIdx = i,
+        ),
+        const SizedBox(height: 16),
+        RentalChipSelector(
+          label: 'Car Parking',
+          options: PropertyController.parkingOptions,
+          initialIndex: parkIdx,
+          onChanged: (i) => parkIdx = i,
+        ),
+        const SizedBox(height: 16),
+        RentalChipSelector(
+          label: 'Meals Included',
+          options: PropertyController.mealsOptions,
+          initialIndex: mealIdx,
+          onChanged: (i) => mealIdx = i,
+        ),
+        const SizedBox(height: 16),
+        RentalLabeledField(
+          label: 'Key Amenities',
+          hint: 'E.g. WiFi, Laundry, AC',
+          controller: amenCtrl,
+        ),
+      ],
+      onSave: () {
+        final model = PGAndGuestHouse(
+          propertyLocation: p.displayLocation,
+          subType: PropertyController.pgSubtypeOptions[subIdx],
+          roomType: PropertyController.pgRoomTypeOptions[roomIdx],
+          attachedBathroom:
+              PropertyController.attachedBathroomOptions[bathIdx],
+          furnishing: PropertyController.furnishingOptions[furnIdx],
+          listedBy: PropertyController.listedByOptions[listedIdx],
+          carParking: PropertyController.parkingOptions[parkIdx],
+          mealsIncluded: PropertyController.mealsOptions[mealIdx],
+          keyAmenities: amenCtrl.text.trim().isNotEmpty
+              ? amenCtrl.text
+                  .trim()
+                  .split(',')
+                  .map((e) => e.trim())
+                  .where((e) => e.isNotEmpty)
+                  .toList()
+              : null,
+        );
+        _updateFields({'pgAndGuestHouse': model.toJson()});
+      },
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // UPDATE API
+  // ═══════════════════════════════════════════════════════════
+
+  Future<void> _updateFields(Map<String, dynamic> updates) async {
+    if (p.id == null) {
+      commonSnackBar(message: 'Cannot update: property ID missing');
+      return;
+    }
+
+    Get.dialog(
+      const Center(child: CircularProgressIndicator()),
+      barrierDismissible: false,
+    );
+
+    try {
+      final repo = PropertyRepo();
+      final response = await repo.updateProperty(p.id!, updates);
+
+      if (response.isSuccess) {
+        final fetchResponse = await repo.getPropertyById(p.id!);
+        Get.back(); // close loading
+        if (fetchResponse.isSuccess && fetchResponse.data != null) {
+          setState(() {
+            _property = PropertyModel.fromJson(
+              fetchResponse.data is Map<String, dynamic>
+                  ? fetchResponse.data
+                  : fetchResponse.data as Map<String, dynamic>,
+            );
+          });
+        }
+        Get.back(); // close bottom sheet
+        commonSnackBar(message: 'Updated successfully');
+      } else {
+        Get.back(); // close loading
+        commonSnackBar(
+            message: response.message ?? 'Update failed');
+      }
+    } catch (e) {
+      Get.back(); // close loading
+      commonSnackBar(message: 'Something went wrong');
+    }
+  }
+
+  Future<void> _uploadImages(List<String> localPaths) async {
+    if (p.id == null || localPaths.isEmpty) return;
+
+    Get.dialog(
+      const Center(child: CircularProgressIndicator()),
+      barrierDismissible: false,
+    );
+
+    try {
+      final body = <String, dynamic>{};
+      final images = <dio.MultipartFile>[];
+      for (final path in localPaths) {
+        images.add(await dio.MultipartFile.fromFile(path));
+      }
+      body['propertyImages'] = images;
+
+      final repo = PropertyRepo();
+      final response =
+          await repo.updateProperty(p.id!, body, isMultipart: true);
+
+      if (response.isSuccess) {
+        final fetchResponse = await repo.getPropertyById(p.id!);
+        Get.back(); // close loading
+        if (fetchResponse.isSuccess && fetchResponse.data != null) {
+          setState(() {
+            _property = PropertyModel.fromJson(
+              fetchResponse.data as Map<String, dynamic>,
+            );
+          });
+        }
+        Get.back(); // close bottom sheet
+        commonSnackBar(message: 'Photos uploaded successfully');
+      } else {
+        Get.back(); // close loading
+        commonSnackBar(
+            message: response.message ?? 'Upload failed');
+      }
+    } catch (e) {
+      Get.back(); // close loading
+      commonSnackBar(message: 'Something went wrong');
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // DATA EXTRACTORS
+  // ═══════════════════════════════════════════════════════════
 
   List<(IconData, String)> _extractHighlights() {
     final result = <(IconData, String)>[];
-    final ha = p['houseAndApartment'];
-    final lp = p['landAndPlots'];
-    final so = p['shopAndOffices'];
-    final np = p['newProjectsAndProperties'];
-    final pg = p['pgAndGuestHouse'];
+    final ha = p.houseAndApartment;
+    final lp = p.landAndPlots;
+    final so = p.shopAndOffices;
+    final np = p.newProjectsAndProperties;
+    final pg = p.pgAndGuestHouse;
 
     if (ha != null) {
-      if (ha['areaDetails'] != null && ha['areaDetails'].toString().isNotEmpty)
-        result.add((Icons.square_foot, ha['areaDetails']));
-      if (ha['bathrooms'] != null)
-        result.add((Icons.bathtub_outlined, '${ha['bathrooms']} Bathrooms'));
-      if (ha['totalFloors'] != null)
-        result.add((Icons.layers_outlined, '${ha['totalFloors']} Floors'));
-      if (ha['bhk'] != null)
-        result.add((Icons.bed_outlined, '${ha['bhk']} BHK'));
+      if (ha.areaDetails != null && ha.areaDetails!.isNotEmpty) {
+        result.add((Icons.square_foot, ha.areaDetails!));
+      }
+      if (ha.bathrooms != null) {
+        result.add((Icons.bathtub_outlined, '${ha.bathrooms} Bathrooms'));
+      }
+      if (ha.totalFloors != null) {
+        result.add((Icons.layers_outlined, '${ha.totalFloors} Floors'));
+      }
+      if (ha.bhk != null) {
+        result.add((Icons.bed_outlined, '${ha.bhk} BHK'));
+      }
     } else if (lp != null) {
-      final plot = lp['plotAreaDetails'];
-      if (plot?['totalArea'] != null)
-        result.add((Icons.square_foot, plot['totalArea']));
-      if (plot?['length'] != null)
-        result.add((Icons.straighten, 'L: ${plot['length']}'));
-      if (plot?['breadth'] != null)
-        result.add((Icons.straighten, 'B: ${plot['breadth']}'));
+      final plot = lp.plotAreaDetails;
+      if (plot?.totalArea != null) {
+        result.add((Icons.square_foot, plot!.totalArea!));
+      }
+      if (plot?.length != null) {
+        result.add((Icons.straighten, 'L: ${plot!.length}'));
+      }
+      if (plot?.breadth != null) {
+        result.add((Icons.straighten, 'B: ${plot!.breadth}'));
+      }
     } else if (so != null) {
-      if (so['superBuiltupArea'] != null)
-        result.add((Icons.square_foot, so['superBuiltupArea']));
-      if (so['washrooms'] != null)
-        result.add((Icons.bathtub_outlined, '${so['washrooms']} Washrooms'));
-      if (so['carParkings'] != null)
-        result.add((Icons.local_parking, '${so['carParkings']} Parking'));
+      if (so.superBuiltupArea != null) {
+        result.add((Icons.square_foot, so.superBuiltupArea!));
+      }
+      if (so.washrooms != null) {
+        result.add((Icons.bathtub_outlined, '${so.washrooms} Washrooms'));
+      }
+      if (so.carParkings != null) {
+        result.add((Icons.local_parking, '${so.carParkings} Parking'));
+      }
     } else if (np != null) {
-      if (np['area'] != null) result.add((Icons.square_foot, np['area']));
-      if (np['noOfTowers'] != null)
-        result.add((Icons.apartment_outlined, '${np['noOfTowers']} Towers'));
-      if (np['noOfFloors'] != null)
-        result.add((Icons.layers_outlined, '${np['noOfFloors']} Floors'));
+      if (np.area != null) {
+        result.add((Icons.square_foot, np.area!));
+      }
+      if (np.noOfTowers != null) {
+        result.add((Icons.apartment_outlined, '${np.noOfTowers} Towers'));
+      }
+      if (np.noOfFloors != null) {
+        result.add((Icons.layers_outlined, '${np.noOfFloors} Floors'));
+      }
     } else if (pg != null) {
-      if (pg['roomType'] != null)
-        result.add((Icons.meeting_room_outlined, pg['roomType']));
-      if (pg['furnishing'] != null)
-        result.add((Icons.chair_outlined, pg['furnishing']));
+      if (pg.roomType != null) {
+        result.add((Icons.meeting_room_outlined, pg.roomType!));
+      }
+      if (pg.furnishing != null) {
+        result.add((Icons.chair_outlined, pg.furnishing!));
+      }
     }
     return result;
   }
 
   List<(String, String)> _extractPropertyInfo() {
     final result = <(String, String)>[];
-    final ha = p['houseAndApartment'];
-    final lp = p['landAndPlots'];
-    final so = p['shopAndOffices'];
-    final np = p['newProjectsAndProperties'];
-    final pg = p['pgAndGuestHouse'];
+    final ha = p.houseAndApartment;
+    final lp = p.landAndPlots;
+    final so = p.shopAndOffices;
+    final np = p.newProjectsAndProperties;
+    final pg = p.pgAndGuestHouse;
 
     if (ha != null) {
-      _add(result, 'Type', ha['houseApartmentType']);
-      _add(result, 'BHK', ha['bhk']);
-      _add(result, 'Bathrooms', ha['bathrooms']);
-      _add(result, 'Availability', ha['availabilityStatus']);
-      _add(result, 'Furnishing', ha['furnishing']);
-      _add(result, 'Listed By', ha['listedBy']);
-      _add(result, 'Bachelors Allowed', ha['bachelorAllowed']);
-      _add(result, 'Area Details', ha['areaDetails']);
-      _add(result, 'Maintenance (Monthly)', ha['maintenance']);
-      _add(result, 'Total Floors', ha['totalFloors']);
-      _add(result, 'Car Parking', ha['carParking']);
-      _add(result, 'Facing', ha['facing']);
+      _add(result, 'Type', ha.houseApartmentType);
+      _add(result, 'BHK', ha.bhk);
+      _add(result, 'Bathrooms', ha.bathrooms);
+      _add(result, 'Availability', ha.availabilityStatus);
+      _add(result, 'Furnishing', ha.furnishing);
+      _add(result, 'Listed By', ha.listedBy);
+      _add(result, 'Bachelors Allowed', ha.bachelorsAllowed);
+      _add(result, 'Area Details', ha.areaDetails);
+      _add(result, 'Maintenance (Monthly)', ha.maintenance);
+      _add(result, 'Total Floors', ha.totalFloors);
+      _add(result, 'Car Parking', ha.carParking);
+      _add(result, 'Facing', ha.facing);
     } else if (lp != null) {
-      _add(result, 'Project Type', lp['projectType']);
-      _add(result, 'Listed By', lp['listedBy']);
-      final plot = lp['plotAreaDetails'];
+      _add(result, 'Project Type', lp.projectType);
+      _add(result, 'Listed By', lp.listedBy);
+      final plot = lp.plotAreaDetails;
       if (plot != null) {
-        _add(result, 'Plot Area', plot['totalArea']);
-        _add(result, 'Length', plot['length']);
-        _add(result, 'Breadth', plot['breadth']);
+        _add(result, 'Plot Area', plot.totalArea);
+        _add(result, 'Length', plot.length);
+        _add(result, 'Breadth', plot.breadth);
       }
-      _add(result, 'Facing', lp['facing']);
+      _add(result, 'Facing', lp.facing);
     } else if (so != null) {
-      _add(result, 'Furnishing', so['furnishing']);
-      _add(result, 'Project Status', so['projectStatus']);
-      _add(result, 'Listed By', so['listedBy']);
-      _add(result, 'Super Built-Up Area', so['superBuiltupArea']);
-      _add(result, 'Maintenance (Monthly)', so['maintenance']);
-      _add(result, 'Car Parking', so['carParkings']);
-      _add(result, 'Washrooms', so['washrooms']);
+      _add(result, 'Furnishing', so.furnishing);
+      _add(result, 'Project Status', so.projectStatus);
+      _add(result, 'Listed By', so.listedBy);
+      _add(result, 'Super Built-Up Area', so.superBuiltupArea);
+      _add(result, 'Maintenance (Monthly)', so.maintenance);
+      _add(result, 'Car Parking', so.carParkings);
+      _add(result, 'Washrooms', so.washrooms);
     } else if (np != null) {
-      _add(result, 'Project Type', np['projectType']);
-      _add(result, 'Project Status', np['projectStatus']);
-      _add(result, 'Property Type', np['typeOfProperty']);
-      _add(result, 'Area', np['area']);
-      final launch = np['projectLaunchInformation'];
+      _add(result, 'Project Type', np.projectType);
+      _add(result, 'Project Status', np.projectStatus);
+      _add(result, 'Property Type', np.typeOfProperty);
+      _add(result, 'Area', np.area);
+      final launch = np.projectLaunchInformation;
       if (launch != null) {
-        _add(result, 'Builder Name', launch['builderName']);
-        _add(result, 'RERA No.', launch['reraRegistrationNumber']);
+        _add(result, 'Builder Name', launch.builderName);
+        _add(result, 'RERA No.', launch.reraRegistrationNumber);
       }
-      _add(result, 'No. of Towers', np['noOfTowers']);
-      _add(result, 'No. of Floors', np['noOfFloors']);
-      _add(result, 'Facing', np['facing']);
-      _addAmenities(result, np['keyAmenities']);
+      _add(result, 'No. of Towers', np.noOfTowers);
+      _add(result, 'No. of Floors', np.noOfFloors);
+      _add(result, 'Facing', np.facing);
+      _addAmenities(result, np.keyAmenities);
     } else if (pg != null) {
-      _add(result, 'Subtype', pg['subType']);
-      _add(result, 'Room Type', pg['roomType']);
-      _add(result, 'Attached Bathroom', pg['attachedBathroom']);
-      _add(result, 'Furnishing', pg['furnishing']);
-      _add(result, 'Listed By', pg['listedBy']);
-      _add(result, 'Car Parking', pg['carParking']);
-      _add(result, 'Meals Included', pg['mealsIncluded']);
-      _addAmenities(result, pg['keyAmenities']);
+      _add(result, 'Subtype', pg.subType);
+      _add(result, 'Room Type', pg.roomType);
+      _add(result, 'Attached Bathroom', pg.attachedBathroom);
+      _add(result, 'Furnishing', pg.furnishing);
+      _add(result, 'Listed By', pg.listedBy);
+      _add(result, 'Car Parking', pg.carParking);
+      _add(result, 'Meals Included', pg.mealsIncluded);
+      _addAmenities(result, pg.keyAmenities);
     }
     return result;
   }
 
-  void _add(List<(String, String)> list, String label, dynamic value) {
-    if (value != null && value.toString().isNotEmpty) {
-      list.add((label, value.toString()));
+  void _add(List<(String, String)> list, String label, String? value) {
+    if (value != null && value.isNotEmpty) {
+      list.add((label, value));
     }
   }
 
-  void _addAmenities(List<(String, String)> list, dynamic amenities) {
-    if (amenities == null) return;
-    if (amenities is List && amenities.isNotEmpty) {
+  void _addAmenities(List<(String, String)> list, List<String>? amenities) {
+    if (amenities != null && amenities.isNotEmpty) {
       list.add(('Key Amenities', amenities.join(', ')));
-    } else if (amenities is String && amenities.isNotEmpty) {
-      list.add(('Key Amenities', amenities));
     }
   }
 
-  String _fmtPrice(num price) {
-    final str = price.toInt().toString();
-    if (str.length <= 3) return str;
-    final last3 = str.substring(str.length - 3);
-    final rest = str.substring(0, str.length - 3);
-    final formatted = rest.replaceAllMapped(
-        RegExp(r'(\d)(?=(\d{2})+(?!\d))'), (m) => '${m[1]},');
-    return '$formatted,$last3';
+  // ═══════════════════════════════════════════════════════════
+  // HELPERS
+  // ═══════════════════════════════════════════════════════════
+
+  int _indexOf(List<String> options, String? value) {
+    if (value == null) return 0;
+    final idx = options.indexOf(value);
+    return idx >= 0 ? idx : 0;
   }
 
-  String _typeLabel(String type) {
-    const labels = {
-      'HouseAndApartment': 'House & Apartment',
-      'LandAndPlots': 'Land & Plots',
-      'ShopAndOffices': 'Shop & Offices',
-      'NewProjectsAndProperties': 'New Projects',
-      'PGAndGuestHouse': 'PG & Guest House',
-    };
-    return labels[type] ?? type;
+  String? _subTypeKey() {
+    switch (p.propertyType) {
+      case 'HouseAndApartment':
+        return 'houseAndApartment';
+      case 'LandAndPlots':
+        return 'landAndPlots';
+      case 'ShopAndOffices':
+        return 'shopAndOffices';
+      case 'NewProjectsAndProperties':
+        return 'newProjectsAndProperties';
+      case 'PGAndGuestHouse':
+        return 'pgAndGuestHouse';
+    }
+    return null;
   }
 }

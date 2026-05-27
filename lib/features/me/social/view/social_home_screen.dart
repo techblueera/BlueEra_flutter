@@ -13,6 +13,7 @@ import 'package:BlueEra/features/me/social/view/social_activity_list_screen.dart
 import 'package:BlueEra/features/me/social/view/social_contact_us/social_contact_us_screen.dart';
 import 'package:BlueEra/features/me/social/view/social_feed/social_feed_screen.dart';
 import 'package:BlueEra/features/me/social/view/social_vision_mission_screen.dart';
+import 'package:BlueEra/features/common/rental/widget/rental_property_card_v2.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -136,26 +137,30 @@ class _SocialHomeScreenState extends State<SocialHomeScreen>
               const SizedBox(height: 14),
               _reveal(0, _buildActivitiesCard(data?.activities ?? [])),
               const SizedBox(height: 14),
-              _reveal(1, _buildMissionVisionCard(data?.missionVision)),
+              _reveal(1, const RentalPropertyCardV2(
+                margin: EdgeInsets.zero,
+              )),
               const SizedBox(height: 14),
-              _reveal(2, _buildEventsCard(data?.events ?? [])),
+              _reveal(2, _buildMissionVisionCard(data?.missionVision)),
               const SizedBox(height: 14),
-              _reveal(3, _buildAchievementsCard(data?.achievements ?? [])),
+              _reveal(3, _buildEventsCard(data?.events ?? [])),
+              const SizedBox(height: 14),
+              _reveal(4, _buildAchievementsCard(data?.achievements ?? [])),
               const SizedBox(height: 14),
               _reveal(
-                  4, _buildSocialActivitiesCard(data?.socialActivities ?? [])),
+                  5, _buildSocialActivitiesCard(data?.socialActivities ?? [])),
               const SizedBox(height: 14),
-              _reveal(5, _buildLatestPostSection(data?.activities ?? [])),
+              _reveal(6, _buildLatestPostSection(data?.activities ?? [])),
               const SizedBox(height: 14),
-              _reveal(6, _buildGallerySection(data)),
+              _reveal(7, _buildGallerySection(data)),
               const SizedBox(height: 14),
-              _reveal(7, _buildTestimonialSection()),
+              _reveal(8, _buildTestimonialSection()),
               const SizedBox(height: 14),
-              _reveal(8, _buildContactCard(data)),
+              _reveal(9, _buildContactCard(data)),
               const SizedBox(height: 14),
-              _reveal(9, _buildMapCard(data)),
+              _reveal(10, _buildMapCard(data)),
               const SizedBox(height: 14),
-              _reveal(10, _buildQuickLinksSection()),
+              _reveal(11, _buildQuickLinksSection()),
               SizedBox(height: kBottomNavigationBarHeight + 30),
             ],
           ),

@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/shimmer_utils.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
@@ -18,16 +19,25 @@ import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 
-class GrocerySuperCategoryScreen extends StatelessWidget {
+class GrocerySuperCategoryScreen extends StatefulWidget {
   final bool isAvailBulkUpload;
-  GrocerySuperCategoryScreen({super.key, required this.isAvailBulkUpload});
+  const GrocerySuperCategoryScreen({super.key, required this.isAvailBulkUpload});
 
+  @override
+  State<GrocerySuperCategoryScreen> createState() => _GrocerySuperCategoryScreenState();
+}
+
+class _GrocerySuperCategoryScreenState extends State<GrocerySuperCategoryScreen> {
   final controller = getOrPut(() => GroceryController());
 
   @override
-  Widget build(BuildContext context) {
+  void initState() {
+    super.initState();
     controller.fetchGroceryNestedCategory();
+  }
 
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
         title: AppStrings.addProducts,
@@ -55,7 +65,7 @@ class GrocerySuperCategoryScreen extends StatelessWidget {
             children: [
 
               // ── Snap-search suggestion (conditional) ─────────────────
-              if (isAvailBulkUpload) ...[
+              if (widget.isAvailBulkUpload) ...[
                 CustomFormCard(
                   padding: EdgeInsets.all(SizeConfig.size10),
                   child: Column(
@@ -96,12 +106,7 @@ class GrocerySuperCategoryScreen extends StatelessWidget {
                     Obx(() {
                       // ── Loading state ──
                       if (controller.fetchNestedGroceryCategoryResponse.value.status == Status.INITIAL) {
-                        return const Center(
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(vertical: 32),
-                            child: CircularProgressIndicator(),
-                          ),
-                        );
+                        return buildCategoryGridSkeleton();
                       }
 
                       // ── Error state ──

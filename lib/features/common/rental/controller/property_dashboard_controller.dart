@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_image_assets.dart';
+import 'package:BlueEra/features/common/rental/model/property_model.dart';
 import 'package:BlueEra/features/common/rental/repo/property_repo.dart';
 import 'package:get/get.dart';
 
@@ -7,7 +8,7 @@ class PropertyDashboardController extends GetxController {
 
   final isStatsLoading = true.obs;
   final isLoading = false.obs;
-  final properties = <dynamic>[].obs;
+  final properties = <PropertyModel>[].obs;
 
   final selectedTab = 0.obs; // 0 = Sell, 1 = Rent
   final selectedCategoryIndex = 0.obs;
@@ -24,10 +25,10 @@ class PropertyDashboardController extends GetxController {
       selectedTab.value == 0 ? sellCategories : rentCategories;
 
   static final _allTypes = [
-    ('HouseAndApartment', 'Houses &\nApartments', AppImageAssets.propertyHouseSale),
-    ('NewProjectsAndProperties', 'New Projects\n& Properties', AppImageAssets.propertyNewProjectSale),
-    ('ShopAndOffices', 'Shops &\nOffices', AppImageAssets.propertyShopOfficeSale),
-    ('LandAndPlots', 'Lands &\nPlots', AppImageAssets.propertyLandPlotSale),
+    ('HouseAndApartment', 'Houses &\nApartments', AppImageAssets.propertyHouseSell),
+    ('NewProjectsAndProperties', 'New Projects\n& Properties', AppImageAssets.propertyNewProjectSell),
+    ('ShopAndOffices', 'Shops &\nOffices', AppImageAssets.propertyShopOfficeSell),
+    ('LandAndPlots', 'Lands &\nPlots', AppImageAssets.propertyLandPlotSell),
     ('PGAndGuestHouse', 'PG &\nGuest House', AppImageAssets.propertyHouseRent),
   ];
 
@@ -108,7 +109,10 @@ class PropertyDashboardController extends GetxController {
       );
       if (response.isSuccess && response.data != null) {
         if (response.data is List) {
-          properties.value = response.data;
+          properties.value = (response.data as List)
+              .map((e) =>
+                  PropertyModel.fromJson(e as Map<String, dynamic>))
+              .toList();
         } else {
           properties.clear();
         }

@@ -41,10 +41,43 @@ class PropertyRepo extends BaseService {
     );
   }
 
+  Future<ResponseModel> updateProperty(
+      String id, Map<String, dynamic> body,
+      {bool isMultipart = false}) async {
+    return await ApiBaseHelper().putHTTP(
+      propertyById(id),
+      params: body,
+      showProgress: false,
+      isMultipart: isMultipart,
+      onSuccess: (res) {},
+      onError: (error) {},
+    );
+  }
+
   Future<ResponseModel> getFilteredProperties(
       String listingType, String propertyType) async {
     return await ApiBaseHelper().getHTTP(
       propertiesByFilter(listingType, propertyType),
+      showProgress: false,
+      onSuccess: (res) {},
+      onError: (error) {},
+    );
+  }
+
+  Future<ResponseModel> deleteProperty(String id) async {
+    return await ApiBaseHelper().deleteHTTP(
+      propertyById(id),
+      showProgress: false,
+      onSuccess: (res) {},
+      onError: (error) {},
+    );
+  }
+
+  Future<ResponseModel> discoverProperties(
+      Map<String, dynamic> queryParams) async {
+    return await ApiBaseHelper().getHTTP(
+      properties,
+      params: queryParams,
       showProgress: false,
       onSuccess: (res) {},
       onError: (error) {},

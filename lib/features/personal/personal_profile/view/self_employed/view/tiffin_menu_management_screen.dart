@@ -425,7 +425,7 @@ class _TiffinMenuManagementScreenState
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(2.0),
             border: Border.all(
-                color: isMealCreated ? AppColors.green00 : AppColors.greenE0,
+                color: isMealCreated ? AppColors.green00 : AppColors.greyE0,
                 width: 1.0),
           ),
           padding: const EdgeInsets.all(2.0),
@@ -434,7 +434,7 @@ class _TiffinMenuManagementScreenState
             width: 8.0,
             decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: isMealCreated ? AppColors.green00 : AppColors.greenE0),
+                color: isMealCreated ? AppColors.green00 : AppColors.greyE0),
           ),
         ),
       ),

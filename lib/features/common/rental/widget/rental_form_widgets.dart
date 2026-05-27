@@ -49,17 +49,17 @@ enum RentalCategory {
   String get headerImage {
     switch (this) {
       case RentalCategory.housesSale:
-        return AppImageAssets.propertyHouseSale;
+        return AppImageAssets.propertyHouseSell;
       case RentalCategory.housesRent:
         return AppImageAssets.propertyHouseRent;
       case RentalCategory.newProjectsSale:
-        return AppImageAssets.propertyNewProjectSale;
+        return AppImageAssets.propertyNewProjectSell;
       case RentalCategory.landsPlotsSale:
-        return AppImageAssets.propertyLandPlotSale;
+        return AppImageAssets.propertyLandPlotSell;
       case RentalCategory.shopsOfficesRent:
         return AppImageAssets.propertyShopOfficeRent;
       case RentalCategory.shopsOfficesSale:
-        return AppImageAssets.propertyShopOfficeSale;
+        return AppImageAssets.propertyShopOfficeSell;
     }
   }
 
@@ -290,7 +290,7 @@ class RentalCategoryHeader extends StatelessWidget {
     String? image,
     this.title = 'Rent & Properties',
     this.subtitle = 'For Sale: Houses & Apartments',
-  }) : image = image ?? AppImageAssets.propertyHouseSale;
+  }) : image = image ?? AppImageAssets.propertyHouseSell;
 
   /// Convenience constructor that derives the header image + subtitle
   /// from a [RentalCategory]. Used when the screen is launched from

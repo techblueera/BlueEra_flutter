@@ -82,12 +82,12 @@ class AppImageAssets {
   static String cab = "${imgPath}cab.png";
 
   /// Rent & Properties (Discover -> Rent & Properties grid)
-  static String propertyHouseSale = "${imgPath}property_house_sale.png";
+  static String propertyHouseSell = "${imgPath}property_house_sale.png";
   static String propertyHouseRent = "${imgPath}property_house_rent.png";
-  static String propertyNewProjectSale = "${imgPath}property_new_project_sale.png";
-  static String propertyLandPlotSale = "${imgPath}property_land_plot_sale.png";
+  static String propertyNewProjectSell = "${imgPath}property_new_project_sale.png";
+  static String propertyLandPlotSell = "${imgPath}property_land_plot_sale.png";
   static String propertyShopOfficeRent = "${imgPath}property_shop_office_rent.png";
-  static String propertyShopOfficeSale = "${imgPath}property_shop_office_sale.png";
+  static String propertyShopOfficeSell = "${imgPath}property_shop_office_sale.png";
 
   // Earn Service
   static String all = "${imgPath}all.png";
