@@ -76,7 +76,7 @@ class AppColors {
   static const mainTextColor = Color(0xFF090707);
   static const secondaryTextColor = Color(0xFF505050);
   static const shadowColor = Color(0xFA999999);
-  static const greenE0 = Color(0xFFCDDFE0);
+  static const greyE0 = Color(0xFFCDDFE0);
   static const lightBlue = Color(0xFFD9EBFF);
   static const whiteFE = Color(0xFFFCFCFE);
   static const greyB3 = Color(0xFFB3B3B3);
@@ -146,4 +146,6 @@ class AppColors {
   static const blue5CFF = Color(0xFFEBF5FF);
   static const greenF3 = Color(0xFFE6FAF3);
   static const green7A = Color(0xFF00B87A);
+  static const geryFC = Color(0xFFF5F7FC);
+  static const yellowCB = Color(0xFFE7E0CB);
 }

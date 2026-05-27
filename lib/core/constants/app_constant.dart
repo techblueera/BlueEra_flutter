@@ -2453,6 +2453,33 @@ final List<OnboardingCategoryModel> stayHomeItemsCategories = [
   ),
 ];
 
+class PropertyTileData {
+  final String image;
+  final String label;
+  final bool isSale;
+  final String listingType;
+  final String propertyType;
+
+  const PropertyTileData({
+    required this.image,
+    required this.label,
+    required this.isSale,
+    required this.listingType,
+    required this.propertyType,
+  });
+}
+
+final List<PropertyTileData> propertyDiscoverTiles = [
+  PropertyTileData(image: AppImageAssets.propertyHouseSell, label: 'For Sell:\nHouses & Apartments', isSale: true, listingType: 'Sell', propertyType: 'HouseAndApartment'),
+  PropertyTileData(image: AppImageAssets.propertyHouseRent, label: 'For Rent:\nHouses & Apartments', isSale: false, listingType: 'Rent', propertyType: 'HouseAndApartment'),
+  PropertyTileData(image: AppImageAssets.propertyNewProjectSell, label: 'For Sell:\nNew Projects & Properties', isSale: true, listingType: 'Sell', propertyType: 'NewProjectsAndProperties'),
+  PropertyTileData(image: AppImageAssets.propertyLandPlotSell, label: 'Lands & Plots\nFor Sell', isSale: true, listingType: 'Sell', propertyType: 'LandAndPlots'),
+  PropertyTileData(image: AppImageAssets.propertyShopOfficeRent, label: 'For Rent:\nShops & Offices', isSale: false, listingType: 'Rent', propertyType: 'ShopAndOffices'),
+  PropertyTileData(image: AppImageAssets.propertyShopOfficeSell, label: 'For Sell:\nShops & Offices', isSale: true, listingType: 'Sell', propertyType: 'ShopAndOffices'),
+  PropertyTileData(image: AppImageAssets.propertyLandPlotSell, label: 'For Rent:\nLands & Plots', isSale: false, listingType: 'Rent', propertyType: 'LandAndPlots'),
+  PropertyTileData(image: AppImageAssets.propertyHouseRent, label: 'For Rent:\nPG & Guest House', isSale: false, listingType: 'Rent', propertyType: 'PGAndGuestHouse'),
+];
+
 final List<OnboardingCategoryModel> stayItemsCategories = [
   OnboardingCategoryModel(
       name: 'Hotel Stay',

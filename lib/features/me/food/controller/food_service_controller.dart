@@ -44,6 +44,7 @@ class FoodServiceController extends GetxController {
 
   RxString selectedSubFoodTypeIDCat = "".obs;
   RxString selectedFoodTypeID = "".obs;
+  var isPosting = false.obs;
   var selectedCategoryId = '1'.obs;
   RxString selectedSubCategoryId = "".obs;
   RxList<GroceryNestedCategoryModel> subCategoryTabs =
@@ -338,6 +339,7 @@ class FoodServiceController extends GetxController {
   Future<void> createFoodProductViaAiApi(
       {required FoodGenAiData foodData, int? createMissingProductIndex}) async {
     try {
+      isPosting.value = true;
       Map<String, dynamic> paramsReq = {};
 
       List<String> uploadedImages = [];
@@ -419,6 +421,8 @@ class FoodServiceController extends GetxController {
     } catch (e, s) {
       print('stack trace-- $s');
       commonSnackBar(message: e.toString());
+    } finally {
+      isPosting.value = false;
     }
   }
 

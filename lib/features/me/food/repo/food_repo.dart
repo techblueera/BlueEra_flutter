@@ -7,7 +7,7 @@ class FoodRepo extends BaseService {
   Future<ResponseModel> getFoodAiGenerateRepo(
       {required Map<String, dynamic> reqBody}) async {
     final response = await ApiBaseHelper().postHTTP("${foodAiGenerate}",
-        params: reqBody, onError: (error) {}, onSuccess: (data) {});
+        params: reqBody, showProgress: false, onError: (error) {}, onSuccess: (data) {});
     return response;
   }
 
@@ -24,7 +24,7 @@ class FoodRepo extends BaseService {
       foodProduct,
       params: params,
       isMultipart: false,
-      showProgress: true,
+      showProgress: false,
       onError: (error) {},
       onSuccess: (data) {},
     );

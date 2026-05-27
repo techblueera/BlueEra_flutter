@@ -281,7 +281,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                       children: [
                         Container(
                           color: status == "UNREAD"
-                              ? AppColors.greenE0
+                              ? AppColors.greyE0
                               : Colors.transparent,
                           child: Padding(
                             padding: EdgeInsets.symmetric(

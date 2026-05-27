@@ -73,6 +73,7 @@ class _FoodAiDetailScreenState extends State<FoodAiDetailScreen> {
           padding: const EdgeInsets.only(bottom: 30.0, right: 20, left: 20),
           child: CustomBtn(
               isValidate: vc.variantList.isNotEmpty,
+              isLoading: vc.isPosting.value,
               onTap: vc.variantList.isNotEmpty?() {
                 vc.createFoodProductViaAiApi(
                     foodData: product,

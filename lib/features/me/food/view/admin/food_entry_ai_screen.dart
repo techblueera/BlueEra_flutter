@@ -273,6 +273,7 @@ class _FoodEntryAiScreenState extends State<FoodEntryAiScreen> {
                       : null,
                   title: AppStrings.generate,
                   isValidate: controller.isFormValid.value,
+                  isLoading: controller.isGenerating.value,
                 );
               })
             ],

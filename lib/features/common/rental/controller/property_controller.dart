@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/rental/controller/property_dashboard_controller.dart';
+import 'package:BlueEra/features/common/rental/model/property_model.dart';
 import 'package:BlueEra/features/common/rental/repo/property_repo.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:get/get.dart';
@@ -224,159 +225,159 @@ class PropertyController extends GetxController {
   // ── Build request body ──
 
   Map<String, dynamic> _buildRequestBody() {
-    final body = <String, dynamic>{
-      'propertyName': projectName.value.trim(),
-      'description': description.value.trim(),
-      'propertyType': _propertyTypeKey,
-      'listingType': listingType.value,
-    };
+    final isRent = listingType.value == 'Rent';
 
-    if (isPriceRange.value) {
-      body['priceRange'] = {
-        'min': int.tryParse(priceFrom.value.trim()) ?? 0,
-        'max': int.tryParse(priceTo.value.trim()) ?? 0,
-      };
-    } else {
-      body['price'] = int.tryParse(price.value.trim()) ?? 0;
-    }
+    final model = PropertyModel(
+      propertyName: projectName.value.trim(),
+      description: description.value.trim(),
+      propertyType: _propertyTypeKey,
+      listingType: listingType.value,
+      price: isPriceRange.value ? 0 : (int.tryParse(price.value.trim()) ?? 0),
+      priceRange: isPriceRange.value
+          ? PriceRange(
+              min: int.tryParse(priceFrom.value.trim()) ?? 0,
+              max: int.tryParse(priceTo.value.trim()) ?? 0,
+            )
+          : null,
+      allInclusivePrice: allInclusivePrice.value,
+      priceNegotiable: priceNegotiable.value,
+      taxAndGovtChargeExcluded: taxAndGovtChargeExcluded.value,
+      priceType: isRent ? priceType.value : null,
+      securityDeposit: isRent ? securityDeposit.value : false,
+      electricityIncluded: isRent ? electricityIncluded.value : false,
+      waterChargesIncluded: isRent ? waterChargesIncluded.value : false,
+      location: (locationLat.value != 0.0 || locationLng.value != 0.0)
+          ? GeoLocation(
+              coordinates: [locationLng.value, locationLat.value],
+            )
+          : null,
+      houseAndApartment: _propertyTypeKey == 'HouseAndApartment'
+          ? _buildHouseApartment()
+          : null,
+      landAndPlots:
+          _propertyTypeKey == 'LandAndPlots' ? _buildLandPlots() : null,
+      shopAndOffices:
+          _propertyTypeKey == 'ShopAndOffices' ? _buildShopOffices() : null,
+      newProjectsAndProperties: _propertyTypeKey == 'NewProjectsAndProperties'
+          ? _buildNewProject()
+          : null,
+      pgAndGuestHouse:
+          _propertyTypeKey == 'PGAndGuestHouse' ? _buildPgGuestHouse() : null,
+    );
 
-    body['allInclusivePrice'] = allInclusivePrice.value;
-    body['priceNegotiable'] = priceNegotiable.value;
-    body['taxAndGovtChargeExcluded'] = taxAndGovtChargeExcluded.value;
-
-    if (locationLat.value != 0.0 || locationLng.value != 0.0) {
-      body['location'] = {
-        'type': 'Point',
-        'coordinates': [locationLng.value, locationLat.value],
-      };
-    }
-
-    if (listingType.value == 'Rent') {
-      body['priceType'] = priceType.value;
-      body['securityDeposit'] = securityDeposit.value;
-      body['electricityIncluded'] = electricityIncluded.value;
-      body['waterChargesIncluded'] = waterChargesIncluded.value;
-    }
-
-    switch (_propertyTypeKey) {
-      case 'HouseAndApartment':
-        body['houseAndApartment'] = _buildHouseApartment();
-        break;
-      case 'LandAndPlots':
-        body['landAndPlots'] = _buildLandPlots();
-        break;
-      case 'ShopAndOffices':
-        body['shopAndOffices'] = _buildShopOffices();
-        break;
-      case 'NewProjectsAndProperties':
-        body['newProjectsAndProperties'] = _buildNewProject();
-        break;
-      case 'PGAndGuestHouse':
-        body['pgAndGuestHouse'] = _buildPgGuestHouse();
-        break;
-    }
-
-    return body;
+    return model.toJson();
   }
 
-  Map<String, dynamic> _buildHouseApartment() {
-    final data = <String, dynamic>{
-      'propertyLocation': locationAddress.value.trim(),
-      'houseApartmentType': haTypeOptions[haType.value],
-      'bhk': bhkOptions[haBhk.value],
-      'bathrooms': bathroomOptions[haBathrooms.value],
-      'listedBy': listedByOptions[haListedBy.value],
-      'areaDetails': haArea.value.trim(),
-      'carParking': parkingOptions[haCarParking.value],
-      'facing': facingOptions[haFacing.value],
-    };
-
-    if (listingType.value == 'Sell') {
-      data['availabilityStatus'] = availabilityOptions[haAvailabilityStatus.value];
-    } else {
-      data['furnishing'] = furnishingOptions[haFurnishing.value];
-      data['bachelorsAllowed'] = bachelorOptions[haBachelorsAllowed.value];
-    }
-
-    if (haMaintenance.value.trim().isNotEmpty) {
-      data['maintenance'] = haMaintenance.value.trim();
-    }
-    if (haTotalFloors.value.trim().isNotEmpty) {
-      data['totalFloors'] = haTotalFloors.value.trim();
-    }
-    if (haFloorNo.value.trim().isNotEmpty) {
-      data['floorNo'] = haFloorNo.value.trim();
-    }
-
-    return data;
+  HouseAndApartment _buildHouseApartment() {
+    final isRent = listingType.value != 'Sell';
+    return HouseAndApartment(
+      propertyLocation: locationAddress.value.trim(),
+      houseApartmentType: haTypeOptions[haType.value],
+      bhk: bhkOptions[haBhk.value],
+      bathrooms: bathroomOptions[haBathrooms.value],
+      listedBy: listedByOptions[haListedBy.value],
+      areaDetails: haArea.value.trim().isNotEmpty
+          ? '${haArea.value.trim()} ${areaUnit.value}'
+          : null,
+      carParking: parkingOptions[haCarParking.value],
+      facing: facingOptions[haFacing.value],
+      availabilityStatus: !isRent
+          ? availabilityOptions[haAvailabilityStatus.value]
+          : null,
+      furnishing: isRent ? furnishingOptions[haFurnishing.value] : null,
+      bachelorsAllowed:
+          isRent ? bachelorOptions[haBachelorsAllowed.value] : null,
+      maintenance: haMaintenance.value.trim().isNotEmpty
+          ? haMaintenance.value.trim()
+          : null,
+      totalFloors: haTotalFloors.value.trim().isNotEmpty
+          ? haTotalFloors.value.trim()
+          : null,
+      floorNo: haFloorNo.value.trim().isNotEmpty
+          ? haFloorNo.value.trim()
+          : null,
+    );
   }
 
-  Map<String, dynamic> _buildLandPlots() {
-    return {
-      'propertyLocation': locationAddress.value.trim(),
-      'projectType': lpProjectTypeOptions[lpProjectType.value],
-      'listedBy': listedByOptions[lpListedBy.value],
-      'plotAreaDetails': {
-        'totalArea': lpPlotArea.value.trim(),
-        'length': lpLength.value.trim(),
-        'breadth': lpBreadth.value.trim(),
-      },
-      'facing': facingOptions[lpFacing.value],
-    };
+  LandAndPlots _buildLandPlots() {
+    return LandAndPlots(
+      propertyLocation: locationAddress.value.trim(),
+      projectType: lpProjectTypeOptions[lpProjectType.value],
+      listedBy: listedByOptions[lpListedBy.value],
+      plotAreaDetails: PlotAreaDetails(
+        totalArea: lpPlotArea.value.trim(),
+        length: lpLength.value.trim(),
+        breadth: lpBreadth.value.trim(),
+      ),
+      facing: facingOptions[lpFacing.value],
+    );
   }
 
-  Map<String, dynamic> _buildShopOffices() {
-    final data = <String, dynamic>{
-      'propertyLocation': locationAddress.value.trim(),
-      'furnishing': furnishingOptions[soFurnishing.value],
-      'listedBy': listedByOptions[soListedBy.value],
-      'superBuiltupArea': soArea.value.trim(),
-      'carParkings': parkingOptions[soCarParking.value],
-      'washrooms': washroomOptions[soWashrooms.value],
-    };
-    if (listingType.value == 'Sell') {
-      data['projectStatus'] = soProjectStatusOptions[soProjectStatus.value];
-    }
-    if (soMaintenance.value.trim().isNotEmpty) {
-      data['maintenance'] = soMaintenance.value.trim();
-    }
-    return data;
+  ShopAndOffices _buildShopOffices() {
+    return ShopAndOffices(
+      propertyLocation: locationAddress.value.trim(),
+      furnishing: furnishingOptions[soFurnishing.value],
+      listedBy: listedByOptions[soListedBy.value],
+      superBuiltupArea: soArea.value.trim(),
+      carParkings: parkingOptions[soCarParking.value],
+      washrooms: washroomOptions[soWashrooms.value],
+      projectStatus: listingType.value == 'Sell'
+          ? soProjectStatusOptions[soProjectStatus.value]
+          : null,
+      maintenance: soMaintenance.value.trim().isNotEmpty
+          ? soMaintenance.value.trim()
+          : null,
+    );
   }
 
-  Map<String, dynamic> _buildNewProject() {
-    return {
-      'propertyLocation': locationAddress.value.trim(),
-      'projectType': propertyKindOptions[npProjectType.value],
-      'projectStatus': availabilityOptions[npProjectStatus.value],
-      'typeOfProperty': npPropertyTypeOptions[npTypeOfProperty.value],
-      'area': npArea.value.trim(),
-      'projectLaunchInformation': {
-        'builderName': npBuilderName.value.trim(),
-        'reraRegistrationNumber': npReraNo.value.trim(),
-        'projectLaunchMonth': npLaunchMonth.value,
-        'launchYear': npLaunchYear.value,
-        'expectedPossessionMonth': npPossessionMonth.value,
-        'expectedPossessionYear': npPossessionYear.value,
-      },
-      'keyAmenities': npKeyAmenities.value.trim(),
-      'noOfTowers': towersOptions[npNoOfTowers.value],
-      'noOfFloors': floorsOptions[npNoOfFloors.value],
-      'facing': facingOptions[npFacing.value],
-    };
+  NewProjectsAndProperties _buildNewProject() {
+    return NewProjectsAndProperties(
+      propertyLocation: locationAddress.value.trim(),
+      projectType: propertyKindOptions[npProjectType.value],
+      projectStatus: availabilityOptions[npProjectStatus.value],
+      typeOfProperty: npPropertyTypeOptions[npTypeOfProperty.value],
+      area: npArea.value.trim(),
+      projectLaunchInformation: ProjectLaunchInfo(
+        builderName: npBuilderName.value.trim(),
+        reraRegistrationNumber: npReraNo.value.trim(),
+        projectLaunchMonth: npLaunchMonth.value,
+        launchYear: npLaunchYear.value,
+        expectedPossessionMonth: npPossessionMonth.value,
+        expectedPossessionYear: npPossessionYear.value,
+      ),
+      keyAmenities: npKeyAmenities.value.trim().isNotEmpty
+          ? npKeyAmenities.value
+              .trim()
+              .split(',')
+              .map((e) => e.trim())
+              .where((e) => e.isNotEmpty)
+              .toList()
+          : null,
+      noOfTowers: towersOptions[npNoOfTowers.value],
+      noOfFloors: floorsOptions[npNoOfFloors.value],
+      facing: facingOptions[npFacing.value],
+    );
   }
 
-  Map<String, dynamic> _buildPgGuestHouse() {
-    return {
-      'propertyLocation': locationAddress.value.trim(),
-      'subType': pgSubtypeOptions[pgSubtype.value],
-      'roomType': pgRoomTypeOptions[pgRoomType.value],
-      'attachedBathroom': attachedBathroomOptions[pgAttachedBathroom.value],
-      'furnishing': furnishingOptions[pgFurnishing.value],
-      'listedBy': listedByOptions[pgListedBy.value],
-      'carParking': parkingOptions[pgCarParking.value],
-      'mealsIncluded': mealsOptions[pgMealsIncluded.value],
-      'keyAmenities': pgKeyAmenities.value.trim(),
-    };
+  PGAndGuestHouse _buildPgGuestHouse() {
+    return PGAndGuestHouse(
+      propertyLocation: locationAddress.value.trim(),
+      subType: pgSubtypeOptions[pgSubtype.value],
+      roomType: pgRoomTypeOptions[pgRoomType.value],
+      attachedBathroom: attachedBathroomOptions[pgAttachedBathroom.value],
+      furnishing: furnishingOptions[pgFurnishing.value],
+      listedBy: listedByOptions[pgListedBy.value],
+      carParking: parkingOptions[pgCarParking.value],
+      mealsIncluded: mealsOptions[pgMealsIncluded.value],
+      keyAmenities: pgKeyAmenities.value.trim().isNotEmpty
+          ? pgKeyAmenities.value
+              .trim()
+              .split(',')
+              .map((e) => e.trim())
+              .where((e) => e.isNotEmpty)
+              .toList()
+          : null,
+    );
   }
 
   // ── API Calls ──

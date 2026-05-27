@@ -13,14 +13,14 @@ import 'package:get/get.dart';
 
 class ServiceSelectionScreen extends StatefulWidget {
   final SelfWorkServiceController controller;
-  final String designation;
+  final String professionCategory;
   final String selectedCategoryKey;
   final List<String> preSelectedOptions;
 
   const ServiceSelectionScreen({
     super.key,
     required this.controller,
-    required this.designation,
+    required this.professionCategory,
     required this.selectedCategoryKey,
     required this.preSelectedOptions,
   });
@@ -46,7 +46,7 @@ class _ServiceSelectionScreenState extends State<ServiceSelectionScreen> {
     final currentList = _controller.allCategoryMap[_selectedCategoryKey];
     if (currentList == null || currentList.isEmpty) {
       _controller.fetchServiceSelectionOptions(
-        designation: widget.designation,
+        professionCategory: widget.professionCategory,
         selectedServiceKey: _selectedCategoryKey,
       );
     }

@@ -1853,11 +1853,11 @@ class RouteHelper {
         final bool argFromBottomNavBar =
             args[ApiKeys.argFromBottomNavBar] as bool;
         final String serviceSubType = args[ApiKeys.serviceSubType] as String;
-        final String designation = args[ApiKeys.designation] as String;
+        final String professionCategory = args[ApiKeys.profession] as String;
         return MaterialPageRoute(
             builder: (_) => AddSelfServiceScreen(
                 fromBottomNavBar: argFromBottomNavBar,
-                designation: designation,
+                professionCategory: professionCategory,
                 serviceSubType: serviceSubType),
             settings: RouteSettings(name: getAddSelfServiceRoute()));
       case RouteConstant.createAccountTypeScreen:

@@ -28,8 +28,6 @@ import 'package:BlueEra/features/common/visiting_card/view/all_personal_visiting
 import 'package:BlueEra/features/common/statistics/view/business_statistics_screen.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/rental/controller/rental_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/rental/widget/rental_services_dashboard_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/controller/earn_service_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/edit_profile_bottom_sheet.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/profile_designation_bottom_sheet.dart';
@@ -848,8 +846,9 @@ class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
       // secondary detail.
       const ProfileBioCard(),
       SizedBox(height: SizeConfig.size12),
-      _buildRentalCard(),
-      // const RentalPropertyCardV2(),
+      const RentalPropertyCardV2(
+        margin: EdgeInsets.only(top: 10, left: 20, right: 10),
+      ),
       SizedBox(height: SizeConfig.size12),
       _buildActionRow(),
       SizedBox(height: SizeConfig.size12),
@@ -1489,163 +1488,6 @@ class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
       width: 1,
       color: const Color(0xFFEDEFF4),
     );
-  }
-
-  // â”€â”€â”€ RENTAL CTA CARD â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  // Surfaces the rental dashboard as a single card. Header (icon +
-  // title + chevron) opens it with the controller's current filter;
-  // each category chip below pre-selects its filter on
-  // [RentalController.selectedRentalTabs] before pushing, so
-  // [RentalTabBody]'s initState lands the destination already
-  // filtered to the bucket the user tapped.
-  Widget _buildRentalCard() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 14),
-      child: CustomFormCard(
-        padding: EdgeInsets.all(SizeConfig.size14),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFFEDEFF4), width: 1),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            InkWell(
-              onTap: () => _openRentalDashboard(),
-              borderRadius: BorderRadius.circular(8),
-              child: Row(
-                children: [
-                  Container(
-                    width: 36,
-                    height: 36,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryColor.withValues(alpha: 0.10),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Icon(Icons.holiday_village_outlined,
-                        color: AppColors.primaryColor, size: 20),
-                  ),
-                  SizedBox(width: SizeConfig.size12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          AppStrings.rentalServices.tr,
-                          style: TextStyle(
-                            fontFamily: AppConstants.OpenSans,
-                            fontSize: 15,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.mainTextColor,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          'Manage homestays, rooms & vehicles',
-                          style: TextStyle(
-                            fontFamily: AppConstants.OpenSans,
-                            fontSize: 11.5,
-                            fontWeight: FontWeight.w500,
-                            color: AppColors.secondaryTextColor,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Icon(Icons.chevron_right_rounded,
-                      color: AppColors.secondaryTextColor),
-                ],
-              ),
-            ),
-            SizedBox(height: SizeConfig.size12),
-            Row(
-              children: [
-                Expanded(
-                  child: _rentalCategoryChip(
-                    icon: Icons.house_outlined,
-                    label: AppStrings.homeStay.tr,
-                    onTap: () => _openRentalDashboard(
-                        preselect: RentalServiceType.homeStay),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: _rentalCategoryChip(
-                    icon: Icons.apartment_outlined,
-                    label: AppStrings.flatRoom.tr,
-                    onTap: () => _openRentalDashboard(
-                        preselect: RentalServiceType.flatRoom),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: _rentalCategoryChip(
-                    icon: Icons.directions_car_outlined,
-                    label: AppStrings.vehicle.tr,
-                    onTap: () => _openRentalDashboard(
-                        preselect: RentalServiceType.vehicle),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _rentalCategoryChip({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(10),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
-        decoration: BoxDecoration(
-          color: AppColors.primaryColor.withValues(alpha: 0.06),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(
-            color: AppColors.primaryColor.withValues(alpha: 0.18),
-            width: 0.6,
-          ),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 18, color: AppColors.primaryColor),
-            const SizedBox(height: 6),
-            Text(
-              label,
-              style: TextStyle(
-                fontFamily: AppConstants.OpenSans,
-                fontSize: 10.5,
-                fontWeight: FontWeight.w700,
-                color: AppColors.primaryColor,
-                letterSpacing: 0.2,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // [preselect] mutates the shared [RentalController.selectedRentalTabs]
-  // before pushing, so [RentalTabBody]'s initState picks up the right
-  // filter on first build of the destination screen. Skipping the
-  // arg just opens with whatever filter the controller was last in.
-  void _openRentalDashboard({RentalServiceType? preselect}) {
-    if (preselect != null) {
-      final ctrl = getOrPut(() => RentalController());
-      if (ctrl.selectedRentalTabs.value != preselect) {
-        ctrl.selectedRentalTabs.value = preselect;
-      }
-    }
-    Get.to(() => const RentalServicesDashboardScreen());
   }
 
   // â”€â”€â”€ ACTION ROW â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€

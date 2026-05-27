@@ -25,13 +25,13 @@ import 'package:get/get.dart';
 
 class AddSelfServiceScreen extends StatefulWidget {
   final bool fromBottomNavBar;
-  final String designation;
+  final String professionCategory;
   final String serviceSubType;
 
   const AddSelfServiceScreen({
     super.key,
     this.fromBottomNavBar = false,
-    required this.designation,
+    required this.professionCategory,
     required this.serviceSubType,
   });
 
@@ -45,10 +45,10 @@ class _AddSelfServiceScreenState extends State<AddSelfServiceScreen> {
   @override
   void initState() {
     super.initState();
-    controller.designation = widget.designation;
-    if (controller.designation == null) return;
+    controller.professionCategory = widget.professionCategory;
+    if (controller.professionCategory == null) return;
     controller.fetchPredefinedCategoryServiceType(
-      designation: controller.designation!,
+      professionCategory: controller.professionCategory!,
       selectedServiceKey: SelfWorkServiceController.keyServiceTypes,
     );
   }
@@ -63,7 +63,7 @@ class _AddSelfServiceScreenState extends State<AddSelfServiceScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: controller.designation,
+        title: controller.professionCategory,
         isLeading: !widget.fromBottomNavBar,
       ),
       body: SafeArea(
@@ -751,7 +751,7 @@ class _AddSelfServiceScreenState extends State<AddSelfServiceScreen> {
                           return;
                         }
                         controller.generateDescriptions(bodyRequest: {
-                          ApiKeys.category: controller.designation,
+                          ApiKeys.category: controller.professionCategory,
                           ApiKeys.expYears:
                               controller.selectedExperienceYear.value,
                           ApiKeys.expMonths:

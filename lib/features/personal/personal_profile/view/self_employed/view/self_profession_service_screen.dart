@@ -132,7 +132,7 @@ class _SelfProfessionServiceScreenState
             onEdit: () => updateServiceType(
               controller: this.controller,
               serviceType: service.serviceType ?? [],
-              designation: service.category ?? ELECTRICIAN,
+              professionCategory: service.category ?? ELECTRICIAN,
             ),
             body: _chipList(
               service.serviceType ?? const [],
@@ -171,7 +171,7 @@ class _SelfProfessionServiceScreenState
             onEdit: () => updateServiceSelectionData(
               controller: this.controller,
               key: SelfWorkServiceController.keyServicesOffered,
-              designation: service.category,
+              professionCategory: service.category,
               preSelectedOptions: service.serviceOffered ?? const [],
             ),
             body: _chipList(
@@ -184,7 +184,7 @@ class _SelfProfessionServiceScreenState
             onEdit: () => updateServiceSelectionData(
               controller: this.controller,
               key: SelfWorkServiceController.keyExpertise,
-              designation: service.category,
+              professionCategory: service.category,
               preSelectedOptions: service.expertise ?? const [],
             ),
             body: _chipList(
@@ -197,7 +197,7 @@ class _SelfProfessionServiceScreenState
             onEdit: () => updateServiceSelectionData(
               controller: this.controller,
               key: SelfWorkServiceController.keyTypeOfWork,
-              designation: service.category,
+              professionCategory: service.category,
               preSelectedOptions: service.typesOfWork ?? const [],
             ),
             body: _chipList(
@@ -211,7 +211,7 @@ class _SelfProfessionServiceScreenState
             onEdit: () => updateServiceSelectionData(
               controller: this.controller,
               key: SelfWorkServiceController.keyWorkCategories,
-              designation: service.category,
+              professionCategory: service.category,
               preSelectedOptions: service.workCategories ?? const [],
             ),
             body: _chipList(
@@ -224,7 +224,7 @@ class _SelfProfessionServiceScreenState
             onEdit: () => updateServiceSelectionData(
               controller: this.controller,
               key: SelfWorkServiceController.keyWhyChooseMe,
-              designation: service.category,
+              professionCategory: service.category,
               preSelectedOptions: service.whyChooseMe ?? const [],
             ),
             body: _chipList(
@@ -868,7 +868,7 @@ class _SelfProfessionServiceScreenState
   // the Service tab swaps to its section cards so the user can fill
   // in the rest one by one.
 
-  Widget _buildEmptyProfile(String designation) {
+  Widget _buildEmptyProfile(String professionCategory) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       child: Container(
@@ -938,10 +938,10 @@ class _SelfProfessionServiceScreenState
                   onPressed: loading
                       ? null
                       : () async {
-                          controller.designation = designation;
+                          controller.professionCategory = professionCategory;
                           await controller.createMinimalEarnService(
                             serviceSubType: 'selfWork',
-                            designationOverride: designation,
+                            professionCategoryOverride: professionCategory,
                           );
                         },
                   icon: loading
@@ -983,7 +983,7 @@ class _SelfProfessionServiceScreenState
             TextButton(
               onPressed: () {
                 Get.to(() => AddSelfServiceScreen(
-                      designation: designation,
+                      professionCategory: professionCategory,
                       serviceSubType: 'selfWork',
                     ));
               },
@@ -1152,10 +1152,10 @@ class _SelfProfessionServiceScreenState
   void updateServiceType({
     required SelfWorkServiceController controller,
     required List<String> serviceType,
-    required String designation,
+    required String professionCategory,
   }) {
     controller.fetchPredefinedCategoryServiceType(
-        designation: designation,
+        professionCategory: professionCategory,
         selectedServiceKey: SelfWorkServiceController.keyServiceTypes);
     controller.selectedServiceTypes.assignAll(serviceType);
 
@@ -1741,7 +1741,7 @@ class _SelfProfessionServiceScreenState
     required SelfWorkServiceController controller,
     required String key,
     required List<String> preSelectedOptions,
-    String? designation,
+    String? professionCategory,
   }) {
     final _displayTitle = controller.categoryTitleMap[key] ?? key;
 
@@ -1753,7 +1753,7 @@ class _SelfProfessionServiceScreenState
       },
       content: ServiceSelectionScreen(
           controller: controller,
-          designation: designation ?? ELECTRICIAN,
+          professionCategory: professionCategory ?? ELECTRICIAN,
           selectedCategoryKey: key,
           preSelectedOptions: preSelectedOptions),
     );

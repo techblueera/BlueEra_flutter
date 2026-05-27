@@ -388,10 +388,10 @@ class AuthController extends GetxController {
       }
       else if (reqData?['profileType'] == SELF_EMPLOYED) {
         final controller = getOrPut(() => SelfWorkServiceController());
-        controller.designation = reqData?['designation'];
+        controller.professionCategory = reqData?['profession'];
         pending.add(controller.createMinimalEarnService(
           serviceSubType: 'selfWork',
-          designationOverride: controller.designation?.toUpperCase(),
+          professionCategoryOverride: controller.professionCategory?.toUpperCase(),
         ));
       }
       await Future.wait(pending);

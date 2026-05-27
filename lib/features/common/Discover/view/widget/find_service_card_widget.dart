@@ -43,7 +43,7 @@ class FindServiceCardWidget extends StatelessWidget {
               return Wrap(
                 spacing: spacing,
                 runSpacing: spacing,
-                children: categories.take(9).map((c) {
+                children: categories.take(8).map((c) {
                   debugPrint('Services tagId=${c.tagId} name=${c.name}');
                   return SizedBox(
                     width: itemWidth,
