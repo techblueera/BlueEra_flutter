@@ -23,6 +23,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+
 class HospitalListScreen extends StatefulWidget {
   const HospitalListScreen({super.key, required this.serviceType});
   final String serviceType;
@@ -681,8 +682,7 @@ class _HospitalCard extends StatelessWidget {
       destinationAddress: item.location?.name ?? '',
       destinationLat: _destLat(),
       destinationLng: _destLng(),
-      storeBusinessID: item.id ?? '',
-      storeUserID: item.userId ?? '',
+      visitCallback: ()=> Get.to(()=> DiscoverHospitalHomeScreen())
     );
   }
 

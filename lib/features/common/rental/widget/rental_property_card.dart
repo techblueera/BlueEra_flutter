@@ -5,10 +5,10 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class RentalPropertyCardV2 extends StatelessWidget {
+class RentalPropertyCard extends StatelessWidget {
   final EdgeInsetsGeometry margin;
 
-  const RentalPropertyCardV2({
+  const RentalPropertyCard({
     super.key,
     this.margin = const EdgeInsets.symmetric(horizontal: 14),
   });

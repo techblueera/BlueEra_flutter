@@ -25,7 +25,7 @@ import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
 import 'package:BlueEra/features/common/reel/view/channel/follower_following_screen.dart';
-import 'package:BlueEra/features/common/rental/widget/rental_property_card_v2.dart';
+import 'package:BlueEra/features/common/rental/widget/rental_property_card.dart';
 import 'package:BlueEra/features/common/visiting_card/view/all_personal_visiting_cards.dart';
 import 'package:BlueEra/features/contribution/controller/contribution_controller.dart';
 import 'package:BlueEra/features/contribution/view/contribution_screen.dart';
@@ -1198,7 +1198,7 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
         child: const ProfileBioCard(margin: EdgeInsets.zero),
       ),
       _buildActionRow(),
-      const RentalPropertyCardV2(
+      const RentalPropertyCard(
         margin: EdgeInsets.only(top: 10, left: 20, right: 10),
       ),
       Padding(
@@ -1213,7 +1213,7 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
 
   // V2 opener + inline `_buildRentalCardV2` + `_rentalPropertyTile`
   // moved to the shared widget `RentalPropertyCardV2`
-  // (lib/features/common/rental/widget/rental_property_card_v2.dart)
+  // (lib/features/common/rental/widget/rental_property_card.dart)
   // so cab / rider / professionals / self-employee dashboards all
   // render the same V2 card with one source of truth.
 

@@ -36,7 +36,6 @@ class _FoodAiDetailScreenState extends State<FoodAiDetailScreen> {
   FoodGenAiData product = FoodGenAiData();
   final vc = Get.find<FoodServiceController>();
   final foodEntryController = Get.find<FoodEntryController>();
-  // final foodEntryController = getOrPut(() => FoodEntryController());
 
   @override
   void initState() {
@@ -103,7 +102,6 @@ class _FoodAiDetailScreenState extends State<FoodAiDetailScreen> {
                     color: AppColors.mainTextColor
                   ),
                   _buildImageSection(context),
-
                   const SizedBox(height: 16),
                   _buildInfoCard(AppStrings.foodProductNameLabel.tr, product.name ?? ""),
                   const SizedBox(height: 12),

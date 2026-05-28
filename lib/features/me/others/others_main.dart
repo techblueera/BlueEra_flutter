@@ -1,9 +1,7 @@
-import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
-import 'package:BlueEra/features/me/me_tab_registry.dart';
-import 'package:BlueEra/features/me/others/controller/business_profile_full_controller.dart';
+import 'package:BlueEra/features/common/bottomNavigationBar/controller/bottom_bar_controller.dart';
 import 'package:BlueEra/features/me/others/view/v2/other_home_screen_v2.dart';
-import 'package:BlueEra/widgets/bottom_nav_hide_on_scroll.dart';
+import 'package:BlueEra/widgets/business_live_photo_bottom_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -14,116 +12,32 @@ class OthersMain extends StatefulWidget {
   State<OthersMain> createState() => _OthersMainState();
 }
 
-class _OthersMainState extends State<OthersMain>
-    with SingleTickerProviderStateMixin, RouteAware {
-  late final TabController _tabController;
-  final controller = Get.put(BusinessProfileFullController());
-  final viewBusinessDetailsController =
+class _OthersMainState extends State<OthersMain> {
+  final _viewBusinessDetailsController =
       Get.find<ViewBusinessDetailsController>();
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
-    MeTabRegistry.register(_tabController);
-    _apiCalling();
-  }
-
-  Future<void> _apiCalling() async {
-    await controller.getBusinessProfileFull();
-  }
-
-  @override
-  void dispose() {
-    MeTabRegistry.unregister(_tabController);
-    _tabController.dispose();
-    super.dispose();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      // Skip when the user isn't on the Me tab — the screen can mount
+      // transiently during initial bottom-nav routing (currentIndex
+      // starts at 0 → meScreens, then post-frame flips to the intended
+      // tab like Discover), and we don't want the sheet popping there.
+      if (Get.isRegistered<BottomBarController>() &&
+          Get.find<BottomBarController>().currentIndex.value != 0) {
+        return;
+      }
+      showBusinessLivePhotoBottomSheetIfNeeded(
+        context: context,
+        controller: _viewBusinessDetailsController,
+      );
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.white,
-      body: SafeArea(
-        child: BottomNavHideOnScroll(
-          child: OtherHomeScreenV2()/*NestedScrollView(
-          headerSliverBuilder: (context, _) => [
-            SliverToBoxAdapter(
-              child: SizedBox(
-                height: kToolbarHeight,
-                child: CommonBackAppBar(
-                  showElevation: 0,
-                  isDrawerMenu: true,
-                  isLeading: false,
-                  isMore: true,
-                  isProfile: false,
-                  isNotification: !isGuestUser(),
-                  bellIconNotEmpty: true,
-                  isGuestLogout: isGuestUser(),
-                  onNotificationTap: () {
-                    Navigator.pushNamed(
-                      context,
-                      RouteHelper.getNotificationScreenRoute(),
-                    );
-                  },
-                ),
-              ),
-            ),
-            SliverToBoxAdapter(
-              child: Obx(() {
-                final details = viewBusinessDetailsController
-                    .businessProfileDetails.value?.data;
-                return BusinessProfileHeaderView(
-                  details: details,
-                  controller: viewBusinessDetailsController,
-                );
-              }),
-            ),
-            SliverToBoxAdapter(
-              child: Obx(() {
-                final details = viewBusinessDetailsController
-                    .businessProfileDetails.value?.data;
-                return BusinessStats(details: details);
-              }),
-            ),
-            SliverAppBar(
-              pinned: true,
-              floating: false,
-              primary: false,
-              automaticallyImplyLeading: false,
-              toolbarHeight: 0,
-              collapsedHeight: 0,
-              expandedHeight: 0,
-              backgroundColor: AppColors.white,
-              surfaceTintColor: AppColors.white,
-              bottom: TabBar(
-                controller: _tabController,
-                labelColor: AppColors.primaryColor,
-                unselectedLabelColor: AppColors.secondaryTextColor,
-                indicatorColor: AppColors.primaryColor,
-                indicatorWeight: 2,
-                tabAlignment: TabAlignment.fill,
-                indicatorSize: TabBarIndicatorSize.tab,
-                labelStyle: const TextStyle(fontWeight: FontWeight.w400),
-                tabs: const [
-                  Tab(text: 'Home'),
-                  Tab(text: 'Website'),
-                  Tab(text: 'Statistics'),
-                ],
-              ),
-            ),
-          ],
-          body: TabBarView(
-            controller: _tabController,
-            children: [
-              BusinessProfileFullScreen(),
-              const WebsiteTab(),
-              const SubscriptionStatusView(),
-            ],
-          ),
-        ),*/
-        ),
-      ),
-    );
+    return const OtherHomeScreenV2();
   }
 }

@@ -1,9 +1,18 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/core/services/location/location_service.dart';
+import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
+import 'package:BlueEra/features/common/Discover/widget/discover_chat_icon.dart';
 import 'package:BlueEra/features/common/rental/model/property_model.dart';
 import 'package:BlueEra/features/common/rental/repo/property_repo.dart';
+import 'package:BlueEra/features/common/rental/view/property_details_screen.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:BlueEra/widgets/route_map_bottom_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -111,13 +120,41 @@ class PropertyListingCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  CustomText(
-                    property.propertyName,
-                    fontSize: SizeConfig.extraLarge,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.mainTextColor,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                  Row(
+                    mainAxisAlignment:  MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: CustomText(
+                          property.propertyName,
+                          fontSize: SizeConfig.extraLarge,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.mainTextColor,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if(!isOwner)
+                        ...[
+                          SizedBox(width: SizeConfig.size6),
+                          InkWell(
+                            onTap: _openChat,
+                            child: Container(
+                              padding: const EdgeInsets.all(8.0),
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: AppColors.primaryColor.withValues(alpha: 0.1),
+                                border: Border.all(color: AppColors.primaryColor, width: 0.5),
+                              ),
+                              child: LocalAssets(
+                                imagePath: AppIconAssets.chat,
+                                height: 18.0,
+                                width: 18.0,
+                                imgColor: AppColors.primaryColor,
+                              ),
+                            ),
+                          ),
+                        ]
+                    ],
                   ),
                   const SizedBox(height: 10),
                   Row(
@@ -215,42 +252,119 @@ class PropertyListingCard extends StatelessWidget {
             ),
             if (location.isNotEmpty) ...[
               const SizedBox(height: 10),
-              Container(
-                width: double.infinity,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                decoration: const BoxDecoration(
-                  color: AppColors.geryFC,
-                  borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(12),
-                    bottomRight: Radius.circular(12),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                        Icons.location_on_outlined,
-                        size: 14,
-                        color: AppColors.secondaryTextColor),
-                    const SizedBox(width: 4),
-                    Expanded(
-                      child: CustomText(
-                        location,
-                        fontSize: 12,
-                        color: AppColors.secondaryTextColor,
-                        fontWeight: FontWeight.w500,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              _buildLocation(location)
             ] else
               const SizedBox(height: 10),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildLocation(String location){
+    double km = 0.0;
+    if(!isOwner){
+      final lat = property.location?.latitude.toDouble() ?? 0.0;
+      final lng = property.location?.longitude.toDouble() ?? 0.0;
+      km = calculateDistanceKm(
+        LocationService.lat,
+        LocationService.lng,
+        lat,
+        lng,
+      );
+    }
+
+    return isOwner ? Container(
+      width: double.infinity,
+      padding:
+      const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      decoration: const BoxDecoration(
+        color: AppColors.geryFC,
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(12),
+          bottomRight: Radius.circular(12),
+        ),
+      ),
+      child: Row(
+        children: [
+          LocalAssets(
+            imagePath: AppIconAssets.location_outline,
+            imgColor: AppColors.secondaryTextColor,
+            height: 20,
+            width: 18,
+          ),
+          const SizedBox(width: 4),
+          Expanded(
+            child: CustomText(
+              location,
+              fontSize: 12,
+              color: AppColors.secondaryTextColor,
+              fontWeight: FontWeight.w600,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    )
+        : GestureDetector(
+      onTap: () => _showMapBottomSheet(Get.context!),
+      child: Container(
+        width: double.infinity,
+        padding:
+        const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: const BoxDecoration(
+          color: AppColors.geryFC,
+          borderRadius: BorderRadius.only(
+            bottomLeft: Radius.circular(12),
+            bottomRight: Radius.circular(12),
+          ),
+        ),
+        child: Row(
+                    children: [
+            LocalAssets(
+              imagePath: AppIconAssets.location_outline,
+              imgColor: AppColors.secondaryTextColor,
+              height: 20,
+              width: 18,
+            ),
+            const SizedBox(width: 4),
+            CustomText(
+                  '${km.toStringAsFixed(2)} Km Away, ',
+                  fontSize: 12.0,
+                  color: AppColors.secondaryTextColor,
+                  fontWeight: FontWeight.w600,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+
+
+            Expanded(
+              child: CustomText(
+                location,
+                fontSize: 12,
+                color: AppColors.secondaryTextColor,
+                fontWeight: FontWeight.w600,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+                    ],
+                  ),
+      ),
+        );
+  }
+
+  void _showMapBottomSheet(BuildContext context) {
+    RouteMapBottomSheet.show(
+      context: context,
+      destinationName: property.propertyName,
+      destinationAddress: property.displayLocation,
+      destinationLat: property.location?.latitude.toDouble() ?? 0.0,
+      destinationLng: property.location?.longitude.toDouble() ?? 0.0,
+      livePhotos: property.propertyImages,
+      visitCallback: ()=> Get.to(() => PropertyDetailsScreen(
+      property: property,
+      isOwner: false,
+    )),
     );
   }
 
@@ -375,6 +489,16 @@ class PropertyListingCard extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  void _openChat() {
+    final ownerId = property.userId;
+    if (ownerId == null || ownerId.isEmpty) {
+      commonSnackBar(message: 'Owner not available for chat');
+      return;
+    }
+    final chatController = Get.find<ChatViewController>();
+    chatController.checkChatConnectionAndOpenChat(userId: ownerId);
   }
 
   Future<void> _deleteProperty() async {

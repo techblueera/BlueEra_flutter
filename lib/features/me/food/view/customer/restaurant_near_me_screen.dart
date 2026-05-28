@@ -7,6 +7,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shimmer_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
 import 'package:BlueEra/features/me/food/view/customer/food_self_pickup_cart_screen.dart';
@@ -734,8 +735,7 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
       destinationLat: store.businessLocation?.lat?.toDouble() ?? 0.0,
       destinationLng: store.businessLocation?.lon?.toDouble() ?? 0.0,
       livePhotos: store.livePhotos,
-      storeBusinessID: store.id ?? '',
-      storeUserID: store.userId ?? '',
+      visitCallback: ()=> _navigateToDetail(store)
     );
   }
 

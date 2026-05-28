@@ -2,7 +2,6 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/features/common/store/widget/store_live_photo_widget.dart';
@@ -13,9 +12,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
-import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import '../core/api/apiService/api_keys.dart' show ApiKeys;
 
 /// A reusable bottom sheet that shows a Google Map with a driving route
 /// between the user's current location and a destination.
@@ -33,13 +30,12 @@ import '../core/api/apiService/api_keys.dart' show ApiKeys;
 class RouteMapBottomSheet extends StatefulWidget {
   final String destinationName;
   final String destinationAddress;
-  final String storeBusinessID;
-  final String storeUserID;
   final double destinationLat;
   final double destinationLng;
   final double userLat;
   final double userLng;
   final List<String>? livePhotos;
+  final VoidCallback? visitCallback;
 
   const RouteMapBottomSheet({
     super.key,
@@ -49,8 +45,7 @@ class RouteMapBottomSheet extends StatefulWidget {
     required this.destinationLng,
     required this.userLat,
     required this.userLng,
-    required this.storeUserID,
-    required this.storeBusinessID,
+    this.visitCallback,
     this.livePhotos,
   });
 
@@ -61,8 +56,7 @@ class RouteMapBottomSheet extends StatefulWidget {
     String destinationAddress = '',
     required double destinationLat,
     required double destinationLng,
-    required String storeBusinessID,
-    required String storeUserID,
+    VoidCallback? visitCallback,
     double? userLat,
     double? userLng,
     List<String>? livePhotos,
@@ -83,7 +77,8 @@ class RouteMapBottomSheet extends StatefulWidget {
         destinationLng: destinationLng,
         userLat: uLat,
         userLng: uLng,
-        livePhotos: livePhotos, storeUserID: storeUserID, storeBusinessID: storeBusinessID,
+        livePhotos: livePhotos,
+        visitCallback: visitCallback,
       ),
     );
   }
@@ -229,44 +224,34 @@ List<String> get _validPhotos =>
               child: Row(
                 children: [
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        InkWell(
-                          onTap: (){
-                            Get.toNamed(RouteHelper.getVisitGroceryStoreScreenRoute(), arguments: {
-                              ApiKeys.userId:widget.storeUserID,
-                              ApiKeys.businessId: widget.storeBusinessID,
-                            });
-                          },
-                          child: CustomText(
+                    child: InkWell(
+                     onTap: widget.visitCallback!=null ? widget.visitCallback : null,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          CustomText(
                             widget.destinationName,
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
                             color: AppColors.mainTextColor,
                           ),
-                        ),
-                        const SizedBox(height: 2),
-                        CustomText(
-                          '$distance Km Away',
-                          fontSize: 13,
-                          fontWeight: FontWeight.w400,
-                          color: AppColors.secondaryTextColor,
-                        ),
-                      ],
+                          const SizedBox(height: 2),
+                          CustomText(
+                            '$distance Km Away',
+                            fontSize: 13,
+                            fontWeight: FontWeight.w400,
+                            color: AppColors.secondaryTextColor,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                   // Visit Store button
+                  if(widget.visitCallback!=null)
                   GestureDetector(
                     onTap: () {
                       Navigator.of(context).maybePop();
-                      Get.toNamed(
-                        RouteHelper.getVisitGroceryStoreScreenRoute(),
-                        arguments: {
-                          ApiKeys.userId: widget.storeUserID,
-                          ApiKeys.businessId: widget.storeBusinessID,
-                        },
-                      );
+                      widget.visitCallback!();
                     },
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
@@ -289,7 +274,9 @@ List<String> get _validPhotos =>
                       ),
                     ),
                   ),
+
                   const SizedBox(width: 10),
+
                   // Close button
                   DecoratedBox(
                     decoration: BoxDecoration(

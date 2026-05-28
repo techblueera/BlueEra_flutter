@@ -337,7 +337,9 @@ class FoodServiceController extends GetxController {
   }
 
   Future<void> createFoodProductViaAiApi(
-      {required FoodGenAiData foodData, int? createMissingProductIndex}) async {
+      {
+        required FoodGenAiData foodData,
+        int? createMissingProductIndex}) async {
     try {
       isPosting.value = true;
       Map<String, dynamic> paramsReq = {};
@@ -382,38 +384,54 @@ class FoodServiceController extends GetxController {
 
       if (responseModel.isSuccess) {
         commonSnackBar(message: responseModel.message ?? AppStrings.success);
-        final String? newProductId =
-            responseModel.response?.data?['product']?['_id']?.toString();
 
-        if (createMissingProductIndex == null) {
-          Get.offNamedUntil(
-            RouteHelper.getAddSingleProductScreenRoute(),
-            (route) =>
-                route.settings.name ==
-                RouteHelper.getProductSelectionScreenRoute(),
-            arguments: {
-              ApiKeys.productId: newProductId,
-              ApiKeys.argCreateMissingProductIndex: null
-            },
-          );
-        } else {
-          // if (createMissingProductIndex != -1) {
+        // The create endpoint returns the persisted product fully
+        // hydrated, including its variants with server-assigned `_id`s.
+        // Pull both out in one shot so we can push them straight into
+        // inventory below — no detour through AddSingleFoodProductScreen.
+        final productJson = responseModel.response?.data?['product'];
+        final String? newProductId = productJson?['_id']?.toString();
+
+        if (newProductId == null || newProductId.isEmpty) {
+          commonSnackBar(message: AppStrings.somethingWentWrong);
+          return;
+        }
+
+        // Parse variants directly instead of going through
+        // CategoryFoodProductData.fromJson — on create, `product.category`
+        // comes back as the raw ID string we just sent (not a populated
+        // {_id, name} object), which makes Category.fromJson throw on
+        // json['_id']. The variants array is all we need here anyway.
+        final variantsJson = productJson is Map<String, dynamic>
+            ? productJson['variants'] as List?
+            : null;
+        final List<FoodVariants> createdVariants = variantsJson
+                ?.whereType<Map<String, dynamic>>()
+                .map((v) => FoodVariants.fromJson(v))
+                .toList() ??
+            <FoodVariants>[];
+
+        // Missing-product flow: stamp the new productId on the row so
+        // MissingFoodItemsScreen would re-render to the "Add Stock"
+        // state if the user landed back there before inventory
+        // completed (e.g. an inventory failure below). The inventoryId
+        // + image stamp happens inside addSingleProductToInventory.
+        if (createMissingProductIndex != null) {
           missingProducts[createMissingProductIndex].productId = newProductId;
           missingProducts.refresh();
-
-          Get.offNamedUntil(
-            RouteHelper.getAddSingleProductScreenRoute(),
-            (route) =>
-                route.settings.name ==
-                RouteHelper.getMissingFoodItemsScreenRoute(),
-            arguments: {
-              ApiKeys.controller: this,
-              ApiKeys.productId: newProductId,
-              ApiKeys.argCreateMissingProductIndex: createMissingProductIndex
-            },
-          );
-          // }
         }
+
+        // Auto-publish every variant the server just created — replaces
+        // the manual variant-pick step on AddSingleFoodProductScreen for
+        // this entry path. AddSingleFoodProductScreen now exists only
+        // for the MissingFoodItemsScreen "Add Stock" flow (where the
+        // product already exists and the user needs to pick which
+        // variants to publish).
+        await addSingleProductToInventory(
+          productId: newProductId,
+          selectedVariants: createdVariants,
+          createMissingProductIndex: createMissingProductIndex,
+        );
       } else {
         commonSnackBar(
             message: responseModel.message ?? AppStrings.somethingWentWrong);
@@ -662,6 +680,21 @@ class FoodServiceController extends GetxController {
         commonSnackBar(
             message:
                 responseModel.message ?? AppStrings.foodProductAddedSuccess.tr);
+
+        // Refresh FoodMainScreen's Overview-tab data (popular dishes +
+        // discount products) so the just-published item shows up the
+        // moment the user lands back on it via Get.until below. Mirrors
+        // bulkPublishInventory and the case-2 dispatch in
+        // FoodMainScreen._fetchForTab. Fire-and-forget — both calls own
+        // their own loading state.
+        if (Get.isRegistered<RestaurantController>() &&
+            businessId.isNotEmpty) {
+          final restaurantController = Get.find<RestaurantController>();
+          restaurantController.fetchHomeData(businessId: businessId);
+          restaurantController.fetchDiscountFoodProducts(
+              businessId: businessId);
+        }
+
         if (createMissingProductIndex == null) {
           Get.until((route) =>
               route.settings.name ==

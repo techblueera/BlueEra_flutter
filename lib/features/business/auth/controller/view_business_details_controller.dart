@@ -126,6 +126,25 @@ class ViewBusinessDetailsController extends GetxController {
   Rx<TextEditingController> listingDescriptionController =
       TextEditingController().obs;
 
+  // Loading Local Photo
+  final RxMap<int, String> localUploadingPhotos = <int, String>{}.obs;
+
+  String? getLivePhotoAt(int index) {
+    final serverPhotos = businessProfileDetails.value?.data?.livePhotos ?? [];
+
+    // 1. If the server has a valid photo URL at this index, prioritize it
+    if (index < serverPhotos.length && serverPhotos[index].trim().isNotEmpty) {
+      return serverPhotos[index];
+    }
+
+    // 2. Fallback to the local path if the background upload is still running
+    if (localUploadingPhotos.containsKey(index)) {
+      return localUploadingPhotos[index];
+    }
+
+    return null;
+  }
+
   // Method to set start location data
   void setStartLocation(double? lat, double? lng, String address) {
     if (lat != null && lat != 0.0) addressLat?.value = lat;
@@ -199,7 +218,6 @@ class ViewBusinessDetailsController extends GetxController {
         await BusinessProfileCache.write(freshKey, data);
       }
       viewBusinessResponse = ApiResponse.complete(responseModel);
-      update();
     } else {
       logs(
           "ERROR BUSINESS PROFILE ${responseModel.message ?? AppStrings.somethingWentWrong}");

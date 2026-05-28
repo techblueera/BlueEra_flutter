@@ -74,8 +74,6 @@ class AppImageAssets {
 
   /// Rental Service
   static String hotelStay = "${imgPath}hotel_stay.png";
-  static String homeStay = "${imgPath}stay_rent.png";
-  static String houseOnRent = "${imgPath}stay_house_rent.png";
   static String economyStay = "${imgPath}economy_stay.png";
   static String hostelsAndPG = "${imgPath}hostels_and_pg.png";
   static String functionsVacation = "${imgPath}functions_vacation.png";
@@ -88,6 +86,8 @@ class AppImageAssets {
   static String propertyLandPlotSell = "${imgPath}property_land_plot_sale.png";
   static String propertyShopOfficeRent = "${imgPath}property_shop_office_rent.png";
   static String propertyShopOfficeSell = "${imgPath}property_shop_office_sale.png";
+  static String propertyLandPlotRent = "${imgPath}property_land_plot_rent.png";
+  static String propertyPgRent = "${imgPath}property_pg_rent.png";
 
   // Earn Service
   static String all = "${imgPath}all.png";

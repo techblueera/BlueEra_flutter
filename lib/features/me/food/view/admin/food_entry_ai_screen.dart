@@ -10,6 +10,7 @@ import 'package:BlueEra/features/me/food/controller/food_entry_controller.dart';
 import 'package:BlueEra/features/me/food/controller/food_service_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
+import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/common_horizontal_divider.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -185,7 +186,7 @@ class _FoodEntryAiScreenState extends State<FoodEntryAiScreen> {
               ),
               const SizedBox(height: 16),
 
-              // 2. Food Category
+              // 2. F.dartood Category
               _titleWidget(AppStrings.foodFoodCategoryLabel.tr),
               const SizedBox(height: 8),
               _buildCategorySection(),
@@ -291,8 +292,8 @@ class _FoodEntryAiScreenState extends State<FoodEntryAiScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey[200]!),
+          borderRadius: BorderRadius.circular(10),
+          boxShadow: [AppShadows.textFieldShadow],
         ),
         child: Obx(() {
           bool hasSelection = controller.selectedLevel0.value != null;

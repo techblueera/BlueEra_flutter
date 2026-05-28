@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:ui';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
@@ -10,6 +11,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/core/services/photo_picker_service.dart';
+import 'package:BlueEra/widgets/app_loader.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -41,16 +43,6 @@ class _CommonBusinessLivePhotoState extends State<CommonBusinessLivePhoto> {
     {'label': 'Products / Services\nDisplay', 'image': AppImageAssets.productServiceDisplay},
   ];
 
-  final Map<int, bool> _loadingSlots = {};
-
-  void _setLoading(int index, bool loading) {
-    setState(() {
-      _loadingSlots[index] = loading;
-    });
-  }
-
-  bool _isLoading(int index) => _loadingSlots[index] ?? false;
-
   @override
   Widget build(BuildContext context) {
     return CustomFormCard(
@@ -65,52 +57,52 @@ class _CommonBusinessLivePhotoState extends State<CommonBusinessLivePhoto> {
             fontWeight: FontWeight.w700,
           ),
           const SizedBox(height: 10),
-          GetBuilder<ViewBusinessDetailsController>(
-            id: 'livePhotos',
-            builder: (_) {
-              final photos = widget.controller
-                      .businessProfileDetails.value?.data?.livePhotos ??
-                  [];
+          Obx(() {
+            // Subscribe to both Rx sources read by getLivePhotoAt so this
+            // grid stays in sync with uploads done elsewhere (e.g. the
+            // BusinessLivePhotoBottomSheet).
+            widget.controller.businessProfileDetails.value;
+            widget.controller.localUploadingPhotos.length;
 
-              // MediaQuery.removePadding strips the inherited top inset
-              // that GridView.builder otherwise picks up as implicit
-              // scroll padding — which was causing a ~30+ px ghost gap
-              // between the title and the first photo row.
-              return MediaQuery.removePadding(
-                context: context,
-                removeTop: true,
-                removeBottom: true,
-                child: GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  padding: EdgeInsets.zero,
-                  itemCount: _maxPhotos,
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 10,
-                    mainAxisSpacing: 10,
-                    childAspectRatio: 1.1,
-                  ),
-                  itemBuilder: (ctx, index) {
-                    final hasPhoto = index < photos.length &&
-                        photos[index].isNotEmpty;
-                    final photoUrl =
-                        hasPhoto ? photos[index] : null;
-                    final config = _slotConfig[index];
-
-                    return _buildPhotoSlot(
-                      context: ctx,
-                      index: index,
-                      photoUrl: photoUrl,
-                      label: config['label']!,
-                      placeholderImage: config['image']!,
-                      allPhotos: photos,
-                    );
-                  },
+            return MediaQuery.removePadding(
+              context: context,
+              removeTop: true,
+              removeBottom: true,
+              child: GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                padding: EdgeInsets.zero,
+                itemCount: _maxPhotos,
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 10,
+                  mainAxisSpacing: 10,
+                  childAspectRatio: 1.1,
                 ),
-              );
-            },
-          ),
+                itemBuilder: (ctx, index) {
+                  final serverPhotos = widget.controller.businessProfileDetails
+                          .value?.data?.livePhotos ??
+                      [];
+                  final serverUrl = (index < serverPhotos.length &&
+                          serverPhotos[index].trim().isNotEmpty)
+                      ? serverPhotos[index]
+                      : null;
+                  final localPath =
+                      widget.controller.localUploadingPhotos[index];
+                  final config = _slotConfig[index];
+
+                  return _buildPhotoSlot(
+                    context: ctx,
+                    index: index,
+                    serverUrl: serverUrl,
+                    localPath: localPath,
+                    label: config['label']!,
+                    placeholderImage: config['image']!,
+                  );
+                },
+              ),
+            );
+          }),
         ],
       ),
     );
@@ -119,70 +111,84 @@ class _CommonBusinessLivePhotoState extends State<CommonBusinessLivePhoto> {
   Widget _buildPhotoSlot({
     required BuildContext context,
     required int index,
-    required String? photoUrl,
+    required String? serverUrl,
+    required String? localPath,
     required String label,
     required String placeholderImage,
-    required List<String> allPhotos,
   }) {
-    final bool hasPhoto = photoUrl != null;
-    final bool isLoading = _isLoading(index);
+    final bool hasServer = serverUrl != null;
+    final bool hasLocal = localPath != null;
+    final bool hasPhoto = hasServer || hasLocal;
+    final String? displayUrl = serverUrl ?? localPath;
 
     return GestureDetector(
-      onTap: isLoading
-          ? null
-          : () async {
-              if (hasPhoto) {
-                navigatePushTo(
-                  context,
-                  ImageViewScreen(
-                    appBarTitle: AppStrings.imageViewer,
-                    subTitle: '',
-                    imageUrls: allPhotos,
-                    initialIndex: index,
-                  ),
-                );
-              } else {
-                final imgStr =
-                    await PhotoPickerService.pickFromCamera(
-                  context,
-                  cropAspectRatio: CropAspectRatio(width: 3, height: 4),
-                );
-                if (imgStr != null) {
-                  _setLoading(index, true);
-                  await widget.controller
-                      .saveBusinessImages(imgStr, widget.controller);
-                  widget.controller.update(['livePhotos']);
-                  _setLoading(index, false);
-                }
-              }
-            },
+      onTap: () async {
+        if (hasPhoto) {
+          final List<String> viewingUrls = [];
+          for (int i = 0; i < _maxPhotos; i++) {
+            final img = widget.controller.getLivePhotoAt(i);
+            if (img != null) viewingUrls.add(img);
+          }
+
+          navigatePushTo(
+            context,
+            ImageViewScreen(
+              appBarTitle: AppStrings.imageViewer,
+              subTitle: '',
+              imageUrls: viewingUrls,
+              initialIndex:
+                  displayUrl == null ? 0 : viewingUrls.indexOf(displayUrl),
+            ),
+          );
+        } else {
+          final imgStr = await PhotoPickerService.pickFromCamera(
+            context,
+            cropAspectRatio: const CropAspectRatio(width: 3, height: 4),
+          );
+          if (imgStr != null) {
+            // Instantly show the local image — Rx map mutation rebuilds Obx
+            widget.controller.localUploadingPhotos[index] = imgStr;
+
+            // Show global loader overlay while background upload is completing
+            AppLoader.show(message: 'Uploading photo...');
+            await _startBackgroundUpload(imgStr, index);
+            AppLoader.hide();
+          }
+        }
+      },
       child: Stack(
         children: [
-          // Base container
+          // Photo rendering base layout. When the server URL is
+          // available, pass the local file as CachedNetworkImage's
+          // placeholder so the file→network swap is seamless instead of
+          // flashing the grey download placeholder.
           ClipRRect(
             borderRadius: BorderRadius.circular(10),
             child: SizedBox.expand(
-              child: hasPhoto
+              child: hasServer
                   ? CachedNetworkImage(
-                      imageUrl: photoUrl,
+                      imageUrl: serverUrl,
                       fit: BoxFit.cover,
-                      placeholder: (_, __) =>
-                          Container(color: Colors.grey.shade200),
-                      errorWidget: (_, __, ___) =>
-                          _buildPlaceholderContent(placeholderImage),
+                      placeholder: (_, __) => hasLocal
+                          ? Image.file(File(localPath), fit: BoxFit.cover)
+                          : Container(color: Colors.grey.shade200),
+                      errorWidget: (_, __, ___) => hasLocal
+                          ? Image.file(File(localPath), fit: BoxFit.cover)
+                          : _buildPlaceholderContent(placeholderImage),
                     )
-                  : _buildBlurredPlaceholder(placeholderImage),
+                  : hasLocal
+                      ? Image.file(File(localPath), fit: BoxFit.cover)
+                      : _buildBlurredPlaceholder(placeholderImage),
             ),
           ),
 
-          // Label at bottom
+          // Label text container at bottom
           Positioned(
             left: 0,
             right: 0,
             bottom: 0,
             child: Container(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 8, vertical: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
@@ -209,8 +215,8 @@ class _CommonBusinessLivePhotoState extends State<CommonBusinessLivePhoto> {
             ),
           ),
 
-          // Camera icon overlay for empty slots
-          if (!hasPhoto && !isLoading)
+          // Camera icon overlay indicator for unselected slots
+          if (!hasPhoto)
             Positioned.fill(
               child: Center(
                 child: Container(
@@ -229,21 +235,24 @@ class _CommonBusinessLivePhotoState extends State<CommonBusinessLivePhoto> {
               ),
             ),
 
-          // Delete button for uploaded photos
-          if (hasPhoto && !isLoading)
+          // Delete button (only displayed once the server has confirmed
+          // the photo and we have a URL to send to the delete endpoint).
+          if (hasServer)
             Positioned(
               top: 6,
               right: 6,
               child: GestureDetector(
                 onTap: () async {
-                  _setLoading(index, true);
-                  final data = {ApiKeys.image_url: photoUrl};
-                  await widget.controller.deleteLiveStoreImage(data);
-                  widget.controller.businessProfileDetails.value?.data
-                      ?.livePhotos
-                      ?.removeAt(index);
-                  widget.controller.update(['livePhotos']);
-                  _setLoading(index, false);
+                  AppLoader.show(message: 'Removing photo...');
+                  try {
+                    final data = {ApiKeys.image_url: serverUrl};
+                    await widget.controller.deleteLiveStoreImage(data);
+                  } finally {
+                    // Drop any stale local fallback so Obx renders the
+                    // refreshed server state cleanly.
+                    widget.controller.localUploadingPhotos.remove(index);
+                    AppLoader.hide();
+                  }
                 },
                 child: Container(
                   padding: const EdgeInsets.all(4),
@@ -257,35 +266,26 @@ class _CommonBusinessLivePhotoState extends State<CommonBusinessLivePhoto> {
                       ),
                     ],
                   ),
-                  child: const Icon(Icons.close,
-                      size: 14, color: Colors.grey),
-                ),
-              ),
-            ),
-
-          // Loading overlay
-          if (isLoading)
-            Positioned.fill(
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child: Container(
-                  color: Colors.black.withValues(alpha: 0.4),
-                  child: const Center(
-                    child: SizedBox(
-                      height: 28,
-                      width: 28,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2.5,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
+                  child: const Icon(Icons.close, size: 14, color: Colors.grey),
                 ),
               ),
             ),
         ],
       ),
     );
+  }
+
+  Future<void> _startBackgroundUpload(String imgStr, int slotIndex) async {
+    try {
+      // saveBusinessImages internally refetches the profile, so the
+      // server URL (needed by the delete endpoint) is available on
+      // businessProfileDetails after this returns. We keep the local
+      // entry around — the slot uses it as CachedNetworkImage's
+      // placeholder so the file→network swap is seamless.
+      await widget.controller.saveBusinessImages(imgStr, widget.controller);
+    } catch (_) {
+      widget.controller.localUploadingPhotos.remove(slotIndex);
+    }
   }
 
   Widget _buildBlurredPlaceholder(String imageName) {

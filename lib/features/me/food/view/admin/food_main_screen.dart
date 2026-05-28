@@ -1,6 +1,5 @@
 ﻿import 'dart:io';
 import 'dart:ui';
-
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -305,10 +304,8 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
     }
   }
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // TAB CONTENT â€” switches body by _selectedTab
   //   0 Order, 1 Overview, 2 Products, 3 Post, 4 Statistics
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   List<Widget> _buildTabContent() {
     switch (_selectedTab) {
       case 0:
@@ -859,9 +856,7 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
     ];
   }
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // PRODUCTS TAB â€” food menu categories grid
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   List<Widget> _buildProductsTab() {
     return [
       _buildPopularDishesSection(),
@@ -1661,7 +1656,6 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
     );
   }
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // JOINED + IDENTITY + COVER STACK â€” three stacked cards mirroring
   // the grocery v2 overview header:
   //   Card 1. Joined-date pill (calendar + DD/MM/YYYY)
@@ -1669,7 +1663,6 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
   //   Card 3. Cover-photo banner with footer Edit pill
   // Card containers share the #00112042 / blur-10 shadow language used
   // across other section cards.
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildJoinedProfileCard() {
     return Obx(() {
       final details =

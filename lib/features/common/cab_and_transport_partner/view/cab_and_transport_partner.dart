@@ -17,7 +17,7 @@ import 'package:BlueEra/features/business/widgets/business_share_banner.dart';
 import 'package:BlueEra/features/chat/view/business_chat/business_chat_list.dart';
 import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/common/cab_and_transport_partner/view/widgets/cab_transport_orders_widget.dart';
-import 'package:BlueEra/features/common/rental/widget/rental_property_card_v2.dart';
+import 'package:BlueEra/features/common/rental/widget/rental_property_card.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/rider_profile_status_screen.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
@@ -846,7 +846,7 @@ class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
       // secondary detail.
       const ProfileBioCard(),
       SizedBox(height: SizeConfig.size12),
-      const RentalPropertyCardV2(
+      const RentalPropertyCard(
         margin: EdgeInsets.only(top: 10, left: 20, right: 10),
       ),
       SizedBox(height: SizeConfig.size12),

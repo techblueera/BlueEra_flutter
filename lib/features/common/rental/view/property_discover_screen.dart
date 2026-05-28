@@ -218,6 +218,7 @@ class _PropertyDiscoverScreenState extends State<PropertyDiscoverScreen> {
 
   Widget _buildFilterStrip() {
     final filterCount = _ctrl.activeFilterCount;
+    final applied = _ctrl.activeFilters;
 
     return Container(
       color: Colors.white,
@@ -233,6 +234,16 @@ class _PropertyDiscoverScreenState extends State<PropertyDiscoverScreen> {
               isActive: filterCount > 0,
               onTap: _showFilterSheet,
             ),
+            // One removable chip per active filter so the user can see
+            // exactly what's applied and drop a single one without
+            // re-opening the sheet.
+            for (final f in applied) ...[
+              const SizedBox(width: 8),
+              _appliedFilterChip(
+                label: f.label,
+                onRemove: () => _ctrl.removeFilter(f.key),
+              ),
+            ],
             if (_ctrl.hasActiveFilters) ...[
               const SizedBox(width: 8),
               _filterChip(
@@ -243,6 +254,40 @@ class _PropertyDiscoverScreenState extends State<PropertyDiscoverScreen> {
                 onTap: () => _ctrl.clearFilters(),
               ),
             ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Pill showing one applied filter's value with a tap-to-remove (×)
+  /// icon. Uses a subtle primary-tinted fill so it visually links back
+  /// to the active "Filters (n)" chip on the left.
+  Widget _appliedFilterChip({
+    required String label,
+    required VoidCallback onRemove,
+  }) {
+    return GestureDetector(
+      onTap: onRemove,
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(12, 7, 8, 7),
+        decoration: BoxDecoration(
+          color: AppColors.primaryColor.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: AppColors.primaryColor.withValues(alpha: 0.35),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CustomText(label,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: AppColors.primaryColor),
+            const SizedBox(width: 6),
+            Icon(Icons.close_rounded,
+                size: 14, color: AppColors.primaryColor),
           ],
         ),
       ),
