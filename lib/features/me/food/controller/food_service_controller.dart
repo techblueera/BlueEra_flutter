@@ -385,48 +385,27 @@ class FoodServiceController extends GetxController {
       if (responseModel.isSuccess) {
         commonSnackBar(message: responseModel.message ?? AppStrings.success);
 
-        // The create endpoint returns the persisted product fully
-        // hydrated, including its variants with server-assigned `_id`s.
-        // Pull both out in one shot so we can push them straight into
-        // inventory below — no detour through AddSingleFoodProductScreen.
-        final productJson = responseModel.response?.data?['product'];
-        final String? newProductId = productJson?['_id']?.toString();
+        final String? newProductId =
+            responseModel.response?.data?['product']?['_id']?.toString();
 
         if (newProductId == null || newProductId.isEmpty) {
           commonSnackBar(message: AppStrings.somethingWentWrong);
           return;
         }
 
-        // Parse variants directly instead of going through
-        // CategoryFoodProductData.fromJson — on create, `product.category`
-        // comes back as the raw ID string we just sent (not a populated
-        // {_id, name} object), which makes Category.fromJson throw on
-        // json['_id']. The variants array is all we need here anyway.
-        final variantsJson = productJson is Map<String, dynamic>
-            ? productJson['variants'] as List?
-            : null;
-        final List<FoodVariants> createdVariants = variantsJson
-                ?.whereType<Map<String, dynamic>>()
-                .map((v) => FoodVariants.fromJson(v))
-                .toList() ??
-            <FoodVariants>[];
-
         // Missing-product flow: stamp the new productId on the row so
         // MissingFoodItemsScreen would re-render to the "Add Stock"
-        // state if the user landed back there before inventory
-        // completed (e.g. an inventory failure below). The inventoryId
-        // + image stamp happens inside addSingleProductToInventory.
         if (createMissingProductIndex != null) {
           missingProducts[createMissingProductIndex].productId = newProductId;
           missingProducts.refresh();
         }
 
-        // Auto-publish every variant the server just created — replaces
-        // the manual variant-pick step on AddSingleFoodProductScreen for
-        // this entry path. AddSingleFoodProductScreen now exists only
-        // for the MissingFoodItemsScreen "Add Stock" flow (where the
-        // product already exists and the user needs to pick which
-        // variants to publish).
+        // Fetch the freshly-created product the same way
+        // AddSingleFoodProductScreen does — gives us the fully hydrated
+        await getSingleFoodProductApi(FoodId: newProductId);
+        final List<FoodVariants> createdVariants =
+            singleFoodProductData.value?.variants ?? <FoodVariants>[];
+
         await addSingleProductToInventory(
           productId: newProductId,
           selectedVariants: createdVariants,
@@ -683,10 +662,7 @@ class FoodServiceController extends GetxController {
 
         // Refresh FoodMainScreen's Overview-tab data (popular dishes +
         // discount products) so the just-published item shows up the
-        // moment the user lands back on it via Get.until below. Mirrors
-        // bulkPublishInventory and the case-2 dispatch in
-        // FoodMainScreen._fetchForTab. Fire-and-forget — both calls own
-        // their own loading state.
+        // moment the user lands back on it via Get.until below.
         if (Get.isRegistered<RestaurantController>() &&
             businessId.isNotEmpty) {
           final restaurantController = Get.find<RestaurantController>();

@@ -27,6 +27,48 @@ class AppliedFilter {
   const AppliedFilter({required this.key, required this.label});
 }
 
+/// Sort options surfaced in the discover screen's sort sheet. Applied
+/// client-side over the currently-loaded [PropertyDiscoverController.properties]
+/// list — backend doesn't accept a sort param yet, so the order is
+/// reapplied after each page load so newly-appended items slot in
+/// correctly instead of always landing at the bottom.
+enum PropertySortBy {
+  none,
+  priceLowToHigh,
+  distanceNearToFar,
+  ratingHighToLow,
+}
+
+extension PropertySortByLabel on PropertySortBy {
+  /// Long label used inside the sort bottom sheet.
+  String get label {
+    switch (this) {
+      case PropertySortBy.none:
+        return 'Default';
+      case PropertySortBy.priceLowToHigh:
+        return 'Price: Low to High';
+      case PropertySortBy.distanceNearToFar:
+        return 'Distance: Near to Far';
+      case PropertySortBy.ratingHighToLow:
+        return 'Rating: High to Low';
+    }
+  }
+
+  /// Compact label used on the inline sort chip in the filter strip.
+  String get chipLabel {
+    switch (this) {
+      case PropertySortBy.none:
+        return 'Sort';
+      case PropertySortBy.priceLowToHigh:
+        return 'Price ↑';
+      case PropertySortBy.distanceNearToFar:
+        return 'Distance ↑';
+      case PropertySortBy.ratingHighToLow:
+        return 'Rating ↓';
+    }
+  }
+}
+
 class PropertyDiscoverController extends GetxController {
   final PropertyRepo _repo = PropertyRepo();
 
@@ -42,6 +84,57 @@ class PropertyDiscoverController extends GetxController {
   bool _hasMore = true;
 
   List<PropertyDiscoverCategory> categories = [];
+
+  // ── Sort (client-side; reapplied after every page fetch) ──
+  final Rx<PropertySortBy> sortBy = PropertySortBy.none.obs;
+
+  void setSort(PropertySortBy value) {
+    if (sortBy.value == value) return;
+    sortBy.value = value;
+    _applySort();
+  }
+
+  /// Sorts [properties] in place per the current [sortBy]. Called after
+  /// each fetch so newly-loaded pages don't always land at the bottom
+  /// of a sorted list.
+  void _applySort() {
+    if (sortBy.value == PropertySortBy.none || properties.isEmpty) return;
+    final sorted = properties.toList();
+    switch (sortBy.value) {
+      case PropertySortBy.priceLowToHigh:
+        sorted.sort((a, b) {
+          final ap = a.priceRange?.min ?? a.price;
+          final bp = b.priceRange?.min ?? b.price;
+          return ap.compareTo(bp);
+        });
+        break;
+      case PropertySortBy.distanceNearToFar:
+        sorted.sort(
+            (a, b) => _sortDistanceFor(a).compareTo(_sortDistanceFor(b)));
+        break;
+      case PropertySortBy.ratingHighToLow:
+        sorted.sort((a, b) => b.rating.compareTo(a.rating));
+        break;
+      case PropertySortBy.none:
+        return;
+    }
+    properties.assignAll(sorted);
+  }
+
+  /// Squared-degree distance from the user's current location to [p].
+  /// Squared (not sqrt'd) because we only need ordering, not real km —
+  /// keeps it cheap. Properties with no coordinates or no known user
+  /// location sink to the bottom via [double.infinity].
+  double _sortDistanceFor(PropertyModel p) {
+    final userLat = LocationService.lat;
+    final userLng = LocationService.lng;
+    if (userLat == 0.0 && userLng == 0.0) return double.infinity;
+    final coords = p.location?.coordinates ?? const <double>[];
+    if (coords.length < 2) return double.infinity;
+    final dLat = coords[1] - userLat;
+    final dLng = coords[0] - userLng;
+    return (dLat * dLat) + (dLng * dLng);
+  }
 
   // ── Sort (reserved for future API support) ──
 
@@ -338,6 +431,9 @@ class PropertyDiscoverController extends GetxController {
           } else {
             properties.value = list;
           }
+          // Reapply current sort so paged-in items don't always stick
+          // to the bottom of a sorted list. No-op when sortBy is none.
+          _applySort();
 
           _hasMore = list.length >= _limit;
           if (list.isNotEmpty) _page++;

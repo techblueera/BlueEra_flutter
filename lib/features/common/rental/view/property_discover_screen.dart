@@ -172,6 +172,7 @@ class _PropertyDiscoverScreenState extends State<PropertyDiscoverScreen> {
           _ctrl.isLoading.value;
           _ctrl.isLoadingMore.value;
           _ctrl.activeFilterCount;
+          _ctrl.sortBy.value;
 
           return CustomScrollView(
             controller: _scrollController,
@@ -219,6 +220,8 @@ class _PropertyDiscoverScreenState extends State<PropertyDiscoverScreen> {
   Widget _buildFilterStrip() {
     final filterCount = _ctrl.activeFilterCount;
     final applied = _ctrl.activeFilters;
+    final sort = _ctrl.sortBy.value;
+    final isSortActive = sort != PropertySortBy.none;
 
     return Container(
       color: Colors.white,
@@ -233,6 +236,15 @@ class _PropertyDiscoverScreenState extends State<PropertyDiscoverScreen> {
               label: filterCount > 0 ? 'Filters ($filterCount)' : 'Filters',
               isActive: filterCount > 0,
               onTap: _showFilterSheet,
+            ),
+            const SizedBox(width: 8),
+            // Sort chip — opens a bottom sheet with price/distance/rating
+            // options. Active when anything other than Default is chosen.
+            _filterChip(
+              icon: Icons.swap_vert_rounded,
+              label: sort.chipLabel,
+              isActive: isSortActive,
+              onTap: _showSortSheet,
             ),
             // One removable chip per active filter so the user can see
             // exactly what's applied and drop a single one without
@@ -257,6 +269,108 @@ class _PropertyDiscoverScreenState extends State<PropertyDiscoverScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  /// Sheet listing the available [PropertySortBy] options. Single-select;
+  /// tapping a row applies the sort immediately and dismisses.
+  void _showSortSheet() {
+    const options = PropertySortBy.values;
+    Get.bottomSheet(
+      Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: SafeArea(
+          top: false,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
+                child: Column(
+                  children: [
+                    Container(
+                      width: 36,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFDDE2EE),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: CustomText(
+                            'Sort By',
+                            fontSize: SizeConfig.large18,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.mainTextColor,
+                          ),
+                        ),
+                        GestureDetector(
+                          onTap: () => Get.back(),
+                          child: Container(
+                            width: 34,
+                            height: 34,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: const Color(0xFFF4F6FA),
+                              border: Border.all(
+                                  color: const Color(0xFFDDE2EE)),
+                            ),
+                            child: const Icon(Icons.close_rounded,
+                                size: 18, color: Color(0xFF505050)),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(height: 1, color: Color(0xFFEEEEEE)),
+              for (final option in options)
+                Obx(() {
+                  final selected = _ctrl.sortBy.value == option;
+                  return InkWell(
+                    onTap: () {
+                      _ctrl.setSort(option);
+                      Get.back();
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 14),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: CustomText(
+                              option.label,
+                              fontSize: SizeConfig.medium,
+                              fontWeight: selected
+                                  ? FontWeight.w700
+                                  : FontWeight.w500,
+                              color: selected
+                                  ? AppColors.primaryColor
+                                  : AppColors.mainTextColor,
+                            ),
+                          ),
+                          if (selected)
+                            Icon(Icons.check_rounded,
+                                size: 20, color: AppColors.primaryColor),
+                        ],
+                      ),
+                    ),
+                  );
+                }),
+              const SizedBox(height: 8),
+            ],
+          ),
+        ),
+      ),
+      isScrollControlled: true,
     );
   }
 
