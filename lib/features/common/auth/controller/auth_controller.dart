@@ -527,7 +527,8 @@ class AuthController extends GetxController {
                 getOrPut(() => BusinessProfileFullController());
             reqBody['profileName'] = reqData[ApiKeys.business_name];
             reqBody['type'] = "finance";
-            reqBody['sub_type'] = typeOfBusiness;
+            reqBody['sub_type'] = categoryOfBusiness;
+            // reqBody['sub_type'] = typeOfBusiness;
             pending.add(
                 controller.createOtherProfileController(reqParm: reqBody));
           } else if (typeOfBusiness ==

@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
+import 'package:BlueEra/core/api/model/individual_user_response_model.dart';
 import 'package:BlueEra/core/api/model/personal_profile_details_model.dart';
 import 'package:BlueEra/core/services/personal_profile_cache.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -221,6 +222,9 @@ class ViewPersonalDetailsController extends GetxController {
 
       if (responseModel.isSuccess) {
         final data = responseModel.response?.data;
+        // final upgraded = IndividualUserResponseModel.fromJson(data ?? {});
+        // await SharedPreferenceUtils.setSecureValue(SharedPreferenceUtils.authToken, upgraded.token);
+        // await getUserAuthToken();
         if (data is Map<String, dynamic>) {
           await _applyPersonalProfileData(data, personalController,
               persistPrefs: true);
