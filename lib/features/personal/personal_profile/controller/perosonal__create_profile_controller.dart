@@ -2,8 +2,10 @@ import 'dart:async';
 
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
+import 'package:BlueEra/core/api/model/individual_user_response_model.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/auth/model/personal_profession_model.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
@@ -18,7 +20,7 @@ class PersonalCreateProfileController extends GetxController {
 
   RxInt? selectedDay = 0.obs, selectedMonth = 0.obs, selectedYear = 0.obs;
   Rx<String?> selectedProfession = Rx<String?>(null);
-    Rx<String?> selectedSubProfession = Rx<String?>(null);
+  Rx<String?> selectedSubProfession = Rx<String?>(null);
   Rx<ProfessionTypeData?> selectedProfessionObj = Rx<ProfessionTypeData?>(null);
   Rx<SubcategoriesFiledName?> selectedSubProfessionObj = Rx<SubcategoriesFiledName?>(null);
 
@@ -93,8 +95,7 @@ class PersonalCreateProfileController extends GetxController {
   final isFormValid = false.obs;
 
   void validateProjectForm() {
-    isFormValid.value = titleController.text.isNotEmpty &&
-        descriptionController.text.isNotEmpty;
+    isFormValid.value = titleController.text.isNotEmpty && descriptionController.text.isNotEmpty;
   }
 
   // Method to set start location data
@@ -110,29 +111,26 @@ class PersonalCreateProfileController extends GetxController {
     descriptionController.clear();
   }
 
-  Future<void> updateUserProfileDetails({
-    required Map<String, dynamic> params,
-    bool isFromProfileOnly = false,
-    bool? showProgress
-  }) async {
+  Future<void> updateUserProfileDetails(
+      {required Map<String, dynamic> params, bool isFromProfileOnly = false, bool? showProgress}) async {
     try {
-      updateBtnLoading.value=true;
+      updateBtnLoading.value = true;
       print("Params being sent to API: $params");
-      ResponseModel responseModel = await PersonalProfileRepo().updateUser(
-        formData: params,
-        showProgress: showProgress
-      );
+      ResponseModel responseModel =
+          await PersonalProfileRepo().updateUser(formData: params, showProgress: showProgress);
 
       if (responseModel.isSuccess) {
+        final upgraded = IndividualUserResponseModel.fromJson(responseModel.response?.data ?? {});
         updateUserProfileResponse = ApiResponse.complete(responseModel);
-        unawaited(
-            Get.find<ViewPersonalDetailsController>().viewPersonalProfile());
+
+        await SharedPreferenceUtils.setSecureValue(SharedPreferenceUtils.authToken, upgraded.token);
+        await getUserAuthToken();
+
+        unawaited(Get.find<ViewPersonalDetailsController>().viewPersonalProfile());
         if (!isFromProfileOnly) {
           Get.back();
         }
-        commonSnackBar(
-            message: responseModel.response?.data?['message'] ??
-                "Update successfully");
+        commonSnackBar(message: responseModel.response?.data?['message'] ?? "Update successfully");
       } else {
         commonSnackBar(
           message: responseModel.message ?? AppStrings.somethingWentWrong,
@@ -140,7 +138,7 @@ class PersonalCreateProfileController extends GetxController {
       }
     } catch (e) {
       updateUserProfileResponse = ApiResponse.error('Update failed');
-    } finally{
+    } finally {
       updateBtnLoading.value = false;
     }
   }
@@ -152,8 +150,7 @@ class PersonalCreateProfileController extends GetxController {
   final isFormExperienceValid = false.obs;
 
   void validateExperienceForm() {
-    isFormExperienceValid.value = companyNameController.text.isNotEmpty &&
-        roleResController.text.isNotEmpty;
+    isFormExperienceValid.value = companyNameController.text.isNotEmpty && roleResController.text.isNotEmpty;
   }
 
   void clearExperienceFields() {
@@ -168,16 +165,13 @@ class PersonalCreateProfileController extends GetxController {
     try {
       deleteProjectResponse.value = ApiResponse.initial('Initial');
 
-      ResponseModel responseModel =
-          await PersonalProfileRepo().deleteProjectRepo(projectID: projectId);
+      ResponseModel responseModel = await PersonalProfileRepo().deleteProjectRepo(projectID: projectId);
 
       if (responseModel.isSuccess) {
         deleteProjectResponse.value = ApiResponse.complete(responseModel);
         await Get.find<ViewPersonalDetailsController>().viewPersonalProfile();
         Get.back();
-        commonSnackBar(
-            message: responseModel.response?.data?['message'] ??
-                "Deleted successfully");
+        commonSnackBar(message: responseModel.response?.data?['message'] ?? "Deleted successfully");
       } else {
         deleteProjectResponse.value = ApiResponse.error('Delete failed');
 
@@ -196,16 +190,14 @@ class PersonalCreateProfileController extends GetxController {
     try {
       deleteExperienceResponse.value = ApiResponse.initial('Initial');
 
-      ResponseModel responseModel = await PersonalProfileRepo()
-          .deleteExperienceRepo(experienceID: experienceId);
+      ResponseModel responseModel =
+          await PersonalProfileRepo().deleteExperienceRepo(experienceID: experienceId);
 
       if (responseModel.isSuccess) {
         deleteExperienceResponse.value = ApiResponse.complete(responseModel);
         await Get.find<ViewPersonalDetailsController>().viewPersonalProfile();
         Get.back();
-        commonSnackBar(
-            message: responseModel.response?.data?['message'] ??
-                "Deleted successfully");
+        commonSnackBar(message: responseModel.response?.data?['message'] ?? "Deleted successfully");
       } else {
         deleteExperienceResponse.value = ApiResponse.error('Delete failed');
 

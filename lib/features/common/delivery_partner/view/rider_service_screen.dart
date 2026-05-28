@@ -1,4 +1,5 @@
 ﻿import 'dart:ui';
+
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -10,21 +11,21 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/multipart_image_service.dart';
+import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/core/services/share_service.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/widgets/business_share_banner.dart';
 import 'package:BlueEra/features/chat/view/business_chat/business_chat_list.dart';
-import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/delivery_partner_orders/delivery_partner_orders.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/rider_profile_status_screen.dart';
-import 'package:BlueEra/features/common/rental/widget/rental_property_card_v2.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
 import 'package:BlueEra/features/common/reel/view/channel/follower_following_screen.dart';
-import 'package:BlueEra/features/common/visiting_card/view/all_personal_visiting_cards.dart';
+import 'package:BlueEra/features/common/rental/widget/rental_property_card_v2.dart';
 import 'package:BlueEra/features/common/statistics/view/business_statistics_screen.dart';
+import 'package:BlueEra/features/common/visiting_card/view/all_personal_visiting_cards.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/edit_profile_bottom_sheet.dart';
@@ -50,11 +51,9 @@ class RiderServiceScreen extends StatefulWidget {
   State<RiderServiceScreen> createState() => _RiderServiceScreenState();
 }
 
-class _RiderServiceScreenState extends State<RiderServiceScreen>
-    with RouteAware {
+class _RiderServiceScreenState extends State<RiderServiceScreen> with RouteAware {
   final controller = getOrPut(() => DeliveryPartnerController());
-  final _viewCtrl =
-      getOrPut(() => ViewPersonalDetailsController(), permanent: true);
+  final _viewCtrl = getOrPut(() => ViewPersonalDetailsController(), permanent: true);
   final _personalCtrl = getOrPut(() => PersonalCreateProfileController());
 
   int _selectedTab = 0;
@@ -81,8 +80,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
     _viewCtrl.UserFollowersAndPostsCount(userId);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _viewCtrl.shopStatusOpenClose.value =
-          serviceProviderStatusGlobal.toUpperCase() ==
-              AppConstants.OPEN.toUpperCase();
+          serviceProviderStatusGlobal.toUpperCase() == AppConstants.OPEN.toUpperCase();
     });
   }
 
@@ -219,8 +217,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
       child: Image.asset(
         AppImageAssets.chatDefaultBg,
         fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) =>
-            Container(color: const Color(0xFFEAF2FB)),
+        errorBuilder: (_, __, ___) => Container(color: const Color(0xFFEAF2FB)),
       ),
     );
   }
@@ -320,8 +317,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
                   width: 1,
                 ),
               ),
-              child: Icon(icon,
-                  size: 20, color: AppColors.secondaryTextColor),
+              child: Icon(icon, size: 20, color: AppColors.secondaryTextColor),
             ),
           ),
         ),
@@ -351,9 +347,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
               child: Container(
-                padding: EdgeInsets.symmetric(
-                    horizontal: SizeConfig.size10,
-                    vertical: SizeConfig.size6),
+                padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10, vertical: SizeConfig.size6),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(24),
@@ -366,9 +360,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     CustomText('Go live',
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.secondaryTextColor),
+                        fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.secondaryTextColor),
                     SizedBox(width: SizeConfig.size6),
                     if (isUpdating)
                       SizedBox(
@@ -376,8 +368,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
                         height: 16,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                              AppColors.primaryColor),
+                          valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryColor),
                         ),
                       )
                     else
@@ -386,28 +377,21 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
                         height: 18,
                         padding: const EdgeInsets.all(2),
                         decoration: BoxDecoration(
-                          color: isOn
-                              ? AppColors.primaryColor
-                              : Colors.white,
+                          color: isOn ? AppColors.primaryColor : Colors.white,
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
-                            color: AppColors.secondaryTextColor
-                                .withValues(alpha: 0.4),
+                            color: AppColors.secondaryTextColor.withValues(alpha: 0.4),
                             width: 0.5,
                           ),
                         ),
                         child: AnimatedAlign(
                           duration: const Duration(milliseconds: 180),
-                          alignment: isOn
-                              ? Alignment.centerRight
-                              : Alignment.centerLeft,
+                          alignment: isOn ? Alignment.centerRight : Alignment.centerLeft,
                           child: Container(
                             height: 14,
                             width: 14,
                             decoration: BoxDecoration(
-                              color: isOn
-                                  ? Colors.white
-                                  : AppColors.secondaryTextColor,
+                              color: isOn ? Colors.white : AppColors.secondaryTextColor,
                               shape: BoxShape.circle,
                             ),
                           ),
@@ -467,21 +451,18 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
           ],
         ),
         child: Obx(() {
-          final approved = controller.riderOnboardingStatusData.value
-                  ?.verificationStatus ==
-              "approved";
+          final approved = controller.riderOnboardingStatusData.value?.verificationStatus == "approved";
           final tabs = <String>[
             approved ? AppStrings.myOrder.tr : AppStrings.document.tr,
-            'Overview',
-            'Post',
-            'Statics',
+            AppStrings.overview.tr,
+            AppStrings.post.tr,
+            AppStrings.statics.tr,
           ];
           return LayoutBuilder(
             builder: (context, constraints) {
               final tabWidth = constraints.maxWidth / tabs.length;
               const indicatorWidth = 24.0;
-              final indicatorLeft =
-                  tabWidth * _selectedTab + (tabWidth - indicatorWidth) / 2;
+              final indicatorLeft = tabWidth * _selectedTab + (tabWidth - indicatorWidth) / 2;
               return Stack(
                 children: [
                   Row(
@@ -497,13 +478,9 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
                               curve: Curves.easeOutCubic,
                               style: TextStyle(
                                 fontSize: 12,
-                                fontWeight: selected
-                                    ? FontWeight.w700
-                                    : FontWeight.w500,
+                                fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
                                 letterSpacing: 0.2,
-                                color: selected
-                                    ? AppColors.primaryColor
-                                    : AppColors.mainTextColor,
+                                color: selected ? AppColors.primaryColor : AppColors.mainTextColor,
                               ),
                               child: Text(
                                 tabs[i],
@@ -529,8 +506,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
                         borderRadius: BorderRadius.circular(3),
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.primaryColor
-                                .withValues(alpha: 0.4),
+                            color: AppColors.primaryColor.withValues(alpha: 0.4),
                             blurRadius: 6,
                             offset: const Offset(0, 2),
                           ),
@@ -581,9 +557,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
   List<Widget> _buildOrderTab() {
     return [
       Obx(() {
-        final approved = controller
-                .riderOnboardingStatusData.value?.verificationStatus ==
-            "approved";
+        final approved = controller.riderOnboardingStatusData.value?.verificationStatus == "approved";
         if (!approved) return RiderProfileStatusScreen();
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -618,8 +592,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
       child: LayoutBuilder(
         builder: (context, constraints) {
           const trackPadding = 4.0;
-          final pillWidth =
-              (constraints.maxWidth - trackPadding * 2) / 2;
+          final pillWidth = (constraints.maxWidth - trackPadding * 2) / 2;
           return Container(
             height: 42,
             padding: const EdgeInsets.all(trackPadding),
@@ -657,8 +630,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
                       borderRadius: BorderRadius.circular(100),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.primaryColor
-                              .withValues(alpha: 0.32),
+                          color: AppColors.primaryColor.withValues(alpha: 0.32),
                           blurRadius: 10,
                           offset: const Offset(0, 3),
                           spreadRadius: -1,
@@ -731,8 +703,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
             TweenAnimationBuilder<Color?>(
               duration: const Duration(milliseconds: 240),
               tween: ColorTween(end: fg),
-              builder: (_, color, __) =>
-                  Icon(icon, size: 15, color: color),
+              builder: (_, color, __) => Icon(icon, size: 15, color: color),
             ),
             const SizedBox(width: 6),
             Flexible(
@@ -749,12 +720,10 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
               // pill with white text sits on the white track. Either
               // side reads cleanly.
               Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 6, vertical: 1),
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
                 constraints: const BoxConstraints(minWidth: 18),
                 decoration: BoxDecoration(
-                  color:
-                      selected ? Colors.white : AppColors.primaryColor,
+                  color: selected ? Colors.white : AppColors.primaryColor,
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
@@ -764,9 +733,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
                     fontFamily: AppConstants.OpenSans,
                     fontSize: 9.5,
                     fontWeight: FontWeight.w800,
-                    color: selected
-                        ? AppColors.primaryColor
-                        : Colors.white,
+                    color: selected ? AppColors.primaryColor : Colors.white,
                     height: 1.2,
                   ),
                 ),
@@ -907,8 +874,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
                           _avatarFrame(avatarSize),
                           SizedBox(width: SizeConfig.size12),
                           Padding(
-                            padding:
-                                EdgeInsets.only(bottom: avatarOverlap - 4),
+                            padding: EdgeInsets.only(bottom: avatarOverlap - 4),
                             child: _memberSincePill(),
                           ),
                         ],
@@ -982,8 +948,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
             final hasUsername = username.isNotEmpty;
             final hasEmail = email.isNotEmpty;
             final hasContact = hasEmail;
-            final hasAnyIdentity =
-                hasDesignation || hasName || hasUsername || hasContact;
+            final hasAnyIdentity = hasDesignation || hasName || hasUsername || hasContact;
 
             final children = <Widget>[];
 
@@ -1071,11 +1036,9 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
                   imagePath: _personalCtrl.imagePath?.value ?? '',
                   onImageUpdate: (image) async {
                     _personalCtrl.imagePath?.value = image;
-                    dynamic dataImage =
-                        await multiPartImage(imagePath: image);
+                    dynamic dataImage = await multiPartImage(imagePath: image);
                     var reqProfile = {ApiKeys.profile_image: dataImage};
-                    await _personalCtrl.updateUserProfileDetails(
-                        params: reqProfile, isFromProfileOnly: true);
+                    await _personalCtrl.updateUserProfileDetails(params: reqProfile, isFromProfileOnly: true);
                   },
                   dialogTitle: AppStrings.uploadProfilePicture,
                   showProfileBorder: false,
@@ -1090,8 +1053,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
 
   Widget _memberSincePill() {
     return Obx(() {
-      final createdAt =
-          _viewCtrl.personalProfileDetails.value.user?.createdAt ?? '';
+      final createdAt = _viewCtrl.personalProfileDetails.value.user?.createdAt ?? '';
       if (createdAt.isEmpty) return const SizedBox.shrink();
       final since = _formatJoinedDate(createdAt);
       if (since.isEmpty) return const SizedBox.shrink();
@@ -1234,8 +1196,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
           ),
           child: Row(
             children: [
-              Icon(Icons.account_circle_outlined,
-                  size: 20, color: AppColors.primaryColor),
+              Icon(Icons.account_circle_outlined, size: 20, color: AppColors.primaryColor),
               SizedBox(width: SizeConfig.size10),
               Expanded(
                 child: Text(
@@ -1248,8 +1209,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
                   ),
                 ),
               ),
-              Icon(Icons.arrow_forward_rounded,
-                  size: 16, color: AppColors.primaryColor),
+              Icon(Icons.arrow_forward_rounded, size: 16, color: AppColors.primaryColor),
             ],
           ),
         ),
@@ -1338,8 +1298,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
           child: Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
               color: Colors.black.withValues(alpha: 0.40),
               borderRadius: BorderRadius.circular(100),
@@ -1393,8 +1352,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
                 child: _statTile(
                   label: 'Followers',
                   value: _formatCount(followers),
-                  onTap: () => Get.to(() => FollowersFollowingPage(
-                      tabIndex: 1, userID: userId)),
+                  onTap: () => Get.to(() => FollowersFollowingPage(tabIndex: 1, userID: userId)),
                 ),
               ),
               _statSeam(),
@@ -1402,8 +1360,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
                 child: _statTile(
                   label: 'Following',
                   value: _formatCount(following),
-                  onTap: () => Get.to(() => FollowersFollowingPage(
-                      tabIndex: 0, userID: userId)),
+                  onTap: () => Get.to(() => FollowersFollowingPage(tabIndex: 0, userID: userId)),
                 ),
               ),
             ],
@@ -1520,15 +1477,12 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
           color: bg,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color:
-                AppColors.primaryColor.withValues(alpha: filled ? 1 : 0.30),
+            color: AppColors.primaryColor.withValues(alpha: filled ? 1 : 0.30),
             width: filled ? 0 : 1,
           ),
           boxShadow: [
             BoxShadow(
-              color: filled
-                  ? AppColors.primaryColor.withValues(alpha: 0.30)
-                  : const Color(0x14001120),
+              color: filled ? AppColors.primaryColor.withValues(alpha: 0.30) : const Color(0x14001120),
               blurRadius: filled ? 14 : 8,
               offset: const Offset(0, 4),
             ),
@@ -1561,10 +1515,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
     // accountTypeGlobal so the rider's business-vs-individual branch
     // no longer needs to live here.
     final userName = _viewCtrl.personalProfileDetails.value.user?.name ?? '';
-    await ShareService.instance.shareProfile(
-        userId: userId,
-        subject: userName
-    );
+    await ShareService.instance.shareProfile(userId: userId, subject: userName);
   }
 
   // Legacy `_buildContactMapCard` + `_contactItem` were retired â€” the
@@ -1597,10 +1548,9 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
       child: Obx(() {
         final user = _viewCtrl.personalProfileDetails.value.user;
         final name = _capitalizeFirst(user?.name ?? '');
-        final photo =
-            (_personalCtrl.imagePath?.value.trim().isNotEmpty ?? false)
-                ? _personalCtrl.imagePath?.value
-                : user?.profileImage;
+        final photo = (_personalCtrl.imagePath?.value.trim().isNotEmpty ?? false)
+            ? _personalCtrl.imagePath?.value
+            : user?.profileImage;
         final designation = user?.designation ?? '';
         return BusinessShareBanner(
           overrideName: name,
@@ -1624,8 +1574,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
     if (newPath == null || newPath.isEmpty) return;
     dynamic dataImage = await multiPartImage(imagePath: newPath);
     var reqProfile = {ApiKeys.coverpicture: dataImage};
-    await _personalCtrl.updateUserProfileDetails(
-        params: reqProfile, isFromProfileOnly: true);
+    await _personalCtrl.updateUserProfileDetails(params: reqProfile, isFromProfileOnly: true);
   }
 
   // ============================================================

@@ -1,8 +1,10 @@
 import 'dart:async';
+
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/controller/navigation_helper_controller.dart';
@@ -19,7 +21,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pro_image_editor/shared/widgets/animated/fade_in_up.dart';
 import 'package:visibility_detector/visibility_detector.dart';
-
 
 class FeedScreen extends StatefulWidget {
   final PostType postFilterType;
@@ -48,9 +49,8 @@ class FeedScreen extends StatefulWidget {
 }
 
 class _FeedScreenState extends State<FeedScreen> {
-  final feedController = Get.isRegistered<FeedController>()
-      ? Get.find<FeedController>()
-      : Get.put(FeedController());
+  final feedController =
+      Get.isRegistered<FeedController>() ? Get.find<FeedController>() : Get.put(FeedController());
   Timer? _searchDebounce;
   final ScrollController _scrollController = ScrollController();
 
@@ -67,12 +67,10 @@ class _FeedScreenState extends State<FeedScreen> {
         _scrollController.addListener(_scrollListener);
       }
 
-      ever(Get.find<NavigationHelperController>().shouldRefreshBottomBar,
-          (shouldRefresh) {
+      ever(Get.find<NavigationHelperController>().shouldRefreshBottomBar, (shouldRefresh) {
         if (shouldRefresh == true) {
           fetchPostData(isInitialLoad: true, refresh: true, id: widget.id);
-          Get.find<NavigationHelperController>().shouldRefreshBottomBar.value =
-              false;
+          Get.find<NavigationHelperController>().shouldRefreshBottomBar.value = false;
         }
       });
     });
@@ -136,23 +134,14 @@ class _FeedScreenState extends State<FeedScreen> {
     super.dispose();
   }
 
-  void fetchPostData(
-      {bool isInitialLoad = false,
-      bool refresh = false,
-      String? id,
-      String? query}) {
+  void fetchPostData({bool isInitialLoad = false, bool refresh = false, String? id, String? query}) {
     feedController.getPostsByType(widget.postFilterType,
-        isInitialLoad: isInitialLoad,
-        refresh: refresh,
-        id: id,
-        query: query,
-        screenName: '');
+        isInitialLoad: isInitialLoad, refresh: refresh, id: id, query: query, screenName: '');
   }
 
   int _calculateItemCount(int postsLength) {
     int totalItems = postsLength;
-    if (widget.postFilterType != PostType.saved &&
-        feedController.isTargetHasMoreData.isTrue) {
+    if (widget.postFilterType != PostType.saved && feedController.isTargetHasMoreData.isTrue) {
       totalItems += 1;
     }
     return totalItems;
@@ -191,8 +180,7 @@ class _FeedScreenState extends State<FeedScreen> {
           if (feedController.isLoading.isFalse) {
             if (feedController.postsResponse.value.status == Status.COMPLETE ||
                 widget.postFilterType == PostType.saved) {
-              List<Post> posts =
-                  feedController.getListByType(widget.postFilterType);
+              List<Post> posts = feedController.getListByType(widget.postFilterType);
 
               if (posts.isEmpty) {
                 // Polished "draft on a stack" empty state when the user
@@ -207,33 +195,26 @@ class _FeedScreenState extends State<FeedScreen> {
                 return Center(
                   child: EmptyStateWidget(
                     message: widget.postFilterType == PostType.saved
-                        ? 'No post is in saved.'
-                        : 'No post available.',
+                        ? AppStrings.noPostIsInSaved.tr
+                        : AppStrings.noPostAvailable.tr,
                   ),
                 );
               }
 
               final content = RefreshIndicator(
                 notificationPredicate: (notification) {
-                  return Get.find<HomeScreenController>().headerOffset.value ==
-                          0.0 &&
-                      notification.metrics.pixels <=
-                          notification.metrics.minScrollExtent;
+                  return Get.find<HomeScreenController>().headerOffset.value == 0.0 &&
+                      notification.metrics.pixels <= notification.metrics.minScrollExtent;
                 },
                 onRefresh: () async {
-                  if (Get.find<HomeScreenController>().headerOffset.value !=
-                      0.0) return;
-                  fetchPostData(
-                      isInitialLoad: true, refresh: true, id: widget.id);
+                  if (Get.find<HomeScreenController>().headerOffset.value != 0.0) return;
+                  fetchPostData(isInitialLoad: true, refresh: true, id: widget.id);
                   return Future.value();
                 },
                 child: ListView.builder(
-                  controller:
-                      widget.isInParentScroll ? null : _scrollController,
-                  keyboardDismissBehavior:
-                      ScrollViewKeyboardDismissBehavior.onDrag,
-                  padding: EdgeInsets.only(
-                      top: SizeConfig.size2, bottom: SizeConfig.size80),
+                  controller: widget.isInParentScroll ? null : _scrollController,
+                  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                  padding: EdgeInsets.only(top: SizeConfig.size2, bottom: SizeConfig.size80),
                   shrinkWrap: widget.isInParentScroll,
                   physics: widget.isInParentScroll
                       ? const NeverScrollableScrollPhysics()
@@ -243,19 +224,16 @@ class _FeedScreenState extends State<FeedScreen> {
                 ),
               );
 
-              if (widget.postFilterType == PostType.all ||
-                  widget.postFilterType == PostType.saved) {
+              if (widget.postFilterType == PostType.all || widget.postFilterType == PostType.saved) {
                 return setupScrollVisibilityNotification(
-                  controller:
-                      widget.isInParentScroll ? null : _scrollController,
+                  controller: widget.isInParentScroll ? null : _scrollController,
                   headerHeight: (widget.headerHeight ?? SizeConfig.size100),
                   onVisibilityChanged: (visible, offset) {
                     final controller = Get.find<HomeScreenController>();
                     const step = 0.25;
                     double newOffset = visible
                         ? (controller.headerOffset.value - step).clamp(0.0, 1.0)
-                        : (controller.headerOffset.value + step)
-                            .clamp(0.0, 1.0);
+                        : (controller.headerOffset.value + step).clamp(0.0, 1.0);
 
                     controller.headerOffset.value = newOffset;
                     controller.isVisible.value = visible;
@@ -265,14 +243,12 @@ class _FeedScreenState extends State<FeedScreen> {
                 );
               }
               return content;
-            } else if (feedController.postsResponse.value.status ==
-                Status.ERROR) {
+            } else if (feedController.postsResponse.value.status == Status.ERROR) {
               return LoadErrorWidget(
-                errorMessage: 'Failed to load posts',
+                errorMessage: AppStrings.failedToLoadPosts.tr,
                 onRetry: () {
                   feedController.isLoading.value = true;
-                  fetchPostData(
-                      isInitialLoad: true, refresh: true, id: widget.id);
+                  fetchPostData(isInitialLoad: true, refresh: true, id: widget.id);
                 },
               );
             } else {
@@ -293,7 +269,7 @@ class _FeedScreenState extends State<FeedScreen> {
               // Assuming you use animate_do or similar, otherwise use AnimatedOpacity
               duration: const Duration(milliseconds: 300),
               child: FloatingActionButton(
-                backgroundColor:AppColors.primaryColor,
+                backgroundColor: AppColors.primaryColor,
                 mini: true,
                 onPressed: _scrollToTop,
                 child: const Icon(Icons.arrow_circle_up, color: Colors.white),
@@ -328,16 +304,14 @@ class _CreatePostEmptyState extends StatelessWidget {
         // [start..end] of the overall animation timeline. Lets each
         // element appear in its own slot without a separate
         // controller per piece.
-        double slot(double start, double end) =>
-            ((t - start) / (end - start)).clamp(0.0, 1.0);
+        double slot(double start, double end) => ((t - start) / (end - start)).clamp(0.0, 1.0);
 
         return Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 380),
             child: SingleChildScrollView(
               physics: const NeverScrollableScrollPhysics(),
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 24, vertical: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 mainAxisSize: MainAxisSize.min,
@@ -481,8 +455,7 @@ class _SkeletonCard extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0x14001120)
-                .withValues(alpha: alphaScale * 0.6),
+            color: const Color(0x14001120).withValues(alpha: alphaScale * 0.6),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -499,8 +472,7 @@ class _SkeletonCard extends StatelessWidget {
                 height: 22,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: const Color(0xFFE6E8EE)
-                      .withValues(alpha: alphaScale),
+                  color: const Color(0xFFE6E8EE).withValues(alpha: alphaScale),
                 ),
               ),
               const SizedBox(width: 8),
@@ -508,8 +480,7 @@ class _SkeletonCard extends StatelessWidget {
                 width: 70,
                 height: 7,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE6E8EE)
-                      .withValues(alpha: alphaScale),
+                  color: const Color(0xFFE6E8EE).withValues(alpha: alphaScale),
                   borderRadius: BorderRadius.circular(4),
                 ),
               ),
@@ -591,9 +562,7 @@ class _DraftCard extends StatelessWidget {
                 end: Alignment.bottomRight,
                 colors: [
                   AppColors.primaryColor,
-                  Color.lerp(
-                          AppColors.primaryColor, Colors.black, 0.22) ??
-                      AppColors.primaryColor,
+                  Color.lerp(AppColors.primaryColor, Colors.black, 0.22) ?? AppColors.primaryColor,
                 ],
               ),
               boxShadow: [
@@ -617,7 +586,7 @@ class _DraftCard extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'Draft something',
+                  AppStrings.draftSomething.tr,
                   style: TextStyle(
                     fontFamily: AppConstants.OpenSans,
                     fontSize: 13.5,
@@ -631,8 +600,7 @@ class _DraftCard extends StatelessWidget {
                   height: 6,
                   width: 120,
                   decoration: BoxDecoration(
-                    color:
-                        AppColors.primaryColor.withValues(alpha: 0.22),
+                    color: AppColors.primaryColor.withValues(alpha: 0.22),
                     borderRadius: BorderRadius.circular(4),
                   ),
                 ),
@@ -641,8 +609,7 @@ class _DraftCard extends StatelessWidget {
                   height: 6,
                   width: 78,
                   decoration: BoxDecoration(
-                    color:
-                        AppColors.primaryColor.withValues(alpha: 0.12),
+                    color: AppColors.primaryColor.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(4),
                   ),
                 ),
@@ -679,7 +646,7 @@ class _Copy extends StatelessWidget {
             ),
             const SizedBox(width: 10),
             Text(
-              'YOUR FIRST POST',
+              AppStrings.yourFirstPost.tr,
               style: TextStyle(
                 fontFamily: AppConstants.OpenSans,
                 fontSize: 10.5,
@@ -698,7 +665,7 @@ class _Copy extends StatelessWidget {
         ),
         const SizedBox(height: 14),
         Text(
-          "Share what's on\nyour mind.",
+          AppStrings.shareWhatsOnYourMind.tr,
           textAlign: TextAlign.center,
           style: TextStyle(
             fontFamily: AppConstants.OpenSans,
@@ -711,7 +678,7 @@ class _Copy extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         Text(
-          'Your followers are listening. A line, a poll,\na photo — start the conversation.',
+          AppStrings.yourFollowersAreListening.tr,
           textAlign: TextAlign.center,
           style: TextStyle(
             fontFamily: AppConstants.OpenSans,
@@ -766,8 +733,7 @@ class _PrimaryCta extends StatelessWidget {
               end: Alignment.bottomRight,
               colors: [
                 AppColors.primaryColor,
-                Color.lerp(AppColors.primaryColor, Colors.black, 0.18) ??
-                    AppColors.primaryColor,
+                Color.lerp(AppColors.primaryColor, Colors.black, 0.18) ?? AppColors.primaryColor,
               ],
             ),
           ),
@@ -775,16 +741,14 @@ class _PrimaryCta extends StatelessWidget {
             borderRadius: radius,
             onTap: () => postVia(context, PostCreationMenu.message),
             child: Padding(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 24, vertical: 14),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.edit_rounded,
-                      color: Colors.white, size: 17),
+                  const Icon(Icons.edit_rounded, color: Colors.white, size: 17),
                   const SizedBox(width: 9),
                   Text(
-                    'Write a post',
+                    AppStrings.writeAPost.tr,
                     style: TextStyle(
                       fontFamily: AppConstants.OpenSans,
                       fontSize: 14,

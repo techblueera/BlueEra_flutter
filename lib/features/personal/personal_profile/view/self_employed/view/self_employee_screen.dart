@@ -1,9 +1,11 @@
 ﻿import 'dart:io';
 import 'dart:ui';
+
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -12,24 +14,23 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/multipart_image_service.dart';
+import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/core/services/share_service.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
-import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/features/business/widgets/business_share_banner.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/view/add_symbol/add_symbol_screen.dart';
 import 'package:BlueEra/features/chat/view/business_chat/business_chat_list.dart';
 import 'package:BlueEra/features/common/Discover/view/go_live_permission_screen.dart';
-import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
 import 'package:BlueEra/features/common/reel/view/channel/follower_following_screen.dart';
 import 'package:BlueEra/features/common/rental/widget/rental_property_card_v2.dart';
+import 'package:BlueEra/features/common/statistics/view/business_statistics_screen.dart';
 import 'package:BlueEra/features/common/visiting_card/view/all_personal_visiting_cards.dart';
 import 'package:BlueEra/features/contribution/controller/contribution_controller.dart';
 import 'package:BlueEra/features/contribution/view/contribution_screen.dart';
-import 'package:BlueEra/features/common/statistics/view/business_statistics_screen.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/self_profession_service_screen.dart';
@@ -68,8 +69,7 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
 
   // Drives the inquiry list shown under the Order tab. Same controller
   // the Connect screen uses, so socket-driven updates land on both.
-  final ChatViewController _chatViewController =
-      getOrPut(() => ChatViewController());
+  final ChatViewController _chatViewController = getOrPut(() => ChatViewController());
 
   List<String> get _tabs => [
         AppStrings.order.tr,
@@ -92,8 +92,7 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
     );
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _viewCtrl.shopStatusOpenClose.value =
-          serviceProviderStatusGlobal.toUpperCase() ==
-              AppConstants.OPEN.toUpperCase();
+          serviceProviderStatusGlobal.toUpperCase() == AppConstants.OPEN.toUpperCase();
     });
   }
 
@@ -336,8 +335,7 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
               child: Container(
-                padding: EdgeInsets.symmetric(
-                    horizontal: SizeConfig.size10, vertical: SizeConfig.size6),
+                padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10, vertical: SizeConfig.size6),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(24),
@@ -350,9 +348,7 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     CustomText(AppStrings.goLive.tr,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.secondaryTextColor),
+                        fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.secondaryTextColor),
                     SizedBox(width: SizeConfig.size6),
                     if (isUpdating)
                       SizedBox(
@@ -360,8 +356,7 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
                         height: 16,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                              AppColors.primaryColor),
+                          valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryColor),
                         ),
                       )
                     else
@@ -373,23 +368,18 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
                           color: isOn ? AppColors.primaryColor : Colors.white,
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
-                            color: AppColors.secondaryTextColor
-                                .withValues(alpha: 0.4),
+                            color: AppColors.secondaryTextColor.withValues(alpha: 0.4),
                             width: 0.5,
                           ),
                         ),
                         child: AnimatedAlign(
                           duration: const Duration(milliseconds: 180),
-                          alignment: isOn
-                              ? Alignment.centerRight
-                              : Alignment.centerLeft,
+                          alignment: isOn ? Alignment.centerRight : Alignment.centerLeft,
                           child: Container(
                             height: 14,
                             width: 14,
                             decoration: BoxDecoration(
-                              color: isOn
-                                  ? Colors.white
-                                  : AppColors.secondaryTextColor,
+                              color: isOn ? Colors.white : AppColors.secondaryTextColor,
                               shape: BoxShape.circle,
                             ),
                           ),
@@ -471,8 +461,7 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
           builder: (context, constraints) {
             final tabWidth = constraints.maxWidth / _tabs.length;
             const indicatorWidth = 28.0;
-            final indicatorLeft =
-                tabWidth * _selectedTab + (tabWidth - indicatorWidth) / 2;
+            final indicatorLeft = tabWidth * _selectedTab + (tabWidth - indicatorWidth) / 2;
             return Stack(
               children: [
                 Row(
@@ -488,12 +477,9 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
                             curve: Curves.easeOutCubic,
                             style: TextStyle(
                               fontSize: 13,
-                              fontWeight:
-                                  selected ? FontWeight.w700 : FontWeight.w500,
+                              fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
                               letterSpacing: 0.2,
-                              color: selected
-                                  ? AppColors.primaryColor
-                                  : AppColors.mainTextColor,
+                              color: selected ? AppColors.primaryColor : AppColors.mainTextColor,
                             ),
                             child: Text(_tabs[i]),
                           ),
@@ -941,8 +927,7 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
           child: BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 100, sigmaY: 100),
             child: Container(
-              padding: EdgeInsets.symmetric(
-                  horizontal: SizeConfig.size14, vertical: SizeConfig.size12),
+              padding: EdgeInsets.symmetric(horizontal: SizeConfig.size14, vertical: SizeConfig.size12),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
                   begin: Alignment.centerLeft,
@@ -1060,10 +1045,8 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
             fontSize: 13, fontWeight: FontWeight.w700, color: Colors.white),
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primaryColor,
-          padding: EdgeInsets.symmetric(
-              horizontal: SizeConfig.size16, vertical: SizeConfig.size8),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          padding: EdgeInsets.symmetric(horizontal: SizeConfig.size16, vertical: SizeConfig.size8),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           elevation: 0,
         ),
       ),
@@ -1104,8 +1087,7 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
         backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: Padding(
-          padding: EdgeInsets.symmetric(
-              horizontal: SizeConfig.size16, vertical: SizeConfig.size16),
+          padding: EdgeInsets.symmetric(horizontal: SizeConfig.size16, vertical: SizeConfig.size16),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1125,26 +1107,18 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
                     _handlePostMenu(entries[i].type);
                   },
                   child: Padding(
-                    padding: EdgeInsets.symmetric(
-                        vertical: SizeConfig.size10,
-                        horizontal: SizeConfig.size4),
+                    padding: EdgeInsets.symmetric(vertical: SizeConfig.size10, horizontal: SizeConfig.size4),
                     child: Row(
                       children: [
-                        LocalAssets(
-                            imagePath: entries[i].iconAsset,
-                            height: 24,
-                            width: 24),
+                        LocalAssets(imagePath: entries[i].iconAsset, height: 24, width: 24),
                         SizedBox(width: SizeConfig.size12),
                         CustomText(entries[i].label,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.mainTextColor),
+                            fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.mainTextColor),
                       ],
                     ),
                   ),
                 ),
-                if (i != entries.length - 1)
-                  Divider(height: 1, color: Colors.grey.shade200),
+                if (i != entries.length - 1) Divider(height: 1, color: Colors.grey.shade200),
               ],
             ],
           ),
@@ -1364,8 +1338,7 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
             final hasUsername = username.isNotEmpty;
             final hasEmail = email.isNotEmpty;
             final hasContact = hasEmail;
-            final hasAnyIdentity =
-                hasDesignation || hasName || hasUsername || hasContact;
+            final hasAnyIdentity = hasDesignation || hasName || hasUsername || hasContact;
 
             // Build children dynamically so empty fields claim
             // zero vertical space â€” no placeholder rows, no
@@ -1458,8 +1431,7 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
                     _personalCtrl.imagePath?.value = image;
                     dynamic dataImage = await multiPartImage(imagePath: image);
                     var reqProfile = {ApiKeys.profile_image: dataImage};
-                    await _personalCtrl.updateUserProfileDetails(
-                        params: reqProfile, isFromProfileOnly: true);
+                    await _personalCtrl.updateUserProfileDetails(params: reqProfile, isFromProfileOnly: true);
                   },
                   dialogTitle: AppStrings.uploadProfilePicture,
                   showProfileBorder: false,
@@ -1477,8 +1449,7 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
   // card" cue without being noisy.
   Widget _memberSincePill() {
     return Obx(() {
-      final createdAt =
-          _viewCtrl.personalProfileDetails.value.user?.createdAt ?? '';
+      final createdAt = _viewCtrl.personalProfileDetails.value.user?.createdAt ?? '';
       if (createdAt.isEmpty) return const SizedBox.shrink();
       final since = _formatJoinedDate(createdAt);
       if (since.isEmpty) return const SizedBox.shrink();
@@ -1632,8 +1603,7 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
           ),
           child: Row(
             children: [
-              Icon(Icons.account_circle_outlined,
-                  size: 20, color: AppColors.primaryColor),
+              Icon(Icons.account_circle_outlined, size: 20, color: AppColors.primaryColor),
               SizedBox(width: SizeConfig.size10),
               Expanded(
                 child: Text(
@@ -1646,8 +1616,7 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
                   ),
                 ),
               ),
-              Icon(Icons.arrow_forward_rounded,
-                  size: 16, color: AppColors.primaryColor),
+              Icon(Icons.arrow_forward_rounded, size: 16, color: AppColors.primaryColor),
             ],
           ),
         ),
@@ -1791,16 +1760,13 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
           final posts = _viewCtrl.postsCount.value;
           return Row(
             children: [
-              Expanded(
-                  child: _statTile(
-                      label: AppStrings.posts.tr, value: '$posts')),
+              Expanded(child: _statTile(label: AppStrings.posts.tr, value: '$posts')),
               _statSeam(),
               Expanded(
                 child: _statTile(
                   label: AppStrings.followers.tr,
                   value: _formatCount(followers),
-                  onTap: () => Get.to(() =>
-                      FollowersFollowingPage(tabIndex: 1, userID: userId)),
+                  onTap: () => Get.to(() => FollowersFollowingPage(tabIndex: 1, userID: userId)),
                 ),
               ),
               _statSeam(),
@@ -1808,8 +1774,7 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
                 child: _statTile(
                   label: AppStrings.following.tr,
                   value: _formatCount(following),
-                  onTap: () => Get.to(() =>
-                      FollowersFollowingPage(tabIndex: 0, userID: userId)),
+                  onTap: () => Get.to(() => FollowersFollowingPage(tabIndex: 0, userID: userId)),
                 ),
               ),
             ],
@@ -1827,16 +1792,14 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
     final tile = Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
+        CustomText(
           value,
-          style: TextStyle(
-            fontFamily: AppConstants.OpenSans,
-            fontSize: 22,
-            fontWeight: FontWeight.w800,
-            color: AppColors.mainTextColor,
-            letterSpacing: -0.4,
-            height: 1.0,
-          ),
+          fontFamily: AppConstants.OpenSans,
+          fontSize: 22,
+          fontWeight: FontWeight.w800,
+          color: AppColors.mainTextColor,
+          letterSpacing: -0.4,
+          height: 1.0,
         ),
         const SizedBox(height: 6),
         Text(
@@ -1934,9 +1897,7 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
           ),
           boxShadow: [
             BoxShadow(
-              color: filled
-                  ? AppColors.primaryColor.withValues(alpha: 0.30)
-                  : const Color(0x14001120),
+              color: filled ? AppColors.primaryColor.withValues(alpha: 0.30) : const Color(0x14001120),
               blurRadius: filled ? 14 : 8,
               offset: const Offset(0, 4),
             ),
@@ -2004,10 +1965,9 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
       child: Obx(() {
         final user = _viewCtrl.personalProfileDetails.value.user;
         final name = _capitalizeFirst(user?.name ?? '');
-        final photo =
-            (_personalCtrl.imagePath?.value.trim().isNotEmpty ?? false)
-                ? _personalCtrl.imagePath?.value
-                : user?.profileImage;
+        final photo = (_personalCtrl.imagePath?.value.trim().isNotEmpty ?? false)
+            ? _personalCtrl.imagePath?.value
+            : user?.profileImage;
         final designation = user?.designation ?? '';
         return BusinessShareBanner(
           overrideName: name,
@@ -2032,8 +1992,7 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
     if (newPath == null || newPath.isEmpty) return;
     dynamic dataImage = await multiPartImage(imagePath: newPath);
     var reqProfile = {ApiKeys.coverpicture: dataImage};
-    await _personalCtrl.updateUserProfileDetails(
-        params: reqProfile, isFromProfileOnly: true);
+    await _personalCtrl.updateUserProfileDetails(params: reqProfile, isFromProfileOnly: true);
   }
 
   // ============================================================
