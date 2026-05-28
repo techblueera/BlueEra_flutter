@@ -74,11 +74,9 @@ Future<double?> getDistanceInKm(double targetLat, double targetLng) async {
 class ViewBusinessDetailsController extends GetxController {
   ApiResponse viewBusinessResponse = ApiResponse.initial('Initial');
   ApiResponse viewBusinessResponseNew = ApiResponse.initial('Initial');
-  Rx<ApiResponse> postsResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> businessProductResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> businessServiceResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> businessFoodResponse = ApiResponse.initial('Initial').obs;
-  Rx<ApiResponse> businessRatingsResponse = ApiResponse.initial('Initial').obs;
 
   final Rx<ViewBusinessProfileModel?> businessProfileDetails =
       Rx<ViewBusinessProfileModel?>(null);
@@ -599,7 +597,6 @@ class ViewBusinessDetailsController extends GetxController {
       ResponseModel responseModel = await BusinessProfileRepo()
           .getBusinessRatings(businessId: businessId, queryParams: queryParams);
       if (responseModel.isSuccess) {
-        businessRatingsResponse.value = ApiResponse.complete(responseModel);
 
         BusinessRatingsModel businessRatingsModel =
             BusinessRatingsModel.fromJson(responseModel.response?.data);
@@ -618,10 +615,8 @@ class ViewBusinessDetailsController extends GetxController {
         commonSnackBar(
             message: responseModel.message ?? AppStrings.somethingWentWrong);
         businessRatingsHasMore = false;
-        businessRatingsResponse.value = ApiResponse.error('error');
       }
     } catch (e) {
-      businessRatingsResponse.value = ApiResponse.error('error');
     } finally {
       if (isLoadMore) {
         isBusinessRatingsLoadingMore.value = false;
