@@ -367,9 +367,9 @@ class FeedController extends GetxController {
         break;
       case PostType.myPosts:
         response = await FeedRepo().getAllMyPosts(queryParams: queryParams);
-        final upgraded = IndividualUserResponseModel.fromJson(response.response?.data ?? {});
-        await SharedPreferenceUtils.setSecureValue(SharedPreferenceUtils.authToken, upgraded.token);
-        await getUserAuthToken();
+        // final upgraded = IndividualUserResponseModel.fromJson(response.response?.data ?? {});
+        // // await SharedPreferenceUtils.setSecureValue(SharedPreferenceUtils.authToken, upgraded.token);
+        // // await getUserAuthToken();
         break;
       case PostType.otherPosts:
         if (id != null) queryParams[ApiKeys.authorId] = id;

@@ -106,35 +106,4 @@ class BusinessProfileFullController extends GetxController {
     }
   }
 
-  Future<void> createOtherProfileController(
-      {required Map<String, dynamic> reqParm}) async {
-    try {
-      ResponseModel response =
-          await _repo.createOtherBusinessProfileRepo(reqBODY: reqParm);
-      if (response.isSuccess) {
-        commonSnackBar(message: AppStrings.otherServiceCreatedSuccess.tr);
-        createSchoolResponse.value =
-            ApiResponse.complete(response.response?.data);
-        otherServiceIDGlobal = response.response?.data['data']['_id'];
-
-        if (otherServiceIDGlobal.isNotEmpty) {
-          await setOtherServiceID(otherServiceIDGlobal);
-        } else {
-          await setOtherServiceID("");
-        }
-        await getOtherServiceID();
-        hasProfile.value = otherServiceIDGlobal.isNotEmpty;
-        await getBusinessProfileFull();
-        await Future.delayed(Duration(milliseconds: 500));
-      } else {
-        commonSnackBar(message: AppStrings.somethingWentWrong);
-        createSchoolResponse.value =
-            ApiResponse.error(AppStrings.somethingWentWrong);
-      }
-    } on Exception {
-      // TODO
-      createSchoolResponse.value =
-          ApiResponse.error(AppStrings.somethingWentWrong);
-    }
-  }
 }
