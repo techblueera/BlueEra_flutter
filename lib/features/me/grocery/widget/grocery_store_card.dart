@@ -684,8 +684,10 @@ class GroceryStoreCard extends StatelessWidget {
       destinationLat: store.businessLocation?.lat?.toDouble() ?? 0.0,
       destinationLng: store.businessLocation?.lon?.toDouble() ?? 0.0,
       livePhotos: store.livePhotos,
-      storeBusinessID: store.id ?? "",
-      storeUserID: store.userId ?? "",
+      visitCallback: ()=>  Get.toNamed(RouteHelper.getVisitGroceryStoreScreenRoute(), arguments: {
+        ApiKeys.userId: store.userId ?? "",
+        ApiKeys.businessId: store.id ?? "",
+      })
     );
   }
 }

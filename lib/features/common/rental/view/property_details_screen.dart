@@ -10,6 +10,7 @@ import 'package:BlueEra/features/common/rental/repo/property_repo.dart';
 import 'package:BlueEra/features/common/rental/widget/rental_form_widgets.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -99,8 +100,12 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.chat_bubble_outline,
-                          size: 20, color: Colors.white),
+                      LocalAssets(
+                        imagePath: AppIconAssets.chat,
+                        height: 18.0,
+                        width: 18.0,
+                        imgColor: AppColors.primaryColor,
+                      ),
                       const SizedBox(width: 8),
                       CustomText(
                         'Chat with Owner',

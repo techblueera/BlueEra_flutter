@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -151,34 +153,51 @@ class _OtherHomeScreenV2State extends State<OtherHomeScreenV2> {
 
   Widget _buildTopBar() {
     final topInset = MediaQuery.of(context).padding.top;
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.fromLTRB(
-        SizeConfig.size12,
-        topInset + SizeConfig.size8,
-        SizeConfig.size12,
-        SizeConfig.size10,
-      ),
+    return DecoratedBox(
       decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Color(0xFF1E88FF), Color(0xFF0040A0)],
-        ),
-      ),
-      child: Row(
-        children: [
-          _circleIconButton(icon: Icons.menu, onTap: _openDrawer),
-          SizedBox(width: SizeConfig.size6),
-          // Pills wrapped in Flexible so their inner text can ellipsize
-          // instead of pushing the row past its width.
-          Flexible(child: const ReferEarnPill()),
-          const Spacer(),
-          _circleIconButton(
-              icon: Icons.notifications_none, onTap: _openNotifications),
-          SizedBox(width: SizeConfig.size6),
-          _goLivePill(),
+        boxShadow: [
+          BoxShadow(
+            color: Color(0x42001120),
+            blurRadius: 16,
+            offset: Offset(0, 0),
+            blurStyle: BlurStyle.outer,
+          ),
         ],
+      ),
+      child: ClipRect(
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 50, sigmaY: 50),
+          child: Container(
+            width: double.infinity,
+            padding: EdgeInsets.fromLTRB(
+              SizeConfig.size12,
+              topInset + SizeConfig.size8,
+              SizeConfig.size12,
+              SizeConfig.size10,
+            ),
+            decoration: BoxDecoration(
+              color: const Color(0x33FFFFFF),
+              border: Border.all(
+                color: Colors.white,
+                width: 1.0,
+              ),
+            ),
+            child: Row(
+              children: [
+                _circleIconButton(icon: Icons.menu, onTap: _openDrawer),
+                SizedBox(width: SizeConfig.size6),
+                // Pills wrapped in Flexible so their inner text can ellipsize
+                // instead of pushing the row past its width.
+                Flexible(child: const ReferEarnPill()),
+                const Spacer(),
+                _circleIconButton(
+                    icon: Icons.notifications_none, onTap: _openNotifications),
+                SizedBox(width: SizeConfig.size6),
+                _goLivePill(),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -209,13 +228,35 @@ class _OtherHomeScreenV2State extends State<OtherHomeScreenV2> {
       onTap: onTap,
       customBorder: const CircleBorder(),
       child: Container(
-        height: SizeConfig.size36,
-        width: SizeConfig.size36,
         decoration: const BoxDecoration(
-          color: Colors.white,
           shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: Color(0x1A000000),
+              blurRadius: 3,
+              offset: Offset(0, -1),
+            ),
+          ],
         ),
-        child: Icon(icon, size: 20, color: AppColors.mainTextColor),
+        child: ClipPath(
+          clipper: const ShapeBorderClipper(shape: CircleBorder()),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+            child: Container(
+              height: SizeConfig.size36,
+              width: SizeConfig.size36,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white,
+                border: Border.all(
+                  color: const Color(0xFFC9CDD5),
+                  width: 1,
+                ),
+              ),
+              child: Icon(icon, size: 20, color: AppColors.secondaryTextColor),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -224,47 +265,74 @@ class _OtherHomeScreenV2State extends State<OtherHomeScreenV2> {
     return GestureDetector(
       onTap: () => setState(() => _isGoLive = !_isGoLive),
       child: Container(
-        padding: EdgeInsets.symmetric(
-          horizontal: SizeConfig.size10,
-          vertical: SizeConfig.size6,
-        ),
         decoration: BoxDecoration(
-          color: Colors.white,
           borderRadius: BorderRadius.circular(24),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            CustomText('Go live',
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: AppColors.mainTextColor),
-            SizedBox(width: SizeConfig.size6),
-            Container(
-              width: 30,
-              height: 18,
-              padding: const EdgeInsets.all(2),
-              decoration: BoxDecoration(
-                color:
-                    _isGoLive ? AppColors.primaryColor : Colors.grey.shade400,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: AnimatedAlign(
-                duration: const Duration(milliseconds: 180),
-                alignment: _isGoLive
-                    ? Alignment.centerRight
-                    : Alignment.centerLeft,
-                child: Container(
-                  height: 14,
-                  width: 14,
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              ),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x1A000000),
+              blurRadius: 3,
+              offset: Offset(0, -1),
             ),
           ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(24),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+            child: Container(
+              padding: EdgeInsets.symmetric(
+                  horizontal: SizeConfig.size10, vertical: SizeConfig.size6),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(
+                  color: const Color(0xFFC9CDD5),
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CustomText('Go live',
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.secondaryTextColor),
+                  SizedBox(width: SizeConfig.size6),
+                  Container(
+                    width: 30,
+                    height: 18,
+                    padding: const EdgeInsets.all(2),
+                    decoration: BoxDecoration(
+                      color: _isGoLive
+                          ? AppColors.primaryColor
+                          : Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: AppColors.secondaryTextColor
+                            .withValues(alpha: 0.4),
+                        width: 0.5,
+                      ),
+                    ),
+                    child: AnimatedAlign(
+                      duration: const Duration(milliseconds: 180),
+                      alignment: _isGoLive
+                          ? Alignment.centerRight
+                          : Alignment.centerLeft,
+                      child: Container(
+                        height: 14,
+                        width: 14,
+                        decoration: BoxDecoration(
+                            color: _isGoLive
+                                ? Colors.white
+                                : AppColors.secondaryTextColor,
+                            shape: BoxShape.circle),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );
@@ -274,49 +342,82 @@ class _OtherHomeScreenV2State extends State<OtherHomeScreenV2> {
 
   Widget _buildTabsCard() {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
+      padding: const EdgeInsets.symmetric(horizontal: 14),
       child: Container(
-        // padding: EdgeInsets.symmetric(
-        //   horizontal: SizeConfig.size8,
-        //   vertical: SizeConfig.size8,
-        // ),
-        //
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: List.generate(_tabs.length, (i) {
-              final selected = i == _selectedTab;
-              return Padding(
-                padding: EdgeInsets.symmetric(horizontal: SizeConfig.size4),
-                child: GestureDetector(
-                  onTap: () => setState(() => _selectedTab = i),
-                  child: Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: SizeConfig.size16,
-                      vertical: SizeConfig.size6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: selected ? AppColors.primaryColor : Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: selected
-                            ? AppColors.primaryColor
-                            : Colors.grey.shade300,
+        height: 48,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: const Color(0xFFE6E8EE), width: 1),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x1A001120),
+              blurRadius: 16,
+              offset: Offset(0, 6),
+            ),
+          ],
+        ),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final tabWidth = constraints.maxWidth / _tabs.length;
+            const indicatorWidth = 28.0;
+            final indicatorLeft =
+                tabWidth * _selectedTab + (tabWidth - indicatorWidth) / 2;
+            return Stack(
+              children: [
+                Row(
+                  children: List.generate(_tabs.length, (i) {
+                    final selected = _selectedTab == i;
+                    return Expanded(
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () => setState(() => _selectedTab = i),
+                        child: Center(
+                          child: AnimatedDefaultTextStyle(
+                            duration: const Duration(milliseconds: 220),
+                            curve: Curves.easeOutCubic,
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: selected
+                                  ? FontWeight.w700
+                                  : FontWeight.w500,
+                              letterSpacing: 0.2,
+                              color: selected
+                                  ? AppColors.primaryColor
+                                  : AppColors.mainTextColor,
+                            ),
+                            child: Text(_tabs[i]),
+                          ),
+                        ),
                       ),
-                    ),
-                    alignment: Alignment.center,
-                    child: CustomText(
-                      _tabs[i],
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color:
-                          selected ? Colors.white : AppColors.mainTextColor,
+                    );
+                  }),
+                ),
+                AnimatedPositioned(
+                  duration: const Duration(milliseconds: 280),
+                  curve: Curves.easeOutCubic,
+                  left: indicatorLeft,
+                  bottom: 6,
+                  child: Container(
+                    width: indicatorWidth,
+                    height: 3,
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryColor,
+                      borderRadius: BorderRadius.circular(3),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primaryColor
+                              .withValues(alpha: 0.4),
+                          blurRadius: 6,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
                   ),
                 ),
-              );
-            }),
-          ),
+              ],
+            );
+          },
         ),
       ),
     );

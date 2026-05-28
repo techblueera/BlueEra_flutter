@@ -19,6 +19,14 @@ class PropertyDiscoverCategory {
   });
 }
 
+/// One applied filter, rendered as a removable chip in the filter strip.
+/// [key] is the stable id passed back to [PropertyDiscoverController.removeFilter].
+class AppliedFilter {
+  final String key;
+  final String label;
+  const AppliedFilter({required this.key, required this.label});
+}
+
 class PropertyDiscoverController extends GetxController {
   final PropertyRepo _repo = PropertyRepo();
 
@@ -145,6 +153,110 @@ class PropertyDiscoverController extends GetxController {
   }
 
   bool get hasActiveFilters => activeFilterCount > 0;
+
+  /// Active filters as displayable chips. Price min/max collapse into a
+  /// single "5000 - 50000" entry so the strip stays compact.
+  List<AppliedFilter> get activeFilters {
+    final list = <AppliedFilter>[];
+    if (city.value.isNotEmpty) {
+      list.add(AppliedFilter(key: 'city', label: city.value));
+    }
+    if (minPrice.value.isNotEmpty || maxPrice.value.isNotEmpty) {
+      final min = minPrice.value;
+      final max = maxPrice.value;
+      final String range;
+      if (min.isNotEmpty && max.isNotEmpty) {
+        range = '₹$min - ₹$max';
+      } else if (min.isNotEmpty) {
+        range = 'Min ₹$min';
+      } else {
+        range = 'Max ₹$max';
+      }
+      list.add(AppliedFilter(key: 'price', label: range));
+    }
+    if (filterBhk.value.isNotEmpty) {
+      list.add(AppliedFilter(key: 'bhk', label: '${filterBhk.value} BHK'));
+    }
+    if (filterBathrooms.value.isNotEmpty) {
+      list.add(AppliedFilter(
+          key: 'bathrooms', label: '${filterBathrooms.value} Bath'));
+    }
+    if (filterFacing.value.isNotEmpty) {
+      list.add(AppliedFilter(key: 'facing', label: filterFacing.value));
+    }
+    if (filterCarParking.value.isNotEmpty) {
+      list.add(AppliedFilter(
+          key: 'carParking', label: '${filterCarParking.value} Parking'));
+    }
+    if (filterFurnishing.value.isNotEmpty) {
+      list.add(
+          AppliedFilter(key: 'furnishing', label: filterFurnishing.value));
+    }
+    if (filterSubType.value.isNotEmpty) {
+      list.add(AppliedFilter(key: 'subType', label: filterSubType.value));
+    }
+    if (filterMealsIncluded.value.isNotEmpty) {
+      list.add(AppliedFilter(
+          key: 'mealsIncluded',
+          label: filterMealsIncluded.value == 'Yes Included'
+              ? 'Meals Included'
+              : 'No Meals'));
+    }
+    if (filterProjectStatus.value.isNotEmpty) {
+      list.add(AppliedFilter(
+          key: 'projectStatus', label: filterProjectStatus.value));
+    }
+    if (filterTypeOfProperty.value.isNotEmpty) {
+      list.add(AppliedFilter(
+          key: 'typeOfProperty', label: filterTypeOfProperty.value));
+    }
+    return list;
+  }
+
+  /// Removes the filter identified by [key] (as returned in
+  /// [activeFilters]) and refetches. Unknown keys are a no-op so the
+  /// caller doesn't have to defensive-check.
+  void removeFilter(String key) {
+    switch (key) {
+      case 'city':
+        city.value = '';
+        break;
+      case 'price':
+        minPrice.value = '';
+        maxPrice.value = '';
+        break;
+      case 'bhk':
+        filterBhk.value = '';
+        break;
+      case 'bathrooms':
+        filterBathrooms.value = '';
+        break;
+      case 'facing':
+        filterFacing.value = '';
+        break;
+      case 'carParking':
+        filterCarParking.value = '';
+        break;
+      case 'furnishing':
+        filterFurnishing.value = '';
+        break;
+      case 'subType':
+        filterSubType.value = '';
+        break;
+      case 'mealsIncluded':
+        filterMealsIncluded.value = '';
+        break;
+      case 'projectStatus':
+        filterProjectStatus.value = '';
+        break;
+      case 'typeOfProperty':
+        filterTypeOfProperty.value = '';
+        break;
+      default:
+        return;
+    }
+    _resetAndFetch();
+  }
 
   void _resetAndFetch() {
     _page = 1;

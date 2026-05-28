@@ -910,7 +910,6 @@ const String ECONOMIC_STAYS = "ECONOMIC";
 // const String ECONOMIC_STAYS = "ECONOMIC_STAYS";
 const String HOSTELS_PAYING_GUEST = "PAYING";
 // const String HOSTELS_PAYING_GUEST = "HOSTELS_PAYING_GUEST";
-const String ALTERNATIVE_STAYS = "ALTERNATIVE";
 // const String ALTERNATIVE_STAYS = "ALTERNATIVE_STAYS";
 // const String FUNCTIONS_VACATION = "FUNCTIONS_VACATION";
 const String FUNCTIONS_VACATION = "FUNCTIONS";
@@ -2371,15 +2370,6 @@ final List<OnboardingCategoryModel> homeServicesCategories = [
   // ),
 ];
 
-
-final List<CollapsibleGridModel> rentalServiceCategories = [
-  CollapsibleGridModel(
-      name: 'Hotel', slugId: Flat_ROOM, icon: AppImageAssets.hotelStay),
-  CollapsibleGridModel(
-      name: 'Homestay', slugId: HOME_STAY, icon: AppImageAssets.homeStay),
-  CollapsibleGridModel(name: 'Cabs', slugId: VEHICLE, icon: AppImageAssets.cab),
-];
-
 final List<CollapsibleGridModel> homeMadeProductsCategories = [
   CollapsibleGridModel(
     name: 'Handicrafts',
@@ -2431,28 +2421,6 @@ final discoverShownStayCategories = [
   // AppConstants.vehicle
 ];
 
-final List<OnboardingCategoryModel> stayHomeItemsCategories = [
-
-  OnboardingCategoryModel(
-      name: 'House On Rent',
-      slugId: AppConstants.flat,
-      icon: AppImageAssets.houseOnRent,
-      accountType: AppConstants.individual
-  ),
-  OnboardingCategoryModel(
-      name: 'Vehicle Rent',
-      slugId: AppConstants.vehicle,
-      icon: AppImageAssets.transportVehicle,
-      accountType: AppConstants.individual
-  ),
-  OnboardingCategoryModel(
-      name: 'Other Rental',
-      slugId: AppConstants.property,
-      icon: AppImageAssets.homeStay,
-      accountType: AppConstants.individual
-  ),
-];
-
 class PropertyTileData {
   final String image;
   final String label;
@@ -2470,14 +2438,14 @@ class PropertyTileData {
 }
 
 final List<PropertyTileData> propertyDiscoverTiles = [
-  PropertyTileData(image: AppImageAssets.propertyHouseSell, label: 'For Sell:\nHouses & Apartments', isSale: true, listingType: 'Sell', propertyType: 'HouseAndApartment'),
-  PropertyTileData(image: AppImageAssets.propertyHouseRent, label: 'For Rent:\nHouses & Apartments', isSale: false, listingType: 'Rent', propertyType: 'HouseAndApartment'),
-  PropertyTileData(image: AppImageAssets.propertyNewProjectSell, label: 'For Sell:\nNew Projects & Properties', isSale: true, listingType: 'Sell', propertyType: 'NewProjectsAndProperties'),
-  PropertyTileData(image: AppImageAssets.propertyLandPlotSell, label: 'Lands & Plots\nFor Sell', isSale: true, listingType: 'Sell', propertyType: 'LandAndPlots'),
-  PropertyTileData(image: AppImageAssets.propertyShopOfficeRent, label: 'For Rent:\nShops & Offices', isSale: false, listingType: 'Rent', propertyType: 'ShopAndOffices'),
-  PropertyTileData(image: AppImageAssets.propertyShopOfficeSell, label: 'For Sell:\nShops & Offices', isSale: true, listingType: 'Sell', propertyType: 'ShopAndOffices'),
-  PropertyTileData(image: AppImageAssets.propertyLandPlotSell, label: 'For Rent:\nLands & Plots', isSale: false, listingType: 'Rent', propertyType: 'LandAndPlots'),
-  PropertyTileData(image: AppImageAssets.propertyHouseRent, label: 'For Rent:\nPG & Guest House', isSale: false, listingType: 'Rent', propertyType: 'PGAndGuestHouse'),
+  PropertyTileData(image: AppImageAssets.propertyHouseSell, label: 'Houses & Apartments', isSale: true, listingType: 'Sell', propertyType: 'HouseAndApartment'),
+  PropertyTileData(image: AppImageAssets.propertyHouseRent, label: 'Houses & Apartments', isSale: false, listingType: 'Rent', propertyType: 'HouseAndApartment'),
+  PropertyTileData(image: AppImageAssets.propertyNewProjectSell, label: 'New Projects & Properties', isSale: true, listingType: 'Sell', propertyType: 'NewProjectsAndProperties'),
+  PropertyTileData(image: AppImageAssets.propertyLandPlotSell, label: 'Lands & Plots', isSale: true, listingType: 'Sell', propertyType: 'LandAndPlots'),
+  PropertyTileData(image: AppImageAssets.propertyShopOfficeRent, label: 'Shops & Offices', isSale: false, listingType: 'Rent', propertyType: 'ShopAndOffices'),
+  PropertyTileData(image: AppImageAssets.propertyShopOfficeSell, label: 'Shops & Offices', isSale: true, listingType: 'Sell', propertyType: 'ShopAndOffices'),
+  PropertyTileData(image: AppImageAssets.propertyLandPlotRent, label: 'Lands & Plots', isSale: false, listingType: 'Rent', propertyType: 'LandAndPlots'),
+  PropertyTileData(image: AppImageAssets.propertyPgRent, label: 'PG & Guest House', isSale: false, listingType: 'Rent', propertyType: 'PGAndGuestHouse'),
 ];
 
 final List<OnboardingCategoryModel> stayItemsCategories = [
@@ -2495,7 +2463,6 @@ final List<OnboardingCategoryModel> stayItemsCategories = [
       icon: AppImageAssets.economyStay,
       colorCode: Color(0xFFE6FAF3),
       subtitle: "Cozy & local",
-
       accountType: AppConstants.business),
   OnboardingCategoryModel(
       name: 'Hostels & PG',
@@ -2503,7 +2470,6 @@ final List<OnboardingCategoryModel> stayItemsCategories = [
       icon: AppImageAssets.hostelsAndPG,
       colorCode: Color(0xFFFFE8E8),
       subtitle: "Long term stay",
-
       accountType: AppConstants.business),
   OnboardingCategoryModel(
       name: 'Functions & Vacation',
@@ -2511,7 +2477,6 @@ final List<OnboardingCategoryModel> stayItemsCategories = [
       icon: AppImageAssets.functionsVacation,
       colorCode: Color(0xFFFFF2E3),
       subtitle: "Function Hall",
-
       accountType: AppConstants.business),
   // OnboardingCategoryModel(
   //     name: 'Alternative Stays',
@@ -2542,7 +2507,6 @@ final List<OnboardingCategoryModel> stayItemsCategories = [
       accountType: AppConstants.individual
   ),*/
 ];
-
 
 final List<CollapsibleGridModel> transportItemsCategories = [
   CollapsibleGridModel(
@@ -2666,8 +2630,6 @@ final List<CollapsibleGridModel> bookingList = [
       slugId: HOTEL_HOME_STAY,
       icon: AppImageAssets.hotelAndHomeStay),
 ];
-
-
 
 // final List<OnboardingCategoryModel> groceriesCategories = [
 //   OnboardingCategoryModel(

@@ -1,5 +1,5 @@
+import 'dart:io';
 import 'dart:ui';
-
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
@@ -13,6 +13,8 @@ import 'package:croppy/croppy.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+const int _maxPhotos = 4;
+
 final _slotConfigs = [
   {'label': 'Storefront / Exterior\n(Roadside)', 'image': AppImageAssets.storefrontExterior},
   {'label': 'Interior / Inside\nthe Shop', 'image': AppImageAssets.interiorInsideShop},
@@ -24,11 +26,35 @@ void showBusinessLivePhotoBottomSheetIfNeeded({
   required BuildContext context,
   required ViewBusinessDetailsController controller,
 }) {
-  final livePhotos = controller.businessProfileDetails.value?.data?.livePhotos;
-  final hasPhotos = livePhotos != null && livePhotos.any((p) => p.trim().isNotEmpty);
-  if (!hasPhotos) {
+  void evaluate() {
+    if (!context.mounted) return;
+    final livePhotos = controller.businessProfileDetails.value?.data?.livePhotos;
+    final hasAnyPhoto = livePhotos != null && livePhotos.any((p) => p.trim().isNotEmpty);
+    // Skip if any photo exists, OR if a sheet is already on screen
+    // (the four admin screens all call this in postFrame, so a re-mount
+    // shouldn't stack a second sheet on top of the open one).
+    if (hasAnyPhoto || ModalRoute.of(context)?.isCurrent == false) return;
     _showLivePhotoBottomSheet(context: context, controller: controller);
   }
+
+  // Profile already in memory — decide immediately.
+  if (controller.businessProfileDetails.value != null) {
+    evaluate();
+    return;
+  }
+
+  // Profile still loading. The four admin screens call this from
+  // postFrame in initState, before the permanent controller has
+  // finished its first fetch. Treating null as "zero photos" would pop
+  // the sheet for users who already have photos on the server — so wait
+  // for the first non-null snapshot, then evaluate once.
+  late final Worker worker;
+  worker = ever(controller.businessProfileDetails, (val) {
+    if (val != null) {
+      worker.dispose();
+      evaluate();
+    }
+  });
 }
 
 void _showLivePhotoBottomSheet({
@@ -42,9 +68,7 @@ void _showLivePhotoBottomSheet({
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
     ),
-    builder: (ctx) {
-      return _LivePhotoBottomSheetContent(controller: controller);
-    },
+    builder: (_) => _LivePhotoBottomSheetContent(controller: controller),
   );
 }
 
@@ -123,33 +147,40 @@ class _LivePhotoBottomSheetContent extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          GetBuilder<ViewBusinessDetailsController>(
-            id: 'livePhotos',
-            builder: (_) {
-              final photos = controller.businessProfileDetails.value?.data?.livePhotos ?? [];
-              return GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: _slotConfigs.length,
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2, crossAxisSpacing: 10,
-                  mainAxisSpacing: 10, childAspectRatio: 1.1,
-                ),
-                itemBuilder: (context, index) {
-                  final config = _slotConfigs[index];
-                  final hasPhoto = index < photos.length && photos[index].trim().isNotEmpty;
-                  final photoUrl = hasPhoto ? photos[index] : null;
-                  return _LivePhotoSlot(
-                    index: index,
-                    label: config['label']!,
-                    placeholderImage: config['image']!,
-                    photoUrl: photoUrl,
-                    controller: controller,
-                  );
-                },
-              );
-            },
-          ),
+          Obx(() {
+            // Subscribe to both sources of truth — getLivePhotoAt reads
+            // both, but touching them here ensures Obx rebuilds even
+            // when GridView itemBuilder is lazy.
+            controller.businessProfileDetails.value;
+            controller.localUploadingPhotos.length;
+
+            return GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: _maxPhotos,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2, crossAxisSpacing: 10,
+                mainAxisSpacing: 10, childAspectRatio: 1.1,
+              ),
+              itemBuilder: (ctx, index) {
+                final config = _slotConfigs[index];
+                final serverPhotos =
+                    controller.businessProfileDetails.value?.data?.livePhotos ?? [];
+                final serverUrl = (index < serverPhotos.length &&
+                        serverPhotos[index].trim().isNotEmpty)
+                    ? serverPhotos[index]
+                    : null;
+                return _LivePhotoSlot(
+                  index: index,
+                  label: config['label']!,
+                  placeholderImage: config['image']!,
+                  serverUrl: serverUrl,
+                  localPath: controller.localUploadingPhotos[index],
+                  controller: controller,
+                );
+              },
+            );
+          }),
         ],
       ),
     );
@@ -160,20 +191,24 @@ class _LivePhotoSlot extends StatelessWidget {
   final int index;
   final String label;
   final String placeholderImage;
-  final String? photoUrl;
+  final String? serverUrl;
+  final String? localPath;
   final ViewBusinessDetailsController controller;
 
   const _LivePhotoSlot({
     required this.index,
     required this.label,
     required this.placeholderImage,
-    required this.photoUrl,
+    required this.serverUrl,
+    required this.localPath,
     required this.controller,
   });
 
   @override
   Widget build(BuildContext context) {
-    final hasPhoto = photoUrl != null;
+    final hasServer = serverUrl != null;
+    final hasLocal = localPath != null;
+    final hasPhoto = hasServer || hasLocal;
 
     return GestureDetector(
       onTap: hasPhoto ? null : () => _handleUpload(context),
@@ -182,15 +217,7 @@ class _LivePhotoSlot extends StatelessWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            if (hasPhoto)
-              CachedNetworkImage(
-                imageUrl: photoUrl!,
-                fit: BoxFit.cover,
-                placeholder: (_, __) => Container(color: Colors.grey.shade200),
-                errorWidget: (_, __, ___) => _buildPlaceholder(),
-              )
-            else
-              _buildPlaceholder(),
+            _buildImageLayer(),
 
             if (!hasPhoto)
               Center(
@@ -234,11 +261,13 @@ class _LivePhotoSlot extends StatelessWidget {
               ),
             ),
 
-            if (hasPhoto)
+            // Delete is only available once the server has confirmed the
+            // photo and we have a URL to send to the delete endpoint.
+            if (hasServer)
               Positioned(
                 top: 6, right: 6,
                 child: GestureDetector(
-                  onTap: () => _handleDelete(),
+                  onTap: _handleDelete,
                   child: Container(
                     padding: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
@@ -261,6 +290,31 @@ class _LivePhotoSlot extends StatelessWidget {
     );
   }
 
+  Widget _buildImageLayer() {
+    // When the server URL is available, render it via CachedNetworkImage
+    // but pass the local file as the placeholder/error fallback when we
+    // still have it. This eliminates the grey flash between the local
+    // preview and the network image finishing its download — the swap
+    // becomes seamless because the placeholder is the same image.
+    if (serverUrl != null) {
+      final Widget fallback = localPath != null
+          ? Image.file(File(localPath!), fit: BoxFit.cover)
+          : Container(color: Colors.grey.shade200);
+      return CachedNetworkImage(
+        imageUrl: serverUrl!,
+        fit: BoxFit.cover,
+        placeholder: (_, __) => fallback,
+        errorWidget: (_, __, ___) => localPath != null
+            ? Image.file(File(localPath!), fit: BoxFit.cover)
+            : _buildPlaceholder(),
+      );
+    }
+    if (localPath != null) {
+      return Image.file(File(localPath!), fit: BoxFit.cover);
+    }
+    return _buildPlaceholder();
+  }
+
   Widget _buildPlaceholder() {
     return Stack(
       fit: StackFit.expand,
@@ -280,22 +334,62 @@ class _LivePhotoSlot extends StatelessWidget {
 
   Future<void> _handleUpload(BuildContext context) async {
     final imgStr = await PhotoPickerService.pickFromCamera(
-      context, cropAspectRatio: CropAspectRatio(width: 3, height: 4),
+      context, cropAspectRatio: const CropAspectRatio(width: 3, height: 4),
     );
-    if (imgStr != null) {
-      AppLoader.show(message: 'Uploading photo...');
+    if (imgStr == null) return;
+
+    // 1. Show picked photo in the slot immediately.
+    controller.localUploadingPhotos[index] = imgStr;
+
+    // 2. If this pick fills the last empty slot, close the sheet — the
+    //    upload + refetch continues in the background and any other
+    //    Obx widget (e.g. CommonBusinessLivePhoto) will pick up the
+    //    new server URL automatically.
+    int filledSlots = 0;
+    for (int i = 0; i < _maxPhotos; i++) {
+      if (controller.getLivePhotoAt(i) != null) filledSlots++;
+    }
+    final shouldAutoClose = filledSlots >= _maxPhotos;
+
+    // 3. Fire upload + refetch. saveBusinessImages internally calls
+    //    viewBusinessProfile, so businessProfileDetails (Rx) is
+    //    refreshed and every Obx rebuilds with the server URL — which
+    //    is what the delete endpoint needs.
+    _runUpload(imgStr);
+
+    if (shouldAutoClose && context.mounted) {
+      Navigator.pop(context);
+    }
+  }
+
+  Future<void> _runUpload(String imgStr) async {
+    try {
       await controller.saveBusinessImages(imgStr, controller);
-      await controller.viewBusinessProfile();
-      controller.update(['livePhotos']);
-      AppLoader.hide();
+      // NOTE: do NOT remove localUploadingPhotos[index] here. The slot
+      // uses it as the placeholder for CachedNetworkImage during the
+      // download window — dropping it now would expose the grey
+      // placeholder and cause the flash the user saw. Local entry is
+      // cleared on delete (where it becomes obsolete) or rolled back
+      // on error below.
+    } catch (_) {
+      controller.localUploadingPhotos.remove(index);
+      Get.snackbar(
+        'Upload Failed',
+        'Could not save image.',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red.withValues(alpha: 0.9),
+        colorText: Colors.white,
+      );
     }
   }
 
   Future<void> _handleDelete() async {
     AppLoader.show(message: 'Removing photo...');
-    await controller.deleteLiveStoreImage({'image_url': photoUrl});
-    await controller.viewBusinessProfile();
-    controller.update(['livePhotos']);
-    AppLoader.hide();
+    try {
+      await controller.deleteLiveStoreImage({'image_url': serverUrl});
+    } finally {
+      controller.localUploadingPhotos.remove(index);
+      AppLoader.hide();
+    }
   }
 }

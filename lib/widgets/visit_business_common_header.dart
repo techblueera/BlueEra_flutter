@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
@@ -23,6 +24,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/core/services/share_service.dart';
+
+import '../core/api/apiService/api_keys.dart';
 
 /// A reusable business profile header card for visiting any business.
 ///
@@ -258,13 +261,8 @@ class _VisitBusinessCommonHeaderState extends State<VisitBusinessCommonHeader> {
                       context: context,
                       destinationName: details?.businessName ?? 'Business',
                       destinationAddress: details?.address ?? '',
-                      destinationLat:
-                          details?.businessLocation?.lat?.toDouble() ?? 0.0,
-                      destinationLng:
-                          details?.businessLocation?.lon?.toDouble() ?? 0.0,
-                        storeBusinessID:details?.id ?? "" ,
-                        storeUserID: details?.userId??""
-
+                      destinationLat: details?.businessLocation?.lat?.toDouble() ?? 0.0,
+                      destinationLng: details?.businessLocation?.lon?.toDouble() ?? 0.0,
                     ),
                     child: Container(
                       padding: const EdgeInsets.all(10),
