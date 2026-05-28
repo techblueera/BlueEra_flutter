@@ -9,6 +9,8 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../../core/constants/app_strings.dart';
+
 class TestimonialsSection extends StatelessWidget {
   final ReferralController controller;
 
@@ -63,7 +65,7 @@ class TestimonialsSection extends StatelessWidget {
           ),
           const SizedBox(width: 10),
           CustomText(
-            'Testimonials',
+            AppStrings.testimonials.tr,
             fontSize: SizeConfig.large,
             fontWeight: FontWeight.w700,
             color: AppColors.mainTextColor,
@@ -98,7 +100,7 @@ class TestimonialsSection extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   CustomText(
-                    'View All',
+                    AppStrings.viewAll.tr,
                     fontSize: SizeConfig.small,
                     fontWeight: FontWeight.w800,
                     color: AppColors.primaryColor,

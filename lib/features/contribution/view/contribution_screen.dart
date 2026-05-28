@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shimmer_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -23,7 +24,7 @@ class ContributionScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color(0xFFEEF8FF),
       appBar: CommonBackAppBar(
-        title: 'Contribution',
+        title: AppStrings.contributionTitle.tr,
         isLeading: true,
         showElevation: 0,
       ),
@@ -207,7 +208,7 @@ class _CurrentPlanView extends StatelessWidget {
         : <String, dynamic>{};
 
     final planName =
-        (plan['name'] ?? 'Active Contribution').toString();
+        (plan['name'] ?? AppStrings.activeContribution.tr).toString();
     final tier = (plan['tier'] ?? '').toString();
     final description = (plan['description'] ?? '').toString();
     final perksList = (plan['perks'] is List)
@@ -365,7 +366,7 @@ class _MembershipHeroCardState extends State<_MembershipHeroCard>
   @override
   Widget build(BuildContext context) {
     final tierLabel =
-        widget.tier.isNotEmpty ? widget.tier.toUpperCase() : 'MEMBER';
+        widget.tier.isNotEmpty ? widget.tier.toUpperCase() : AppStrings.memberLabel.tr;
     final amountWhole = widget.totalRupees.toStringAsFixed(0);
     final amountFrac = ((widget.totalRupees -
                 widget.totalRupees.truncateToDouble()) *
@@ -528,7 +529,7 @@ class _MembershipHeroCardState extends State<_MembershipHeroCard>
                                   size: 13, color: Color(0xFFFFD9B0)),
                               const SizedBox(width: 5),
                               CustomText(
-                                'MEMBER · $tierLabel',
+                                '${AppStrings.memberLabel.tr} · $tierLabel',
                                 fontSize: 10,
                                 fontWeight: FontWeight.w800,
                                 color: Colors.white,
@@ -553,7 +554,7 @@ class _MembershipHeroCardState extends State<_MembershipHeroCard>
                     ),
                     const SizedBox(height: 4),
                     CustomText(
-                      'Your contribution is live.',
+                      AppStrings.contributionLive.tr,
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
                       color: Colors.white.withValues(alpha: 0.78),
@@ -602,7 +603,7 @@ class _MembershipHeroCardState extends State<_MembershipHeroCard>
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
                               CustomText(
-                                'SINCE',
+                                AppStrings.sinceLabel.tr,
                                 fontSize: 9,
                                 fontWeight: FontWeight.w700,
                                 color: Colors.white.withValues(alpha: 0.6),
@@ -686,8 +687,8 @@ class _MembershipHeroCardState extends State<_MembershipHeroCard>
             },
           ),
           const SizedBox(width: 7),
-          const CustomText(
-            'ACTIVE',
+          CustomText(
+            AppStrings.activeStatusLabel.tr,
             fontSize: 10,
             fontWeight: FontWeight.w800,
             color: Colors.white,
@@ -851,7 +852,7 @@ class _PerksGaugeCardState extends State<_PerksGaugeCard>
                       ),
                       const SizedBox(width: 8),
                       CustomText(
-                        'PERKS REMAINING',
+                        AppStrings.perksRemainingCaps.tr,
                         fontSize: 10,
                         fontWeight: FontWeight.w800,
                         color: _textLow,
@@ -927,7 +928,7 @@ class _PerksGaugeCardState extends State<_PerksGaugeCard>
                                   TextSpan(
                                     text: widget.perkType.isNotEmpty
                                         ? widget.perkType
-                                        : 'perks',
+                                        : AppStrings.perksLowercase.tr,
                                     style: const TextStyle(
                                       color: _goldLight,
                                       fontWeight: FontWeight.w800,
@@ -1064,14 +1065,14 @@ class _PerksGaugeCardState extends State<_PerksGaugeCard>
                   // Foot note — usage status (light text on dark).
                   if (widget.perksConsumed > 0)
                     CustomText(
-                      '${_formatLargeNumber(widget.perksConsumed)} ${widget.perkType.isNotEmpty ? widget.perkType : 'perks'} used so far',
+                      '${_formatLargeNumber(widget.perksConsumed)} ${widget.perkType.isNotEmpty ? widget.perkType : AppStrings.perksLowercase.tr} ${AppStrings.perksUsedSoFarSuffix.tr}',
                       fontSize: 11,
                       fontWeight: FontWeight.w500,
                       color: _textLow,
                     )
                   else
                     CustomText(
-                      'Full balance available — start earning today.',
+                      AppStrings.fullBalanceAvailable.tr,
                       fontSize: 11,
                       fontWeight: FontWeight.w500,
                       color: _textLow,
@@ -1179,7 +1180,7 @@ class _IncludedCardState extends State<_IncludedCard>
               ),
               const SizedBox(width: 8),
               CustomText(
-                "What's included",
+                AppStrings.whatsIncluded.tr,
                 fontSize: 14,
                 fontWeight: FontWeight.w800,
                 color: AppColors.mainTextColor,
@@ -1319,7 +1320,7 @@ class _ReceiptCardState extends State<_ReceiptCard> {
                   ),
                   const SizedBox(width: 10),
                   CustomText(
-                    'Receipt',
+                    AppStrings.receipt.tr,
                     fontSize: 14,
                     fontWeight: FontWeight.w800,
                     color: AppColors.mainTextColor,
@@ -1362,16 +1363,16 @@ class _ReceiptCardState extends State<_ReceiptCard> {
                         child: Column(
                           children: [
                             if (widget.paymentId.isNotEmpty)
-                              _row('Payment ID', widget.paymentId,
+                              _row(AppStrings.paymentIdLabel.tr, widget.paymentId,
                                   mono: true),
                             if (widget.orderId.isNotEmpty)
-                              _row('Order ID', widget.orderId, mono: true),
+                              _row(AppStrings.orderIdLabel.tr, widget.orderId, mono: true),
                             if (widget.createdAt.isNotEmpty)
-                              _row('Activated',
+                              _row(AppStrings.activatedLabel.tr,
                                   _formatDateLong(widget.createdAt)),
                             if (widget.updatedAt.isNotEmpty &&
                                 widget.updatedAt != widget.createdAt)
-                              _row('Last updated',
+                              _row(AppStrings.lastUpdatedLabel.tr,
                                   _formatDateLong(widget.updatedAt)),
                           ],
                         ),
@@ -1449,12 +1450,12 @@ class _TestModeBanner extends StatelessWidget {
           const Icon(Icons.science_outlined,
               size: 16, color: Color(0xFFB8860B)),
           SizedBox(width: SizeConfig.size8),
-          const Expanded(
+          Expanded(
             child: CustomText(
-              'Test Mode — payments will not charge real money.',
+              AppStrings.testModeBanner.tr,
               fontSize: 12,
               fontWeight: FontWeight.w700,
-              color: Color(0xFF8A6500),
+              color: const Color(0xFF8A6500),
             ),
           ),
         ],

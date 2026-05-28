@@ -35,8 +35,7 @@ class GenerateReferralSection extends StatefulWidget {
   });
 
   @override
-  State<GenerateReferralSection> createState() =>
-      _GenerateReferralSectionState();
+  State<GenerateReferralSection> createState() => _GenerateReferralSectionState();
 }
 
 class _GenerateReferralSectionState extends State<GenerateReferralSection> {
@@ -85,7 +84,7 @@ class _GenerateReferralSectionState extends State<GenerateReferralSection> {
                 ),
                 const SizedBox(width: 4),
                 CustomText(
-                  'Generate Your Referral Code',
+                  AppStrings.generateYourReferralCode.tr,
                   fontSize: SizeConfig.large,
                   color: AppColors.secondaryTextColor,
                   fontWeight: FontWeight.w400,
@@ -99,7 +98,7 @@ class _GenerateReferralSectionState extends State<GenerateReferralSection> {
               focusNode: c.referralFocusNode,
               isValidate: true,
               isCapitalize: true,
-              hintText: 'Enter Your Referral Code',
+              hintText: AppStrings.enterYourReferralCode.tr,
               inputLength: 10,
               inputFormatters: [
                 FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9]')),
@@ -112,8 +111,7 @@ class _GenerateReferralSectionState extends State<GenerateReferralSection> {
                 if (trimmed.length < 4 || trimmed.length > 10) {
                   return 'Referral code must be between 4 to 10 characters';
                 }
-                if (!RegExp(r'^(?=.*[A-Za-z])(?=.*\d)[A-Za-z0-9]+$')
-                    .hasMatch(trimmed)) {
+                if (!RegExp(r'^(?=.*[A-Za-z])(?=.*\d)[A-Za-z0-9]+$').hasMatch(trimmed)) {
                   return 'Code must contain both letters and numbers';
                 }
                 return null;
@@ -121,7 +119,7 @@ class _GenerateReferralSectionState extends State<GenerateReferralSection> {
             ),
             const SizedBox(height: 6),
             CustomText(
-              'Tip: Use 4-10 characters, mixing letters and numbers (e.g., SAVE50).',
+              AppStrings.referralTip.tr,
               fontSize: SizeConfig.small,
               color: Colors.grey.shade600,
             ),
@@ -169,7 +167,7 @@ class _GenerateReferralSectionState extends State<GenerateReferralSection> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           CustomText(
-            'Referral Suggestions',
+            AppStrings.referralSuggestions.tr,
             fontSize: SizeConfig.small,
             color: AppColors.mainTextColor,
             fontWeight: FontWeight.w600,
@@ -195,32 +193,24 @@ class _GenerateReferralSectionState extends State<GenerateReferralSection> {
             child: AnimatedBuilder(
               animation: c.referralCodeController,
               builder: (_, __) {
-                final current = c.referralCodeController.text
-                    .trim()
-                    .toUpperCase();
+                final current = c.referralCodeController.text.trim().toUpperCase();
                 return Wrap(
                   spacing: 10,
                   runSpacing: 10,
                   children: c.referralSuggestions.map((code) {
-                    final selected = current.isNotEmpty &&
-                        code.trim().toUpperCase() == current;
+                    final selected = current.isNotEmpty && code.trim().toUpperCase() == current;
                     return InkWell(
                       onTap: () => c.selectSuggestion(code),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 15, vertical: 8),
+                        padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
                         decoration: BoxDecoration(
-                          color: selected
-                              ? AppColors.primaryColor
-                              : AppColors.white,
+                          color: selected ? AppColors.primaryColor : AppColors.white,
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: CustomText(
                           code,
                           fontSize: SizeConfig.small,
-                          color: selected
-                              ? AppColors.white
-                              : AppColors.secondaryTextColor,
+                          color: selected ? AppColors.white : AppColors.secondaryTextColor,
                         ),
                       ),
                     );
@@ -244,9 +234,7 @@ class _GenerateReferralSectionState extends State<GenerateReferralSection> {
             height: 24,
             child: Checkbox(
               value: c.termsAccepted.value,
-              onChanged: widget.isEditable
-                  ? (v) => c.termsAccepted.value = v ?? false
-                  : null,
+              onChanged: widget.isEditable ? (v) => c.termsAccepted.value = v ?? false : null,
               activeColor: AppColors.primaryColor,
               checkColor: AppColors.white,
               side: const BorderSide(color: AppColors.greyLite),
@@ -265,9 +253,9 @@ class _GenerateReferralSectionState extends State<GenerateReferralSection> {
                   color: AppColors.secondaryTextColor,
                 ),
                 children: [
-                  const TextSpan(text: 'I Accept All '),
+                  TextSpan(text: '${AppStrings.iAcceptAll.tr} '),
                   TextSpan(
-                    text: 'Terms & Condition',
+                    text: AppStrings.termsAndCondition.tr,
                     style: TextStyle(
                       fontWeight: FontWeight.w700,
                       color: AppColors.primaryColor,
@@ -275,10 +263,8 @@ class _GenerateReferralSectionState extends State<GenerateReferralSection> {
                     ),
                     recognizer: _tncRecognizer,
                   ),
-                  const TextSpan(
-                    text:
-                        ' And I hereby authorize you to send notifications via '
-                        'SMS/RCS Messages/Promotional/informational Messages.',
+                  TextSpan(
+                    text: ' ${AppStrings.authorizationMessage.tr}',
                   ),
                 ],
               ),

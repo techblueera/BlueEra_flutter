@@ -1,10 +1,12 @@
 import 'dart:ui';
+
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/logout_helper.dart';
 import 'package:BlueEra/features/common/referral/view/referral_page.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/core/constants/logout_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
 import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/constants/app_constant.dart';
 import '../../../../core/constants/app_strings.dart';
@@ -14,6 +16,7 @@ import '../../../../core/constants/size_config.dart';
 import '../../../../core/language_localization_service/language_controller_new.dart';
 import '../../../../core/routes/route_helper.dart';
 import '../../../business/auth/controller/view_business_details_controller.dart';
+import '../../../contribution/view/contribution_screen.dart';
 import '../../../personal/auth/controller/view_personal_details_controller.dart';
 import '../../../personal/personal_profile/view/account_setting_screen/account_settings_screen.dart';
 import '../../../personal/personal_profile/view/app_tutorial/view/app_tutorial.dart';
@@ -23,7 +26,6 @@ import '../../../personal/personal_profile/view/manage_notification/notification
 import '../../../personal/personal_profile/view/payment/view/payment_setting_screen.dart';
 import '../../../personal/personal_profile/view/wallet/wallet_screen.dart';
 import '../../../personal/personal_profile/view/widget/changes_languages_screen.dart';
-import '../../../contribution/view/contribution_screen.dart';
 import '../../auth/controller/auth_controller.dart';
 import '../../connect/view/connect_main_page.dart';
 import '../view/saved_feed_screen.dart';
@@ -42,8 +44,7 @@ class ProfileMenuDrawer extends StatefulWidget {
 
 class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
   final viewProfileController = getOrPut(() => ViewPersonalDetailsController());
-  final viewBusinessProfileController =
-      getOrPut(() => ViewBusinessDetailsController(), permanent: true);
+  final viewBusinessProfileController = getOrPut(() => ViewBusinessDetailsController(), permanent: true);
 
   final lang = getOrPut(() => LanguageControllerNew());
 
@@ -87,9 +88,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
       );
     } else {
       return _capitalizeFirstLetter(
-        viewBusinessProfileController
-                .businessProfileDetails.value?.data?.businessName ??
-            '',
+        viewBusinessProfileController.businessProfileDetails.value?.data?.businessName ?? '',
       );
     }
   }
@@ -104,14 +103,10 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
 
   String userDesigination() {
     if (accountTypeGlobal != "BUSINESS") {
-      return viewProfileController
-              .personalProfileDetails.value.user?.designation ??
-          '';
+      return viewProfileController.personalProfileDetails.value.user?.designation ?? '';
     } else {
       return _capitalizeFirstLetter(
-        viewBusinessProfileController
-                .businessProfileDetails.value?.data?.categoryDetails?.name ??
-            '',
+        viewBusinessProfileController.businessProfileDetails.value?.data?.categoryDetails?.name ?? '',
       );
     }
   }
@@ -293,8 +288,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
                           ? Image.network(
                               image,
                               fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) =>
-                                  _avatarFallback(),
+                              errorBuilder: (_, __, ___) => _avatarFallback(),
                             )
                           : _avatarFallback(),
                     ),
@@ -306,8 +300,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 3),
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                           decoration: BoxDecoration(
                             color: Colors.white.withValues(alpha: 0.18),
                             borderRadius: BorderRadius.circular(12),
@@ -346,9 +339,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
                         ),
                         const SizedBox(height: 2),
                         CustomText(
-                          designation.isNotEmpty
-                              ? designation
-                              : 'Tap to view profile',
+                          designation.isNotEmpty ? designation : 'Tap to view profile',
                           fontSize: 11,
                           fontWeight: FontWeight.w500,
                           color: Colors.white.withValues(alpha: 0.78),
@@ -370,8 +361,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
   Widget _avatarFallback() {
     return Container(
       color: Colors.white,
-      child: const Icon(Icons.person_rounded,
-          size: 28, color: Color(0xFF5E2BA8)),
+      child: const Icon(Icons.person_rounded, size: 28, color: Color(0xFF5E2BA8)),
     );
   }
 
@@ -388,8 +378,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
           onTap: () => Get.to(() => WalletScreen()),
           borderRadius: BorderRadius.circular(14),
           child: Container(
-            padding: const EdgeInsets.symmetric(
-                horizontal: 14, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(14),
               gradient: LinearGradient(
@@ -429,8 +418,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color:
-                            AppColors.primaryColor.withValues(alpha: 0.32),
+                        color: AppColors.primaryColor.withValues(alpha: 0.32),
                         blurRadius: 10,
                         offset: const Offset(0, 2),
                       ),
@@ -521,7 +509,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
         _DrawerItem(
           icon: Icons.school_outlined,
           color: _indigo,
-          title: AppStrings.appTutorial,
+          title: AppStrings.appTutorial.tr,
           onTap: () => Get.to(() => AppTutorialScreen()),
         ),
         _DrawerItem(
@@ -529,56 +517,53 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
           color: _amber,
           title: AppStrings.saved,
           onTap: () {
-            Get.to(() => SavedFeedScreen(
-                selectedTab: SavedFeedTab.posts,
-                headerHeight: SizeConfig.size30));
+            Get.to(() => SavedFeedScreen(selectedTab: SavedFeedTab.posts, headerHeight: SizeConfig.size30));
           },
         ),
       ]),
-        _DrawerSection('EARNINGS', [
-            _DrawerItem(
-              icon: Icons.share_outlined,
-              color: _violet,
-              title: AppStrings.referAndEarn,
-              onTap: () => Get.to(() => ReferralPage()),
-            ),
-          if (isIndividual)
-            _DrawerItem(
-              icon: Icons.work_outline_rounded,
-              color: _emerald,
-              title: AppStrings.earnWithBlueEra,
-              onTap: () {
-                final earnType =
-                    viewProfileController.earnProfileType.value ?? '';
-                debugPrint(
-                  '[drawer.earnWithBlueEra] earnType="$earnType" '
-                  'len=${earnType.length}',
-                );
-                const handledSlugs = <String>{
-                  'homeMadeFood',
-                  'homeMadeProduct',
-                  'homeService',
-                };
-                if (handledSlugs.contains(earnType)) {
-                  Get.toNamed(RouteHelper.getEarnServiceDashboardViewRoute());
-                } else {
-                  Get.toNamed(RouteHelper.getChooseEarnServiceScreenRoute());
-                }
-              },
-            ),
-        ]),
+      _DrawerSection('EARNINGS', [
+        _DrawerItem(
+          icon: Icons.share_outlined,
+          color: _violet,
+          title: AppStrings.referAndEarn.tr,
+          onTap: () => Get.to(() => ReferralPage()),
+        ),
+        if (isIndividual)
+          _DrawerItem(
+            icon: Icons.work_outline_rounded,
+            color: _emerald,
+            title: AppStrings.earnWithBlueEra.tr,
+            onTap: () {
+              final earnType = viewProfileController.earnProfileType.value ?? '';
+              debugPrint(
+                '[drawer.earnWithBlueEra] earnType="$earnType" '
+                'len=${earnType.length}',
+              );
+              const handledSlugs = <String>{
+                'homeMadeFood',
+                'homeMadeProduct',
+                'homeService',
+              };
+              if (handledSlugs.contains(earnType)) {
+                Get.toNamed(RouteHelper.getEarnServiceDashboardViewRoute());
+              } else {
+                Get.toNamed(RouteHelper.getChooseEarnServiceScreenRoute());
+              }
+            },
+          ),
+      ]),
       _DrawerSection('MEMBERSHIP', [
         if (isNotSocial)
           _DrawerItem(
             icon: Icons.workspace_premium_rounded,
             color: _gold,
-            title: AppStrings.contribution,
+            title: AppStrings.contribution.tr,
             onTap: () => Get.to(() => const ContributionScreen()),
           ),
         _DrawerItem(
           icon: Icons.payments_outlined,
           color: _teal,
-          title: AppStrings.payment,
+          title: AppStrings.payment.tr,
           onTap: () => Get.to(() => PaymentSettingScreen()),
         ),
       ]),
@@ -586,7 +571,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
         _DrawerItem(
           icon: Icons.podcasts_rounded,
           color: _blue,
-          title: AppStrings.channelAndCommunity,
+          title: AppStrings.channelAndCommunity.tr,
           onTap: () {
             if (channelId.isNotEmpty) {
               Get.toNamed(
@@ -594,10 +579,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
                 arguments: {
                   ApiKeys.argAccountType: accountTypeGlobal,
                   ApiKeys.channelId: channelId,
-                  ApiKeys.authorId:
-                      (accountTypeGlobal == AppConstants.individual)
-                          ? userId
-                          : businessId
+                  ApiKeys.authorId: (accountTypeGlobal == AppConstants.individual) ? userId : businessId
                 },
               );
             } else {
@@ -611,21 +593,20 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
         _DrawerItem(
           icon: Icons.description_outlined,
           color: _slate,
-          title: AppStrings.myDocuments,
+          title: AppStrings.myDocuments.tr,
           onTap: () => Get.toNamed(
             RouteHelper.getAddDocumentScreenRoute(),
             arguments: {
               ApiKeys.showViewDocProof: true,
-              ApiKeys.argDocumentVia: isIndividual
-                  ? AppConstants.personalDocumentScreen
-                  : AppConstants.businessDocumentScreen
+              ApiKeys.argDocumentVia:
+                  isIndividual ? AppConstants.personalDocumentScreen : AppConstants.businessDocumentScreen
             },
           ),
         ),
         _DrawerItem(
           icon: Icons.business_outlined,
           color: _copper,
-          title: AppStrings.franchiseInquiry,
+          title: AppStrings.franchiseInquiry.tr,
           onTap: () => Get.to(() => FranchiseInquiryScreen()),
         ),
       ]),
@@ -633,19 +614,19 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
         _DrawerItem(
           icon: Icons.settings_outlined,
           color: _slate,
-          title: AppStrings.accountSettings,
+          title: AppStrings.accountSettings.tr,
           onTap: () => Get.to(() => AccountSettingScreen()),
         ),
         _DrawerItem(
           icon: Icons.notifications_outlined,
           color: _rose,
-          title: AppStrings.manageNotification,
+          title: AppStrings.manageNotification.tr,
           onTap: () => Get.to(NotificationSettingScreen()),
         ),
         _DrawerItem(
           icon: Icons.support_agent_rounded,
           color: _cyan,
-          title: AppStrings.helpSupport,
+          title: AppStrings.helpSupport.tr,
           onTap: () => Get.to(HelpAndSupportScreen()),
         ),
       ]),
@@ -678,8 +659,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
       child: InkWell(
         onTap: item.onTap,
         child: Padding(
-          padding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           child: Row(
             children: [
               Container(
@@ -709,8 +689,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
               Icon(
                 Icons.chevron_right_rounded,
                 size: 22,
-                color:
-                    AppColors.secondaryTextColor.withValues(alpha: 0.6),
+                color: AppColors.secondaryTextColor.withValues(alpha: 0.6),
               ),
             ],
           ),
@@ -740,16 +719,14 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
                   color: const Color(0xFFFFF1F2),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color:
-                        const Color(0xFFE11D48).withValues(alpha: 0.30),
+                    color: const Color(0xFFE11D48).withValues(alpha: 0.30),
                     width: 1,
                   ),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.logout_rounded,
-                        size: 17, color: Color(0xFFE11D48)),
+                    const Icon(Icons.logout_rounded, size: 17, color: Color(0xFFE11D48)),
                     const SizedBox(width: 8),
                     CustomText(
                       AppStrings.logout,
@@ -804,8 +781,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
               navigatePushTo(context, ChangeLanguageScreen());
             }),
             child: Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               decoration: BoxDecoration(
                 color: AppColors.primaryColor.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(20),
@@ -817,8 +793,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.translate_rounded,
-                      size: 12, color: AppColors.primaryColor),
+                  Icon(Icons.translate_rounded, size: 12, color: AppColors.primaryColor),
                   const SizedBox(width: 5),
                   CustomText(
                     lang.selectedLang.toUpperCase(),
@@ -828,8 +803,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
                     letterSpacing: 0.6,
                   ),
                   const SizedBox(width: 6),
-                  Icon(Icons.swap_horiz_rounded,
-                      size: 12, color: AppColors.primaryColor),
+                  Icon(Icons.swap_horiz_rounded, size: 12, color: AppColors.primaryColor),
                 ],
               ),
             ),

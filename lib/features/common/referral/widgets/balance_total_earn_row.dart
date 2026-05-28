@@ -3,6 +3,9 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get_utils/src/extensions/internacionalization.dart';
+
+import '../../../../core/constants/app_strings.dart';
 
 class BalanceTotalEarnRow extends StatelessWidget {
   final num balance;
@@ -26,12 +29,12 @@ class BalanceTotalEarnRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cells = <Widget>[
-      _cell('Balance', balance),
+      _cell(AppStrings.balance.tr, balance),
       _divider(),
-      _cell('Total Earn', totalEarn),
+      _cell(AppStrings.totalEarn.tr, totalEarn),
       if (estimatedEarning != null) ...[
         _divider(),
-        _cell('Estd. Earning', estimatedEarning!),
+        _cell(AppStrings.estdEarning.tr, estimatedEarning!),
       ],
     ];
 

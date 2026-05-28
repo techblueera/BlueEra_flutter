@@ -1,10 +1,13 @@
 import 'dart:ui';
+
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/referral/view/referral_page.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
+import '../core/constants/app_strings.dart';
 
 class ReferEarnPill extends StatelessWidget {
   const ReferEarnPill({super.key, this.onTap});
@@ -54,7 +57,7 @@ class ReferEarnPill extends StatelessWidget {
                   SizedBox(width: SizeConfig.size6),
                   Flexible(
                     child: CustomText(
-                      'Refer & Earn',
+                      AppStrings.referAndEarn.tr,
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
                       color: AppColors.secondaryTextColor,

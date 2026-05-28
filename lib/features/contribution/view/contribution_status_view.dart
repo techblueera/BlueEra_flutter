@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/contribution/controller/contribution_controller.dart';
@@ -58,14 +59,14 @@ class _ActiveContributionCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 CustomText(
-                  'Contribution active',
+                  AppStrings.contributionActiveTitle.tr,
                   fontSize: SizeConfig.large,
                   fontWeight: FontWeight.w700,
                   color: AppColors.primaryColor,
                 ),
                 SizedBox(height: SizeConfig.size4),
                 CustomText(
-                  'Thanks for contributing! Your perks are being consumed as you use BlueEra.',
+                  AppStrings.thanksForContributing.tr,
                   fontSize: SizeConfig.medium,
                   color: AppColors.secondaryTextColor,
                 ),
@@ -136,7 +137,7 @@ class _StatisticsLockedHint extends StatelessWidget {
             ),
             SizedBox(height: SizeConfig.size20),
             CustomText(
-              'Statistics locked',
+              AppStrings.statisticsLocked.tr,
               fontSize: SizeConfig.extraLarge,
               fontWeight: FontWeight.w700,
               color: AppColors.mainTextColor,
@@ -144,8 +145,7 @@ class _StatisticsLockedHint extends StatelessWidget {
             ),
             SizedBox(height: SizeConfig.size8),
             CustomText(
-              'Contribute to unlock detailed analytics, leads, and '
-              'performance insights for your business.',
+              AppStrings.contributeToUnlockAnalytics.tr,
               fontSize: SizeConfig.medium,
               fontWeight: FontWeight.w400,
               color: AppColors.secondaryTextColor,
@@ -175,7 +175,7 @@ class _StatisticsLockedHint extends StatelessWidget {
                   ),
                   SizedBox(width: SizeConfig.size6),
                   CustomText(
-                    'See plans at the bottom',
+                    AppStrings.seePlansAtBottom.tr,
                     fontSize: SizeConfig.small,
                     fontWeight: FontWeight.w600,
                     color: AppColors.primaryColor,

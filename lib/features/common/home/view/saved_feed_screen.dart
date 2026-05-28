@@ -1,10 +1,10 @@
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/connect/view/connect_main_page.dart';
+import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:flutter/material.dart';
-
+import 'package:get/get_utils/src/extensions/internacionalization.dart';
 
 class SavedFeedScreen extends StatefulWidget {
   final String? query;
@@ -12,13 +12,12 @@ class SavedFeedScreen extends StatefulWidget {
   final SavedFeedTab selectedTab;
   final double headerHeight;
 
-  const SavedFeedScreen({
-    super.key,
-    this.query,
-    this.onHeaderVisibilityChanged,
-    required this.selectedTab,
-    required this.headerHeight
-  });
+  const SavedFeedScreen(
+      {super.key,
+      this.query,
+      this.onHeaderVisibilityChanged,
+      required this.selectedTab,
+      required this.headerHeight});
 
   @override
   State<SavedFeedScreen> createState() => _SavedFeedScreenState();
@@ -30,9 +29,9 @@ class _SavedFeedScreenState extends State<SavedFeedScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(
-        title: AppStrings.savedPost,
-      ),
+        appBar: CommonBackAppBar(
+          title: AppStrings.savedPost.tr,
+        ),
         body: _buildTabView());
   }
 
@@ -43,8 +42,7 @@ class _SavedFeedScreenState extends State<SavedFeedScreen> {
             key: ValueKey('feedScreen_saved'),
             postFilterType: PostType.saved,
             onHeaderVisibilityChanged: _toggleAppBarAndBottomNav,
-            headerHeight: widget.headerHeight
-        );
+            headerHeight: widget.headerHeight);
       // case SavedFeedTab.videos:
       //   return VideoSavedFeedSection(
       //     onHeaderVisibilityChanged: _toggleAppBarAndBottomNav,
@@ -57,8 +55,6 @@ class _SavedFeedScreenState extends State<SavedFeedScreen> {
       //       query: widget.query,
       //       headerHeight: widget.headerHeight
       //   );
-
-
     }
   }
 
@@ -68,5 +64,4 @@ class _SavedFeedScreenState extends State<SavedFeedScreen> {
       widget.onHeaderVisibilityChanged?.call(visible); // Notify parent to hide/show bottom nav
     }
   }
-
 }

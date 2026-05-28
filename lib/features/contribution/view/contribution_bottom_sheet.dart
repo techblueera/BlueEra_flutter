@@ -1,10 +1,12 @@
 import 'dart:math' as math;
 
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/contribution/view/contribution_plans_view.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 /// Persistent peek bottom sheet for the new "Contribution Plan" surface.
 /// Mirrors the layout/animation of [SubscriptionDraggableSheet] — only the
@@ -56,7 +58,7 @@ class _ContributionDraggableSheetState extends State<ContributionDraggableSheet>
         child: FittedBox(
           fit: BoxFit.scaleDown,
           child: CustomText(
-            'Kindly Contribute Us',
+            AppStrings.kindlyContributeUs.tr,
             fontSize: _scaled(16),
             fontWeight: FontWeight.w700,
             color: AppColors.white,

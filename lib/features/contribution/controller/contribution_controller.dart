@@ -2,6 +2,7 @@ import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/constants/string_utils.dart';
@@ -167,7 +168,7 @@ class ContributionController extends GetxController {
         return;
       }
     }
-    plansError.value = res.message ?? 'Could not load plans.';
+    plansError.value = res.message ?? AppStrings.couldNotLoadPlans.tr;
     plansStatus.value = Status.ERROR;
   }
 
@@ -192,14 +193,14 @@ class ContributionController extends GetxController {
 
     if (res.statusCode != 200 || res.response?.data == null) {
       isPurchasing.value = false;
-      commonSnackBar(message: res.message ?? 'Failed to start payment.');
+      commonSnackBar(message: res.message ?? AppStrings.failedToStartPayment.tr);
       return;
     }
 
     final data = res.response!.data['data'];
     if (data is! Map<String, dynamic>) {
       isPurchasing.value = false;
-      commonSnackBar(message: 'Unexpected response from server.');
+      commonSnackBar(message: AppStrings.unexpectedServerResponse.tr);
       return;
     }
 
@@ -211,8 +212,8 @@ class ContributionController extends GetxController {
   void _openCheckout(RechargePlan plan, InitiateRechargeResponse order) {
     _razorpay.openCheckout(
       razorpayKeyId: order.keyId,
-      name: 'BlueEra',
-      description: '${plan.name} contribution',
+      name: AppStrings.appName,
+      description: '${plan.name} ${AppStrings.contributionSuffix.tr}',
       amount: order.finalAmount.toDouble(),
       contact: userPhone,
       email: userEmail,
@@ -231,7 +232,7 @@ class ContributionController extends GetxController {
     final signature = response.signature ?? '';
     if (orderId.isEmpty || paymentId.isEmpty || signature.isEmpty) {
       isPurchasing.value = false;
-      commonSnackBar(message: 'Payment succeeded but verification data was missing.');
+      commonSnackBar(message: AppStrings.paymentVerificationDataMissing.tr);
       return;
     }
     final ResponseModel res = await _repo.verifyPayment(
@@ -242,20 +243,19 @@ class ContributionController extends GetxController {
     isPurchasing.value = false;
     if (res.statusCode == 200) {
       hasActiveRecharge.value = true;
-      commonSnackBar(message: 'Contribution activated. Thank you!');
+      commonSnackBar(message: AppStrings.contributionActivatedThankYou.tr);
       // Refresh /recharge/current so the status surfaces immediately.
       await fetchCurrent();
     } else {
       commonSnackBar(
-        message: res.message ?? 'Payment was made but verification failed. '
-            'It will activate automatically once the webhook lands.',
+        message: res.message ?? AppStrings.paymentVerificationFailedWebhook.tr,
       );
     }
   }
 
   void _onRazorpayError(PaymentFailureResponse response) {
     isPurchasing.value = false;
-    commonSnackBar(message: response.message ?? 'Payment failed.');
+    commonSnackBar(message: response.message ?? AppStrings.paymentFailed.tr);
   }
 
   // ─── 3. Current active recharge ───────────────────────────────

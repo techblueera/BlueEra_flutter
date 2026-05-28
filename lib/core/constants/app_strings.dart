@@ -5448,4 +5448,72 @@ class AppStrings {
   static const String chooseHowYouWantToList = "chooseHowYouWantToList";
   static const String sellHousesPlotsShopsMore = "sellHousesPlotsShopsMore";
   static const String rentOutHousesOfficesSpaces = "rentOutHousesOfficesSpaces";
+
+  static const String currentBalance = "currentBalance";
+  static const String totalRewardAmount = "totalRewardAmount";
+  static const String totalWithdrawals = "totalWithdrawals";
+  static const String noTransactionFound = "noTransactionFound";
+  static const String seeAllTransactions = "seeAllTransactions";
+
+  static const String generateYourReferralCode = "generateYourReferralCode";
+  static const String enterYourReferralCode = "enterYourReferralCode";
+  static const String referralTip = "referralTip";
+  static const String referralSuggestions = "referralSuggestions";
+  static const String iAcceptAll = "iAcceptAll";
+  static const String termsAndCondition = "termsAndCondition";
+  static const String authorizationMessage = "authorizationMessage";
+  static const String balance = "balance";
+  static const String totalEarn = "totalEarn";
+  static const String estdEarning = "estdEarning";
+
+  static const String myCode = "myCode";
+
+  /// CONTRIBUTION / RECHARGE FEATURE
+  /// (lib/features/contribution/...)
+  static const String contributionTitle = "contributionTitle";
+  static const String contributionPlan = "contributionPlan";
+  static const String kindlyContributeUs = "kindlyContributeUs";
+  static const String processingEllipsis = "processingEllipsis";
+  static const String retry = "retry";
+  static const String noContributionPlansAvailable = "noContributionPlansAvailable";
+  static const String couldNotLoadPlans = "couldNotLoadPlans";
+  static const String noHiddenCharges = "noHiddenCharges";
+  static const String noAutoPay = "noAutoPay";
+  static const String tcStar = "tcStar";
+  static const String gstSuffix = "gstSuffix";
+  static const String bonusLabel = "bonusLabel";
+  static const String perksLowercase = "perksLowercase";
+  static const String basicTier = "basicTier";
+  static const String popularTier = "popularTier";
+  static const String premiumTier = "premiumTier";
+
+  // Active membership / hero card
+  static const String contributionLive = "contributionLive";
+  static const String activeStatusLabel = "activeStatusLabel";
+  static const String sinceLabel = "sinceLabel";
+  static const String perksRemainingCaps = "perksRemainingCaps";
+  static const String perksUsedSoFarSuffix = "perksUsedSoFarSuffix";
+  static const String fullBalanceAvailable = "fullBalanceAvailable";
+  static const String whatsIncluded = "whatsIncluded";
+  static const String receipt = "receipt";
+  static const String paymentIdLabel = "paymentIdLabel";
+  static const String orderIdLabel = "orderIdLabel";
+  static const String activatedLabel = "activatedLabel";
+  static const String lastUpdatedLabel = "lastUpdatedLabel";
+  static const String testModeBanner = "testModeBanner";
+
+  // Status view
+  static const String contributionActiveTitle = "contributionActiveTitle";
+  static const String thanksForContributing = "thanksForContributing";
+  static const String statisticsLocked = "statisticsLocked";
+  static const String contributeToUnlockAnalytics = "contributeToUnlockAnalytics";
+  static const String seePlansAtBottom = "seePlansAtBottom";
+
+  // Controller / Razorpay flow messages
+  static const String failedToStartPayment = "failedToStartPayment";
+  static const String unexpectedServerResponse = "unexpectedServerResponse";
+  static const String paymentVerificationDataMissing = "paymentVerificationDataMissing";
+  static const String contributionActivatedThankYou = "contributionActivatedThankYou";
+  static const String paymentVerificationFailedWebhook = "paymentVerificationFailedWebhook";
+  static const String contributionSuffix = "contributionSuffix";
 }

@@ -12,6 +12,8 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../../core/constants/app_strings.dart';
+
 class RentalServicesDashboardScreenV2 extends StatelessWidget {
   const RentalServicesDashboardScreenV2({super.key});
 
@@ -21,7 +23,7 @@ class RentalServicesDashboardScreenV2 extends StatelessWidget {
 
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: 'My Listing',
+        title: AppStrings.myListing.tr,
         isShadowShow: false,
         showElevation: 0,
         buildCustomActionWidget: () => Padding(
@@ -29,8 +31,7 @@ class RentalServicesDashboardScreenV2 extends StatelessWidget {
           child: GestureDetector(
             onTap: () => _showAddSheet(),
             child: Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
               decoration: BoxDecoration(
                 color: AppColors.primaryColor,
                 borderRadius: BorderRadius.circular(8),
@@ -41,7 +42,7 @@ class RentalServicesDashboardScreenV2 extends StatelessWidget {
                   const Icon(Icons.add, color: Colors.white, size: 15),
                   const SizedBox(width: 4),
                   CustomText(
-                    'Add Listing',
+                    AppStrings.addListing.tr,
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
                     color: Colors.white,
@@ -90,7 +91,7 @@ class RentalServicesDashboardScreenV2 extends StatelessWidget {
         children: [
           Expanded(
             child: _tabButton(
-              label: 'For Sell (${ctrl.sellCount.value})',
+              label: '${AppStrings.forSell.tr} (${ctrl.sellCount.value})',
               icon: Icons.sell_rounded,
               isSelected: ctrl.selectedTab.value == 0,
               onTap: () => ctrl.switchTab(0),
@@ -99,7 +100,7 @@ class RentalServicesDashboardScreenV2 extends StatelessWidget {
           SizedBox(width: SizeConfig.size10),
           Expanded(
             child: _tabButton(
-              label: 'For Rent (${ctrl.rentCount.value})',
+              label: '${AppStrings.forRent.tr} (${ctrl.rentCount.value})',
               icon: Icons.vpn_key_rounded,
               isSelected: ctrl.selectedTab.value == 1,
               onTap: () => ctrl.switchTab(1),
@@ -126,18 +127,14 @@ class RentalServicesDashboardScreenV2 extends StatelessWidget {
           color: isSelected ? AppColors.primaryColor : Colors.white,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
-            color: isSelected
-                ? AppColors.primaryColor
-                : const Color(0xFFDDE2EE),
+            color: isSelected ? AppColors.primaryColor : const Color(0xFFDDE2EE),
             width: 1.2,
           ),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon,
-                size: 16,
-                color: isSelected ? Colors.white : AppColors.secondaryTextColor),
+            Icon(icon, size: 16, color: isSelected ? Colors.white : AppColors.secondaryTextColor),
             const SizedBox(width: 6),
             CustomText(
               label,
@@ -152,74 +149,67 @@ class RentalServicesDashboardScreenV2 extends StatelessWidget {
   }
 
   Widget _buildCategoryChips(PropertyDashboardController ctrl) {
-      final categories = ctrl.selectedTab.value == 0
-          ? ctrl.sellCategories
-          : ctrl.rentCategories;
+    final categories = ctrl.selectedTab.value == 0 ? ctrl.sellCategories : ctrl.rentCategories;
 
-      if (categories.isEmpty) return const SizedBox.shrink();
+    if (categories.isEmpty) return const SizedBox.shrink();
 
-      final tabKey = ctrl.selectedTab.value;
-      return Container(
-        key: ValueKey('chips_$tabKey'),
-        color: Colors.white,
-        padding: EdgeInsets.symmetric(vertical: SizeConfig.size8),
-        height: 100,
-        child: ListView.separated(
-          scrollDirection: Axis.horizontal,
-          padding: EdgeInsets.symmetric(horizontal: SizeConfig.size14),
-          itemCount: categories.length,
-          separatorBuilder: (_, __) => SizedBox(width: SizeConfig.size10),
-          itemBuilder: (_, i) {
-            final cat = categories[i];
-            final selected = ctrl.selectedCategoryIndex.value == i;
+    final tabKey = ctrl.selectedTab.value;
+    return Container(
+      key: ValueKey('chips_$tabKey'),
+      color: Colors.white,
+      padding: EdgeInsets.symmetric(vertical: SizeConfig.size8),
+      height: 100,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        padding: EdgeInsets.symmetric(horizontal: SizeConfig.size14),
+        itemCount: categories.length,
+        separatorBuilder: (_, __) => SizedBox(width: SizeConfig.size10),
+        itemBuilder: (_, i) {
+          final cat = categories[i];
+          final selected = ctrl.selectedCategoryIndex.value == i;
 
-            return GestureDetector(
-              key: ValueKey('${tabKey}_${cat.key}'),
-              onTap: () => ctrl.selectCategory(i),
-              behavior: HitTestBehavior.opaque,
-              child: SizedBox(
-                width: SizeConfig.size65,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _CategoryIconTile(
-                      isActive: selected,
-                      child: LocalAssets(
-                        imagePath: cat.image,
-                        width: 30,
-                        height: 30,
-                        boxFix: BoxFit.contain,
-                      ),
+          return GestureDetector(
+            key: ValueKey('${tabKey}_${cat.key}'),
+            onTap: () => ctrl.selectCategory(i),
+            behavior: HitTestBehavior.opaque,
+            child: SizedBox(
+              width: SizeConfig.size65,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _CategoryIconTile(
+                    isActive: selected,
+                    child: LocalAssets(
+                      imagePath: cat.image,
+                      width: 30,
+                      height: 30,
+                      boxFix: BoxFit.contain,
                     ),
-                    SizedBox(height: SizeConfig.size4),
-                    SizedBox(
-                      height: 28,
-                      child: CustomText(
-                        cat.label,
-                        fontSize: SizeConfig.extraSmall,
-                        fontWeight:
-                            selected ? FontWeight.w700 : FontWeight.w500,
-                        color: selected
-                            ? AppColors.primaryColor
-                            : AppColors.secondaryTextColor,
-                        textAlign: TextAlign.center,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                  ),
+                  SizedBox(height: SizeConfig.size4),
+                  SizedBox(
+                    height: 28,
+                    child: CustomText(
+                      cat.label,
+                      fontSize: SizeConfig.extraSmall,
+                      fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                      color: selected ? AppColors.primaryColor : AppColors.secondaryTextColor,
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            );
-          },
-        ),
-      );
+            ),
+          );
+        },
+      ),
+    );
   }
 
   Widget _buildPropertyList(PropertyDashboardController ctrl) {
-    final categories = ctrl.selectedTab.value == 0
-        ? ctrl.sellCategories
-        : ctrl.rentCategories;
+    final categories = ctrl.selectedTab.value == 0 ? ctrl.sellCategories : ctrl.rentCategories;
 
     if (categories.isEmpty) return _buildEmpty();
 
@@ -253,11 +243,10 @@ class RentalServicesDashboardScreenV2 extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(Icons.holiday_village_outlined,
-                size: 48,
-                color: AppColors.primaryColor.withValues(alpha: 0.4)),
+                size: 48, color: AppColors.primaryColor.withValues(alpha: 0.4)),
             SizedBox(height: SizeConfig.size12),
             CustomText(
-              'No properties found',
+              AppStrings.noPropertiesFound.tr,
               fontSize: SizeConfig.medium,
               fontWeight: FontWeight.w600,
               color: AppColors.secondaryTextColor,
@@ -265,7 +254,7 @@ class RentalServicesDashboardScreenV2 extends StatelessWidget {
             ),
             SizedBox(height: SizeConfig.size4),
             CustomText(
-              'Tap "Add Listing" to list your property',
+              AppStrings.tapAddListingToListYourProperty.tr,
               fontSize: SizeConfig.small,
               fontWeight: FontWeight.w500,
               color: AppColors.secondaryTextColor,
@@ -321,7 +310,7 @@ class RentalServicesDashboardScreenV2 extends StatelessWidget {
                   children: [
                     Expanded(
                       child: CustomText(
-                        'List Your Property',
+                        AppStrings.listYourProperty.tr,
                         fontSize: SizeConfig.large18,
                         fontWeight: FontWeight.w800,
                         color: AppColors.mainTextColor,
@@ -338,8 +327,7 @@ class RentalServicesDashboardScreenV2 extends StatelessWidget {
                           color: const Color(0xFFF4F6FA),
                           border: Border.all(color: const Color(0xFFDDE2EE)),
                         ),
-                        child: const Icon(Icons.close_rounded,
-                            size: 18, color: Color(0xFF505050)),
+                        child: const Icon(Icons.close_rounded, size: 18, color: Color(0xFF505050)),
                       ),
                     ),
                   ],
@@ -348,7 +336,7 @@ class RentalServicesDashboardScreenV2 extends StatelessWidget {
                 Align(
                   alignment: Alignment.centerLeft,
                   child: CustomText(
-                    'Choose how you want to list',
+                    AppStrings.chooseHowYouWantToList.tr,
                     fontSize: SizeConfig.small,
                     fontWeight: FontWeight.w500,
                     color: AppColors.secondaryTextColor,
@@ -357,8 +345,8 @@ class RentalServicesDashboardScreenV2 extends StatelessWidget {
                 SizedBox(height: SizeConfig.size20),
                 _addTile(
                   icon: Icons.sell_rounded,
-                  label: 'For Sale',
-                  subtitle: 'Sell houses, plots, shops & more',
+                  label: AppStrings.forSell.tr,
+                  subtitle: AppStrings.sellHousesPlotsShopsMore.tr,
                   color: const Color(0xFF0086FF),
                   bg: const Color(0xFFEBF5FF),
                   onTap: () {
@@ -369,8 +357,8 @@ class RentalServicesDashboardScreenV2 extends StatelessWidget {
                 SizedBox(height: SizeConfig.size12),
                 _addTile(
                   icon: Icons.vpn_key_rounded,
-                  label: 'For Rent',
-                  subtitle: 'Rent out houses, offices & spaces',
+                  label: AppStrings.forRent.tr,
+                  subtitle: AppStrings.rentOutHousesOfficesSpaces.tr,
                   color: const Color(0xFF00B87A),
                   bg: const Color(0xFFE6FAF3),
                   onTap: () {
@@ -385,7 +373,6 @@ class RentalServicesDashboardScreenV2 extends StatelessWidget {
       ),
     );
   }
-
 }
 
 class _CategoryIconTile extends StatefulWidget {
@@ -401,8 +388,7 @@ class _CategoryIconTile extends StatefulWidget {
   State<_CategoryIconTile> createState() => _CategoryIconTileState();
 }
 
-class _CategoryIconTileState extends State<_CategoryIconTile>
-    with SingleTickerProviderStateMixin {
+class _CategoryIconTileState extends State<_CategoryIconTile> with SingleTickerProviderStateMixin {
   static const List<RadialGradient> _gradients = <RadialGradient>[
     RadialGradient(
       center: Alignment.center,
@@ -503,72 +489,69 @@ class _CategoryIconTileState extends State<_CategoryIconTile>
 }
 
 Widget _addTile({
-    required IconData icon,
-    required String label,
-    required String subtitle,
-    required Color color,
-    required Color bg,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        padding: EdgeInsets.all(SizeConfig.size14),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: color.withValues(alpha: 0.15), width: 1.2),
-          boxShadow: [
-            BoxShadow(
-              color: color.withValues(alpha: 0.08),
-              blurRadius: 20,
-              offset: const Offset(0, 6),
-            ),
-          ],
-          color: Colors.white,
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 50,
-              height: 50,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: bg,
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: Icon(icon, color: color, size: 26),
-            ),
-            SizedBox(width: SizeConfig.size12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CustomText(label,
-                      fontSize: SizeConfig.large,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.mainTextColor),
-                  const SizedBox(height: 3),
-                  CustomText(subtitle,
-                      fontSize: SizeConfig.small,
-                      fontWeight: FontWeight.w500,
-                      color: AppColors.secondaryTextColor),
-                ],
-              ),
-            ),
-            Container(
-              width: 32,
-              height: 32,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: color.withValues(alpha: 0.1),
-              ),
-              child:
-                  Icon(Icons.arrow_forward_ios_rounded, size: 14, color: color),
-            ),
-          ],
-        ),
+  required IconData icon,
+  required String label,
+  required String subtitle,
+  required Color color,
+  required Color bg,
+  required VoidCallback onTap,
+}) {
+  return InkWell(
+    onTap: onTap,
+    borderRadius: BorderRadius.circular(16),
+    child: Container(
+      padding: EdgeInsets.all(SizeConfig.size14),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: color.withValues(alpha: 0.15), width: 1.2),
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: 0.08),
+            blurRadius: 20,
+            offset: const Offset(0, 6),
+          ),
+        ],
+        color: Colors.white,
       ),
-    );
-  }
+      child: Row(
+        children: [
+          Container(
+            width: 50,
+            height: 50,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: bg,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Icon(icon, color: color, size: 26),
+          ),
+          SizedBox(width: SizeConfig.size12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CustomText(label,
+                    fontSize: SizeConfig.large, fontWeight: FontWeight.w700, color: AppColors.mainTextColor),
+                const SizedBox(height: 3),
+                CustomText(subtitle,
+                    fontSize: SizeConfig.small,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.secondaryTextColor),
+              ],
+            ),
+          ),
+          Container(
+            width: 32,
+            height: 32,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: color.withValues(alpha: 0.1),
+            ),
+            child: Icon(Icons.arrow_forward_ios_rounded, size: 14, color: color),
+          ),
+        ],
+      ),
+    ),
+  );
+}

@@ -13,6 +13,8 @@ import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../../core/constants/app_strings.dart';
+
 class ReferralPage extends StatefulWidget {
   const ReferralPage({super.key});
 
@@ -50,7 +52,7 @@ class _ReferralPageState extends State<ReferralPage> {
         final isCompleted = controller.isCompleted;
         return Scaffold(
           appBar: CommonBackAppBar(
-            title: isCompleted ? 'My code' : 'Refer & Earn',
+            title: isCompleted ? 'My code' : AppStrings.referAndEarn.tr,
             isShadowShow: false,
             buildCustomActionWidget: isCompleted
                 ? () => Padding(
@@ -103,8 +105,7 @@ class _ReferralPageState extends State<ReferralPage> {
             right: SizeConfig.size15,
           ),
           decoration: BoxDecoration(
-            borderRadius:
-                BorderRadius.vertical(bottom: Radius.circular(20)),
+            borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
             color: Colors.white,
             boxShadow: [
               BoxShadow(

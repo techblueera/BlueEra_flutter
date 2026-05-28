@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -98,7 +99,7 @@ class _ContributionPlansViewState extends State<ContributionPlansView> {
               CustomText(
                 _ctrl.plansError.value.isNotEmpty
                     ? _ctrl.plansError.value
-                    : 'Could not load plans.',
+                    : AppStrings.couldNotLoadPlans.tr,
                 textAlign: TextAlign.center,
                 color: AppColors.secondaryTextColor,
                 fontSize: _scaled(14),
@@ -107,7 +108,7 @@ class _ContributionPlansViewState extends State<ContributionPlansView> {
               TextButton(
                 onPressed: () =>
                     _ctrl.fetchPlans(entityType: widget.entityType),
-                child: const Text('Retry'),
+                child: Text(AppStrings.retry.tr),
               ),
             ],
           ),
@@ -119,7 +120,7 @@ class _ContributionPlansViewState extends State<ContributionPlansView> {
           padding: EdgeInsets.symmetric(vertical: SizeConfig.size40),
           child: Center(
             child: CustomText(
-              'No contribution plans available right now.',
+              AppStrings.noContributionPlansAvailable.tr,
               fontSize: _scaled(13),
               color: AppColors.secondaryTextColor,
             ),
@@ -152,8 +153,8 @@ class _ContributionPlansViewState extends State<ContributionPlansView> {
       ),
       child: Obx(() => CustomBtn(
             title: _ctrl.isPurchasing.value
-                ? 'Processing…'
-                : 'Kindly Contribute Us',
+                ? AppStrings.processingEllipsis.tr
+                : AppStrings.kindlyContributeUs.tr,
             bgColor: AppColors.primaryColor,
             onTap: _ctrl.isPurchasing.value ? () {} : _onContributeTap,
           )),
@@ -170,7 +171,7 @@ class _ContributionPlansViewState extends State<ContributionPlansView> {
         children: [
           Expanded(
             child: CustomText(
-              'Contribution Plan',
+              AppStrings.contributionPlan.tr,
               fontSize: _scaled(18),
               fontWeight: FontWeight.w700,
               color: AppColors.mainTextColor,
@@ -360,12 +361,25 @@ class _ContributionPlanCard extends StatelessWidget {
   String _headlinePerk() {
     if (plan.perks.isNotEmpty) return plan.perks.first;
     if (plan.perkValue > 0) {
-      final type = plan.perkType.isEmpty ? 'perks' : plan.perkType;
+      final type = plan.perkType.isEmpty ? AppStrings.perksLowercase.tr : plan.perkType;
       final base = '${plan.perkValue} ${type[0].toUpperCase()}${type.substring(1)}';
-      if (plan.perkBonus > 0) return '$base + ${plan.perkBonus} Bonus';
+      if (plan.perkBonus > 0) return '$base + ${plan.perkBonus} ${AppStrings.bonusLabel.tr}';
       return base;
     }
     return plan.description ?? plan.name;
+  }
+
+  /// Localized label for the tier badge — falls back to the const theme
+  /// label string only if no translation exists.
+  String _tierLabelFor(_ContributionTier t) {
+    switch (t) {
+      case _ContributionTier.basic:
+        return AppStrings.basicTier.tr;
+      case _ContributionTier.popular:
+        return AppStrings.popularTier.tr;
+      case _ContributionTier.premium:
+        return AppStrings.premiumTier.tr;
+    }
   }
 
   @override
@@ -406,7 +420,7 @@ class _ContributionPlanCard extends StatelessWidget {
                         Padding(
                           padding: EdgeInsets.only(bottom: scaled(3)),
                           child: CustomText(
-                            '+ ${plan.taxPercent}% GST',
+                            '+ ${plan.taxPercent}${AppStrings.gstSuffix.tr}',
                             fontSize: scaled(12),
                             fontWeight: FontWeight.w500,
                             color: AppColors.secondaryTextColor,
@@ -418,7 +432,7 @@ class _ContributionPlanCard extends StatelessWidget {
                 _Badge(
                   theme: theme,
                   scaled: scaled,
-                  label: theme.badgeLabel,
+                  label: _tierLabelFor(tier),
                 ),
               ],
             ),
@@ -458,7 +472,7 @@ class _ContributionPlanCard extends StatelessWidget {
                     size: scaled(14), color: AppColors.secondaryTextColor),
                 SizedBox(width: SizeConfig.size4),
                 CustomText(
-                  'No Hidden Charges,',
+                  AppStrings.noHiddenCharges.tr,
                   fontSize: scaled(12),
                   fontWeight: FontWeight.w500,
                   color: AppColors.secondaryTextColor,
@@ -468,14 +482,14 @@ class _ContributionPlanCard extends StatelessWidget {
                     size: scaled(14), color: AppColors.red33),
                 SizedBox(width: SizeConfig.size4),
                 CustomText(
-                  'No AutoPay',
+                  AppStrings.noAutoPay.tr,
                   fontSize: scaled(12),
                   fontWeight: FontWeight.w600,
                   color: AppColors.red33,
                 ),
                 const Spacer(),
                 CustomText(
-                  '*T&C',
+                  AppStrings.tcStar.tr,
                   fontSize: scaled(10),
                   fontWeight: FontWeight.w500,
                   color: AppColors.secondaryTextColor,
