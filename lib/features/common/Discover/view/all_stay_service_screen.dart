@@ -1041,7 +1041,7 @@ class _PropertyCardState extends State<PropertyCard> {
               Expanded(
                 child: _actionButton(
                   icon: Icons.chat_bubble_outline,
-                  label: 'Inquiry',
+                  label: AppStrings.inquiry.tr,
                   onTap: _openInquiryChat,
                   filled: true,
                 ),

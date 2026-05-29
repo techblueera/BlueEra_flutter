@@ -4,6 +4,7 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
@@ -22,6 +23,7 @@ import 'package:BlueEra/features/personal/personal_profile/widgets/profile_top_b
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/refer_earn_pill.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 /// Other-business "me" profile home (v2) — redesigned to mirror the
 /// layout used by `HospitalHomeScreenV2` while preserving every action
@@ -41,13 +43,16 @@ class _OtherHomeScreenV2State extends State<OtherHomeScreenV2> {
   bool _isGoLive = false;
   int _selectedTab = 0;
 
-  static const _tabs = [
-    'Inquiry',
-    'Overview',
-    'Services',
-    'Posts',
-    'Stats',
-  ];
+  // Tab labels resolved against AppStrings via .tr so the row stays in sync
+  // with the user's selected locale. Not const because translations are
+  // looked up at runtime.
+  List<String> get _tabs => [
+        AppStrings.inquiry.tr,
+        AppStrings.overview.tr,
+        AppStrings.services.tr,
+        AppStrings.posts.tr,
+        AppStrings.stats.tr,
+      ];
 
   // Drives the inquiry list shown under the Inquiry tab — same controller
   // the Connect screen uses, so socket-driven updates land on both.
@@ -95,11 +100,7 @@ class _OtherHomeScreenV2State extends State<OtherHomeScreenV2> {
             _buildPatternBackground(),
             Column(
               children: [
-              ProfileTopBar(
-                  onGoLiveTap: handleGoLiveTap,
-                  showGoLivePill: Platform.isAndroid,
-                ),
-                // _buildProfileRow(),
+                _buildTopBar(),
                 Expanded(
                   child: RefreshIndicator(
                     onRefresh: _otherController.getBusinessProfileFull,
@@ -242,7 +243,7 @@ class _OtherHomeScreenV2State extends State<OtherHomeScreenV2> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            CustomText('Go live',
+            CustomText(AppStrings.goLive.tr,
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
                 color: AppColors.mainTextColor),

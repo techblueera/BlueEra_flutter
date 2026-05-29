@@ -4,7 +4,6 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
-import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
@@ -23,7 +22,6 @@ import 'package:BlueEra/features/personal/personal_profile/widgets/profile_top_b
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/refer_earn_pill.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get_utils/src/extensions/internacionalization.dart';
 
 /// School "me" profile home (v2) — redesigned to mirror the layout used
 /// by `HospitalHomeScreenV2` while preserving every action surfaced by
@@ -38,31 +36,34 @@ class SchoolHomeScreenV2 extends StatefulWidget {
 
 class _SchoolHomeScreenV2State extends State<SchoolHomeScreenV2> {
   late final SchoolAboutUsController _schoolController;
-  final _businessController = getOrPut(() => ViewBusinessDetailsController(), permanent: true);
+  final _businessController =
+      getOrPut(() => ViewBusinessDetailsController(), permanent: true);
 
   bool _isGoLive = false;
   int _selectedTab = 0;
-
   List<String> get _tabs => [
-        AppStrings.inquiryTab.tr,
-        AppStrings.overview.tr,
-        AppStrings.academics.tr,
-        AppStrings.posts.tr,
-        AppStrings.statsTab.tr,
-      ];
+    AppStrings.inquiry.tr,
+    AppStrings.overview.tr,
+    AppStrings.academics.tr,
+    AppStrings.posts.tr,
+    AppStrings.stats.tr,
+  ];
+
 
   // Drives the inquiry list shown under the Inquiry tab — same controller
   // the Connect screen uses, so socket-driven updates land on both.
   // Mirrors the wiring used by `HospitalHomeScreenV2` and the Order tab in
   // `professionals_main.dart`.
-  final ChatViewController _chatViewController = getOrPut(() => ChatViewController());
+  final ChatViewController _chatViewController =
+      getOrPut(() => ChatViewController());
 
   // Pre-registered so the Flagged sub-tab inside `BusinessChatsList`
   // (`BusinessFlagChatList` → `Get.find<ChatFlagController>()`) doesn't
   // crash when this is the first screen the user touches. Mirrors the
   // top-level registration in `connect_main_page.dart`.
   // ignore: unused_field
-  final ChatFlagController _chatFlagController = getOrPut(() => ChatFlagController());
+  final ChatFlagController _chatFlagController =
+      getOrPut(() => ChatFlagController());
 
   @override
   void initState() {
@@ -150,7 +151,8 @@ class _SchoolHomeScreenV2State extends State<SchoolHomeScreenV2> {
       child: Image.asset(
         AppImageAssets.chatDefaultBg,
         fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => Container(color: const Color(0xFFEAF2FB)),
+        errorBuilder: (_, __, ___) =>
+            Container(color: const Color(0xFFEAF2FB)),
       ),
     );
   }
@@ -180,7 +182,8 @@ class _SchoolHomeScreenV2State extends State<SchoolHomeScreenV2> {
           // instead of pushing the row past its width.
           Flexible(child: const ReferEarnPill()),
           const Spacer(),
-          _circleIconButton(icon: Icons.notifications_none, onTap: _openNotifications),
+          _circleIconButton(
+              icon: Icons.notifications_none, onTap: _openNotifications),
           SizedBox(width: SizeConfig.size6),
           _goLivePill(),
         ],
@@ -208,7 +211,8 @@ class _SchoolHomeScreenV2State extends State<SchoolHomeScreenV2> {
     Navigator.pushNamed(context, RouteHelper.getNotificationScreenRoute());
   }
 
-  Widget _circleIconButton({required IconData icon, required VoidCallback onTap}) {
+  Widget _circleIconButton(
+      {required IconData icon, required VoidCallback onTap}) {
     return InkWell(
       onTap: onTap,
       customBorder: const CircleBorder(),
@@ -239,20 +243,25 @@ class _SchoolHomeScreenV2State extends State<SchoolHomeScreenV2> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            CustomText(AppStrings.goLive.tr,
-                fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.mainTextColor),
+            CustomText('Go live',
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: AppColors.mainTextColor),
             SizedBox(width: SizeConfig.size6),
             Container(
               width: 30,
               height: 18,
               padding: const EdgeInsets.all(2),
               decoration: BoxDecoration(
-                color: _isGoLive ? AppColors.primaryColor : Colors.grey.shade400,
+                color:
+                    _isGoLive ? AppColors.primaryColor : Colors.grey.shade400,
                 borderRadius: BorderRadius.circular(20),
               ),
               child: AnimatedAlign(
                 duration: const Duration(milliseconds: 180),
-                alignment: _isGoLive ? Alignment.centerRight : Alignment.centerLeft,
+                alignment: _isGoLive
+                    ? Alignment.centerRight
+                    : Alignment.centerLeft,
                 child: Container(
                   height: 14,
                   width: 14,
@@ -268,6 +277,8 @@ class _SchoolHomeScreenV2State extends State<SchoolHomeScreenV2> {
       ),
     );
   }*/
+
+
 
   Widget _buildTabsCard() {
     return Padding(
@@ -291,7 +302,9 @@ class _SchoolHomeScreenV2State extends State<SchoolHomeScreenV2> {
                       color: selected ? AppColors.primaryColor : Colors.white,
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: selected ? AppColors.primaryColor : Colors.grey.shade300,
+                        color: selected
+                            ? AppColors.primaryColor
+                            : Colors.grey.shade300,
                       ),
                     ),
                     alignment: Alignment.center,
@@ -299,7 +312,8 @@ class _SchoolHomeScreenV2State extends State<SchoolHomeScreenV2> {
                       _tabs[i],
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
-                      color: selected ? Colors.white : AppColors.mainTextColor,
+                      color:
+                          selected ? Colors.white : AppColors.mainTextColor,
                     ),
                   ),
                 ),
@@ -310,6 +324,7 @@ class _SchoolHomeScreenV2State extends State<SchoolHomeScreenV2> {
       ),
     );
   }
+
 }
 
 class _CoinStackIcon extends StatelessWidget {

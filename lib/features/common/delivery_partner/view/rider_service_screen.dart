@@ -459,7 +459,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen> with RouteAware
                       Expanded(
                         child: _subTabButton(
                           icon: Icons.question_answer_outlined,
-                          label: 'Inquiry',
+                          label: AppStrings.inquiry.tr,
                           index: _orderSubChat,
                           // unreadCount: _chatUnreadCount.value,
                         ),

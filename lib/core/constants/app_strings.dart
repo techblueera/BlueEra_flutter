@@ -2609,6 +2609,7 @@ class AppStrings {
   static const uniqueCustomDesigns = "unique_custom_designs";
 
   static const overview = "overview";
+  static const stats = "stats";
   static const businessVerification = "business_verification";
   static const chooseWhatToVerify = "choose_what_to_verify";
   static const enterGstNumber = "enter_gst_number";
@@ -5747,4 +5748,6 @@ class AppStrings {
   // are sentence-form labels for specific flows. This one is the bare
   // "Inquiry" tab heading shared across me-section v2 screens.
   static const String inquiry = "inquiry";
+  static const String amenities = "amenities";
+  static const String tests = "tests";
 }

@@ -2,6 +2,7 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
@@ -39,15 +40,15 @@ class _LabHomeScreenV2State extends State<LabHomeScreenV2> {
 
   bool _isGoLive = false;
   int _selectedTab = 0;
-
-  static const _tabs = [
-    'Inquiry',
-    'Overview',
-    'Tests',
-    'Facilities',
-    'Posts',
-    'Stats',
+  List<String> get _tabs => [
+    AppStrings.inquiry.tr,
+    AppStrings.overview.tr,
+    AppStrings.tests.tr,
+    AppStrings.facilities.tr,
+    AppStrings.posts.tr,
+    AppStrings.stats.tr,
   ];
+
 
   // Drives the inquiry list shown under the Inquiry tab — same controller
   // the Connect screen uses, so socket-driven updates land on both.

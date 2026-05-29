@@ -600,6 +600,29 @@ class AppNotificationHandler {
       if (payLoad != null && payLoad.isNotEmpty) {
         launchedFromNotification = true;
         notificationNavigationCompleter = Completer<void>();
+        return;
+      }
+    }
+
+    // iOS-only path: terminated-state FCM notifications are rendered
+    // natively by APNs, NOT through flutter_local_notifications, so
+    // getNotificationAppLaunchDetails() above returns null even when the
+    // user just tapped a push. The tap payload only surfaces via
+    // FirebaseMessaging.getInitialMessage(). Without this branch
+    // `launchedFromNotification` stays false on iOS, the splash screen
+    // navigates straight to home, and the deep-link routing that
+    // firebaseNotificationSetup()'s iOS handler tries to do gets clobbered
+    // before it can run. Setting the flag + completer here makes splash
+    // wait for that routing, matching the Android behaviour.
+    if (Platform.isIOS) {
+      try {
+        final initial = await FirebaseMessaging.instance.getInitialMessage();
+        if (initial != null && initial.data.isNotEmpty) {
+          launchedFromNotification = true;
+          notificationNavigationCompleter = Completer<void>();
+        }
+      } catch (e) {
+        print('[iOS-checkNotificationLaunch] getInitialMessage error: $e');
       }
     }
   }
@@ -1924,27 +1947,49 @@ class AppNotificationHandler {
       _onTapNotificationFromStatusBar(message.data);
     });
 
-    // iOS-only: when the backend sends a notification-type FCM for a call
-    // (the only thing the OS can display in terminated state, since data-only
-    // pushes don't render a banner on iOS), tapping it from terminated state
+    // iOS-only: when the backend sends a notification-type FCM (the only
+    // thing the OS can display in terminated state, since data-only pushes
+    // don't render a banner on iOS), tapping it from terminated state
     // launches the app WITHOUT going through our local-notification path.
-    // `getNotificationAppLaunchDetails()` (Android path) returns null in this
-    // case — only `getInitialMessage()` carries the payload. Android keeps
-    // using local notifications and is unaffected.
+    // `getNotificationAppLaunchDetails()` (Android path) returns null in
+    // this case — only `getInitialMessage()` carries the payload. Android
+    // keeps using local notifications and is unaffected.
     if (Platform.isIOS) {
-      FirebaseMessaging.instance.getInitialMessage().then((initial) {
-        if (initial == null) return;
-        final operation =
-            (initial.data['operation'] ?? '').toString().toLowerCase();
-        if (operation == 'incoming_call') {
-          _openIncomingCallScreen(Map<String, dynamic>.from(initial.data));
-        } else {
-          _onTapNotificationFromStatusBar(
-              Map<String, dynamic>.from(initial.data),
-              fromColdStart: true);
+      FirebaseMessaging.instance.getInitialMessage().then((initial) async {
+        try {
+          if (initial == null || initial.data.isEmpty) return;
+          final data = Map<String, dynamic>.from(initial.data);
+          final operation =
+              (data['operation'] ?? '').toString().toLowerCase();
+
+          // Wait for the navigator to be mounted before pushing. Splash is
+          // blocked on `notificationNavigationCompleter` so this delay only
+          // ever races with framework startup, not with user-driven nav.
+          await Future.delayed(const Duration(milliseconds: 400));
+
+          if (operation == 'incoming_call') {
+            _openIncomingCallScreen(data);
+          } else {
+            await _onTapNotificationFromStatusBar(data, fromColdStart: true);
+          }
+        } catch (e) {
+          print('[iOS-initial-message] error: $e');
+        } finally {
+          // Always unblock splash, even if routing failed or there was no
+          // initial message. Otherwise splash sits on the loader for 5s
+          // (the safety timeout) on every iOS cold-start when the flag was
+          // set by checkNotificationLaunch().
+          if (notificationNavigationCompleter != null &&
+              !notificationNavigationCompleter!.isCompleted) {
+            notificationNavigationCompleter!.complete();
+          }
         }
       }).catchError((e) {
-        print('[iOS-initial-message] error: $e');
+        print('[iOS-initial-message] outer error: $e');
+        if (notificationNavigationCompleter != null &&
+            !notificationNavigationCompleter!.isCompleted) {
+          notificationNavigationCompleter!.complete();
+        }
       });
     }
   }

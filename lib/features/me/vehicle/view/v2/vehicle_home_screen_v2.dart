@@ -58,14 +58,14 @@ class _VehicleHomeScreenV2State extends State<VehicleHomeScreenV2> {
   bool _isGoLive = false;
   int _selectedTab = 1; // default to Overview, like professionals_main
 
-  List<String> get _tabs => [
-        AppStrings.inquiryTab.tr,
-        AppStrings.overview.tr,
-        AppStrings.vehiclesTab.tr,
-        AppStrings.posts.tr,
-        AppStrings.statsTab.tr,
-      ];
 
+  List<String>  _tabs = [
+    AppStrings.inquiry.tr,
+    AppStrings.overview.tr,
+    AppStrings.vehicle.tr,
+    AppStrings.posts.tr,
+    AppStrings.stats.tr,
+  ];
   @override
   void initState() {
     super.initState();
@@ -132,8 +132,8 @@ class _VehicleHomeScreenV2State extends State<VehicleHomeScreenV2> {
           ? FloatingActionButton.extended(
               backgroundColor: AppColors.primaryColor,
               icon: const Icon(Icons.add, color: Colors.white),
-              label: CustomText(
-                AppStrings.addVehicleLabel.tr,
+              label: const CustomText(
+                'Add vehicle',
                 color: Colors.white,
                 fontSize: 13,
                 fontWeight: FontWeight.w700,
@@ -294,7 +294,7 @@ class _VehicleHomeScreenV2State extends State<VehicleHomeScreenV2> {
           mainAxisSize: MainAxisSize.min,
           children: [
             CustomText(
-              AppStrings.goLive.tr,
+              'Go live',
               fontSize: 13,
               fontWeight: FontWeight.w600,
               color: AppColors.mainTextColor,
@@ -444,16 +444,18 @@ class _VehicleHomeScreenV2State extends State<VehicleHomeScreenV2> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        title: Text(AppStrings.removePhotoTitle.tr),
-        content: Text(AppStrings.removePhotoConfirm.tr),
+        title: const Text('Remove photo'),
+        content: const Text(
+          'This photo will be removed from your public gallery.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: Text(AppStrings.cancel.tr),
+            child: const Text('Cancel'),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: Text(AppStrings.remove.tr, style: const TextStyle(color: Colors.red)),
+            child: const Text('Remove', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -499,21 +501,18 @@ class _VehicleHomeScreenV2State extends State<VehicleHomeScreenV2> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        title: Text(AppStrings.removeContactTitle.tr),
+        title: const Text('Remove contact'),
         content: Text(
-          AppStrings.removeNameCannotUndo.tr.replaceAll(
-            '{N}',
-            c.locationName.isNotEmpty ? c.locationName : AppStrings.thisContactFallback.tr,
-          ),
+          'Remove ${c.locationName.isNotEmpty ? c.locationName : "this contact"}? This cannot be undone.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: Text(AppStrings.cancel.tr),
+            child: const Text('Cancel'),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: Text(AppStrings.remove.tr, style: const TextStyle(color: Colors.red)),
+            child: const Text('Remove', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -527,18 +526,18 @@ class _VehicleHomeScreenV2State extends State<VehicleHomeScreenV2> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        title: Text(AppStrings.deleteVehicleTitle.tr),
+        title: const Text('Delete vehicle'),
         content: Text(
-          AppStrings.removeNameCannotUndo.tr.replaceAll('{N}', v.name),
+          'Remove ${v.name}? This cannot be undone.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: Text(AppStrings.cancel.tr),
+            child: const Text('Cancel'),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: Text(AppStrings.delete.tr, style: const TextStyle(color: Colors.red)),
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -598,7 +597,7 @@ class _OverviewTab extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               CustomText(
-                AppStrings.myFleetLabel.tr,
+                'My fleet',
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
                 color: AppColors.mainTextColor,
@@ -607,7 +606,7 @@ class _OverviewTab extends StatelessWidget {
                 onPressed: onAdd,
                 icon: Icon(Icons.add, size: 18, color: AppColors.primaryColor),
                 label: CustomText(
-                  AppStrings.add.tr,
+                  'Add',
                   color: AppColors.primaryColor,
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
@@ -626,9 +625,10 @@ class _OverviewTab extends StatelessWidget {
             }
             if (controller.myVehicles.isEmpty) {
               return _EmptyState(
-                title: AppStrings.noVehiclesYet.tr,
-                subtitle: AppStrings.addVehicleProfileHint.tr,
-                cta: AppStrings.addAVehicleCta.tr,
+                title: 'No vehicles yet',
+                subtitle:
+                    'Add a vehicle to start showing it on your public profile.',
+                cta: 'Add a vehicle',
                 onTap: onAdd,
               );
             }
@@ -706,7 +706,7 @@ class _OverviewGallerySection extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             CustomText(
-              AppStrings.gallery.tr,
+              'Gallery',
               fontSize: 16,
               fontWeight: FontWeight.w700,
               color: AppColors.mainTextColor,
@@ -719,7 +719,7 @@ class _OverviewGallerySection extends StatelessWidget {
               final empty = controller.myGallery.isEmpty;
               return IconButton(
                 onPressed: onAdd,
-                tooltip: empty ? AppStrings.addPhoto.tr : AppStrings.addMoreTooltip.tr,
+                tooltip: empty ? 'Add photo' : 'Add more',
                 icon: Icon(
                   empty ? Icons.add_circle_outline : Icons.add_a_photo_rounded,
                   size: 22,
@@ -742,9 +742,10 @@ class _OverviewGallerySection extends StatelessWidget {
           }
           if (controller.myGallery.isEmpty) {
             return _EmptyState(
-              title: AppStrings.noPhotosYet.tr,
-              subtitle: AppStrings.addPhotosHint.tr,
-              cta: AppStrings.addAPhotoCta.tr,
+              title: 'No photos yet',
+              subtitle:
+                  'Add photos of your vehicles, livery and workspace to make your public profile stand out.',
+              cta: 'Add a photo',
               onTap: onAdd,
             );
           }
@@ -785,7 +786,7 @@ class _OverviewContactUsSection extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             CustomText(
-              AppStrings.contactUs.tr,
+              'Contact us',
               fontSize: 16,
               fontWeight: FontWeight.w700,
               color: AppColors.mainTextColor,
@@ -797,7 +798,7 @@ class _OverviewContactUsSection extends StatelessWidget {
               final empty = controller.myContacts.isEmpty;
               return IconButton(
                 onPressed: onAdd,
-                tooltip: empty ? AppStrings.addContactTooltip.tr : AppStrings.addAnotherTooltip.tr,
+                tooltip: empty ? 'Add contact' : 'Add another',
                 icon: Icon(
                   empty
                       ? Icons.add_circle_outline
@@ -813,9 +814,10 @@ class _OverviewContactUsSection extends StatelessWidget {
         Obx(() {
           if (controller.myContacts.isEmpty) {
             return _EmptyState(
-              title: AppStrings.noContactInfoYet.tr,
-              subtitle: AppStrings.addContactInfoHint.tr,
-              cta: AppStrings.addAContactCta.tr,
+              title: 'No contact info yet',
+              subtitle:
+                  'Add your branch address, phone and email so customers can reach you.',
+              cta: 'Add a contact',
               onTap: onAdd,
             );
           }
@@ -906,7 +908,7 @@ class _ContactCard extends StatelessWidget {
                 child: CustomText(
                   contact.locationName.isNotEmpty
                       ? contact.locationName
-                      : AppStrings.branchLabel.tr,
+                      : 'Branch',
                   fontWeight: FontWeight.w800,
                   fontSize: 14,
                   color: AppColors.mainTextColor,
@@ -921,7 +923,7 @@ class _ContactCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: CustomText(
-                    AppStrings.primaryLabel.tr,
+                    'Primary',
                     fontSize: 10,
                     fontWeight: FontWeight.w700,
                     color: AppColors.primaryColor,
@@ -930,7 +932,7 @@ class _ContactCard extends StatelessWidget {
               IconButton(
                 onPressed: onEdit,
                 icon: const Icon(Icons.edit_outlined, size: 18),
-                tooltip: AppStrings.edit.tr,
+                tooltip: 'Edit',
               ),
               InkWell(
                 onTap: onDelete,
@@ -1363,10 +1365,10 @@ class _IdentityHeaderCard extends StatelessWidget {
               // 320 dp wide.
               final stackPill = constraints.maxWidth < 320;
               final identity = _NameBlock(
-                name: name.isEmpty ? AppStrings.welcomeLabel.tr : _capitalizeFirst(name),
+                name: name.isEmpty ? 'Welcome' : _capitalizeFirst(name),
                 subtitle: designation.isNotEmpty
                     ? designation
-                    : AppStrings.vehicleServiceProvider.tr,
+                    : 'Vehicle service provider',
               );
               final memberPill = since.isEmpty
                   ? const SizedBox.shrink()
@@ -1524,7 +1526,7 @@ class _MemberSincePill extends StatelessWidget {
           ),
           const SizedBox(width: 4),
           Text(
-            '${AppStrings.memberPrefix.tr} · $since',
+            'Member · $since',
             style: const TextStyle(
               fontSize: 10,
               fontWeight: FontWeight.w700,
@@ -1563,9 +1565,10 @@ class _VehiclesTab extends StatelessWidget {
         }
         if (controller.myVehicles.isEmpty) {
           return _EmptyState(
-            title: AppStrings.noVehiclesInFleet.tr,
-            subtitle: AppStrings.tapAddVehicleHint.tr,
-            cta: AppStrings.addAVehicleCta.tr,
+            title: 'No vehicles in your fleet',
+            subtitle:
+                'Tap "Add vehicle" below to publish your first listing.',
+            cta: 'Add a vehicle',
             onTap: () {
               // Bubble up via the FAB by triggering its tap target —
               // simpler to call edit with a fresh draft instead.
@@ -1620,13 +1623,13 @@ class _StatsRow extends StatelessWidget {
           runSpacing: SizeConfig.size10,
           children: [
             _StatTile(
-              label: AppStrings.vehiclesTab.tr,
+              label: 'Vehicles',
               value: controller.myVehicles.length.toString(),
               icon: Icons.directions_car_filled_rounded,
               color: const Color(0xFF1E88FF),
             ),
             _StatTile(
-              label: AppStrings.active.tr,
+              label: 'Active',
               value: controller.myVehicles
                   .where((v) => v.isActive ?? true)
                   .length
@@ -1635,7 +1638,7 @@ class _StatsRow extends StatelessWidget {
               color: const Color(0xFF22C55E),
             ),
             _StatTile(
-              label: AppStrings.verified.tr,
+              label: 'Verified',
               value: controller.myVehicles
                   .where((v) => v.isVerified ?? false)
                   .length
@@ -1644,14 +1647,14 @@ class _StatsRow extends StatelessWidget {
               color: const Color(0xFF8B5CF6),
             ),
             _StatTile(
-              label: AppStrings.contactsLabel.tr,
+              label: 'Contacts',
               value: controller.myContacts.length.toString(),
               icon: Icons.contact_phone_rounded,
               color: const Color(0xFFF59E0B),
             ),
             if (expanded)
               _StatTile(
-                label: AppStrings.gallery.tr,
+                label: 'Gallery',
                 value: controller.myGallery.length.toString(),
                 icon: Icons.photo_library_rounded,
                 color: const Color(0xFFEF4444),
