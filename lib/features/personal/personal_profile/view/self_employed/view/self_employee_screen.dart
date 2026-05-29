@@ -40,6 +40,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/widget/profile_d
 import 'package:BlueEra/features/personal/personal_profile/widgets/personal_qrcode_widget.dart';
 import 'package:BlueEra/features/personal/personal_profile/widgets/profile_bio_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/widgets/profile_location_card.dart';
+import 'package:BlueEra/features/personal/personal_profile/widgets/profile_top_bar.dart';
 import 'package:BlueEra/permissionCentralize/go_live_permission_service.dart';
 import 'package:BlueEra/widgets/common_circular_profile_image.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -138,7 +139,10 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
                     surfaceTintColor: Colors.transparent,
                     automaticallyImplyLeading: false,
                     toolbarHeight: topBarHeight,
-                    flexibleSpace: _buildTopBar(),
+                    flexibleSpace: ProfileTopBar(
+                      onGoLiveTap: _handleGoLiveTap,
+                      showGoLivePill: Platform.isAndroid,
+                    ),
                   ),
                   SliverToBoxAdapter(
                     child: Padding(
