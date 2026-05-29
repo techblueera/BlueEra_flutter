@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/services/location/location_service.dart';
+import 'package:BlueEra/features/common/rental/controller/property_filter_registry.dart';
 import 'package:BlueEra/features/common/rental/model/property_model.dart';
 import 'package:BlueEra/features/common/rental/repo/property_repo.dart';
 import 'package:get/get.dart';
@@ -136,35 +137,33 @@ class PropertyDiscoverController extends GetxController {
     return (dLat * dLat) + (dLng * dLng);
   }
 
-  // ── Sort (reserved for future API support) ──
-
-  // ── Common filters ──
+  // ── Free-text / range filters (don't fit the chip registry shape) ──
   final city = ''.obs;
   final minPrice = ''.obs;
   final maxPrice = ''.obs;
 
-  // ── HouseAndApartment filters ──
-  final filterBhk = ''.obs;
-  final filterBathrooms = ''.obs;
-  final filterFacing = ''.obs;
-  final filterCarParking = ''.obs;
+  // ── Chip-style filters keyed by registry id ──
+  // All per-type filters live here. Source of truth: see
+  // [propertyFilterRegistry] in property_filter_registry.dart.
+  final RxMap<FilterId, String> _filterValues = <FilterId, String>{}.obs;
 
-  // ── ShopAndOffices filters ──
-  final filterFurnishing = ''.obs;
-
-  // ── PGAndGuestHouse filters ──
-  final filterSubType = ''.obs;
-  final filterMealsIncluded = ''.obs;
-
-  // ── NewProjectsAndProperties filters ──
-  final filterProjectStatus = ''.obs;
-  final filterTypeOfProperty = ''.obs;
+  /// Read-only snapshot of the currently-applied chip filters. Useful for
+  /// hydrating the filter sheet's local working copy.
+  Map<FilterId, String> get currentFilterValues =>
+      Map<FilterId, String>.unmodifiable(_filterValues);
 
   String get currentPropertyType =>
       categories[selectedCategoryIndex.value].propertyType;
 
-  String get _listingType =>
+  String get currentListingType =>
       categories[selectedCategoryIndex.value].listingType;
+
+  /// Filters defined in [propertyFilterRegistry] that are visible under
+  /// the current property-type + listing-type combo. The bottom sheet
+  /// renders one chip selector per entry.
+  List<FilterDef> get visibleFilterDefs => propertyFilterRegistry
+      .where((d) => d.showsFor(currentPropertyType, currentListingType))
+      .toList();
 
   void initWithCategories(
       List<PropertyDiscoverCategory> cats, int initialIndex) {
@@ -176,36 +175,31 @@ class PropertyDiscoverController extends GetxController {
   void selectCategory(int index) {
     if (index == selectedCategoryIndex.value) return;
     selectedCategoryIndex.value = index;
-    _clearTypeFilters();
+    // Drop only the filters that no longer apply under the new
+    // category — common ones (listedBy, rating, etc.) persist so the
+    // user doesn't have to re-pick them after switching tabs.
+    _filterValues.removeWhere((id, _) {
+      final def = filterDefById(id);
+      if (def == null) return true;
+      return !def.showsFor(currentPropertyType, currentListingType);
+    });
     _resetAndFetch();
   }
 
+  /// Replaces the entire filter set in one shot. Called by the bottom
+  /// sheet's Apply button.
   void applyAllFilters({
     required String cityVal,
     required String min,
     required String max,
-    String bhk = '',
-    String bathrooms = '',
-    String facing = '',
-    String carParking = '',
-    String furnishing = '',
-    String subType = '',
-    String mealsIncluded = '',
-    String projectStatus = '',
-    String typeOfProperty = '',
+    required Map<FilterId, String> filters,
   }) {
     city.value = cityVal;
     minPrice.value = min;
     maxPrice.value = max;
-    filterBhk.value = bhk;
-    filterBathrooms.value = bathrooms;
-    filterFacing.value = facing;
-    filterCarParking.value = carParking;
-    filterFurnishing.value = furnishing;
-    filterSubType.value = subType;
-    filterMealsIncluded.value = mealsIncluded;
-    filterProjectStatus.value = projectStatus;
-    filterTypeOfProperty.value = typeOfProperty;
+    _filterValues
+      ..clear()
+      ..addAll(filters);
     _resetAndFetch();
   }
 
@@ -213,42 +207,22 @@ class PropertyDiscoverController extends GetxController {
     city.value = '';
     minPrice.value = '';
     maxPrice.value = '';
-    _clearTypeFilters();
+    _filterValues.clear();
     _resetAndFetch();
-  }
-
-  void _clearTypeFilters() {
-    filterBhk.value = '';
-    filterBathrooms.value = '';
-    filterFacing.value = '';
-    filterCarParking.value = '';
-    filterFurnishing.value = '';
-    filterSubType.value = '';
-    filterMealsIncluded.value = '';
-    filterProjectStatus.value = '';
-    filterTypeOfProperty.value = '';
   }
 
   int get activeFilterCount {
     int count = 0;
     if (city.value.isNotEmpty) count++;
     if (minPrice.value.isNotEmpty || maxPrice.value.isNotEmpty) count++;
-    if (filterBhk.value.isNotEmpty) count++;
-    if (filterBathrooms.value.isNotEmpty) count++;
-    if (filterFacing.value.isNotEmpty) count++;
-    if (filterCarParking.value.isNotEmpty) count++;
-    if (filterFurnishing.value.isNotEmpty) count++;
-    if (filterSubType.value.isNotEmpty) count++;
-    if (filterMealsIncluded.value.isNotEmpty) count++;
-    if (filterProjectStatus.value.isNotEmpty) count++;
-    if (filterTypeOfProperty.value.isNotEmpty) count++;
+    count += _filterValues.length;
     return count;
   }
 
   bool get hasActiveFilters => activeFilterCount > 0;
 
   /// Active filters as displayable chips. Price min/max collapse into a
-  /// single "5000 - 50000" entry so the strip stays compact.
+  /// single "₹5000 - ₹50000" entry so the strip stays compact.
   List<AppliedFilter> get activeFilters {
     final list = <AppliedFilter>[];
     if (city.value.isNotEmpty) {
@@ -267,41 +241,11 @@ class PropertyDiscoverController extends GetxController {
       }
       list.add(AppliedFilter(key: 'price', label: range));
     }
-    if (filterBhk.value.isNotEmpty) {
-      list.add(AppliedFilter(key: 'bhk', label: '${filterBhk.value} BHK'));
-    }
-    if (filterBathrooms.value.isNotEmpty) {
+    for (final entry in _filterValues.entries) {
       list.add(AppliedFilter(
-          key: 'bathrooms', label: '${filterBathrooms.value} Bath'));
-    }
-    if (filterFacing.value.isNotEmpty) {
-      list.add(AppliedFilter(key: 'facing', label: filterFacing.value));
-    }
-    if (filterCarParking.value.isNotEmpty) {
-      list.add(AppliedFilter(
-          key: 'carParking', label: '${filterCarParking.value} Parking'));
-    }
-    if (filterFurnishing.value.isNotEmpty) {
-      list.add(
-          AppliedFilter(key: 'furnishing', label: filterFurnishing.value));
-    }
-    if (filterSubType.value.isNotEmpty) {
-      list.add(AppliedFilter(key: 'subType', label: filterSubType.value));
-    }
-    if (filterMealsIncluded.value.isNotEmpty) {
-      list.add(AppliedFilter(
-          key: 'mealsIncluded',
-          label: filterMealsIncluded.value == 'Yes Included'
-              ? 'Meals Included'
-              : 'No Meals'));
-    }
-    if (filterProjectStatus.value.isNotEmpty) {
-      list.add(AppliedFilter(
-          key: 'projectStatus', label: filterProjectStatus.value));
-    }
-    if (filterTypeOfProperty.value.isNotEmpty) {
-      list.add(AppliedFilter(
-          key: 'typeOfProperty', label: filterTypeOfProperty.value));
+        key: entry.key.name,
+        label: chipLabelFor(entry.key, entry.value),
+      ));
     }
     return list;
   }
@@ -310,43 +254,21 @@ class PropertyDiscoverController extends GetxController {
   /// [activeFilters]) and refetches. Unknown keys are a no-op so the
   /// caller doesn't have to defensive-check.
   void removeFilter(String key) {
-    switch (key) {
-      case 'city':
-        city.value = '';
-        break;
-      case 'price':
-        minPrice.value = '';
-        maxPrice.value = '';
-        break;
-      case 'bhk':
-        filterBhk.value = '';
-        break;
-      case 'bathrooms':
-        filterBathrooms.value = '';
-        break;
-      case 'facing':
-        filterFacing.value = '';
-        break;
-      case 'carParking':
-        filterCarParking.value = '';
-        break;
-      case 'furnishing':
-        filterFurnishing.value = '';
-        break;
-      case 'subType':
-        filterSubType.value = '';
-        break;
-      case 'mealsIncluded':
-        filterMealsIncluded.value = '';
-        break;
-      case 'projectStatus':
-        filterProjectStatus.value = '';
-        break;
-      case 'typeOfProperty':
-        filterTypeOfProperty.value = '';
-        break;
-      default:
-        return;
+    if (key == 'city') {
+      city.value = '';
+    } else if (key == 'price') {
+      minPrice.value = '';
+      maxPrice.value = '';
+    } else {
+      FilterId? matched;
+      for (final id in FilterId.values) {
+        if (id.name == key) {
+          matched = id;
+          break;
+        }
+      }
+      if (matched == null) return;
+      _filterValues.remove(matched);
     }
     _resetAndFetch();
   }
@@ -370,52 +292,11 @@ class PropertyDiscoverController extends GetxController {
     }
 
     try {
-      final params = <String, dynamic>{
-        'listingType': _listingType,
-        'propertyType': currentPropertyType,
-        'page': _page,
-        'limit': _limit,
-      };
-
-      if (LocationService.lat != 0.0 || LocationService.lng != 0.0) {
-        params['lat'] = LocationService.lat;
-        params['lng'] = LocationService.lng;
-        params['radius'] = 1500;
-      }
-
-      // Common filters
-      if (city.value.isNotEmpty) params['city'] = city.value;
-      if (minPrice.value.isNotEmpty) {
-        params['minPrice'] = int.tryParse(minPrice.value) ?? 0;
-      }
-      if (maxPrice.value.isNotEmpty) {
-        params['maxPrice'] = int.tryParse(maxPrice.value) ?? 0;
-      }
-
-      // Type-specific filters
-      if (filterBhk.value.isNotEmpty) params['bhk'] = filterBhk.value;
-      if (filterBathrooms.value.isNotEmpty) {
-        params['bathrooms'] = filterBathrooms.value;
-      }
-      if (filterFacing.value.isNotEmpty) params['facing'] = filterFacing.value;
-      if (filterCarParking.value.isNotEmpty) {
-        params['carParking'] = filterCarParking.value;
-      }
-      if (filterFurnishing.value.isNotEmpty) {
-        params['furnishing'] = filterFurnishing.value;
-      }
-      if (filterSubType.value.isNotEmpty) {
-        params['subType'] = filterSubType.value;
-      }
-      if (filterMealsIncluded.value.isNotEmpty) {
-        params['mealsIncluded'] = filterMealsIncluded.value;
-      }
-      if (filterProjectStatus.value.isNotEmpty) {
-        params['projectStatus'] = filterProjectStatus.value;
-      }
-      if (filterTypeOfProperty.value.isNotEmpty) {
-        params['typeOfProperty'] = filterTypeOfProperty.value;
-      }
+      final params = _buildBaseParams()
+        ..addAll({
+          'page': _page,
+          'limit': _limit,
+        });
 
       final response = await _repo.discoverProperties(params);
 
@@ -454,6 +335,47 @@ class PropertyDiscoverController extends GetxController {
     isLoadingMore.value = false;
   }
 
+  /// Builds the common request body (category, location, city/price,
+  /// and every active chip filter) used by both [fetchProperties] and
+  /// [fetchAllForMap]. Centralising it means a new registry filter
+  /// instantly works for the map view too.
+  Map<String, dynamic> _buildBaseParams() {
+    final params = <String, dynamic>{
+      'listingType': currentListingType,
+      'propertyType': currentPropertyType,
+    };
+
+    if (LocationService.lat != 0.0 || LocationService.lng != 0.0) {
+      params['lat'] = LocationService.lat;
+      params['lng'] = LocationService.lng;
+      params['radius'] = 1500;
+    }
+
+    if (city.value.isNotEmpty) params['city'] = city.value;
+    if (minPrice.value.isNotEmpty) {
+      params['minPrice'] = int.tryParse(minPrice.value) ?? 0;
+    }
+    if (maxPrice.value.isNotEmpty) {
+      params['maxPrice'] = int.tryParse(maxPrice.value) ?? 0;
+    }
+
+    for (final entry in _filterValues.entries) {
+      final def = filterDefById(entry.key);
+      if (def == null || entry.value.isEmpty) continue;
+      // minRating is the one filter whose UI value ("4+") differs
+      // from the numeric value the backend wants. Strip the "+" and
+      // send a number.
+      if (def.id == FilterId.minRating) {
+        final n = double.tryParse(entry.value.replaceAll('+', ''));
+        if (n != null) params[def.apiKey] = n;
+      } else {
+        params[def.apiKey] = entry.value;
+      }
+    }
+
+    return params;
+  }
+
   Future<void> refresh() async {
     _resetAndFetch();
   }
@@ -461,16 +383,7 @@ class PropertyDiscoverController extends GetxController {
   Future<void> fetchAllForMap() async {
     isMapLoading.value = true;
     try {
-      final params = <String, dynamic>{
-        'listingType': _listingType,
-        'propertyType': currentPropertyType,
-        'limit': 200,
-      };
-      if (LocationService.lat != 0.0 || LocationService.lng != 0.0) {
-        params['lat'] = LocationService.lat;
-        params['lng'] = LocationService.lng;
-        params['radius'] = 1500;
-      }
+      final params = _buildBaseParams()..['limit'] = 200;
       final response = await _repo.discoverProperties(params);
       if (response.isSuccess && response.data is List) {
         mapProperties.value = (response.data as List)

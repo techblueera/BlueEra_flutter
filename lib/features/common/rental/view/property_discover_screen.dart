@@ -6,8 +6,8 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_map_widgets.dart';
 import 'package:BlueEra/features/common/Discover/widget/sticky_category_header_delegate.dart';
-import 'package:BlueEra/features/common/rental/controller/property_controller.dart';
 import 'package:BlueEra/features/common/rental/controller/property_discover_controller.dart';
+import 'package:BlueEra/features/common/rental/controller/property_filter_registry.dart';
 import 'package:BlueEra/features/common/rental/view/property_details_screen.dart';
 import 'package:BlueEra/features/common/rental/view/rental_services_dashboard_screen_v2.dart';
 import 'package:BlueEra/features/common/rental/widget/property_listing_card.dart';
@@ -586,24 +586,12 @@ class _PropertyDiscoverScreenState extends State<PropertyDiscoverScreen> {
     final minCtrl = TextEditingController(text: _ctrl.minPrice.value);
     final maxCtrl = TextEditingController(text: _ctrl.maxPrice.value);
 
-    // House filters
-    int bhkIdx = _chipIdx(PropertyController.bhkOptions, _ctrl.filterBhk.value);
-    int bathIdx = _chipIdx(PropertyController.bathroomOptions, _ctrl.filterBathrooms.value);
-    int faceIdx = _chipIdx(PropertyController.facingOptions, _ctrl.filterFacing.value);
-    int parkIdx = _chipIdx(PropertyController.parkingOptions, _ctrl.filterCarParking.value);
-
-    // Shop filters
-    int furnIdx = _chipIdx(PropertyController.furnishingOptions, _ctrl.filterFurnishing.value);
-
-    // PG filters
-    int subIdx = _chipIdx(PropertyController.pgSubtypeOptions, _ctrl.filterSubType.value);
-    int mealIdx = _chipIdx(PropertyController.mealsOptions, _ctrl.filterMealsIncluded.value);
-
-    // New project filters
-    int statusIdx = _chipIdx(PropertyController.availabilityOptions, _ctrl.filterProjectStatus.value);
-    int propTypeIdx = _chipIdx(PropertyController.npPropertyTypeOptions, _ctrl.filterTypeOfProperty.value);
-
-    final propType = _ctrl.currentPropertyType;
+    // Local working copy of chip selections — applied to the controller
+    // only when the user taps "Apply". Bottom-sheet edits don't leak
+    // into the live filter state until then.
+    final localValues =
+        Map<FilterId, String>.from(_ctrl.currentFilterValues);
+    final visibleDefs = _ctrl.visibleFilterDefs;
 
     Get.bottomSheet(
       Container(
@@ -699,88 +687,32 @@ class _PropertyDiscoverScreenState extends State<PropertyDiscoverScreen> {
                       ],
                     ),
 
-                    // ── Type-specific filters ──
-                    if (propType == 'HouseAndApartment') ...[
+                    // ── Registry-driven chip filters ──
+                    // One RentalChipSelector per FilterDef that's visible
+                    // for the current (propertyType, listingType) combo.
+                    // Adding a new filter to the registry shows up here
+                    // automatically — no change needed in this file.
+                    if (visibleDefs.isNotEmpty) ...[
                       const SizedBox(height: 20),
                       const Divider(height: 1, color: Color(0xFFEEEEEE)),
                       const SizedBox(height: 16),
-                      RentalChipSelector(
-                        label: 'BHK',
-                        options: const ['All', ...['1', '2', '3', '4+']],
-                        initialIndex: bhkIdx,
-                        onChanged: (i) => bhkIdx = i,
-                      ),
-                      const SizedBox(height: 14),
-                      RentalChipSelector(
-                        label: 'Bathrooms',
-                        options: const ['All', ...['1', '2', '3', '4+']],
-                        initialIndex: bathIdx,
-                        onChanged: (i) => bathIdx = i,
-                      ),
-                      const SizedBox(height: 14),
-                      RentalChipSelector(
-                        label: 'Facing',
-                        options: const ['All', ...['North', 'South', 'East', 'West', 'North-East', 'North-West', 'South-East', 'South-West']],
-                        initialIndex: faceIdx,
-                        onChanged: (i) => faceIdx = i,
-                      ),
-                      const SizedBox(height: 14),
-                      RentalChipSelector(
-                        label: 'Car Parking',
-                        options: const ['All', ...['1', '2', '3', '4+']],
-                        initialIndex: parkIdx,
-                        onChanged: (i) => parkIdx = i,
-                      ),
-                    ],
-
-                    if (propType == 'ShopAndOffices') ...[
-                      const SizedBox(height: 20),
-                      const Divider(height: 1, color: Color(0xFFEEEEEE)),
-                      const SizedBox(height: 16),
-                      RentalChipSelector(
-                        label: 'Furnishing',
-                        options: const ['All', ...['Furnished', 'Semi-Furnished', 'Unfurnished']],
-                        initialIndex: furnIdx,
-                        onChanged: (i) => furnIdx = i,
-                      ),
-                    ],
-
-                    if (propType == 'PGAndGuestHouse') ...[
-                      const SizedBox(height: 20),
-                      const Divider(height: 1, color: Color(0xFFEEEEEE)),
-                      const SizedBox(height: 16),
-                      RentalChipSelector(
-                        label: 'Subtype',
-                        options: const ['All', ...['Guest House', 'PG', 'Roommate']],
-                        initialIndex: subIdx,
-                        onChanged: (i) => subIdx = i,
-                      ),
-                      const SizedBox(height: 14),
-                      RentalChipSelector(
-                        label: 'Meals Included',
-                        options: const ['All', ...['Yes Included', 'Not Included']],
-                        initialIndex: mealIdx,
-                        onChanged: (i) => mealIdx = i,
-                      ),
-                    ],
-
-                    if (propType == 'NewProjectsAndProperties') ...[
-                      const SizedBox(height: 20),
-                      const Divider(height: 1, color: Color(0xFFEEEEEE)),
-                      const SizedBox(height: 16),
-                      RentalChipSelector(
-                        label: 'Project Status',
-                        options: const ['All', ...['Ready to Move', 'Under Construction']],
-                        initialIndex: statusIdx,
-                        onChanged: (i) => statusIdx = i,
-                      ),
-                      const SizedBox(height: 14),
-                      RentalChipSelector(
-                        label: 'Property Type',
-                        options: const ['All', ...['1 RK', '1 BHK', '2 BHK', '3 BHK', '4 BHK', '4 BHK+', 'Office']],
-                        initialIndex: propTypeIdx,
-                        onChanged: (i) => propTypeIdx = i,
-                      ),
+                      for (int i = 0; i < visibleDefs.length; i++) ...[
+                        if (i > 0) const SizedBox(height: 14),
+                        RentalChipSelector(
+                          label: visibleDefs[i].label,
+                          options: ['All', ...visibleDefs[i].options],
+                          initialIndex: _initialChipIndex(
+                              visibleDefs[i], localValues[visibleDefs[i].id]),
+                          onChanged: (idx) {
+                            if (idx == 0) {
+                              localValues.remove(visibleDefs[i].id);
+                            } else {
+                              localValues[visibleDefs[i].id] =
+                                  visibleDefs[i].options[idx - 1];
+                            }
+                          },
+                        ),
+                      ],
                     ],
                   ],
                 ),
@@ -824,15 +756,7 @@ class _PropertyDiscoverScreenState extends State<PropertyDiscoverScreen> {
                             cityVal: cityCtrl.text.trim(),
                             min: minCtrl.text.trim(),
                             max: maxCtrl.text.trim(),
-                            bhk: _chipVal(PropertyController.bhkOptions, bhkIdx),
-                            bathrooms: _chipVal(PropertyController.bathroomOptions, bathIdx),
-                            facing: _chipVal(PropertyController.facingOptions, faceIdx),
-                            carParking: _chipVal(PropertyController.parkingOptions, parkIdx),
-                            furnishing: _chipVal(PropertyController.furnishingOptions, furnIdx),
-                            subType: _chipVal(PropertyController.pgSubtypeOptions, subIdx),
-                            mealsIncluded: _chipVal(PropertyController.mealsOptions, mealIdx),
-                            projectStatus: _chipVal(PropertyController.availabilityOptions, statusIdx),
-                            typeOfProperty: _chipVal(PropertyController.npPropertyTypeOptions, propTypeIdx),
+                            filters: localValues,
                           );
                         },
                       ),
@@ -848,16 +772,13 @@ class _PropertyDiscoverScreenState extends State<PropertyDiscoverScreen> {
     );
   }
 
-  int _chipIdx(List<String> options, String value) {
-    if (value.isEmpty) return 0;
-    final idx = options.indexOf(value);
+  /// Returns the initial selected index for a [RentalChipSelector] given
+  /// the current stored value. Index 0 is reserved for "All" (no filter);
+  /// other indices map 1:1 onto [FilterDef.options] shifted by one.
+  int _initialChipIndex(FilterDef def, String? value) {
+    if (value == null || value.isEmpty) return 0;
+    final idx = def.options.indexOf(value);
     return idx >= 0 ? idx + 1 : 0;
-  }
-
-  String _chipVal(List<String> options, int filterIdx) {
-    if (filterIdx <= 0) return '';
-    final realIdx = filterIdx - 1;
-    return realIdx < options.length ? options[realIdx] : '';
   }
 }
 
