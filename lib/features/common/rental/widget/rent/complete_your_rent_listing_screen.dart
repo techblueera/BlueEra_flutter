@@ -25,6 +25,12 @@ class _CompleteYourRentListingScreenState
   late final PropertyController _ctrl;
   final List<String> _photoPaths = [];
 
+  // Form-level validation parity with the sell screen — inline error
+  // messages render under each bad field; the controller only checks
+  // things the form can't (photo count, chip-selector duration).
+  final _formKey = GlobalKey<FormState>();
+  var _autovalidate = AutovalidateMode.disabled;
+
   @override
   void initState() {
     super.initState();
@@ -68,7 +74,10 @@ class _CompleteYourRentListingScreenState
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
-              child: Column(
+              child: Form(
+                key: _formKey,
+                autovalidateMode: _autovalidate,
+                child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   RentalFormCard(
@@ -140,6 +149,7 @@ class _CompleteYourRentListingScreenState
                   ),
                 ],
               ),
+              ),
             ),
           ),
         ],
@@ -149,6 +159,10 @@ class _CompleteYourRentListingScreenState
           label: 'Post Now',
           isLoading: _ctrl.isLoading.value,
           onTap: () async {
+            FocusScope.of(context).unfocus();
+            setState(() =>
+                _autovalidate = AutovalidateMode.onUserInteraction);
+            if (!(_formKey.currentState?.validate() ?? false)) return;
             final success = await _ctrl.submitProperty();
             if (success) Get.close(3);
           },
@@ -204,7 +218,6 @@ class _RentPriceDetailsSectionState extends State<_RentPriceDetailsSection> {
   late final PropertyController _ctrl;
   bool _isRange = false;
   bool _allInclusive = false;
-  bool _securityDeposit = false;
   bool _electricityIncluded = false;
   bool _waterIncluded = false;
 
@@ -259,45 +272,41 @@ class _RentPriceDetailsSectionState extends State<_RentPriceDetailsSection> {
         const SizedBox(height: 8),
         if (_isRange)
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
-                child: RentalFieldWithSuffix(
+                child: RentalLabeledField(
                   label: '',
                   hint: 'Min Price',
                   keyboardType: TextInputType.number,
                   onChanged: (v) => _ctrl.priceFrom.value = v,
-                  suffix: _priceTypeSuffix(),
+                  validator: _numericRequired('Enter min price'),
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: RentalFieldWithSuffix(
+                child: RentalLabeledField(
                   label: '',
                   hint: 'Max Price',
                   keyboardType: TextInputType.number,
                   onChanged: (v) => _ctrl.priceTo.value = v,
-                  suffix: _priceTypeSuffix(),
+                  validator: _numericRequired('Enter max price'),
                 ),
               ),
             ],
           )
         else
-          RentalFieldWithSuffix(
+          RentalLabeledField(
             label: '',
             hint: 'E.g. ₹40,660',
             keyboardType: TextInputType.number,
             onChanged: (v) => _ctrl.price.value = v,
-            suffix: _priceTypeSuffix(),
+            validator: _numericRequired('Enter price'),
           ),
         const SizedBox(height: 12),
         _checkRow('All Inclusive Price', _allInclusive, (v) {
           setState(() => _allInclusive = v);
           _ctrl.allInclusivePrice.value = v;
-        }),
-        const SizedBox(height: 8),
-        _checkRow('Security Deposit', _securityDeposit, (v) {
-          setState(() => _securityDeposit = v);
-          _ctrl.securityDeposit.value = v;
         }),
         const SizedBox(height: 8),
         _checkRow('Electricity Included', _electricityIncluded, (v) {
@@ -309,106 +318,56 @@ class _RentPriceDetailsSectionState extends State<_RentPriceDetailsSection> {
           setState(() => _waterIncluded = v);
           _ctrl.waterChargesIncluded.value = v;
         }),
+        const SizedBox(height: 16),
+        // Same rent-duration chip strip the sell screen uses — wire
+        // keys come from [rentDurationOptions]; the chip index maps
+        // 1:1 to that list so the controller stays the source of
+        // truth without duplicating the string constants here.
+        RentalChipSelector(
+          label: 'Rent Duration',
+          options: PropertyController.rentDurationOptions
+              .map((k) => PropertyController.priceTypeLabels[k] ?? k)
+              .toList(),
+          initialIndex: _initialDurationIndex(),
+          onChanged: (i) {
+            _ctrl.priceType.value =
+                PropertyController.rentDurationOptions[i];
+          },
+        ),
+        const SizedBox(height: 16),
+        // Security deposit is an amount now (matches the sell screen).
+        // Bound to the same controller field so the API payload stays
+        // identical for rent and sell.
+        RentalLabeledField(
+          label: 'Security Deposit',
+          hint: 'E.g. ₹50,000',
+          keyboardType: TextInputType.number,
+          onChanged: (v) => _ctrl.securityDepositAmount.value = v,
+          validator: _numericRequired('Enter security deposit amount'),
+        ),
       ],
     );
   }
 
-  Widget _priceTypeSuffix() {
-    return GestureDetector(
-      onTap: () => _showPriceTypePicker(),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(
-          border: Border(
-            left: BorderSide(
-              color: AppColors.secondaryTextColor.withValues(alpha: 0.2),
-            ),
-          ),
-        ),
-        child: Obx(() => Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                CustomText(
-                  PropertyController.priceTypeLabels[_ctrl.priceType.value] ??
-                      _ctrl.priceType.value,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.secondaryTextColor,
-                ),
-                const SizedBox(width: 2),
-                Icon(
-                  Icons.keyboard_arrow_down,
-                  size: 16,
-                  color: AppColors.secondaryTextColor,
-                ),
-              ],
-            )),
-      ),
-    );
+  /// Required-numeric validator factory used by the price / deposit
+  /// fields — keeps each call site one-liner short and the messages
+  /// consistent with the sell screen.
+  String? Function(String?) _numericRequired(String emptyMessage) {
+    return (value) {
+      final v = value?.trim() ?? '';
+      if (v.isEmpty) return emptyMessage;
+      if (int.tryParse(v) == null) return 'Enter a valid number';
+      return null;
+    };
   }
 
-  void _showPriceTypePicker() {
-    showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (_) {
-        return SafeArea(
-          top: false,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const SizedBox(height: 12),
-              Container(
-                width: 36,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFDDE2EE),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(height: 12),
-              CustomText(
-                'Select Price Type',
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                color: AppColors.mainTextColor,
-              ),
-              const SizedBox(height: 8),
-              ...PropertyController.priceTypeOptions.map(
-                (type) {
-                  final label =
-                      PropertyController.priceTypeLabels[type] ?? type;
-                  return Obx(() => ListTile(
-                        title: CustomText(
-                          label,
-                          fontSize: 14,
-                          fontWeight: _ctrl.priceType.value == type
-                              ? FontWeight.w700
-                              : FontWeight.w500,
-                          color: _ctrl.priceType.value == type
-                              ? AppColors.primaryColor
-                              : AppColors.mainTextColor,
-                        ),
-                        trailing: _ctrl.priceType.value == type
-                            ? Icon(Icons.check_circle,
-                                color: AppColors.primaryColor, size: 20)
-                            : null,
-                        onTap: () {
-                          _ctrl.priceType.value = type;
-                          Navigator.of(context).pop();
-                        },
-                      ));
-                },
-              ),
-              const SizedBox(height: 8),
-            ],
-          ),
-        );
-      },
-    );
+  /// Chip index that matches the controller's current price-type key;
+  /// falls back to 0 (Monthly) when the controller holds a value
+  /// outside the duration set (e.g. 'OneTime').
+  int _initialDurationIndex() {
+    final idx = PropertyController.rentDurationOptions
+        .indexOf(_ctrl.priceType.value);
+    return idx >= 0 ? idx : 0;
   }
 
   Widget _checkRow(String label, bool value, ValueChanged<bool> onChanged) {

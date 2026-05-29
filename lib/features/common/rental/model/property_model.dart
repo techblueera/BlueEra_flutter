@@ -1,12 +1,15 @@
 class PriceRange {
-  final num min;
-  final num max;
+  // Wire format expects strings — kept here as String so the model
+  // round-trips without ad-hoc coercion at every call site.
+  // `fromJson` tolerates legacy numeric payloads via `.toString()`.
+  final String min;
+  final String max;
 
-  const PriceRange({this.min = 0, this.max = 0});
+  const PriceRange({this.min = '', this.max = ''});
 
   factory PriceRange.fromJson(Map<String, dynamic> json) => PriceRange(
-        min: json['min'] ?? 0,
-        max: json['max'] ?? 0,
+        min: json['min']?.toString() ?? '',
+        max: json['max']?.toString() ?? '',
       );
 
   Map<String, dynamic> toJson() => {'min': min, 'max': max};
@@ -278,6 +281,7 @@ class NewProjectsAndProperties {
   final String? noOfTowers;
   final String? noOfFloors;
   final String? facing;
+  final String? listedBy;
 
   const NewProjectsAndProperties({
     this.propertyLocation,
@@ -290,6 +294,7 @@ class NewProjectsAndProperties {
     this.noOfTowers,
     this.noOfFloors,
     this.facing,
+    this.listedBy,
   });
 
   factory NewProjectsAndProperties.fromJson(Map<String, dynamic> json) {
@@ -318,6 +323,7 @@ class NewProjectsAndProperties {
       noOfTowers: json['noOfTowers']?.toString(),
       noOfFloors: json['noOfFloors']?.toString(),
       facing: json['facing'],
+      listedBy: json['listedBy'],
     );
   }
 
@@ -335,6 +341,7 @@ class NewProjectsAndProperties {
     if (noOfTowers != null) data['noOfTowers'] = noOfTowers;
     if (noOfFloors != null) data['noOfFloors'] = noOfFloors;
     if (facing != null) data['facing'] = facing;
+    if (listedBy != null) data['listedBy'] = listedBy;
     return data;
   }
 }
@@ -410,7 +417,14 @@ class PropertyModel {
   final String description;
   final String propertyType;
   final String listingType;
-  final num price;
+  // Server-side creation timestamp (ISO-8601). Kept so the discover
+  // screen can offer "Newest first" sorting; ISO strings sort
+  // chronologically, so no DateTime parse is needed for ordering.
+  final String? createdAt;
+  // Wire format ships price as a string now — same coercion strategy
+  // as [PriceRange.min] / [PriceRange.max]. `fromJson` calls
+  // `?.toString()` so existing numeric server payloads keep parsing.
+  final String price;
   final PriceRange? priceRange;
   final double rating;
   final int reviews;
@@ -418,10 +432,16 @@ class PropertyModel {
   final bool allInclusivePrice;
   final bool priceNegotiable;
   final bool taxAndGovtChargeExcluded;
-  final bool securityDeposit;
+  // Carries the deposit AMOUNT now (was a yes/no bool). Nullable so
+  // the field is omitted from the payload when the user leaves it
+  // blank.
+  final String? securityDepositAmount;
   final bool electricityIncluded;
   final bool waterChargesIncluded;
   final String? priceType;
+  // Free-text lister name that pairs with the `listedBy` role on
+  // each type-specific sub-model. Sent on every payload (rent + sell).
+  final String? listedByName;
   final GeoLocation? location;
   final HouseAndApartment? houseAndApartment;
   final LandAndPlots? landAndPlots;
@@ -436,7 +456,8 @@ class PropertyModel {
     this.description = '',
     this.propertyType = '',
     this.listingType = '',
-    this.price = 0,
+    this.createdAt,
+    this.price = '',
     this.priceRange,
     this.rating = 0,
     this.reviews = 0,
@@ -444,10 +465,11 @@ class PropertyModel {
     this.allInclusivePrice = false,
     this.priceNegotiable = false,
     this.taxAndGovtChargeExcluded = false,
-    this.securityDeposit = false,
+    this.securityDepositAmount,
     this.electricityIncluded = false,
     this.waterChargesIncluded = false,
     this.priceType,
+    this.listedByName,
     this.location,
     this.houseAndApartment,
     this.landAndPlots,
@@ -463,7 +485,8 @@ class PropertyModel {
         description: json['description'] ?? '',
         propertyType: json['propertyType'] ?? '',
         listingType: json['listingType'] ?? '',
-        price: json['price'] ?? 0,
+        createdAt: json['createdAt']?.toString(),
+        price: json['price']?.toString() ?? '',
         priceRange: json['priceRange'] is Map
             ? PriceRange.fromJson(json['priceRange'])
             : null,
@@ -476,10 +499,15 @@ class PropertyModel {
         allInclusivePrice: json['allInclusivePrice'] ?? false,
         priceNegotiable: json['priceNegotiable'] ?? false,
         taxAndGovtChargeExcluded: json['taxAndGovtChargeExcluded'] ?? false,
-        securityDeposit: json['securityDeposit'] ?? false,
+        // Server echoes the amount back as a number; coerce via
+        // `?.toString()` so the String? field doesn't throw a
+        // "int is not a subtype of String" cast at construction.
+        securityDepositAmount:
+            json['securityDepositAmount']?.toString() ?? '',
         electricityIncluded: json['electricityIncluded'] ?? false,
         waterChargesIncluded: json['waterChargesIncluded'] ?? false,
         priceType: json['priceType'],
+        listedByName: json['listedByName']?.toString(),
         location: json['location'] is Map
             ? GeoLocation.fromJson(json['location'])
             : null,
@@ -519,11 +547,19 @@ class PropertyModel {
     data['priceNegotiable'] = priceNegotiable;
     data['taxAndGovtChargeExcluded'] = taxAndGovtChargeExcluded;
 
+    // priceType (duration) + securityDeposit (amount) flow on every
+    // listing — rent and sell — per the new payload spec. Utility-
+    // included flags stay rent-only because they're meaningless on a
+    // sale listing.
+    if (priceType != null) data['priceType'] = priceType;
+    if (listedByName != null && listedByName!.isNotEmpty) {
+      data['listedByName'] = listedByName;
+    }
+    if (securityDepositAmount != null) data['securityDepositAmount'] = securityDepositAmount;
+
     if (location != null) data['location'] = location!.toJson();
 
     if (listingType == 'Rent') {
-      if (priceType != null) data['priceType'] = priceType;
-      data['securityDeposit'] = securityDeposit;
       data['electricityIncluded'] = electricityIncluded;
       data['waterChargesIncluded'] = waterChargesIncluded;
     }
@@ -556,7 +592,8 @@ class PropertyModel {
         '';
   }
 
-  bool get hasPriceRange => priceRange != null && priceRange!.min > 0;
+  bool get hasPriceRange =>
+      priceRange != null && (num.tryParse(priceRange!.min) ?? 0) > 0;
 
   static const _typeLabels = {
     'HouseAndApartment': 'House & Apartment',
@@ -581,10 +618,11 @@ class PropertyModel {
   String get formattedPrice {
     String result;
     if (hasPriceRange) {
-      result =
-          '₹${formatIndianPrice(priceRange!.min)} - ₹${formatIndianPrice(priceRange!.max)}';
+      final lo = num.tryParse(priceRange!.min) ?? 0;
+      final hi = num.tryParse(priceRange!.max) ?? 0;
+      result = '₹${formatIndianPrice(lo)} - ₹${formatIndianPrice(hi)}';
     } else {
-      result = '₹${formatIndianPrice(price)}';
+      result = '₹${formatIndianPrice(num.tryParse(price) ?? 0)}';
     }
     if (listingType == 'Rent') result += '/mo';
     return result;

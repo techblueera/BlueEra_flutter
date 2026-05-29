@@ -26,6 +26,7 @@ import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
 import 'package:BlueEra/features/common/reel/view/channel/follower_following_screen.dart';
 import 'package:BlueEra/features/common/rental/widget/rental_property_card.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/self_employed/widget/earn_service_card.dart';
 import 'package:BlueEra/features/common/visiting_card/view/all_personal_visiting_cards.dart';
 import 'package:BlueEra/features/contribution/controller/contribution_controller.dart';
 import 'package:BlueEra/features/contribution/view/contribution_screen.dart';
@@ -535,6 +536,8 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
       // detail. Bio used to live inside the identity block; lifting
       // it here gives it a clear edit affordance.
       const ProfileBioCard(),
+      SizedBox(height: SizeConfig.size12),
+      const EarnServiceCard(),
       SizedBox(height: SizeConfig.size12),
       // _buildRentalCard(),
       const RentalPropertyCard(),

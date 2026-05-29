@@ -89,6 +89,20 @@ class _NewProjectSpecificationsScreenState
                               label: 'Add Area Details',
                               hint: 'E.g. 4060',
                               onChanged: (v) => _ctrl.npArea.value = v,
+                              validator: (v) {
+                                final s = v?.trim() ?? '';
+                                if (s.isEmpty) return 'Please enter area';
+                                if (num.tryParse(s) == null) {
+                                  return 'Enter a valid number';
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 18),
+                            RentalChipSelector(
+                              label: 'Listed By',
+                              options: const ['Owner', 'Builder', 'Dealer'],
+                              onChanged: (i) => _ctrl.npListedBy.value = i,
                             ),
                           ],
                         ),
@@ -108,8 +122,15 @@ class _NewProjectSpecificationsScreenState
                             RentalLabeledField(
                               label: 'Developer/Builder Name',
                               hint: 'E.g. Ritesh Kumar Sharma',
-                              onChanged: (v) =>
-                                  _ctrl.npBuilderName.value = v,
+                              onChanged: (v) {
+                                // Single name input for new projects — feeds
+                                // both the launch-info builderName and the
+                                // shared top-level listedByName so we keep
+                                // one field while populating the same keys
+                                // the other property types use.
+                                _ctrl.npBuilderName.value = v;
+                                _ctrl.listedByName.value = v;
+                              },
                               validator: (v) =>
                                   v == null || v.trim().isEmpty
                                       ? 'Please enter builder name'

@@ -66,6 +66,22 @@ class _ListYourRentPropertyScreenState
                         ),
                       ),
                       const SizedBox(height: 12),
+                      // Mirrors the "What Kind Of Property" chip strip
+                      // on `list_your_property_screen.dart` so the rent
+                      // flow asks the residential / commercial question
+                      // up-front too. Binds to the same
+                      // `selectedPropertyKind` flag on PropertyController
+                      // (0 = Residential, 1 = Commercial) so the wire
+                      // format stays identical between sell and rent.
+                      RentalFormCard(
+                        child: RentalChipSelector(
+                          label: 'What Kind Of Property',
+                          options: PropertyController.propertyKindOptions,
+                          onChanged: (i) =>
+                              _ctrl.selectedPropertyKind.value = i,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
                       RentalFormCard(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,

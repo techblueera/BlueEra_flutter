@@ -20,6 +20,7 @@ import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/common/cab_and_transport_partner/view/widgets/cab_transport_orders_widget.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/rider_service_screen.dart';
 import 'package:BlueEra/features/common/rental/widget/rental_property_card.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/self_employed/widget/earn_service_card.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/rider_profile_status_screen.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
@@ -855,6 +856,10 @@ class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
       // action/contact rows â€” bio reads as identity content, not
       // secondary detail.
       const ProfileBioCard(),
+      SizedBox(height: SizeConfig.size12),
+      const EarnServiceCard(
+        margin: EdgeInsets.only(top: 10, left: 20, right: 10),
+      ),
       SizedBox(height: SizeConfig.size12),
       const RentalPropertyCard(
         margin: EdgeInsets.only(top: 10, left: 20, right: 10),

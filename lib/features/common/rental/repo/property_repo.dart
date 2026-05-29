@@ -83,4 +83,17 @@ class PropertyRepo extends BaseService {
       onError: (error) {},
     );
   }
+
+  /// Submits a rating (+ optional comment) for a property. Body shape
+  /// mirrors the user/business rating endpoints: `{rating, comment}`.
+  Future<ResponseModel> rateProperty(
+      String id, Map<String, dynamic> body) async {
+    return await ApiBaseHelper().postHTTP(
+      propertyRatings(id),
+      params: body,
+      showProgress: false,
+      onSuccess: (res) {},
+      onError: (error) {},
+    );
+  }
 }

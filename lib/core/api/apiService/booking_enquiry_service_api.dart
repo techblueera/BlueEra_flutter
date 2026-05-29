@@ -46,6 +46,10 @@ mixin BookingEnquiryServiceApi {
   final String propertyStats = 'booking-enquiry-service/properties/stats';
   String propertyById(String id) =>
       'booking-enquiry-service/properties/$id';
+  // Ratings on a property — mirrors the user/business ratings
+  // convention (`<entity>/$id/ratings`).
+  String propertyRatings(String id) =>
+      'booking-enquiry-service/properties/$id/ratings';
   String propertiesByFilter(String listingType, String propertyType) =>
       'booking-enquiry-service/properties?listingType=$listingType&propertyType=$propertyType';
 }

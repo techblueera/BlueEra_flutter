@@ -95,8 +95,7 @@ class _SelfProfessionServiceScreenState
         final sections = <_Section>[
           _Section(
             title: 'Work Photos',
-            actionLabel: 'Add',
-            actionIcon: Icons.add_a_photo_outlined,
+            hasData: (service.photos?.length ?? 0) > 0,
             onEdit: (service.photos?.length ?? 0) >= _galleryMax
                 ? null
                 : () => _pickAndUploadGalleryPhoto(this.controller),
@@ -105,14 +104,23 @@ class _SelfProfessionServiceScreenState
           ),
           _Section(
             title: 'Working Hours',
+            hasData: service.schedule?.isNotEmpty ?? false,
             onEdit: () => updateVisitingHours(),
-            body: (service.schedule == null || service.schedule!.isEmpty)
-                ? _placeholderHint('Add weekly working hours so customers'
-                ' know when to book.')
-                : AvailabilityScheduleCard(schedule: service.schedule!),
+            // Empty vs. populated is handled inside the card itself,
+            // mirroring `_buildTimingsSection` on the consultant screen
+            // — so the section just hands over the schedule and the
+            // same edit action for the empty-state CTA.
+            body: AvailabilityScheduleCard(
+              schedule: service.schedule ?? const [],
+              onAdd: updateVisitingHours,
+            ),
           ),
           _Section(
             title: AppStrings.price.tr,
+            // Price counts as "added" when either bound is non-zero —
+            // matches the `isEmpty` rule the price hero itself uses.
+            hasData: (service.feeDetails?.minFee ?? 0) > 0 ||
+                (service.feeDetails?.maxFee ?? 0) > 0,
             onEdit: () {
               this.controller.seedPriceInputsFromProfession();
               updateBookingPrice();
@@ -129,6 +137,7 @@ class _SelfProfessionServiceScreenState
           ),
           _Section(
             title: 'Service Type',
+            hasData: service.serviceType?.isNotEmpty ?? false,
             onEdit: () => updateServiceType(
               controller: this.controller,
               serviceType: service.serviceType ?? [],
@@ -141,6 +150,7 @@ class _SelfProfessionServiceScreenState
           ),
           _Section(
             title: 'Service Description',
+            hasData: service.description?.isNotEmpty ?? false,
             onEdit: () => updateServiceDescription(
               controller: this.controller,
               desc: service.description ?? AppStrings.na,
@@ -151,6 +161,7 @@ class _SelfProfessionServiceScreenState
           ),
           _Section(
             title: 'Work Experience',
+            hasData: hasExperience,
             onEdit: () => updateWorkExperience(
               controller: this.controller,
               years: years,
@@ -163,11 +174,12 @@ class _SelfProfessionServiceScreenState
             ),
           ),
           // Always render the optional list sections so the user can
-          // tap "Edit" on each empty card and fill them in one by
+          // tap "Add" on each empty card and fill them in one by
           // one. _chipList shows a friendly placeholder hint until
           // the section has data.
           _Section(
             title: 'Services Offered',
+            hasData: service.serviceOffered?.isNotEmpty ?? false,
             onEdit: () => updateServiceSelectionData(
               controller: this.controller,
               key: SelfWorkServiceController.keyServicesOffered,
@@ -181,6 +193,7 @@ class _SelfProfessionServiceScreenState
           ),
           _Section(
             title: 'Expertise',
+            hasData: service.expertise?.isNotEmpty ?? false,
             onEdit: () => updateServiceSelectionData(
               controller: this.controller,
               key: SelfWorkServiceController.keyExpertise,
@@ -194,6 +207,7 @@ class _SelfProfessionServiceScreenState
           ),
           _Section(
             title: 'Types of Installations',
+            hasData: service.typesOfWork?.isNotEmpty ?? false,
             onEdit: () => updateServiceSelectionData(
               controller: this.controller,
               key: SelfWorkServiceController.keyTypeOfWork,
@@ -208,6 +222,7 @@ class _SelfProfessionServiceScreenState
           ),
           _Section(
             title: 'Work Categories',
+            hasData: service.workCategories?.isNotEmpty ?? false,
             onEdit: () => updateServiceSelectionData(
               controller: this.controller,
               key: SelfWorkServiceController.keyWorkCategories,
@@ -221,6 +236,7 @@ class _SelfProfessionServiceScreenState
           ),
           _Section(
             title: 'Why Choose Me',
+            hasData: service.whyChooseMe?.isNotEmpty ?? false,
             onEdit: () => updateServiceSelectionData(
               controller: this.controller,
               key: SelfWorkServiceController.keyWhyChooseMe,
@@ -246,9 +262,8 @@ class _SelfProfessionServiceScreenState
                   title: sections[i].title,
                   child: sections[i].body,
                   onEdit: sections[i].onEdit,
-                  actionLabel: sections[i].actionLabel,
-                  actionIcon: sections[i].actionIcon,
                   tight: sections[i].tight,
+                  hasData: sections[i].hasData,
                 ),
                 SizedBox(height: SizeConfig.size12),
               ],
@@ -268,9 +283,8 @@ class _SelfProfessionServiceScreenState
     required String title,
     required Widget child,
     VoidCallback? onEdit,
-    String? actionLabel,
-    IconData? actionIcon,
     bool tight = false,
+    bool hasData = true,
   }) {
     return Container(
       margin: EdgeInsets.only(left: 20.0),
@@ -342,8 +356,10 @@ class _SelfProfessionServiceScreenState
                     if (onEdit != null)
                       _editChip(
                         onEdit,
-                        label: actionLabel ?? 'Edit',
-                        icon: actionIcon ?? Icons.edit_outlined,
+                        label: hasData ? 'Edit' : 'Add',
+                        icon: hasData
+                            ? Icons.edit_outlined
+                            : Icons.add_rounded,
                       ),
                   ],
                 ),
@@ -1042,13 +1058,17 @@ class _SelfProfessionServiceScreenState
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => Container(
+      builder: (sheetCtx) => Container(
         decoration: BoxDecoration(
           color: AppColors.white,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
         ),
+        // Read viewInsets from the sheet's own context — the outer
+        // screen's MediaQuery doesn't update when the keyboard opens
+        // inside the modal, which is why the inputs were hiding behind
+        // the keyboard.
         padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
+          bottom: MediaQuery.of(sheetCtx).viewInsets.bottom,
         ),
         child: SingleChildScrollView(
           padding: EdgeInsets.only(
@@ -1688,9 +1708,15 @@ class _SelfProfessionServiceScreenState
               radius: SizeConfig.size10,
               bgColor: AppColors.primaryColor,
               onTap: () {
+                final minFee =
+                    int.tryParse(controller.minFeeController.text.trim()) ?? 0;
+                final maxFee =
+                    int.tryParse(controller.maxFeeController.text.trim()) ?? 0;
                 final params = <String, dynamic>{
-                  ApiKeys.minFee: controller.minFeeController.text.trim(),
-                  ApiKeys.maxFee: controller.maxFeeController.text.trim(),
+                  ApiKeys.priceRange: {
+                    ApiKeys.min: minFee,
+                    ApiKeys.max: maxFee,
+                  },
                   ApiKeys.feeType: controller.feeTypeController.text.trim(),
                 };
                 controller.updateEarnServiceData(params: params);
@@ -1727,7 +1753,9 @@ class _SelfProfessionServiceScreenState
                 final payload = controller.payloadForWorkingHours();
                 logs("Working Hours: $payload");
                 controller.updateEarnServiceData(
-                  params: {ApiKeys.schedule: payload},
+                  params: {
+                    ApiKeys.availability: {ApiKeys.schedule: payload},
+                  },
                 );
               },
             );
@@ -1764,20 +1792,21 @@ class _Section {
   final String title;
   final Widget body;
   final VoidCallback? onEdit;
-  final String? actionLabel;
-  final IconData? actionIcon;
 
   /// When `true`, the section card collapses the gap between the
   /// header row and the body — used by the gallery so its photos
   /// sit right under the title without a stray strip of whitespace.
   final bool tight;
 
+  /// Drives the action-chip's label/icon: when `true` the chip reads
+  /// "Edit" (pencil); when `false` it reads "Add" (plus).
+  final bool hasData;
+
   const _Section({
     required this.title,
     required this.body,
     this.onEdit,
-    this.actionLabel,
-    this.actionIcon,
     this.tight = false,
+    this.hasData = true,
   });
 }

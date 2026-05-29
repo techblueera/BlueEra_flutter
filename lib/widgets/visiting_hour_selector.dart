@@ -64,6 +64,8 @@ class VisitingHoursSelector extends StatelessWidget {
                                 child: _timeBox(day, true)),
                             SizedBox(width: SizeConfig.size3),
                             _timeBox(day, false),
+                            SizedBox(width: SizeConfig.size4),
+                            _applyToAllButton(day),
                           ],
                         ],
                       ),
@@ -111,7 +113,7 @@ class VisitingHoursSelector extends StatelessWidget {
                     child: Padding(
                         padding:
                             EdgeInsets.symmetric(horizontal: SizeConfig.size6),
-                        child: CustomText(t)),
+                        child: CustomText(controller.to12HourLabel(t))),
                   ))
               .toList(),
           onChanged: (val) {
@@ -126,5 +128,35 @@ class VisitingHoursSelector extends StatelessWidget {
         ),
       );
     });
+  }
+
+  /// Inline action that copies this day's start/end into every other day.
+  /// Makes the common case (same hours every day) a one-tap operation
+  /// instead of seven dropdown edits.
+  Widget _applyToAllButton(String day) {
+    return Tooltip(
+      message: 'Apply these hours to all days',
+      child: InkWell(
+        onTap: () {
+          controller.applyTimeToAllDays(day);
+          Get.snackbar(
+            'Applied',
+            "$day's hours copied to all days",
+            snackPosition: SnackPosition.BOTTOM,
+            duration: const Duration(seconds: 2),
+            margin: EdgeInsets.all(SizeConfig.size12),
+          );
+        },
+        borderRadius: BorderRadius.circular(20),
+        child: Padding(
+          padding: EdgeInsets.all(SizeConfig.size4),
+          child: Icon(
+            Icons.copy_all_rounded,
+            size: SizeConfig.size18,
+            color: AppColors.primaryColor,
+          ),
+        ),
+      ),
+    );
   }
 }

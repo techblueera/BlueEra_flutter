@@ -10,8 +10,8 @@ import 'package:BlueEra/features/common/rental/controller/property_discover_cont
 import 'package:BlueEra/features/common/rental/controller/property_filter_registry.dart';
 import 'package:BlueEra/features/common/rental/view/property_details_screen.dart';
 import 'package:BlueEra/features/common/rental/view/rental_services_dashboard_screen_v2.dart';
+import 'package:BlueEra/features/common/rental/widget/property_filter_sheet.dart';
 import 'package:BlueEra/features/common/rental/widget/property_listing_card.dart';
-import 'package:BlueEra/features/common/rental/widget/rental_form_widgets.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -169,6 +169,7 @@ class _PropertyDiscoverScreenState extends State<PropertyDiscoverScreen> {
         body: Obx(() {
           _ctrl.selectedCategoryIndex.value;
           _ctrl.properties.length;
+          _ctrl.totalCount.value;
           _ctrl.isLoading.value;
           _ctrl.isLoadingMore.value;
           _ctrl.activeFilterCount;
@@ -217,54 +218,158 @@ class _PropertyDiscoverScreenState extends State<PropertyDiscoverScreen> {
     );
   }
 
+  /// FilterIds surfaced as quick-access dropdown chips in the strip
+  /// (in order). Only those visible for the current category render;
+  /// each opens the filter sheet pre-scrolled to its own section.
+  static const _quickChipIds = [
+    FilterId.bhk,
+    FilterId.houseApartmentType,
+    FilterId.typeOfProperty,
+    FilterId.listedBy,
+    FilterId.furnishing,
+  ];
+
   Widget _buildFilterStrip() {
     final filterCount = _ctrl.activeFilterCount;
-    final applied = _ctrl.activeFilters;
     final sort = _ctrl.sortBy.value;
-    final isSortActive = sort != PropertySortBy.none;
+    final isSortActive = sort != PropertySortBy.relevance;
+    final cat = _ctrl.categories[_ctrl.selectedCategoryIndex.value];
+    final cityLabel =
+        _ctrl.city.value.isNotEmpty ? _ctrl.city.value : 'your area';
 
     return Container(
       color: Colors.white,
-      padding: EdgeInsets.symmetric(vertical: SizeConfig.size8),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        padding: EdgeInsets.symmetric(horizontal: SizeConfig.size14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ── Quick filter pills (99acres-style strip) ──
+          Padding(
+            padding: EdgeInsets.symmetric(vertical: SizeConfig.size8),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              padding: EdgeInsets.symmetric(horizontal: SizeConfig.size14),
+              child: Row(
+                children: [
+                  // Leading filter icon → opens the full sheet.
+                  _filterIconButton(filterCount),
+                  const SizedBox(width: 8),
+                  // Sort stays on the strip (not inside the filter sheet).
+                  _sortChip(sort, isSortActive),
+                  const SizedBox(width: 8),
+                  _quickChip(
+                    label: _budgetChipLabel(),
+                    isActive: _ctrl.minPrice.value.isNotEmpty ||
+                        _ctrl.maxPrice.value.isNotEmpty,
+                    onTap: () => _showFilterSheet(initialKey: 'budget'),
+                  ),
+                  for (final id in _quickChipIds)
+                    if (_isFilterVisible(id)) ...[
+                      const SizedBox(width: 8),
+                      _quickChipForFilter(id),
+                    ],
+                ],
+              ),
+            ),
+          ),
+          // ── "537 RESULTS | Property in Durgapur for Sale" line ──
+          Padding(
+            padding: EdgeInsets.fromLTRB(
+              SizeConfig.size14,
+              0,
+              SizeConfig.size14,
+              SizeConfig.size10,
+            ),
+            child: Row(
+              children: [
+                CustomText(
+                  '${_ctrl.totalCount.value} RESULTS',
+                  fontSize: 13,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.mainTextColor,
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  width: 1,
+                  height: 12,
+                  color: const Color(0xFFDDE2EE),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: CustomText(
+                    'Property in $cityLabel for ${cat.isSale ? 'Sale' : 'Rent'}',
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.secondaryTextColor,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Divider(height: 1, color: Color(0xFFEFEFEF)),
+        ],
+      ),
+    );
+  }
+
+  bool _isFilterVisible(FilterId id) =>
+      _ctrl.visibleFilterDefs.any((d) => d.id == id);
+
+  String _budgetChipLabel() {
+    final min = _ctrl.minPrice.value;
+    final max = _ctrl.maxPrice.value;
+    if (min.isNotEmpty && max.isNotEmpty) return '₹$min - ₹$max';
+    if (min.isNotEmpty) return 'Min ₹$min';
+    if (max.isNotEmpty) return 'Max ₹$max';
+    return 'Budget';
+  }
+
+  /// Quick chip for a registry filter — shows the picked value when set,
+  /// otherwise the filter's label. Deep-links the sheet to its section.
+  Widget _quickChipForFilter(FilterId id) {
+    final def = _ctrl.visibleFilterDefs.firstWhere((d) => d.id == id);
+    final values = _ctrl.currentFilterValues[id] ?? const <String>[];
+    final hasValue = values.isNotEmpty;
+    return _quickChip(
+      label: hasValue ? _quickValueLabel(id, values) : def.label,
+      isActive: hasValue,
+      onTap: () => _showFilterSheet(initialKey: id.name),
+    );
+  }
+
+  /// Compact label for a multi-select quick chip: the first picked
+  /// value, plus a "+N" tail when more than one is selected.
+  String _quickValueLabel(FilterId id, List<String> values) {
+    final first = chipLabelFor(id, values.first);
+    return values.length == 1 ? first : '$first +${values.length - 1}';
+  }
+
+  Widget _filterIconButton(int count) {
+    final active = count > 0;
+    return GestureDetector(
+      onTap: () => _showFilterSheet(),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: active ? AppColors.primaryColor : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: active ? AppColors.primaryColor : const Color(0xFFDDE2EE),
+          ),
+        ),
         child: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            _filterChip(
-              icon: Icons.tune_rounded,
-              label: filterCount > 0 ? 'Filters ($filterCount)' : 'Filters',
-              isActive: filterCount > 0,
-              onTap: _showFilterSheet,
-            ),
-            const SizedBox(width: 8),
-            // Sort chip — opens a bottom sheet with price/distance/rating
-            // options. Active when anything other than Default is chosen.
-            _filterChip(
-              icon: Icons.swap_vert_rounded,
-              label: sort.chipLabel,
-              isActive: isSortActive,
-              onTap: _showSortSheet,
-            ),
-            // One removable chip per active filter so the user can see
-            // exactly what's applied and drop a single one without
-            // re-opening the sheet.
-            for (final f in applied) ...[
-              const SizedBox(width: 8),
-              _appliedFilterChip(
-                label: f.label,
-                onRemove: () => _ctrl.removeFilter(f.key),
-              ),
-            ],
-            if (_ctrl.hasActiveFilters) ...[
-              const SizedBox(width: 8),
-              _filterChip(
-                icon: Icons.close,
-                label: 'Clear All',
-                isActive: false,
-                isDestructive: true,
-                onTap: () => _ctrl.clearFilters(),
-              ),
+            Icon(Icons.tune_rounded,
+                size: 16,
+                color: active ? Colors.white : AppColors.mainTextColor),
+            if (active) ...[
+              const SizedBox(width: 5),
+              CustomText('$count',
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white),
             ],
           ],
         ),
@@ -272,39 +377,96 @@ class _PropertyDiscoverScreenState extends State<PropertyDiscoverScreen> {
     );
   }
 
-  /// Sheet listing the available [PropertySortBy] options. Single-select;
-  /// tapping a row applies the sort immediately and dismisses.
+  Widget _sortChip(PropertySortBy sort, bool isActive) {
+    final fg = isActive ? AppColors.primaryColor : AppColors.mainTextColor;
+    return GestureDetector(
+      onTap: _showSortSheet,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: isActive
+              ? AppColors.primaryColor.withValues(alpha: 0.06)
+              : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isActive ? AppColors.primaryColor : const Color(0xFFDDE2EE),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.swap_vert_rounded, size: 16, color: fg),
+            const SizedBox(width: 4),
+            CustomText(sort.chipLabel,
+                fontSize: 13, fontWeight: FontWeight.w600, color: fg),
+            const SizedBox(width: 2),
+            Icon(Icons.keyboard_arrow_down_rounded, size: 16, color: fg),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Generic dropdown-style quick chip with a trailing chevron.
+  Widget _quickChip({
+    required String label,
+    required bool isActive,
+    required VoidCallback onTap,
+  }) {
+    final fg = isActive ? AppColors.primaryColor : AppColors.mainTextColor;
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: isActive
+              ? AppColors.primaryColor.withValues(alpha: 0.06)
+              : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isActive ? AppColors.primaryColor : const Color(0xFFDDE2EE),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CustomText(label,
+                fontSize: 13, fontWeight: FontWeight.w600, color: fg),
+            const SizedBox(width: 3),
+            Icon(Icons.keyboard_arrow_down_rounded, size: 16, color: fg),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Sheet listing the available [PropertySortBy] options as a radio
+  /// group with a "Done" button (matches the design). Selection is held
+  /// locally and only applied to the controller when Done is tapped.
   void _showSortSheet() {
     const options = PropertySortBy.values;
+    PropertySortBy local = _ctrl.sortBy.value;
+
     Get.bottomSheet(
-      Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        child: SafeArea(
-          top: false,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
-                child: Column(
-                  children: [
-                    Container(
-                      width: 36,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFDDE2EE),
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
+      StatefulBuilder(
+        builder: (ctx, setLocal) {
+          return Container(
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            ),
+            child: SafeArea(
+              top: false,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 16, 16, 6),
+                    child: Row(
                       children: [
                         Expanded(
                           child: CustomText(
-                            'Sort By',
+                            'Sort by',
                             fontSize: SizeConfig.large18,
                             fontWeight: FontWeight.w800,
                             color: AppColors.mainTextColor,
@@ -319,8 +481,8 @@ class _PropertyDiscoverScreenState extends State<PropertyDiscoverScreen> {
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               color: const Color(0xFFF4F6FA),
-                              border: Border.all(
-                                  color: const Color(0xFFDDE2EE)),
+                              border:
+                                  Border.all(color: const Color(0xFFDDE2EE)),
                             ),
                             child: const Icon(Icons.close_rounded,
                                 size: 18, color: Color(0xFF505050)),
@@ -328,128 +490,94 @@ class _PropertyDiscoverScreenState extends State<PropertyDiscoverScreen> {
                         ),
                       ],
                     ),
-                  ],
-                ),
-              ),
-              const Divider(height: 1, color: Color(0xFFEEEEEE)),
-              for (final option in options)
-                Obx(() {
-                  final selected = _ctrl.sortBy.value == option;
-                  return InkWell(
-                    onTap: () {
-                      _ctrl.setSort(option);
-                      Get.back();
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 14),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: CustomText(
-                              option.label,
-                              fontSize: SizeConfig.medium,
-                              fontWeight: selected
-                                  ? FontWeight.w700
-                                  : FontWeight.w500,
-                              color: selected
-                                  ? AppColors.primaryColor
-                                  : AppColors.mainTextColor,
+                  ),
+                  const Divider(height: 1, color: Color(0xFFEEEEEE)),
+                  for (final option in options)
+                    InkWell(
+                      onTap: () => setLocal(() => local = option),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 20, vertical: 14),
+                        child: Row(
+                          children: [
+                            _radio(local == option),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: CustomText(
+                                option.label,
+                                fontSize: SizeConfig.medium,
+                                fontWeight: local == option
+                                    ? FontWeight.w700
+                                    : FontWeight.w500,
+                                color: AppColors.mainTextColor,
+                              ),
                             ),
-                          ),
-                          if (selected)
-                            Icon(Icons.check_rounded,
-                                size: 20, color: AppColors.primaryColor),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
-                  );
-                }),
-              const SizedBox(height: 8),
-            ],
-          ),
-        ),
+                  const SizedBox(height: 6),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(14, 6, 14, 14),
+                    child: Align(
+                      alignment: Alignment.centerRight,
+                      child: GestureDetector(
+                        onTap: () {
+                          _ctrl.setSort(local);
+                          Get.back();
+                        },
+                        child: Container(
+                          height: 38,
+                          padding: const EdgeInsets.symmetric(horizontal: 26),
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryColor,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: CustomText(
+                            'Done',
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
       ),
       isScrollControlled: true,
     );
   }
 
-  /// Pill showing one applied filter's value with a tap-to-remove (×)
-  /// icon. Uses a subtle primary-tinted fill so it visually links back
-  /// to the active "Filters (n)" chip on the left.
-  Widget _appliedFilterChip({
-    required String label,
-    required VoidCallback onRemove,
-  }) {
-    return GestureDetector(
-      onTap: onRemove,
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(12, 7, 8, 7),
-        decoration: BoxDecoration(
-          color: AppColors.primaryColor.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: AppColors.primaryColor.withValues(alpha: 0.35),
-          ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            CustomText(label,
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: AppColors.primaryColor),
-            const SizedBox(width: 6),
-            Icon(Icons.close_rounded,
-                size: 14, color: AppColors.primaryColor),
-          ],
+  /// Radio indicator used in the sort sheet.
+  Widget _radio(bool selected) {
+    return Container(
+      width: 22,
+      height: 22,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: selected ? AppColors.primaryColor : const Color(0xFFBDBDBD),
+          width: 2,
         ),
       ),
-    );
-  }
-
-  Widget _filterChip({
-    required IconData icon,
-    required String label,
-    required bool isActive,
-    required VoidCallback onTap,
-    bool isDestructive = false,
-  }) {
-    final Color fg;
-    final Color bg;
-    final Color border;
-    if (isDestructive) {
-      fg = AppColors.redB4;
-      bg = Colors.white;
-      border = AppColors.redB4.withValues(alpha: 0.3);
-    } else if (isActive) {
-      fg = Colors.white;
-      bg = AppColors.primaryColor;
-      border = AppColors.primaryColor;
-    } else {
-      fg = AppColors.secondaryTextColor;
-      bg = Colors.white;
-      border = const Color(0xFFDDE2EE);
-    }
-
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-        decoration: BoxDecoration(
-          color: bg,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: border),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 14, color: fg),
-            const SizedBox(width: 5),
-            CustomText(label, fontSize: 12, fontWeight: FontWeight.w600, color: fg),
-          ],
-        ),
-      ),
+      child: selected
+          ? Center(
+              child: Container(
+                width: 11,
+                height: 11,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.primaryColor,
+                ),
+              ),
+            )
+          : null,
     );
   }
 
@@ -581,204 +709,17 @@ class _PropertyDiscoverScreenState extends State<PropertyDiscoverScreen> {
     );
   }
 
-  void _showFilterSheet() {
-    final cityCtrl = TextEditingController(text: _ctrl.city.value);
-    final minCtrl = TextEditingController(text: _ctrl.minPrice.value);
-    final maxCtrl = TextEditingController(text: _ctrl.maxPrice.value);
-
-    // Local working copy of chip selections — applied to the controller
-    // only when the user taps "Apply". Bottom-sheet edits don't leak
-    // into the live filter state until then.
-    final localValues =
-        Map<FilterId, String>.from(_ctrl.currentFilterValues);
-    final visibleDefs = _ctrl.visibleFilterDefs;
-
+  /// Opens the tabbed filter sheet. [initialKey] deep-links to a
+  /// section (`'budget'`, `'locality'`, or a [FilterId.name]) so a
+  /// quick chip lands the user straight on the relevant tab.
+  void _showFilterSheet({String? initialKey}) {
     Get.bottomSheet(
-      Container(
-        constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(context).size.height * 0.85,
-        ),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
-              child: Column(
-                children: [
-                  Container(
-                    width: 36,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFDDE2EE),
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: CustomText(
-                          'Filter Properties',
-                          fontSize: SizeConfig.large18,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.mainTextColor,
-                        ),
-                      ),
-                      GestureDetector(
-                        onTap: () => Get.back(),
-                        child: Container(
-                          width: 34,
-                          height: 34,
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: const Color(0xFFF4F6FA),
-                            border: Border.all(
-                                color: const Color(0xFFDDE2EE)),
-                          ),
-                          child: const Icon(Icons.close_rounded,
-                              size: 18, color: Color(0xFF505050)),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                ],
-              ),
-            ),
-            Flexible(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // ── City ──
-                    RentalLabeledField(
-                      label: 'City',
-                      hint: 'E.g. Mumbai, Delhi...',
-                      controller: cityCtrl,
-                    ),
-                    const SizedBox(height: 14),
-
-                    // ── Price ──
-                    Row(
-                      children: [
-                        Expanded(
-                          child: RentalLabeledField(
-                            label: 'Min Price',
-                            hint: '5000',
-                            controller: minCtrl,
-                            keyboardType: TextInputType.number,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: RentalLabeledField(
-                            label: 'Max Price',
-                            hint: '50000',
-                            controller: maxCtrl,
-                            keyboardType: TextInputType.number,
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    // ── Registry-driven chip filters ──
-                    // One RentalChipSelector per FilterDef that's visible
-                    // for the current (propertyType, listingType) combo.
-                    // Adding a new filter to the registry shows up here
-                    // automatically — no change needed in this file.
-                    if (visibleDefs.isNotEmpty) ...[
-                      const SizedBox(height: 20),
-                      const Divider(height: 1, color: Color(0xFFEEEEEE)),
-                      const SizedBox(height: 16),
-                      for (int i = 0; i < visibleDefs.length; i++) ...[
-                        if (i > 0) const SizedBox(height: 14),
-                        RentalChipSelector(
-                          label: visibleDefs[i].label,
-                          options: ['All', ...visibleDefs[i].options],
-                          initialIndex: _initialChipIndex(
-                              visibleDefs[i], localValues[visibleDefs[i].id]),
-                          onChanged: (idx) {
-                            if (idx == 0) {
-                              localValues.remove(visibleDefs[i].id);
-                            } else {
-                              localValues[visibleDefs[i].id] =
-                                  visibleDefs[i].options[idx - 1];
-                            }
-                          },
-                        ),
-                      ],
-                    ],
-                  ],
-                ),
-              ),
-            ),
-            SafeArea(
-              top: false,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () {
-                          Get.back();
-                          _ctrl.clearFilters();
-                        },
-                        child: Container(
-                          height: 40,
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: AppColors.primaryColor),
-                          ),
-                          child: CustomText(
-                            'Reset',
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.primaryColor,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: RentalPrimaryButton(
-                        label: 'Apply',
-                        onTap: () {
-                          Get.back();
-                          _ctrl.applyAllFilters(
-                            cityVal: cityCtrl.text.trim(),
-                            min: minCtrl.text.trim(),
-                            max: maxCtrl.text.trim(),
-                            filters: localValues,
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
+      PropertyFilterSheet(
+        controller: _ctrl,
+        initialSectionKey: initialKey,
       ),
       isScrollControlled: true,
     );
-  }
-
-  /// Returns the initial selected index for a [RentalChipSelector] given
-  /// the current stored value. Index 0 is reserved for "All" (no filter);
-  /// other indices map 1:1 onto [FilterDef.options] shifted by one.
-  int _initialChipIndex(FilterDef def, String? value) {
-    if (value == null || value.isEmpty) return 0;
-    final idx = def.options.indexOf(value);
-    return idx >= 0 ? idx + 1 : 0;
   }
 }
 

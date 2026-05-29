@@ -84,6 +84,8 @@ class _PgGuestHouseRentScreenState extends State<PgGuestHouseRentScreen> {
                           options: const ['Owner', 'Builder', 'Dealer'],
                           onChanged: (v) => _ctrl.pgListedBy.value = v,
                         ),
+                        const SizedBox(height: 14),
+                        const RentalListedByNameField(),
                         const SizedBox(height: 18),
                         RentalChipSelector(
                           label: 'Car Parking',

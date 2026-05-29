@@ -24,6 +24,7 @@ import 'package:BlueEra/features/chat/view/business_chat/business_chat_list.dart
 import 'package:BlueEra/features/common/Discover/view/go_live_permission_screen.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
+import 'package:BlueEra/features/common/home/widgets/drawer.dart';
 import 'package:BlueEra/features/common/reel/view/channel/follower_following_screen.dart';
 import 'package:BlueEra/features/common/rental/widget/rental_property_card.dart';
 import 'package:BlueEra/features/common/statistics/view/business_statistics_screen.dart';
@@ -33,17 +34,18 @@ import 'package:BlueEra/features/contribution/view/contribution_screen.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/self_profession_service_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/self_employed/widget/earn_service_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/edit_profile_bottom_sheet.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/profile_designation_bottom_sheet.dart';
 import 'package:BlueEra/features/personal/personal_profile/widgets/personal_qrcode_widget.dart';
 import 'package:BlueEra/features/personal/personal_profile/widgets/profile_bio_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/widgets/profile_location_card.dart';
-import 'package:BlueEra/features/personal/personal_profile/widgets/profile_top_bar.dart';
 import 'package:BlueEra/permissionCentralize/go_live_permission_service.dart';
 import 'package:BlueEra/widgets/common_circular_profile_image.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/post_via_dialog.dart';
+import 'package:BlueEra/widgets/refer_earn_pill.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:croppy/croppy.dart';
 import 'package:flutter/material.dart';
@@ -100,11 +102,9 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
     return _buildScaffold(context);
   }
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // SCAFFOLD â€” fixed glassmorphic top bar + scrolling tab content,
   // with a sticky tab overlay that engages once the in-flow tabs
   // have scrolled past the top bar (mirrors grocery v2).
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildScaffold(BuildContext context) {
     final topInset = MediaQuery.of(context).padding.top;
     final topBarHeight = topInset + 56;
@@ -138,10 +138,7 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
                     surfaceTintColor: Colors.transparent,
                     automaticallyImplyLeading: false,
                     toolbarHeight: topBarHeight,
-                    flexibleSpace: ProfileTopBar(
-                      onGoLiveTap: _handleGoLiveTap,
-                      showGoLivePill: Platform.isAndroid,
-                    ),
+                    flexibleSpace: _buildTopBar(),
                   ),
                   SliverToBoxAdapter(
                     child: Padding(
@@ -199,9 +196,7 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
     );
   }
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // BACKGROUND
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildPatternBackground() {
     return Positioned.fill(
       child: Image.asset(
@@ -212,6 +207,188 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
     );
   }
 
+  // TOP BAR â€” glassmorphic strip:
+  //   [drawer] [Earn/profile selector]   â€¦   [bell] [Go Live]
+  Widget _buildTopBar() {
+    final topInset = MediaQuery.of(context).padding.top;
+    return DecoratedBox(
+      decoration: const BoxDecoration(
+        boxShadow: [
+          BoxShadow(
+            color: Color(0x42001120),
+            blurRadius: 16,
+            offset: Offset(0, 0),
+            blurStyle: BlurStyle.outer,
+          ),
+        ],
+      ),
+      child: ClipRect(
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 50, sigmaY: 50),
+          child: Container(
+            width: double.infinity,
+            padding: EdgeInsets.fromLTRB(
+              SizeConfig.size12,
+              topInset + SizeConfig.size8,
+              SizeConfig.size12,
+              SizeConfig.size10,
+            ),
+            decoration: BoxDecoration(
+              color: const Color(0x33FFFFFF),
+              border: Border.all(color: Colors.white, width: 1.0),
+            ),
+            child: Row(
+              children: [
+                _circleIconButton(
+                  icon: Icons.menu,
+                  onTap: () => _openDrawer(context),
+                ),
+                SizedBox(width: SizeConfig.size8),
+                // Earn entry now lives in the drawer; Refer & Earn takes
+                // the top-bar slot â€” same pill the rider dashboard uses.
+                const ReferEarnPill(),
+                const Spacer(),
+                if (!isGuestUser()) ...[
+                  _circleIconButton(
+                    icon: Icons.notifications_none,
+                    onTap: () => Navigator.pushNamed(
+                      context,
+                      RouteHelper.getNotificationScreenRoute(),
+                    ),
+                  ),
+                  SizedBox(width: SizeConfig.size8),
+                ],
+                if (Platform.isAndroid) _goLivePill(),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _circleIconButton({
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      customBorder: const CircleBorder(),
+      child: Container(
+        decoration: const BoxDecoration(
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: Color(0x1A000000),
+              blurRadius: 3,
+              offset: Offset(0, -1),
+            ),
+          ],
+        ),
+        child: ClipPath(
+          clipper: const ShapeBorderClipper(shape: CircleBorder()),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+            child: Container(
+              height: SizeConfig.size36,
+              width: SizeConfig.size36,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white,
+                border: Border.all(
+                  color: const Color(0xFFC9CDD5),
+                  width: 1,
+                ),
+              ),
+              child: Icon(icon, size: 20, color: AppColors.secondaryTextColor),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _goLivePill() {
+    return Obx(() {
+      final isOn = _viewCtrl.shopStatusOpenClose.value;
+      final isUpdating = _viewCtrl.isShopStatusUpdating.value;
+      return GestureDetector(
+        onTap: isUpdating ? null : _handleGoLiveTap,
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x1A000000),
+                blurRadius: 3,
+                offset: Offset(0, -1),
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(24),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10, vertical: SizeConfig.size6),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(
+                    color: const Color(0xFFC9CDD5),
+                    width: 1,
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CustomText(AppStrings.goLive.tr,
+                        fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.secondaryTextColor),
+                    SizedBox(width: SizeConfig.size6),
+                    if (isUpdating)
+                      SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryColor),
+                        ),
+                      )
+                    else
+                      Container(
+                        width: 30,
+                        height: 18,
+                        padding: const EdgeInsets.all(2),
+                        decoration: BoxDecoration(
+                          color: isOn ? AppColors.primaryColor : Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: AppColors.secondaryTextColor.withValues(alpha: 0.4),
+                            width: 0.5,
+                          ),
+                        ),
+                        child: AnimatedAlign(
+                          duration: const Duration(milliseconds: 180),
+                          alignment: isOn ? Alignment.centerRight : Alignment.centerLeft,
+                          child: Container(
+                            height: 14,
+                            width: 14,
+                            decoration: BoxDecoration(
+                              color: isOn ? Colors.white : AppColors.secondaryTextColor,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    });
+  }
 
   // Going live needs background location, battery-optimization, and
   // display-over-other-apps. If any are missing we route through
@@ -234,11 +411,28 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
     }
   }
 
+  void _openDrawer(BuildContext context) {
+    showDialog(
+      barrierDismissible: true,
+      barrierColor: Colors.black.withValues(alpha: 0.3),
+      useSafeArea: false,
+      context: context,
+      builder: (_) => Align(
+        alignment: Alignment.centerLeft,
+        child: SizedBox(
+          height: double.infinity,
+          child: Drawer(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            child: ProfileMenuDrawer(),
+          ),
+        ),
+      ),
+    );
+  }
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // TABS â€” solid white card with an animated underline that slides
   // beneath the selected tab.
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildTabsCard() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 14),
@@ -803,7 +997,6 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
     );
   }
 
-  // Service tab â€” embeds [SelfProfessionHomeScreen] directly into
   // the parent CustomScrollView so its sections share the page's
   // scroll. That lets the sticky-tab overlay engage when the user
   // scrolls past the top bar (matches the Post tab's behavior).
@@ -971,6 +1164,9 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
         child: const ProfileBioCard(margin: EdgeInsets.zero),
       ),
       _buildActionRow(),
+      const EarnServiceCard(
+        margin: EdgeInsets.only(top: 10, left: 20, right: 10),
+      ),
       const RentalPropertyCard(
         margin: EdgeInsets.only(top: 10, left: 20, right: 10),
       ),
