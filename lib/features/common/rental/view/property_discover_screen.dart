@@ -2,7 +2,6 @@ import 'dart:ui';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_map_widgets.dart';
@@ -13,7 +12,6 @@ import 'package:BlueEra/features/common/rental/view/property_details_screen.dart
 import 'package:BlueEra/features/common/rental/view/rental_services_dashboard_screen_v2.dart';
 import 'package:BlueEra/features/common/rental/widget/property_filter_sheet.dart';
 import 'package:BlueEra/features/common/rental/widget/property_listing_card.dart';
-import 'package:BlueEra/features/common/rental/widget/rental_form_widgets.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -27,7 +25,8 @@ class PropertyDiscoverScreen extends StatefulWidget {
   const PropertyDiscoverScreen({super.key, this.initialCategoryIndex = 0});
 
   @override
-  State<PropertyDiscoverScreen> createState() => _PropertyDiscoverScreenState();
+  State<PropertyDiscoverScreen> createState() =>
+      _PropertyDiscoverScreenState();
 }
 
 class _PropertyDiscoverScreenState extends State<PropertyDiscoverScreen> {
@@ -37,33 +36,33 @@ class _PropertyDiscoverScreenState extends State<PropertyDiscoverScreen> {
 
   static final _categories = propertyDiscoverTiles
       .map((t) => PropertyDiscoverCategory(
-            label: t.label,
-            listingType: t.listingType,
-            propertyType: t.propertyType,
-            image: t.image,
-            isSale: t.isSale,
-          ))
+    label: t.label,
+    listingType: t.listingType,
+    propertyType: t.propertyType,
+    image: t.image,
+    isSale: t.isSale,
+  ))
       .toList();
 
-  List<String> get _stickyLabels => [
-        AppStrings.housesSell.tr,
-        AppStrings.housesRent.tr,
-        AppStrings.newProjects.tr,
-        AppStrings.landsSell.tr,
-        AppStrings.shopsRent.tr,
-        AppStrings.shopsSell.tr,
-        AppStrings.landsRent.tr,
-        AppStrings.pgAndGuest.tr,
-      ];
+  static const _stickyLabels = [
+    'Houses Sell',
+    'Houses Rent',
+    'New Projects',
+    'Lands Sell',
+    'Shops Rent',
+    'Shops Sell',
+    'Lands Rent',
+    'PG & Guest',
+  ];
 
   List<StickyCategory> get _stickyCategories => _categories
       .asMap()
       .entries
       .map((e) => StickyCategory(
-            id: '${e.value.listingType}_${e.value.propertyType}',
-            name: _stickyLabels[e.key],
-            imageUrl: e.value.image,
-          ))
+    id: '${e.value.listingType}_${e.value.propertyType}',
+    name: _stickyLabels[e.key],
+    imageUrl: e.value.image,
+  ))
       .toList();
 
   String get _selectedStickyId {
@@ -78,7 +77,8 @@ class _PropertyDiscoverScreenState extends State<PropertyDiscoverScreen> {
     _ctrl.initWithCategories(_categories, widget.initialCategoryIndex);
 
     _scrollController.addListener(() {
-      if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
+      if (_scrollController.position.pixels >=
+          _scrollController.position.maxScrollExtent - 200) {
         _ctrl.fetchProperties(isLoadMore: true);
       }
       final direction = _scrollController.position.userScrollDirection;
@@ -115,57 +115,61 @@ class _PropertyDiscoverScreenState extends State<PropertyDiscoverScreen> {
         backgroundColor: AppColors.appBackgroundColor,
         floatingActionButton: isIndividualUser()
             ? AnimatedSlide(
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeInOut,
-                offset: _showFab ? Offset.zero : const Offset(0, 2),
-                child: AnimatedOpacity(
-                  duration: const Duration(milliseconds: 250),
-                  opacity: _showFab ? 1.0 : 0.0,
-                  child: ClipRRect(
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+          offset: _showFab ? Offset.zero : const Offset(0, 2),
+          child: AnimatedOpacity(
+            duration: const Duration(milliseconds: 250),
+            opacity: _showFab ? 1.0 : 0.0,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                child: Container(
+                  decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(16),
-                    child: BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(16),
-                          color: AppColors.primaryColor.withValues(alpha: 0.75),
-                          border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.25),
-                          ),
-                        ),
-                        child: Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            onTap: () => Get.to(() => const RentalServicesDashboardScreenV2()),
-                            borderRadius: BorderRadius.circular(16),
-                            splashColor: Colors.white.withValues(alpha: 0.15),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 13),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Icon(Icons.add_home_rounded, size: 20, color: Colors.white),
-                                  const SizedBox(width: 8),
-                                  CustomText(
-                                    'List Your Property',
-                                    color: AppColors.white,
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 14,
-                                  ),
-                                ],
-                              ),
+                    color: AppColors.primaryColor.withValues(alpha: 0.75),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.25),
+                    ),
+                  ),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () => Get.to(
+                              () => const RentalServicesDashboardScreenV2()),
+                      borderRadius: BorderRadius.circular(16),
+                      splashColor: Colors.white.withValues(alpha: 0.15),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 18, vertical: 13),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.add_home_rounded,
+                                size: 20, color: Colors.white),
+                            const SizedBox(width: 8),
+                            CustomText(
+                              'List Your Property',
+                              color: AppColors.white,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 14,
                             ),
-                          ),
+                          ],
                         ),
                       ),
                     ),
                   ),
                 ),
-              )
+              ),
+            ),
+          ),
+        )
             : null,
         body: Obx(() {
           _ctrl.selectedCategoryIndex.value;
           _ctrl.properties.length;
+          _ctrl.totalCount.value;
           _ctrl.isLoading.value;
           _ctrl.isLoadingMore.value;
           _ctrl.activeFilterCount;
@@ -188,7 +192,8 @@ class _PropertyDiscoverScreenState extends State<PropertyDiscoverScreen> {
                   categories: _stickyCategories,
                   selectedId: _selectedStickyId,
                   onCategoryTap: (item) {
-                    final idx = _stickyCategories.indexWhere((c) => c.id == item.id);
+                    final idx = _stickyCategories
+                        .indexWhere((c) => c.id == item.id);
                     if (idx >= 0) _ctrl.selectCategory(idx);
                     setState(() {});
                   },
@@ -213,11 +218,24 @@ class _PropertyDiscoverScreenState extends State<PropertyDiscoverScreen> {
     );
   }
 
+  /// FilterIds surfaced as quick-access dropdown chips in the strip
+  /// (in order). Only those visible for the current category render;
+  /// each opens the filter sheet pre-scrolled to its own section.
+  static const _quickChipIds = [
+    FilterId.bhk,
+    FilterId.houseApartmentType,
+    FilterId.typeOfProperty,
+    FilterId.listedBy,
+    FilterId.furnishing,
+  ];
+
   Widget _buildFilterStrip() {
     final filterCount = _ctrl.activeFilterCount;
-    final applied = _ctrl.activeFilters;
     final sort = _ctrl.sortBy.value;
-    final isSortActive = sort != PropertySortBy.none;
+    final isSortActive = sort != PropertySortBy.relevance;
+    final cat = _ctrl.categories[_ctrl.selectedCategoryIndex.value];
+    final cityLabel =
+    _ctrl.city.value.isNotEmpty ? _ctrl.city.value : 'your area';
 
     return Container(
       color: Colors.white,
@@ -240,7 +258,8 @@ class _PropertyDiscoverScreenState extends State<PropertyDiscoverScreen> {
                   const SizedBox(width: 8),
                   _quickChip(
                     label: _budgetChipLabel(),
-                    isActive: _ctrl.minPrice.value.isNotEmpty || _ctrl.maxPrice.value.isNotEmpty,
+                    isActive: _ctrl.minPrice.value.isNotEmpty ||
+                        _ctrl.maxPrice.value.isNotEmpty,
                     onTap: () => _showFilterSheet(initialKey: 'budget'),
                   ),
                   for (final id in _quickChipIds)
@@ -294,7 +313,8 @@ class _PropertyDiscoverScreenState extends State<PropertyDiscoverScreen> {
     );
   }
 
-  bool _isFilterVisible(FilterId id) => _ctrl.visibleFilterDefs.any((d) => d.id == id);
+  bool _isFilterVisible(FilterId id) =>
+      _ctrl.visibleFilterDefs.any((d) => d.id == id);
 
   String _budgetChipLabel() {
     final min = _ctrl.minPrice.value;
@@ -341,10 +361,15 @@ class _PropertyDiscoverScreenState extends State<PropertyDiscoverScreen> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.tune_rounded, size: 16, color: active ? Colors.white : AppColors.mainTextColor),
+            Icon(Icons.tune_rounded,
+                size: 16,
+                color: active ? Colors.white : AppColors.mainTextColor),
             if (active) ...[
               const SizedBox(width: 5),
-              CustomText('$count', fontSize: 12, fontWeight: FontWeight.w700, color: Colors.white),
+              CustomText('$count',
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white),
             ],
           ],
         ),
@@ -352,39 +377,96 @@ class _PropertyDiscoverScreenState extends State<PropertyDiscoverScreen> {
     );
   }
 
-  /// Sheet listing the available [PropertySortBy] options. Single-select;
-  /// tapping a row applies the sort immediately and dismisses.
+  Widget _sortChip(PropertySortBy sort, bool isActive) {
+    final fg = isActive ? AppColors.primaryColor : AppColors.mainTextColor;
+    return GestureDetector(
+      onTap: _showSortSheet,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: isActive
+              ? AppColors.primaryColor.withValues(alpha: 0.06)
+              : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isActive ? AppColors.primaryColor : const Color(0xFFDDE2EE),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.swap_vert_rounded, size: 16, color: fg),
+            const SizedBox(width: 4),
+            CustomText(sort.chipLabel,
+                fontSize: 13, fontWeight: FontWeight.w600, color: fg),
+            const SizedBox(width: 2),
+            Icon(Icons.keyboard_arrow_down_rounded, size: 16, color: fg),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Generic dropdown-style quick chip with a trailing chevron.
+  Widget _quickChip({
+    required String label,
+    required bool isActive,
+    required VoidCallback onTap,
+  }) {
+    final fg = isActive ? AppColors.primaryColor : AppColors.mainTextColor;
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: isActive
+              ? AppColors.primaryColor.withValues(alpha: 0.06)
+              : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isActive ? AppColors.primaryColor : const Color(0xFFDDE2EE),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CustomText(label,
+                fontSize: 13, fontWeight: FontWeight.w600, color: fg),
+            const SizedBox(width: 3),
+            Icon(Icons.keyboard_arrow_down_rounded, size: 16, color: fg),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Sheet listing the available [PropertySortBy] options as a radio
+  /// group with a "Done" button (matches the design). Selection is held
+  /// locally and only applied to the controller when Done is tapped.
   void _showSortSheet() {
     const options = PropertySortBy.values;
+    PropertySortBy local = _ctrl.sortBy.value;
+
     Get.bottomSheet(
-      Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        child: SafeArea(
-          top: false,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
-                child: Column(
-                  children: [
-                    Container(
-                      width: 36,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFDDE2EE),
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
+      StatefulBuilder(
+        builder: (ctx, setLocal) {
+          return Container(
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            ),
+            child: SafeArea(
+              top: false,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 16, 16, 6),
+                    child: Row(
                       children: [
                         Expanded(
                           child: CustomText(
-                            AppStrings.sortBy.tr,
+                            'Sort by',
                             fontSize: SizeConfig.large18,
                             fontWeight: FontWeight.w800,
                             color: AppColors.mainTextColor,
@@ -399,124 +481,103 @@ class _PropertyDiscoverScreenState extends State<PropertyDiscoverScreen> {
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               color: const Color(0xFFF4F6FA),
-                              border: Border.all(color: const Color(0xFFDDE2EE)),
+                              border:
+                              Border.all(color: const Color(0xFFDDE2EE)),
                             ),
-                            child: const Icon(Icons.close_rounded, size: 18, color: Color(0xFF505050)),
+                            child: const Icon(Icons.close_rounded,
+                                size: 18, color: Color(0xFF505050)),
                           ),
                         ),
                       ],
                     ),
-                  ],
-                ),
-              ),
-              const Divider(height: 1, color: Color(0xFFEEEEEE)),
-              for (final option in options)
-                Obx(() {
-                  final selected = _ctrl.sortBy.value == option;
-                  return InkWell(
-                    onTap: () {
-                      _ctrl.setSort(option);
-                      Get.back();
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: CustomText(
-                              option.label,
-                              fontSize: SizeConfig.medium,
-                              fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                              color: selected ? AppColors.primaryColor : AppColors.mainTextColor,
+                  ),
+                  const Divider(height: 1, color: Color(0xFFEEEEEE)),
+                  for (final option in options)
+                    InkWell(
+                      onTap: () => setLocal(() => local = option),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 20, vertical: 14),
+                        child: Row(
+                          children: [
+                            _radio(local == option),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: CustomText(
+                                option.label,
+                                fontSize: SizeConfig.medium,
+                                fontWeight: local == option
+                                    ? FontWeight.w700
+                                    : FontWeight.w500,
+                                color: AppColors.mainTextColor,
+                              ),
                             ),
-                          ),
-                          if (selected) Icon(Icons.check_rounded, size: 20, color: AppColors.primaryColor),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
-                  );
-                }),
-              const SizedBox(height: 8),
-            ],
-          ),
-        ),
+                  const SizedBox(height: 6),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(14, 6, 14, 14),
+                    child: Align(
+                      alignment: Alignment.centerRight,
+                      child: GestureDetector(
+                        onTap: () {
+                          _ctrl.setSort(local);
+                          Get.back();
+                        },
+                        child: Container(
+                          height: 38,
+                          padding: const EdgeInsets.symmetric(horizontal: 26),
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryColor,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: CustomText(
+                            'Done',
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
       ),
       isScrollControlled: true,
     );
   }
 
-  /// Pill showing one applied filter's value with a tap-to-remove (×)
-  /// icon. Uses a subtle primary-tinted fill so it visually links back
-  /// to the active "Filters (n)" chip on the left.
-  Widget _appliedFilterChip({
-    required String label,
-    required VoidCallback onRemove,
-  }) {
-    return GestureDetector(
-      onTap: onRemove,
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(12, 7, 8, 7),
-        decoration: BoxDecoration(
-          color: AppColors.primaryColor.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: AppColors.primaryColor.withValues(alpha: 0.35),
+  /// Radio indicator used in the sort sheet.
+  Widget _radio(bool selected) {
+    return Container(
+      width: 22,
+      height: 22,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: selected ? AppColors.primaryColor : const Color(0xFFBDBDBD),
+          width: 2,
+        ),
+      ),
+      child: selected
+          ? Center(
+        child: Container(
+          width: 11,
+          height: 11,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: AppColors.primaryColor,
           ),
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            CustomText(label, fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.primaryColor),
-            const SizedBox(width: 6),
-            Icon(Icons.close_rounded, size: 14, color: AppColors.primaryColor),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _filterChip({
-    required IconData icon,
-    required String label,
-    required bool isActive,
-    required VoidCallback onTap,
-    bool isDestructive = false,
-  }) {
-    final Color fg;
-    final Color bg;
-    final Color border;
-    if (isDestructive) {
-      fg = AppColors.redB4;
-      bg = Colors.white;
-      border = AppColors.redB4.withValues(alpha: 0.3);
-    } else if (isActive) {
-      fg = Colors.white;
-      bg = AppColors.primaryColor;
-      border = AppColors.primaryColor;
-    } else {
-      fg = AppColors.secondaryTextColor;
-      bg = Colors.white;
-      border = const Color(0xFFDDE2EE);
-    }
-
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-        decoration: BoxDecoration(
-          color: bg,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: border),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 14, color: fg),
-            const SizedBox(width: 5),
-            CustomText(label, fontSize: 12, fontWeight: FontWeight.w600, color: fg),
-          ],
-        ),
-      ),
+      )
+          : null,
     );
   }
 
@@ -561,9 +622,9 @@ class _PropertyDiscoverScreenState extends State<PropertyDiscoverScreen> {
             child: PropertyListingCard(
               property: list[i],
               onTap: () => Get.to(() => PropertyDetailsScreen(
-                    property: list[i],
-                    isOwner: false,
-                  )),
+                property: list[i],
+                isOwner: false,
+              )),
             ),
           );
         },
@@ -594,14 +655,18 @@ class _PropertyDiscoverScreenState extends State<PropertyDiscoverScreen> {
                 ),
               ),
               child: Icon(
-                hasFilters ? Icons.filter_alt_off_outlined : Icons.search_off_rounded,
+                hasFilters
+                    ? Icons.filter_alt_off_outlined
+                    : Icons.search_off_rounded,
                 size: 48,
                 color: AppColors.primaryColor.withValues(alpha: 0.5),
               ),
             ),
             const SizedBox(height: 20),
             CustomText(
-              hasFilters ? 'No matching properties' : 'No properties available',
+              hasFilters
+                  ? 'No matching properties'
+                  : 'No properties available',
               fontSize: SizeConfig.large18,
               fontWeight: FontWeight.w700,
               color: AppColors.mainTextColor,
@@ -623,7 +688,8 @@ class _PropertyDiscoverScreenState extends State<PropertyDiscoverScreen> {
                 onTap: () => _ctrl.clearFilters(),
                 borderRadius: BorderRadius.circular(12),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 24, vertical: 12),
                   decoration: BoxDecoration(
                     color: AppColors.primaryColor,
                     borderRadius: BorderRadius.circular(12),
@@ -643,17 +709,10 @@ class _PropertyDiscoverScreenState extends State<PropertyDiscoverScreen> {
     );
   }
 
-  void _showFilterSheet() {
-    final cityCtrl = TextEditingController(text: _ctrl.city.value);
-    final minCtrl = TextEditingController(text: _ctrl.minPrice.value);
-    final maxCtrl = TextEditingController(text: _ctrl.maxPrice.value);
-
-    // Local working copy of chip selections — applied to the controller
-    // only when the user taps "Apply". Bottom-sheet edits don't leak
-    // into the live filter state until then.
-    final localValues = Map<FilterId, String>.from(_ctrl.currentFilterValues);
-    final visibleDefs = _ctrl.visibleFilterDefs;
-
+  /// Opens the tabbed filter sheet. [initialKey] deep-links to a
+  /// section (`'budget'`, `'locality'`, or a [FilterId.name]) so a
+  /// quick chip lands the user straight on the relevant tab.
+  void _showFilterSheet({String? initialKey}) {
     Get.bottomSheet(
       PropertyFilterSheet(
         controller: _ctrl,
@@ -661,15 +720,6 @@ class _PropertyDiscoverScreenState extends State<PropertyDiscoverScreen> {
       ),
       isScrollControlled: true,
     );
-  }
-
-  /// Returns the initial selected index for a [RentalChipSelector] given
-  /// the current stored value. Index 0 is reserved for "All" (no filter);
-  /// other indices map 1:1 onto [FilterDef.options] shifted by one.
-  int _initialChipIndex(FilterDef def, String? value) {
-    if (value == null || value.isEmpty) return 0;
-    final idx = def.options.indexOf(value);
-    return idx >= 0 ? idx + 1 : 0;
   }
 }
 
@@ -684,8 +734,10 @@ class _PropertyMapScreenState extends State<_PropertyMapScreen> {
   GoogleMapController? _mapController;
   BitmapDescriptor? _propertyIcon;
 
-  final PropertyDiscoverController _ctrl = Get.find<PropertyDiscoverController>();
-  static const ClusterManagerId _clusterManagerId = ClusterManagerId('property_listings');
+  final PropertyDiscoverController _ctrl =
+  Get.find<PropertyDiscoverController>();
+  static const ClusterManagerId _clusterManagerId =
+  ClusterManagerId('property_listings');
 
   @override
   void initState() {
@@ -719,14 +771,14 @@ class _PropertyMapScreenState extends State<_PropertyMapScreen> {
             title: p.propertyName,
             snippet: p.formattedPrice,
             onTap: () => Get.to(() => PropertyDetailsScreen(
-                  property: p,
-                  isOwner: false,
-                )),
+              property: p,
+              isOwner: false,
+            )),
           ),
           onTap: () => Get.to(() => PropertyDetailsScreen(
-                property: p,
-                isOwner: false,
-              )),
+            property: p,
+            isOwner: false,
+          )),
         ),
       );
     }
@@ -748,8 +800,10 @@ class _PropertyMapScreenState extends State<_PropertyMapScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final initialLat = LocationService.lat != 0.0 ? LocationService.lat : 28.6139;
-    final initialLng = LocationService.lng != 0.0 ? LocationService.lng : 77.2090;
+    final initialLat =
+    LocationService.lat != 0.0 ? LocationService.lat : 28.6139;
+    final initialLng =
+    LocationService.lng != 0.0 ? LocationService.lng : 77.2090;
     final statusBarHeight = MediaQuery.of(context).padding.top;
 
     return Scaffold(
@@ -822,17 +876,21 @@ class _PropertyMapScreenState extends State<_PropertyMapScreen> {
             child: Obx(() {
               final count = _ctrl.mapProperties.where((p) {
                 final c = p.location?.coordinates;
-                return c != null && c.length >= 2 && !(c[0] == 0 && c[1] == 0);
+                return c != null &&
+                    c.length >= 2 &&
+                    !(c[0] == 0 && c[1] == 0);
               }).length;
               return Material(
                 color: AppColors.white,
                 borderRadius: BorderRadius.circular(12),
                 elevation: 4,
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 12, vertical: 10),
                   child: Row(
                     children: [
-                      Icon(Icons.location_on_rounded, size: 18, color: AppColors.primaryColor),
+                      Icon(Icons.location_on_rounded,
+                          size: 18, color: AppColors.primaryColor),
                       const SizedBox(width: 8),
                       Expanded(
                         child: CustomText(
@@ -855,3 +913,4 @@ class _PropertyMapScreenState extends State<_PropertyMapScreen> {
     );
   }
 }
+
