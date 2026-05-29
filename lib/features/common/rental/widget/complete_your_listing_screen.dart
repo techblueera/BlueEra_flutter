@@ -23,6 +23,13 @@ class _CompleteYourListingScreenState extends State<CompleteYourListingScreen> {
 
   final List<String> _photoPaths = [];
 
+  // Form-level validation — mirrors how every other create flow in
+  // the app gates submission. Inline error messages render under each
+  // bad field; the controller now only checks things the form can't
+  // (photo count, image upload).
+  final _formKey = GlobalKey<FormState>();
+  var _autovalidate = AutovalidateMode.disabled;
+
   late final PropertyController _ctrl;
 
   @override
@@ -68,7 +75,10 @@ class _CompleteYourListingScreenState extends State<CompleteYourListingScreen> {
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
-              child: Column(
+              child: Form(
+                key: _formKey,
+                autovalidateMode: _autovalidate,
+                child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   RentalFormCard(
@@ -140,6 +150,7 @@ class _CompleteYourListingScreenState extends State<CompleteYourListingScreen> {
                   ),
                 ],
               ),
+              ),
             ),
           ),
         ],
@@ -149,6 +160,13 @@ class _CompleteYourListingScreenState extends State<CompleteYourListingScreen> {
           label: 'Post Now',
           isLoading: _ctrl.isLoading.value,
           onTap: () async {
+            FocusScope.of(context).unfocus();
+            // Switch to live autovalidate the moment the user attempts
+            // submission so inline errors keep refreshing as they fix
+            // things — same pattern step 1 uses.
+            setState(() =>
+                _autovalidate = AutovalidateMode.onUserInteraction);
+            if (!(_formKey.currentState?.validate() ?? false)) return;
             final success = await _ctrl.submitProperty();
             if (success) Get.close(3);
           },
@@ -162,6 +180,7 @@ class _CompleteYourListingScreenState extends State<CompleteYourListingScreen> {
     return ClipRRect(
       borderRadius: radius,
       child: Stack(
+
         fit: StackFit.expand,
         children: [
           Image.file(
@@ -260,6 +279,7 @@ class _PriceDetailsSectionState extends State<_PriceDetailsSection> {
         const SizedBox(height: 8),
         if (_isRange)
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
                 child: RentalLabeledField(
@@ -267,6 +287,7 @@ class _PriceDetailsSectionState extends State<_PriceDetailsSection> {
                   hint: 'Min Price',
                   keyboardType: TextInputType.number,
                   onChanged: (v) => _ctrl.priceFrom.value = v,
+                  validator: _numericRequired('Enter min price'),
                 ),
               ),
               const SizedBox(width: 12),
@@ -276,6 +297,7 @@ class _PriceDetailsSectionState extends State<_PriceDetailsSection> {
                   hint: 'Max Price',
                   keyboardType: TextInputType.number,
                   onChanged: (v) => _ctrl.priceTo.value = v,
+                  validator: _numericRequired('Enter max price'),
                 ),
               ),
             ],
@@ -286,6 +308,7 @@ class _PriceDetailsSectionState extends State<_PriceDetailsSection> {
             hint: 'E.g. ₹40,660',
             keyboardType: TextInputType.number,
             onChanged: (v) => _ctrl.price.value = v,
+            validator: _numericRequired('Enter price'),
           ),
         const SizedBox(height: 12),
         _checkRow('All Inclusive Price', _allInclusive, (v) {
@@ -302,8 +325,53 @@ class _PriceDetailsSectionState extends State<_PriceDetailsSection> {
           setState(() => _taxExcluded = v);
           _ctrl.taxAndGovtChargeExcluded.value = v;
         }),
+        const SizedBox(height: 16),
+        // Rent duration — wire-format keys live on the controller's
+        // [rentDurationOptions]; the chip index maps to that list
+        // 1:1 so the controller stays the source of truth without
+        // duplicating the string constants here.
+        RentalChipSelector(
+          label: 'Rent Duration',
+          options: PropertyController.rentDurationOptions
+              .map((k) => PropertyController.priceTypeLabels[k] ?? k)
+              .toList(),
+          initialIndex: _initialDurationIndex(),
+          onChanged: (i) {
+            _ctrl.priceType.value =
+                PropertyController.rentDurationOptions[i];
+          },
+        ),
+        const SizedBox(height: 16),
+        RentalLabeledField(
+          label: 'Security Deposit',
+          hint: 'E.g. ₹50,000',
+          keyboardType: TextInputType.number,
+          onChanged: (v) => _ctrl.securityDepositAmount.value = v,
+          validator: _numericRequired('Enter security deposit amount'),
+        ),
       ],
     );
+  }
+
+  /// Required-numeric validator factory used by the price / deposit
+  /// fields — keeps each call site one-liner short and the messages
+  /// consistent.
+  String? Function(String?) _numericRequired(String emptyMessage) {
+    return (value) {
+      final v = value?.trim() ?? '';
+      if (v.isEmpty) return emptyMessage;
+      if (int.tryParse(v) == null) return 'Enter a valid number';
+      return null;
+    };
+  }
+
+  /// Picks the chip index that matches the controller's current
+  /// price-type key. Falls back to 0 (Monthly) when the controller
+  /// holds a value outside the duration set (e.g. 'OneTime').
+  int _initialDurationIndex() {
+    final idx = PropertyController.rentDurationOptions
+        .indexOf(_ctrl.priceType.value);
+    return idx >= 0 ? idx : 0;
   }
 
   Widget _checkRow(String label, bool value, ValueChanged<bool> onChanged) {

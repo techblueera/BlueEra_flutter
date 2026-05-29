@@ -342,6 +342,29 @@ class RentalCategoryHeader extends StatelessWidget {
   }
 }
 
+/// Shared "Listed By Name" input used on every step-2 specification
+/// screen. Binds directly to [PropertyController.listedByName] so
+/// each screen can drop in `const RentalListedByNameField()` without
+/// threading state through. Validator is required + non-empty.
+class RentalListedByNameField extends StatelessWidget {
+  const RentalListedByNameField({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final ctrl = Get.find<PropertyController>();
+    return RentalLabeledField(
+      label: 'Listed By Name',
+      hint: 'Enter your name',
+      textInputAction: TextInputAction.next,
+      onChanged: (v) => ctrl.listedByName.value = v,
+      validator: (v) {
+        if (v == null || v.trim().isEmpty) return 'Please enter your name';
+        return null;
+      },
+    );
+  }
+}
+
 /// Labeled text field with an optional character counter rendered
 /// underneath on the right (matches the "0/70" / "0/2000" hint in
 /// the mockup). Owns its own controller so callers don't need to
@@ -692,12 +715,17 @@ class RentalAreaField extends StatefulWidget {
   final String label;
   final String hint;
   final ValueChanged<String>? onChanged;
+  // Optional validator wired into the underlying TextFormField so this
+  // field participates in the same Form().validate() flow every other
+  // screen uses, instead of relying on controller-side string checks.
+  final String? Function(String?)? validator;
 
   const RentalAreaField({
     super.key,
     this.label = 'Add Area Details',
     this.hint = 'E.g. 4060',
     this.onChanged,
+    this.validator,
   });
 
   @override
@@ -732,141 +760,130 @@ class _RentalAreaFieldState extends State<RentalAreaField> {
           color: AppColors.mainTextColor,
         ),
         const SizedBox(height: 8),
-        TextFormField(
-          controller: _textCtrl,
-          keyboardType: TextInputType.number,
-          onChanged: (v) {
-            widget.onChanged?.call(v);
-          },
-          decoration: InputDecoration(
-            hintText: widget.hint,
-            hintStyle: TextStyle(
-              color: AppColors.secondaryTextColor.withValues(alpha: 0.75),
-              fontWeight: FontWeight.w500,
-              fontSize: 14,
+        // Field + unit selector are siblings now (was nested as a
+        // `suffixIcon` before). 8-px gap between them; the dropdown
+        // sits centered to the field's natural height.
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Expanded(
+              child: TextFormField(
+                controller: _textCtrl,
+                keyboardType: TextInputType.number,
+                onChanged: (v) {
+                  widget.onChanged?.call(v);
+                },
+                validator: widget.validator,
+                decoration: InputDecoration(
+                  hintText: widget.hint,
+                  hintStyle: TextStyle(
+                    color:
+                        AppColors.secondaryTextColor.withValues(alpha: 0.75),
+                    fontWeight: FontWeight.w500,
+                    fontSize: 14,
+                  ),
+                  filled: true,
+                  fillColor: _kFieldFill,
+                  contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 14, vertical: 12),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(color: _kFieldBorder),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(color: _kFieldBorder),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(
+                        color:
+                            AppColors.primaryColor.withValues(alpha: 0.5)),
+                  ),
+                ),
+              ),
             ),
-            filled: true,
-            fillColor: _kFieldFill,
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-            suffixIcon: Padding(
-              padding: const EdgeInsets.only(right: 4),
-              child: _unitDropdown(),
-            ),
-            suffixIconConstraints:
-                const BoxConstraints(minHeight: 0, minWidth: 0),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: _kFieldBorder),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: _kFieldBorder),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(
-                  color: AppColors.primaryColor.withValues(alpha: 0.5)),
-            ),
-          ),
+            const SizedBox(width: 8),
+            _unitDropdown(),
+          ],
         ),
       ],
     );
   }
 
+  /// Inline popup-menu dropdown styled as a pill that matches the
+  /// area field's chrome. Replaces the old "tap → bottom sheet" flow
+  /// — tapping now anchors a small Material popup right under the
+  /// pill so the user picks a unit without losing context.
   Widget _unitDropdown() {
-    return Obx(() => GestureDetector(
-          onTap: () => _showUnitPicker(context),
-          child: Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              border: Border(
-                left: BorderSide(
-                  color:
-                      AppColors.secondaryTextColor.withValues(alpha: 0.2),
-                ),
-              ),
-            ),
+    return Obx(() {
+      final currentUnit = _ctrl.areaUnit.value;
+      return PopupMenuButton<String>(
+        initialValue: currentUnit,
+        tooltip: 'Select unit',
+        onSelected: (val) => _ctrl.areaUnit.value = val,
+        color: Colors.white,
+        elevation: 8,
+        offset: const Offset(0, 8),
+        padding: EdgeInsets.zero,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+          side: const BorderSide(color: _kFieldBorder),
+        ),
+        itemBuilder: (_) =>
+            PropertyController.areaUnitOptions.map((unit) {
+          final selected = unit == currentUnit;
+          return PopupMenuItem<String>(
+            value: unit,
+            height: 40,
             child: Row(
-              mainAxisSize: MainAxisSize.min,
               children: [
                 CustomText(
-                  _ctrl.areaUnit.value,
+                  unit,
                   fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.secondaryTextColor,
+                  fontWeight:
+                      selected ? FontWeight.w700 : FontWeight.w500,
+                  color: selected
+                      ? AppColors.primaryColor
+                      : AppColors.mainTextColor,
                 ),
-                const SizedBox(width: 2),
-                Icon(
-                  Icons.keyboard_arrow_down,
-                  size: 16,
-                  color: AppColors.secondaryTextColor,
-                ),
+                if (selected) ...[
+                  const Spacer(),
+                  Icon(Icons.check_rounded,
+                      size: 16, color: AppColors.primaryColor),
+                ],
               ],
             ),
+          );
+        }).toList(),
+        child: Container(
+          height: 46,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          decoration: BoxDecoration(
+            color: _kFieldFill,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: _kFieldBorder),
           ),
-        ));
-  }
-
-  void _showUnitPicker(BuildContext context) {
-    showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (_) {
-        return SafeArea(
-          top: false,
-          child: Column(
+          child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const SizedBox(height: 12),
-              Container(
-                width: 36,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFDDE2EE),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(height: 12),
               CustomText(
-                'Select Unit',
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                color: AppColors.mainTextColor,
+                currentUnit,
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: AppColors.secondaryTextColor,
               ),
-              const SizedBox(height: 8),
-              ...PropertyController.areaUnitOptions.map(
-                (unit) => ListTile(
-                  title: CustomText(
-                    unit,
-                    fontSize: 14,
-                    fontWeight: _ctrl.areaUnit.value == unit
-                        ? FontWeight.w700
-                        : FontWeight.w500,
-                    color: _ctrl.areaUnit.value == unit
-                        ? AppColors.primaryColor
-                        : AppColors.mainTextColor,
-                  ),
-                  trailing: _ctrl.areaUnit.value == unit
-                      ? Icon(Icons.check_circle,
-                          color: AppColors.primaryColor, size: 20)
-                      : null,
-                  onTap: () {
-                    _ctrl.areaUnit.value = unit;
-                    Navigator.of(context).pop();
-                  },
-                ),
+              const SizedBox(width: 6),
+              Icon(
+                Icons.keyboard_arrow_down,
+                size: 16,
+                color: AppColors.secondaryTextColor,
               ),
-              const SizedBox(height: 8),
             ],
           ),
-        );
-      },
-    );
+        ),
+      );
+    });
   }
 }
 

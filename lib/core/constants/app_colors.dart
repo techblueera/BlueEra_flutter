@@ -47,6 +47,7 @@ class AppColors {
   static const blackA3 = Color(0xA31D2935);
   static const greyD3 = Color(0x4FD3D3D3);
   static const whiteF3 = Color(0xFFF3F3F3);
+  static const whiteF9 = Color(0xFFF9F9F9);
   static const black1F = Color(0x1F000000);
   static const whiteE0 = Color(0xFFE0E0E0);
   static const red02 = Color(0xFFD82202);

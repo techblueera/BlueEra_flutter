@@ -22,6 +22,18 @@ class _LandPlotsSpecificationsScreenState
   final _formKey = GlobalKey<FormState>();
   var _autovalidate = AutovalidateMode.disabled;
 
+  /// Shared required-numeric validator factory used by the three
+  /// area fields. Keeps each call site one line and the error copy
+  /// identical so the form reads consistently.
+  String? Function(String?) _numericRequired(String emptyMessage) {
+    return (value) {
+      final v = value?.trim() ?? '';
+      if (v.isEmpty) return emptyMessage;
+      if (num.tryParse(v) == null) return 'Enter a valid number';
+      return null;
+    };
+  }
+
   @override
   void initState() {
     super.initState();
@@ -62,12 +74,29 @@ class _LandPlotsSpecificationsScreenState
                           options: const ['Owner', 'Builder', 'Dealer'],
                           onChanged: (i) => _ctrl.lpListedBy.value = i,
                         ),
+                        const SizedBox(height: 14),
+                        const RentalListedByNameField(),
                         const SizedBox(height: 18),
-                        RentalAreaField(label: 'Add Plot Area Details', hint: 'E.g. 4060', onChanged: (v) => _ctrl.lpPlotArea.value = v),
+                        RentalAreaField(
+                          label: 'Add Plot Area Details',
+                          hint: 'E.g. 4060',
+                          onChanged: (v) => _ctrl.lpPlotArea.value = v,
+                          validator: _numericRequired('Please enter plot area'),
+                        ),
                         const SizedBox(height: 14),
-                        RentalAreaField(label: 'Enter Length', hint: 'Enter Length', onChanged: (v) => _ctrl.lpLength.value = v),
+                        RentalAreaField(
+                          label: 'Enter Length',
+                          hint: 'Enter Length',
+                          onChanged: (v) => _ctrl.lpLength.value = v,
+                          validator: _numericRequired('Please enter length'),
+                        ),
                         const SizedBox(height: 14),
-                        RentalAreaField(label: 'Enter Breadth', hint: 'Enter Breadth', onChanged: (v) => _ctrl.lpBreadth.value = v),
+                        RentalAreaField(
+                          label: 'Enter Breadth',
+                          hint: 'Enter Breadth',
+                          onChanged: (v) => _ctrl.lpBreadth.value = v,
+                          validator: _numericRequired('Please enter breadth'),
+                        ),
                         const SizedBox(height: 18),
                         RentalChipSelector(
                           label: 'Facing',

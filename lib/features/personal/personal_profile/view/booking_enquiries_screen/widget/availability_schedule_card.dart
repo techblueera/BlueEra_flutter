@@ -1,61 +1,59 @@
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/model/availability_model.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 
+/// Renders a weekly schedule the same way [_buildTimingsSection] /
+/// [_buildTimingsGrid] do on `professionals_service_screen.dart`:
+/// when there is no schedule yet we show a gradient-tinted empty-state
+/// CTA (the whole card is the call-to-action), and when there is one
+/// we show every day of the week with the open time-range in green or
+/// "Closed" in red. This keeps the working-hours surface visually
+/// consistent across the consultant + self-employed flows.
 class AvailabilityScheduleCard extends StatelessWidget {
   final List<Schedule> schedule;
+
+  /// Fired from the empty-state CTA. When omitted the empty card still
+  /// renders, but without the "Add" pill — useful in read-only contexts
+  /// where the parent decides what tapping the card means.
+  final VoidCallback? onAdd;
 
   const AvailabilityScheduleCard({
     super.key,
     required this.schedule,
+    this.onAdd,
   });
+
+  static const _allDays = [
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday',
+    'Sunday',
+  ];
 
   @override
   Widget build(BuildContext context) {
-    // 1. Process Data Locally (Decoupled from Controller)
-    final Map<String, bool> visitingHours = {};
-    final Map<String, TimeOfDay> startTimes = {};
-    final Map<String, TimeOfDay> endTimes = {};
+    if (schedule.isEmpty) return _buildEmptyState();
 
+    final Map<String, _DayEntry> byDay = {};
     for (final sch in schedule) {
-      final apiDay = (sch.day ?? '').toLowerCase();
-      final uiDay = _mapApiDayToUiDay(apiDay);
+      final uiDay = _mapApiDayToUiDay((sch.day ?? '').toLowerCase());
       if (uiDay == null) continue;
-
-      visitingHours[uiDay] = sch.isOpen ?? false;
-
-      final firstSlot = (sch.timeSlots ?? []).isNotEmpty ? sch.timeSlots!.first : null;
-
-      if (firstSlot != null) {
-        final start = _parseTimeOfDay(firstSlot.startTime);
-        final end = _parseTimeOfDay(firstSlot.endTime);
-
-        if (start != null) startTimes[uiDay] = start;
-        if (end != null) endTimes[uiDay] = end;
-      }
-    }
-
-    // 2. Filter Open Days
-    final openDays = visitingHours.entries
-        .where((entry) => entry.value)
-        .map((entry) => entry.key)
-        .toList();
-
-    // 3. Handle Empty Case
-    if (openDays.isEmpty) {
-      return CustomText(
-        AppStrings.noVisitingDaysSelected, // Ensure this string exists or use raw string
-        fontSize: SizeConfig.medium,
-        fontWeight: FontWeight.w600,
-        color: AppColors.secondaryTextColor,
+      final slot =
+          (sch.timeSlots ?? []).isNotEmpty ? sch.timeSlots!.first : null;
+      byDay[uiDay] = _DayEntry(
+        isOpen: sch.isOpen ?? false,
+        start: _parseTimeOfDay(slot?.startTime),
+        end: _parseTimeOfDay(slot?.endTime),
       );
     }
 
-    // 4. Build List
     return Container(
       padding: EdgeInsets.all(SizeConfig.size12),
       decoration: BoxDecoration(
@@ -66,38 +64,28 @@ class AvailabilityScheduleCard extends StatelessWidget {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: openDays.map((day) {
-          // Use the local maps, not the controller!
-          final start = _formatTime(context, startTimes[day]);
-          final end = _formatTime(context, endTimes[day]);
-
+        children: _allDays.map((day) {
+          final entry = byDay[day];
+          final isOpen = entry?.isOpen ?? false;
+          final text = isOpen
+              ? "${_formatTime(entry?.start)} - ${_formatTime(entry?.end)}"
+              : "Closed";
           return Padding(
-            padding: EdgeInsets.symmetric(vertical: SizeConfig.size6),
+            padding: EdgeInsets.symmetric(vertical: SizeConfig.size4),
             child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // Day Name
                 CustomText(
                   day,
                   fontSize: SizeConfig.medium,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.secondaryTextColor,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.mainTextColor,
                 ),
-                const Spacer(),
-
-                // "Open" Label
                 CustomText(
-                  "Open",
-                  fontSize: SizeConfig.large,
-                  color: AppColors.green7F,
-                  fontWeight: FontWeight.w600,
-                ),
-                SizedBox(width: SizeConfig.size8),
-
-                // Time Range
-                CustomText(
-                  "$start - $end",
+                  text,
                   fontSize: SizeConfig.medium,
-                  color: AppColors.grey9A,
+                  fontWeight: FontWeight.w500,
+                  color: isOpen ? Colors.green : Colors.red,
                 ),
               ],
             ),
@@ -107,7 +95,117 @@ class AvailabilityScheduleCard extends StatelessWidget {
     );
   }
 
-  // --- PRIVATE HELPERS (Keep logic self-contained) ---
+  Widget _buildEmptyState() {
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        onTap: onAdd,
+        borderRadius: BorderRadius.circular(14),
+        child: Ink(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(14),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                AppColors.primaryColor.withValues(alpha: 0.07),
+                AppColors.primaryColor.withValues(alpha: 0.02),
+              ],
+            ),
+            border: Border.all(
+              color: AppColors.primaryColor.withValues(alpha: 0.18),
+              width: 1,
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.primaryColor.withValues(alpha: 0.10),
+                  border: Border.all(
+                    color: AppColors.primaryColor.withValues(alpha: 0.22),
+                    width: 1,
+                  ),
+                ),
+                child: Icon(
+                  Icons.schedule_rounded,
+                  size: 22,
+                  color: AppColors.primaryColor,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Set your working hours',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.mainTextColor,
+                        letterSpacing: -0.1,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      "Tell clients when you're available so bookings come at the right time.",
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.secondaryTextColor,
+                        height: 1.4,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (onAdd != null) ...[
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryColor,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primaryColor.withValues(alpha: 0.22),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: const [
+                      Icon(Icons.add_rounded, size: 14, color: Colors.white),
+                      SizedBox(width: 4),
+                      Text(
+                        'Add',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                          letterSpacing: 0.3,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
   String? _mapApiDayToUiDay(String apiDay) {
     const map = {
@@ -127,14 +225,23 @@ class AvailabilityScheduleCard extends StatelessWidget {
     try {
       final parts = timeString.split(":");
       return TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
-    } catch (e) {
+    } catch (_) {
       return null;
     }
   }
 
-  String _formatTime(BuildContext context, TimeOfDay? time) {
+  String _formatTime(TimeOfDay? time) {
     if (time == null) return "--:--";
-    // Uses Flutter's native localization for AM/PM
-    return time.format(context);
+    final now = DateTime.now();
+    final dt = DateTime(now.year, now.month, now.day, time.hour, time.minute);
+    return DateFormat('h:mm a').format(dt);
   }
+}
+
+class _DayEntry {
+  final bool isOpen;
+  final TimeOfDay? start;
+  final TimeOfDay? end;
+
+  _DayEntry({required this.isOpen, this.start, this.end});
 }

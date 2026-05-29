@@ -84,11 +84,21 @@ class _PropertySpecificationsScreenState
                           options: const ['Owner', 'Builder', 'Dealer'],
                           onChanged: (i) => _ctrl.haListedBy.value = i,
                         ),
+                        const SizedBox(height: 14),
+                        const RentalListedByNameField(),
                         const SizedBox(height: 18),
                         RentalAreaField(
                           label: 'Add Area Details',
                           hint: 'E.g. 4060',
                           onChanged: (v) => _ctrl.haArea.value = v,
+                          validator: (v) {
+                            final s = v?.trim() ?? '';
+                            if (s.isEmpty) return 'Please enter area';
+                            if (num.tryParse(s) == null) {
+                              return 'Enter a valid number';
+                            }
+                            return null;
+                          },
                         ),
                         const SizedBox(height: 14),
                         RentalLabeledField(

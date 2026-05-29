@@ -2,15 +2,12 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
 import '../../../auth/controller/chat_view_controller.dart';
 import '../widget/common_subtab_widget.dart';
 import '../widget/contact_by_service_tile_widget.dart';
 
 class ProfessionalsMain extends StatefulWidget {
   const ProfessionalsMain({super.key,});
-
-
 
   @override
   State<ProfessionalsMain> createState() => _ProfessionalsMainState();

@@ -1,9 +1,12 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
+import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/features/common/rental/controller/property_controller.dart';
 import 'package:BlueEra/features/common/rental/model/property_model.dart';
 import 'package:BlueEra/features/common/rental/repo/property_repo.dart';
@@ -61,9 +64,15 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
             SizedBox(height: SizeConfig.size12),
             _buildTitleCard(),
             SizedBox(height: SizeConfig.size10),
+            _buildListedByCard(),
+            SizedBox(height: SizeConfig.size10),
             _buildKeyHighlightsCard(),
             SizedBox(height: SizeConfig.size10),
             _buildPropertyInfoCard(),
+            if (!_isOwner) ...[
+              SizedBox(height: SizeConfig.size10),
+              _buildRateCard(),
+            ],
             if (p.propertyImages.length > 1) ...[
               SizedBox(height: SizeConfig.size10),
               _buildGalleryCard(),
@@ -170,14 +179,17 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
             PageView.builder(
               itemCount: images.length,
               onPageChanged: (i) => setState(() => _currentImage = i),
-              itemBuilder: (_, i) => Image.network(
-                images[i],
-                fit: BoxFit.cover,
-                width: double.infinity,
-                errorBuilder: (_, __, ___) => Container(
-                  color: AppColors.primaryColor.withValues(alpha: 0.06),
-                  child: const Center(
-                      child: Icon(Icons.broken_image_outlined, size: 40)),
+              itemBuilder: (_, i) => GestureDetector(
+                onTap: () => _openImageViewer(i),
+                child: Image.network(
+                  images[i],
+                  fit: BoxFit.cover,
+                  width: double.infinity,
+                  errorBuilder: (_, __, ___) => Container(
+                    color: AppColors.primaryColor.withValues(alpha: 0.06),
+                    child: const Center(
+                        child: Icon(Icons.broken_image_outlined, size: 40)),
+                  ),
                 ),
               ),
             ),
@@ -379,6 +391,177 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
     );
   }
 
+  /// "Listed By" card — shows the lister's name + role. Sits above Key
+  /// Highlights. Owners get the edit pencil (same change flow as the
+  /// other cards); on the discover side it's view-only.
+  Widget _buildListedByCard() {
+    final name = p.listedByName ?? '';
+    final role = _listedBy ?? '';
+    final hasInfo = name.isNotEmpty || role.isNotEmpty;
+    // View-only (discover): nothing to show → hide. Owners always see
+    // the card so they can fill the details in.
+    if (!hasInfo && !_isOwner) return const SizedBox.shrink();
+
+    final rows = <(String, String)>[];
+    if (name.isNotEmpty) rows.add(('Listed By Name', name));
+    if (role.isNotEmpty) rows.add(('Listed By', role));
+
+    return CustomFormCard(
+      margin: EdgeInsets.symmetric(horizontal: SizeConfig.size14),
+      isBoxShadowAvail: true,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: CustomText(
+                  'Listed By',
+                  fontSize: SizeConfig.large,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.mainTextColor,
+                ),
+              ),
+              _editIcon(onTap: _showEditListedBySheet),
+            ],
+          ),
+          const SizedBox(height: 10),
+          if (rows.isEmpty)
+            CustomText(
+              'Not specified',
+              fontSize: SizeConfig.small,
+              fontWeight: FontWeight.w500,
+              color: AppColors.secondaryTextColor,
+            )
+          else
+            for (var i = 0; i < rows.length; i++) ...[
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: CustomText(
+                        rows[i].$1,
+                        fontSize: SizeConfig.small,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.secondaryTextColor,
+                      ),
+                    ),
+                    Flexible(
+                      child: CustomText(
+                        rows[i].$2,
+                        fontSize: SizeConfig.small,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.mainTextColor,
+                        textAlign: TextAlign.end,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (i < rows.length - 1)
+                Divider(
+                  height: 1,
+                  color: AppColors.secondaryTextColor.withValues(alpha: 0.1),
+                ),
+            ],
+        ],
+      ),
+    );
+  }
+
+  /// Discover-side card letting the viewer rate this property. Tapping a
+  /// star opens a sheet pre-set to that rating with an optional comment.
+  Widget _buildRateCard() {
+    return CustomFormCard(
+      margin: EdgeInsets.symmetric(horizontal: SizeConfig.size14),
+      isBoxShadowAvail: true,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          CustomText(
+            'Rate this property',
+            fontSize: SizeConfig.large,
+            fontWeight: FontWeight.w800,
+            color: AppColors.mainTextColor,
+          ),
+          const SizedBox(height: 4),
+          CustomText(
+            'Tap a star to share your experience',
+            fontSize: SizeConfig.small,
+            fontWeight: FontWeight.w500,
+            color: AppColors.secondaryTextColor,
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: List.generate(5, (i) {
+              return GestureDetector(
+                onTap: () => _showRateSheet(i + 1),
+                behavior: HitTestBehavior.opaque,
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: const Icon(
+                    Icons.star_border_rounded,
+                    size: 36,
+                    color: AppColors.rating,
+                  ),
+                ),
+              );
+            }),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showRateSheet(int initial) {
+    int selected = initial;
+    final commentCtrl = TextEditingController();
+    _openEditSheet(
+      title: 'Rate this property',
+      saveLabel: 'Submit Rating',
+      children: [
+        StatefulBuilder(
+          builder: (ctx, setLocal) {
+            return Row(
+              children: List.generate(5, (i) {
+                final filled = i < selected;
+                return GestureDetector(
+                  onTap: () => setLocal(() => selected = i + 1),
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 10),
+                    child: Icon(
+                      filled ? Icons.star_rounded : Icons.star_border_rounded,
+                      size: 44,
+                      color: AppColors.rating,
+                    ),
+                  ),
+                );
+              }),
+            );
+          },
+        ),
+        const SizedBox(height: 16),
+        RentalLabeledField(
+          label: 'Comment (optional)',
+          hint: 'Share your experience...',
+          controller: commentCtrl,
+          maxLines: 3,
+          maxLength: 500,
+        ),
+      ],
+      onSave: () {
+        if (selected <= 0) {
+          commonSnackBar(message: 'Please select a rating');
+          return;
+        }
+        // Rating submission not wired up yet — just acknowledge for now.
+        Get.back();
+        commonSnackBar(message: 'Rating coming soon');
+      },
+    );
+  }
+
   Widget _buildKeyHighlightsCard() {
     final highlights = _extractHighlights();
     if (highlights.isEmpty) return const SizedBox.shrink();
@@ -533,13 +716,13 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
             children: [
               Expanded(
                 flex: hasTwo ? 3 : 1,
-                child: _galleryImage(imgs[i]),
+                child: _galleryImage(imgs[i], i),
               ),
               if (hasTwo) ...[
                 const SizedBox(width: 8),
                 Expanded(
                   flex: 2,
-                  child: _galleryImage(imgs[i + 1]),
+                  child: _galleryImage(imgs[i + 1], i + 1),
                 ),
               ],
             ],
@@ -552,19 +735,37 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
     return Column(children: rows);
   }
 
-  Widget _galleryImage(String url) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(10),
-      child: Image.network(
-        url,
-        fit: BoxFit.cover,
-        height: double.infinity,
-        width: double.infinity,
-        errorBuilder: (_, __, ___) => Container(
-          color: AppColors.primaryColor.withValues(alpha: 0.06),
-          child: const Center(
-              child: Icon(Icons.broken_image_outlined, size: 24)),
+  Widget _galleryImage(String url, int index) {
+    return GestureDetector(
+      onTap: () => _openImageViewer(index),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(10),
+        child: Image.network(
+          url,
+          fit: BoxFit.cover,
+          height: double.infinity,
+          width: double.infinity,
+          errorBuilder: (_, __, ___) => Container(
+            color: AppColors.primaryColor.withValues(alpha: 0.06),
+            child: const Center(
+                child: Icon(Icons.broken_image_outlined, size: 24)),
+          ),
         ),
+      ),
+    );
+  }
+
+  /// Opens the shared full-screen image viewer at [index].
+  void _openImageViewer(int index) {
+    final images = p.propertyImages;
+    if (images.isEmpty) return;
+    navigatePushTo(
+      context,
+      ImageViewScreen(
+        subTitle: p.propertyName,
+        appBarTitle: AppStrings.imageViewer,
+        imageUrls: images,
+        initialIndex: index,
       ),
     );
   }
@@ -622,6 +823,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
     required String title,
     required List<Widget> children,
     required VoidCallback onSave,
+    String saveLabel = 'Update',
   }) {
     Get.bottomSheet(
       Container(
@@ -693,7 +895,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
               top: false,
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
-                child: RentalPrimaryButton(label: 'Update', onTap: onSave),
+                child: RentalPrimaryButton(label: saveLabel, onTap: onSave),
               ),
             ),
           ],
@@ -711,14 +913,17 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
     final locCtrl = TextEditingController(text: p.displayLocation);
 
     final hasRange = p.hasPriceRange;
+    // `p.price` / `priceRange.min` / `priceRange.max` are strings now;
+    // skip the "0" placeholder so the edit sheet doesn't pre-fill a
+    // useless zero when the property was created without a price.
     final priceCtrl = TextEditingController(
-      text: hasRange ? '' : (p.price > 0 ? p.price.toString() : ''),
+      text: hasRange || p.price.isEmpty || p.price == '0' ? '' : p.price,
     );
     final fromCtrl = TextEditingController(
-      text: hasRange ? p.priceRange!.min.toString() : '',
+      text: hasRange ? p.priceRange!.min : '',
     );
     final toCtrl = TextEditingController(
-      text: hasRange ? p.priceRange!.max.toString() : '',
+      text: hasRange ? p.priceRange!.max : '',
     );
 
     bool isRange = hasRange;
@@ -807,6 +1012,54 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
           updates[typeKey] = {'propertyLocation': locCtrl.text.trim()};
         }
 
+        _updateFields(updates);
+      },
+    );
+  }
+
+  // ── Edit Listed By (Name + Role) ──
+
+  void _showEditListedBySheet() {
+    final nameCtrl = TextEditingController(text: p.listedByName ?? '');
+    int roleIdx = _indexOf(PropertyController.listedByOptions, _listedBy);
+    // New Projects has no `listedBy` role on its sub-model — only the
+    // free-text name is editable there.
+    final hasRole = _subTypeHasListedBy;
+
+    _openEditSheet(
+      title: 'Edit Listed By',
+      children: [
+        RentalLabeledField(
+          label: 'Listed By Name',
+          hint: 'Enter name',
+          controller: nameCtrl,
+          maxLength: 70,
+        ),
+        if (hasRole) ...[
+          const SizedBox(height: 16),
+          RentalChipSelector(
+            label: 'Listed By',
+            options: PropertyController.listedByOptions,
+            initialIndex: roleIdx,
+            onChanged: (i) => roleIdx = i,
+          ),
+        ],
+      ],
+      onSave: () {
+        final updates = <String, dynamic>{
+          'listedByName': nameCtrl.text.trim(),
+        };
+        // The role lives on the type-specific sub-model. Re-send the
+        // whole sub-model (with only `listedBy` swapped) so the PUT
+        // doesn't wipe its other fields.
+        if (hasRole) {
+          final key = _subTypeKey();
+          final existing = _currentSubTypeJson();
+          if (key != null && existing != null) {
+            existing['listedBy'] = PropertyController.listedByOptions[roleIdx];
+            updates[key] = existing;
+          }
+        }
         _updateFields(updates);
       },
     );
@@ -1859,6 +2112,34 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
     if (value == null) return 0;
     final idx = options.indexOf(value);
     return idx >= 0 ? idx : 0;
+  }
+
+  /// Lister role pulled from whichever type-specific sub-model is
+  /// present. New Projects carries no `listedBy`, so it yields null.
+  String? get _listedBy =>
+      p.houseAndApartment?.listedBy ??
+      p.landAndPlots?.listedBy ??
+      p.shopAndOffices?.listedBy ??
+      p.pgAndGuestHouse?.listedBy;
+
+  /// True when the current sub-model has a `listedBy` role field.
+  bool get _subTypeHasListedBy =>
+      p.houseAndApartment != null ||
+      p.landAndPlots != null ||
+      p.shopAndOffices != null ||
+      p.pgAndGuestHouse != null;
+
+  /// JSON of the current type-specific sub-model, used to re-send the
+  /// full object when only one field (e.g. `listedBy`) changes.
+  Map<String, dynamic>? _currentSubTypeJson() {
+    if (p.houseAndApartment != null) return p.houseAndApartment!.toJson();
+    if (p.landAndPlots != null) return p.landAndPlots!.toJson();
+    if (p.shopAndOffices != null) return p.shopAndOffices!.toJson();
+    if (p.newProjectsAndProperties != null) {
+      return p.newProjectsAndProperties!.toJson();
+    }
+    if (p.pgAndGuestHouse != null) return p.pgAndGuestHouse!.toJson();
+    return null;
   }
 
   String? _subTypeKey() {

@@ -95,14 +95,37 @@ class EarnServiceModelResponse {
     providerDetails = json['providerDetails'] != null
         ? new ProviderDetails.fromJson(json['providerDetails'])
         : null;
-    feeDetails = json['feeDetails'] != null
-        ? FeeDetails.fromJson(json['feeDetails'])
-        : null;
-    if (json['schedule'] != null) {
+    // The backend migrated the price payload from a nested `feeDetails`
+    // object to a top-level `priceRange:{min,max}` + sibling `feeType`.
+    // We keep `FeeDetails` as the in-memory aggregate so every UI
+    // consumer (`_priceHero`, `seedPriceInputsFromProfession`, etc.)
+    // keeps reading the same fields — only the parsing changes here.
+    // Prefer the new shape; fall back to legacy `feeDetails` for any
+    // older payloads still in flight.
+    if (json['priceRange'] != null || json['feeType'] != null) {
+      final priceRange = json['priceRange'] as Map<String, dynamic>?;
+      feeDetails = FeeDetails(
+        minFee: (priceRange?['min'] as num?)?.toInt(),
+        maxFee: (priceRange?['max'] as num?)?.toInt(),
+        feeType: json['feeType'] as String?,
+      );
+    } else if (json['feeDetails'] != null) {
+      feeDetails = FeeDetails.fromJson(json['feeDetails']);
+    } else {
+      feeDetails = null;
+    }
+    // Backend nests the weekly schedule under an `availability` object
+    // (alongside bookingType / timezone / durationInMinutes) — kept
+    // outside the model on purpose because nothing else on the
+    // self-employed screen needs them yet. Fall back to a top-level
+    // `schedule` for older payloads still in flight.
+    final availability = json['availability'] as Map<String, dynamic>?;
+    final rawSchedule = availability?['schedule'] ?? json['schedule'];
+    if (rawSchedule is List) {
       schedule = <Schedule>[];
-      json['schedule'].forEach((v) {
+      for (final v in rawSchedule) {
         schedule!.add(Schedule.fromJson(v));
-      });
+      }
     }
   }
 

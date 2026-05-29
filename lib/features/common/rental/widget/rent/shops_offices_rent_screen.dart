@@ -59,11 +59,21 @@ class _ShopsOfficesRentScreenState extends State<ShopsOfficesRentScreen> {
                           options: const ['Owner', 'Builder', 'Dealer'],
                           onChanged: (v) => _ctrl.soListedBy.value = v,
                         ),
+                        const SizedBox(height: 14),
+                        const RentalListedByNameField(),
                         const SizedBox(height: 18),
                         RentalAreaField(
                           label: 'Super Built-Up Area Details',
                           hint: 'E.g. 4060',
                           onChanged: (v) => _ctrl.soArea.value = v,
+                          validator: (v) {
+                            final s = v?.trim() ?? '';
+                            if (s.isEmpty) return 'Please enter area';
+                            if (num.tryParse(s) == null) {
+                              return 'Enter a valid number';
+                            }
+                            return null;
+                          },
                         ),
                         const SizedBox(height: 14),
                         RentalLabeledField(

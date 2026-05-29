@@ -87,26 +87,31 @@ class RentalServicesDashboardScreenV2 extends StatelessWidget {
         vertical: SizeConfig.size10,
       ),
       color: Colors.white,
-      child: Row(
-        children: [
-          Expanded(
-            child: _tabButton(
-              label: '${AppStrings.forSell.tr} (${ctrl.sellCount.value})',
-              icon: Icons.sell_rounded,
-              isSelected: ctrl.selectedTab.value == 0,
-              onTap: () => ctrl.switchTab(0),
+      child: Container(
+        decoration: BoxDecoration(
+          color: const Color(0xFFF2F9FF),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: _tabButton(
+                label: '${AppStrings.forSell.tr} (${ctrl.sellCount.value})',
+                icon: Icons.handshake_rounded,
+                isSelected: ctrl.selectedTab.value == 0,
+                onTap: () => ctrl.switchTab(0),
+              ),
             ),
-          ),
-          SizedBox(width: SizeConfig.size10),
-          Expanded(
-            child: _tabButton(
-              label: '${AppStrings.forRent.tr} (${ctrl.rentCount.value})',
-              icon: Icons.vpn_key_rounded,
-              isSelected: ctrl.selectedTab.value == 1,
-              onTap: () => ctrl.switchTab(1),
+            Expanded(
+              child: _tabButton(
+                label: '${AppStrings.forRent.tr} (${ctrl.rentCount.value})',
+                icon: Icons.vpn_key_rounded,
+                isSelected: ctrl.selectedTab.value == 1,
+                onTap: () => ctrl.switchTab(1),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -121,24 +126,20 @@ class RentalServicesDashboardScreenV2 extends StatelessWidget {
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(vertical: 10),
+        padding: const EdgeInsets.symmetric(vertical: 12),
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primaryColor : Colors.white,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: isSelected ? AppColors.primaryColor : const Color(0xFFDDE2EE),
-            width: 1.2,
-          ),
+          color: isSelected ? AppColors.primaryColor : const Color(0xFFF2F9FF),
+          borderRadius: BorderRadius.circular(10),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 16, color: isSelected ? Colors.white : AppColors.secondaryTextColor),
+            Icon(icon, size: 18, color: isSelected ? Colors.white : AppColors.secondaryTextColor),
             const SizedBox(width: 6),
             CustomText(
               label,
-              fontSize: 13,
+              fontSize: 14,
               fontWeight: FontWeight.w700,
               color: isSelected ? Colors.white : AppColors.secondaryTextColor,
             ),

@@ -30,6 +30,20 @@ class VisitingHoursSelectorController extends GetxController {
   void updateStartTime(String day, TimeOfDay t) => startTimes[day] = t;
   void updateEndTime(String day, TimeOfDay t)   => endTimes[day]   = t;
 
+  /// Copy [sourceDay]'s start/end into every other day so the user can
+  /// set hours once and reuse them everywhere. Open/closed state is left
+  /// alone — only the time slots are propagated.
+  void applyTimeToAllDays(String sourceDay) {
+    final start = startTimes[sourceDay];
+    final end   = endTimes[sourceDay];
+    if (start == null || end == null) return;
+    for (final day in visitingHours.keys) {
+      if (day == sourceDay) continue;
+      startTimes[day] = start;
+      endTimes[day]   = end;
+    }
+  }
+
   // ✅ batch update — called from BookingController
   void syncAll({
     required Map<String, bool>      visitingHours,
@@ -55,6 +69,23 @@ class VisitingHoursSelectorController extends GetxController {
     final now = DateTime.now();
     final dt  = DateTime(now.year, now.month, now.day, time.hour, time.minute);
     return DateFormat('HH:mm').format(dt);
+  }
+
+  /// 12-hour label used in dropdowns and read-only displays. The dropdown
+  /// still stores `HH:mm` as its value (so the wire format / backend
+  /// payload stays unchanged) — only the rendered text is 12-hour.
+  String formatTime12(TimeOfDay time) {
+    final now = DateTime.now();
+    final dt  = DateTime(now.year, now.month, now.day, time.hour, time.minute);
+    return DateFormat('h:mm a').format(dt);
+  }
+
+  String to12HourLabel(String hhmm) {
+    final parts = hhmm.split(':');
+    if (parts.length < 2) return hhmm;
+    final h = int.tryParse(parts[0]) ?? 0;
+    final m = int.tryParse(parts[1]) ?? 0;
+    return formatTime12(TimeOfDay(hour: h, minute: m));
   }
 
   List<String> generateTimeList() {

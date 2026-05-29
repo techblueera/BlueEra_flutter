@@ -50,8 +50,7 @@ class FoodServiceController extends GetxController {
   RxList<GroceryNestedCategoryModel> subCategoryTabs =
       <GroceryNestedCategoryModel>[].obs;
 
-  Rxn<CategoryFoodProductData> singleFoodProductData =
-      Rxn<CategoryFoodProductData>();
+  Rxn<CategoryFoodProductData> singleFoodProductData = Rxn<CategoryFoodProductData>();
 
   FoodProductSnapSearchData? productSnapSearchData;
   List<Map<String, String>> foodSnapSearchPhotos = [
@@ -403,8 +402,7 @@ class FoodServiceController extends GetxController {
         // Fetch the freshly-created product the same way
         // AddSingleFoodProductScreen does — gives us the fully hydrated
         await getSingleFoodProductApi(FoodId: newProductId);
-        final List<FoodVariants> createdVariants =
-            singleFoodProductData.value?.variants ?? <FoodVariants>[];
+        final List<FoodVariants> createdVariants = singleFoodProductData.value?.variants ?? <FoodVariants>[];
 
         await addSingleProductToInventory(
           productId: newProductId,

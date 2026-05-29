@@ -24,6 +24,12 @@ class PropertyController extends GetxController {
   final locationLat = 0.0.obs;
   final locationLng = 0.0.obs;
 
+  // ── Lister identity (shared across step 2 screens) ──
+  // The free-text name that pairs with the `listedBy` role chip
+  // (Owner / Builder / Dealer). Sent on every payload under the
+  // top-level `listedByName` wire key.
+  final listedByName = ''.obs;
+
   // ── Step 3 (shared) ──
   final photoPaths = <String>[].obs;
   final isPriceRange = false.obs;
@@ -31,16 +37,42 @@ class PropertyController extends GetxController {
   final priceFrom = ''.obs;
   final priceTo = ''.obs;
   final priceType = 'PerMonth'.obs;
-  static const priceTypeOptions = ['PerMonth', 'PerYear', 'OneTime'];
+  // PerQuarter / Per6Months added so the rent-duration chip strip on
+  // the final listing screen covers Monthly / Quarterly / 6 Months /
+  // Yearly. OneTime stays at the end for the existing rent flow's
+  // bottom-sheet that already exposes it.
+  static const priceTypeOptions = [
+    'PerMonth',
+    'PerQuarter',
+    'Per6Months',
+    'PerYear',
+    'OneTime',
+  ];
   static const priceTypeLabels = {
-    'PerMonth': 'Per Month',
-    'PerYear': 'Per Year',
+    'PerMonth': 'Monthly',
+    'PerQuarter': 'Quarterly',
+    'Per6Months': '6 Months',
+    'PerYear': 'Yearly',
     'OneTime': 'One Time',
   };
+  // The first four options that the rent-duration chip strip exposes.
+  // Kept in declaration order so the chip index ↔ wire key mapping
+  // stays trivial on the screen.
+  static const rentDurationOptions = [
+    'PerMonth',
+    'PerQuarter',
+    'Per6Months',
+    'PerYear',
+  ];
   final allInclusivePrice = false.obs;
   final priceNegotiable = false.obs;
   final taxAndGovtChargeExcluded = false.obs;
   final securityDeposit = false.obs;
+  // Amount string the user types into the "Security Deposit" field
+  // on the final listing screen — kept as a string so the input
+  // controller can read/write it directly; convert to int at the
+  // submission boundary if/when the backend wires it through.
+  final securityDepositAmount = ''.obs;
   final electricityIncluded = false.obs;
   final waterChargesIncluded = false.obs;
 
@@ -168,6 +200,7 @@ class PropertyController extends GetxController {
     locationAddress.value = '';
     locationLat.value = 0.0;
     locationLng.value = 0.0;
+    listedByName.value = '';
     photoPaths.clear();
     isPriceRange.value = false;
     price.value = '';
@@ -177,6 +210,7 @@ class PropertyController extends GetxController {
     priceNegotiable.value = false;
     taxAndGovtChargeExcluded.value = false;
     securityDeposit.value = false;
+    securityDepositAmount.value = '';
     electricityIncluded.value = false;
     waterChargesIncluded.value = false;
   }
@@ -191,12 +225,15 @@ class PropertyController extends GetxController {
 
 
   String? validateStep3() {
+    // Form-level validators on the screen already check the price /
+    // deposit text fields inline. The controller's job here is only
+    // to catch things the Form can't see — image count and the
+    // chip-selector value (it's not a FormField, so it can't be
+    // validated through `_formKey.currentState!.validate()`).
     if (photoPaths.length < 2) return 'Please upload at least 2 images';
-    if (isPriceRange.value) {
-      if (priceFrom.value.trim().isEmpty) return 'Please enter minimum price';
-      if (priceTo.value.trim().isEmpty) return 'Please enter maximum price';
-    } else {
-      if (price.value.trim().isEmpty) return 'Please enter price';
+    if (priceType.value.trim().isEmpty ||
+        !priceTypeOptions.contains(priceType.value)) {
+      return 'Please select a rent duration';
     }
     return null;
   }
@@ -232,18 +269,23 @@ class PropertyController extends GetxController {
       description: description.value.trim(),
       propertyType: _propertyTypeKey,
       listingType: listingType.value,
-      price: isPriceRange.value ? 0 : (int.tryParse(price.value.trim()) ?? 0),
+      // price + priceRange ship as strings now; trimming protects
+      // against stray whitespace from the input fields. Form-level
+      // validators upstream already guarantee these parse as numbers,
+      // so we don't need to coerce here.
+      price: isPriceRange.value ? '' : price.value.trim(),
       priceRange: isPriceRange.value
           ? PriceRange(
-              min: int.tryParse(priceFrom.value.trim()) ?? 0,
-              max: int.tryParse(priceTo.value.trim()) ?? 0,
+              min: priceFrom.value.trim(),
+              max: priceTo.value.trim(),
             )
           : null,
       allInclusivePrice: allInclusivePrice.value,
       priceNegotiable: priceNegotiable.value,
       taxAndGovtChargeExcluded: taxAndGovtChargeExcluded.value,
-      priceType: isRent ? priceType.value : null,
-      securityDeposit: isRent ? securityDeposit.value : false,
+      priceType: priceType.value,
+      listedByName: listedByName.value.trim(),
+      securityDepositAmount: securityDepositAmount.value.trim(),
       electricityIncluded: isRent ? electricityIncluded.value : false,
       waterChargesIncluded: isRent ? waterChargesIncluded.value : false,
       location: (locationLat.value != 0.0 || locationLng.value != 0.0)
