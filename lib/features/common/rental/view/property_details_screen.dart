@@ -403,7 +403,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
     if (!hasInfo && !_isOwner) return const SizedBox.shrink();
 
     final rows = <(String, String)>[];
-    if (name.isNotEmpty) rows.add(('Listed By Name', name));
+    if (name.isNotEmpty) rows.add(('Lister Name', name));
     if (role.isNotEmpty) rows.add(('Listed By', role));
 
     return CustomFormCard(
@@ -1030,7 +1030,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
       title: 'Edit Listed By',
       children: [
         RentalLabeledField(
-          label: 'Listed By Name',
+          label: 'Lister Name',
           hint: 'Enter name',
           controller: nameCtrl,
           maxLength: 70,

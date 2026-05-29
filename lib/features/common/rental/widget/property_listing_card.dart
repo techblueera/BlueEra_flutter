@@ -274,8 +274,8 @@ class PropertyListingCard extends StatelessWidget {
                 text: priceText,
                 style: TextStyle(
                   fontFamily: AppConstants.OpenSans,
-                  fontSize: SizeConfig.large18,
-                  fontWeight: FontWeight.w800,
+                  fontSize: SizeConfig.large,
+                  fontWeight: FontWeight.w600,
                   color: AppColors.mainTextColor,
                   letterSpacing: -0.2,
                 ),
@@ -285,8 +285,8 @@ class PropertyListingCard extends StatelessWidget {
                   text: priceSuffix,
                   style: TextStyle(
                     fontFamily: AppConstants.OpenSans,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w400,
                     color: AppColors.secondaryTextColor,
                   ),
                 ),
@@ -298,7 +298,7 @@ class PropertyListingCard extends StatelessWidget {
           CustomText(
             depositLine,
             fontSize: 12,
-            fontWeight: FontWeight.w500,
+            fontWeight: FontWeight.w400,
             color: AppColors.secondaryTextColor,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
@@ -308,12 +308,19 @@ class PropertyListingCard extends StatelessWidget {
     );
   }
 
-  /// Price portion shown in big bold weight — strips the trailing
-  /// "/mo" because we render that as a separate small suffix.
+  /// Price portion shown in big bold weight. Uses the app-wide
+  /// [formatIndianNumber] helper so large amounts collapse to compact
+  /// Indian units (₹40k, ₹40.7L, ₹1.2Cr) instead of long comma
+  /// strings. The "/mo" / "/Year" tail is rendered separately by
+  /// [_priceSuffix], so it isn't included here.
   String _formattedHeadlinePrice() {
-    final raw = property.formattedPrice;
-    final monthly = raw.endsWith('/mo');
-    return monthly ? raw.substring(0, raw.length - 3) : raw;
+    if (property.hasPriceRange) {
+      final lo = num.tryParse(property.priceRange!.min) ?? 0;
+      final hi = num.tryParse(property.priceRange!.max) ?? 0;
+      return '₹${formatIndianNumber(lo)} - ₹${formatIndianNumber(hi)}';
+    }
+    final value = num.tryParse(property.price) ?? 0;
+    return '₹${formatIndianNumber(value)}';
   }
 
   /// Small suffix after the headline price. For rent listings this is
@@ -345,7 +352,7 @@ class PropertyListingCard extends StatelessWidget {
     if (amount == null || amount.trim().isEmpty) return '';
     final n = num.tryParse(amount.trim());
     if (n == null || n <= 0) return '';
-    return '+ Deposit ₹${PropertyModel.formatIndianPrice(n)}';
+    return '+ Deposit ₹${formatIndianNumber(n)}';
   }
 
   Widget _areaColumn() {
@@ -356,8 +363,8 @@ class PropertyListingCard extends StatelessWidget {
       children: [
         CustomText(
           stat.value,
-          fontSize: SizeConfig.large18,
-          fontWeight: FontWeight.w800,
+          fontSize: SizeConfig.large,
+          fontWeight: FontWeight.w600,
           color: AppColors.mainTextColor,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
@@ -548,6 +555,14 @@ class PropertyListingCard extends StatelessWidget {
     // came through without it.
     final name = property.listedByName?.trim() ?? '';
     if (name.isNotEmpty) return name;
+    // New-project listings carry the lister's name as the developer/
+    // builder name inside the launch info rather than the top-level
+    // listedByName, so fall back to it before the generic label.
+    final builder = property
+            .newProjectsAndProperties?.projectLaunchInformation?.builderName
+            ?.trim() ??
+        '';
+    if (builder.isNotEmpty) return builder;
     return 'Property Owner';
   }
 

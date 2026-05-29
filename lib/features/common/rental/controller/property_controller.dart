@@ -127,6 +127,7 @@ class PropertyController extends GetxController {
   final npNoOfTowers = 0.obs;
   final npNoOfFloors = 0.obs;
   final npFacing = 0.obs;
+  final npListedBy = 0.obs;
 
   // ── PG & Guest House ──
   final pgPropertyLocation = ''.obs;
@@ -398,6 +399,7 @@ class PropertyController extends GetxController {
       noOfTowers: towersOptions[npNoOfTowers.value],
       noOfFloors: floorsOptions[npNoOfFloors.value],
       facing: facingOptions[npFacing.value],
+      listedBy: listedByOptions[npListedBy.value],
     );
   }
 

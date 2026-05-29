@@ -281,6 +281,7 @@ class NewProjectsAndProperties {
   final String? noOfTowers;
   final String? noOfFloors;
   final String? facing;
+  final String? listedBy;
 
   const NewProjectsAndProperties({
     this.propertyLocation,
@@ -293,6 +294,7 @@ class NewProjectsAndProperties {
     this.noOfTowers,
     this.noOfFloors,
     this.facing,
+    this.listedBy,
   });
 
   factory NewProjectsAndProperties.fromJson(Map<String, dynamic> json) {
@@ -321,6 +323,7 @@ class NewProjectsAndProperties {
       noOfTowers: json['noOfTowers']?.toString(),
       noOfFloors: json['noOfFloors']?.toString(),
       facing: json['facing'],
+      listedBy: json['listedBy'],
     );
   }
 
@@ -338,6 +341,7 @@ class NewProjectsAndProperties {
     if (noOfTowers != null) data['noOfTowers'] = noOfTowers;
     if (noOfFloors != null) data['noOfFloors'] = noOfFloors;
     if (facing != null) data['facing'] = facing;
+    if (listedBy != null) data['listedBy'] = listedBy;
     return data;
   }
 }

@@ -6,6 +6,7 @@ import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/common/rental/widget/rental_form_widgets.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:croppy/croppy.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -20,6 +21,11 @@ class CompleteYourListingScreen extends StatefulWidget {
 class _CompleteYourListingScreenState extends State<CompleteYourListingScreen> {
   static const int _maxPhotos = 4;
   static const Color _uploadFill = Color(0xFFE9F0FB);
+
+  // Property photos are cropped to a 2:3 portrait frame so every
+  // listing's hero image reads consistently across the cards.
+  static const CropAspectRatio _cropAspectRatio =
+      CropAspectRatio(width: 2, height: 3);
 
   final List<String> _photoPaths = [];
 
@@ -40,7 +46,10 @@ class _CompleteYourListingScreenState extends State<CompleteYourListingScreen> {
 
   Future<void> _pickFromCamera() async {
     if (_photoPaths.length >= _maxPhotos) return;
-    final path = await PhotoPickerService.pickFromCamera(context);
+    final path = await PhotoPickerService.pickFromCamera(
+      context,
+      cropAspectRatio: _cropAspectRatio,
+    );
     if (path != null && mounted) {
       setState(() => _photoPaths.add(path));
       _ctrl.photoPaths.add(path);
@@ -53,6 +62,7 @@ class _CompleteYourListingScreenState extends State<CompleteYourListingScreen> {
     final paths = await PhotoPickerService.pickMultipleFromGallery(
       context,
       maxImages: remaining,
+      cropAspectRatio: _cropAspectRatio,
     );
     if (paths != null && paths.isNotEmpty && mounted) {
       setState(() => _photoPaths.addAll(paths));
@@ -232,10 +242,18 @@ class _PriceDetailsSectionState extends State<_PriceDetailsSection> {
   void initState() {
     super.initState();
     _ctrl = Get.find<PropertyController>();
+    // Selling is a one-time transaction — there's no rent duration to
+    // pick, so pin the shared [priceType] key to 'OneTime' (still a
+    // valid [priceTypeOptions] entry, so step-3 validation passes) and
+    // hide the duration chip below.
+    if (_ctrl.listingType.value == 'Sell') {
+      _ctrl.priceType.value = 'OneTime';
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final isSell = _ctrl.listingType.value == 'Sell';
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -325,29 +343,38 @@ class _PriceDetailsSectionState extends State<_PriceDetailsSection> {
           setState(() => _taxExcluded = v);
           _ctrl.taxAndGovtChargeExcluded.value = v;
         }),
+        // Rent duration only matters when renting — selling is a
+        // one-time price, so this strip is hidden and [priceType] is
+        // pinned to 'OneTime' in initState. Wire-format keys live on
+        // the controller's [rentDurationOptions]; the chip index maps
+        // to that list 1:1 so the controller stays the source of truth
+        // without duplicating the string constants here.
+        if (!isSell) ...[
+          const SizedBox(height: 16),
+          RentalChipSelector(
+            label: 'Rent Duration',
+            options: PropertyController.rentDurationOptions
+                .map((k) => PropertyController.priceTypeLabels[k] ?? k)
+                .toList(),
+            initialIndex: _initialDurationIndex(),
+            onChanged: (i) {
+              _ctrl.priceType.value =
+                  PropertyController.rentDurationOptions[i];
+            },
+          ),
+        ],
         const SizedBox(height: 16),
-        // Rent duration — wire-format keys live on the controller's
-        // [rentDurationOptions]; the chip index maps to that list
-        // 1:1 so the controller stays the source of truth without
-        // duplicating the string constants here.
-        RentalChipSelector(
-          label: 'Rent Duration',
-          options: PropertyController.rentDurationOptions
-              .map((k) => PropertyController.priceTypeLabels[k] ?? k)
-              .toList(),
-          initialIndex: _initialDurationIndex(),
-          onChanged: (i) {
-            _ctrl.priceType.value =
-                PropertyController.rentDurationOptions[i];
-          },
-        ),
-        const SizedBox(height: 16),
+        // Sell flow reuses the same [securityDepositAmount] key for the
+        // token/booking money the buyer puts down, so the wire payload
+        // stays identical across both flows — only the label changes.
         RentalLabeledField(
-          label: 'Security Deposit',
+          label: isSell ? 'Booking Amount' : 'Security Deposit',
           hint: 'E.g. ₹50,000',
           keyboardType: TextInputType.number,
           onChanged: (v) => _ctrl.securityDepositAmount.value = v,
-          validator: _numericRequired('Enter security deposit amount'),
+          validator: _numericRequired(
+            isSell ? 'Enter booking amount' : 'Enter security deposit amount',
+          ),
         ),
       ],
     );

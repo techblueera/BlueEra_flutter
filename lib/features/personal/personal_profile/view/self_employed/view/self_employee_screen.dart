@@ -34,6 +34,7 @@ import 'package:BlueEra/features/contribution/view/contribution_screen.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/self_profession_service_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/self_employed/widget/earn_service_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/edit_profile_bottom_sheet.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/profile_designation_bottom_sheet.dart';
 import 'package:BlueEra/features/personal/personal_profile/widgets/personal_qrcode_widget.dart';
@@ -1163,6 +1164,9 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
         child: const ProfileBioCard(margin: EdgeInsets.zero),
       ),
       _buildActionRow(),
+      const EarnServiceCard(
+        margin: EdgeInsets.only(top: 10, left: 20, right: 10),
+      ),
       const RentalPropertyCard(
         margin: EdgeInsets.only(top: 10, left: 20, right: 10),
       ),

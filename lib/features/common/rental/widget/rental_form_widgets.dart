@@ -342,7 +342,7 @@ class RentalCategoryHeader extends StatelessWidget {
   }
 }
 
-/// Shared "Listed By Name" input used on every step-2 specification
+/// Shared "Lister Name" input used on every step-2 specification
 /// screen. Binds directly to [PropertyController.listedByName] so
 /// each screen can drop in `const RentalListedByNameField()` without
 /// threading state through. Validator is required + non-empty.
@@ -353,7 +353,7 @@ class RentalListedByNameField extends StatelessWidget {
   Widget build(BuildContext context) {
     final ctrl = Get.find<PropertyController>();
     return RentalLabeledField(
-      label: 'Listed By Name',
+      label: 'Lister Name',
       hint: 'Enter your name',
       textInputAction: TextInputAction.next,
       onChanged: (v) => ctrl.listedByName.value = v,
@@ -500,6 +500,18 @@ class _RentalLabeledDropdownState extends State<RentalLabeledDropdown> {
         DropdownButtonFormField<String>(
           initialValue: _value,
           isExpanded: true,
+          // DropdownButtonFormField doesn't reliably surface the
+          // decoration's hintText when no value is picked yet, so give
+          // it an explicit hint widget — that's what renders as the
+          // placeholder until the user selects an item.
+          hint: Text(
+            widget.hint,
+            style: TextStyle(
+              color: AppColors.secondaryTextColor.withValues(alpha: 0.75),
+              fontWeight: FontWeight.w500,
+              fontSize: 14,
+            ),
+          ),
           icon:
               Icon(Icons.keyboard_arrow_down, color: AppColors.mainTextColor),
           items: widget.items
