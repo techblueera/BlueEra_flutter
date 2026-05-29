@@ -6,6 +6,7 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get_utils/src/extensions/internacionalization.dart';
 
 class AddServiceBottomSheet extends StatefulWidget {
   final Function(List<String>) onUpload;
@@ -51,12 +52,9 @@ class _AddServiceBottomSheetState extends State<AddServiceBottomSheet> {
   }
 
   void _handleUpload() {
-    if(!_formKey.currentState!.validate()) return;
+    if (!_formKey.currentState!.validate()) return;
 
-    final validTexts = _controllers
-        .map((c) => c.text.trim())
-        .where((t) => t.isNotEmpty)
-        .toList();
+    final validTexts = _controllers.map((c) => c.text.trim()).where((t) => t.isNotEmpty).toList();
 
     if (validTexts.isNotEmpty) {
       widget.onUpload(validTexts);
@@ -66,11 +64,11 @@ class _AddServiceBottomSheetState extends State<AddServiceBottomSheet> {
 
   String? serviceNameValidation(String? value) {
     if (value == null || value.trim().isEmpty) {
-      return 'Please enter service details';
+      return AppStrings.pleaseEnterServiceDetails.tr;
     }
 
     if (value.trim().length < 3) {
-      return "Validation Error, Name must be at least 3 characters";
+      return AppStrings.validationErrorNameMin3.tr;
     }
 
     return null;
@@ -118,7 +116,7 @@ class _AddServiceBottomSheetState extends State<AddServiceBottomSheet> {
                 children: [
                   Expanded(
                     child: CustomText(
-                      AppStrings.addService,
+                      AppStrings.addService.tr,
                       // "Add More Services",
                       fontWeight: FontWeight.w600,
                       fontSize: SizeConfig.large,
@@ -144,8 +142,7 @@ class _AddServiceBottomSheetState extends State<AddServiceBottomSheet> {
                       Expanded(
                         child: CommonTextField(
                           textEditController: _controllers[index],
-                          hintText: "E.g. Short-circuit & power failure repair....",
-
+                          hintText: AppStrings.egShortCircuitRepair.tr,
                           validator: serviceNameValidation,
                           maxLength: 30,
                         ),
@@ -155,8 +152,7 @@ class _AddServiceBottomSheetState extends State<AddServiceBottomSheet> {
                           padding: const EdgeInsets.only(left: 8, top: 12),
                           child: InkWell(
                             onTap: () => _removeField(index),
-                            child: const Icon(Icons.delete_outline,
-                                color: Colors.red, size: 24),
+                            child: const Icon(Icons.delete_outline, color: Colors.red, size: 24),
                           ),
                         ),
                     ],
@@ -169,13 +165,9 @@ class _AddServiceBottomSheetState extends State<AddServiceBottomSheet> {
                 alignment: Alignment.centerRight,
                 child: TextButton.icon(
                   onPressed: _addNewField,
-                  icon: Icon(
-                      CupertinoIcons.add,
-                      color: AppColors.primaryColor,
-                      size: 20
-                  ),
+                  icon: Icon(CupertinoIcons.add, color: AppColors.primaryColor, size: 20),
                   label: CustomText(
-                   AppStrings.addMore,
+                    AppStrings.addMore.tr,
                     fontSize: SizeConfig.medium,
                     fontWeight: FontWeight.w600,
                     color: AppColors.primaryColor,
@@ -187,7 +179,7 @@ class _AddServiceBottomSheetState extends State<AddServiceBottomSheet> {
 
               // --- Upload Button ---
               CustomBtn(
-                title:AppStrings.upload,
+                title: AppStrings.upload.tr,
                 onTap: _handleUpload,
                 bgColor: AppColors.primaryColor,
                 radius: 10,

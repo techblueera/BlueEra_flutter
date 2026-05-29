@@ -36,8 +36,8 @@ class SchoolAcademicsTabV2 extends StatelessWidget {
           // ── Courses ──
           if (courses.isEmpty)
             _SectionEmptyCard(
-              title: 'Courses',
-              ctaLabel: 'Add Courses',
+              title: AppStrings.coursesLabel.tr,
+              ctaLabel: AppStrings.addCoursesCta.tr,
               ctaIcon: Icons.menu_book_outlined,
               onTap: () => Get.to(SchoolAcademicsPage(isEdit: true))
                   ?.then((_) => controller.getSchoolByIdController()),
@@ -52,8 +52,8 @@ class SchoolAcademicsTabV2 extends StatelessWidget {
             title: AppStrings.academics.tr,
             ctaLabel: AppStrings.academics.tr,
             ctaIcon: Icons.school_outlined,
-            onTap: () => Get.to(SchoolAcademicsPage(isEdit: true))
-                ?.then((_) => controller.getSchoolByIdController()),
+            onTap: () =>
+                Get.to(SchoolAcademicsPage(isEdit: true))?.then((_) => controller.getSchoolByIdController()),
           ),
 
           // ── Student Corner ──
@@ -61,8 +61,8 @@ class SchoolAcademicsTabV2 extends StatelessWidget {
             title: AppStrings.studentCorner.tr,
             ctaLabel: AppStrings.studentCorner.tr,
             ctaIcon: Icons.person_outline,
-            onTap: () => Get.to(SchoolStudentCorner(isEdit: true))
-                ?.then((_) => controller.getSchoolByIdController()),
+            onTap: () =>
+                Get.to(SchoolStudentCorner(isEdit: true))?.then((_) => controller.getSchoolByIdController()),
           ),
 
           // ── Notices & News ──
@@ -70,8 +70,8 @@ class SchoolAcademicsTabV2 extends StatelessWidget {
             title: AppStrings.noticesNews.tr,
             ctaLabel: AppStrings.noticesNews.tr,
             ctaIcon: Icons.campaign_outlined,
-            onTap: () => Get.to(NoticeNewsScreen(isEdit: true))
-                ?.then((_) => controller.getSchoolByIdController()),
+            onTap: () =>
+                Get.to(NoticeNewsScreen(isEdit: true))?.then((_) => controller.getSchoolByIdController()),
           ),
 
           // ── Job Vacancy ──
@@ -109,8 +109,7 @@ class _SectionEmptyCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.symmetric(
-          horizontal: SizeConfig.size8, vertical: SizeConfig.size4),
+      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8, vertical: SizeConfig.size4),
       child: CommonCardWidget(
         padding: 10,
         cardMargin: 0,
@@ -159,10 +158,7 @@ class _EditPill extends StatelessWidget {
           children: [
             Icon(Icons.add, size: 14, color: AppColors.primaryColor),
             const SizedBox(width: 4),
-            CustomText(label,
-                fontSize: 12,
-                color: AppColors.primaryColor,
-                fontWeight: FontWeight.w600),
+            CustomText(label, fontSize: 12, color: AppColors.primaryColor, fontWeight: FontWeight.w600),
           ],
         ),
       ),

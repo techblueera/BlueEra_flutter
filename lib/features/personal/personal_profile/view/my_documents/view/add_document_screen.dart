@@ -57,7 +57,7 @@ class AddDocumentScreen extends StatefulWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               CustomText(
-                  AppStrings.documentProof,
+                  AppStrings.documentProof.tr,
                   fontSize: 18, fontWeight: FontWeight.bold
               ),
               const SizedBox(height: 16),
@@ -65,7 +65,7 @@ class AddDocumentScreen extends StatefulWidget {
               if (meta.frontUrl != null)
                 Column(crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    CustomText(AppStrings.frontSide,fontSize: 14,fontWeight: FontWeight.w600,),
+                    CustomText(AppStrings.frontSide.tr,fontSize: 14,fontWeight: FontWeight.w600,),
                     const SizedBox(height: 8),
                     InkWell(
                       onTap: (){
@@ -107,7 +107,7 @@ class AddDocumentScreen extends StatefulWidget {
 
               if (meta.backUrl != null) ...[
                 const SizedBox(height: 16),
-                CustomText(AppStrings.backSide,fontSize: 14,fontWeight: FontWeight.w600,),
+                CustomText(AppStrings.backSide.tr,fontSize: 14,fontWeight: FontWeight.w600,),
                 const SizedBox(height: 8),
                 InkWell(
                   onTap: (){
@@ -174,7 +174,7 @@ class _AddDocumentScreenState extends State<AddDocumentScreen>  {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: CommonBackAppBar(
-          title: AppStrings.addDocuments,
+          title: AppStrings.addDocuments.tr,
           isLeading: true,
         ),
         body: SafeArea(
@@ -199,7 +199,7 @@ class _AddDocumentScreenState extends State<AddDocumentScreen>  {
                               padding: EdgeInsets.symmetric(
                                   horizontal: SizeConfig.size16),
                               child: CustomText(
-                                AppStrings.personalDocument,
+                                AppStrings.personalDocument.tr,
                                 color: AppColors.mainTextColor,
                                 fontWeight: FontWeight.w600,
                                 fontSize: SizeConfig.large,
@@ -207,18 +207,18 @@ class _AddDocumentScreenState extends State<AddDocumentScreen>  {
                             ),
                             SizedBox(height: SizeConfig.size8),
                             _buildAddButton(
-                              title: AppStrings.uploadAadhar,
+                              title: AppStrings.uploadAadhar.tr,
                               document: DocumentKeys.aadhar,
                               status: controller.getStatus(DocumentKeys.aadhar),
                               onTap: () {
 
                                 Get.bottomSheet(
                                   CommonDocumentBottomSheet(
-                                    title: AppStrings.aadharCard,
+                                    title: AppStrings.aadharCard.tr,
                                     child: GenericDocumentWidget(
                                       documentType: DocumentKeys.aadhar,
                                       uploadSectionLabel:
-                                          AppStrings.uploadAadharBothSide,
+                                          AppStrings.uploadAadharBothSide.tr,
                                       backImage: true,
                                       textFieldLabel:
                                           AppStrings.hotelTradeLicenseNumber.tr,
@@ -236,20 +236,20 @@ class _AddDocumentScreenState extends State<AddDocumentScreen>  {
                               },
                             ),
                             _buildAddButton(
-                              title: AppStrings.uploadPan,
+                              title: AppStrings.uploadPan.tr,
                               document: DocumentKeys.pan,
                               status: controller.getStatus(DocumentKeys.pan),
                               onTap: () {
                                 Get.bottomSheet(
                                   CommonDocumentBottomSheet(
-                                    title: AppStrings.panCard,
+                                    title: AppStrings.panCard.tr,
                                     child: GenericDocumentWidget(
                                       documentType: DocumentKeys.pan,
-                                      uploadSectionLabel: AppStrings.uploadPan,
+                                      uploadSectionLabel: AppStrings.uploadPan.tr,
                                       isCapitalize: true,
                                       backImage: false,
-                                      textFieldLabel: AppStrings.panNumber,
-                                      textFieldHint: 'E.g. ABCDE1234F',
+                                      textFieldLabel: AppStrings.panNumber.tr,
+                                      textFieldHint: AppStrings.egABCDE1234F.tr,
                                       textFieldValidation:
                                           ValidationMethod.validatePAN,
                                       maxLength: 10,
@@ -263,22 +263,22 @@ class _AddDocumentScreenState extends State<AddDocumentScreen>  {
                               },
                             ),
                             _buildAddButton(
-                              title: AppStrings.uploadDrivingLicense,
+                              title: AppStrings.uploadDrivingLicense.tr,
                               document: DocumentKeys.drivingLicense,
                               status: controller
                                   .getStatus(DocumentKeys.drivingLicense),
                               onTap: () {
                                 Get.bottomSheet(
                                   CommonDocumentBottomSheet(
-                                    title: AppStrings.drivingLicence,
+                                    title: AppStrings.drivingLicence.tr,
                                     child: GenericDocumentWidget(
                                       documentType: DocumentKeys.drivingLicense,
                                       uploadSectionLabel: AppStrings
-                                          .uploadDrivingLicenceBothSide,
+                                          .uploadDrivingLicenceBothSide.tr,
                                       backImage: true,
                                       textFieldLabel:
-                                          AppStrings.drivingLicenceNumber,
-                                      textFieldHint: 'E.g. DL0120110012345',
+                                          AppStrings.drivingLicenceNumber.tr,
+                                      textFieldHint: AppStrings.egDL0120110012345.tr,
                                       textFieldValidation: ValidationMethod
                                           .validateDrivingLicense,
                                       maxLength: 15,
@@ -292,14 +292,14 @@ class _AddDocumentScreenState extends State<AddDocumentScreen>  {
                               },
                             ),
                             _buildAddButton(
-                              title: AppStrings.uploadAddressProof,
+                              title: AppStrings.uploadAddressProof.tr,
                               document: DocumentKeys.addressProof,
                               status: controller
                                   .getStatus(DocumentKeys.addressProof),
                               onTap: () {
                                 Get.bottomSheet(
                                   CommonDocumentBottomSheet(
-                                    title: AppStrings.addressProof,
+                                    title: AppStrings.addressProof.tr,
                                     child: GenericDocumentWidget(
                                       documentType: DocumentKeys.addressProof,
                                       uploadSectionLabel:
@@ -320,7 +320,7 @@ class _AddDocumentScreenState extends State<AddDocumentScreen>  {
                               },
                             ),
                             _buildAddButton(
-                              title: AppStrings.uploadNOC,
+                              title: AppStrings.uploadNOC.tr,
                               document: DocumentKeys.noc,
                               status: controller.getStatus(DocumentKeys.noc),
                               onTap: () {
@@ -330,7 +330,7 @@ class _AddDocumentScreenState extends State<AddDocumentScreen>  {
                                     child: GenericDocumentWidget(
                                         documentType: DocumentKeys.noc,
                                         uploadSectionLabel:
-                                            AppStrings.uploadPoliceVerificationNoc,
+                                            AppStrings.uploadPoliceVerificationNoc.tr,
                                         backImage: true),
                                   ),
                                   isScrollControlled: true,
@@ -339,14 +339,14 @@ class _AddDocumentScreenState extends State<AddDocumentScreen>  {
                               },
                             ),
                             _buildAddButton(
-                              title: AppStrings.uploadBankDetails,
+                              title: AppStrings.uploadBankDetails.tr,
                               document: DocumentKeys.bankDetails,
                               status: controller.getStatus(DocumentKeys.bankDetails),
                               onTap: () {
 
                                 Get.bottomSheet(
                                   CommonDocumentBottomSheet(
-                                    title: AppStrings.uploadBankDetails,
+                                    title: AppStrings.uploadBankDetails.tr,
                                     child: GenericDocumentWidget(
                                       documentType: DocumentKeys.bankDetails,
                                       uploadSectionLabel: AppStrings.passbookFrontPageOrBankStatement.tr,
@@ -359,7 +359,7 @@ class _AddDocumentScreenState extends State<AddDocumentScreen>  {
                               },
                             ),
                             _buildAddButton(
-                              title: AppStrings.uploadBankerCancelCheck,
+                              title: AppStrings.uploadBankerCancelCheck.tr,
                               document: DocumentKeys.bankersCancelledCheque,
                               status: controller.getStatus(
                                   DocumentKeys.bankersCancelledCheque),
@@ -393,7 +393,7 @@ class _AddDocumentScreenState extends State<AddDocumentScreen>  {
                               padding: EdgeInsets.symmetric(
                                   horizontal: SizeConfig.size16),
                               child: CustomText(
-                                AppStrings.businessDocument,
+                                AppStrings.businessDocument.tr,
                                 color: AppColors.mainTextColor,
                                 fontWeight: FontWeight.w600,
                                 fontSize: SizeConfig.large,
@@ -401,7 +401,7 @@ class _AddDocumentScreenState extends State<AddDocumentScreen>  {
                             ),
                             SizedBox(height: SizeConfig.size8),
                             _buildAddButton(
-                              title: AppStrings.uploadGSTCertificate,
+                              title: AppStrings.uploadGSTCertificate.tr,
                               document: DocumentKeys.gstCertificate,
                               status: controller
                                   .getStatus(DocumentKeys.gstCertificate),
@@ -428,7 +428,7 @@ class _AddDocumentScreenState extends State<AddDocumentScreen>  {
                               },
                             ),
                             _buildAddButton(
-                              title: AppStrings.fssaiLicense,
+                              title: AppStrings.fssaiLicense.tr,
                               document: DocumentKeys.fssaiLicense,
                               status: controller
                                   .getStatus(DocumentKeys.fssaiLicense),
@@ -454,7 +454,7 @@ class _AddDocumentScreenState extends State<AddDocumentScreen>  {
                               },
                             ),
                             _buildAddButton(
-                              title: AppStrings.uploadMedicalLicense,
+                              title: AppStrings.uploadMedicalLicense.tr,
                               document: DocumentKeys.medicalLicense,
                               status: controller
                                   .getStatus(DocumentKeys.medicalLicense),
@@ -466,7 +466,7 @@ class _AddDocumentScreenState extends State<AddDocumentScreen>  {
                                         documentType:
                                             DocumentKeys.medicalLicense,
                                         uploadSectionLabel:
-                                            AppStrings.uploadMedicalLicense,
+                                            AppStrings.uploadMedicalLicense.tr,
                                         backImage: true),
                                   ),
                                   isScrollControlled: true,
@@ -475,7 +475,7 @@ class _AddDocumentScreenState extends State<AddDocumentScreen>  {
                               },
                             ),
                             _buildAddButton(
-                              title: AppStrings.uploadFireSafetyCertificate,
+                              title: AppStrings.uploadFireSafetyCertificate.tr,
                               document: DocumentKeys.fireSafetyCertificate,
                               status: controller.getStatus(
                                   DocumentKeys.fireSafetyCertificate),
@@ -487,7 +487,7 @@ class _AddDocumentScreenState extends State<AddDocumentScreen>  {
                                         documentType:
                                             DocumentKeys.fireSafetyCertificate,
                                         uploadSectionLabel: AppStrings
-                                            .uploadFireSafetyCertificate,
+                                            .uploadFireSafetyCertificate.tr,
                                         backImage: true),
                                   ),
                                   isScrollControlled: true,
@@ -496,7 +496,7 @@ class _AddDocumentScreenState extends State<AddDocumentScreen>  {
                               },
                             ),
                             _buildAddButton(
-                              title: AppStrings.uploadMunicipalCorpCertificate,
+                              title: AppStrings.uploadMunicipalCorpCertificate.tr,
                               document: DocumentKeys.municipalCorpCertificate,
                               status: controller.getStatus(
                                   DocumentKeys.municipalCorpCertificate),
@@ -508,7 +508,7 @@ class _AddDocumentScreenState extends State<AddDocumentScreen>  {
                                         documentType: DocumentKeys
                                             .municipalCorpCertificate,
                                         uploadSectionLabel: AppStrings
-                                            .uploadMunicipalCorpCertificate,
+                                            .uploadMunicipalCorpCertificate.tr,
                                         backImage: true),
                                   ),
                                   isScrollControlled: true,
@@ -517,7 +517,7 @@ class _AddDocumentScreenState extends State<AddDocumentScreen>  {
                               },
                             ),
                             _buildAddButton(
-                              title: AppStrings.uploadMSMECertificate,
+                              title: AppStrings.uploadMSMECertificate.tr,
                               document: DocumentKeys.msmeCertificate,
                               status: controller
                                   .getStatus(DocumentKeys.msmeCertificate),
@@ -529,7 +529,7 @@ class _AddDocumentScreenState extends State<AddDocumentScreen>  {
                                         documentType:
                                             DocumentKeys.msmeCertificate,
                                         uploadSectionLabel:
-                                            AppStrings.uploadMSMECertificate,
+                                            AppStrings.uploadMSMECertificate.tr,
                                         backImage: true),
                                   ),
                                   isScrollControlled: true,
@@ -538,7 +538,7 @@ class _AddDocumentScreenState extends State<AddDocumentScreen>  {
                               },
                             ),
                             _buildAddButton(
-                              title: AppStrings.uploadShopActCertificate,
+                              title: AppStrings.uploadShopActCertificate.tr,
                               document: DocumentKeys.shopActCertificate,
                               status: controller
                                   .getStatus(DocumentKeys.shopActCertificate),
@@ -550,7 +550,7 @@ class _AddDocumentScreenState extends State<AddDocumentScreen>  {
                                         documentType:
                                             DocumentKeys.shopActCertificate,
                                         uploadSectionLabel:
-                                            AppStrings.uploadShopActCertificate,
+                                            AppStrings.uploadShopActCertificate.tr,
                                         backImage: true),
                                   ),
                                   isScrollControlled: true,
@@ -661,7 +661,7 @@ class _AddDocumentScreenState extends State<AddDocumentScreen>  {
                         children: [
                           Icon(Icons.remove_red_eye,color: AppColors.primaryColor,size: 16,),
                           SizedBox(width: 6,),
-                          CustomText(AppStrings.view, color: AppColors.primaryColor)
+                          CustomText(AppStrings.view.tr, color: AppColors.primaryColor)
                         ],
                       )),
                 ),

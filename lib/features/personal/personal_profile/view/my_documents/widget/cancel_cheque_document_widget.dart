@@ -73,7 +73,7 @@ class CancelChequeDocumentWidget extends StatelessWidget {
                 ),
                 SizedBox(height: SizeConfig.paddingM),
                 CustomText(
-                  AppStrings.uploadCancelledChequePassbookPhoto,
+                  AppStrings.uploadCancelledChequePassbookPhoto.tr,
                   fontSize: SizeConfig.medium,
                   color: AppColors.mainTextColor,
                   fontWeight: FontWeight.w400,
@@ -120,7 +120,7 @@ class CancelChequeDocumentWidget extends StatelessWidget {
                 CustomBtn(
                   title: controller.isCancelChequeLoading.value
                       ? null
-                      : AppStrings.upload,
+                      : AppStrings.upload.tr,
                   onTap: () => controller.cancelChequeUploadApi(
                       documentType: documentType
                   ),

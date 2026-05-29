@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/Discover/model/emergency_contact_model.dart';
 import 'package:BlueEra/features/common/Discover/repo/emergency_contacts_repo.dart';
@@ -134,11 +135,11 @@ class _TrustedContactsScreenState extends State<TrustedContactsScreen> {
     }
     final code = res.response?.statusCode ?? 0;
     if (code == 400) {
-      commonSnackBar(message: _readErrorMessage(res, 'You can save at most 3 emergency contacts.'));
+      commonSnackBar(message: _readErrorMessage(res, AppStrings.canSaveAtMost3EmergencyContacts.tr));
     } else if (code == 409) {
-      commonSnackBar(message: _readErrorMessage(res, 'This number is already saved.'));
+      commonSnackBar(message: _readErrorMessage(res, AppStrings.numberAlreadySaved.tr));
     } else {
-      commonSnackBar(message: _readErrorMessage(res, 'Could not save contact.'));
+      commonSnackBar(message: _readErrorMessage(res, AppStrings.couldNotSaveContact.tr));
     }
     return null;
   }
@@ -160,7 +161,7 @@ class _TrustedContactsScreenState extends State<TrustedContactsScreen> {
       setState(() => _contacts.removeAt(index));
     } else {
       commonSnackBar(
-          message: _readErrorMessage(res, 'Could not remove contact.'));
+          message: _readErrorMessage(res, AppStrings.couldNotRemoveContact.tr));
     }
   }
 
@@ -168,7 +169,7 @@ class _TrustedContactsScreenState extends State<TrustedContactsScreen> {
     if (_atLimit) {
       commonSnackBar(
           message:
-              'You can add up to $kMaxTrustedContacts emergency contacts');
+              AppStrings.canAddUpToEmergencyContacts.tr.replaceAll('{N}', '$kMaxTrustedContacts'));
       return;
     }
     await showModalBottomSheet(
@@ -187,9 +188,9 @@ class _TrustedContactsScreenState extends State<TrustedContactsScreen> {
               children: [
                 Row(
                   children: [
-                    const Expanded(
+                    Expanded(
                       child: CustomText(
-                        'Add Contacts',
+                        AppStrings.addContacts.tr,
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
                       ),
@@ -212,7 +213,7 @@ class _TrustedContactsScreenState extends State<TrustedContactsScreen> {
                 const SizedBox(height: 12),
                 _AddOptionTile(
                   icon: Icons.contact_page_outlined,
-                  label: 'Choose from contacts',
+                  label: AppStrings.chooseFromContacts.tr,
                   onTap: () async {
                     Get.back();
                     await _pickFromContacts();
@@ -221,7 +222,7 @@ class _TrustedContactsScreenState extends State<TrustedContactsScreen> {
                 const SizedBox(height: 10),
                 _AddOptionTile(
                   icon: Icons.person_add_alt_1,
-                  label: 'Add manually',
+                  label: AppStrings.addManually.tr,
                   onTap: () async {
                     Get.back();
                     await _addManually();
@@ -242,13 +243,12 @@ class _TrustedContactsScreenState extends State<TrustedContactsScreen> {
     }
     if (status.isPermanentlyDenied) {
       commonSnackBar(
-          message:
-              'Contacts permission is blocked. Enable it from settings.');
+          message: AppStrings.contactsPermissionBlocked.tr);
       await openAppSettings();
       return;
     }
     if (!status.isGranted) {
-      commonSnackBar(message: 'Contacts permission is required');
+      commonSnackBar(message: AppStrings.contactsPermissionRequired.tr);
       return;
     }
 
@@ -315,15 +315,15 @@ class _TrustedContactsScreenState extends State<TrustedContactsScreen> {
                       ),
                     ),
                     const SizedBox(width: 12),
-                    const CustomText(
-                      'Add Contact Manually',
+                    CustomText(
+                      AppStrings.addContactManually.tr,
                       fontSize: 17,
                       fontWeight: FontWeight.w700,
                     ),
                   ],
                 ),
               const SizedBox(height: 18),
-              const CustomText('Enter Mobile Number',
+              CustomText(AppStrings.enterMobileNumber.tr,
                   fontSize: 13, fontWeight: FontWeight.w600),
               const SizedBox(height: 8),
               Row(
@@ -354,13 +354,13 @@ class _TrustedContactsScreenState extends State<TrustedContactsScreen> {
                       controller: phoneCtrl,
                       keyboardType: TextInputType.phone,
                       maxLength: 10,
-                      decoration: const InputDecoration(
-                        hintText: 'e.g. 9876543210',
-                        hintStyle: TextStyle(
+                      decoration: InputDecoration(
+                        hintText: AppStrings.eg9876543210.tr,
+                        hintStyle: const TextStyle(
                           color: AppColors.grayText,
                           fontSize: 13,
                         ),
-                        border: OutlineInputBorder(),
+                        border: const OutlineInputBorder(),
                         isDense: true,
                         counterText: '',
                       ),
@@ -369,19 +369,19 @@ class _TrustedContactsScreenState extends State<TrustedContactsScreen> {
                 ],
               ),
               const SizedBox(height: 14),
-              const CustomText('Enter Name',
+              CustomText(AppStrings.enterNameLabel.tr,
                   fontSize: 13, fontWeight: FontWeight.w600),
               const SizedBox(height: 8),
               TextField(
                 controller: nameCtrl,
                 textCapitalization: TextCapitalization.words,
-                decoration: const InputDecoration(
-                  hintText: 'e.g. Ramesh Kumar',
-                  hintStyle: TextStyle(
+                decoration: InputDecoration(
+                  hintText: AppStrings.egRameshKumar.tr,
+                  hintStyle: const TextStyle(
                     color: AppColors.grayText,
                     fontSize: 13,
                   ),
-                  border: OutlineInputBorder(),
+                  border: const OutlineInputBorder(),
                   isDense: true,
                 ),
               ),
@@ -402,20 +402,20 @@ class _TrustedContactsScreenState extends State<TrustedContactsScreen> {
                     final phone = phoneCtrl.text.trim();
                     final name = nameCtrl.text.trim();
                     if (name.isEmpty) {
-                      commonSnackBar(message: 'Please enter a name');
+                      commonSnackBar(message: AppStrings.pleaseEnterAName.tr);
                       return;
                     }
                     if (phone.length != 10 ||
                         int.tryParse(phone) == null) {
                       commonSnackBar(
-                          message: 'Enter a valid 10-digit number');
+                          message: AppStrings.enterValidTenDigit.tr);
                       return;
                     }
                     final draft =
                         TrustedContact(name: name, phone: phone);
                     if (_contacts.contains(draft)) {
                       commonSnackBar(
-                          message: 'Contact is already added');
+                          message: AppStrings.contactAlreadyAdded.tr);
                       return;
                     }
                     final saved = await _persist(draft);
@@ -425,9 +425,9 @@ class _TrustedContactsScreenState extends State<TrustedContactsScreen> {
                       Get.back();
                     }
                   },
-                  child: const Text(
-                    'Save',
-                    style: TextStyle(
+                  child: Text(
+                    AppStrings.save.tr,
+                    style: const TextStyle(
                       fontWeight: FontWeight.w700,
                       fontSize: 15,
                     ),
@@ -466,7 +466,7 @@ class _TrustedContactsScreenState extends State<TrustedContactsScreen> {
           ),
         ),
         centerTitle: true,
-        title: const CustomText('Trusted Contacts',
+        title: CustomText(AppStrings.trustedContactsTitle.tr,
             fontSize: 16, fontWeight: FontWeight.w700),
       ),
       body: Column(
@@ -487,18 +487,18 @@ class _TrustedContactsScreenState extends State<TrustedContactsScreen> {
                     padding: const EdgeInsets.all(16),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.end,
-                      children: const [
-                        Icon(Icons.shield_outlined,
+                      children: [
+                        const Icon(Icons.shield_outlined,
                             size: 56, color: AppColors.primaryColor),
-                        SizedBox(height: 6),
+                        const SizedBox(height: 6),
                         CustomText(
-                          'Everything Okay?',
+                          AppStrings.everythingOkay.tr,
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
                         ),
-                        SizedBox(height: 4),
+                        const SizedBox(height: 4),
                         CustomText(
-                          'We notify your trusted contacts if we cannot reach you during the trip.',
+                          AppStrings.trustedContactsInfo.tr,
                           fontSize: 12,
                           color: AppColors.grayText,
                           textAlign: TextAlign.center,
@@ -507,14 +507,14 @@ class _TrustedContactsScreenState extends State<TrustedContactsScreen> {
                     ),
                   ),
                   const SizedBox(height: 18),
-                  const CustomText(
-                    'Live Ride Tracking',
+                  CustomText(
+                    AppStrings.liveRideTracking.tr,
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
                   ),
                   const SizedBox(height: 6),
-                  const CustomText(
-                    'You can set up automatic sharing of live tracking for your trusted contacts',
+                  CustomText(
+                    AppStrings.liveRideTrackingInfo.tr,
                     fontSize: 13,
                     color: AppColors.grayText,
                   ),
@@ -525,11 +525,11 @@ class _TrustedContactsScreenState extends State<TrustedContactsScreen> {
                       child: Center(child: CircularProgressIndicator()),
                     )
                   else if (_contacts.isEmpty)
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 30),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 30),
                       child: Center(
                         child: CustomText(
-                          'No trusted contacts yet',
+                          AppStrings.noTrustedContactsYet.tr,
                           fontSize: 13,
                           color: AppColors.grayText,
                         ),
@@ -543,7 +543,7 @@ class _TrustedContactsScreenState extends State<TrustedContactsScreen> {
                         )),
                   const SizedBox(height: 6),
                   CustomText(
-                    '${_contacts.length}/$kMaxTrustedContacts added',
+                    '${_contacts.length}/$kMaxTrustedContacts ${AppStrings.addedCountSuffix.tr}',
                     fontSize: 12,
                     color: AppColors.grayText,
                   ),
@@ -586,8 +586,8 @@ class _TrustedContactsScreenState extends State<TrustedContactsScreen> {
                         )
                       : Text(
                           _contacts.isEmpty
-                              ? 'Add Contact'
-                              : 'Add another contact',
+                              ? AppStrings.addContact.tr
+                              : AppStrings.addAnotherContact.tr,
                           style: const TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w700,
@@ -813,7 +813,7 @@ class _ChooseContactsScreenState extends State<ChooseContactsScreen> {
         if (_selected.length >= widget.maxSelectable) {
           commonSnackBar(
               message:
-                  'You can pick up to ${widget.maxSelectable} contact(s)');
+                  AppStrings.youCanPickUpToContactsHint.tr.replaceAll('{N}', '${widget.maxSelectable}'));
           return;
         }
         _selected.add(c);
@@ -843,7 +843,7 @@ class _ChooseContactsScreenState extends State<ChooseContactsScreen> {
             ),
           ),
         ),
-        title: const CustomText('Choose Contacts',
+        title: CustomText(AppStrings.chooseContactsTitle.tr,
             fontSize: 16, fontWeight: FontWeight.w700),
         titleSpacing: 0,
       ),
@@ -866,8 +866,8 @@ class _ChooseContactsScreenState extends State<ChooseContactsScreen> {
                   Expanded(
                     child: TextField(
                       onChanged: (v) => setState(() => _query = v),
-                      decoration: const InputDecoration(
-                        hintText: 'Search name or number',
+                      decoration: InputDecoration(
+                        hintText: AppStrings.searchNameOrNumber.tr,
                         border: InputBorder.none,
                         isDense: true,
                       ),
@@ -881,9 +881,9 @@ class _ChooseContactsScreenState extends State<ChooseContactsScreen> {
             const Expanded(
                 child: Center(child: CircularProgressIndicator()))
           else if (_all.isEmpty)
-            const Expanded(
+            Expanded(
               child: Center(
-                child: CustomText('No contacts found',
+                child: CustomText(AppStrings.noContactsFound.tr,
                     fontSize: 13, color: AppColors.grayText),
               ),
             )
@@ -988,7 +988,7 @@ class _ChooseContactsScreenState extends State<ChooseContactsScreen> {
                       ? null
                       : () => Get.back(result: _selected.toList()),
                   child: Text(
-                    'Confirm Trusted Contacts (${_selected.length})',
+                    '${AppStrings.confirmTrustedContactsPrefix.tr} (${_selected.length})',
                     style: const TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w700,

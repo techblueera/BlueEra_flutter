@@ -30,7 +30,7 @@ class VehicleDocumentsScreen extends StatelessWidget {
               padding: EdgeInsets.symmetric(
                   horizontal: SizeConfig.size16),
               child: CustomText(
-                'Vehicle Document',
+                AppStrings.vehicleDocument.tr,
                 color: AppColors.mainTextColor,
                 fontWeight: FontWeight.w600,
                 fontSize: SizeConfig.large,
@@ -40,21 +40,21 @@ class VehicleDocumentsScreen extends StatelessWidget {
             BuildAddDocumentButton(
               showViewDocProof:showViewDocProof ,
               document: DocumentKeys.vehicleRC ,
-              title: AppStrings.uploadVehicleRC,
+              title: AppStrings.uploadVehicleRC.tr,
               documentKey: DocumentKeys.vehicleRC,
               status:
               controller.getStatus(DocumentKeys.vehicleRC),
               onTap: () {
                 Get.bottomSheet(
                   CommonDocumentBottomSheet(
-                    title: AppStrings.rc,
+                    title: AppStrings.rc.tr,
                     child: GenericDocumentWidget(
                       documentType: DocumentKeys.vehicleRC,
                       uploadSectionLabel:
-                      AppStrings.uploadRcBothSide,
+                      AppStrings.uploadRcBothSide.tr,
                       backImage: true,
-                      textFieldLabel: AppStrings.rcNumber,
-                      textFieldHint: AppStrings.egUP32AB12,
+                      textFieldLabel: AppStrings.rcNumber.tr,
+                      textFieldHint: AppStrings.egUP32AB12.tr,
                       textFieldValidation:
                       ValidationMethod.validateRC,
                       maxLength: 10,
@@ -70,18 +70,18 @@ class VehicleDocumentsScreen extends StatelessWidget {
             BuildAddDocumentButton(
               showViewDocProof:showViewDocProof ,
               document: DocumentKeys.insuranceDocument ,
-              title: AppStrings.insuranceDocumentUpload,
+              title: AppStrings.insuranceDocumentUpload.tr,
               documentKey: DocumentKeys.insuranceDocument,
               status: controller.getStatus(
                   DocumentKeys.insuranceDocument),
               onTap: () {
                 Get.bottomSheet(
                   CommonDocumentBottomSheet(
-                      title: AppStrings.insuranceDocumentUpload,
+                      title: AppStrings.insuranceDocumentUpload.tr,
                       child: GenericDocumentWidget(
                           documentType: DocumentKeys
                               .insuranceDocument,
-                          uploadSectionLabel: AppStrings.insuranceDocumentUpload,
+                          uploadSectionLabel: AppStrings.insuranceDocumentUpload.tr,
                           backImage: false)
                   ),
                   isScrollControlled: true,
@@ -92,20 +92,20 @@ class VehicleDocumentsScreen extends StatelessWidget {
             BuildAddDocumentButton(
               showViewDocProof: showViewDocProof ,
               document: DocumentKeys.puc ,
-              title:  AppStrings.pollutionCertificateUpload,
+              title:  AppStrings.pollutionCertificateUpload.tr,
               documentKey: DocumentKeys.puc,
               status: controller.getStatus(
                   DocumentKeys.puc),
               onTap: () {
                 Get.bottomSheet(
                   CommonDocumentBottomSheet(
-                    title:  AppStrings.pollutionCertificateUpload,
+                    title:  AppStrings.pollutionCertificateUpload.tr,
                     child: GenericDocumentWidget(
                       documentType: DocumentKeys.puc,
-                      uploadSectionLabel: AppStrings.pollutionCertificateUpload,
+                      uploadSectionLabel: AppStrings.pollutionCertificateUpload.tr,
                       backImage: false,
-                      textFieldLabel: "Pollution Certificate Number",
-                      textFieldHint: "E.g. RJ0123...",
+                      textFieldLabel: AppStrings.pollutionCertificateNumber.tr,
+                      textFieldHint: AppStrings.egRJ0123.tr,
                       textFieldValidation: ValidationMethod.validatePUCNumber,
                       isCapitalize: true,
                       maxLength: 20,
@@ -119,18 +119,18 @@ class VehicleDocumentsScreen extends StatelessWidget {
             BuildAddDocumentButton(
               showViewDocProof:showViewDocProof ,
               document: DocumentKeys.vehicleFitnessCertificate ,
-              title: AppStrings.fitnessCertificateCommercial,
+              title: AppStrings.fitnessCertificateCommercial.tr,
               documentKey: DocumentKeys.vehicleFitnessCertificate,
               status: controller.getStatus(
                   DocumentKeys.vehicleFitnessCertificate),
               onTap: () {
                 Get.bottomSheet(
                   CommonDocumentBottomSheet(
-                    title: AppStrings.fitnessCertificateCommercial,
+                    title: AppStrings.fitnessCertificateCommercial.tr,
                     child: GenericDocumentWidget(
                         documentType: DocumentKeys
                             .vehicleFitnessCertificate,
-                        uploadSectionLabel: AppStrings.fitnessCertificateCommercial,
+                        uploadSectionLabel: AppStrings.fitnessCertificateCommercial.tr,
                         backImage: false),
                   ),
                   isScrollControlled: true,

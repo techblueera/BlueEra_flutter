@@ -94,8 +94,8 @@ class _SelfProfessionServiceScreenState
         // with its body builder; we map them into numbered cards below.
         final sections = <_Section>[
           _Section(
-            title: 'Work Photos',
-            actionLabel: 'Add',
+            title: AppStrings.workPhotos.tr,
+            actionLabel: AppStrings.add.tr,
             actionIcon: Icons.add_a_photo_outlined,
             onEdit: (service.photos?.length ?? 0) >= _galleryMax
                 ? null
@@ -104,11 +104,10 @@ class _SelfProfessionServiceScreenState
             body: _galleryGrid(service.photos ?? []),
           ),
           _Section(
-            title: 'Working Hours',
+            title: AppStrings.workingHours.tr,
             onEdit: () => updateVisitingHours(),
             body: (service.schedule == null || service.schedule!.isEmpty)
-                ? _placeholderHint('Add weekly working hours so customers'
-                ' know when to book.')
+                ? _placeholderHint(AppStrings.addWeeklyWorkingHoursHint.tr)
                 : AvailabilityScheduleCard(schedule: service.schedule!),
           ),
           _Section(
@@ -128,7 +127,7 @@ class _SelfProfessionServiceScreenState
             }),
           ),
           _Section(
-            title: 'Service Type',
+            title: AppStrings.serviceTypeLabel.tr,
             onEdit: () => updateServiceType(
               controller: this.controller,
               serviceType: service.serviceType ?? [],
@@ -136,11 +135,11 @@ class _SelfProfessionServiceScreenState
             ),
             body: _chipList(
               service.serviceType ?? const [],
-              emptyMessage: 'Pick the services you offer.',
+              emptyMessage: AppStrings.pickServicesYouOfferHint.tr,
             ),
           ),
           _Section(
-            title: 'Service Description',
+            title: AppStrings.serviceDescription.tr,
             onEdit: () => updateServiceDescription(
               controller: this.controller,
               desc: service.description ?? AppStrings.na,
@@ -150,7 +149,7 @@ class _SelfProfessionServiceScreenState
             body: _descriptionBody(service.description ?? ''),
           ),
           _Section(
-            title: 'Work Experience',
+            title: AppStrings.workExperience.tr,
             onEdit: () => updateWorkExperience(
               controller: this.controller,
               years: years,
@@ -167,7 +166,7 @@ class _SelfProfessionServiceScreenState
           // one. _chipList shows a friendly placeholder hint until
           // the section has data.
           _Section(
-            title: 'Services Offered',
+            title: AppStrings.servicesOffered.tr,
             onEdit: () => updateServiceSelectionData(
               controller: this.controller,
               key: SelfWorkServiceController.keyServicesOffered,
@@ -176,11 +175,11 @@ class _SelfProfessionServiceScreenState
             ),
             body: _chipList(
               service.serviceOffered ?? const [],
-              emptyMessage: 'Pick the services you offer to customers.',
+              emptyMessage: AppStrings.pickServicesForCustomersHint.tr,
             ),
           ),
           _Section(
-            title: 'Expertise',
+            title: AppStrings.expertise.tr,
             onEdit: () => updateServiceSelectionData(
               controller: this.controller,
               key: SelfWorkServiceController.keyExpertise,
@@ -189,11 +188,11 @@ class _SelfProfessionServiceScreenState
             ),
             body: _chipList(
               service.expertise ?? const [],
-              emptyMessage: 'Add the skills you specialise in.',
+              emptyMessage: AppStrings.addSkillsHint.tr,
             ),
           ),
           _Section(
-            title: 'Types of Installations',
+            title: AppStrings.typesOfInstallations.tr,
             onEdit: () => updateServiceSelectionData(
               controller: this.controller,
               key: SelfWorkServiceController.keyTypeOfWork,
@@ -202,12 +201,11 @@ class _SelfProfessionServiceScreenState
             ),
             body: _chipList(
               service.typesOfWork ?? const [],
-              emptyMessage:
-                  'List the kinds of installations you handle.',
+              emptyMessage: AppStrings.listInstallationsHint.tr,
             ),
           ),
           _Section(
-            title: 'Work Categories',
+            title: AppStrings.workCategories.tr,
             onEdit: () => updateServiceSelectionData(
               controller: this.controller,
               key: SelfWorkServiceController.keyWorkCategories,
@@ -216,11 +214,11 @@ class _SelfProfessionServiceScreenState
             ),
             body: _chipList(
               service.workCategories ?? const [],
-              emptyMessage: 'Pick categories that match your work.',
+              emptyMessage: AppStrings.pickCategoriesHint.tr,
             ),
           ),
           _Section(
-            title: 'Why Choose Me',
+            title: AppStrings.whyChooseMe.tr,
             onEdit: () => updateServiceSelectionData(
               controller: this.controller,
               key: SelfWorkServiceController.keyWhyChooseMe,
@@ -229,8 +227,7 @@ class _SelfProfessionServiceScreenState
             ),
             body: _chipList(
               service.whyChooseMe ?? const [],
-              emptyMessage:
-                  'Tell customers what makes you the right choice.',
+              emptyMessage: AppStrings.tellCustomersChoiceHint.tr,
             ),
           ),
         ];
@@ -342,7 +339,7 @@ class _SelfProfessionServiceScreenState
                     if (onEdit != null)
                       _editChip(
                         onEdit,
-                        label: actionLabel ?? 'Edit',
+                        label: actionLabel ?? AppStrings.edit.tr,
                         icon: actionIcon ?? Icons.edit_outlined,
                       ),
                   ],
@@ -500,7 +497,7 @@ class _SelfProfessionServiceScreenState
                 Row(
                   children: [
                     CustomText(
-                      isEmpty ? 'Min  •  Max' : 'Min  •  Max',
+                      AppStrings.minMaxLabel.tr,
                       fontSize: 10,
                       fontWeight: FontWeight.w600,
                       color: AppColors.secondaryTextColor,
@@ -575,8 +572,7 @@ class _SelfProfessionServiceScreenState
 
   Widget _descriptionBody(String desc) {
     if (desc.isEmpty || desc == AppStrings.na) {
-      return _placeholderHint(
-          'Add a service description so customers know your story.');
+      return _placeholderHint(AppStrings.addServiceDescriptionHint.tr);
     }
     return Container(
       padding: EdgeInsets.symmetric(
@@ -606,14 +602,13 @@ class _SelfProfessionServiceScreenState
     required bool hasExperience,
   }) {
     if (!hasExperience) {
-      return _placeholderHint(
-          'Add your experience so customers can gauge your expertise.');
+      return _placeholderHint(AppStrings.addExperienceHint.tr);
     }
     return Row(
       children: [
-        Expanded(child: _experienceTile(years.toString(), 'Years')),
+        Expanded(child: _experienceTile(years.toString(), AppStrings.yearsLabel.tr)),
         SizedBox(width: SizeConfig.size10),
-        Expanded(child: _experienceTile(months.toString(), 'Months')),
+        Expanded(child: _experienceTile(months.toString(), AppStrings.monthsLabel.tr)),
       ],
     );
   }
@@ -746,7 +741,7 @@ class _SelfProfessionServiceScreenState
         context,
         ImageViewScreen(
           subTitle: '',
-          appBarTitle: AppStrings.imageViewer,
+          appBarTitle: AppStrings.imageViewer.tr,
           imageUrls: photos,
           initialIndex: index,
         ),
@@ -819,14 +814,14 @@ class _SelfProfessionServiceScreenState
                 if (isHero) ...[
                   SizedBox(height: SizeConfig.size8),
                   CustomText(
-                    'Add your first work photo',
+                    AppStrings.addFirstWorkPhoto.tr,
                     fontSize: SizeConfig.medium,
                     fontWeight: FontWeight.w700,
                     color: AppColors.primaryColor,
                   ),
                   SizedBox(height: SizeConfig.size4),
                   CustomText(
-                    'Showcase your craft to attract more bookings.',
+                    AppStrings.showcaseCraftHint.tr,
                     fontSize: SizeConfig.small,
                     color: AppColors.secondaryTextColor,
                     fontWeight: FontWeight.w500,
@@ -845,8 +840,7 @@ class _SelfProfessionServiceScreenState
       SelfWorkServiceController controller) async {
     final current = controller.professionData.value.photos?.length ?? 0;
     if (current >= _galleryMax) {
-      commonSnackBar(
-          message: 'You can showcase up to $_galleryMax work photos.');
+      commonSnackBar(message: AppStrings.workPhotoLimit4Hint.tr);
       return;
     }
     final imgStr = await PhotoPickerService.pickSinglePhoto(
@@ -907,7 +901,7 @@ class _SelfProfessionServiceScreenState
             ),
             SizedBox(height: SizeConfig.size12),
             Text(
-              'Create your earn-service profile',
+              AppStrings.createEarnServiceProfile.tr,
               style: TextStyle(
                 fontFamily: AppConstants.OpenSans,
                 fontSize: 16,
@@ -919,8 +913,7 @@ class _SelfProfessionServiceScreenState
             ),
             SizedBox(height: SizeConfig.size6),
             Text(
-              'Set it up in one tap. You can add price, hours, '
-              'expertise and more from the Service tab afterwards.',
+              AppStrings.earnServiceSetupHint.tr,
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
@@ -957,7 +950,7 @@ class _SelfProfessionServiceScreenState
                       : const Icon(Icons.add_rounded,
                           size: 18, color: Colors.white),
                   label: Text(
-                    loading ? 'Creating…' : 'Create Earn Service',
+                    loading ? AppStrings.creatingEllipsis.tr : AppStrings.createEarnService.tr,
                     style: TextStyle(
                       fontFamily: AppConstants.OpenSans,
                       fontSize: 13,
@@ -988,7 +981,7 @@ class _SelfProfessionServiceScreenState
                     ));
               },
               child: Text(
-                'Use the full setup form instead',
+                AppStrings.useFullSetupForm.tr,
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
@@ -1161,7 +1154,7 @@ class _SelfProfessionServiceScreenState
 
     _showCommonUpdateSheet(
       context: context,
-      title: 'Service Type',
+      title: AppStrings.serviceTypeLabel.tr,
       onUpdate: () => Navigator.pop(context),
       content: Column(
         children: [
@@ -1180,7 +1173,7 @@ class _SelfProfessionServiceScreenState
                 padding: EdgeInsets.symmetric(vertical: SizeConfig.size24),
                 child: Center(
                   child: CustomText(
-                    "No service types available",
+                    AppStrings.noServiceTypesAvailable.tr,
                     color: AppColors.secondaryTextColor,
                   ),
                 ),
@@ -1198,12 +1191,12 @@ class _SelfProfessionServiceScreenState
               title: isLoading
                   ? null
                   : (selectedCount > 0
-                      ? '${AppStrings.update} · $selectedCount selected'
-                      : AppStrings.update),
+                      ? '${AppStrings.update.tr} · $selectedCount ${AppStrings.selectedCountSuffix.tr}'
+                      : AppStrings.update.tr),
               isLoading: isLoading,
               onTap: () {
                 if (controller.selectedServiceTypes.isEmpty) {
-                  commonSnackBar(message: 'Please select a service type');
+                  commonSnackBar(message: AppStrings.pleaseSelectServiceType.tr);
                   return;
                 }
                 controller.updateEarnServiceData(params: {
@@ -1249,7 +1242,7 @@ class _SelfProfessionServiceScreenState
                 children: [
                   Expanded(
                     child: Text(
-                      'SERVICE TYPES',
+                      AppStrings.serviceTypeLabel.tr.toUpperCase(),
                       style: TextStyle(
                         fontFamily: AppConstants.OpenSans,
                         fontSize: 10,
@@ -1433,7 +1426,7 @@ class _SelfProfessionServiceScreenState
 
     _showCommonUpdateSheet(
       context: context,
-      title: 'Service Description',
+      title: AppStrings.serviceDescription.tr,
       onUpdate: () {
         Navigator.pop(context); // Close sheet
       },
@@ -1493,7 +1486,7 @@ class _SelfProfessionServiceScreenState
             bgColor: AppColors.primaryColor,
             title: controller.isUpdateServiceLoading.value
                 ? null
-                : AppStrings.update,
+                : AppStrings.update.tr,
             isLoading: controller.isUpdateServiceLoading.value,
             onTap: () {
               Map<String, dynamic> params = {
@@ -1519,7 +1512,7 @@ class _SelfProfessionServiceScreenState
     // 2. Show Sheet
     _showCommonUpdateSheet(
       context: context,
-      title: 'Your Experience',
+      title: AppStrings.yourExperience.tr,
       onUpdate: () {
         // Your API Logic
         // controller.updateSchedule(...);
@@ -1533,7 +1526,7 @@ class _SelfProfessionServiceScreenState
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    CustomText(AppStrings.years,
+                    CustomText(AppStrings.yearsLabel.tr,
                         fontSize: SizeConfig.medium,
                         fontWeight: FontWeight.w400,
                         color: AppColors.mainTextColor),
@@ -1541,7 +1534,7 @@ class _SelfProfessionServiceScreenState
                     CommonDropdown<String>(
                       items: controller.experienceYears,
                       selectedValue: controller.selectedExperienceYear.value,
-                      hintText: "E.g 1 Year..",
+                      hintText: AppStrings.eg1Year.tr,
                       onChanged: (val) {
                         controller.selectedExperienceYear.value = val;
                         log('val -- $val');
@@ -1557,7 +1550,7 @@ class _SelfProfessionServiceScreenState
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    CustomText('Months',
+                    CustomText(AppStrings.monthsLabel.tr,
                         fontSize: SizeConfig.medium,
                         fontWeight: FontWeight.w400,
                         color: AppColors.mainTextColor),
@@ -1565,7 +1558,7 @@ class _SelfProfessionServiceScreenState
                     CommonDropdown<String>(
                       items: controller.experienceMonths,
                       selectedValue: controller.selectedExperienceMonth.value,
-                      hintText: "E.g 3 Months..",
+                      hintText: AppStrings.eg3Months.tr,
                       onChanged: (val) =>
                           controller.selectedExperienceMonth.value = val,
                       displayValue: (val) => val,
@@ -1583,16 +1576,16 @@ class _SelfProfessionServiceScreenState
             bgColor: AppColors.primaryColor,
             title: controller.isUpdateServiceLoading.value
                 ? null
-                : AppStrings.update,
+                : AppStrings.update.tr,
             isLoading: controller.isUpdateServiceLoading.value,
             onTap: () {
               if (controller.selectedExperienceYear.value == null) {
-                commonSnackBar(message: 'Please select experience (Years)');
+                commonSnackBar(message: AppStrings.pleaseSelectExperienceYears.tr);
                 return;
               }
 
               if (controller.selectedExperienceMonth.value == null) {
-                commonSnackBar(message: 'Please select experience (Months)');
+                commonSnackBar(message: AppStrings.pleaseSelectExperienceMonths.tr);
                 return;
               }
 
@@ -1615,7 +1608,7 @@ class _SelfProfessionServiceScreenState
   void updateBookingPrice() {
     _showCommonUpdateSheet(
       context: context,
-      title: 'Your Fee',
+      title: AppStrings.yourFee.tr,
       onUpdate: () => Navigator.pop(context),
       content: Column(
         children: [
@@ -1625,7 +1618,7 @@ class _SelfProfessionServiceScreenState
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    CustomText(AppStrings.min,
+                    CustomText(AppStrings.min.tr,
                         fontSize: SizeConfig.medium,
                         fontWeight: FontWeight.w400,
                         color: AppColors.mainTextColor),
@@ -1635,7 +1628,7 @@ class _SelfProfessionServiceScreenState
                       fontSize: SizeConfig.small,
                       fontWeight: FontWeight.w400,
                       titleColor: AppColors.mainTextColor,
-                      hintText: "Min - ₹500",
+                      hintText: AppStrings.min500Hint.tr,
                       keyBoardType: TextInputType.number,
                     ),
                   ],
@@ -1646,7 +1639,7 @@ class _SelfProfessionServiceScreenState
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    CustomText(AppStrings.max,
+                    CustomText(AppStrings.max.tr,
                         fontSize: SizeConfig.medium,
                         fontWeight: FontWeight.w400,
                         color: AppColors.mainTextColor),
@@ -1656,7 +1649,7 @@ class _SelfProfessionServiceScreenState
                       fontSize: SizeConfig.small,
                       fontWeight: FontWeight.w400,
                       titleColor: AppColors.mainTextColor,
-                      hintText: "Max - ₹600",
+                      hintText: AppStrings.max600Hint.tr,
                       keyBoardType: TextInputType.number,
                     ),
                   ],
@@ -1669,11 +1662,11 @@ class _SelfProfessionServiceScreenState
           /// Fee Type
           CommonTextField(
             textEditController: controller.feeTypeController,
-            title: 'Fee Type',
+            title: AppStrings.feeTypeLabel.tr,
             fontSize: SizeConfig.small,
             fontWeight: FontWeight.w400,
             titleColor: AppColors.mainTextColor,
-            hintText: "E.g. Per Visit",
+            hintText: AppStrings.egPerVisit.tr,
             keyBoardType: TextInputType.text,
           ),
           SizedBox(height: SizeConfig.paddingL),
@@ -1683,7 +1676,7 @@ class _SelfProfessionServiceScreenState
           Obx(() {
             final isLoading = controller.isUpdateServiceLoading.value;
             return CustomBtn(
-              title: isLoading ? null : AppStrings.update,
+              title: isLoading ? null : AppStrings.update.tr,
               isLoading: isLoading,
               radius: SizeConfig.size10,
               bgColor: AppColors.primaryColor,
@@ -1708,7 +1701,7 @@ class _SelfProfessionServiceScreenState
 
     _showCommonUpdateSheet(
       context: context,
-      title: 'Working Hours',
+      title: AppStrings.workingHours.tr,
       onUpdate: () => Navigator.pop(context),
       content: Column(
         children: [
@@ -1721,7 +1714,7 @@ class _SelfProfessionServiceScreenState
             return CustomBtn(
               radius: SizeConfig.size10,
               bgColor: AppColors.primaryColor,
-              title: isLoading ? null : AppStrings.update,
+              title: isLoading ? null : AppStrings.update.tr,
               isLoading: isLoading,
               onTap: () {
                 final payload = controller.payloadForWorkingHours();

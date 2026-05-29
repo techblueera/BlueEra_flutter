@@ -37,7 +37,7 @@ class SchoolPostsTabV2 extends StatelessWidget {
               onPressed: () => _showCreatePostDialog(context),
               icon: const Icon(Icons.add, size: 18, color: Colors.white),
               label: CustomText(
-                'Create Post',
+                AppStrings.createPost.tr,
                 fontSize: 13,
                 fontWeight: FontWeight.w700,
                 color: Colors.white,
@@ -109,7 +109,7 @@ class SchoolPostsTabV2 extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               CustomText(
-                'Create Post',
+                AppStrings.createPost.tr,
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
                 color: AppColors.mainTextColor,

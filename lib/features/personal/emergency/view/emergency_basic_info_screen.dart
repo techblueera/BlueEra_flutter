@@ -28,7 +28,7 @@ class _EmergencyBasicInfoScreenState extends State<EmergencyBasicInfoScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(title: AppStrings.basicInfo),
+      appBar: CommonBackAppBar(title: AppStrings.basicInfo.tr),
       body: SingleChildScrollView(
         child: Padding(
           padding: EdgeInsets.all(SizeConfig.paddingM),
@@ -36,37 +36,37 @@ class _EmergencyBasicInfoScreenState extends State<EmergencyBasicInfoScreen> {
             child: Column(
               children: [
                 CommonTextField(
-                  title: AppStrings.fullName,
-                  hintText: AppStrings.emergencyFullNameHint,
+                  title: AppStrings.fullName.tr,
+                  hintText: AppStrings.emergencyFullNameHint.tr,
                   textEditController: controller.fullNameController,
                 ),
                 SizedBox(height: 16),
                 CommonTextField(
-                  title: AppStrings.emergencyMobileNumber,
-                  hintText: AppStrings.emergencyMobileHint,
+                  title: AppStrings.emergencyMobileNumber.tr,
+                  hintText: AppStrings.emergencyMobileHint.tr,
                   keyBoardType: TextInputType.phone,
                   maxLength: 10,
                   textEditController: controller.mobileController,
                 ),
                 SizedBox(height: 16),
                 CommonTextField(
-                  title: AppStrings.emergencyAlternateNumber,
-                  hintText: AppStrings.emergencyAlternateHint,
+                  title: AppStrings.emergencyAlternateNumber.tr,
+                  hintText: AppStrings.emergencyAlternateHint.tr,
                   keyBoardType: TextInputType.phone,
                   maxLength: 10,
                   textEditController: controller.alternateController,
                 ),
                 SizedBox(height: 16),
                 CommonTextField(
-                  title: AppStrings.emergencyEmailOptional,
-                  hintText: AppStrings.emergencyEmailHint,
+                  title: AppStrings.emergencyEmailOptional.tr,
+                  hintText: AppStrings.emergencyEmailHint.tr,
                   keyBoardType: TextInputType.emailAddress,
                   textEditController: controller.emailController,
                 ),
                 SizedBox(height: 16),
                 CommonTextField(
-                  title: AppStrings.vehicleNumber,
-                  hintText: AppStrings.emergencyVehicleHint,
+                  title: AppStrings.vehicleNumber.tr,
+                  hintText: AppStrings.emergencyVehicleHint.tr,
                   textEditController: controller.vehicleController,
                 ),
                 SizedBox(height: 16),
@@ -77,7 +77,7 @@ class _EmergencyBasicInfoScreenState extends State<EmergencyBasicInfoScreen> {
                           controller.isValid.value && !controller.isSaving.value
                               ? controller.submit
                               : null,
-                      title: AppStrings.next,
+                      title: AppStrings.next.tr,
                     )),
               ],
             ),

@@ -75,6 +75,28 @@ class AppStrings {
   static const franchiseInquiry = "franchiseInquiry";
   static const profileSettings = "profileSettings";
   static const manageNotification = "manageNotification";
+  // Drawer section headers
+  static const accountSectionLabel = "accountSectionLabel";
+  static const earningsSectionLabel = "earningsSectionLabel";
+  static const membershipSectionLabel = "membershipSectionLabel";
+  static const workspaceSectionLabel = "workspaceSectionLabel";
+  static const settingsSectionLabel = "settingsSectionLabel";
+  // Drawer footer
+  static const termsLabel = "termsLabel";
+  static const privacyLabel = "privacyLabel";
+  static const policiesLabel = "policiesLabel";
+  static const madeInIndia = "madeInIndia";
+  // Drawer hero fallbacks + wallet
+  static const blueEraMember = "blueEraMember";
+  static const tapToViewProfile = "tapToViewProfile";
+  static const availableLabel = "availableLabel";
+  // Account-type pill labels
+  static const accountTypeBusiness = "accountTypeBusiness";
+  static const accountTypeSocial = "accountTypeSocial";
+  static const accountTypeProfessional = "accountTypeProfessional";
+  static const accountTypeSelfEmployed = "accountTypeSelfEmployed";
+  static const accountTypeGigWorker = "accountTypeGigWorker";
+  static const accountTypeMember = "accountTypeMember";
   static const learnHowToEarnWithBlueEra = "learnHowToEarnWithBlueEra";
   static const seeAllPolicies = "seeAllPolicies";
   static const changeLanguageQuestion = "changeLanguageQuestion";
@@ -149,6 +171,8 @@ class AppStrings {
   static const passbookFrontPageOrBankStatement = "passbookFrontPageOrBankStatement";
   static const aadharNumberHint = "aadharNumberHint";
   static const hotelTradeLicenseNumber = "hotelTradeLicenseNumber";
+  static const egABCDE1234F = "egABCDE1234F";
+  static const egDL0120110012345 = "egDL0120110012345";
 
   ///CANCEL CHEQUE DOCUMENT WIDGET
   static const bankAccountNumber = "bankAccountNumber";
@@ -188,6 +212,8 @@ class AppStrings {
 
   ///NOTIFICATION SETTING SCREEN
   static const notificationSetting = "notificationSetting";
+  static const noNotificationSettingsAvailable = "noNotificationSettingsAvailable";
+  static const pushLabel = "pushLabel";
   static const comment = "comment";
   static const like = "like";
   static const tag = "tag";
@@ -261,8 +287,8 @@ class AppStrings {
   static const specialLabel = "specialLabel";
   static const servicesOffered = "servicesOffered";
   static const noServicesListed = "noServicesListed";
-  static const showLess = "showLess";
-  static const showMore = "showMore";
+  static const showLess = "show_less";
+  static const showMore = "showmore";
   static const viewAllServicesCount = "viewAllServicesCount";
   static const whyChooseMe = "whyChooseMe";
   static const expertiseLabel = "expertiseLabel";
@@ -285,6 +311,185 @@ class AppStrings {
   static const workingHours = "workingHours";
   static const noWorkingHoursAddedYet = "noWorkingHoursAddedYet";
   static const closedDay = "closedDay";
+  // SelfProfessionServiceScreen
+  static const workPhotos = "workPhotos";
+  static const addWeeklyWorkingHoursHint = "addWeeklyWorkingHoursHint";
+  static const serviceTypeLabel = "serviceTypeLabel";
+  static const pickServicesYouOfferHint = "pickServicesYouOfferHint";
+  static const typesOfInstallations = "typesOfInstallations";
+  static const workCategories = "workCategories";
+  static const pickServicesForCustomersHint = "pickServicesForCustomersHint";
+  static const addSkillsHint = "addSkillsHint";
+  static const listInstallationsHint = "listInstallationsHint";
+  static const pickCategoriesHint = "pickCategoriesHint";
+  static const tellCustomersChoiceHint = "tellCustomersChoiceHint";
+  static const minMaxLabel = "minMaxLabel";
+  static const addServiceDescriptionHint = "addServiceDescriptionHint";
+  static const addExperienceHint = "addExperienceHint";
+  static const yearsLabel = "yearsLabel";
+  static const monthsLabel = "monthsLabel";
+  static const addFirstWorkPhoto = "addFirstWorkPhoto";
+  static const showcaseCraftHint = "showcaseCraftHint";
+  static const workPhotoLimit4Hint = "workPhotoLimit4Hint";
+  static const createEarnServiceProfile = "createEarnServiceProfile";
+  static const earnServiceSetupHint = "earnServiceSetupHint";
+  static const creatingEllipsis = "creatingEllipsis";
+  static const createEarnService = "createEarnService";
+  static const useFullSetupForm = "useFullSetupForm";
+  static const noServiceTypesAvailable = "noServiceTypesAvailable";
+  static const selectedCountSuffix = "selectedCountSuffix";
+  static const pleaseSelectServiceType = "pleaseSelectServiceType";
+  static const eg1Year = "eg1Year";
+  static const eg3Months = "eg3Months";
+  static const pleaseSelectExperienceYears = "pleaseSelectExperienceYears";
+  static const pleaseSelectExperienceMonths = "pleaseSelectExperienceMonths";
+  static const yourFee = "yourFee";
+  static const min500Hint = "min500Hint";
+  static const max600Hint = "max600Hint";
+  static const feeTypeLabel = "feeTypeLabel";
+  static const egPerVisit = "egPerVisit";
+  // BusinessStatisticsScreen
+  static const unableToLoadStatistics = "unableToLoadStatistics";
+  static const noAnalyticsDataAvailable = "noAnalyticsDataAvailable";
+  static const chatCount = "chatCount";
+  static const averageSuffix = "averageSuffix";
+  static const profileVisits = "profileVisits";
+  static const noDataAvailable = "noDataAvailable";
+  static const statsRangeLast7Days = "statsRangeLast7Days";
+  static const statsRangeLast28Days = "statsRangeLast28Days";
+  static const statsRangeLast90Days = "statsRangeLast90Days";
+  static const statsRangeThisMonth = "statsRangeThisMonth";
+  static const statsRangeAllTime = "statsRangeAllTime";
+  static const businessNotConfigured = "businessNotConfigured";
+  static const unexpectedResponseFormat = "unexpectedResponseFormat";
+  // ServiceSelectionScreen + AddServiceBottomSheet
+  static const noOptionsAvailableYet = "noOptionsAvailableYet";
+  static const addCustomOption = "addCustomOption";
+  static const pleaseSelectAtLeastOneServiceOffered = "pleaseSelectAtLeastOneServiceOffered";
+  static const pleaseAddTypesOfInstallations = "pleaseAddTypesOfInstallations";
+  static const pleaseAddYourExpertise = "pleaseAddYourExpertise";
+  static const pleaseSelectWorkCategories = "pleaseSelectWorkCategories";
+  static const pleaseAddWhyChooseMePoints = "pleaseAddWhyChooseMePoints";
+  static const pleaseEnterServiceDetails = "pleaseEnterServiceDetails";
+  static const validationErrorNameMin3 = "validationErrorNameMin3";
+  static const egShortCircuitRepair = "egShortCircuitRepair";
+  // ParcelPickupDropScreen + TrustedContactsScreen
+  static const receiverName = "receiverName";
+  static const tenDigitMobile = "tenDigitMobile";
+  static const pleaseEnterAName = "pleaseEnterAName";
+  static const enterValidTenDigit = "enterValidTenDigit";
+  static const pickupContact = "pickupContact";
+  static const dropContact = "dropContact";
+  static const byContinuingAgreeTcs = "byContinuingAgreeTcs";
+  static const tcsLink = "tcsLink";
+  static const addPickupDropContactsToContinue = "addPickupDropContactsToContinue";
+  static const doorstepPickupDelivery = "doorstepPickupDelivery";
+  static const pickupFromCurrentLocation = "pickupFromCurrentLocation";
+  static const tapToSelectPickup = "tapToSelectPickup";
+  static const dropTo = "dropTo";
+  static const tapToSelectDrop = "tapToSelectDrop";
+  static const addSenderContact = "addSenderContact";
+  static const addReceiverContact = "addReceiverContact";
+  static const switchLabel = "switchLabel";
+  static const addEmergencyContacts = "addEmergencyContacts";
+  static const trustedContactsSuffix = "trustedContactsSuffix";
+  static const pickUpToPeopleHint = "pickUpToPeopleHint";
+  static const continueLabel = "continueLabel";
+  static const canSaveAtMost3EmergencyContacts = "canSaveAtMost3EmergencyContacts";
+  static const numberAlreadySaved = "numberAlreadySaved";
+  static const couldNotSaveContact = "couldNotSaveContact";
+  static const couldNotRemoveContact = "couldNotRemoveContact";
+  static const canAddUpToEmergencyContacts = "canAddUpToEmergencyContacts";
+  static const addContacts = "addContacts";
+  static const chooseFromContacts = "chooseFromContacts";
+  static const contactsPermissionBlocked = "contactsPermissionBlocked";
+  static const contactsPermissionRequired = "contactsPermissionRequired";
+  static const addContactManually = "addContactManually";
+  static const enterNameLabel = "enterNameLabel";
+  static const eg9876543210 = "eg9876543210";
+  static const egRameshKumar = "egRameshKumar";
+  static const contactAlreadyAdded = "contactAlreadyAdded";
+  static const trustedContactsTitle = "trustedContactsTitle";
+  static const everythingOkay = "everythingOkay";
+  static const trustedContactsInfo = "trustedContactsInfo";
+  static const liveRideTracking = "liveRideTracking";
+  static const liveRideTrackingInfo = "liveRideTrackingInfo";
+  static const noTrustedContactsYet = "noTrustedContactsYet";
+  static const addedCountSuffix = "addedCountSuffix";
+  static const addContact = "addContact";
+  static const addAnotherContact = "addAnotherContact";
+  static const youCanPickUpToContactsHint = "youCanPickUpToContactsHint";
+  static const chooseContactsTitle = "chooseContactsTitle";
+  static const confirmTrustedContactsPrefix = "confirmTrustedContactsPrefix";
+  // HomeMadeProductWidget badges
+  static const trustedLabel = "trustedLabel";
+  static const localLabel = "localLabel";
+  // AllEducationServiceScreen
+  static const noSchoolsFound = "noSchoolsFound";
+  static const noSchoolsFoundSubtitle = "noSchoolsFoundSubtitle";
+  // AllVehicleServiceScreen
+  static const noVehiclesFound = "noVehiclesFound";
+  static const noVehiclesFoundSubtitle = "noVehiclesFoundSubtitle";
+  // PropertyDiscoverScreen
+  static const housesSell = "housesSell";
+  static const housesRent = "housesRent";
+  static const newProjects = "newProjects";
+  static const landsSell = "landsSell";
+  static const shopsRent = "shopsRent";
+  static const shopsSell = "shopsSell";
+  static const landsRent = "landsRent";
+  static const pgAndGuest = "pgAndGuest";
+  static const filtersLabel = "filtersLabel";
+  static const noMatchingProperties = "noMatchingProperties";
+  static const noPropertiesAvailable = "noPropertiesAvailable";
+  static const noPropertiesMatchingHint = "noPropertiesMatchingHint";
+  static const noPropertiesInCategoryHint = "noPropertiesInCategoryHint";
+  static const clearAllFilters = "clearAllFilters";
+  static const filterPropertiesTitle = "filterPropertiesTitle";
+  static const egMumbaiDelhi = "egMumbaiDelhi";
+  static const minPriceLabel = "minPriceLabel";
+  static const maxPriceLabel = "maxPriceLabel";
+  static const resetLabel = "resetLabel";
+  static const applyLabel = "applyLabel";
+  static const propertiesOnMapSuffix = "propertiesOnMapSuffix";
+  // OthersAboutUs
+  static const aboutOrganisation = "aboutOrganisation";
+  static const managementLabel = "managementLabel";
+  static const staffsLabel = "staffsLabel";
+  static const officeFacility = "officeFacility";
+  // SchoolHomeScreenV2 / SchoolAcademicsTabV2
+  static const addCoursesCta = "addCoursesCta";
+  // VehicleHomeScreenV2
+  static const inquiryTab = "inquiryTab";
+  static const vehiclesTab = "vehiclesTab";
+  static const statsTab = "statsTab";
+  static const addVehicleLabel = "addVehicleLabel";
+  static const removePhotoTitle = "removePhotoTitle";
+  static const removePhotoConfirm = "removePhotoConfirm";
+  static const removeContactTitle = "removeContactTitle";
+  static const removeNameCannotUndo = "removeNameCannotUndo";
+  static const thisContactFallback = "thisContactFallback";
+  static const deleteVehicleTitle = "deleteVehicleTitle";
+  static const myFleetLabel = "myFleetLabel";
+  static const noVehiclesYet = "noVehiclesYet";
+  static const addVehicleProfileHint = "addVehicleProfileHint";
+  static const addAVehicleCta = "addAVehicleCta";
+  static const addMoreTooltip = "addMoreTooltip";
+  static const noPhotosYet = "noPhotosYet";
+  static const addPhotosHint = "addPhotosHint";
+  static const addAPhotoCta = "addAPhotoCta";
+  static const addContactTooltip = "addContactTooltip";
+  static const addAnotherTooltip = "addAnotherTooltip";
+  static const noContactInfoYet = "noContactInfoYet";
+  static const addContactInfoHint = "addContactInfoHint";
+  static const addAContactCta = "addAContactCta";
+  static const primaryLabel = "primaryLabel";
+  static const welcomeLabel = "welcomeLabel";
+  static const vehicleServiceProvider = "vehicleServiceProvider";
+  static const memberPrefix = "memberPrefix";
+  static const noVehiclesInFleet = "noVehiclesInFleet";
+  static const tapAddVehicleHint = "tapAddVehicleHint";
+  static const contactsLabel = "contactsLabel";
   // Visitor-side professional profile additions (DiscoverProfessionalsViewScreen).
   static const pricingAndEngagement = "pricingAndEngagement";
   static const introductionVideo = "introductionVideo";
@@ -430,6 +635,20 @@ class AppStrings {
   static const female = "female";
   static const dateOfBirth = "dateOfBirth";
   static const location = "location";
+  // Profile location card
+  static const coordsLabel = "coordsLabel";
+  static const pinYourLocation = "pinYourLocation";
+  static const addAddressHint = "addAddressHint";
+  static const pleaseAddYourAddress = "pleaseAddYourAddress";
+  static const useMyLocationLabel = "useMyLocationLabel";
+  static const orSearchAnAddressLabel = "orSearchAnAddressLabel";
+  static const egRanchiJharkhand = "egRanchiJharkhand";
+  static const yourLocationLabel = "yourLocationLabel";
+  static const pinningYouOnMap = "pinningYouOnMap";
+  static const detectAutomatically = "detectAutomatically";
+  static const readingYourGps = "readingYourGps";
+  static const pullsCurrentGpsAddress = "pullsCurrentGpsAddress";
+  static const pickLocationToPreview = "pickLocationToPreview";
   static const email = "email";
   static const getVerify = "getVerify";
   static const highestEducation = "highestEducation";
@@ -684,6 +903,7 @@ class AppStrings {
   static const reportPost = "reportPost";
   static const blockUser = "blockUser";
   static const edit = "edit";
+  static const addShortBioHint = "addShortBioHint";
   static const hide = "hide";
   static const share = "share";
   static const editPost = "editPost";
@@ -1610,6 +1830,9 @@ class AppStrings {
   static const String rcBack = 'rcBack';
   static const String insuranceDocumentUpload = 'insuranceDocumentUpload';
   static const String pollutionCertificateUpload = 'pollutionCertificateUpload';
+  static const String pollutionCertificateNumber = 'pollutionCertificateNumber';
+  static const String egRJ0123 = 'egRJ0123';
+  static const String vehicleDocument = 'vehicleDocument';
   static const String fitnessCertificateCommercial = 'fitnessCertificateCommercial';
   static const String vehicleConditionDescription = 'vehicleConditionDescription';
   static const String egGoodCondition = 'egGoodCondition';
@@ -1949,7 +2172,6 @@ class AppStrings {
   static const String addProductGuideLine = 'addProductGuideLine';
   static const String userGuide = 'userGuide';
   static const String hintUserGuide = 'hintUserGuide';
-  static const String eg1Year = 'eg1Year';
   static const String egRs1499 = 'egRs1499';
   static const String addMoreUserGuideLine = 'addMoreUserGuideLine';
   static const String changesWillBeLost = 'changesWillBeLost';
@@ -2017,6 +2239,10 @@ class AppStrings {
   static const String jobNearMe = "jobNearMe";
   static const String toLabel = "toLabel";
   static const String forRent = "forRent";
+  static const String forSale = "forSale";
+  static const String rentAndProperties = "rentAndProperties";
+  static const String propertyListingTitle = "propertyListingTitle";
+  static const String listPropertyHint = "listPropertyHint";
   static const String housesVehiclesMoreNearYou = "housesVehiclesMoreNearYou";
   static const String houseRent = "houseRent";
   static const String vehicleRent = "vehicleRent";
@@ -4641,7 +4867,6 @@ class AppStrings {
   static const String durationLabel = "duration";
   static const String dayUnit = "dayUnit";
   static const String daysUnit = "daysUnit";
-  static const String privacyLabel = "privacyLabel";
   static const String publicLabel = "publicLabel";
   static const String privateLabel = "privateLabel";
   static const String customLabel = "customLabel";

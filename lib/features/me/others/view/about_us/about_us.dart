@@ -19,29 +19,29 @@ class OthersAboutUs extends StatefulWidget {
 }
 
 class _AddOthersServicesState extends State<OthersAboutUs> {
-  final List<ServiceMenuItem> serviceMenus = [
-    ServiceMenuItem(
-      title: "About Organisation",
-      icon: AppIconAssets.other_org_about,
-      // Replace with your actual icon asset
-      page: () => AboutOrganization(),
-    ),
-    ServiceMenuItem(
-      title: "Management",
-      icon: AppIconAssets.other_management,
-      page: () => ManagementScreen(), // Update to your actual page
-    ),
-    ServiceMenuItem(
-      title: "Staffs",
-      icon: AppIconAssets.other_staffs,
-      page: () => StaffScreen(),
-    ),
-    ServiceMenuItem(
-      title: "Office Facility",
-      icon: AppIconAssets.other_office_facility,
-      page: () => ComingSoon(),
-    ),
-  ];
+  List<ServiceMenuItem> get serviceMenus => [
+        ServiceMenuItem(
+          title: AppStrings.aboutOrganisation.tr,
+          icon: AppIconAssets.other_org_about,
+          // Replace with your actual icon asset
+          page: () => AboutOrganization(),
+        ),
+        ServiceMenuItem(
+          title: AppStrings.managementLabel.tr,
+          icon: AppIconAssets.other_management,
+          page: () => ManagementScreen(), // Update to your actual page
+        ),
+        ServiceMenuItem(
+          title: AppStrings.staffsLabel.tr,
+          icon: AppIconAssets.other_staffs,
+          page: () => StaffScreen(),
+        ),
+        ServiceMenuItem(
+          title: AppStrings.officeFacility.tr,
+          icon: AppIconAssets.other_office_facility,
+          page: () => ComingSoon(),
+        ),
+      ];
 
   @override
   Widget build(BuildContext context) {

@@ -35,7 +35,7 @@ class _RentalCardWidgetState extends State<RentalCardWidget> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              titleWidget('Rent & Properties'),
+              titleWidget(AppStrings.rentAndProperties.tr),
               ViewAllButton(
                 onTap: () => setState(() => _showAll = !_showAll),
                 label:
@@ -149,7 +149,7 @@ Widget _tagChip({required bool isSale}) {
       ),
     ),
     child: CustomText(
-      isSale ? 'FOR SELL' : 'FOR RENT',
+      isSale ? AppStrings.forSale.tr.toUpperCase() : AppStrings.forRent.tr.toUpperCase(),
       color: AppColors.primaryColor,
       fontSize: 10,
       fontWeight: FontWeight.w600,

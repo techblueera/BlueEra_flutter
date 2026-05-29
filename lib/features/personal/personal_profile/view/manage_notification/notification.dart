@@ -18,7 +18,7 @@ class NotificationSettingScreen extends StatelessWidget {
     final controller = Get.put(NotificationSettingsController());
 
     return Scaffold(
-      appBar: const CommonBackAppBar(title: AppStrings.notificationSetting),
+      appBar: CommonBackAppBar(title: AppStrings.notificationSetting.tr),
       body: Obx(() {
         final status = controller.getResponse.value.status;
         if (status == Status.LOADING || status == Status.INITIAL) {
@@ -28,9 +28,9 @@ class NotificationSettingScreen extends StatelessWidget {
           return _ErrorState(onRetry: controller.fetchSettings);
         }
         if (controller.preferences.isEmpty) {
-          return const Center(
+          return Center(
             child: CustomText(
-              'No notification settings available',
+              AppStrings.noNotificationSettingsAvailable.tr,
               color: AppColors.mainTextColor,
             ),
           );
@@ -68,16 +68,11 @@ class NotificationSettingScreen extends StatelessWidget {
               const SizedBox(height: 12),
               Obx(
                 () => PositiveCustomBtn(
-                  onTap: controller.isUpdating.value
-                      ? null
-                      : () => controller.submit(),
-                  title: controller.isUpdating.value
-                      ? '${AppStrings.submit}...'
-                      : AppStrings.submit,
+                  onTap: controller.isUpdating.value ? null : () => controller.submit(),
+                  title: controller.isUpdating.value ? '${AppStrings.submit.tr}...' : AppStrings.submit.tr,
                 ),
               ),
               const SizedBox(height: 40),
-
             ],
           ),
         );
@@ -109,17 +104,17 @@ class _ColumnHeader extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(18, 6, 18, 10),
       child: Row(
         children: [
-          const Expanded(
+          Expanded(
             child: CustomText(
-              'Category',
+              AppStrings.category.tr,
               color: AppColors.mainTextColor,
               fontWeight: FontWeight.w600,
             ),
           ),
           SizedBox(
             width: SizeConfig.size60,
-            child: const CustomText(
-              'Push',
+            child: CustomText(
+              AppStrings.pushLabel.tr,
               color: AppColors.mainTextColor,
               fontWeight: FontWeight.w600,
               textAlign: TextAlign.center,
@@ -159,7 +154,7 @@ class _NotificationTile extends StatelessWidget {
           return Row(
             children: [
               Expanded(
-                child: CustomText(title, color: AppColors.mainTextColor),
+                child: CustomText(title.tr, color: AppColors.mainTextColor),
               ),
               SizedBox(
                 width: SizeConfig.size60,
@@ -193,14 +188,14 @@ class _ErrorState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const CustomText(
-              AppStrings.somethingWentWrong,
+            CustomText(
+              AppStrings.somethingWentWrong.tr,
               color: AppColors.mainTextColor,
             ),
             const SizedBox(height: 12),
             PositiveCustomBtn(
               onTap: onRetry,
-              title: 'Retry',
+              title: AppStrings.retry.tr,
               width: SizeConfig.size120,
             ),
           ],
