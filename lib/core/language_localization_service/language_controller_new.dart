@@ -3,7 +3,6 @@ import 'dart:developer';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
-import 'package:BlueEra/core/api/model/individual_user_response_model.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/language_localization_service/language_model_new.dart';
 import 'package:BlueEra/core/language_localization_service/language_service_app.dart';

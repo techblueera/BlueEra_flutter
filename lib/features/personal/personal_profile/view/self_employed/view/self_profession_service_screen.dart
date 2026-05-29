@@ -1,5 +1,4 @@
 import 'dart:developer';
-
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -11,10 +10,10 @@ import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/add_self_work_service_screen.dart';
 import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/widget/availability_schedule_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/controller/self_work_service_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/add_self_work_service_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/service_selection_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/widget/working_hours_editor.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
@@ -32,10 +31,12 @@ class SelfProfessionServiceScreen extends StatefulWidget {
   const SelfProfessionServiceScreen({Key? key}) : super(key: key);
 
   @override
-  State<SelfProfessionServiceScreen> createState() => _SelfProfessionServiceScreenState();
+  State<SelfProfessionServiceScreen> createState() =>
+      _SelfProfessionServiceScreenState();
 }
 
-class _SelfProfessionServiceScreenState extends State<SelfProfessionServiceScreen> {
+class _SelfProfessionServiceScreenState
+    extends State<SelfProfessionServiceScreen> {
   final controller = getOrPut(() => SelfWorkServiceController());
 
   @override
@@ -57,7 +58,8 @@ class _SelfProfessionServiceScreenState extends State<SelfProfessionServiceScree
       if (this.controller.isProfessionDataLoading.value) {
         return Padding(
           padding: EdgeInsets.symmetric(vertical: SizeConfig.size40),
-          child: Center(child: CircularProgressIndicator(color: AppColors.primaryColor)),
+          child: Center(
+              child: CircularProgressIndicator(color: AppColors.primaryColor)),
         );
       }
 
@@ -92,9 +94,8 @@ class _SelfProfessionServiceScreenState extends State<SelfProfessionServiceScree
       // with its body builder; we map them into numbered cards below.
       final sections = <_Section>[
         _Section(
-          title: AppStrings.workPhotos.tr,
-          actionLabel: AppStrings.add.tr,
-          actionIcon: Icons.add_a_photo_outlined,
+          title: 'Work Photos',
+          hasData: (service.photos?.length ?? 0) > 0,
           onEdit: (service.photos?.length ?? 0) >= _galleryMax
               ? null
               : () => _pickAndUploadGalleryPhoto(this.controller),
@@ -102,23 +103,31 @@ class _SelfProfessionServiceScreenState extends State<SelfProfessionServiceScree
           body: _galleryGrid(service.photos ?? []),
         ),
         _Section(
-          title: AppStrings.workingHours.tr,
+          title: 'Working Hours',
+          hasData: service.schedule?.isNotEmpty ?? false,
           onEdit: () => updateVisitingHours(),
-          body: (service.schedule == null || service.schedule!.isEmpty)
-              ? _placeholderHint(AppStrings.addWeeklyWorkingHoursHint.tr)
-              : AvailabilityScheduleCard(schedule: service.schedule!),
+          // Empty vs. populated is handled inside the card itself,
+          // mirroring `_buildTimingsSection` on the consultant screen
+          // — so the section just hands over the schedule and the
+          // same edit action for the empty-state CTA.
+          body: AvailabilityScheduleCard(
+            schedule: service.schedule ?? const [],
+            onAdd: updateVisitingHours,
+          ),
         ),
         _Section(
           title: AppStrings.price.tr,
           // Price counts as "added" when either bound is non-zero —
           // matches the `isEmpty` rule the price hero itself uses.
-          hasData: (service.feeDetails?.minFee ?? 0) > 0 || (service.feeDetails?.maxFee ?? 0) > 0,
+          hasData: (service.feeDetails?.minFee ?? 0) > 0 ||
+              (service.feeDetails?.maxFee ?? 0) > 0,
           onEdit: () {
             this.controller.seedPriceInputsFromProfession();
             updateBookingPrice();
           },
           body: Obx(() {
-            final details = this.controller.professionData.value.feeDetails;
+            final details =
+                this.controller.professionData.value.feeDetails;
             return _priceHero(
               min: details?.minFee?.toString() ?? '0',
               max: details?.maxFee?.toString() ?? '0',
@@ -127,7 +136,8 @@ class _SelfProfessionServiceScreenState extends State<SelfProfessionServiceScree
           }),
         ),
         _Section(
-          title: AppStrings.serviceTypeLabel.tr,
+          title: 'Service Type',
+          hasData: service.serviceType?.isNotEmpty ?? false,
           onEdit: () => updateServiceType(
             controller: this.controller,
             serviceType: service.serviceType ?? [],
@@ -135,11 +145,12 @@ class _SelfProfessionServiceScreenState extends State<SelfProfessionServiceScree
           ),
           body: _chipList(
             service.serviceType ?? const [],
-            emptyMessage: AppStrings.pickServicesYouOfferHint.tr,
+            emptyMessage: 'Pick the services you offer.',
           ),
         ),
         _Section(
-          title: AppStrings.serviceDescription.tr,
+          title: 'Service Description',
+          hasData: service.description?.isNotEmpty ?? false,
           onEdit: () => updateServiceDescription(
             controller: this.controller,
             desc: service.description ?? AppStrings.na,
@@ -149,7 +160,8 @@ class _SelfProfessionServiceScreenState extends State<SelfProfessionServiceScree
           body: _descriptionBody(service.description ?? ''),
         ),
         _Section(
-          title: AppStrings.workExperience.tr,
+          title: 'Work Experience',
+          hasData: hasExperience,
           onEdit: () => updateWorkExperience(
             controller: this.controller,
             years: years,
@@ -162,11 +174,12 @@ class _SelfProfessionServiceScreenState extends State<SelfProfessionServiceScree
           ),
         ),
         // Always render the optional list sections so the user can
-        // tap "Edit" on each empty card and fill them in one by
+        // tap "Add" on each empty card and fill them in one by
         // one. _chipList shows a friendly placeholder hint until
         // the section has data.
         _Section(
-          title: AppStrings.servicesOffered.tr,
+          title: 'Services Offered',
+          hasData: service.serviceOffered?.isNotEmpty ?? false,
           onEdit: () => updateServiceSelectionData(
             controller: this.controller,
             key: SelfWorkServiceController.keyServicesOffered,
@@ -175,11 +188,12 @@ class _SelfProfessionServiceScreenState extends State<SelfProfessionServiceScree
           ),
           body: _chipList(
             service.serviceOffered ?? const [],
-            emptyMessage: AppStrings.pickServicesForCustomersHint.tr,
+            emptyMessage: 'Pick the services you offer to customers.',
           ),
         ),
         _Section(
-          title: AppStrings.expertise.tr,
+          title: 'Expertise',
+          hasData: service.expertise?.isNotEmpty ?? false,
           onEdit: () => updateServiceSelectionData(
             controller: this.controller,
             key: SelfWorkServiceController.keyExpertise,
@@ -188,11 +202,12 @@ class _SelfProfessionServiceScreenState extends State<SelfProfessionServiceScree
           ),
           body: _chipList(
             service.expertise ?? const [],
-            emptyMessage: AppStrings.addSkillsHint.tr,
+            emptyMessage: 'Add the skills you specialise in.',
           ),
         ),
         _Section(
-          title: AppStrings.typesOfInstallations.tr,
+          title: 'Types of Installations',
+          hasData: service.typesOfWork?.isNotEmpty ?? false,
           onEdit: () => updateServiceSelectionData(
             controller: this.controller,
             key: SelfWorkServiceController.keyTypeOfWork,
@@ -201,11 +216,13 @@ class _SelfProfessionServiceScreenState extends State<SelfProfessionServiceScree
           ),
           body: _chipList(
             service.typesOfWork ?? const [],
-            emptyMessage: AppStrings.listInstallationsHint.tr,
+            emptyMessage:
+            'List the kinds of installations you handle.',
           ),
         ),
         _Section(
-          title: AppStrings.workCategories.tr,
+          title: 'Work Categories',
+          hasData: service.workCategories?.isNotEmpty ?? false,
           onEdit: () => updateServiceSelectionData(
             controller: this.controller,
             key: SelfWorkServiceController.keyWorkCategories,
@@ -214,11 +231,12 @@ class _SelfProfessionServiceScreenState extends State<SelfProfessionServiceScree
           ),
           body: _chipList(
             service.workCategories ?? const [],
-            emptyMessage: AppStrings.pickCategoriesHint.tr,
+            emptyMessage: 'Pick categories that match your work.',
           ),
         ),
         _Section(
-          title: AppStrings.whyChooseMe.tr,
+          title: 'Why Choose Me',
+          hasData: service.whyChooseMe?.isNotEmpty ?? false,
           onEdit: () => updateServiceSelectionData(
             controller: this.controller,
             key: SelfWorkServiceController.keyWhyChooseMe,
@@ -227,7 +245,8 @@ class _SelfProfessionServiceScreenState extends State<SelfProfessionServiceScree
           ),
           body: _chipList(
             service.whyChooseMe ?? const [],
-            emptyMessage: AppStrings.tellCustomersChoiceHint.tr,
+            emptyMessage:
+            'Tell customers what makes you the right choice.',
           ),
         ),
       ];
@@ -264,9 +283,8 @@ class _SelfProfessionServiceScreenState extends State<SelfProfessionServiceScree
     required String title,
     required Widget child,
     VoidCallback? onEdit,
-    String? actionLabel,
-    IconData? actionIcon,
     bool tight = false,
+    bool hasData = true,
   }) {
     return Container(
       margin: EdgeInsets.only(left: 20.0),
@@ -338,8 +356,10 @@ class _SelfProfessionServiceScreenState extends State<SelfProfessionServiceScree
                     if (onEdit != null)
                       _editChip(
                         onEdit,
-                        label: actionLabel ?? AppStrings.edit.tr,
-                        icon: actionIcon ?? Icons.edit_outlined,
+                        label: hasData ? 'Edit' : 'Add',
+                        icon: hasData
+                            ? Icons.edit_outlined
+                            : Icons.add_rounded,
                       ),
                   ],
                 ),
@@ -380,10 +400,10 @@ class _SelfProfessionServiceScreenState extends State<SelfProfessionServiceScree
   }
 
   Widget _editChip(
-    VoidCallback onTap, {
-    required String label,
-    required IconData icon,
-  }) {
+      VoidCallback onTap, {
+        required String label,
+        required IconData icon,
+      }) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(20),
@@ -545,33 +565,34 @@ class _SelfProfessionServiceScreenState extends State<SelfProfessionServiceScree
       children: items
           .map(
             (item) => Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: SizeConfig.size10,
-                vertical: SizeConfig.size5,
-              ),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF4F6FB),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: const Color(0xFFE6E8EE),
-                  width: 0.6,
-                ),
-              ),
-              child: CustomText(
-                item,
-                fontSize: SizeConfig.small,
-                fontWeight: FontWeight.w600,
-                color: AppColors.mainTextColor,
-              ),
+          padding: EdgeInsets.symmetric(
+            horizontal: SizeConfig.size10,
+            vertical: SizeConfig.size5,
+          ),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF4F6FB),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: const Color(0xFFE6E8EE),
+              width: 0.6,
             ),
-          )
+          ),
+          child: CustomText(
+            item,
+            fontSize: SizeConfig.small,
+            fontWeight: FontWeight.w600,
+            color: AppColors.mainTextColor,
+          ),
+        ),
+      )
           .toList(),
     );
   }
 
   Widget _descriptionBody(String desc) {
     if (desc.isEmpty || desc == AppStrings.na) {
-      return _placeholderHint('Add a service description so customers know your story.');
+      return _placeholderHint(
+          'Add a service description so customers know your story.');
     }
     return Container(
       padding: EdgeInsets.symmetric(
@@ -601,7 +622,8 @@ class _SelfProfessionServiceScreenState extends State<SelfProfessionServiceScree
     required bool hasExperience,
   }) {
     if (!hasExperience) {
-      return _placeholderHint('Add your experience so customers can gauge your expertise.');
+      return _placeholderHint(
+          'Add your experience so customers can gauge your expertise.');
     }
     return Row(
       children: [
@@ -730,10 +752,10 @@ class _SelfProfessionServiceScreenState extends State<SelfProfessionServiceScree
   static const int _galleryMax = 4;
 
   Widget _photoTile(
-    SelfWorkServiceController controller,
-    List<String> photos,
-    int index,
-  ) {
+      SelfWorkServiceController controller,
+      List<String> photos,
+      int index,
+      ) {
     final imagePath = photos[index];
     return GestureDetector(
       onTap: () => navigatePushTo(
@@ -769,7 +791,8 @@ class _SelfProfessionServiceScreenState extends State<SelfProfessionServiceScree
             right: 6,
             child: GestureDetector(
               onTap: () async {
-                await controller.deleteProfessionImage(controller.professionData.value.sId ?? '', imagePath);
+                await controller.deleteProfessionImage(
+                    controller.professionData.value.sId ?? '', imagePath);
                 controller.professionData.value.photos?.removeAt(index);
                 controller.update(['professionPhotos']);
               },
@@ -785,7 +808,8 @@ class _SelfProfessionServiceScreenState extends State<SelfProfessionServiceScree
     );
   }
 
-  Widget _addGalleryTile(SelfWorkServiceController controller, {bool isHero = false}) {
+  Widget _addGalleryTile(SelfWorkServiceController controller,
+      {bool isHero = false}) {
     return GestureDetector(
       onTap: () => _pickAndUploadGalleryPhoto(controller),
       child: AspectRatio(
@@ -833,10 +857,12 @@ class _SelfProfessionServiceScreenState extends State<SelfProfessionServiceScree
   }
 
   /// Opens the picture-picker dialog and persists the selected photo
-  Future<void> _pickAndUploadGalleryPhoto(SelfWorkServiceController controller) async {
+  Future<void> _pickAndUploadGalleryPhoto(
+      SelfWorkServiceController controller) async {
     final current = controller.professionData.value.photos?.length ?? 0;
     if (current >= _galleryMax) {
-      commonSnackBar(message: 'You can showcase up to $_galleryMax work photos.');
+      commonSnackBar(
+          message: 'You can showcase up to $_galleryMax work photos.');
       return;
     }
     final imgStr = await PhotoPickerService.pickSinglePhoto(
@@ -910,7 +936,7 @@ class _SelfProfessionServiceScreenState extends State<SelfProfessionServiceScree
             SizedBox(height: SizeConfig.size6),
             Text(
               'Set it up in one tap. You can add price, hours, '
-              'expertise and more from the Service tab afterwards.',
+                  'expertise and more from the Service tab afterwards.',
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
@@ -928,22 +954,24 @@ class _SelfProfessionServiceScreenState extends State<SelfProfessionServiceScree
                   onPressed: loading
                       ? null
                       : () async {
-                          controller.professionCategory = professionCategory;
-                          await controller.createMinimalEarnService(
-                            serviceSubType: 'selfWork',
-                            professionCategoryOverride: professionCategory,
-                          );
-                        },
+                    controller.professionCategory = professionCategory;
+                    await controller.createMinimalEarnService(
+                      serviceSubType: 'selfWork',
+                      professionCategoryOverride: professionCategory,
+                    );
+                  },
                   icon: loading
                       ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation(Colors.white),
-                          ),
-                        )
-                      : const Icon(Icons.add_rounded, size: 18, color: Colors.white),
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor:
+                      AlwaysStoppedAnimation(Colors.white),
+                    ),
+                  )
+                      : const Icon(Icons.add_rounded,
+                      size: 18, color: Colors.white),
                   label: Text(
                     loading ? 'Creating…' : 'Create Earn Service',
                     style: TextStyle(
@@ -960,7 +988,8 @@ class _SelfProfessionServiceScreenState extends State<SelfProfessionServiceScree
                       vertical: SizeConfig.size12,
                       horizontal: SizeConfig.size16,
                     ),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14)),
                     elevation: 0,
                   ),
                 ),
@@ -970,9 +999,9 @@ class _SelfProfessionServiceScreenState extends State<SelfProfessionServiceScree
             TextButton(
               onPressed: () {
                 Get.to(() => AddSelfServiceScreen(
-                      professionCategory: professionCategory,
-                      serviceSubType: 'selfWork',
-                    ));
+                  professionCategory: professionCategory,
+                  serviceSubType: 'selfWork',
+                ));
               },
               child: Text(
                 'Use the full setup form instead',
@@ -991,33 +1020,33 @@ class _SelfProfessionServiceScreenState extends State<SelfProfessionServiceScree
 
   // --- 4. Helper Widgets ---
   Widget _buildDragHandle() => Center(
-        child: Container(
-          width: 50,
-          height: 5,
-          margin: const EdgeInsets.only(bottom: 10),
-          decoration: BoxDecoration(
-            color: AppColors.secondaryTextColor,
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
-      );
+    child: Container(
+      width: 50,
+      height: 5,
+      margin: const EdgeInsets.only(bottom: 10),
+      decoration: BoxDecoration(
+        color: AppColors.secondaryTextColor,
+        borderRadius: BorderRadius.circular(10),
+      ),
+    ),
+  );
 
   Widget _buildHeader(String header) => Row(
-        children: [
-          Expanded(
-            child: CustomText(
-              header,
-              fontWeight: FontWeight.w600,
-              fontSize: SizeConfig.large,
-              color: AppColors.mainTextColor,
-            ),
-          ),
-          IconButton(
-            onPressed: () => Get.back(),
-            icon: const Icon(Icons.close),
-          ),
-        ],
-      );
+    children: [
+      Expanded(
+        child: CustomText(
+          header,
+          fontWeight: FontWeight.w600,
+          fontSize: SizeConfig.large,
+          color: AppColors.mainTextColor,
+        ),
+      ),
+      IconButton(
+        onPressed: () => Get.back(),
+        icon: const Icon(Icons.close),
+      ),
+    ],
+  );
 
   void _showCommonUpdateSheet({
     required BuildContext context,
@@ -1029,13 +1058,17 @@ class _SelfProfessionServiceScreenState extends State<SelfProfessionServiceScree
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => Container(
+      builder: (sheetCtx) => Container(
         decoration: BoxDecoration(
           color: AppColors.white,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
         ),
+        // Read viewInsets from the sheet's own context — the outer
+        // screen's MediaQuery doesn't update when the keyboard opens
+        // inside the modal, which is why the inputs were hiding behind
+        // the keyboard.
         padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
+          bottom: MediaQuery.of(sheetCtx).viewInsets.bottom,
         ),
         child: SingleChildScrollView(
           padding: EdgeInsets.only(
@@ -1157,7 +1190,8 @@ class _SelfProfessionServiceScreenState extends State<SelfProfessionServiceScree
               return Padding(
                 padding: EdgeInsets.symmetric(vertical: SizeConfig.size32),
                 child: Center(
-                  child: CircularProgressIndicator(color: AppColors.primaryColor),
+                  child: CircularProgressIndicator(
+                      color: AppColors.primaryColor),
                 ),
               );
             }
@@ -1184,8 +1218,8 @@ class _SelfProfessionServiceScreenState extends State<SelfProfessionServiceScree
               title: isLoading
                   ? null
                   : (selectedCount > 0
-                      ? '${AppStrings.update} · $selectedCount selected'
-                      : AppStrings.update),
+                  ? '${AppStrings.update} · $selectedCount selected'
+                  : AppStrings.update),
               isLoading: isLoading,
               onTap: () {
                 if (controller.selectedServiceTypes.isEmpty) {
@@ -1227,7 +1261,8 @@ class _SelfProfessionServiceScreenState extends State<SelfProfessionServiceScree
               decoration: const BoxDecoration(
                 color: Color(0xFFFAFBFE),
                 border: Border(
-                  bottom: BorderSide(color: Color(0xFFE6E8EE), width: 0.8),
+                  bottom:
+                  BorderSide(color: Color(0xFFE6E8EE), width: 0.8),
                 ),
               ),
               child: Row(
@@ -1251,10 +1286,14 @@ class _SelfProfessionServiceScreenState extends State<SelfProfessionServiceScree
                       vertical: 2,
                     ),
                     decoration: BoxDecoration(
-                      color: any ? AppColors.primaryColor.withValues(alpha: 0.10) : const Color(0xFFF4F6FB),
+                      color: any
+                          ? AppColors.primaryColor.withValues(alpha: 0.10)
+                          : const Color(0xFFF4F6FB),
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: any ? AppColors.primaryColor.withValues(alpha: 0.25) : const Color(0xFFE6E8EE),
+                        color: any
+                            ? AppColors.primaryColor.withValues(alpha: 0.25)
+                            : const Color(0xFFE6E8EE),
                         width: 0.6,
                       ),
                     ),
@@ -1264,7 +1303,9 @@ class _SelfProfessionServiceScreenState extends State<SelfProfessionServiceScree
                         fontFamily: AppConstants.OpenSans,
                         fontSize: 10,
                         fontWeight: FontWeight.w800,
-                        color: any ? AppColors.primaryColor : AppColors.secondaryTextColor,
+                        color: any
+                            ? AppColors.primaryColor
+                            : AppColors.secondaryTextColor,
                         letterSpacing: 0.4,
                       ),
                     ),
@@ -1282,7 +1323,8 @@ class _SelfProfessionServiceScreenState extends State<SelfProfessionServiceScree
             return Column(
               children: List.generate(items.length, (i) {
                 final item = items[i];
-                final isSelected = controller.selectedServiceTypes.contains(item);
+                final isSelected =
+                controller.selectedServiceTypes.contains(item);
                 final isLast = i == items.length - 1;
                 return _serviceTypeRow(
                   index: i + 1,
@@ -1324,11 +1366,14 @@ class _SelfProfessionServiceScreenState extends State<SelfProfessionServiceScree
             vertical: SizeConfig.size12,
           ),
           decoration: BoxDecoration(
-            color: isSelected ? AppColors.primaryColor.withValues(alpha: 0.06) : Colors.transparent,
+            color: isSelected
+                ? AppColors.primaryColor.withValues(alpha: 0.06)
+                : Colors.transparent,
             border: showDivider
                 ? const Border(
-                    bottom: BorderSide(color: Color(0xFFEDEFF4), width: 0.6),
-                  )
+              bottom:
+              BorderSide(color: Color(0xFFEDEFF4), width: 0.6),
+            )
                 : null,
           ),
           child: Row(
@@ -1344,7 +1389,8 @@ class _SelfProfessionServiceScreenState extends State<SelfProfessionServiceScree
                     fontWeight: FontWeight.w800,
                     color: isSelected
                         ? AppColors.primaryColor
-                        : AppColors.secondaryTextColor.withValues(alpha: 0.7),
+                        : AppColors.secondaryTextColor
+                        .withValues(alpha: 0.7),
                     letterSpacing: 0.4,
                   ),
                 ),
@@ -1354,7 +1400,8 @@ class _SelfProfessionServiceScreenState extends State<SelfProfessionServiceScree
                 child: CustomText(
                   label,
                   fontSize: SizeConfig.medium,
-                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                  fontWeight:
+                  isSelected ? FontWeight.w700 : FontWeight.w500,
                   color: AppColors.mainTextColor,
                 ),
               ),
@@ -1364,12 +1411,14 @@ class _SelfProfessionServiceScreenState extends State<SelfProfessionServiceScree
                 width: 20,
                 height: 20,
                 decoration: BoxDecoration(
-                  color: isSelected ? AppColors.primaryColor : Colors.white,
+                  color:
+                  isSelected ? AppColors.primaryColor : Colors.white,
                   borderRadius: BorderRadius.circular(6),
                   border: Border.all(
                     color: isSelected
                         ? AppColors.primaryColor
-                        : AppColors.secondaryTextColor.withValues(alpha: 0.35),
+                        : AppColors.secondaryTextColor
+                        .withValues(alpha: 0.35),
                     width: 1.2,
                   ),
                 ),
@@ -1378,11 +1427,11 @@ class _SelfProfessionServiceScreenState extends State<SelfProfessionServiceScree
                   duration: const Duration(milliseconds: 140),
                   child: isSelected
                       ? const Icon(
-                          Icons.check_rounded,
-                          key: ValueKey('checked'),
-                          size: 14,
-                          color: Colors.white,
-                        )
+                    Icons.check_rounded,
+                    key: ValueKey('checked'),
+                    size: 14,
+                    color: Colors.white,
+                  )
                       : const SizedBox.shrink(key: ValueKey('unchecked')),
                 ),
               ),
@@ -1412,37 +1461,38 @@ class _SelfProfessionServiceScreenState extends State<SelfProfessionServiceScree
         children: [
           if (experienceStartingDate != null) ...[
             Obx(() => Align(
-                  alignment: Alignment.centerRight,
-                  child: !controller.isGenerateDescLoading.value
-                      ? Align(
-                          alignment: Alignment.centerRight,
-                          child: InkWell(
-                              onTap: () {
-                                final expData = calculateExperience(experienceStartingDate);
+              alignment: Alignment.centerRight,
+              child: !controller.isGenerateDescLoading.value
+                  ? Align(
+                alignment: Alignment.centerRight,
+                child: InkWell(
+                    onTap: () {
+                      final expData =
+                      calculateExperience(experienceStartingDate);
 
-                                final int years = expData['years']!;
-                                final int months = expData['months']!;
+                      final int years = expData['years']!;
+                      final int months = expData['months']!;
 
-                                controller.generateDescriptions(bodyRequest: {
-                                  ApiKeys.category: designation,
-                                  ApiKeys.expYears: years,
-                                  ApiKeys.expMonths: months,
-                                });
-                              },
-                              child: LocalAssets(
-                                height: 25,
-                                width: 25,
-                                imgColor: AppColors.primaryColor,
-                                imagePath: AppIconAssets.ai_generative,
-                              )),
-                        )
-                      : SizedBox(
-                          height: 25,
-                          width: 25,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2.0,
-                          )),
-                )),
+                      controller.generateDescriptions(bodyRequest: {
+                        ApiKeys.category: designation,
+                        ApiKeys.expYears: years,
+                        ApiKeys.expMonths: months,
+                      });
+                    },
+                    child: LocalAssets(
+                      height: 25,
+                      width: 25,
+                      imgColor: AppColors.primaryColor,
+                      imagePath: AppIconAssets.ai_generative,
+                    )),
+              )
+                  : SizedBox(
+                  height: 25,
+                  width: 25,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.0,
+                  )),
+            )),
             SizedBox(height: SizeConfig.size8),
           ],
 
@@ -1461,10 +1511,14 @@ class _SelfProfessionServiceScreenState extends State<SelfProfessionServiceScree
           CustomBtn(
             radius: SizeConfig.size10,
             bgColor: AppColors.primaryColor,
-            title: controller.isUpdateServiceLoading.value ? null : AppStrings.update,
+            title: controller.isUpdateServiceLoading.value
+                ? null
+                : AppStrings.update,
             isLoading: controller.isUpdateServiceLoading.value,
             onTap: () {
-              Map<String, dynamic> params = {ApiKeys.description: controller.aboutController.text.trim()};
+              Map<String, dynamic> params = {
+                ApiKeys.description: controller.aboutController.text.trim()
+              };
 
               controller.updateEarnServiceData(params: params);
             },
@@ -1532,7 +1586,8 @@ class _SelfProfessionServiceScreenState extends State<SelfProfessionServiceScree
                       items: controller.experienceMonths,
                       selectedValue: controller.selectedExperienceMonth.value,
                       hintText: "E.g 3 Months..",
-                      onChanged: (val) => controller.selectedExperienceMonth.value = val,
+                      onChanged: (val) =>
+                      controller.selectedExperienceMonth.value = val,
                       displayValue: (val) => val,
                     ),
                   ],
@@ -1546,7 +1601,9 @@ class _SelfProfessionServiceScreenState extends State<SelfProfessionServiceScree
           CustomBtn(
             radius: SizeConfig.size10,
             bgColor: AppColors.primaryColor,
-            title: controller.isUpdateServiceLoading.value ? null : AppStrings.update,
+            title: controller.isUpdateServiceLoading.value
+                ? null
+                : AppStrings.update,
             isLoading: controller.isUpdateServiceLoading.value,
             onTap: () {
               if (controller.selectedExperienceYear.value == null) {
@@ -1651,9 +1708,15 @@ class _SelfProfessionServiceScreenState extends State<SelfProfessionServiceScree
               radius: SizeConfig.size10,
               bgColor: AppColors.primaryColor,
               onTap: () {
+                final minFee =
+                    int.tryParse(controller.minFeeController.text.trim()) ?? 0;
+                final maxFee =
+                    int.tryParse(controller.maxFeeController.text.trim()) ?? 0;
                 final params = <String, dynamic>{
-                  ApiKeys.minFee: controller.minFeeController.text.trim(),
-                  ApiKeys.maxFee: controller.maxFeeController.text.trim(),
+                  ApiKeys.priceRange: {
+                    ApiKeys.min: minFee,
+                    ApiKeys.max: maxFee,
+                  },
                   ApiKeys.feeType: controller.feeTypeController.text.trim(),
                 };
                 controller.updateEarnServiceData(params: params);
@@ -1690,7 +1753,9 @@ class _SelfProfessionServiceScreenState extends State<SelfProfessionServiceScree
                 final payload = controller.payloadForWorkingHours();
                 logs("Working Hours: $payload");
                 controller.updateEarnServiceData(
-                  params: {ApiKeys.schedule: payload},
+                  params: {
+                    ApiKeys.availability: {ApiKeys.schedule: payload},
+                  },
                 );
               },
             );
@@ -1727,20 +1792,22 @@ class _Section {
   final String title;
   final Widget body;
   final VoidCallback? onEdit;
-  final String? actionLabel;
-  final IconData? actionIcon;
 
   /// When `true`, the section card collapses the gap between the
   /// header row and the body — used by the gallery so its photos
   /// sit right under the title without a stray strip of whitespace.
   final bool tight;
 
+  /// Drives the action-chip's label/icon: when `true` the chip reads
+  /// "Edit" (pencil); when `false` it reads "Add" (plus).
+  final bool hasData;
+
   const _Section({
     required this.title,
     required this.body,
     this.onEdit,
-    this.actionLabel,
-    this.actionIcon,
     this.tight = false,
+    this.hasData = true,
   });
 }
+
