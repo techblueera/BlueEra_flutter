@@ -1,15 +1,18 @@
+import 'dart:io';
 import 'dart:ui';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_flag_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
+import 'package:BlueEra/features/common/delivery_partner/view/rider_service_screen.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
 import 'package:BlueEra/features/me/others/controller/business_profile_full_controller.dart';
 import 'package:BlueEra/features/me/others/view/v2/tabs/other_inquiry_tab_v2.dart';
@@ -17,9 +20,11 @@ import 'package:BlueEra/features/me/others/view/v2/tabs/other_overview_tab_v2.da
 import 'package:BlueEra/features/me/others/view/v2/tabs/other_posts_tab_v2.dart';
 import 'package:BlueEra/features/me/others/view/v2/tabs/other_services_tab_v2.dart';
 import 'package:BlueEra/features/me/others/view/v2/tabs/other_stats_tab_v2.dart';
+import 'package:BlueEra/features/personal/personal_profile/widgets/profile_top_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/refer_earn_pill.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 /// Other-business "me" profile home (v2) — redesigned to mirror the
 /// layout used by `HospitalHomeScreenV2` while preserving every action
@@ -39,13 +44,16 @@ class _OtherHomeScreenV2State extends State<OtherHomeScreenV2> {
   bool _isGoLive = false;
   int _selectedTab = 0;
 
-  static const _tabs = [
-    'Inquiry',
-    'Overview',
-    'Services',
-    'Posts',
-    'Stats',
-  ];
+  // Built as a getter so `.tr` is re-evaluated on locale change rather
+  // than frozen at class-load time. `statics` is reused for the Stats
+  // tab to stay aligned with self-employee / rider dashboards.
+  List<String> get _tabs => [
+        AppStrings.inquiry.tr,
+        AppStrings.overview.tr,
+        AppStrings.services.tr,
+        AppStrings.posts.tr,
+        AppStrings.statics.tr,
+      ];
 
   // Drives the inquiry list shown under the Inquiry tab — same controller
   // the Connect screen uses, so socket-driven updates land on both.
@@ -93,7 +101,11 @@ class _OtherHomeScreenV2State extends State<OtherHomeScreenV2> {
             _buildPatternBackground(),
             Column(
               children: [
-                _buildTopBar(),
+                // _buildTopBar(),
+                ProfileTopBar(
+                  onGoLiveTap: handleGoLiveTap,
+                  showGoLivePill: Platform.isAndroid,
+                ),
                 // _buildProfileRow(),
                 Expanded(
                   child: RefreshIndicator(
@@ -293,7 +305,7 @@ class _OtherHomeScreenV2State extends State<OtherHomeScreenV2> {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  CustomText('Go live',
+                  CustomText(AppStrings.goLive.tr,
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
                       color: AppColors.secondaryTextColor),

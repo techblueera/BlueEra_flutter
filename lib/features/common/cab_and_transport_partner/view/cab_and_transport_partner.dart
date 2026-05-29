@@ -1,4 +1,5 @@
-﻿import 'dart:ui';
+﻿import 'dart:io';
+import 'dart:ui';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -17,6 +18,7 @@ import 'package:BlueEra/features/business/widgets/business_share_banner.dart';
 import 'package:BlueEra/features/chat/view/business_chat/business_chat_list.dart';
 import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/common/cab_and_transport_partner/view/widgets/cab_transport_orders_widget.dart';
+import 'package:BlueEra/features/common/delivery_partner/view/rider_service_screen.dart';
 import 'package:BlueEra/features/common/rental/widget/rental_property_card.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/rider_profile_status_screen.dart';
@@ -34,6 +36,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/widget/profile_d
 import 'package:BlueEra/features/personal/personal_profile/widgets/personal_qrcode_widget.dart';
 import 'package:BlueEra/features/personal/personal_profile/widgets/profile_bio_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/widgets/profile_location_card.dart';
+import 'package:BlueEra/features/personal/personal_profile/widgets/profile_top_bar.dart';
 import 'package:BlueEra/widgets/common_circular_profile_image.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/refer_earn_pill.dart';
@@ -172,7 +175,10 @@ class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
                     surfaceTintColor: Colors.transparent,
                     automaticallyImplyLeading: false,
                     toolbarHeight: topBarHeight,
-                    flexibleSpace: _buildTopBar(),
+                      flexibleSpace: ProfileTopBar(
+                        onGoLiveTap: handleGoLiveTap,
+                        showGoLivePill: Platform.isAndroid,
+                      )
                   ),
                   SliverToBoxAdapter(
                     child: Padding(
@@ -248,6 +254,7 @@ class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
   // TOP BAR â€” glassmorphic strip:
   //   [drawer] [Earn]   â€¦   [bell] [Go Live]
   // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+/*
   Widget _buildTopBar() {
     final topInset = MediaQuery.of(context).padding.top;
     return DecoratedBox(
@@ -307,6 +314,7 @@ class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
       ),
     );
   }
+*/
 
   Widget _circleIconButton({
     required IconData icon,
@@ -349,6 +357,7 @@ class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
       ),
     );
   }
+/*
 
   Widget _goLivePill() {
     return Obx(() {
@@ -463,6 +472,7 @@ class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
       ),
     );
   }
+*/
 
   // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // TABS â€” solid white card with an animated underline that slides

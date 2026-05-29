@@ -219,7 +219,7 @@ class _GoLivePermissionScreenState extends State<GoLivePermissionScreen>
                     borderRadius: BorderRadius.circular(20),
                     child: const Padding(
                       padding: EdgeInsets.all(4),
-                      child: Icon(Icons.arrow_back,
+                      child: Icon(Icons.arrow_back_ios_new,
                           color: AppColors.mainTextColor),
                     ),
                   ),

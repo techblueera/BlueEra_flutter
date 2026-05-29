@@ -5516,4 +5516,10 @@ class AppStrings {
   static const String contributionActivatedThankYou = "contributionActivatedThankYou";
   static const String paymentVerificationFailedWebhook = "paymentVerificationFailedWebhook";
   static const String contributionSuffix = "contributionSuffix";
+
+  // Other-business v2 dashboard tab label — distinct from the existing
+  // `franchiseInquiry` / `bookInquiry` / `hospitalInquiry` keys which
+  // are sentence-form labels for specific flows. This one is the bare
+  // "Inquiry" tab heading shared across me-section v2 screens.
+  static const String inquiry = "inquiry";
 }

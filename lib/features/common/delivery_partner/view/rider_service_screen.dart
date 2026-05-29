@@ -1,4 +1,5 @@
-﻿import 'dart:ui';
+﻿import 'dart:io';
+import 'dart:ui';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -16,12 +17,12 @@ import 'package:BlueEra/core/services/share_service.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/widgets/business_share_banner.dart';
 import 'package:BlueEra/features/chat/view/business_chat/business_chat_list.dart';
+import 'package:BlueEra/features/common/Discover/view/go_live_permission_screen.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/delivery_partner_orders/delivery_partner_orders.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/rider_profile_status_screen.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
-import 'package:BlueEra/features/common/home/widgets/drawer.dart';
 import 'package:BlueEra/features/common/reel/view/channel/follower_following_screen.dart';
 import 'package:BlueEra/features/common/rental/widget/rental_property_card.dart';
 import 'package:BlueEra/features/common/statistics/view/business_statistics_screen.dart';
@@ -33,9 +34,9 @@ import 'package:BlueEra/features/personal/personal_profile/view/widget/profile_d
 import 'package:BlueEra/features/personal/personal_profile/widgets/personal_qrcode_widget.dart';
 import 'package:BlueEra/features/personal/personal_profile/widgets/profile_bio_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/widgets/profile_location_card.dart';
+import 'package:BlueEra/features/personal/personal_profile/widgets/profile_top_bar.dart';
+import 'package:BlueEra/permissionCentralize/go_live_permission_service.dart';
 import 'package:BlueEra/widgets/common_circular_profile_image.dart';
-import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/refer_earn_pill.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:croppy/croppy.dart';
 import 'package:flutter/material.dart';
@@ -153,7 +154,11 @@ class _RiderServiceScreenState extends State<RiderServiceScreen> with RouteAware
                     surfaceTintColor: Colors.transparent,
                     automaticallyImplyLeading: false,
                     toolbarHeight: topBarHeight,
-                    flexibleSpace: _buildTopBar(),
+                      flexibleSpace: ProfileTopBar(
+                        onGoLiveTap: handleGoLiveTap,
+                        showGoLivePill: Platform.isAndroid,
+                      )
+
                   ),
                   SliverToBoxAdapter(
                     child: Padding(
@@ -218,211 +223,6 @@ class _RiderServiceScreenState extends State<RiderServiceScreen> with RouteAware
         AppImageAssets.chatDefaultBg,
         fit: BoxFit.cover,
         errorBuilder: (_, __, ___) => Container(color: const Color(0xFFEAF2FB)),
-      ),
-    );
-  }
-
-  // TOP BAR â€” glassmorphic strip:
-  //   [drawer] [Earn]   â€¦   [bell] [Go Live]
-  Widget _buildTopBar() {
-    final topInset = MediaQuery.of(context).padding.top;
-    return DecoratedBox(
-      decoration: const BoxDecoration(
-        boxShadow: [
-          BoxShadow(
-            color: Color(0x42001120),
-            blurRadius: 16,
-            offset: Offset(0, 0),
-            blurStyle: BlurStyle.outer,
-          ),
-        ],
-      ),
-      child: ClipRect(
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 50, sigmaY: 50),
-          child: Container(
-            width: double.infinity,
-            padding: EdgeInsets.fromLTRB(
-              SizeConfig.size12,
-              topInset + SizeConfig.size8,
-              SizeConfig.size12,
-              SizeConfig.size10,
-            ),
-            decoration: BoxDecoration(
-              color: const Color(0x33FFFFFF),
-              border: Border.all(color: Colors.white, width: 1.0),
-            ),
-            child: Row(
-              children: [
-                _circleIconButton(
-                  icon: Icons.menu,
-                  onTap: () => _openDrawer(context),
-                ),
-                SizedBox(width: SizeConfig.size8),
-                // Earn lives in the drawer now; Refer & Earn stays on
-                // the top bar as the one earn-related shortcut â€” it
-                // sits right of the drawer button so the bell +
-                // Go-live cluster keeps its right anchor via Spacer.
-                const ReferEarnPill(),
-                const Spacer(),
-                if (!isGuestUser()) ...[
-                  _circleIconButton(
-                    icon: Icons.notifications_none,
-                    onTap: () => Navigator.pushNamed(
-                      context,
-                      RouteHelper.getNotificationScreenRoute(),
-                    ),
-                  ),
-                  SizedBox(width: SizeConfig.size8),
-                ],
-                _goLivePill(),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _circleIconButton({
-    required IconData icon,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      customBorder: const CircleBorder(),
-      child: Container(
-        decoration: const BoxDecoration(
-          shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(
-              color: Color(0x1A000000),
-              blurRadius: 3,
-              offset: Offset(0, -1),
-            ),
-          ],
-        ),
-        child: ClipPath(
-          clipper: const ShapeBorderClipper(shape: CircleBorder()),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-            child: Container(
-              height: SizeConfig.size36,
-              width: SizeConfig.size36,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white,
-                border: Border.all(
-                  color: const Color(0xFFC9CDD5),
-                  width: 1,
-                ),
-              ),
-              child: Icon(icon, size: 20, color: AppColors.secondaryTextColor),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _goLivePill() {
-    return Obx(() {
-      final isOn = _viewCtrl.shopStatusOpenClose.value;
-      final isUpdating = _viewCtrl.isShopStatusUpdating.value;
-      return GestureDetector(
-        onTap: isUpdating ? null : () => _viewCtrl.toggleShopStatus(),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(24),
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0x1A000000),
-                blurRadius: 3,
-                offset: Offset(0, -1),
-              ),
-            ],
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(24),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-              child: Container(
-                padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10, vertical: SizeConfig.size6),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(
-                    color: const Color(0xFFC9CDD5),
-                    width: 1,
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    CustomText('Go live',
-                        fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.secondaryTextColor),
-                    SizedBox(width: SizeConfig.size6),
-                    if (isUpdating)
-                      SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryColor),
-                        ),
-                      )
-                    else
-                      Container(
-                        width: 30,
-                        height: 18,
-                        padding: const EdgeInsets.all(2),
-                        decoration: BoxDecoration(
-                          color: isOn ? AppColors.primaryColor : Colors.white,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: AppColors.secondaryTextColor.withValues(alpha: 0.4),
-                            width: 0.5,
-                          ),
-                        ),
-                        child: AnimatedAlign(
-                          duration: const Duration(milliseconds: 180),
-                          alignment: isOn ? Alignment.centerRight : Alignment.centerLeft,
-                          child: Container(
-                            height: 14,
-                            width: 14,
-                            decoration: BoxDecoration(
-                              color: isOn ? Colors.white : AppColors.secondaryTextColor,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-      );
-    });
-  }
-
-  void _openDrawer(BuildContext context) {
-    showDialog(
-      barrierDismissible: true,
-      barrierColor: Colors.black.withValues(alpha: 0.3),
-      useSafeArea: false,
-      context: context,
-      builder: (_) => Align(
-        alignment: Alignment.centerLeft,
-        child: SizedBox(
-          height: double.infinity,
-          child: Drawer(
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            child: ProfileMenuDrawer(),
-          ),
-        ),
       ),
     );
   }
@@ -1599,3 +1399,22 @@ class _RiderServiceScreenState extends State<RiderServiceScreen> with RouteAware
     }
   }
 }
+
+Future<void> handleGoLiveTap() async {
+  final _viewCtrl = Get.find<ViewPersonalDetailsController>();
+
+  if (_viewCtrl.shopStatusOpenClose.value) {
+    _viewCtrl.toggleShopStatus();
+    return;
+  }
+  final statuses = await GoLivePermissionService.checkAll();
+  if (statuses.values.every((v) => v)) {
+    _viewCtrl.toggleShopStatus();
+    return;
+  }
+  final granted = await Get.to(() => const GoLivePermissionScreen());
+  if (granted == true) {
+    _viewCtrl.toggleShopStatus();
+  }
+}
+

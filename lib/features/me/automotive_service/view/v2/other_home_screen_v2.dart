@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -8,6 +10,7 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_flag_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
+import 'package:BlueEra/features/common/delivery_partner/view/rider_service_screen.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
 import 'package:BlueEra/features/me/automotive_service/controller/business_profile_full_controller.dart';
 import 'package:BlueEra/features/me/automotive_service/view/v2/tabs/other_inquiry_tab_v2.dart';
@@ -15,6 +18,7 @@ import 'package:BlueEra/features/me/automotive_service/view/v2/tabs/other_overvi
 import 'package:BlueEra/features/me/automotive_service/view/v2/tabs/other_posts_tab_v2.dart';
 import 'package:BlueEra/features/me/automotive_service/view/v2/tabs/other_services_tab_v2.dart';
 import 'package:BlueEra/features/me/automotive_service/view/v2/tabs/other_stats_tab_v2.dart';
+import 'package:BlueEra/features/personal/personal_profile/widgets/profile_top_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/refer_earn_pill.dart';
 import 'package:flutter/material.dart';
@@ -91,7 +95,10 @@ class _OtherHomeScreenV2State extends State<OtherHomeScreenV2> {
             _buildPatternBackground(),
             Column(
               children: [
-                _buildTopBar(),
+              ProfileTopBar(
+                  onGoLiveTap: handleGoLiveTap,
+                  showGoLivePill: Platform.isAndroid,
+                ),
                 // _buildProfileRow(),
                 Expanded(
                   child: RefreshIndicator(
