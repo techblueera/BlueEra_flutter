@@ -51,7 +51,43 @@ class _OrderMainChatScreenState extends State<OrderMainChatScreen>
    final addSymbolController = getOrPut(() => AddChatSymbolController());
   final bottomBarController = getOrPut(() => BottomBarController());
 
+  /// Drives the collapsing search header. The Social/Community TabBar stays
+  /// pinned at the top; only the search row above it slides away on a
+  /// sustained scroll-down and returns on the first upward scroll —
+  /// mirroring the sticky-tabs behaviour on the "Me" screens.
+  bool _isSearchVisible = true;
+  double _scrollAccumulator = 0;
 
+  /// Px of sustained downward scroll before the search header hides.
+  static const double _hideThreshold = 40;
+
+  bool _onScrollNotification(ScrollNotification notification) {
+    // Vertical-only: horizontal carousels inside feed cards (and the
+    // horizontal TabBarView swipe) must not drive the header collapse.
+    if (notification.metrics.axis != Axis.vertical) return false;
+    if (notification is ScrollUpdateNotification) {
+      final delta = notification.scrollDelta ?? 0;
+      if (delta > 0) {
+        // Scrolling content up — accumulate, then hide once past threshold.
+        if (_isSearchVisible) {
+          _scrollAccumulator += delta;
+          if (_scrollAccumulator >= _hideThreshold) {
+            setState(() => _isSearchVisible = false);
+            _scrollAccumulator = 0;
+          }
+        }
+      } else if (delta < 0) {
+        // Any upward scroll instantly restores the search header.
+        _scrollAccumulator = 0;
+        if (!_isSearchVisible) {
+          setState(() => _isSearchVisible = true);
+        }
+      }
+    } else if (notification is ScrollEndNotification) {
+      _scrollAccumulator = 0;
+    }
+    return false;
+  }
 
   @override
   void initState() {
@@ -122,22 +158,38 @@ class _OrderMainChatScreenState extends State<OrderMainChatScreen>
         // ),
         body: SafeArea(
           child: BottomNavHideOnScroll(
-            child: Column(
+            child: NotificationListener<ScrollNotification>(
+              onNotification: _onScrollNotification,
+              child: Column(
               children: [
-                // Fixed search-bar header — kept outside the tab scrollables so
-                // it can't get "stuck" in a half-collapsed state when the inner
-                // ListView/CustomScrollView (each with its own ScrollController)
-                // fails to coordinate with NestedScrollView's outer position.
-                Container(
-                  color: Colors.white,
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 16, vertical: 12),
-                  child: _buildHeader(context),
+                // Collapsing search-bar header — kept outside the tab
+                // scrollables so it can't get "stuck" in a half-collapsed
+                // state. Hides on a sustained scroll-down and returns on the
+                // first upward scroll; the Social/Community TabBar below stays
+                // pinned at the top throughout.
+                AnimatedSize(
+                  duration: const Duration(milliseconds: 250),
+                  curve: Curves.easeInOut,
+                  alignment: Alignment.topCenter,
+                  child: _isSearchVisible
+                      ? Container(
+                          width: double.infinity,
+                          color: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 12),
+                          child: _buildHeader(context),
+                        )
+                      : const SizedBox(width: double.infinity),
                 ),
                 Container(
                   color: Colors.white,
                   child: TabBar(
                     onTap: (index) {
+                      // Reveal the search header again when switching tabs.
+                      if (!_isSearchVisible) {
+                        setState(() => _isSearchVisible = true);
+                        _scrollAccumulator = 0;
+                      }
                       if (widget.isNewGroupUI != null &&
                           widget.isNewGroupUI == true) {
                         if (chatViewController.selectedChatList.isNotEmpty) {
@@ -253,6 +305,7 @@ class _OrderMainChatScreenState extends State<OrderMainChatScreen>
                     })
                         : SizedBox()
               ],
+            ),
             ),
           ),
         ),
