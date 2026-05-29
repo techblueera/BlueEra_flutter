@@ -94,8 +94,9 @@ class _SelfProfessionServiceScreenState
         // with its body builder; we map them into numbered cards below.
         final sections = <_Section>[
           _Section(
-            title: 'Work Photos',
-            hasData: (service.photos?.length ?? 0) > 0,
+            title: AppStrings.workPhotos.tr,
+            actionLabel: AppStrings.add.tr,
+            actionIcon: Icons.add_a_photo_outlined,
             onEdit: (service.photos?.length ?? 0) >= _galleryMax
                 ? null
                 : () => _pickAndUploadGalleryPhoto(this.controller),
@@ -103,17 +104,11 @@ class _SelfProfessionServiceScreenState
             body: _galleryGrid(service.photos ?? []),
           ),
           _Section(
-            title: 'Working Hours',
-            hasData: service.schedule?.isNotEmpty ?? false,
+            title: AppStrings.workingHours.tr,
             onEdit: () => updateVisitingHours(),
-            // Empty vs. populated is handled inside the card itself,
-            // mirroring `_buildTimingsSection` on the consultant screen
-            // — so the section just hands over the schedule and the
-            // same edit action for the empty-state CTA.
-            body: AvailabilityScheduleCard(
-              schedule: service.schedule ?? const [],
-              onAdd: updateVisitingHours,
-            ),
+            body: (service.schedule == null || service.schedule!.isEmpty)
+                ? _placeholderHint(AppStrings.addWeeklyWorkingHoursHint.tr)
+                : AvailabilityScheduleCard(schedule: service.schedule!),
           ),
           _Section(
             title: AppStrings.price.tr,
@@ -136,8 +131,7 @@ class _SelfProfessionServiceScreenState
             }),
           ),
           _Section(
-            title: 'Service Type',
-            hasData: service.serviceType?.isNotEmpty ?? false,
+            title: AppStrings.serviceTypeLabel.tr,
             onEdit: () => updateServiceType(
               controller: this.controller,
               serviceType: service.serviceType ?? [],
@@ -145,12 +139,11 @@ class _SelfProfessionServiceScreenState
             ),
             body: _chipList(
               service.serviceType ?? const [],
-              emptyMessage: 'Pick the services you offer.',
+              emptyMessage: AppStrings.pickServicesYouOfferHint.tr,
             ),
           ),
           _Section(
-            title: 'Service Description',
-            hasData: service.description?.isNotEmpty ?? false,
+            title: AppStrings.serviceDescription.tr,
             onEdit: () => updateServiceDescription(
               controller: this.controller,
               desc: service.description ?? AppStrings.na,
@@ -160,8 +153,7 @@ class _SelfProfessionServiceScreenState
             body: _descriptionBody(service.description ?? ''),
           ),
           _Section(
-            title: 'Work Experience',
-            hasData: hasExperience,
+            title: AppStrings.workExperience.tr,
             onEdit: () => updateWorkExperience(
               controller: this.controller,
               years: years,
@@ -174,12 +166,11 @@ class _SelfProfessionServiceScreenState
             ),
           ),
           // Always render the optional list sections so the user can
-          // tap "Add" on each empty card and fill them in one by
+          // tap "Edit" on each empty card and fill them in one by
           // one. _chipList shows a friendly placeholder hint until
           // the section has data.
           _Section(
-            title: 'Services Offered',
-            hasData: service.serviceOffered?.isNotEmpty ?? false,
+            title: AppStrings.servicesOffered.tr,
             onEdit: () => updateServiceSelectionData(
               controller: this.controller,
               key: SelfWorkServiceController.keyServicesOffered,
@@ -188,12 +179,11 @@ class _SelfProfessionServiceScreenState
             ),
             body: _chipList(
               service.serviceOffered ?? const [],
-              emptyMessage: 'Pick the services you offer to customers.',
+              emptyMessage: AppStrings.pickServicesForCustomersHint.tr,
             ),
           ),
           _Section(
-            title: 'Expertise',
-            hasData: service.expertise?.isNotEmpty ?? false,
+            title: AppStrings.expertise.tr,
             onEdit: () => updateServiceSelectionData(
               controller: this.controller,
               key: SelfWorkServiceController.keyExpertise,
@@ -202,12 +192,11 @@ class _SelfProfessionServiceScreenState
             ),
             body: _chipList(
               service.expertise ?? const [],
-              emptyMessage: 'Add the skills you specialise in.',
+              emptyMessage: AppStrings.addSkillsHint.tr,
             ),
           ),
           _Section(
-            title: 'Types of Installations',
-            hasData: service.typesOfWork?.isNotEmpty ?? false,
+            title: AppStrings.typesOfInstallations.tr,
             onEdit: () => updateServiceSelectionData(
               controller: this.controller,
               key: SelfWorkServiceController.keyTypeOfWork,
@@ -216,13 +205,11 @@ class _SelfProfessionServiceScreenState
             ),
             body: _chipList(
               service.typesOfWork ?? const [],
-              emptyMessage:
-                  'List the kinds of installations you handle.',
+              emptyMessage: AppStrings.listInstallationsHint.tr,
             ),
           ),
           _Section(
-            title: 'Work Categories',
-            hasData: service.workCategories?.isNotEmpty ?? false,
+            title: AppStrings.workCategories.tr,
             onEdit: () => updateServiceSelectionData(
               controller: this.controller,
               key: SelfWorkServiceController.keyWorkCategories,
@@ -231,12 +218,11 @@ class _SelfProfessionServiceScreenState
             ),
             body: _chipList(
               service.workCategories ?? const [],
-              emptyMessage: 'Pick categories that match your work.',
+              emptyMessage: AppStrings.pickCategoriesHint.tr,
             ),
           ),
           _Section(
-            title: 'Why Choose Me',
-            hasData: service.whyChooseMe?.isNotEmpty ?? false,
+            title: AppStrings.whyChooseMe.tr,
             onEdit: () => updateServiceSelectionData(
               controller: this.controller,
               key: SelfWorkServiceController.keyWhyChooseMe,
@@ -245,8 +231,7 @@ class _SelfProfessionServiceScreenState
             ),
             body: _chipList(
               service.whyChooseMe ?? const [],
-              emptyMessage:
-                  'Tell customers what makes you the right choice.',
+              emptyMessage: AppStrings.tellCustomersChoiceHint.tr,
             ),
           ),
         ];
@@ -283,8 +268,9 @@ class _SelfProfessionServiceScreenState
     required String title,
     required Widget child,
     VoidCallback? onEdit,
+    String? actionLabel,
+    IconData? actionIcon,
     bool tight = false,
-    bool hasData = true,
   }) {
     return Container(
       margin: EdgeInsets.only(left: 20.0),
@@ -356,10 +342,8 @@ class _SelfProfessionServiceScreenState
                     if (onEdit != null)
                       _editChip(
                         onEdit,
-                        label: hasData ? 'Edit' : 'Add',
-                        icon: hasData
-                            ? Icons.edit_outlined
-                            : Icons.add_rounded,
+                        label: actionLabel ?? AppStrings.edit.tr,
+                        icon: actionIcon ?? Icons.edit_outlined,
                       ),
                   ],
                 ),
@@ -1058,17 +1042,13 @@ class _SelfProfessionServiceScreenState
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (sheetCtx) => Container(
+      builder: (_) => Container(
         decoration: BoxDecoration(
           color: AppColors.white,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
         ),
-        // Read viewInsets from the sheet's own context — the outer
-        // screen's MediaQuery doesn't update when the keyboard opens
-        // inside the modal, which is why the inputs were hiding behind
-        // the keyboard.
         padding: EdgeInsets.only(
-          bottom: MediaQuery.of(sheetCtx).viewInsets.bottom,
+          bottom: MediaQuery.of(context).viewInsets.bottom,
         ),
         child: SingleChildScrollView(
           padding: EdgeInsets.only(
@@ -1708,15 +1688,9 @@ class _SelfProfessionServiceScreenState
               radius: SizeConfig.size10,
               bgColor: AppColors.primaryColor,
               onTap: () {
-                final minFee =
-                    int.tryParse(controller.minFeeController.text.trim()) ?? 0;
-                final maxFee =
-                    int.tryParse(controller.maxFeeController.text.trim()) ?? 0;
                 final params = <String, dynamic>{
-                  ApiKeys.priceRange: {
-                    ApiKeys.min: minFee,
-                    ApiKeys.max: maxFee,
-                  },
+                  ApiKeys.minFee: controller.minFeeController.text.trim(),
+                  ApiKeys.maxFee: controller.maxFeeController.text.trim(),
                   ApiKeys.feeType: controller.feeTypeController.text.trim(),
                 };
                 controller.updateEarnServiceData(params: params);
@@ -1753,9 +1727,7 @@ class _SelfProfessionServiceScreenState
                 final payload = controller.payloadForWorkingHours();
                 logs("Working Hours: $payload");
                 controller.updateEarnServiceData(
-                  params: {
-                    ApiKeys.availability: {ApiKeys.schedule: payload},
-                  },
+                  params: {ApiKeys.schedule: payload},
                 );
               },
             );
@@ -1792,21 +1764,20 @@ class _Section {
   final String title;
   final Widget body;
   final VoidCallback? onEdit;
+  final String? actionLabel;
+  final IconData? actionIcon;
 
   /// When `true`, the section card collapses the gap between the
   /// header row and the body — used by the gallery so its photos
   /// sit right under the title without a stray strip of whitespace.
   final bool tight;
 
-  /// Drives the action-chip's label/icon: when `true` the chip reads
-  /// "Edit" (pencil); when `false` it reads "Add" (plus).
-  final bool hasData;
-
   const _Section({
     required this.title,
     required this.body,
     this.onEdit,
+    this.actionLabel,
+    this.actionIcon,
     this.tight = false,
-    this.hasData = true,
   });
 }

@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/rental/view/rental_services_dashboard_screen_v2.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -56,7 +57,7 @@ class RentalPropertyCard extends StatelessWidget {
                   Expanded(
                     child: _optionChip(
                       icon: Icons.sell_rounded,
-                      label: 'For Sale',
+                      label: AppStrings.forSale.tr,
                       accentColor: const Color(0xFF0086FF),
                       bgColor: const Color(0xFFEBF5FF),
                       onTap: () => Get.to(
@@ -67,7 +68,7 @@ class RentalPropertyCard extends StatelessWidget {
                   Expanded(
                     child: _optionChip(
                       icon: Icons.vpn_key_rounded,
-                      label: 'For Rent',
+                      label: AppStrings.forRent.tr,
                       accentColor: const Color(0xFF00B87A),
                       bgColor: const Color(0xFFE6FAF3),
                       onTap: () => Get.to(
@@ -128,14 +129,14 @@ class RentalPropertyCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CustomText(
-                    'Property Listing',
+                    AppStrings.propertyListingTitle.tr,
                     fontSize: 15,
                     fontWeight: FontWeight.w800,
                     color: AppColors.mainTextColor,
                   ),
                   const SizedBox(height: 2),
                   CustomText(
-                    'List your property for sale or rent',
+                    AppStrings.listPropertyHint.tr,
                     fontSize: 11.5,
                     fontWeight: FontWeight.w500,
                     color: AppColors.secondaryTextColor,

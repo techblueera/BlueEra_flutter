@@ -141,7 +141,7 @@ class ProfileBioCard extends StatelessWidget {
             ),
             const SizedBox(width: 4),
             CustomText(
-              hasBio ? 'Edit' : 'Add',
+              hasBio ? AppStrings.edit.tr : AppStrings.add.tr,
               fontSize: 11,
               fontWeight: FontWeight.w700,
               color: AppColors.primaryColor,
@@ -173,7 +173,7 @@ class ProfileBioCard extends StatelessWidget {
             SizedBox(width: SizeConfig.size6),
             Expanded(
               child: CustomText(
-                'Add a short bio so visitors know your story.',
+                AppStrings.addShortBioHint.tr,
                 fontSize: SizeConfig.small,
                 fontWeight: FontWeight.w500,
                 color: AppColors.secondaryTextColor,
@@ -391,7 +391,7 @@ class _BioEditSheetState extends State<_BioEditSheet> {
 
               CustomBtn(
                 radius: 10,
-                title: _isSaving ? null : AppStrings.update,
+                title: _isSaving ? null : AppStrings.update.tr,
                 isLoading: _isSaving,
                 onTap: _save,
                 isValidate: _isValid,

@@ -100,7 +100,7 @@ class _ServiceSelectionScreenState extends State<ServiceSelectionScreen> {
                 padding: EdgeInsets.symmetric(vertical: SizeConfig.size24),
                 child: Center(
                   child: CustomText(
-                    'No options available yet',
+                    AppStrings.noOptionsAvailableYet.tr,
                     color: AppColors.secondaryTextColor,
                   ),
                 ),
@@ -161,7 +161,7 @@ class _ServiceSelectionScreenState extends State<ServiceSelectionScreen> {
         children: [
           Expanded(
             child: Text(
-              'SELECTED',
+              AppStrings.selectedCountSuffix.tr.toUpperCase(),
               style: TextStyle(
                 fontFamily: AppConstants.OpenSans,
                 fontSize: 10,
@@ -340,7 +340,7 @@ class _ServiceSelectionScreenState extends State<ServiceSelectionScreen> {
                   size: 16, color: AppColors.primaryColor),
               SizedBox(width: SizeConfig.size8),
               CustomText(
-                'Add a custom option',
+                AppStrings.addCustomOption.tr,
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
                 color: AppColors.primaryColor,
@@ -363,8 +363,8 @@ class _ServiceSelectionScreenState extends State<ServiceSelectionScreen> {
         title: isLoading
             ? null
             : (selected > 0
-                ? '${AppStrings.update} · $selected selected'
-                : AppStrings.update),
+                ? '${AppStrings.update.tr} · $selected ${AppStrings.selectedCountSuffix.tr}'
+                : AppStrings.update.tr),
         isLoading: isLoading,
         onTap: _onUpdate,
       );
@@ -379,23 +379,23 @@ class _ServiceSelectionScreenState extends State<ServiceSelectionScreen> {
 
     final categoryConfig = {
       SelfWorkServiceController.keyServicesOffered: (
-        msg: 'Please select at least one Service Offered',
+        msg: AppStrings.pleaseSelectAtLeastOneServiceOffered.tr,
         apiKey: ApiKeys.servicesOffered,
       ),
       SelfWorkServiceController.keyTypeOfWork: (
-        msg: 'Please add Types of Installations',
+        msg: AppStrings.pleaseAddTypesOfInstallations.tr,
         apiKey: ApiKeys.typesOfWork,
       ),
       SelfWorkServiceController.keyExpertise: (
-        msg: 'Please add your Expertise',
+        msg: AppStrings.pleaseAddYourExpertise.tr,
         apiKey: ApiKeys.expertise,
       ),
       SelfWorkServiceController.keyWorkCategories: (
-        msg: 'Please select Work Categories',
+        msg: AppStrings.pleaseSelectWorkCategories.tr,
         apiKey: ApiKeys.workCategories,
       ),
       SelfWorkServiceController.keyWhyChooseMe: (
-        msg: 'Please add "Why Choose Me" points',
+        msg: AppStrings.pleaseAddWhyChooseMePoints.tr,
         apiKey: ApiKeys.whyChooseMe,
       ),
     };

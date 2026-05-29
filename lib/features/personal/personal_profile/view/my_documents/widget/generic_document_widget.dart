@@ -84,7 +84,7 @@ class GenericDocumentWidget extends StatelessWidget {
                   children: [
                     Expanded(
                       child: CommonImageUploadTile(
-                        title: AppStrings.upload,
+                        title: AppStrings.upload.tr,
                         imageFile: controller.genericDocumentsFrontImage,
                         context: context,
                         onImageSelected: () async {
@@ -104,7 +104,7 @@ class GenericDocumentWidget extends StatelessWidget {
                         SizedBox(width: SizeConfig.size8),
                         Expanded(
                           child: CommonImageUploadTile(
-                            title: AppStrings.upload,
+                            title: AppStrings.upload.tr,
                             imageFile: controller.genericDocumentsBackImage,
                             context: context,
                             onImageSelected: () async {
@@ -129,7 +129,7 @@ class GenericDocumentWidget extends StatelessWidget {
                 CustomBtn(
                   title: controller.isGenericDocumentLoading.value
                       ? null
-                      : AppStrings.upload,
+                      : AppStrings.upload.tr,
                   onTap: () => controller.genericDocumentApi(
                       documentType: documentType,
                       hasInput: textFieldLabel!=null,

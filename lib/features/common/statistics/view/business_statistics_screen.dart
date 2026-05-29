@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/statistics/controller/business_statistics_controller.dart';
@@ -64,7 +65,7 @@ class _BusinessStatisticsScreenState extends State<BusinessStatisticsScreen>
             padding: const EdgeInsets.symmetric(vertical: 80),
             child: _ErrorState(
               message: _controller.errorMessage.value ??
-                  'Unable to load statistics',
+                  AppStrings.unableToLoadStatistics.tr,
               onRetry: _controller.refresh,
             ),
           );
@@ -75,7 +76,7 @@ class _BusinessStatisticsScreenState extends State<BusinessStatisticsScreen>
           return Padding(
             padding: const EdgeInsets.symmetric(vertical: 80),
             child: _ErrorState(
-              message: 'No analytics data available',
+              message: AppStrings.noAnalyticsDataAvailable.tr,
               onRetry: _controller.refresh,
             ),
           );
@@ -125,8 +126,8 @@ class _StatisticsBody extends StatelessWidget {
           _RangeSelector(selected: range, onChanged: onRangeChanged),
           SizedBox(height: SizeConfig.paddingS),
           _StatCard(
-            title: 'Chat Count',
-            headlineLabel: '${range.label} average',
+            title: AppStrings.chatCount.tr,
+            headlineLabel: '${range.label} ${AppStrings.averageSuffix.tr}',
             headlineValue: _formatLakh(summary.totalClicks),
             asOfDate: lastClickedAt,
             asOfValue: clickPoints.isNotEmpty
@@ -139,8 +140,8 @@ class _StatisticsBody extends StatelessWidget {
           ),
           SizedBox(height: SizeConfig.paddingS),
           _StatCard(
-            title: 'Profile visits',
-            headlineLabel: '${range.label} average',
+            title: AppStrings.profileVisits.tr,
+            headlineLabel: '${range.label} ${AppStrings.averageSuffix.tr}',
             headlineValue: _formatLakh(summary.uniqueUsers),
             asOfDate: lastClickedAt,
             asOfValue: clickPoints.isNotEmpty
@@ -508,7 +509,7 @@ class _ChartEmptyState extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: CustomText(
-        'No data available',
+        AppStrings.noDataAvailable.tr,
         color: AppColors.grey6D,
         fontSize: SizeConfig.small,
       ),
@@ -548,7 +549,7 @@ class _ErrorState extends StatelessWidget {
           SizedBox(height: SizeConfig.paddingS),
           OutlinedButton(
             onPressed: onRetry,
-            child: const Text('Retry'),
+            child: Text(AppStrings.retry.tr),
           ),
         ],
       ),

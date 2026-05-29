@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
@@ -101,9 +102,9 @@ class _ParcelPickupDropScreenState extends State<ParcelPickupDropScreen> {
               TextField(
                 controller: nameTemp,
                 textCapitalization: TextCapitalization.words,
-                decoration: const InputDecoration(
-                  hintText: 'Receiver name',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  hintText: AppStrings.receiverName.tr,
+                  border: const OutlineInputBorder(),
                   isDense: true,
                 ),
               ),
@@ -112,10 +113,10 @@ class _ParcelPickupDropScreenState extends State<ParcelPickupDropScreen> {
                 controller: phoneTemp,
                 keyboardType: TextInputType.phone,
                 maxLength: 10,
-                decoration: const InputDecoration(
-                  hintText: '10-digit mobile number',
+                decoration: InputDecoration(
+                  hintText: AppStrings.tenDigitMobile.tr,
                   prefixText: '+91 ',
-                  border: OutlineInputBorder(),
+                  border: const OutlineInputBorder(),
                   isDense: true,
                   counterText: '',
                 ),
@@ -135,13 +136,13 @@ class _ParcelPickupDropScreenState extends State<ParcelPickupDropScreen> {
                   onPressed: () {
                     final phone = phoneTemp.text.trim();
                     if (nameTemp.text.trim().isEmpty) {
-                      commonSnackBar(message: 'Please enter a name');
+                      commonSnackBar(message: AppStrings.pleaseEnterAName.tr);
                       return;
                     }
                     if (phone.length != 10 ||
                         int.tryParse(phone) == null) {
                       commonSnackBar(
-                          message: 'Enter a valid 10-digit number');
+                          message: AppStrings.enterValidTenDigit.tr);
                       return;
                     }
                     setState(() {
@@ -150,9 +151,9 @@ class _ParcelPickupDropScreenState extends State<ParcelPickupDropScreen> {
                     });
                     Get.back();
                   },
-                  child: const Text(
-                    'Save',
-                    style: TextStyle(
+                  child: Text(
+                    AppStrings.save.tr,
+                    style: const TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 14,
                     ),
@@ -242,12 +243,12 @@ class _ParcelPickupDropScreenState extends State<ParcelPickupDropScreen> {
                           onEditPickupAddress: _editAddress,
                           onEditDropAddress: _editAddress,
                           onEditPickupContact: () => _editContact(
-                            title: 'Pickup contact',
+                            title: AppStrings.pickupContact.tr,
                             nameCtrl: _pickupNameCtrl,
                             phoneCtrl: _pickupPhoneCtrl,
                           ),
                           onEditDropContact: () => _editContact(
-                            title: 'Drop contact',
+                            title: AppStrings.dropContact.tr,
                             nameCtrl: _dropNameCtrl,
                             phoneCtrl: _dropPhoneCtrl,
                           ),
@@ -277,12 +278,11 @@ class _ParcelPickupDropScreenState extends State<ParcelPickupDropScreen> {
                                   fontSize: 13,
                                   color: AppColors.grayText,
                                 ),
-                                children: const [
+                                children: [
+                                  TextSpan(text: AppStrings.byContinuingAgreeTcs.tr),
                                   TextSpan(
-                                      text: 'By continuing, you agree to our '),
-                                  TextSpan(
-                                    text: 'T&Cs',
-                                    style: TextStyle(
+                                    text: AppStrings.tcsLink.tr,
+                                    style: const TextStyle(
                                       color: AppColors.primaryColor,
                                       fontWeight: FontWeight.w600,
                                     ),
@@ -305,7 +305,7 @@ class _ParcelPickupDropScreenState extends State<ParcelPickupDropScreen> {
                 if (!_canContinue) {
                   commonSnackBar(
                       message:
-                          'Add pickup, drop and contacts to continue');
+                          AppStrings.addPickupDropContactsToContinue.tr);
                   return;
                 }
                 Get.to(() => const BookTransportMain());
@@ -353,13 +353,13 @@ class _ParcelHeroBanner extends StatelessWidget {
                     color: AppColors.black, size: 22),
               ),
             ),
-            const Positioned(
+            Positioned(
               top: 18,
               left: 0,
               right: 0,
               child: Center(
                 child: CustomText(
-                  'Doorstep pickup and delivery',
+                  AppStrings.doorstepPickupDelivery.tr,
                   fontSize: 14,
                   color: AppColors.grayText,
                   fontWeight: FontWeight.w500,
@@ -530,9 +530,9 @@ class _AddressBlock extends StatelessWidget {
             _AddressCard(
               isPickup: true,
               showContact: showContacts,
-              title: 'Pickup from current location',
+              title: AppStrings.pickupFromCurrentLocation.tr,
               address: pickupAddress.isEmpty
-                  ? 'Tap to select pickup address'
+                  ? AppStrings.tapToSelectPickup.tr
                   : pickupAddress,
               contactName: pickupName,
               contactPhone: pickupPhone,
@@ -543,9 +543,9 @@ class _AddressBlock extends StatelessWidget {
             _AddressCard(
               isPickup: false,
               showContact: showContacts,
-              title: 'Drop to',
+              title: AppStrings.dropTo.tr,
               address: dropAddress.isEmpty
-                  ? 'Tap to select drop address'
+                  ? AppStrings.tapToSelectDrop.tr
                   : dropAddress,
               contactName: dropName,
               contactPhone: dropPhone,
@@ -662,8 +662,8 @@ class _AddressCard extends StatelessWidget {
                           )
                         : CustomText(
                             isPickup
-                                ? '+ Add sender contact'
-                                : '+ Add receiver contact',
+                                ? AppStrings.addSenderContact.tr
+                                : AppStrings.addReceiverContact.tr,
                             fontSize: 13,
                             color: AppColors.primaryColor,
                             fontWeight: FontWeight.w600,
@@ -766,12 +766,12 @@ class _SwapPill extends StatelessWidget {
                 horizontal: 14, vertical: 8),
             child: Row(
               mainAxisSize: MainAxisSize.min,
-              children: const [
-                Icon(Icons.swap_vert,
+              children: [
+                const Icon(Icons.swap_vert,
                     size: 18, color: AppColors.black),
-                SizedBox(width: 4),
+                const SizedBox(width: 4),
                 CustomText(
-                  'Switch',
+                  AppStrings.switchLabel.tr,
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
                   color: AppColors.black,
@@ -834,8 +834,8 @@ class _TrustedContactsButton extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const CustomText(
-                    'Add Emergency Contacts',
+                  CustomText(
+                    AppStrings.addEmergencyContacts.tr,
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
                     color: AppColors.black,
@@ -843,8 +843,8 @@ class _TrustedContactsButton extends StatelessWidget {
                   const SizedBox(height: 2),
                   CustomText(
                     hasAny
-                        ? '${contacts.length}/$kMaxTrustedContacts trusted contacts'
-                        : 'Pick up to $kMaxTrustedContacts people we can reach if needed',
+                        ? '${contacts.length}/$kMaxTrustedContacts ${AppStrings.trustedContactsSuffix.tr}'
+                        : AppStrings.pickUpToPeopleHint.tr.replaceAll('{N}', '$kMaxTrustedContacts'),
                     fontSize: 12,
                     color: AppColors.grayText,
                   ),
@@ -891,9 +891,9 @@ class _ContinueBar extends StatelessWidget {
               borderRadius: BorderRadius.circular(28),
             ),
           ),
-          child: const Text(
-            'Continue',
-            style: TextStyle(
+          child: Text(
+            AppStrings.continueLabel.tr,
+            style: const TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w700,
             ),

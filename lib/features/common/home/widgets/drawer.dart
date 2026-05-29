@@ -115,12 +115,12 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
   /// at a glance ("BUSINESS", "PROFESSIONAL", etc.) and falls back to
   /// "MEMBER" when no profile-type signal is available.
   String _accountTypeLabel() {
-    if (accountTypeGlobal == "BUSINESS") return 'BUSINESS';
-    if (userProfileTypeGlobal == SOCIAL_PROFILE) return 'SOCIAL';
-    if (userProfileTypeGlobal == PROFESSIONAL) return 'PROFESSIONAL';
-    if (userProfileTypeGlobal == SELF_EMPLOYED) return 'SELF EMPLOYED';
-    if (userProfileTypeGlobal == GIG_WORKER) return 'GIG WORKER';
-    return 'MEMBER';
+    if (accountTypeGlobal == "BUSINESS") return AppStrings.accountTypeBusiness.tr;
+    if (userProfileTypeGlobal == SOCIAL_PROFILE) return AppStrings.accountTypeSocial.tr;
+    if (userProfileTypeGlobal == PROFESSIONAL) return AppStrings.accountTypeProfessional.tr;
+    if (userProfileTypeGlobal == SELF_EMPLOYED) return AppStrings.accountTypeSelfEmployed.tr;
+    if (userProfileTypeGlobal == GIG_WORKER) return AppStrings.accountTypeGigWorker.tr;
+    return AppStrings.accountTypeMember.tr;
   }
 
   @override
@@ -330,7 +330,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
                         ),
                         const SizedBox(height: 8),
                         CustomText(
-                          name.isNotEmpty ? name : 'BlueEra Member',
+                          name.isNotEmpty ? name : AppStrings.blueEraMember.tr,
                           fontSize: 18,
                           fontWeight: FontWeight.w800,
                           color: Colors.white,
@@ -339,7 +339,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
                         ),
                         const SizedBox(height: 2),
                         CustomText(
-                          designation.isNotEmpty ? designation : 'Tap to view profile',
+                          designation.isNotEmpty ? designation : AppStrings.tapToViewProfile.tr,
                           fontSize: 11,
                           fontWeight: FontWeight.w500,
                           color: Colors.white.withValues(alpha: 0.78),
@@ -437,7 +437,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       CustomText(
-                        AppStrings.wallet.toUpperCase(),
+                        AppStrings.wallet.tr.toUpperCase(),
                         fontSize: 10,
                         fontWeight: FontWeight.w700,
                         color: AppColors.secondaryTextColor,
@@ -464,7 +464,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
                           ),
                           const SizedBox(width: 6),
                           CustomText(
-                            'available',
+                            AppStrings.availableLabel.tr,
                             fontSize: 11,
                             fontWeight: FontWeight.w500,
                             color: AppColors.secondaryTextColor,
@@ -505,7 +505,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
     final isNotSocial = userProfileTypeGlobal != SOCIAL_PROFILE;
 
     final sections = <_DrawerSection>[
-      _DrawerSection('ACCOUNT', [
+      _DrawerSection(AppStrings.accountSectionLabel.tr, [
         _DrawerItem(
           icon: Icons.school_outlined,
           color: _indigo,
@@ -515,13 +515,13 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
         _DrawerItem(
           icon: Icons.bookmark_outline_rounded,
           color: _amber,
-          title: AppStrings.saved,
+          title: AppStrings.saved.tr,
           onTap: () {
             Get.to(() => SavedFeedScreen(selectedTab: SavedFeedTab.posts, headerHeight: SizeConfig.size30));
           },
         ),
       ]),
-      _DrawerSection('EARNINGS', [
+      _DrawerSection(AppStrings.earningsSectionLabel.tr, [
         _DrawerItem(
           icon: Icons.share_outlined,
           color: _violet,
@@ -552,7 +552,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
             },
           ),
       ]),
-      _DrawerSection('MEMBERSHIP', [
+      _DrawerSection(AppStrings.membershipSectionLabel.tr, [
         if (isNotSocial)
           _DrawerItem(
             icon: Icons.workspace_premium_rounded,
@@ -567,7 +567,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
           onTap: () => Get.to(() => PaymentSettingScreen()),
         ),
       ]),
-      _DrawerSection('WORKSPACE', [
+      _DrawerSection(AppStrings.workspaceSectionLabel.tr, [
         _DrawerItem(
           icon: Icons.podcasts_rounded,
           color: _blue,
@@ -610,7 +610,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
           onTap: () => Get.to(() => FranchiseInquiryScreen()),
         ),
       ]),
-      _DrawerSection('SETTINGS', [
+      _DrawerSection(AppStrings.settingsSectionLabel.tr, [
         _DrawerItem(
           icon: Icons.settings_outlined,
           color: _slate,
@@ -729,7 +729,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
                     const Icon(Icons.logout_rounded, size: 17, color: Color(0xFFE11D48)),
                     const SizedBox(width: 8),
                     CustomText(
-                      AppStrings.logout,
+                      AppStrings.logout.tr,
                       fontSize: 14,
                       fontWeight: FontWeight.w800,
                       color: const Color(0xFFE11D48),
@@ -743,31 +743,31 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
           const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: const [
+            children: [
               CustomText(
-                'Terms',
+                AppStrings.termsLabel.tr,
                 fontSize: 10,
                 fontWeight: FontWeight.w600,
                 color: AppColors.secondaryTextColor,
               ),
-              CustomText(
+              const CustomText(
                 '  ·  ',
                 fontSize: 10,
                 color: AppColors.secondaryTextColor,
               ),
               CustomText(
-                'Privacy',
+                AppStrings.privacyLabel.tr,
                 fontSize: 10,
                 fontWeight: FontWeight.w600,
                 color: AppColors.secondaryTextColor,
               ),
-              CustomText(
+              const CustomText(
                 '  ·  ',
                 fontSize: 10,
                 color: AppColors.secondaryTextColor,
               ),
               CustomText(
-                'Policies',
+                AppStrings.policiesLabel.tr,
                 fontSize: 10,
                 fontWeight: FontWeight.w700,
                 color: AppColors.primaryColor,
@@ -811,22 +811,22 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
           const SizedBox(height: 12),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: const [
-              CustomText(
+            children: [
+              const CustomText(
                 'v 1.0.1',
                 fontSize: 10,
                 color: AppColors.secondaryTextColor,
                 fontWeight: FontWeight.w500,
               ),
-              SizedBox(width: 6),
-              CustomText(
+              const SizedBox(width: 6),
+              const CustomText(
                 '·',
                 fontSize: 10,
                 color: AppColors.secondaryTextColor,
               ),
-              SizedBox(width: 6),
+              const SizedBox(width: 6),
               CustomText(
-                'Made in India',
+                AppStrings.madeInIndia.tr,
                 fontSize: 10,
                 fontWeight: FontWeight.w500,
                 color: AppColors.secondaryTextColor,

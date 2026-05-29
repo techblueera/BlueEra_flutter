@@ -115,7 +115,7 @@ class _LocationTile extends StatelessWidget {
           // shape as the bio/QR cards' headers.
           Row(
             children: [
-              Expanded(child: _eyebrow('LOCATION')),
+              Expanded(child: _eyebrow(AppStrings.locationLabel.tr.toUpperCase())),
               _actionChip(),
             ],
           ),
@@ -131,7 +131,7 @@ class _LocationTile extends StatelessWidget {
                   key: ValueKey('loc-card-$lat-$lon'),
                   latitude: lat,
                   longitude: lon,
-                  businessName: displayName.isEmpty ? 'You' : displayName,
+                  businessName: displayName.isEmpty ? AppStrings.youLabel.tr : displayName,
                 ),
               ),
             ),
@@ -152,7 +152,7 @@ class _LocationTile extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        _eyebrow('ADDRESS'),
+        _eyebrow(AppStrings.addressLabel.tr.toUpperCase()),
         SizedBox(height: SizeConfig.size6),
         CustomText(
           address,
@@ -167,7 +167,7 @@ class _LocationTile extends StatelessWidget {
             color: const Color(0xFFEDEFF4),
           ),
           SizedBox(height: SizeConfig.size12),
-          _eyebrow('COORDS'),
+          _eyebrow(AppStrings.coordsLabel.tr.toUpperCase()),
           SizedBox(height: SizeConfig.size6),
           Text(
             _formatCoords(lat, lon),
@@ -225,14 +225,14 @@ class _LocationTile extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   CustomText(
-                    'Pin your location',
+                    AppStrings.pinYourLocation.tr,
                     fontSize: 13,
                     fontWeight: FontWeight.w800,
                     color: AppColors.primaryColor,
                   ),
                   const SizedBox(height: 2),
                   CustomText(
-                    'Add your address so visitors can find you on the map.',
+                    AppStrings.addAddressHint.tr,
                     fontSize: 11,
                     fontWeight: FontWeight.w500,
                     color: AppColors.secondaryTextColor,
@@ -291,7 +291,7 @@ class _LocationTile extends StatelessWidget {
             ),
             const SizedBox(width: 4),
             CustomText(
-              hasAny ? 'Edit' : 'Add',
+              hasAny ? AppStrings.edit.tr : AppStrings.add.tr,
               fontSize: 11,
               fontWeight: FontWeight.w700,
               color: AppColors.primaryColor,
@@ -376,7 +376,7 @@ class _LocationEditSheetState extends State<_LocationEditSheet> {
   Future<void> _save() async {
     final address = _addressController.text.trim();
     if (address.isEmpty) {
-      commonSnackBar(message: 'Please add your address');
+      commonSnackBar(message: AppStrings.pleaseAddYourAddress.tr);
       return;
     }
     setState(() => _isSaving = true);
@@ -437,7 +437,7 @@ class _LocationEditSheetState extends State<_LocationEditSheet> {
             // 01 — quick-fill via geolocation
             _Section(
               index: 1,
-              label: 'USE MY LOCATION',
+              label: AppStrings.useMyLocationLabel.tr.toUpperCase(),
               child: _useCurrentTile(),
             ),
             SizedBox(height: SizeConfig.size18),
@@ -445,10 +445,10 @@ class _LocationEditSheetState extends State<_LocationEditSheet> {
             // 02 — type-and-pick via autocomplete
             _Section(
               index: 2,
-              label: 'OR SEARCH AN ADDRESS',
+              label: AppStrings.orSearchAnAddressLabel.tr.toUpperCase(),
               child: CommonLocationSearchField(
                 controller: _addressController,
-                hintText: 'E.g. Ranchi, Jharkhand…',
+                hintText: AppStrings.egRanchiJharkhand.tr,
                 isShowLeading: false,
                 title: '',
                 onSelected: _onPlaceSelected,
@@ -459,7 +459,7 @@ class _LocationEditSheetState extends State<_LocationEditSheet> {
             // 03 — live preview confirms what'll be saved
             _Section(
               index: 3,
-              label: 'PREVIEW',
+              label: AppStrings.previewLabel.tr.toUpperCase(),
               child: hasMap
                   ? ClipRRect(
                       borderRadius: BorderRadius.circular(12),
@@ -468,7 +468,7 @@ class _LocationEditSheetState extends State<_LocationEditSheet> {
                         latitude: _lat,
                         longitude: _lon,
                         businessName:
-                            displayName.isEmpty ? 'You' : displayName,
+                            displayName.isEmpty ? AppStrings.youLabel.tr : displayName,
                       ),
                     )
                   : _previewPlaceholder(),
@@ -477,7 +477,7 @@ class _LocationEditSheetState extends State<_LocationEditSheet> {
             SizedBox(height: SizeConfig.paddingL),
             CustomBtn(
               radius: 10,
-              title: _isSaving ? null : AppStrings.update,
+              title: _isSaving ? null : AppStrings.update.tr,
               isLoading: _isSaving,
               onTap: _save,
               isValidate: isValid,
@@ -508,7 +508,7 @@ class _LocationEditSheetState extends State<_LocationEditSheet> {
       children: [
         Expanded(
           child: Text(
-            'YOUR LOCATION',
+            AppStrings.yourLocationLabel.tr.toUpperCase(),
             style: TextStyle(
               fontFamily: AppConstants.OpenSans,
               fontSize: 12,
@@ -600,7 +600,7 @@ class _LocationEditSheetState extends State<_LocationEditSheet> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     CustomText(
-                      fetching ? 'Pinning you on the map…' : 'Detect automatically',
+                      fetching ? AppStrings.pinningYouOnMap.tr : AppStrings.detectAutomatically.tr,
                       fontSize: 14,
                       fontWeight: FontWeight.w800,
                       color: AppColors.mainTextColor,
@@ -608,8 +608,8 @@ class _LocationEditSheetState extends State<_LocationEditSheet> {
                     const SizedBox(height: 2),
                     CustomText(
                       fetching
-                          ? 'Reading your GPS — give it a second.'
-                          : 'Pulls your current GPS + address in one tap.',
+                          ? AppStrings.readingYourGps.tr
+                          : AppStrings.pullsCurrentGpsAddress.tr,
                       fontSize: 11,
                       fontWeight: FontWeight.w500,
                       color: AppColors.secondaryTextColor,
@@ -645,7 +645,7 @@ class _LocationEditSheetState extends State<_LocationEditSheet> {
               size: 22, color: AppColors.secondaryTextColor),
           SizedBox(height: SizeConfig.size6),
           CustomText(
-            'Pick a location to preview the map',
+            AppStrings.pickLocationToPreview.tr,
             fontSize: 11,
             fontWeight: FontWeight.w500,
             color: AppColors.secondaryTextColor,

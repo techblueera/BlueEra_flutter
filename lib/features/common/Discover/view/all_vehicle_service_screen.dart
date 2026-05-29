@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/Discover/view/vehicle/vehicle_detail_screen.dart';
@@ -124,7 +125,7 @@ class _AllVehicleServiceScreenState extends State<AllVehicleServiceScreen> {
     final statusBarHeight = MediaQuery.of(context).padding.top;
     final stickyCategories = [
       StickyCategory(
-          id: 'ALL_OPTION', name: 'All', imageUrl: AppImageAssets.all),
+          id: 'ALL_OPTION', name: AppStrings.all.tr, imageUrl: AppImageAssets.all),
       ..._automotiveCategories.map((c) => StickyCategory(
             id: c.slugId,
             name: c.name,
@@ -216,9 +217,8 @@ class _AllVehicleServiceScreenState extends State<AllVehicleServiceScreen> {
               vertical: SizeConfig.size40,
             ),
             child: _NoVehiclesFound(
-              title: 'No vehicles found',
-              subtitle:
-                  "We couldn't find any vehicles in this category. Try another category or check back later.",
+              title: AppStrings.noVehiclesFound.tr,
+              subtitle: AppStrings.noVehiclesFoundSubtitle.tr,
               onRetry: _fetch,
             ),
           ),
@@ -352,7 +352,7 @@ class _NoVehiclesFound extends StatelessWidget {
                       color: AppColors.white, size: SizeConfig.size18),
                   SizedBox(width: SizeConfig.size6),
                   CustomText(
-                    'Retry',
+                    AppStrings.retry.tr,
                     fontSize: SizeConfig.small,
                     fontWeight: FontWeight.w600,
                     color: AppColors.white,

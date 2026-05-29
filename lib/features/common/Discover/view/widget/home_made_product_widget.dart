@@ -98,7 +98,7 @@ class HomeMadeProductWidget extends StatelessWidget {
                                   vertical: 4.0,
                                 ),
                                 child: CustomText(
-                                  categoryItem.slugId == SERVICE ? 'Trusted' : 'Local',
+                                  categoryItem.slugId == SERVICE ? AppStrings.trustedLabel.tr : AppStrings.localLabel.tr,
                                   fontSize: 12.0,
                                   fontWeight: FontWeight.w400,
                                   color: AppColors.green7A,

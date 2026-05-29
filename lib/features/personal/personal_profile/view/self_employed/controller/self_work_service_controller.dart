@@ -117,11 +117,11 @@ class SelfWorkServiceController extends GetxController{
   };
 
   Map<String, String> get categoryTitleMap => {
-    keyServicesOffered: "Service Offered",
-    keyTypeOfWork: "Types of Installations",
-    keyExpertise: "Expertise",
-    keyWorkCategories: "Work Categories",
-    keyWhyChooseMe: "Why Choose Me",
+    keyServicesOffered: AppStrings.servicesOffered.tr,
+    keyTypeOfWork: AppStrings.typesOfInstallations.tr,
+    keyExpertise: AppStrings.expertise.tr,
+    keyWorkCategories: AppStrings.workCategories.tr,
+    keyWhyChooseMe: AppStrings.whyChooseMe.tr,
   };
 
   void updateSelection(String key, List<String> newItems) {
@@ -277,43 +277,43 @@ class SelfWorkServiceController extends GetxController{
 
     // 2. Validate Dropdowns & Single Selections
     if (selectedExperienceYear.value == null) {
-      commonSnackBar(message: 'Please select experience (Years)');
+      commonSnackBar(message: AppStrings.pleaseSelectExperienceYears.tr);
       return;
     }
 
     if (selectedExperienceMonth.value == null) {
-      commonSnackBar(message: 'Please select experience (Months)');
+      commonSnackBar(message: AppStrings.pleaseSelectExperienceMonths.tr);
       return;
     }
 
     if (selectedServiceTypes.isEmpty) {
-      commonSnackBar(message: 'Please select a service type');
+      commonSnackBar(message: AppStrings.pleaseSelectServiceType.tr);
       return;
     }
 
    // 3. Validate Multi-Selection Lists
     if (selectedServices.isEmpty) {
-      commonSnackBar(message: 'Please select at least one Service Offered');
+      commonSnackBar(message: AppStrings.pleaseSelectAtLeastOneServiceOffered.tr);
       return;
     }
 
     if (selectedInstallations.isEmpty) {
-      commonSnackBar(message: 'Please add Types of Installations');
+      commonSnackBar(message: AppStrings.pleaseAddTypesOfInstallations.tr);
       return;
     }
 
     if (selectedExpertise.isEmpty) {
-      commonSnackBar(message: 'Please add your Expertise');
+      commonSnackBar(message: AppStrings.pleaseAddYourExpertise.tr);
       return;
     }
 
     if (selectedWorkCategories.isEmpty) {
-      commonSnackBar(message: 'Please select Work Categories');
+      commonSnackBar(message: AppStrings.pleaseSelectWorkCategories.tr);
       return;
     }
 
     if (selectedWhyChooseMe.isEmpty) {
-      commonSnackBar(message: 'Please add "Why Choose Me" points');
+      commonSnackBar(message: AppStrings.pleaseAddWhyChooseMePoints.tr);
       return;
     }
 
@@ -793,7 +793,7 @@ class SelfWorkServiceController extends GetxController{
         fetchSelfProfessionData(isLoading: false);
       } else {
         commonSnackBar(
-            message: responseModel.message ?? AppStrings.somethingWentWrong);
+            message: responseModel.message ?? AppStrings.somethingWentWrong.tr);
       }
     } catch (e) {
     }
@@ -808,7 +808,7 @@ class SelfWorkServiceController extends GetxController{
         fetchSelfProfessionData(isLoading: false);
       } else {
         commonSnackBar(
-            message: responseModel.message ?? AppStrings.somethingWentWrong);
+            message: responseModel.message ?? AppStrings.somethingWentWrong.tr);
       }
     } catch (e) {
     }

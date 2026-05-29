@@ -68,7 +68,7 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
     final statusBarHeight = MediaQuery.of(context).padding.top;
     final stickyCategories = [
       StickyCategory(
-          id: 'ALL_OPTION', name: 'All', imageUrl: AppImageAssets.all),
+          id: 'ALL_OPTION', name: AppStrings.all.tr, imageUrl: AppImageAssets.all),
       ..._professionalConsultantCategories.map((c) => StickyCategory(
             id: c.slugId,
             name: c.name,
@@ -162,9 +162,8 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
               vertical: SizeConfig.size40,
             ),
             child: _NoSchoolsFound(
-              title: 'No schools found',
-              subtitle:
-                  'We couldn\'t find any schools or education services in this area. Try another category or change your location.',
+              title: AppStrings.noSchoolsFound.tr,
+              subtitle: AppStrings.noSchoolsFoundSubtitle.tr,
               onRetry: () => controller_.fetchEducationServiceServices(),
             ),
           ),
@@ -256,7 +255,7 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
             if (service.galleryPhotos?.isNotEmpty == true) ...[
               StoreLivePhotoWidget(
                 livePhotos: service.galleryPhotos!,
-                natureOfBusiness: service.type ?? 'Education',
+                natureOfBusiness: service.type ?? AppStrings.education.tr,
                 height: 200,
                 onViewFullScreen: ({
                   required int index,
@@ -267,7 +266,7 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
                     context,
                     ImageViewScreen(
                       subTitle: natureOfBusiness,
-                      appBarTitle: AppStrings.imageViewer,
+                      appBarTitle: AppStrings.imageViewer.tr,
                       imageUrls: storeImage,
                       initialIndex: index,
                     ),
@@ -282,8 +281,8 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
                   onTap: () => navigatePushTo(
                     context,
                     ImageViewScreen(
-                      subTitle: service.type ?? 'Education',
-                      appBarTitle: AppStrings.imageViewer,
+                      subTitle: service.type ?? AppStrings.education.tr,
+                      appBarTitle: AppStrings.imageViewer.tr,
                       imageUrls: [service.bannerUrl!],
                       initialIndex: 0,
                     ),
@@ -314,8 +313,8 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
                   onTap: () => navigatePushTo(
                     context,
                     ImageViewScreen(
-                      subTitle: service.type ?? 'Education',
-                      appBarTitle: AppStrings.imageViewer,
+                      subTitle: service.type ?? AppStrings.education.tr,
+                      appBarTitle: AppStrings.imageViewer.tr,
                       imageUrls: [service.logo!],
                       initialIndex: 0,
                     ),
@@ -491,7 +490,7 @@ class _NoSchoolsFound extends StatelessWidget {
                       size: SizeConfig.size18),
                   SizedBox(width: SizeConfig.size6),
                   CustomText(
-                    'Retry',
+                    AppStrings.retry.tr,
                     fontSize: SizeConfig.small,
                     fontWeight: FontWeight.w600,
                     color: AppColors.white,
