@@ -4,6 +4,7 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
@@ -22,6 +23,7 @@ import 'package:BlueEra/features/personal/personal_profile/widgets/profile_top_b
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/refer_earn_pill.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get_utils/src/extensions/internacionalization.dart';
 
 /// School "me" profile home (v2) — redesigned to mirror the layout used
 /// by `HospitalHomeScreenV2` while preserving every action surfaced by
@@ -41,14 +43,14 @@ class _SchoolHomeScreenV2State extends State<SchoolHomeScreenV2> {
 
   bool _isGoLive = false;
   int _selectedTab = 0;
-
-  static const _tabs = [
-    'Inquiry',
-    'Overview',
-    'Academics',
-    'Posts',
-    'Stats',
+  List<String> get _tabs => [
+    AppStrings.inquiry.tr,
+    AppStrings.overview.tr,
+    AppStrings.academics.tr,
+    AppStrings.posts.tr,
+    AppStrings.stats.tr,
   ];
+
 
   // Drives the inquiry list shown under the Inquiry tab — same controller
   // the Connect screen uses, so socket-driven updates land on both.
@@ -95,12 +97,8 @@ class _SchoolHomeScreenV2State extends State<SchoolHomeScreenV2> {
             _buildPatternBackground(),
             Column(
               children: [
-           /*     _buildTopBar(),
-                flexibleSpace: */ProfileTopBar(
-                  onGoLiveTap: handleGoLiveTap,
-                  showGoLivePill: Platform.isAndroid,
-                ),
-                // _buildProfileRow(),
+                _buildTopBar(),
+
                 Expanded(
                   child: RefreshIndicator(
                     onRefresh: _schoolController.getSchoolByIdController,
@@ -156,7 +154,6 @@ class _SchoolHomeScreenV2State extends State<SchoolHomeScreenV2> {
       ),
     );
   }
-/*
   Widget _buildTopBar() {
     final topInset = MediaQuery.of(context).padding.top;
     return Container(
@@ -276,7 +273,7 @@ class _SchoolHomeScreenV2State extends State<SchoolHomeScreenV2> {
         ),
       ),
     );
-  }*/
+  }
 
 
 

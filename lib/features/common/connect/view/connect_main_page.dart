@@ -75,12 +75,13 @@ class _ConnectMainPageState extends State<ConnectMainPage>
     AppIconAssets.orderBookingIcon,
     AppIconAssets.call,
   ];
-  final List<String> postTab = [
-    AppStrings.chat,
-    "Inquiry",
-    "Orders",
-    "Call",
+  List<String> get postTab => [
+    AppStrings.inquiry.tr,
+    AppStrings.orders.tr,
+    AppStrings.call.tr,
+
   ];
+
   int selectedIndex = 0;
   int selectedSubIndex = 0;
   final TextEditingController searchController = TextEditingController();

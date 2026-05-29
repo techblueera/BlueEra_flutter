@@ -92,13 +92,14 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2> {
 
   bool _productsFetched = false;
 
-  static const _tabs = [
-    'Inquiry',
-    'Order',
-    'Overview',
-    'Products',
-    'Post',
-    'Statics'
+
+  List<String>  _tabs = [
+    AppStrings.inquiry.tr,
+    AppStrings.orders.tr,
+    AppStrings.overview.tr,
+    AppStrings.products.tr,
+    AppStrings.posts.tr,
+    AppStrings.stats.tr,
   ];
 
   @override

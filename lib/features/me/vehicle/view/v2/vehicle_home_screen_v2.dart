@@ -6,6 +6,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
@@ -57,14 +58,14 @@ class _VehicleHomeScreenV2State extends State<VehicleHomeScreenV2> {
   bool _isGoLive = false;
   int _selectedTab = 1; // default to Overview, like professionals_main
 
-  static const _tabs = [
-    'Inquiry',
-    'Overview',
-    'Vehicles',
-    'Posts',
-    'Stats',
-  ];
 
+  List<String>  _tabs = [
+    AppStrings.inquiry.tr,
+    AppStrings.overview.tr,
+    AppStrings.vehicle.tr,
+    AppStrings.posts.tr,
+    AppStrings.stats.tr,
+  ];
   @override
   void initState() {
     super.initState();

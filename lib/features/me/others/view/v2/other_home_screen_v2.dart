@@ -101,12 +101,8 @@ class _OtherHomeScreenV2State extends State<OtherHomeScreenV2> {
             _buildPatternBackground(),
             Column(
               children: [
-                // _buildTopBar(),
-                ProfileTopBar(
-                  onGoLiveTap: handleGoLiveTap,
-                  showGoLivePill: Platform.isAndroid,
-                ),
-                // _buildProfileRow(),
+                _buildTopBar(),
+
                 Expanded(
                   child: RefreshIndicator(
                     onRefresh: _otherController.getBusinessProfileFull,
