@@ -1,4 +1,5 @@
 import 'dart:developer';
+
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -10,10 +11,10 @@ import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/add_self_work_service_screen.dart';
 import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/widget/availability_schedule_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/controller/self_work_service_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/add_self_work_service_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/service_selection_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/widget/working_hours_editor.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
@@ -31,12 +32,10 @@ class SelfProfessionServiceScreen extends StatefulWidget {
   const SelfProfessionServiceScreen({Key? key}) : super(key: key);
 
   @override
-  State<SelfProfessionServiceScreen> createState() =>
-      _SelfProfessionServiceScreenState();
+  State<SelfProfessionServiceScreen> createState() => _SelfProfessionServiceScreenState();
 }
 
-class _SelfProfessionServiceScreenState
-    extends State<SelfProfessionServiceScreen> {
+class _SelfProfessionServiceScreenState extends State<SelfProfessionServiceScreen> {
   final controller = getOrPut(() => SelfWorkServiceController());
 
   @override
@@ -58,8 +57,7 @@ class _SelfProfessionServiceScreenState
       if (this.controller.isProfessionDataLoading.value) {
         return Padding(
           padding: EdgeInsets.symmetric(vertical: SizeConfig.size40),
-          child: Center(
-              child: CircularProgressIndicator(color: AppColors.primaryColor)),
+          child: Center(child: CircularProgressIndicator(color: AppColors.primaryColor)),
         );
       }
 
@@ -69,192 +67,190 @@ class _SelfProfessionServiceScreenState
         return _buildEmptyProfile(userProfessionGlobal);
       }
 
-        // 3. Success State — editorial spec-sheet layout. Each section
-        //    is a numbered card with an inline "Edit" affordance and a
-        //    primary-colored vertical accent bar that ties the rhythm
-        //    together with the rest of the v2 dashboard. List items
-        //    render as compact chips instead of bullet rows so dense
-        //    profiles read at a glance.
-        this.controller.serviceId = service.sId;
+      // 3. Success State — editorial spec-sheet layout. Each section
+      //    is a numbered card with an inline "Edit" affordance and a
+      //    primary-colored vertical accent bar that ties the rhythm
+      //    together with the rest of the v2 dashboard. List items
+      //    render as compact chips instead of bullet rows so dense
+      //    profiles read at a glance.
+      this.controller.serviceId = service.sId;
 
-        // Compute experience once so the heading and tile share state.
-        int years = 0;
-        int months = 0;
-        bool hasExperience = false;
-        final startDate = service.experienceStartDate;
-        if (startDate != null && startDate.isNotEmpty) {
-          final expData = calculateExperience(startDate);
-          years = expData['years'] ?? 0;
-          months = expData['months'] ?? 0;
-          hasExperience = true;
-        }
+      // Compute experience once so the heading and tile share state.
+      int years = 0;
+      int months = 0;
+      bool hasExperience = false;
+      final startDate = service.experienceStartDate;
+      if (startDate != null && startDate.isNotEmpty) {
+        final expData = calculateExperience(startDate);
+        years = expData['years'] ?? 0;
+        months = expData['months'] ?? 0;
+        hasExperience = true;
+      }
 
-        // Build the section list dynamically so optional groups don't
-        // leave numbering gaps. Each entry pairs an upper-cased label
-        // with its body builder; we map them into numbered cards below.
-        final sections = <_Section>[
-          _Section(
-            title: AppStrings.workPhotos.tr,
-            actionLabel: AppStrings.add.tr,
-            actionIcon: Icons.add_a_photo_outlined,
-            onEdit: (service.photos?.length ?? 0) >= _galleryMax
-                ? null
-                : () => _pickAndUploadGalleryPhoto(this.controller),
-            tight: true,
-            body: _galleryGrid(service.photos ?? []),
+      // Build the section list dynamically so optional groups don't
+      // leave numbering gaps. Each entry pairs an upper-cased label
+      // with its body builder; we map them into numbered cards below.
+      final sections = <_Section>[
+        _Section(
+          title: AppStrings.workPhotos.tr,
+          actionLabel: AppStrings.add.tr,
+          actionIcon: Icons.add_a_photo_outlined,
+          onEdit: (service.photos?.length ?? 0) >= _galleryMax
+              ? null
+              : () => _pickAndUploadGalleryPhoto(this.controller),
+          tight: true,
+          body: _galleryGrid(service.photos ?? []),
+        ),
+        _Section(
+          title: AppStrings.workingHours.tr,
+          onEdit: () => updateVisitingHours(),
+          body: (service.schedule == null || service.schedule!.isEmpty)
+              ? _placeholderHint(AppStrings.addWeeklyWorkingHoursHint.tr)
+              : AvailabilityScheduleCard(schedule: service.schedule!),
+        ),
+        _Section(
+          title: AppStrings.price.tr,
+          // Price counts as "added" when either bound is non-zero —
+          // matches the `isEmpty` rule the price hero itself uses.
+          hasData: (service.feeDetails?.minFee ?? 0) > 0 || (service.feeDetails?.maxFee ?? 0) > 0,
+          onEdit: () {
+            this.controller.seedPriceInputsFromProfession();
+            updateBookingPrice();
+          },
+          body: Obx(() {
+            final details = this.controller.professionData.value.feeDetails;
+            return _priceHero(
+              min: details?.minFee?.toString() ?? '0',
+              max: details?.maxFee?.toString() ?? '0',
+              feeType: details?.feeType ?? '',
+            );
+          }),
+        ),
+        _Section(
+          title: AppStrings.serviceTypeLabel.tr,
+          onEdit: () => updateServiceType(
+            controller: this.controller,
+            serviceType: service.serviceType ?? [],
+            professionCategory: service.category ?? ELECTRICIAN,
           ),
-          _Section(
-            title: AppStrings.workingHours.tr,
-            onEdit: () => updateVisitingHours(),
-            body: (service.schedule == null || service.schedule!.isEmpty)
-                ? _placeholderHint(AppStrings.addWeeklyWorkingHoursHint.tr)
-                : AvailabilityScheduleCard(schedule: service.schedule!),
+          body: _chipList(
+            service.serviceType ?? const [],
+            emptyMessage: AppStrings.pickServicesYouOfferHint.tr,
           ),
-          _Section(
-            title: AppStrings.price.tr,
-            // Price counts as "added" when either bound is non-zero —
-            // matches the `isEmpty` rule the price hero itself uses.
-            hasData: (service.feeDetails?.minFee ?? 0) > 0 ||
-                (service.feeDetails?.maxFee ?? 0) > 0,
-            onEdit: () {
-              this.controller.seedPriceInputsFromProfession();
-              updateBookingPrice();
-            },
-            body: Obx(() {
-              final details =
-                  this.controller.professionData.value.feeDetails;
-              return _priceHero(
-                min: details?.minFee?.toString() ?? '0',
-                max: details?.maxFee?.toString() ?? '0',
-                feeType: details?.feeType ?? '',
-              );
-            }),
+        ),
+        _Section(
+          title: AppStrings.serviceDescription.tr,
+          onEdit: () => updateServiceDescription(
+            controller: this.controller,
+            desc: service.description ?? AppStrings.na,
+            designation: service.category ?? ELECTRICIAN,
+            experienceStartingDate: service.experienceStartDate,
           ),
-          _Section(
-            title: AppStrings.serviceTypeLabel.tr,
-            onEdit: () => updateServiceType(
-              controller: this.controller,
-              serviceType: service.serviceType ?? [],
-              professionCategory: service.category ?? ELECTRICIAN,
-            ),
-            body: _chipList(
-              service.serviceType ?? const [],
-              emptyMessage: AppStrings.pickServicesYouOfferHint.tr,
-            ),
+          body: _descriptionBody(service.description ?? ''),
+        ),
+        _Section(
+          title: AppStrings.workExperience.tr,
+          onEdit: () => updateWorkExperience(
+            controller: this.controller,
+            years: years,
+            months: months,
           ),
-          _Section(
-            title: AppStrings.serviceDescription.tr,
-            onEdit: () => updateServiceDescription(
-              controller: this.controller,
-              desc: service.description ?? AppStrings.na,
-              designation: service.category ?? ELECTRICIAN,
-              experienceStartingDate: service.experienceStartDate,
-            ),
-            body: _descriptionBody(service.description ?? ''),
+          body: _experienceCard(
+            years: years,
+            months: months,
+            hasExperience: hasExperience,
           ),
-          _Section(
-            title: AppStrings.workExperience.tr,
-            onEdit: () => updateWorkExperience(
-              controller: this.controller,
-              years: years,
-              months: months,
-            ),
-            body: _experienceCard(
-              years: years,
-              months: months,
-              hasExperience: hasExperience,
-            ),
+        ),
+        // Always render the optional list sections so the user can
+        // tap "Edit" on each empty card and fill them in one by
+        // one. _chipList shows a friendly placeholder hint until
+        // the section has data.
+        _Section(
+          title: AppStrings.servicesOffered.tr,
+          onEdit: () => updateServiceSelectionData(
+            controller: this.controller,
+            key: SelfWorkServiceController.keyServicesOffered,
+            professionCategory: service.category,
+            preSelectedOptions: service.serviceOffered ?? const [],
           ),
-          // Always render the optional list sections so the user can
-          // tap "Edit" on each empty card and fill them in one by
-          // one. _chipList shows a friendly placeholder hint until
-          // the section has data.
-          _Section(
-            title: AppStrings.servicesOffered.tr,
-            onEdit: () => updateServiceSelectionData(
-              controller: this.controller,
-              key: SelfWorkServiceController.keyServicesOffered,
-              professionCategory: service.category,
-              preSelectedOptions: service.serviceOffered ?? const [],
-            ),
-            body: _chipList(
-              service.serviceOffered ?? const [],
-              emptyMessage: AppStrings.pickServicesForCustomersHint.tr,
-            ),
+          body: _chipList(
+            service.serviceOffered ?? const [],
+            emptyMessage: AppStrings.pickServicesForCustomersHint.tr,
           ),
-          _Section(
-            title: AppStrings.expertise.tr,
-            onEdit: () => updateServiceSelectionData(
-              controller: this.controller,
-              key: SelfWorkServiceController.keyExpertise,
-              professionCategory: service.category,
-              preSelectedOptions: service.expertise ?? const [],
-            ),
-            body: _chipList(
-              service.expertise ?? const [],
-              emptyMessage: AppStrings.addSkillsHint.tr,
-            ),
+        ),
+        _Section(
+          title: AppStrings.expertise.tr,
+          onEdit: () => updateServiceSelectionData(
+            controller: this.controller,
+            key: SelfWorkServiceController.keyExpertise,
+            professionCategory: service.category,
+            preSelectedOptions: service.expertise ?? const [],
           ),
-          _Section(
-            title: AppStrings.typesOfInstallations.tr,
-            onEdit: () => updateServiceSelectionData(
-              controller: this.controller,
-              key: SelfWorkServiceController.keyTypeOfWork,
-              professionCategory: service.category,
-              preSelectedOptions: service.typesOfWork ?? const [],
-            ),
-            body: _chipList(
-              service.typesOfWork ?? const [],
-              emptyMessage: AppStrings.listInstallationsHint.tr,
-            ),
+          body: _chipList(
+            service.expertise ?? const [],
+            emptyMessage: AppStrings.addSkillsHint.tr,
           ),
-          _Section(
-            title: AppStrings.workCategories.tr,
-            onEdit: () => updateServiceSelectionData(
-              controller: this.controller,
-              key: SelfWorkServiceController.keyWorkCategories,
-              professionCategory: service.category,
-              preSelectedOptions: service.workCategories ?? const [],
-            ),
-            body: _chipList(
-              service.workCategories ?? const [],
-              emptyMessage: AppStrings.pickCategoriesHint.tr,
-            ),
+        ),
+        _Section(
+          title: AppStrings.typesOfInstallations.tr,
+          onEdit: () => updateServiceSelectionData(
+            controller: this.controller,
+            key: SelfWorkServiceController.keyTypeOfWork,
+            professionCategory: service.category,
+            preSelectedOptions: service.typesOfWork ?? const [],
           ),
-          _Section(
-            title: AppStrings.whyChooseMe.tr,
-            onEdit: () => updateServiceSelectionData(
-              controller: this.controller,
-              key: SelfWorkServiceController.keyWhyChooseMe,
-              professionCategory: service.category,
-              preSelectedOptions: service.whyChooseMe ?? const [],
-            ),
-            body: _chipList(
-              service.whyChooseMe ?? const [],
-              emptyMessage: AppStrings.tellCustomersChoiceHint.tr,
-            ),
+          body: _chipList(
+            service.typesOfWork ?? const [],
+            emptyMessage: AppStrings.listInstallationsHint.tr,
           ),
-        ];
+        ),
+        _Section(
+          title: AppStrings.workCategories.tr,
+          onEdit: () => updateServiceSelectionData(
+            controller: this.controller,
+            key: SelfWorkServiceController.keyWorkCategories,
+            professionCategory: service.category,
+            preSelectedOptions: service.workCategories ?? const [],
+          ),
+          body: _chipList(
+            service.workCategories ?? const [],
+            emptyMessage: AppStrings.pickCategoriesHint.tr,
+          ),
+        ),
+        _Section(
+          title: AppStrings.whyChooseMe.tr,
+          onEdit: () => updateServiceSelectionData(
+            controller: this.controller,
+            key: SelfWorkServiceController.keyWhyChooseMe,
+            professionCategory: service.category,
+            preSelectedOptions: service.whyChooseMe ?? const [],
+          ),
+          body: _chipList(
+            service.whyChooseMe ?? const [],
+            emptyMessage: AppStrings.tellCustomersChoiceHint.tr,
+          ),
+        ),
+      ];
 
-        return Padding(
-          padding: EdgeInsets.symmetric(horizontal: 20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              for (int i = 0; i < sections.length; i++) ...[
-                _sectionCard(
-                  index: i + 1,
-                  title: sections[i].title,
-                  child: sections[i].body,
-                  onEdit: sections[i].onEdit,
-                  tight: sections[i].tight,
-                  hasData: sections[i].hasData,
-                ),
-                SizedBox(height: SizeConfig.size12),
-              ],
+      return Padding(
+        padding: EdgeInsets.symmetric(horizontal: 20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            for (int i = 0; i < sections.length; i++) ...[
+              _sectionCard(
+                index: i + 1,
+                title: sections[i].title,
+                child: sections[i].body,
+                onEdit: sections[i].onEdit,
+                tight: sections[i].tight,
+                hasData: sections[i].hasData,
+              ),
+              SizedBox(height: SizeConfig.size12),
             ],
-          ),
-        );
+          ],
+        ),
+      );
     });
   }
 
@@ -575,8 +571,7 @@ class _SelfProfessionServiceScreenState
 
   Widget _descriptionBody(String desc) {
     if (desc.isEmpty || desc == AppStrings.na) {
-      return _placeholderHint(
-          'Add a service description so customers know your story.');
+      return _placeholderHint('Add a service description so customers know your story.');
     }
     return Container(
       padding: EdgeInsets.symmetric(
@@ -606,8 +601,7 @@ class _SelfProfessionServiceScreenState
     required bool hasExperience,
   }) {
     if (!hasExperience) {
-      return _placeholderHint(
-          'Add your experience so customers can gauge your expertise.');
+      return _placeholderHint('Add your experience so customers can gauge your expertise.');
     }
     return Row(
       children: [
@@ -775,8 +769,7 @@ class _SelfProfessionServiceScreenState
             right: 6,
             child: GestureDetector(
               onTap: () async {
-                await controller.deleteProfessionImage(
-                    controller.professionData.value.sId ?? '', imagePath);
+                await controller.deleteProfessionImage(controller.professionData.value.sId ?? '', imagePath);
                 controller.professionData.value.photos?.removeAt(index);
                 controller.update(['professionPhotos']);
               },
@@ -792,8 +785,7 @@ class _SelfProfessionServiceScreenState
     );
   }
 
-  Widget _addGalleryTile(SelfWorkServiceController controller,
-      {bool isHero = false}) {
+  Widget _addGalleryTile(SelfWorkServiceController controller, {bool isHero = false}) {
     return GestureDetector(
       onTap: () => _pickAndUploadGalleryPhoto(controller),
       child: AspectRatio(
@@ -841,12 +833,10 @@ class _SelfProfessionServiceScreenState
   }
 
   /// Opens the picture-picker dialog and persists the selected photo
-  Future<void> _pickAndUploadGalleryPhoto(
-      SelfWorkServiceController controller) async {
+  Future<void> _pickAndUploadGalleryPhoto(SelfWorkServiceController controller) async {
     final current = controller.professionData.value.photos?.length ?? 0;
     if (current >= _galleryMax) {
-      commonSnackBar(
-          message: 'You can showcase up to $_galleryMax work photos.');
+      commonSnackBar(message: 'You can showcase up to $_galleryMax work photos.');
       return;
     }
     final imgStr = await PhotoPickerService.pickSinglePhoto(
@@ -950,12 +940,10 @@ class _SelfProfessionServiceScreenState
                           height: 16,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            valueColor:
-                                AlwaysStoppedAnimation(Colors.white),
+                            valueColor: AlwaysStoppedAnimation(Colors.white),
                           ),
                         )
-                      : const Icon(Icons.add_rounded,
-                          size: 18, color: Colors.white),
+                      : const Icon(Icons.add_rounded, size: 18, color: Colors.white),
                   label: Text(
                     loading ? 'Creating…' : 'Create Earn Service',
                     style: TextStyle(
@@ -972,8 +960,7 @@ class _SelfProfessionServiceScreenState
                       vertical: SizeConfig.size12,
                       horizontal: SizeConfig.size16,
                     ),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                     elevation: 0,
                   ),
                 ),
@@ -1170,8 +1157,7 @@ class _SelfProfessionServiceScreenState
               return Padding(
                 padding: EdgeInsets.symmetric(vertical: SizeConfig.size32),
                 child: Center(
-                  child: CircularProgressIndicator(
-                      color: AppColors.primaryColor),
+                  child: CircularProgressIndicator(color: AppColors.primaryColor),
                 ),
               );
             }
@@ -1241,8 +1227,7 @@ class _SelfProfessionServiceScreenState
               decoration: const BoxDecoration(
                 color: Color(0xFFFAFBFE),
                 border: Border(
-                  bottom:
-                      BorderSide(color: Color(0xFFE6E8EE), width: 0.8),
+                  bottom: BorderSide(color: Color(0xFFE6E8EE), width: 0.8),
                 ),
               ),
               child: Row(
@@ -1266,14 +1251,10 @@ class _SelfProfessionServiceScreenState
                       vertical: 2,
                     ),
                     decoration: BoxDecoration(
-                      color: any
-                          ? AppColors.primaryColor.withValues(alpha: 0.10)
-                          : const Color(0xFFF4F6FB),
+                      color: any ? AppColors.primaryColor.withValues(alpha: 0.10) : const Color(0xFFF4F6FB),
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: any
-                            ? AppColors.primaryColor.withValues(alpha: 0.25)
-                            : const Color(0xFFE6E8EE),
+                        color: any ? AppColors.primaryColor.withValues(alpha: 0.25) : const Color(0xFFE6E8EE),
                         width: 0.6,
                       ),
                     ),
@@ -1283,9 +1264,7 @@ class _SelfProfessionServiceScreenState
                         fontFamily: AppConstants.OpenSans,
                         fontSize: 10,
                         fontWeight: FontWeight.w800,
-                        color: any
-                            ? AppColors.primaryColor
-                            : AppColors.secondaryTextColor,
+                        color: any ? AppColors.primaryColor : AppColors.secondaryTextColor,
                         letterSpacing: 0.4,
                       ),
                     ),
@@ -1303,8 +1282,7 @@ class _SelfProfessionServiceScreenState
             return Column(
               children: List.generate(items.length, (i) {
                 final item = items[i];
-                final isSelected =
-                    controller.selectedServiceTypes.contains(item);
+                final isSelected = controller.selectedServiceTypes.contains(item);
                 final isLast = i == items.length - 1;
                 return _serviceTypeRow(
                   index: i + 1,
@@ -1346,13 +1324,10 @@ class _SelfProfessionServiceScreenState
             vertical: SizeConfig.size12,
           ),
           decoration: BoxDecoration(
-            color: isSelected
-                ? AppColors.primaryColor.withValues(alpha: 0.06)
-                : Colors.transparent,
+            color: isSelected ? AppColors.primaryColor.withValues(alpha: 0.06) : Colors.transparent,
             border: showDivider
                 ? const Border(
-                    bottom:
-                        BorderSide(color: Color(0xFFEDEFF4), width: 0.6),
+                    bottom: BorderSide(color: Color(0xFFEDEFF4), width: 0.6),
                   )
                 : null,
           ),
@@ -1369,8 +1344,7 @@ class _SelfProfessionServiceScreenState
                     fontWeight: FontWeight.w800,
                     color: isSelected
                         ? AppColors.primaryColor
-                        : AppColors.secondaryTextColor
-                            .withValues(alpha: 0.7),
+                        : AppColors.secondaryTextColor.withValues(alpha: 0.7),
                     letterSpacing: 0.4,
                   ),
                 ),
@@ -1380,8 +1354,7 @@ class _SelfProfessionServiceScreenState
                 child: CustomText(
                   label,
                   fontSize: SizeConfig.medium,
-                  fontWeight:
-                      isSelected ? FontWeight.w700 : FontWeight.w500,
+                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                   color: AppColors.mainTextColor,
                 ),
               ),
@@ -1391,14 +1364,12 @@ class _SelfProfessionServiceScreenState
                 width: 20,
                 height: 20,
                 decoration: BoxDecoration(
-                  color:
-                      isSelected ? AppColors.primaryColor : Colors.white,
+                  color: isSelected ? AppColors.primaryColor : Colors.white,
                   borderRadius: BorderRadius.circular(6),
                   border: Border.all(
                     color: isSelected
                         ? AppColors.primaryColor
-                        : AppColors.secondaryTextColor
-                            .withValues(alpha: 0.35),
+                        : AppColors.secondaryTextColor.withValues(alpha: 0.35),
                     width: 1.2,
                   ),
                 ),
@@ -1447,8 +1418,7 @@ class _SelfProfessionServiceScreenState
                           alignment: Alignment.centerRight,
                           child: InkWell(
                               onTap: () {
-                                final expData =
-                                    calculateExperience(experienceStartingDate);
+                                final expData = calculateExperience(experienceStartingDate);
 
                                 final int years = expData['years']!;
                                 final int months = expData['months']!;
@@ -1491,14 +1461,10 @@ class _SelfProfessionServiceScreenState
           CustomBtn(
             radius: SizeConfig.size10,
             bgColor: AppColors.primaryColor,
-            title: controller.isUpdateServiceLoading.value
-                ? null
-                : AppStrings.update,
+            title: controller.isUpdateServiceLoading.value ? null : AppStrings.update,
             isLoading: controller.isUpdateServiceLoading.value,
             onTap: () {
-              Map<String, dynamic> params = {
-                ApiKeys.description: controller.aboutController.text.trim()
-              };
+              Map<String, dynamic> params = {ApiKeys.description: controller.aboutController.text.trim()};
 
               controller.updateEarnServiceData(params: params);
             },
@@ -1566,8 +1532,7 @@ class _SelfProfessionServiceScreenState
                       items: controller.experienceMonths,
                       selectedValue: controller.selectedExperienceMonth.value,
                       hintText: "E.g 3 Months..",
-                      onChanged: (val) =>
-                          controller.selectedExperienceMonth.value = val,
+                      onChanged: (val) => controller.selectedExperienceMonth.value = val,
                       displayValue: (val) => val,
                     ),
                   ],
@@ -1581,9 +1546,7 @@ class _SelfProfessionServiceScreenState
           CustomBtn(
             radius: SizeConfig.size10,
             bgColor: AppColors.primaryColor,
-            title: controller.isUpdateServiceLoading.value
-                ? null
-                : AppStrings.update,
+            title: controller.isUpdateServiceLoading.value ? null : AppStrings.update,
             isLoading: controller.isUpdateServiceLoading.value,
             onTap: () {
               if (controller.selectedExperienceYear.value == null) {

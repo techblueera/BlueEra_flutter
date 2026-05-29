@@ -25,8 +25,7 @@ class PropertyDiscoverScreen extends StatefulWidget {
   const PropertyDiscoverScreen({super.key, this.initialCategoryIndex = 0});
 
   @override
-  State<PropertyDiscoverScreen> createState() =>
-      _PropertyDiscoverScreenState();
+  State<PropertyDiscoverScreen> createState() => _PropertyDiscoverScreenState();
 }
 
 class _PropertyDiscoverScreenState extends State<PropertyDiscoverScreen> {
@@ -77,8 +76,7 @@ class _PropertyDiscoverScreenState extends State<PropertyDiscoverScreen> {
     _ctrl.initWithCategories(_categories, widget.initialCategoryIndex);
 
     _scrollController.addListener(() {
-      if (_scrollController.position.pixels >=
-          _scrollController.position.maxScrollExtent - 200) {
+      if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
         _ctrl.fetchProperties(isLoadMore: true);
       }
       final direction = _scrollController.position.userScrollDirection;
@@ -119,52 +117,49 @@ class _PropertyDiscoverScreenState extends State<PropertyDiscoverScreen> {
                 curve: Curves.easeInOut,
                 offset: _showFab ? Offset.zero : const Offset(0, 2),
                 child: AnimatedOpacity(
-                duration: const Duration(milliseconds: 250),
-                opacity: _showFab ? 1.0 : 0.0,
-                child: ClipRRect(
-                borderRadius: BorderRadius.circular(16),
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16),
-                      color: AppColors.primaryColor.withValues(alpha: 0.75),
-                      border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.25),
-                      ),
-                    ),
-                    child: Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        onTap: () => Get.to(
-                            () => const RentalServicesDashboardScreenV2()),
-                        borderRadius: BorderRadius.circular(16),
-                        splashColor: Colors.white.withValues(alpha: 0.15),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 18, vertical: 13),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(Icons.add_home_rounded,
-                                  size: 20, color: Colors.white),
-                              const SizedBox(width: 8),
-                              CustomText(
-                                'List Your Property',
-                                color: AppColors.white,
-                                fontWeight: FontWeight.w700,
-                                fontSize: 14,
+                  duration: const Duration(milliseconds: 250),
+                  opacity: _showFab ? 1.0 : 0.0,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                          color: AppColors.primaryColor.withValues(alpha: 0.75),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.25),
+                          ),
+                        ),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: () => Get.to(() => const RentalServicesDashboardScreenV2()),
+                            borderRadius: BorderRadius.circular(16),
+                            splashColor: Colors.white.withValues(alpha: 0.15),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 13),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(Icons.add_home_rounded, size: 20, color: Colors.white),
+                                  const SizedBox(width: 8),
+                                  CustomText(
+                                    'List Your Property',
+                                    color: AppColors.white,
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 14,
+                                  ),
+                                ],
                               ),
-                            ],
+                            ),
                           ),
                         ),
                       ),
                     ),
                   ),
                 ),
-              ),
-              ),
-            )
+              )
             : null,
         body: Obx(() {
           _ctrl.selectedCategoryIndex.value;
@@ -191,8 +186,7 @@ class _PropertyDiscoverScreenState extends State<PropertyDiscoverScreen> {
                   categories: _stickyCategories,
                   selectedId: _selectedStickyId,
                   onCategoryTap: (item) {
-                    final idx = _stickyCategories
-                        .indexWhere((c) => c.id == item.id);
+                    final idx = _stickyCategories.indexWhere((c) => c.id == item.id);
                     if (idx >= 0) _ctrl.selectCategory(idx);
                     setState(() {});
                   },
@@ -244,8 +238,7 @@ class _PropertyDiscoverScreenState extends State<PropertyDiscoverScreen> {
                   const SizedBox(width: 8),
                   _quickChip(
                     label: _budgetChipLabel(),
-                    isActive: _ctrl.minPrice.value.isNotEmpty ||
-                        _ctrl.maxPrice.value.isNotEmpty,
+                    isActive: _ctrl.minPrice.value.isNotEmpty || _ctrl.maxPrice.value.isNotEmpty,
                     onTap: () => _showFilterSheet(initialKey: 'budget'),
                   ),
                   for (final id in _quickChipIds)
@@ -299,8 +292,7 @@ class _PropertyDiscoverScreenState extends State<PropertyDiscoverScreen> {
     );
   }
 
-  bool _isFilterVisible(FilterId id) =>
-      _ctrl.visibleFilterDefs.any((d) => d.id == id);
+  bool _isFilterVisible(FilterId id) => _ctrl.visibleFilterDefs.any((d) => d.id == id);
 
   String _budgetChipLabel() {
     final min = _ctrl.minPrice.value;
@@ -347,15 +339,10 @@ class _PropertyDiscoverScreenState extends State<PropertyDiscoverScreen> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.tune_rounded,
-                size: 16,
-                color: active ? Colors.white : AppColors.mainTextColor),
+            Icon(Icons.tune_rounded, size: 16, color: active ? Colors.white : AppColors.mainTextColor),
             if (active) ...[
               const SizedBox(width: 5),
-              CustomText('$count',
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white),
+              CustomText('$count', fontSize: 12, fontWeight: FontWeight.w700, color: Colors.white),
             ],
           ],
         ),
@@ -410,11 +397,9 @@ class _PropertyDiscoverScreenState extends State<PropertyDiscoverScreen> {
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               color: const Color(0xFFF4F6FA),
-                              border: Border.all(
-                                  color: const Color(0xFFDDE2EE)),
+                              border: Border.all(color: const Color(0xFFDDE2EE)),
                             ),
-                            child: const Icon(Icons.close_rounded,
-                                size: 18, color: Color(0xFF505050)),
+                            child: const Icon(Icons.close_rounded, size: 18, color: Color(0xFF505050)),
                           ),
                         ),
                       ],
@@ -432,25 +417,18 @@ class _PropertyDiscoverScreenState extends State<PropertyDiscoverScreen> {
                       Get.back();
                     },
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 14),
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
                       child: Row(
                         children: [
                           Expanded(
                             child: CustomText(
                               option.label,
                               fontSize: SizeConfig.medium,
-                              fontWeight: selected
-                                  ? FontWeight.w700
-                                  : FontWeight.w500,
-                              color: selected
-                                  ? AppColors.primaryColor
-                                  : AppColors.mainTextColor,
+                              fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                              color: selected ? AppColors.primaryColor : AppColors.mainTextColor,
                             ),
                           ),
-                          if (selected)
-                            Icon(Icons.check_rounded,
-                                size: 20, color: AppColors.primaryColor),
+                          if (selected) Icon(Icons.check_rounded, size: 20, color: AppColors.primaryColor),
                         ],
                       ),
                     ),
@@ -486,13 +464,9 @@ class _PropertyDiscoverScreenState extends State<PropertyDiscoverScreen> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            CustomText(label,
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: AppColors.primaryColor),
+            CustomText(label, fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.primaryColor),
             const SizedBox(width: 6),
-            Icon(Icons.close_rounded,
-                size: 14, color: AppColors.primaryColor),
+            Icon(Icons.close_rounded, size: 14, color: AppColors.primaryColor),
           ],
         ),
       ),
@@ -618,18 +592,14 @@ class _PropertyDiscoverScreenState extends State<PropertyDiscoverScreen> {
                 ),
               ),
               child: Icon(
-                hasFilters
-                    ? Icons.filter_alt_off_outlined
-                    : Icons.search_off_rounded,
+                hasFilters ? Icons.filter_alt_off_outlined : Icons.search_off_rounded,
                 size: 48,
                 color: AppColors.primaryColor.withValues(alpha: 0.5),
               ),
             ),
             const SizedBox(height: 20),
             CustomText(
-              hasFilters
-                  ? 'No matching properties'
-                  : 'No properties available',
+              hasFilters ? 'No matching properties' : 'No properties available',
               fontSize: SizeConfig.large18,
               fontWeight: FontWeight.w700,
               color: AppColors.mainTextColor,
@@ -651,8 +621,7 @@ class _PropertyDiscoverScreenState extends State<PropertyDiscoverScreen> {
                 onTap: () => _ctrl.clearFilters(),
                 borderRadius: BorderRadius.circular(12),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 24, vertical: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                   decoration: BoxDecoration(
                     color: AppColors.primaryColor,
                     borderRadius: BorderRadius.circular(12),
@@ -680,8 +649,7 @@ class _PropertyDiscoverScreenState extends State<PropertyDiscoverScreen> {
     // Local working copy of chip selections — applied to the controller
     // only when the user taps "Apply". Bottom-sheet edits don't leak
     // into the live filter state until then.
-    final localValues =
-        Map<FilterId, String>.from(_ctrl.currentFilterValues);
+    final localValues = Map<FilterId, String>.from(_ctrl.currentFilterValues);
     final visibleDefs = _ctrl.visibleFilterDefs;
 
     Get.bottomSheet(
@@ -714,10 +682,8 @@ class _PropertyMapScreenState extends State<_PropertyMapScreen> {
   GoogleMapController? _mapController;
   BitmapDescriptor? _propertyIcon;
 
-  final PropertyDiscoverController _ctrl =
-      Get.find<PropertyDiscoverController>();
-  static const ClusterManagerId _clusterManagerId =
-      ClusterManagerId('property_listings');
+  final PropertyDiscoverController _ctrl = Get.find<PropertyDiscoverController>();
+  static const ClusterManagerId _clusterManagerId = ClusterManagerId('property_listings');
 
   @override
   void initState() {
@@ -780,10 +746,8 @@ class _PropertyMapScreenState extends State<_PropertyMapScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final initialLat =
-        LocationService.lat != 0.0 ? LocationService.lat : 28.6139;
-    final initialLng =
-        LocationService.lng != 0.0 ? LocationService.lng : 77.2090;
+    final initialLat = LocationService.lat != 0.0 ? LocationService.lat : 28.6139;
+    final initialLng = LocationService.lng != 0.0 ? LocationService.lng : 77.2090;
     final statusBarHeight = MediaQuery.of(context).padding.top;
 
     return Scaffold(
@@ -856,21 +820,17 @@ class _PropertyMapScreenState extends State<_PropertyMapScreen> {
             child: Obx(() {
               final count = _ctrl.mapProperties.where((p) {
                 final c = p.location?.coordinates;
-                return c != null &&
-                    c.length >= 2 &&
-                    !(c[0] == 0 && c[1] == 0);
+                return c != null && c.length >= 2 && !(c[0] == 0 && c[1] == 0);
               }).length;
               return Material(
                 color: AppColors.white,
                 borderRadius: BorderRadius.circular(12),
                 elevation: 4,
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 12, vertical: 10),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                   child: Row(
                     children: [
-                      Icon(Icons.location_on_rounded,
-                          size: 18, color: AppColors.primaryColor),
+                      Icon(Icons.location_on_rounded, size: 18, color: AppColors.primaryColor),
                       const SizedBox(width: 8),
                       Expanded(
                         child: CustomText(
