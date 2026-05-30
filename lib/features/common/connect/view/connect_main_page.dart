@@ -77,7 +77,7 @@ class _ConnectMainPageState extends State<ConnectMainPage>
   ];
   List<String> get postTab => [
     AppStrings.inquiry.tr,
-    AppStrings.orders.tr,
+    AppStrings.personal.tr,
     AppStrings.call.tr,
 
   ];
@@ -1107,15 +1107,6 @@ class _HomeTabBarDelegate extends SliverPersistentHeaderDelegate {
                               crossAxisAlignment: CrossAxisAlignment.center,
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                LocalAssets(
-                                  imagePath: iconTab[index],
-                                  width: 16,
-                                  height: 16,
-                                  imgColor: isSelected
-                                      ? AppColors.black28
-                                      : AppColors.secondaryTextColor,
-                                ),
-                                const SizedBox(width: 3),
                                 Flexible(
                                   child: CustomText(
                                     postTab[index].tr,
