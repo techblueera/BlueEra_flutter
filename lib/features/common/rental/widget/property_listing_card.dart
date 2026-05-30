@@ -622,7 +622,8 @@ class PropertyListingCard extends StatelessWidget {
       return;
     }
     final chatController = Get.find<ChatViewController>();
-    chatController.checkChatConnectionAndOpenChat(userId: ownerId);
+    chatController.checkChatConnectionAndOpenChat(
+        userId: ownerId, route: AppConstants.route_discover);
   }
 
   // Call shortcut is commented out in the footer for now (see

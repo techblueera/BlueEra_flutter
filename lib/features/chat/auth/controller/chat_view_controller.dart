@@ -280,6 +280,24 @@ class ChatViewController extends GetxController {
       GetMediaMsgCommentsModel().obs;
   RxList<ProfessionalContact> findProfessionalContactList = <ProfessionalContact>[].obs;
   Rx<TextEditingController> sendMessageController = TextEditingController().obs;
+
+  /// The `route` lane to attach to outgoing 1:1 sends — `contact` (personal)
+  /// or `discover` (business). Set whenever a chat screen is opened (see
+  /// [_navigateToChatScreen] / [checkChatConnectionAndOpenChat] and the chat
+  /// screens' initState). `null` means "send no route" → legacy backend
+  /// inference. Attached to send params via [attachRouteParam].
+  String? activeRoute;
+
+  /// Inject [activeRoute] into a send-message param map (idempotent — never
+  /// overwrites an explicit `route` already present, and no-ops when no lane
+  /// is active so legacy sends stay route-less).
+  void attachRouteParam(Map<String, dynamic> params) {
+    final route = activeRoute;
+    if (route != null && route.isNotEmpty && !params.containsKey(ApiKeys.route)) {
+      params[ApiKeys.route] = route;
+    }
+  }
+
   RxBool isTextFieldEmpty = false.obs;
   RxBool isSending = false.obs;
   RxBool socketConnected = false.obs;
@@ -883,17 +901,17 @@ class ChatViewController extends GetxController {
           message.myMessage = currentUserId == senderId;
         }
 
-        // Always refresh the relevant chat list tab
+        // Always refresh the relevant chat list tab. `order` is merged into
+        // `business` now, so legacy order rows seen during the migration window
+        // refresh the business (Inquiry) tab rather than the removed Orders tab.
         final msgType = message.conversation?.type;
-        if (msgType == AppConstants.business_Chat_Type) {
+        if (msgType == AppConstants.business_Chat_Type ||
+            msgType == AppConstants.order_Chat_Type) {
           emitEvent(ChatEmitEvents.ChatList,
               {ApiKeys.type: AppConstants.business_Chat_Type});
         } else if (msgType == AppConstants.group_Chat_Type) {
           emitEvent(ChatEmitEvents.ChatList,
               {ApiKeys.type: AppConstants.group_Chat_Type});
-        } else if (msgType == AppConstants.order_Chat_Type) {
-          emitEvent(ChatEmitEvents.ChatList,
-              {ApiKeys.type: AppConstants.order_Chat_Type});
         } else {
           emitEvent(ChatEmitEvents.ChatList,
               {ApiKeys.type: AppConstants.personal_Chat_Type});
@@ -2718,6 +2736,7 @@ class ChatViewController extends GetxController {
     if (isSending.value) return null;
     isSending.value = true;
     try {
+      attachRouteParam(params);
       params[ApiKeys.tagged_users] = taggedUserIds.join(',');
       taggedUserIds.clear();
       if(params[ApiKeys.message_type]=="live_location"){
@@ -2784,6 +2803,9 @@ class ChatViewController extends GetxController {
               (getListOfMessageData?.any((m) => m.id == message.id) ?? false);
      if (!alreadyExists) {
     getListOfMessageData?.add(message);
+    Future.delayed(Duration(seconds: 3),(){
+      getListOfMessageData?.add(message);
+    });
 
     }
           getListOfMessageResponse.value =
@@ -2992,12 +3014,23 @@ class ChatViewController extends GetxController {
         String? name,
         String? conductNo,
         String? profile,
+        // Which conversation lane this entry point belongs to —
+        // [AppConstants.route_contact] (personal) or
+        // [AppConstants.route_discover] (business). When set it both forces
+        // the destination chat screen into that lane (so e.g. a Discover tap
+        // always lands on the business thread, even if a personal one exists)
+        // and is attached to every send as the `route` param. `null` keeps the
+        // legacy behaviour of opening whatever the backend reports.
+        String? route,
         // When non-empty, the destination chat screen seeds its input field
         // with this text so the user starts a new conversation with a
         // pre-written intro (e.g. "Hi, I'm Alice — I'd like to know more
         // about your service"). The user can edit before sending.
         String? prefilledMessage,
       }) async {
+    // Set the send lane up-front so any fire-and-forget send below
+    // (e.g. sendProductMessages) already carries the right route.
+    activeRoute = route;
     Map<String, dynamic> params = {
       ApiKeys.user_id: userId
     };
@@ -3014,7 +3047,26 @@ class ChatViewController extends GetxController {
       String contactNo=conductNo??details.data?.sender?.contact??'';
       String contactName=name??details.data?.sender?.name??'';
       String profileImage=profile??details.data?.sender?.profileImage??'';
-      String type=details.data?.conversation?.type??'';
+      final String backendType=details.data?.conversation?.type??'';
+      String type=backendType;
+      // The send lane wins over the backend-reported type: a `discover` tap
+      // always opens the business thread and a `contact` tap the personal one.
+      // checkChatConnection only reports one conversation for the pair, so when
+      // the lane we want differs from what it returned we open in "initial"
+      // mode (blank conversationId). The first routed send then looks up — or
+      // creates — that lane's own thread by other_user_id + route, instead of
+      // mistakenly writing into the other lane's conversation.
+      if (route == AppConstants.route_discover) {
+        type = AppConstants.business_Chat_Type;
+        if (backendType.toLowerCase() != AppConstants.business_Chat_Type) {
+          conversationId = '';
+        }
+      } else if (route == AppConstants.route_contact) {
+        type = AppConstants.personal_Chat_Type;
+        if (backendType.toLowerCase() != AppConstants.personal_Chat_Type) {
+          conversationId = '';
+        }
+      }
       businessTabIndexSelected.value = 0;
       await getLocalConversation(
           conversationId, chatPersonUserId, otherUserId, contactName);
@@ -3126,7 +3178,12 @@ class ChatViewController extends GetxController {
     bool? isFromContactList,
     String? prefilledMessage,
   }) {
-    if (type.toLowerCase() == AppConstants.business_Chat_Type) {
+    // `order` is merged into `business`; route legacy order conversations to
+    // the business screen too (BusinessChatScreenUpdated tags sends as
+    // `discover`), instead of falling through to the personal screen.
+    final lane = type.toLowerCase();
+    if (lane == AppConstants.business_Chat_Type ||
+        lane == AppConstants.order_Chat_Type) {
       if (isFromContactList != null && isFromContactList) {
         Get.off(
               () => BusinessChatScreenUpdated(
@@ -3358,6 +3415,7 @@ class ChatViewController extends GetxController {
     if (isSending.value) return;
     isSending.value = true;
     try {
+      attachRouteParam(params);
       clearMessageControllerCommon();
       ResponseModel responseModel =
           await ChatViewRepo().sendMessageToUser(params);
@@ -3377,8 +3435,17 @@ class ChatViewController extends GetxController {
         }
         scrollDown();
         saveSingleMessageToLocal(message.conversationId ?? '', message);
-        emitEvent(ChatEmitEvents.ChatList,
-            {ApiKeys.type: AppConstants.personal_Chat_Type},);
+        // Refresh the list for whichever lane this new conversation landed in.
+        // A `discover` route creates a business conversation, so refreshing the
+        // personal list would leave the new thread invisible until a tab switch.
+        emitEvent(
+          ChatEmitEvents.ChatList,
+          {
+            ApiKeys.type: activeRoute == AppConstants.route_discover
+                ? AppConstants.business_Chat_Type
+                : AppConstants.personal_Chat_Type
+          },
+        );
         clearMessageControllerCommon();
       } else {
         clearMessageControllerCommon();
@@ -3597,6 +3664,7 @@ class ChatViewController extends GetxController {
         ApiKeys.message_type: messageType,
         ApiKeys.url: urlList,
       };
+      attachRouteParam(messagePayload);
       // Await the final send + Hive write so callers (e.g. sendOfflineMessage)
       // can clear their in-flight pending guard only after the replacement of
       // the temp row by the server row has actually hit Hive.

@@ -929,6 +929,7 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
     chatViewController.checkChatConnectionAndOpenChat(
       userId: targetUserId,
       prefilledMessage: prefill,
+      route: AppConstants.route_discover,
     );
   }
 

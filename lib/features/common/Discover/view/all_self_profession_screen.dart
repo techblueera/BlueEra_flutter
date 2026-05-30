@@ -774,7 +774,8 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
                       final chatViewController =
                           getOrPut(() => ChatViewController());
                       chatViewController.checkChatConnectionAndOpenChat(
-                          userId: targetUserId);
+                          userId: targetUserId,
+                          route: AppConstants.route_discover);
                     },
                   ),
                 ),

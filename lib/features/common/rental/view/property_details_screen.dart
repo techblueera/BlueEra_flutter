@@ -138,7 +138,8 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
       return;
     }
     final chatController = Get.find<ChatViewController>();
-    chatController.checkChatConnectionAndOpenChat(userId: ownerId);
+    chatController.checkChatConnectionAndOpenChat(
+        userId: ownerId, route: AppConstants.route_discover);
   }
 
   // ═══════════════════════════════════════════════════════════

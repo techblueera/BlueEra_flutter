@@ -20,6 +20,12 @@ class DiscoverChatIcon extends StatelessWidget {
   final ChatClickSource trackingSource;
   final Map<String, dynamic>? trackingMetadata;
 
+  /// Conversation lane this chat opens into. Discover is a marketplace/
+  /// discovery surface, so it defaults to the `discover` (business) lane —
+  /// the chat always opens the business thread, even if a personal one
+  /// already exists with this user.
+  final String route;
+
   const DiscoverChatIcon({
     super.key,
     required this.userId,
@@ -29,6 +35,7 @@ class DiscoverChatIcon extends StatelessWidget {
     this.businessId,
     this.trackingSource = ChatClickSource.other,
     this.trackingMetadata,
+    this.route = AppConstants.route_discover,
   });
 
   @override
@@ -54,6 +61,7 @@ class DiscoverChatIcon extends StatelessWidget {
           userId: userId,
           name: name,
           profile: profile,
+          route: route,
         );
       },
       child: Container(

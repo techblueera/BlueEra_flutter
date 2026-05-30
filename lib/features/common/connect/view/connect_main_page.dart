@@ -21,7 +21,6 @@ import 'package:BlueEra/features/chat/view/flag_chat/order_flagged_chats_screen.
 import 'package:BlueEra/features/chat/view/personal_chat/chat_search_screen.dart';
 import 'package:BlueEra/features/chat/view/personal_chat/personal_chat_list.dart';
 import 'package:BlueEra/features/chat/view/business_chat/business_chat_list.dart';
-import 'package:BlueEra/features/chat/view/orders_chat/orders_chat_list.dart';
 import 'package:BlueEra/features/chat/view/reminder_chat/reminder_todo_screen.dart';
 import 'package:BlueEra/features/chat/view/symbol_view/symbol_view_images.dart';
 import 'package:BlueEra/features/chat/view/wallet_chat/wallet_chat_screen.dart';
@@ -72,14 +71,12 @@ class _ConnectMainPageState extends State<ConnectMainPage>
   final List<String> iconTab = [
     AppIconAssets.chat,
     AppIconAssets.shop,
-    AppIconAssets.orderBookingIcon,
-    // AppIconAssets.call,
+    AppIconAssets.call,
   ];
   List<String> get postTab => [
     AppStrings.chat.tr,
     AppStrings.inquiry.tr,
-    AppStrings.orders.tr,
-
+    AppStrings.call.tr,
   ];
 
   int selectedIndex = 0;
@@ -249,12 +246,9 @@ class _ConnectMainPageState extends State<ConnectMainPage>
         ChatEmitEvents.ChatList,
         {ApiKeys.type: AppConstants.business_Chat_Type},
       );
-    } else if (index == 2) {
-      chatViewController.emitEvent(
-        ChatEmitEvents.ChatList,
-        {ApiKeys.type: AppConstants.order_Chat_Type},
-      );
     }
+    // index == 2 is the Call tab — CallHistoryScreen loads its own data,
+    // so there is no chat-list socket emit for it.
   }
 
   @override
@@ -346,7 +340,6 @@ class _ConnectMainPageState extends State<ConnectMainPage>
   }
 
   Widget _buildCustomAppBar() {
-    final bool isChatTab = selectedIndex == 0;
     return CommonBackAppBar(
       showElevation: 0,
       isLeading: false,
@@ -364,17 +357,18 @@ class _ConnectMainPageState extends State<ConnectMainPage>
       leadingWidget: _buildSymbolAvatar(),
       buildCustomActionWidget: isGuestUser()
           ? null
-          : () => isChatTab
-              ? _buildChatTabActions()
-              : _buildOrdersTabActions(),
+          : () {
+              // Chat → search/reminder/flag; Inquiry → flag; Call → no actions.
+              if (selectedIndex == 0) return _buildChatTabActions();
+              if (selectedIndex == 1) return _buildInquiryTabActions();
+              return const SizedBox.shrink();
+            },
     );
   }
 
-  /// Action row for the Inquiry / Orders tabs — the flag / wallet / rider
-  /// icons that previously lived in `OrderMainChatScreen`'s header.
-  /// Card + rider icons are Orders-only; Inquiry shows just the flag.
-  Widget _buildOrdersTabActions() {
-    final bool isInquiryTab = selectedIndex == 1;
+  /// Action row for the Inquiry (business) tab — the flag affordance that
+  /// previously lived in `OrderMainChatScreen`'s header.
+  Widget _buildInquiryTabActions() {
     return Padding(
       padding: const EdgeInsets.only(top: 10, right: 14.0),
       child: Row(
@@ -386,22 +380,6 @@ class _ConnectMainPageState extends State<ConnectMainPage>
             child: const Icon(Icons.flag_outlined,
                 size: 24, color: Colors.black),
           ),
-          if (!isInquiryTab) ...[
-            // const SizedBox(width: 14),
-            // InkWell(
-            //   onTap: () => commonSnackBar(message: "Coming soon...."),
-            //   borderRadius: BorderRadius.circular(20),
-            //   child: const Icon(Icons.credit_card,
-            //       size: 24, color: Colors.black),
-            // ),
-            const SizedBox(width: 14),
-            InkWell(
-              onTap: () => commonSnackBar(message: "Coming soon...."),
-              borderRadius: BorderRadius.circular(20),
-              child: const Icon(Icons.delivery_dining,
-                  size: 24, color: AppColors.primaryColor),
-            ),
-          ],
         ],
       ),
     );
@@ -482,7 +460,11 @@ class _ConnectMainPageState extends State<ConnectMainPage>
           },
 
           child: Scaffold(
-            floatingActionButton: SafeArea(
+            // The "+" FAB starts a new chat/group — only meaningful on the
+            // Chat / Inquiry tabs, not the Call tab.
+            floatingActionButton: selectedIndex == 2
+                ? null
+                : SafeArea(
               child: Padding(
                   padding:
                   const EdgeInsets.only(bottom: kBottomNavigationBarHeight),
@@ -565,30 +547,23 @@ class _ConnectMainPageState extends State<ConnectMainPage>
                     controller: _tabController,
                     children: [
                       PersonalChatsList(isForwardUI: false),
-                      // Inquiry tab: show only outgoing inquiries (chats
-                      // where the user sent the latest message). Inverse
-                      // of the self-employed / professionals "Order" tab
-                      // which uses `excludeSenderId: userId` to surface
-                      // received inquiries.
+                      // Inquiry tab: the business lane. Now that `order` is
+                      // merged into `business`, former order threads also
+                      // surface here. `onlySenderId` keeps it to the user's
+                      // own outgoing inquiries/orders (the inverse of the
+                      // provider-side Grocery/self-employed views which use
+                      // `excludeSenderId: userId`).
                       BusinessChatsList(
                         isForwardUI: false,
                         onlySenderId: userId,
                       ),
-                      // Mirror of the Grocery screen's `excludeSenderId`:
-                      // here we *only* show chats where the last message
-                      // was authored by the logged-in user — the Connect
-                      // Order tab is the user's own outgoing-orders view,
-                      // while the Grocery owner sees the inverse.
-                      OrdersTabView(onlySenderId: userId),
-                      // CallHistoryScreen has its own NestedScrollView; nesting
-                      // it inside the parent NestedScrollView lets the parent's
-                      // _NestedScrollController recursively try to attach to
-                      // the inner ListView and blows the stack. Detach it from
-                      // the inherited PrimaryScrollController so each scroll
-                      // surface stays independent.
-                      // PrimaryScrollController.none(
-                      //   child: const CallHistoryScreen(),
-                      // ),
+                      // Call tab. CallHistoryScreen owns its own scrollable;
+                      // detach it from the parent NestedScrollView's inherited
+                      // PrimaryScrollController so the inner ListView doesn't
+                      // recursively try to attach to it (which blows the stack).
+                      PrimaryScrollController.none(
+                        child: const CallHistoryScreen(),
+                      ),
                     ],
                   ),
                 ),

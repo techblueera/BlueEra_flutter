@@ -445,6 +445,7 @@ class _BeAvailableContactsListState extends State<BeAvailableContactsList> {
                         chatViewController.checkChatConnectionAndOpenChat(
                           userId: _selectedUsers.first.id!,
                           isFromContactList: true,
+                          route: AppConstants.route_contact,
                         );
                         return ;
                       }

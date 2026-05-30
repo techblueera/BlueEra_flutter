@@ -61,6 +61,11 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated>
 
   @override
   void initState() {
+    // This screen is the business/discovery lane (it also hosts former order
+    // threads now that `order` is merged into `business`): tag outgoing sends
+    // with the `discover` route so a first message looks up / creates the
+    // business conversation.
+    chatViewController.activeRoute = AppConstants.route_discover;
 
     WidgetsBinding.instance.addPostFrameCallback((value){
       chatViewController.isChatFromBusinessProfile(true);

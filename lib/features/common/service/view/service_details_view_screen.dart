@@ -175,6 +175,7 @@ class ServiceDetailsScreen extends StatelessWidget {
                               userId: service.userId ?? '',
                               shareProductParams: data,
                               isWithProductSend: true,
+                              route: AppConstants.route_discover,
                             );
                           }
 

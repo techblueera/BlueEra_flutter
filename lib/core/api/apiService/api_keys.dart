@@ -177,6 +177,10 @@ class ApiKeys {
   static const communicationPreferences = 'communicationPreferences';
   static const otherInstructions = 'otherInstructions';
   static const other_user_id = 'other_user_id';
+
+  /// Optional send-message param. `contact` -> personal lane,
+  /// `discover` -> business lane. Omitted -> legacy backend inference.
+  static const route = 'route';
   static const user_phone = 'user_phone';
   static const user_name = "user_name";
   static const user_email = 'user_email';

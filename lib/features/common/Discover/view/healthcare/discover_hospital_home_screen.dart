@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
@@ -256,6 +257,7 @@ class _DiscoverHospitalHomeScreenState
                       userId:
                           controller.hospitalDataResModel?.value.data?.userId ??
                               '',
+                      route: AppConstants.route_discover,
                     );
                   },
                 ),

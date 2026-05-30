@@ -200,6 +200,7 @@ class FoodDetailsViewScreen extends StatelessWidget {
                               userId: business?.userId ?? '',
                               shareProductParams: data,
                               isWithProductSend: true,
+                              route: AppConstants.route_discover,
                             );
                           }
 

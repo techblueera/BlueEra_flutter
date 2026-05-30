@@ -1099,6 +1099,7 @@ class _ProductsStoreDetailsScreenState
                   final chatViewController = Get.find<ChatViewController>();
                   chatViewController.checkChatConnectionAndOpenChat(
                     userId: widget.productStore?.user_id ?? '',
+                    route: AppConstants.route_discover,
                   );
                 },
                 title: AppStrings.chat,
@@ -1225,6 +1226,7 @@ class _ProductsStoreDetailsScreenState
         userId: widget.productStore?.user_id ?? '',
         shareProductParams: data,
         isWithProductSend: true,
+        route: AppConstants.route_discover,
       );
     }
   }

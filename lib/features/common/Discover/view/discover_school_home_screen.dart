@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/api/model/school_details_res_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
@@ -132,6 +133,7 @@ class DiscoverSchoolHomeScreen extends StatelessWidget {
                     userId: schoolAboutUsController
                             .schoolDetailsData?.value.ownerId ??
                         '',
+                    route: AppConstants.route_discover,
                   );
                 },
                 title: AppStrings.chat,

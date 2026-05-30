@@ -209,6 +209,7 @@ class _ProductCardState extends State<ProductCardBusiness> {
                       userId: widget.businessData?.userId ?? '',
                       shareProductParams: data,
                       isWithProductSend: true,
+                      route: AppConstants.route_discover,
                     );
 
                   }

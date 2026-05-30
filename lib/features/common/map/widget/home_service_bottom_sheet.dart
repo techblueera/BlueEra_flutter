@@ -305,6 +305,7 @@ class _HomeServicesBottomSheetState extends State<HomeServicesBottomSheet> {
                                         : Get.put(ChatViewController());
                                     chatViewController.checkChatConnectionAndOpenChat(
                                       userId: serviceData.id ?? '',
+                                      route: AppConstants.route_discover,
                                     );
 
                                   },

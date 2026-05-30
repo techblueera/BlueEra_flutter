@@ -48,6 +48,11 @@ class _PersonalChatScreenState extends State<PersonalChatScreen>
 
   @override
   void initState() {
+    // This screen is the personal lane: tag outgoing sends with the `contact`
+    // route so a first message looks up / creates the personal conversation.
+    // Admin (system) chats opt out and keep legacy route-less behaviour.
+    chatViewController.activeRoute =
+        widget.type == "Admin" ? null : AppConstants.route_contact;
     chatViewController.sendMessageController.value.clear();
     chatViewController.isTextFieldEmpty.value = false;
     final prefill = widget.prefilledMessage;

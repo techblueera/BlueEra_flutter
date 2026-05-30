@@ -99,6 +99,7 @@ class DiscoverProfessionalsViewScreen extends StatelessWidget {
                   final chatViewController = Get.find<ChatViewController>();
                   chatViewController.checkChatConnectionAndOpenChat(
                     userId: data.userId ?? '',
+                    route: AppConstants.route_discover,
                   );
                 },
                 title: AppStrings.chat.tr,

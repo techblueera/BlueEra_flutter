@@ -321,6 +321,7 @@ class _FoodServicesBottomSheetState extends State<FoodServicesBottomSheet> {
                                   : Get.put(ChatViewController());
                               chatViewController.checkChatConnectionAndOpenChat(
                                 userId: serviceData.id ?? '',
+                                route: AppConstants.route_discover,
                               );
 
                             },

@@ -552,6 +552,7 @@ class _ExistingContactTile extends StatelessWidget {
               chatViewController.checkChatConnectionAndOpenChat(
                 userId: contact!.id!,
                 isFromContactList: true,
+                route: AppConstants.route_contact,
               );
             }
           }

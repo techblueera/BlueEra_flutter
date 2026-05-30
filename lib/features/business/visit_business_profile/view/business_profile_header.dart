@@ -140,6 +140,7 @@ class _BusinessProfileHeaderState extends State<BusinessProfileHeader> {
                     }
                     chatViewController.checkChatConnectionAndOpenChat(
                       userId: widget.businessProfileDetails.userId ?? '',
+                      route: AppConstants.route_discover,
                     );
                   }),
                   const SizedBox(width: 6),

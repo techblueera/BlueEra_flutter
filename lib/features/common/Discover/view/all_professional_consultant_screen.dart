@@ -601,7 +601,8 @@ class _AllProfessionConsultantScreenState
                       final chatViewController =
                           getOrPut(() => ChatViewController());
                       chatViewController.checkChatConnectionAndOpenChat(
-                          userId: targetUserId);
+                          userId: targetUserId,
+                          route: AppConstants.route_discover);
                     },
                   ),
                 ),
@@ -899,7 +900,8 @@ class _AllProfessionConsultantScreenState
                           getOrPut(() => ChatViewController());
 
                       chatViewController.checkChatConnectionAndOpenChat(
-                          userId: service.userId ?? "");
+                          userId: service.userId ?? "",
+                          route: AppConstants.route_discover);
                       // Get.to(() => PersonalChatScreen(
                       //       conversationId: '',
                       //       userId: targetUserId,

@@ -88,6 +88,7 @@ class _DiscoverLabViewScreenState extends State<DiscoverLabViewScreen> {
                               Get.find<ChatViewController>();
                           chatViewController.checkChatConnectionAndOpenChat(
                             userId: d.fullDetails?.profile?.userId ?? '',
+                            route: AppConstants.route_discover,
                           );
                         },
                         title: AppStrings.chat,

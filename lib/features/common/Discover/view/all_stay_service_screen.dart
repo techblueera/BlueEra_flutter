@@ -837,6 +837,7 @@ class _PropertyCardState extends State<PropertyCard> {
     final chatViewController = Get.find<ChatViewController>();
     await chatViewController.checkChatConnectionAndOpenChat(
       userId: widget.businessId,
+      route: AppConstants.route_discover,
     );
   }
 

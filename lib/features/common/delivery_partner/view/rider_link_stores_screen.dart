@@ -188,6 +188,7 @@ class _RiderLinkStoresScreenState extends State<RiderLinkStoresScreen> {
     Get.find<ChatViewController>();
     chatViewController.checkChatConnectionAndOpenChat(
       userId: store.userId!,
+      route: AppConstants.route_discover,
     );
   }
 }

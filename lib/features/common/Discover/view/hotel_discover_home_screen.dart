@@ -108,6 +108,7 @@ class _HotelDiscoverHomeScreenState extends State<HotelDiscoverHomeScreen> {
                               Get.find<ChatViewController>();
                           chatViewController.checkChatConnectionAndOpenChat(
                             userId: profile?.businessId ?? '',
+                            route: AppConstants.route_discover,
                           );
                         },
                         title: AppStrings.chat,

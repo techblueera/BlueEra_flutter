@@ -153,6 +153,14 @@ class AppConstants {
 
   static const String personal_Chat_Type = 'personal';
   static const String business_Chat_Type = 'business';
+
+  /// Values for the optional `route` send-message param. The backend maps
+  /// `contact -> personal` and `discover -> business` conversation lanes,
+  /// deciding (and creating, if needed) the correct thread at send time
+  /// instead of inferring it from contact state. See the route-override
+  /// integration guide.
+  static const String route_contact = 'contact';
+  static const String route_discover = 'discover';
   static const String search_Chat_Type = 'search';
   static const String askInventory_Chat_Type = 'INVENTORY';
   static const String askFood_Chat_Type = 'FOOD';

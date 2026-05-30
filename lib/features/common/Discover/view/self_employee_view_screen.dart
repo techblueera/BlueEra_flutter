@@ -230,6 +230,7 @@ class SelfEmployeeViewScreen extends StatelessWidget {
                     chatViewController.checkChatConnectionAndOpenChat(
                       userId: targetUserId,
                       prefilledMessage: prefill,
+                      route: AppConstants.route_discover,
                     );
                   },
                   isValidate: true,
