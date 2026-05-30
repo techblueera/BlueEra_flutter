@@ -73,12 +73,12 @@ class _ConnectMainPageState extends State<ConnectMainPage>
     AppIconAssets.chat,
     AppIconAssets.shop,
     AppIconAssets.orderBookingIcon,
-    AppIconAssets.call,
+    // AppIconAssets.call,
   ];
   List<String> get postTab => [
+    AppStrings.chat.tr,
     AppStrings.inquiry.tr,
     AppStrings.orders.tr,
-    AppStrings.call.tr,
 
   ];
 
@@ -586,9 +586,9 @@ class _ConnectMainPageState extends State<ConnectMainPage>
                       // the inner ListView and blows the stack. Detach it from
                       // the inherited PrimaryScrollController so each scroll
                       // surface stays independent.
-                      PrimaryScrollController.none(
-                        child: const CallHistoryScreen(),
-                      ),
+                      // PrimaryScrollController.none(
+                      //   child: const CallHistoryScreen(),
+                      // ),
                     ],
                   ),
                 ),
