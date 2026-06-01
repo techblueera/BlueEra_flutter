@@ -22,6 +22,45 @@ import '../pin_chat/business_pin_chat_list.dart';
 import '../reminder_chat/reminder_chat_list.dart';
 import '../widget/component_widgets.dart';
 
+/// Where a business-list row belongs:
+///   [chats] — the main chat list (buyer side, friends, groups)
+///   [me]    — the seller's "my customers" section (stranger orders)
+///   [skip]  — excluded entirely
+enum ChatBucket { chats, me, skip }
+
+/// Single source of truth for routing one chat row — the Dart twin of the
+/// backend `bucketChat` spec. Call once per row.
+///
+/// Priority:
+///   1. Group rows always go to [ChatBucket.chats].
+///   2. Seller side (`i_own_business`) — friend orders stay in chats,
+///      stranger customers go to [ChatBucket.me].
+///   3. Buyer side (I ordered from someone else's business) → chats.
+///
+/// `i_own_business` is read straight from the row; when the server hasn't
+/// sent it (legacy payload) we fall back to "the counterpart is NOT a
+/// business account" — i.e. an individual messaging my business means I'm
+/// the seller. `is_friend` similarly falls back to false.
+ChatBucket bucketChat(ChatList chat) {
+  // Group chats always live in the chat list.
+  if (chat.isGroup == true) return ChatBucket.chats;
+
+  final iOwnBusiness = chat.iOwnBusiness ??
+      ((chat.sender?.accountType?.toUpperCase() ?? '') !=
+          AppConstants.business.toUpperCase());
+
+  // Business convo — seller side.
+  if (iOwnBusiness) {
+    // Friend override — a friend ordering from my business → chat list.
+    if (chat.isFriend == true) return ChatBucket.chats;
+    // Stranger customer → "me" section.
+    return ChatBucket.me;
+  }
+
+  // Business convo — buyer side (I ordered from someone else's business).
+  return ChatBucket.chats;
+}
+
 class BusinessChatsList extends StatefulWidget {
   const BusinessChatsList({
     super.key,
@@ -117,11 +156,12 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
                     ? _businessChatListWidget(data, theme)
                     : Expanded(child: _businessChatListWidget(data, theme))
               else if (chatViewController.businessChatTabSelectedIndex.value == 1)
-                const BusinessPinChatList()
+                BusinessPinChatList(isInParentScroll: widget.isInParentScroll)
               else if (chatViewController.businessChatTabSelectedIndex.value == 2)
-                  ReminderChatList()
+                  ReminderChatList(isInParentScroll: widget.isInParentScroll)
                 else if (chatViewController.businessChatTabSelectedIndex.value == 3)
-                    const BusinessFlagChatList()
+                    BusinessFlagChatList(
+                        isInParentScroll: widget.isInParentScroll)
                   else if (chatViewController.businessChatTabSelectedIndex.value == 4)
                       _buildArchiveTab(),
             ],
@@ -160,8 +200,8 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
   }
 
   Widget _buildArchiveTab() {
-    return Expanded(
-      child: Column(
+    final column = Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           InkWell(
             onTap: () => Get.to(() => const ArchiveChatListPage(isBusiness: true)),
@@ -199,8 +239,9 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
             ),
           ),
         ],
-      ),
-    );
+      );
+
+    return widget.isInParentScroll ? column : Expanded(child: column);
   }
 
   Widget _businessChatListWidget(GetChatListModel? data, ThemeData theme) {
@@ -220,16 +261,29 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
       return chat == null || !lockedIds.contains(chat.conversationId);
     }).toList();
 
-    if (widget.excludeSenderId != null) {
-      chatList = chatList
-          .where((c) =>
-      (c?.lastMessageSenderId ?? '') != widget.excludeSenderId)
-          .toList();
-    }
+    // B2B routing — split the business list into "chats" vs the seller's
+    // "me" (my customers) section via [bucketChat]. The Order tabs that
+    // surface incoming customers pass [excludeSenderId] → render the "me"
+    // bucket; everything else is the main chat list, which hides stranger
+    // customers (they live in the seller's "me" section). Forward / group-
+    // add pickers must show everything, so they skip bucketing.
+    //
+    // The Connect "my inquiries" tab keeps its legacy [onlySenderId] filter
+    // (outgoing-only), which is an orthogonal slice of the chats bucket.
+    final isPicker =
+        (widget.isForwardUI ?? false) || (widget.isNewGroupUI ?? false);
     if (widget.onlySenderId != null) {
       chatList = chatList
           .where((c) =>
-      (c?.lastMessageSenderId ?? '') == widget.onlySenderId)
+              (c?.lastMessageSenderId ?? '') == widget.onlySenderId)
+          .toList();
+    } else if (widget.excludeSenderId != null) {
+      chatList = chatList
+          .where((c) => c != null && bucketChat(c) == ChatBucket.me)
+          .toList();
+    } else if (!isPicker) {
+      chatList = chatList
+          .where((c) => c != null && bucketChat(c) == ChatBucket.chats)
           .toList();
     }
 

@@ -28,6 +28,11 @@ class _AddSocialLinkSheetState extends State<AddSocialLinkSheet> {
   /// a chip that disagrees with what they pasted.
   String _detectedFromUrl = 'unknown';
 
+  /// The cleaned, tracking-free URL the backend will actually receive —
+  /// recomputed on every edit so we can preview it to the user when it
+  /// differs from what they pasted (e.g. a share link with an `si` token).
+  String _canonicalUrl = '';
+
   /// True once the user has explicitly tapped any chip. While this is
   /// false the chip selection passively mirrors [_detectedFromUrl]; as
   /// soon as the user picks one, we stop auto-overriding and start
@@ -64,12 +69,38 @@ class _AddSocialLinkSheetState extends State<AddSocialLinkSheet> {
   void _onUrlChanged(String value) {
     final detected = ReferralRepoNew.detectPlatform(value);
     final newPlatform = _userSelectedChip ? _platform : detected;
-    if (detected == _detectedFromUrl && newPlatform == _platform) return;
+    final canonical = value.trim().isEmpty
+        ? ''
+        : ReferralRepoNew.canonicalizeSharedUrl(value);
+    if (detected == _detectedFromUrl &&
+        newPlatform == _platform &&
+        canonical == _canonicalUrl) {
+      return;
+    }
     setState(() {
       _detectedFromUrl = detected;
       _platform = newPlatform;
+      _canonicalUrl = canonical;
     });
   }
+
+  /// Replaces the field with the cleaned URL so what the user sees matches
+  /// exactly what gets saved. Moves the caret to the end after applying.
+  void _applyCleanedUrl() {
+    _urlCtrl.value = TextEditingValue(
+      text: _canonicalUrl,
+      selection: TextSelection.collapsed(offset: _canonicalUrl.length),
+    );
+    _onUrlChanged(_canonicalUrl);
+  }
+
+  /// True when normalization actually changed the link (supported platform,
+  /// no mismatch) — only then is the preview worth showing.
+  bool get _showCleanedPreview =>
+      _canonicalUrl.isNotEmpty &&
+      _detectedFromUrl != 'unknown' &&
+      !_hasMismatch &&
+      _canonicalUrl != _urlCtrl.text.trim();
 
   void _selectPlatform(String key) {
     setState(() {
@@ -148,6 +179,8 @@ class _AddSocialLinkSheetState extends State<AddSocialLinkSheet> {
                 const SizedBox(height: 10),
                 _urlField(),
                 _validationBanner(),
+                _cleanedUrlPreview(),
+                _instagramNote(),
                 SizedBox(height: SizeConfig.paddingM),
                 _submitButton(),
               ],
@@ -454,10 +487,149 @@ class _AddSocialLinkSheetState extends State<AddSocialLinkSheet> {
     );
   }
 
+  // ── Cleaned-URL preview ────────────────────────────────────────────
+  //
+  // Surfaces the canonical, tracking-free link the backend will receive
+  // whenever it differs from what the user pasted — so "copied from
+  // share" (with `si` / `igsh` tokens or wrapping text) visibly resolves
+  // to the same clean address as "copied from browser". Tap to apply it
+  // to the field; submitting already sends the cleaned form regardless.
+  Widget _cleanedUrlPreview() {
+    return AnimatedSize(
+      duration: const Duration(milliseconds: 180),
+      curve: Curves.easeOut,
+      child: !_showCleanedPreview
+          ? const SizedBox(width: double.infinity)
+          : Container(
+              width: double.infinity,
+              margin: const EdgeInsets.only(top: 10),
+              decoration: BoxDecoration(
+                color: AppColors.primaryColor.withValues(alpha: 0.06),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: AppColors.primaryColor.withValues(alpha: 0.30),
+                ),
+              ),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: _applyCleanedUrl,
+                  borderRadius: BorderRadius.circular(10),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 10),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(Icons.auto_fix_high_rounded,
+                            color: AppColors.primaryColor, size: 16),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              CustomText(
+                                'Will be saved as',
+                                fontSize: SizeConfig.extraSmall,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.primaryColor,
+                                letterSpacing: 0.6,
+                              ),
+                              const SizedBox(height: 2),
+                              CustomText(
+                                _canonicalUrl,
+                                fontSize: SizeConfig.small,
+                                color: AppColors.mainTextColor,
+                                fontWeight: FontWeight.w500,
+                                height: 1.3,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        CustomText(
+                          'Apply',
+                          fontSize: SizeConfig.small,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.primaryColor,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+    );
+  }
+
+  // ── Instagram heads-up note ────────────────────────────────────────
+  //
+  // Instagram's login wall often blocks preview scraping, so an IG link
+  // can save without a thumbnail/caption (YouTube & X resolve reliably).
+  // Surface that *before* the user submits — both so they understand a
+  // missing preview later isn't a bug, and so they know the link still
+  // works. Shown whenever Instagram is the active platform and there's
+  // no blocking validation error.
+  Widget _instagramNote() {
+    final show = _platform == 'instagram' &&
+        !_hasMismatch &&
+        !_hasUnsupportedUrl;
+    return AnimatedSize(
+      duration: const Duration(milliseconds: 180),
+      curve: Curves.easeOut,
+      child: !show
+          ? const SizedBox(width: double.infinity)
+          : Container(
+              width: double.infinity,
+              margin: const EdgeInsets.only(top: 10),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: const Color(0xFFE1306C).withValues(alpha: 0.06),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: const Color(0xFFE1306C).withValues(alpha: 0.30),
+                ),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.info_outline_rounded,
+                      color: Color(0xFFE1306C), size: 16),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: CustomText(
+                      'Instagram limits link previews, so the thumbnail '
+                      'and caption may not load. Your link will still be '
+                      'saved and will open in Instagram.',
+                      fontSize: SizeConfig.small,
+                      color: AppColors.mainTextColor,
+                      fontWeight: FontWeight.w500,
+                      height: 1.4,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+    );
+  }
+
   // ── Submit ─────────────────────────────────────────────────────────
+  //
+  // While the create-post API is in flight we swap the button for a
+  // compact "Generating…" state — a small circular spinner + label —
+  // instead of CustomBtn's wave loader, which reads as a heavier
+  // "uploading" affordance than fits a metadata fetch. The loading
+  // state is non-tappable, so it doubles as the double-submit guard.
   Widget _submitButton() {
-    return Obx(
-      () => SizedBox(
+    return Obx(() {
+      if (widget.controller.creatingPost.value) {
+        return _generatingState();
+      }
+      return SizedBox(
         width: double.infinity,
         child: CustomBtn(
           height: 48,
@@ -467,7 +639,7 @@ class _AddSocialLinkSheetState extends State<AddSocialLinkSheet> {
               ? AppColors.primaryColor
               : AppColors.primaryColor.withValues(alpha: 0.35),
           textColor: AppColors.white,
-          isLoading: widget.controller.creatingPost.value,
+          isLoading: false,
           onTap: !_ready
               ? null
               : () async {
@@ -477,6 +649,41 @@ class _AddSocialLinkSheetState extends State<AddSocialLinkSheet> {
                 },
           title: 'Add Link',
         ),
+      );
+    });
+  }
+
+  /// In-flight state for the submit button: small circular indicator +
+  /// "Generating…". Matches the active button's size/shape so the layout
+  /// doesn't jump when it swaps in.
+  Widget _generatingState() {
+    return Container(
+      width: double.infinity,
+      height: 48,
+      decoration: BoxDecoration(
+        color: AppColors.primaryColor,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      alignment: Alignment.center,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(
+            width: 18,
+            height: 18,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              valueColor: AlwaysStoppedAnimation(AppColors.white),
+            ),
+          ),
+          const SizedBox(width: 10),
+          CustomText(
+            'Generating…',
+            fontSize: SizeConfig.medium,
+            fontWeight: FontWeight.w700,
+            color: AppColors.white,
+          ),
+        ],
       ),
     );
   }

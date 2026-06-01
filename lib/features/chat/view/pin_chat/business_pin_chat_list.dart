@@ -8,7 +8,12 @@ import '../../auth/controller/chat_view_controller.dart';
 import '../widget/component_widgets.dart';
 
 class BusinessPinChatList extends StatelessWidget {
-  const BusinessPinChatList({super.key});
+  const BusinessPinChatList({super.key, this.isInParentScroll = false});
+
+  /// When `true`, the widget sizes to its content under an unbounded
+  /// parent scroll (sliver/nested scroll) — no `Expanded`, and the
+  /// inner `ListView` switches to `NeverScrollableScrollPhysics`.
+  final bool isInParentScroll;
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +25,7 @@ class BusinessPinChatList extends StatelessWidget {
       final pinnedIds = pinArchiveController.businessPinnedIds;
 
       if (pinnedIds.isEmpty) {
-        return Expanded(child: noChatsFound());
+        return _emptyState();
       }
 
       final allChats =
@@ -31,15 +36,17 @@ class BusinessPinChatList extends StatelessWidget {
       }).toList();
 
       if (pinnedChats.isEmpty) {
-        return Expanded(child: noChatsFound());
+        return _emptyState();
       }
 
-      return Expanded(
-        child: Container(
+      final list = Container(
           margin: EdgeInsets.only(bottom: SizeConfig.size70),
           child: ListView.builder(
             itemCount: pinnedChats.length,
             shrinkWrap: true,
+            physics: isInParentScroll
+                ? const NeverScrollableScrollPhysics()
+                : null,
             itemBuilder: (context, index) {
               final chat = pinnedChats[index];
 
@@ -55,8 +62,17 @@ class BusinessPinChatList extends StatelessWidget {
               );
             },
           ),
-        ),
-      );
+        );
+
+      return isInParentScroll ? list : Expanded(child: list);
     });
+  }
+
+  /// Empty placeholder that adapts to bounded vs. unbounded layout.
+  Widget _emptyState() {
+    if (isInParentScroll) {
+      return SizedBox(height: 300, child: noChatsFound());
+    }
+    return Expanded(child: noChatsFound());
   }
 }

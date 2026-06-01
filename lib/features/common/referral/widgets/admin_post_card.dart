@@ -213,6 +213,14 @@ class _AdminPostCardState extends State<AdminPostCard> {
 
   @override
   Widget build(BuildContext context) {
+    // Instagram's login wall frequently blocks the scrape, so an IG post
+    // can land with no thumbnail/title/caption. Rather than render a card
+    // that's just a gradient + the word "instagram", show a purposeful
+    // fallback that explains why and gives the user a way forward. Other
+    // platforms (and IG posts that DID resolve) keep the rich card.
+    if (widget.post.isInstagram && !widget.post.hasResolvedMetadata) {
+      return _buildUnresolvedInstagramCard();
+    }
     return CustomFormCard(
       padding: const EdgeInsets.all(8),
       child: Column(
@@ -287,6 +295,179 @@ class _AdminPostCardState extends State<AdminPostCard> {
                           ),
                         ),
                       ],
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Fallback card for an Instagram post the backend couldn't resolve
+  /// (login wall → no thumbnail/title/caption). Communicates *why* the
+  /// preview is missing and *what the user can do* (open it in
+  /// Instagram), instead of showing a near-empty rich card.
+  Widget _buildUnresolvedInstagramCard() {
+    const igBrand = Color(0xFFE1306C);
+    return CustomFormCard(
+      padding: const EdgeInsets.all(8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Hero — branded placeholder, no network image to load.
+          ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: AspectRatio(
+              aspectRatio: 16 / 9,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  const DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Color(0x22833AB4),
+                          Color(0x22E1306C),
+                          Color(0x22FCAF45),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 48,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.08),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: const Icon(Icons.camera_alt_outlined,
+                              color: igBrand, size: 24),
+                        ),
+                        const SizedBox(height: 8),
+                        CustomText(
+                          'Preview not available',
+                          fontSize: SizeConfig.small,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.mainTextColor,
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Instagram provider chip, top-left — consistent with
+                  // the rich card so the source still reads at a glance.
+                  Positioned(
+                    top: 10,
+                    left: 10,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                            color: igBrand.withValues(alpha: 0.55)),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.camera_alt_outlined,
+                              size: 12, color: igBrand),
+                          SizedBox(width: 4),
+                          Text(
+                            'INSTAGRAM',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w800,
+                              color: igBrand,
+                              letterSpacing: 0.4,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(4, 10, 4, 4),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CustomText(
+                  'Instagram link',
+                  fontSize: SizeConfig.large,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.mainTextColor,
+                ),
+                const SizedBox(height: 6),
+                // Why it happened — plain, non-alarming explanation.
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(Icons.info_outline_rounded,
+                        size: 14, color: AppColors.secondaryTextColor),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: CustomText(
+                        'Instagram limits link previews, so the thumbnail '
+                        'and caption couldn’t be loaded. Your link is saved '
+                        'and opens in the Instagram app.',
+                        fontSize: SizeConfig.small,
+                        color: AppColors.secondaryTextColor,
+                        height: 1.4,
+                      ),
+                    ),
+                  ],
+                ),
+                if (widget.post.externalLink.isNotEmpty) ...[
+                  SizedBox(height: SizeConfig.paddingXSL),
+                  // What to do — open the reel in Instagram.
+                  InkWell(
+                    onTap: _openLink,
+                    borderRadius: BorderRadius.circular(10),
+                    child: Container(
+                      height: 42,
+                      decoration: BoxDecoration(
+                        color: igBrand.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                            color: igBrand.withValues(alpha: 0.45)),
+                      ),
+                      alignment: Alignment.center,
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.open_in_new_rounded,
+                              size: 16, color: igBrand),
+                          SizedBox(width: 8),
+                          Text(
+                            'Open in Instagram',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: igBrand,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ],

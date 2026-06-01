@@ -365,7 +365,11 @@ class ReferralController extends GetxController {
   /// is sent as the `title` field per the new contract.
   Future<bool> createUserPost(String url) async {
     if (creatingPost.value) return false;
-    final trimmed = url.trim();
+    // Normalize whatever the user pasted (browser URL, share-sheet link
+    // with tracking tokens, or share text wrapping a URL) into a clean
+    // canonical address so the backend scraper resolves real metadata
+    // instead of a consent/redirect page. See [canonicalizeSharedUrl].
+    final trimmed = ReferralRepoNew.canonicalizeSharedUrl(url);
     if (trimmed.isEmpty) {
       commonSnackBar(message: 'Please paste a valid link.');
       return false;

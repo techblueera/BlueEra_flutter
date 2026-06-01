@@ -78,6 +78,8 @@ class ChatList {
     this.lastMessageSendStatus,
     this.repliedSymbol,
     this.repliedSymbolId,
+    this.iOwnBusiness,
+    this.isFriend,
   });
 
   ChatList.fromJson(dynamic json) {
@@ -118,6 +120,25 @@ class ChatList {
       repliedSymbol = SymbolDetailsModel.fromJson(
           Map<String, dynamic>.from(json['replied_symbol'] as Map));
     }
+
+    // B2B chat-routing flags (see `bucketChat` in business_chat_list.dart).
+    //   i_own_business → I am the business/seller side of this conversation
+    //   is_friend      → the other participant is in my contacts
+    // Parsed defensively (bool | 1/0 | "true") and left null when absent
+    // so the bucketer can apply its legacy account-type fallback.
+    iOwnBusiness = _asBool(json['i_own_business']);
+    isFriend = _asBool(json['is_friend']);
+  }
+
+  static bool? _asBool(dynamic v) {
+    if (v is bool) return v;
+    if (v is num) return v != 0;
+    if (v is String) {
+      final s = v.toLowerCase().trim();
+      if (s == 'true' || s == '1') return true;
+      if (s == 'false' || s == '0') return false;
+    }
+    return null;
   }
 
   String? conversationId;
@@ -150,6 +171,15 @@ class ChatList {
   /// reply_to_symbol preview snapshot for the chat-list row's last message.
   SymbolDetailsModel? repliedSymbol;
   String? repliedSymbolId;
+
+  /// True when I'm the business (seller) side of this conversation.
+  /// Null when the server hasn't sent the flag (legacy payload) — the
+  /// bucketer then falls back to the counterpart's account type.
+  bool? iOwnBusiness;
+
+  /// True when the other participant is in my contacts. Used to override
+  /// the seller-side "me" routing so a friend's order stays in chats.
+  bool? isFriend;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
@@ -184,6 +214,8 @@ class ChatList {
     if (repliedSymbolId != null) {
       map['replied_symbol_id'] = repliedSymbolId;
     }
+    map['i_own_business'] = iOwnBusiness;
+    map['is_friend'] = isFriend;
 
     return map;
   }

@@ -16,9 +16,12 @@ import '../widget/component_widgets.dart';
 import '../widget/reminder_view_page.dart';
 
 class ReminderChatList extends StatefulWidget {
-  const ReminderChatList({super.key});
+  const ReminderChatList({super.key, this.isInParentScroll = false});
 
-
+  /// When `true`, the widget sizes to its content under an unbounded
+  /// parent scroll (sliver/nested scroll) — the inner `ListView`
+  /// shrink-wraps and switches to `NeverScrollableScrollPhysics`.
+  final bool isInParentScroll;
 
   @override
   State<ReminderChatList> createState() => _ReminderChatListState();
@@ -49,6 +52,10 @@ class _ReminderChatListState extends State<ReminderChatList> {
 
         return ListView.builder(
                   itemCount: members.length,
+                  shrinkWrap: widget.isInParentScroll,
+                  physics: widget.isInParentScroll
+                      ? const NeverScrollableScrollPhysics()
+                      : null,
                   padding: EdgeInsets.only(
                     top: 8,
                     bottom: SizeConfig.size70,

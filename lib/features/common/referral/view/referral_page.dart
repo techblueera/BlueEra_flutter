@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/api/apiService/api_response.dart';
+import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -84,12 +85,22 @@ class _ReferralPageState extends State<ReferralPage> {
         child: ReferralDashboardPage(controller: controller),
       );
     }
-    return RefreshIndicator(
-      onRefresh: _refresh,
-      child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        child: _buildRegisterContent(),
-      ),
+    // Refer & Earn (not-yet-registered) page: the app bar has no shadow
+    // (`isShadowShow: false`), so a thin pinned divider sits just below it
+    // to act as the separator between the chrome and the scrolling content.
+    return Column(
+      children: [
+        const Divider(height: 1, thickness: 1, color: AppColors.whiteE0),
+        Expanded(
+          child: RefreshIndicator(
+            onRefresh: _refresh,
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: _buildRegisterContent(),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
