@@ -6,6 +6,7 @@ import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/constants/app_constant.dart';
 import '../../../../core/constants/app_icon_assets.dart';
+import '../../../../core/constants/shared_preference_utils.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/constants/getx_utils.dart';
 import '../../../../core/constants/size_config.dart';
@@ -38,16 +39,18 @@ enum ChatBucket { chats, me, skip }
 ///   3. Buyer side (I ordered from someone else's business) → chats.
 ///
 /// `i_own_business` is read straight from the row; when the server hasn't
-/// sent it (legacy payload) we fall back to "the counterpart is NOT a
-/// business account" — i.e. an individual messaging my business means I'm
-/// the seller. `is_friend` similarly falls back to false.
+/// sent it (legacy payload) we fall back to *my own* account type — if I'm
+/// logged in as a business (`accountTypeGlobal == BUSINESS`) then in a
+/// business conversation I'm the seller side. `is_friend` falls back to
+/// false. (We use `accountTypeGlobal`, the current user's account type,
+/// not `businessTypeGlobal`, which holds the business *category* like
+/// Food / Grocery / OTHER.)
 ChatBucket bucketChat(ChatList chat) {
   // Group chats always live in the chat list.
   if (chat.isGroup == true) return ChatBucket.chats;
 
-  final iOwnBusiness = chat.iOwnBusiness ??
-      ((chat.sender?.accountType?.toUpperCase() ?? '') !=
-          AppConstants.business.toUpperCase());
+  final iOwnBusiness =
+      chat.iOwnBusiness ?? (accountTypeGlobal == AppConstants.business);
 
   // Business convo — seller side.
   if (iOwnBusiness) {
