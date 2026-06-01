@@ -119,7 +119,7 @@ class _HotelBannerWidgetState extends State<HotelBannerWidget> {
                     size: 20, color: AppColors.primaryColor),
                 SizedBox(width: SizeConfig.size6),
                 CustomText(
-                  'Add Your Banner Here',
+                  AppStrings.otherAddYourBannerHere.tr,
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
                   color: AppColors.primaryColor,

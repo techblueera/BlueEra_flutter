@@ -107,7 +107,7 @@ class _AddChatSymbolScreenState extends State<AddChatSymbolScreen>
           ),
           centerTitle: true,
           title: CustomText(
-            AppStrings.createSymbol,
+            AppStrings.createSymbol.tr,
             color: const Color(0xFF2D3142),
             fontSize: 20,
             fontWeight: FontWeight.w700,

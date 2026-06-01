@@ -461,7 +461,7 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
                 // so it reads naturally ("No Electrician providers…").
                 final pretty = _prettyCategoryName(selectedName);
                 final message = pretty.isNotEmpty
-                    ? 'No $pretty providers found near you'
+                    ? AppStrings.noProvidersFoundNearYou.trParams({'category': pretty})
                     : AppStrings.noServicesFound.tr;
                 return Center(
                     child: EmptyStateWidget(message: message));
@@ -676,10 +676,10 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(child: _specColumn('RATING', ratingStr)),
-                Expanded(child: _specColumn('PRICE', priceStr)),
-                Expanded(child: _specColumn('NEAR', distStr)),
-                Expanded(child: _specColumn('HOURS', hoursStr)),
+                Expanded(child: _specColumn(AppStrings.specLabelRating.tr, ratingStr)),
+                Expanded(child: _specColumn(AppStrings.specLabelPrice.tr, priceStr)),
+                Expanded(child: _specColumn(AppStrings.specLabelNear.tr, distStr)),
+                Expanded(child: _specColumn(AppStrings.specLabelHours.tr, hoursStr)),
               ],
             ),
 
@@ -758,7 +758,7 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
               children: [
                 Expanded(
                   child: _ghostButton(
-                    label: 'View',
+                    label: 'view'.tr,
                     icon: Icons.arrow_outward_rounded,
                     onTap: openDetail,
                   ),
@@ -766,7 +766,7 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
                 SizedBox(width: SizeConfig.size10),
                 Expanded(
                   child: _filledButton(
-                    label: 'Enquire',
+                    label: AppStrings.enquire.tr,
                     icon: Icons.chat_outlined,
                     onTap: () {
                       final targetUserId = service.id ?? '';
@@ -986,7 +986,7 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
           ),
           const SizedBox(width: 5),
           CustomText(
-            'Online',
+            AppStrings.online.tr,
             fontSize: 11,
             color: Colors.green.shade700,
             fontWeight: FontWeight.w700,
@@ -1221,7 +1221,7 @@ class _SelfProfessionMapScreenState extends State<_SelfProfessionMapScreen> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: CustomText(
-                          '$count service ${count == 1 ? "provider" : "providers"} on the map',
+                          '$count ${count == 1 ? AppStrings.serviceProviderOnMapSuffix.tr : AppStrings.serviceProvidersOnMapSuffix.tr}',
                           fontSize: SizeConfig.small,
                           color: AppColors.mainTextColor,
                           fontWeight: FontWeight.w600,

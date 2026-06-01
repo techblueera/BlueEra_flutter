@@ -64,8 +64,7 @@ class _LabBannerWidgetState extends State<LabBannerWidget> {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
       child: Obx(() {
-        final cover =
-            widget.controller.details.value?.profile?.coverUrl ?? '';
+        final cover = widget.controller.details.value?.profile?.coverUrl ?? '';
         final hasBanner = cover.isNotEmpty;
 
         return GestureDetector(
@@ -118,11 +117,10 @@ class _LabBannerWidgetState extends State<LabBannerWidget> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.photo_camera_outlined,
-                    size: 20, color: AppColors.primaryColor),
+                Icon(Icons.photo_camera_outlined, size: 20, color: AppColors.primaryColor),
                 SizedBox(width: SizeConfig.size6),
                 CustomText(
-                  'Add Your Banner Here',
+                  AppStrings.otherAddYourBannerHere.tr,
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
                   color: AppColors.primaryColor,
@@ -167,8 +165,7 @@ class _LabBannerWidgetState extends State<LabBannerWidget> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.edit_outlined,
-                    size: 16, color: AppColors.primaryColor),
+                Icon(Icons.edit_outlined, size: 16, color: AppColors.primaryColor),
                 SizedBox(width: SizeConfig.size4),
                 CustomText(
                   'Edit',

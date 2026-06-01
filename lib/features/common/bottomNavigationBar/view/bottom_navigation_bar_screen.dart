@@ -41,6 +41,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/self_employed/vi
 import 'package:BlueEra/features/me/product/controller/inventory_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/personal_profile_setup_new_screen.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
@@ -167,7 +168,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
               ),
               SizedBox(height: SizeConfig.size12),
               CustomText(
-                'Create your profile',
+                AppStrings.createYourProfile.tr,
                 fontSize: SizeConfig.large18,
                 fontWeight: FontWeight.w800,
                 color: AppColors.mainTextColor,
@@ -175,7 +176,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
               ),
               SizedBox(height: SizeConfig.size8),
               CustomText(
-                "You're browsing as a guest. Create your profile to chat, book services and unlock everything BlueEra has to offer.",
+                AppStrings.guestBrowsingHint.tr,
                 fontSize: SizeConfig.small,
                 color: AppColors.secondaryTextColor,
                 fontWeight: FontWeight.w500,
@@ -188,7 +189,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
                   Expanded(
                     child: CustomBtn(
                       onTap: () => Navigator.of(ctx).pop(),
-                      title: 'Maybe Later',
+                      title: AppStrings.maybeLater.tr,
                       bgColor: AppColors.transparent,
                       textColor: AppColors.primaryColor,
                       borderColor: AppColors.primaryColor,
@@ -202,7 +203,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
                         Navigator.of(ctx).pop();
                         createProfileScreen();
                       },
-                      title: 'Create Profile',
+                      title: AppStrings.createProfile.tr,
                       bgColor: AppColors.primaryColor,
                       textColor: AppColors.white,
                       radius: 10,
@@ -727,9 +728,9 @@ class _UnknownProfileFallback extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             SizedBox(height: SizeConfig.size20),
-            _infoRow('Profile Type', type),
+            _infoRow(AppStrings.profileTypeLabel.tr, type),
             Container(height: 1, color: AppColors.greyE5),
-            _infoRow('Profession', profession),
+            _infoRow(AppStrings.professionLabel.tr, profession),
           ],
         ),
       ),
@@ -816,13 +817,13 @@ class _UnknownBusinessFallback extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             SizedBox(height: SizeConfig.size20),
-            _infoRow('Owner', owner),
+            _infoRow(AppStrings.owner.tr, owner),
             Container(height: 1, color: AppColors.greyE5),
-            _infoRow('Business Type', type),
+            _infoRow(AppStrings.businessTypeLabel.tr, type),
             Container(height: 1, color: AppColors.greyE5),
-            _infoRow('Category', category),
+            _infoRow(AppStrings.category.tr, category),
             Container(height: 1, color: AppColors.greyE5),
-            _infoRow('Sub-Category', subCategory),
+            _infoRow(AppStrings.subCategoryLabel.tr, subCategory),
           ],
         ),
       ),
@@ -930,10 +931,10 @@ class _RiderLiveBarState extends State<_RiderLiveBar>
             const SizedBox(width: 10),
 
             // "I'm Live" label
-            const Expanded(
+            Expanded(
               child: Text(
-                "I'm Live",
-                style: TextStyle(
+                AppStrings.imLive.tr,
+                style: const TextStyle(
                   color: Color(0xFF00C853),
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
@@ -952,9 +953,9 @@ class _RiderLiveBarState extends State<_RiderLiveBar>
                   color: const Color(0xFFEA4335),
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: const Text(
-                  'Go Offline',
-                  style: TextStyle(
+                child: Text(
+                  AppStrings.goOffline.tr,
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 11,
                     fontWeight: FontWeight.w600,

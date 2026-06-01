@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
+
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
@@ -45,15 +46,10 @@ class ReelUploadDetailsScreen extends StatefulWidget {
   final PostVia? postVia;
 
   const ReelUploadDetailsScreen(
-      {super.key,
-      required this.videoPath,
-      required this.videoType,
-      required this.videoId,
-      this.postVia});
+      {super.key, required this.videoPath, required this.videoType, required this.videoId, this.postVia});
 
   @override
-  State<ReelUploadDetailsScreen> createState() =>
-      _ReelUploadDetailsScreenState();
+  State<ReelUploadDetailsScreen> createState() => _ReelUploadDetailsScreenState();
 }
 
 class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
@@ -81,8 +77,7 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
   bool _isBrandPromotion = false;
 
   final _formKey = GlobalKey<FormState>();
-  final reelUploadDetailsController =
-      Get.put<ReelUploadDetailsController>(ReelUploadDetailsController());
+  final reelUploadDetailsController = Get.put<ReelUploadDetailsController>(ReelUploadDetailsController());
   Map<String, String>? tagUsers;
   SongModel? songData;
   Map<String, dynamic>? selectedLocation;
@@ -103,9 +98,7 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
     reelUploadDetailsController.getVideoCategories();
     if (widget.videoId != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        reelUploadDetailsController
-            .getVideosDetails(videoId: widget.videoId ?? '')
-            .then((response) {
+        reelUploadDetailsController.getVideosDetails(videoId: widget.videoId ?? '').then((response) {
           setVideoMetaData(reelUploadDetailsController.videoData.value);
         });
       });
@@ -135,15 +128,13 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
           _commonCoverImage = thumbnailPath.path;
         });
         print("Thumbnail generated at: $_commonCoverImage");
-            } catch (e) {
+      } catch (e) {
         print("Thumbnail generation error: $e");
-        _commonCoverImage =
-            reelUploadDetailsController.videoData.value.video?.coverUrl ?? '';
+        _commonCoverImage = reelUploadDetailsController.videoData.value.video?.coverUrl ?? '';
       }
     } else {
       print("Video path invalid or file does not exist");
-      _commonCoverImage =
-          reelUploadDetailsController.videoData.value.video?.coverUrl ?? '';
+      _commonCoverImage = reelUploadDetailsController.videoData.value.video?.coverUrl ?? '';
     }
   }
 
@@ -166,8 +157,8 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
     _commonCoverImage = VideoFeedItemMetaData.video?.coverUrl ?? '';
 
     final savedCategoryId = VideoFeedItemMetaData.video!.categories![0].id;
-    _commonCategory = reelUploadDetailsController.videoCategory
-        .firstWhere((item) => item.sId == savedCategoryId);
+    _commonCategory =
+        reelUploadDetailsController.videoCategory.firstWhere((item) => item.sId == savedCategoryId);
 
     selectedLocation = {
       ApiKeys.name: VideoFeedItemMetaData.video?.location?.name ?? '',
@@ -175,14 +166,11 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
       ApiKeys.lng: VideoFeedItemMetaData.video?.location?.lng ?? ''
     };
 
-    final List<dynamic> rawList =
-        VideoFeedItemMetaData.video?.taggedUsers ?? [];
+    final List<dynamic> rawList = VideoFeedItemMetaData.video?.taggedUsers ?? [];
 
     tagUsers = {
       for (final item in rawList)
-        if (item is Map<String, dynamic> &&
-            item.containsKey(ApiKeys.id) &&
-            item.containsKey(ApiKeys.name))
+        if (item is Map<String, dynamic> && item.containsKey(ApiKeys.id) && item.containsKey(ApiKeys.name))
           item[ApiKeys.id] as String: item[ApiKeys.name] as String,
     };
 
@@ -191,11 +179,9 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
 
     _is18Plus = VideoFeedItemMetaData.video?.isMatureContent ?? false;
     _showComments = VideoFeedItemMetaData.video?.allowComments ?? false;
-    _acceptBookings =
-        VideoFeedItemMetaData.video?.acceptBookingsOrEnquiries ?? false;
+    _acceptBookings = VideoFeedItemMetaData.video?.acceptBookingsOrEnquiries ?? false;
     _isBrandPromotion = VideoFeedItemMetaData.video?.isBrandPromotion ?? false;
-    _brandPromotionLink.text =
-        VideoFeedItemMetaData.video?.brandPromotionLink ?? '';
+    _brandPromotionLink.text = VideoFeedItemMetaData.video?.brandPromotionLink ?? '';
   }
 
   @override
@@ -203,7 +189,7 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
     return Scaffold(
         appBar: CommonBackAppBar(
           isLeading: true,
-          title: (widget.videoId != null) ? 'Upload Post' : 'Create Post',
+          title: (widget.videoId != null) ? 'Upload Post' : AppStrings.createPost.tr,
         ),
         body: Obx(() {
           if (reelUploadDetailsController.isVideoDetailsLoading.isFalse) {
@@ -238,21 +224,15 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
                         child: Column(
                           children: [
                             Builder(builder: (context) {
-                              final height =
-                                  (reelUploadDetailsController.video ==
-                                          Video.video)
-                                      ? SizeConfig.size220
-                                      : SizeConfig.size250;
-                              final width =
-                                  (reelUploadDetailsController.video ==
-                                          Video.video)
-                                      ? SizeConfig.size320
-                                      : SizeConfig.size180;
-                              final addBtnWidth =
-                                  (reelUploadDetailsController.video ==
-                                          Video.video)
-                                      ? SizeConfig.size220
-                                      : SizeConfig.size140;
+                              final height = (reelUploadDetailsController.video == Video.video)
+                                  ? SizeConfig.size220
+                                  : SizeConfig.size250;
+                              final width = (reelUploadDetailsController.video == Video.video)
+                                  ? SizeConfig.size320
+                                  : SizeConfig.size180;
+                              final addBtnWidth = (reelUploadDetailsController.video == Video.video)
+                                  ? SizeConfig.size220
+                                  : SizeConfig.size140;
                               return Stack(
                                 clipBehavior: Clip.none,
                                 children: [
@@ -264,15 +244,12 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
                                         color: AppColors.greyCA,
                                         width: 2.0,
                                       ),
-                                      borderRadius: BorderRadius.all(
-                                          Radius.circular(SizeConfig.size18)),
+                                      borderRadius: BorderRadius.all(Radius.circular(SizeConfig.size18)),
                                     ),
                                     child: (_commonCoverImage != null)
                                         ? isNetworkImage(_commonCoverImage)
                                             ? ClipRRect(
-                                                borderRadius:
-                                                    BorderRadius.circular(
-                                                        SizeConfig.size18),
+                                                borderRadius: BorderRadius.circular(SizeConfig.size18),
                                                 child: CachedNetworkImage(
                                                   imageUrl: _commonCoverImage!,
                                                   fit: BoxFit.cover,
@@ -281,9 +258,7 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
                                                 ),
                                               )
                                             : ClipRRect(
-                                                borderRadius:
-                                                    BorderRadius.circular(
-                                                        SizeConfig.size18),
+                                                borderRadius: BorderRadius.circular(SizeConfig.size18),
                                                 child: Image.file(
                                                   File(_commonCoverImage!),
                                                   fit: BoxFit.cover,
@@ -305,25 +280,18 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
                                             width: addBtnWidth,
                                             padding: EdgeInsets.all(8.0),
                                             decoration: BoxDecoration(
-                                              color: Colors.black
-                                                  .withValues(alpha: 0.6),
-                                              borderRadius:
-                                                  BorderRadius.circular(8),
+                                              color: Colors.black.withValues(alpha: 0.6),
+                                              borderRadius: BorderRadius.circular(8),
                                             ),
                                             child: Row(
                                               mainAxisSize: MainAxisSize.min,
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.center,
+                                              mainAxisAlignment: MainAxisAlignment.center,
                                               children: [
-                                                Icon(Icons.add,
-                                                    size: SizeConfig.size20,
-                                                    color: Colors.white),
-                                                SizedBox(
-                                                    width: SizeConfig.size4),
+                                                Icon(Icons.add, size: SizeConfig.size20, color: Colors.white),
+                                                SizedBox(width: SizeConfig.size4),
                                                 Text(
                                                   "Add Cover",
-                                                  style: TextStyle(
-                                                      color: Colors.white),
+                                                  style: TextStyle(color: Colors.white),
                                                 ),
                                               ],
                                             )),
@@ -345,8 +313,7 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
                           maxLine: 1,
                           keyBoardType: TextInputType.text,
                           title: "Long Video Title",
-                          hintText:
-                              "Enter the full video title (max 50 characters)",
+                          hintText: "Enter the full video title (max 50 characters)",
                           isValidate: true,
                           validator: (value) {
                             if (value == null || value.isEmpty) {
@@ -420,9 +387,7 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
                         callBack: () async {
                           final result = await Navigator.pushNamed(
                               context, RouteHelper.getTagPeopleScreenRoute(),
-                              arguments: {
-                                ApiKeys.previouslySelectedItems: tagUsers
-                              }) as Map<String, String>?;
+                              arguments: {ApiKeys.previouslySelectedItems: tagUsers}) as Map<String, String>?;
 
                           if (result != null) {
                             setState(() {
@@ -450,8 +415,7 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
                             context,
                             RouteHelper.getSearchLocationScreenRoute(),
                             arguments: {
-                              ApiKeys.onPlaceSelected:
-                                  (double? lat, double? lng, String? address) {
+                              ApiKeys.onPlaceSelected: (double? lat, double? lng, String? address) {
                                 if (address != null) {
                                   setState(() => selectedLocation = {
                                         ApiKeys.name: address,
@@ -464,9 +428,8 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
                             },
                           );
                         },
-                        chips: selectedLocation?[ApiKeys.name] != null
-                            ? [selectedLocation?[ApiKeys.name]]
-                            : [],
+                        chips:
+                            selectedLocation?[ApiKeys.name] != null ? [selectedLocation?[ApiKeys.name]] : [],
                         onChipDelete: (value) {
                           setState(() => selectedLocation?.clear());
                         },
@@ -494,9 +457,7 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
                               log("songData--> $songData");
                             }
                           },
-                          chips: songData?.name != null
-                              ? [songData?.name ?? '']
-                              : [],
+                          chips: songData?.name != null ? [songData?.name ?? ''] : [],
                           onChipDelete: (_) {
                             setState(() {
                               songData = null;
@@ -920,8 +881,7 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
                               children: [
                                 Expanded(
                                   child: CustomBtn(
-                                    onTap: () =>
-                                        _onSubmit(visibleTo: 'unlisted'),
+                                    onTap: () => _onSubmit(visibleTo: 'unlisted'),
                                     height: SizeConfig.size40,
                                     width: SizeConfig.size140,
                                     radius: 8,
@@ -1010,8 +970,7 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Padding(
-                  padding: EdgeInsets.only(
-                      left: SizeConfig.size15, right: SizeConfig.size15),
+                  padding: EdgeInsets.only(left: SizeConfig.size15, right: SizeConfig.size15),
                   child: Wrap(
                     spacing: 10,
                     runSpacing: 2,
@@ -1021,35 +980,28 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
 
                       return Chip(
                         label: Text(name),
-                        backgroundColor:
-                            AppColors.primaryColor.withValues(alpha: 0.1),
+                        backgroundColor: AppColors.primaryColor.withValues(alpha: 0.1),
                         labelStyle: TextStyle(
                             color: AppColors.mainTextColor,
                             fontWeight: FontWeight.w400,
                             fontSize: SizeConfig.large),
-                        deleteIcon: const Icon(Icons.close,
-                            size: 20, color: AppColors.mainTextColor),
+                        deleteIcon: const Icon(Icons.close, size: 20, color: AppColors.mainTextColor),
                         shape: RoundedRectangleBorder(
                           side: BorderSide(color: Colors.transparent),
                           borderRadius: BorderRadius.circular(8.0),
                         ),
-                        onDeleted: onChipDelete != null
-                            ? () => onChipDelete(id)
-                            : null,
+                        onDeleted: onChipDelete != null ? () => onChipDelete(id) : null,
                       );
                     }).toList(),
                   ),
                 ),
                 Padding(
-                  padding: EdgeInsets.only(
-                      left: SizeConfig.size5, right: SizeConfig.size15),
+                  padding: EdgeInsets.only(left: SizeConfig.size5, right: SizeConfig.size15),
                   child: TextButton(
                     onPressed: callBack,
                     child: Row(
                       children: [
-                        LocalAssets(
-                            imagePath: AppIconAssets.addBlueIcon,
-                            imgColor: AppColors.primaryColor),
+                        LocalAssets(imagePath: AppIconAssets.addBlueIcon, imgColor: AppColors.primaryColor),
                         SizedBox(width: SizeConfig.size1),
                         CustomText('Add People',
                             color: AppColors.primaryColor,
@@ -1118,28 +1070,23 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
           if (chips != null && chips.isNotEmpty)
             Padding(
               padding: EdgeInsets.only(
-                  left: SizeConfig.size15,
-                  right: SizeConfig.size15,
-                  bottom: SizeConfig.size10),
+                  left: SizeConfig.size15, right: SizeConfig.size15, bottom: SizeConfig.size10),
               child: Wrap(
                 spacing: 10,
                 runSpacing: 2,
                 children: chips.map((item) {
                   return Chip(
                     label: Text(item),
-                    backgroundColor:
-                        AppColors.primaryColor.withValues(alpha: 0.1),
+                    backgroundColor: AppColors.primaryColor.withValues(alpha: 0.1),
                     labelStyle: TextStyle(
                         color: AppColors.mainTextColor,
                         fontWeight: FontWeight.w400,
                         fontSize: SizeConfig.large),
-                    deleteIcon: const Icon(Icons.close,
-                        size: 20, color: AppColors.mainTextColor),
+                    deleteIcon: const Icon(Icons.close, size: 20, color: AppColors.mainTextColor),
                     shape: RoundedRectangleBorder(
                         side: BorderSide(color: Colors.transparent),
                         borderRadius: BorderRadius.circular(8.0)),
-                    onDeleted:
-                        onChipDelete != null ? () => onChipDelete(item) : null,
+                    onDeleted: onChipDelete != null ? () => onChipDelete(item) : null,
                   );
                 }).toList(),
               ),
@@ -1150,8 +1097,7 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
   }
 
   void selectImage(BuildContext context) async {
-    final croppedPath = await PhotoPickerService.pickFromGallery(
-        context,
+    final croppedPath = await PhotoPickerService.pickFromGallery(context,
         cropAspectRatio: (reelUploadDetailsController.video == Video.video)
             ? CropAspectRatio(width: 16, height: 9)
             : CropAspectRatio(width: 9, height: 16));
@@ -1314,17 +1260,11 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
       // 1. Init both uploads (20%)
       await Future.wait([
         reelUploadDetailsController.uploadInit(
-          queryParams: {
-            ApiKeys.fileName: videoInfo['fileName'],
-            ApiKeys.fileType: videoInfo['mimeType']
-          },
+          queryParams: {ApiKeys.fileName: videoInfo['fileName'], ApiKeys.fileType: videoInfo['mimeType']},
           isVideoUpload: true,
         ),
         reelUploadDetailsController.uploadInit(
-          queryParams: {
-            ApiKeys.fileName: coverInfo['fileName'],
-            ApiKeys.fileType: coverInfo['mimeType']
-          },
+          queryParams: {ApiKeys.fileName: coverInfo['fileName'], ApiKeys.fileType: coverInfo['mimeType']},
           isVideoUpload: false,
         ),
       ]);
@@ -1344,8 +1284,7 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
         reelUploadDetailsController.uploadFileToS3(
           file: videoFile,
           fileType: videoInfo['mimeType']!,
-          preSignedUrl:
-              reelUploadDetailsController.uploadInitVideoFile?.uploadUrl ?? "",
+          preSignedUrl: reelUploadDetailsController.uploadInitVideoFile?.uploadUrl ?? "",
           onProgress: (total) {
             videoProgress = total;
             updateCombinedProgress();
@@ -1354,9 +1293,7 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
         reelUploadDetailsController.uploadFileToS3(
           file: coverFile,
           fileType: coverInfo['mimeType']!,
-          preSignedUrl:
-              reelUploadDetailsController.uploadInitCoverImageFile?.uploadUrl ??
-                  "",
+          preSignedUrl: reelUploadDetailsController.uploadInitCoverImageFile?.uploadUrl ?? "",
           onProgress: (total) {
             coverProgress = total;
             updateCombinedProgress();
@@ -1369,27 +1306,18 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
       /// ✅ Common request data builder
       Map<String, dynamic> buildRequestData() {
         final baseData = <String, dynamic>{
-          ApiKeys.videoUrl:
-              reelUploadDetailsController.uploadInitVideoFile?.publicUrl ?? '',
-          ApiKeys.videoKey:
-              reelUploadDetailsController.uploadInitVideoFile?.fileKey ?? '',
-          ApiKeys.coverUrl:
-              reelUploadDetailsController.uploadInitCoverImageFile?.publicUrl ??
-                  '',
+          ApiKeys.videoUrl: reelUploadDetailsController.uploadInitVideoFile?.publicUrl ?? '',
+          ApiKeys.videoKey: reelUploadDetailsController.uploadInitVideoFile?.fileKey ?? '',
+          ApiKeys.coverUrl: reelUploadDetailsController.uploadInitCoverImageFile?.publicUrl ?? '',
           ApiKeys.visibility: visibility,
           if (widget.postVia == PostVia.channel) ApiKeys.channelId: channelId,
           if (tagUsers != null) ApiKeys.taggedUsers: tagUsers!.keys.toList(),
-          if (selectedLocation != null &&
-              (selectedLocation?.isNotEmpty ?? false))
+          if (selectedLocation != null && (selectedLocation?.isNotEmpty ?? false))
             ApiKeys.location: selectedLocation,
-          if (_commonCategory != null)
-            ApiKeys.categories: [_commonCategory?.sId],
+          if (_commonCategory != null) ApiKeys.categories: [_commonCategory?.sId],
           if (_commonKeywords.text.isNotEmpty)
-            ApiKeys.keywords: _commonKeywords.text
-                .split(',')
-                .map((e) => e.trim())
-                .where((e) => e.isNotEmpty)
-                .toList(),
+            ApiKeys.keywords:
+                _commonKeywords.text.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList(),
           ApiKeys.isMatureContent: _is18Plus,
           ApiKeys.allowComments: _showComments,
           ApiKeys.acceptBookingsOrEnquiries: _acceptBookings,
@@ -1400,16 +1328,14 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
           baseData.addAll({
             ApiKeys.type: 'long',
             ApiKeys.title: _videoTitle.text,
-            if (_videoDescription.text.isNotEmpty)
-              ApiKeys.description: _videoDescription.text,
+            if (_videoDescription.text.isNotEmpty) ApiKeys.description: _videoDescription.text,
           });
         } else {
           baseData.addAll({
             ApiKeys.type: 'short',
             ApiKeys.title: _shortDescription.text,
             if (songData != null) ApiKeys.song: jsonEncode(songData),
-            if (_shortLink.text.isNotEmpty)
-              ApiKeys.relatedVideoLink: _shortLink.text,
+            if (_shortLink.text.isNotEmpty) ApiKeys.relatedVideoLink: _shortLink.text,
           });
         }
 
@@ -1508,31 +1434,22 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
     if (reelUploadDetailsController.video == Video.video) {
       requestData = {
         ApiKeys.type: 'long',
-        ApiKeys.videoUrl:
-            reelUploadDetailsController.uploadInitVideoFile?.publicUrl ?? '',
-        ApiKeys.videoKey:
-            reelUploadDetailsController.uploadInitVideoFile?.fileKey ?? '',
-        ApiKeys.coverUrl:
-            reelUploadDetailsController.uploadInitCoverImageFile?.publicUrl ??
-                '',
+        ApiKeys.videoUrl: reelUploadDetailsController.uploadInitVideoFile?.publicUrl ?? '',
+        ApiKeys.videoKey: reelUploadDetailsController.uploadInitVideoFile?.fileKey ?? '',
+        ApiKeys.coverUrl: reelUploadDetailsController.uploadInitCoverImageFile?.publicUrl ?? '',
         ApiKeys.title: _videoTitle.text,
         ApiKeys.visibility: 'public',
         if (channelId.isNotEmpty) ApiKeys.channelId: channelId,
-        if (_videoDescription.text.isNotEmpty)
-          ApiKeys.description: _videoDescription.text,
+        if (_videoDescription.text.isNotEmpty) ApiKeys.description: _videoDescription.text,
         if (tagUsers != null) ApiKeys.taggedUsers: tagUsers?.keys.toList(),
         if (selectedLocation != null && (selectedLocation?.isNotEmpty ?? false))
           ApiKeys.location: selectedLocation,
         if (songData != null) ApiKeys.song: jsonEncode(songData),
-        if (_shortLink.text.isNotEmpty)
-          ApiKeys.relatedVideoLink: _shortLink.text,
+        if (_shortLink.text.isNotEmpty) ApiKeys.relatedVideoLink: _shortLink.text,
         if (_commonCategory != null) ApiKeys.categories: [_commonCategory?.sId],
         if (_commonKeywords.text.isNotEmpty)
-          ApiKeys.keywords: _commonKeywords.text
-              .split(',')
-              .map((e) => e.trim())
-              .where((e) => e.isNotEmpty)
-              .toList(),
+          ApiKeys.keywords:
+              _commonKeywords.text.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList(),
         ApiKeys.isMatureContent: _is18Plus,
         ApiKeys.allowComments: _showComments,
         ApiKeys.acceptBookingsOrEnquiries: _acceptBookings,
@@ -1545,13 +1462,9 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
     } else {
       requestData = {
         ApiKeys.type: 'short',
-        ApiKeys.videoKey:
-            reelUploadDetailsController.uploadInitVideoFile?.fileKey ?? '',
-        ApiKeys.videoUrl:
-            reelUploadDetailsController.uploadInitVideoFile?.publicUrl ?? '',
-        ApiKeys.coverUrl:
-            reelUploadDetailsController.uploadInitCoverImageFile?.publicUrl ??
-                '',
+        ApiKeys.videoKey: reelUploadDetailsController.uploadInitVideoFile?.fileKey ?? '',
+        ApiKeys.videoUrl: reelUploadDetailsController.uploadInitVideoFile?.publicUrl ?? '',
+        ApiKeys.coverUrl: reelUploadDetailsController.uploadInitCoverImageFile?.publicUrl ?? '',
         ApiKeys.visibility: visibility,
         ApiKeys.title: _shortDescription.text,
         // if(channelId.isNotEmpty)
@@ -1560,15 +1473,11 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
         if (selectedLocation != null && (selectedLocation?.isNotEmpty ?? false))
           ApiKeys.location: selectedLocation,
         if (songData != null) ApiKeys.song: jsonEncode(songData),
-        if (_shortLink.text.isNotEmpty)
-          ApiKeys.relatedVideoLink: _shortLink.text,
+        if (_shortLink.text.isNotEmpty) ApiKeys.relatedVideoLink: _shortLink.text,
         if (_commonCategory != null) ApiKeys.categories: [_commonCategory?.sId],
         if (_commonKeywords.text.isNotEmpty)
-          ApiKeys.keywords: _commonKeywords.text
-              .split(',')
-              .map((e) => e.trim())
-              .where((e) => e.isNotEmpty)
-              .toList(),
+          ApiKeys.keywords:
+              _commonKeywords.text.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList(),
         ApiKeys.isMatureContent: _is18Plus,
         ApiKeys.allowComments: _showComments,
         ApiKeys.acceptBookingsOrEnquiries: _acceptBookings,
@@ -1579,8 +1488,7 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
           requestData[ApiKeys.brandPromotionLink] = _brandPromotionLink.text;
       }
     }
-    await reelUploadDetailsController.updateVideoDetails(
-        videoId: widget.videoId ?? '', reqData: requestData);
+    await reelUploadDetailsController.updateVideoDetails(videoId: widget.videoId ?? '', reqData: requestData);
   }
 
 // late void Function(double) _updateProgressUI;

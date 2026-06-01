@@ -1,5 +1,6 @@
 ﻿import 'dart:io';
 import 'dart:ui';
+
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -15,24 +16,22 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/multipart_image_service.dart';
+import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/widgets/business_contact_map_card.dart';
 import 'package:BlueEra/features/business/widgets/business_description_card.dart';
 import 'package:BlueEra/features/business/widgets/business_qrcode_widget.dart';
 import 'package:BlueEra/features/business/widgets/business_share_banner.dart';
-import 'package:BlueEra/features/common/statistics/view/business_statistics_screen.dart';
-import 'package:BlueEra/widgets/business_live_photo_bottom_sheet.dart';
-import 'package:BlueEra/widgets/common_business_live_photo.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/view/add_symbol/add_symbol_screen.dart';
 import 'package:BlueEra/features/chat/view/orders_chat/orders_chat_list.dart';
-import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/controller/bottom_bar_controller.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
-import 'package:BlueEra/features/contribution/controller/contribution_controller.dart';
-import 'package:BlueEra/features/contribution/view/contribution_screen.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
+import 'package:BlueEra/features/common/statistics/view/business_statistics_screen.dart';
+import 'package:BlueEra/features/contribution/controller/contribution_controller.dart';
+import 'package:BlueEra/features/contribution/view/contribution_screen.dart';
 import 'package:BlueEra/features/me/food/controller/restaurant_controller.dart';
 import 'package:BlueEra/features/me/food/model/category_food_product_res_model.dart';
 import 'package:BlueEra/features/me/food/view/admin/discount_food_products_screen.dart';
@@ -42,6 +41,8 @@ import 'package:BlueEra/features/me/food/view/widget/food_product_variant_sheet.
 import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
 import 'package:BlueEra/features/me/grocery/widget/food_type_indicator.dart';
 import 'package:BlueEra/widgets/RatingBadge.dart';
+import 'package:BlueEra/widgets/business_live_photo_bottom_sheet.dart';
+import 'package:BlueEra/widgets/common_business_live_photo.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
@@ -76,13 +77,13 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
   final ChatViewController _chatViewController =
       getOrPut(() => ChatViewController());
 
-  static const _tabs = [
-    'Order',
-    'Overview',
-    'Products',
-    'Post',
-    'Statistics',
-  ];
+  List<String> get _tabs => [
+        AppStrings.orderTab.tr,
+        AppStrings.overviewTab.tr,
+        AppStrings.productsTab.tr,
+        AppStrings.postTabLabel.tr,
+        AppStrings.statisticsTab.tr,
+      ];
 
   static const int _discountPreviewLimit = 20;
 
@@ -323,7 +324,7 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
           ),
         ];
       default:
-        return [_buildComingSoon(label: AppStrings.comingSoon)];
+        return [_buildComingSoon(label: AppStrings.comingSoon.tr)];
     }
   }
 
@@ -493,7 +494,7 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
         ? data['rechargePlanId'] as Map<String, dynamic>
         : <String, dynamic>{};
 
-    final name = (plan['name'] ?? 'Active Contribution').toString();
+    final name = (plan['name'] ?? AppStrings.activeContribution.tr).toString();
     final tier = (plan['tier'] ?? '').toString();
     final perkType = (plan['perk_type'] ?? '').toString();
     final totalPerks = _asInt(data['total_perks']);
@@ -593,8 +594,9 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
                           const SizedBox(height: 2),
                           CustomText(
                             tier.isNotEmpty
-                                ? '${tier.toUpperCase()} MEMBER'
-                                : 'MEMBER',
+                                ? AppStrings.memberCapsPrefixFmt
+                                    .trParams({'tier': tier.toUpperCase()})
+                                : AppStrings.memberLabel.tr,
                             fontSize: 10,
                             fontWeight: FontWeight.w600,
                             color: const Color(0xFFE9D9FF),
@@ -629,14 +631,19 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
                     children: [
                       CustomText(
                         perkType.isEmpty
-                            ? 'Perks remaining'
-                            : '${perkType[0].toUpperCase()}${perkType.substring(1)} remaining',
+                            ? AppStrings.perksRemaining.tr
+                            : AppStrings.perksRemainingWithTypeFmt.trParams({
+                                'type': '${perkType[0].toUpperCase()}${perkType.substring(1)}',
+                              }),
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
                         color: const Color(0xFFE9D9FF),
                       ),
                       CustomText(
-                        '$perksRemaining of $totalPerks',
+                        AppStrings.perksOfTotalFmt.trParams({
+                          'remaining': '$perksRemaining',
+                          'total': '$totalPerks',
+                        }),
                         fontSize: 12,
                         fontWeight: FontWeight.w800,
                         color: const Color(0xFFFCD34D),
@@ -701,9 +708,9 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
             ),
           ),
           const SizedBox(width: 4),
-          const Text(
-            'ACTIVE',
-            style: TextStyle(
+          Text(
+            AppStrings.activeStatusLabel.tr,
+            style: const TextStyle(
               fontSize: 9,
               fontWeight: FontWeight.w800,
               color: Colors.white,
@@ -801,14 +808,14 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       CustomText(
-                        'Contribute now',
+                        AppStrings.contributeNow.tr,
                         fontSize: 26,
                         fontWeight: FontWeight.w800,
                         color: const Color(0xFF221831),
                       ),
                       const SizedBox(height: 2),
                       CustomText(
-                        'to get order & Visibility',
+                        AppStrings.toGetOrderVisibility.tr,
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
                         color: const Color(0xFF6E5F8E),
@@ -903,7 +910,7 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
               ),
               const SizedBox(height: 2),
               CustomText(
-                'Tap a category to manage products',
+                AppStrings.tapCategoryToManageProducts.tr,
                 fontSize: 11,
                 fontWeight: FontWeight.w500,
                 color: AppColors.secondaryTextColor,
@@ -958,7 +965,7 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
             ),
             SizedBox(width: SizeConfig.size6),
             CustomText(
-              'Add Product',
+              AppStrings.addProduct.tr,
               fontSize: 12,
               fontWeight: FontWeight.w700,
               color: AppColors.primaryColor,
@@ -983,7 +990,7 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
           ),
           child: EmptyStateWidget(
             message: AppStrings.foodNoProductCreate.tr,
-            actionText: 'Add Product',
+            actionText: AppStrings.addProduct.tr,
             actionCallback: () => Get.to(() => FoodCategoryMenuScreen()),
           ),
         );
@@ -1145,7 +1152,7 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
 
   Future<void> _openCategory(GroceryNestedCategoryModel item) async {
     if ((item.name ?? '').isEmpty) {
-      commonSnackBar(message: 'Invalid category');
+      commonSnackBar(message: AppStrings.invalidCategory.tr);
       return;
     }
     await Get.to(() => MyFoodProductScreen(foodMenu: item));
@@ -1184,7 +1191,7 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
       child: ElevatedButton.icon(
         onPressed: _showCreatePostDialog,
         icon: const Icon(Icons.add, size: 18, color: Colors.white),
-        label: CustomText('Create Post',
+        label: CustomText(AppStrings.createPost.tr,
             fontSize: 13, fontWeight: FontWeight.w700, color: Colors.white),
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primaryColor,
@@ -1236,7 +1243,7 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CustomText('Create Post',
+              CustomText(AppStrings.createPost.tr,
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
                   color: AppColors.mainTextColor),
@@ -1477,7 +1484,7 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
                 SizedBox(width: SizeConfig.size6),
                 Flexible(
                   child: CustomText(
-                    'Nearby Riders',
+                    AppStrings.nearbyRiders.tr,
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
                     color: AppColors.secondaryTextColor,
@@ -1515,7 +1522,7 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                CustomText('Go live',
+                CustomText(AppStrings.goLive.tr,
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
                     color: AppColors.secondaryTextColor),
@@ -1713,7 +1720,7 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
                 size: 14, color: AppColors.primaryColor),
             SizedBox(width: SizeConfig.size6),
             CustomText(
-              'Joined - $joined',
+              AppStrings.joinedDateFmt.trParams({'date': joined}),
               fontSize: 13,
               fontWeight: FontWeight.w600,
               color: AppColors.mainTextColor,
@@ -1814,14 +1821,19 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
                   size: 18, color: Color(0xFFFFB400)),
               SizedBox(width: SizeConfig.size4),
               CustomText(
-                rating > 0 ? rating.toStringAsFixed(1) : 'N/A',
+                rating > 0 ? rating.toStringAsFixed(1) : AppStrings.na.tr,
                 fontSize: 14,
                 fontWeight: FontWeight.w700,
                 color: AppColors.mainTextColor,
               ),
               SizedBox(width: SizeConfig.size6),
               CustomText(
-                '($reviews ${reviews == 1 ? 'review' : 'reviews'})',
+                AppStrings.reviewsCountFmt.trParams({
+                  'count': '$reviews',
+                  'label': reviews == 1
+                      ? AppStrings.reviewSingular.tr
+                      : AppStrings.reviewsPlural.tr,
+                }),
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
                 color: AppColors.secondaryTextColor,
@@ -1913,7 +1925,7 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
                 children: [
                   Expanded(
                     child: CustomText(
-                      'Cover Photo',
+                      AppStrings.coverPhoto.tr,
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
                       color: AppColors.mainTextColor,
@@ -1942,7 +1954,7 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
                           Icon(Icons.edit_outlined,
                               size: 14, color: AppColors.primaryColor),
                           SizedBox(width: SizeConfig.size4),
-                          CustomText('Edit',
+                          CustomText(AppStrings.editLabel.tr,
                               fontSize: 13,
                               fontWeight: FontWeight.w700,
                               color: AppColors.primaryColor),
@@ -1969,7 +1981,7 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
             Icon(Icons.photo_camera_outlined,
                 size: 20, color: AppColors.primaryColor),
             SizedBox(width: SizeConfig.size6),
-            CustomText('Add Your Banner Here',
+            CustomText(AppStrings.otherAddYourBannerHere.tr,
                 fontSize: 14,
                 fontWeight: FontWeight.w700,
                 color: AppColors.primaryColor),
@@ -2021,14 +2033,14 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
     try {
       final newPath = await PhotoPickerService.pickSinglePhoto(
         context,
-        AppStrings.editCoverPicture,
+        AppStrings.editCoverPicture.tr,
         cropAspectRatio: CropAspectRatio(width: 16, height: 9),
       );
       if (newPath == null || newPath.isEmpty) return;
 
       final file = File(newPath);
       if (!await file.exists()) {
-        commonSnackBar(message: AppStrings.imageProcessingFailed);
+        commonSnackBar(message: AppStrings.imageProcessingFailed.tr);
         return;
       }
 
@@ -2041,7 +2053,7 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
       final dataImage =
           await multiPartImage(imagePath: compressed?.path ?? newPath);
       if (dataImage == null) {
-        commonSnackBar(message: AppStrings.imageProcessingFailed);
+        commonSnackBar(message: AppStrings.imageProcessingFailed.tr);
         return;
       }
       final details = _businessController.businessProfileDetails.value?.data;
@@ -2052,7 +2064,7 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
       };
       await _businessController.updateBusinessProfileDetails(reqProfile);
     } catch (_) {
-      commonSnackBar(message: AppStrings.updatePictureFailed);
+      commonSnackBar(message: AppStrings.updatePictureFailed.tr);
     }
   }
 
@@ -2172,7 +2184,8 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
                           ),
                         ),
                         child: CustomText(
-                          '$discountPercent% OFF',
+                          AppStrings.discountOffFmt
+                              .trParams({'percent': '$discountPercent'}),
                           fontSize: 10,
                           fontWeight: FontWeight.w700,
                           color: Colors.white,
@@ -2210,7 +2223,7 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
                       const SizedBox(width: 4),
                       Flexible(
                         child: CustomText(
-                          '1.2 K Reviews',
+                          AppStrings.reviewsKMock.tr,
                           fontWeight: FontWeight.w600,
                           maxLines: 1,
                           color: AppColors.secondaryTextColor,
@@ -2256,8 +2269,10 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
                         ),
                         child: CustomText(
                           isMultiVariant
-                              ? '+${variantCount - 1} more variant'
-                              : '$variantCount variant',
+                              ? AppStrings.variantsMoreFmt
+                                  .trParams({'count': '${variantCount - 1}'})
+                              : AppStrings.variantSingularFmt
+                                  .trParams({'count': '$variantCount'}),
                           fontSize: 10,
                           color: AppColors.primaryColor,
                           fontWeight: FontWeight.w500,
@@ -2509,7 +2524,7 @@ class _LivePhotoSlotState extends State<_LivePhotoSlot> {
       navigatePushTo(
         context,
         ImageViewScreen(
-          appBarTitle: AppStrings.imageViewer,
+          appBarTitle: AppStrings.imageViewer.tr,
           subTitle: '',
           imageUrls: widget.allPhotos,
           initialIndex: widget.index,
@@ -2523,7 +2538,7 @@ class _LivePhotoSlotState extends State<_LivePhotoSlot> {
     );
     if (imgStr == null || imgStr.isEmpty) return;
     if (!await File(imgStr).exists()) {
-      commonSnackBar(message: AppStrings.imageProcessingFailed);
+      commonSnackBar(message: AppStrings.imageProcessingFailed.tr);
       return;
     }
     setState(() => _isLoading = true);

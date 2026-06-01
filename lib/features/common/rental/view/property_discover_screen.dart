@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_map_widgets.dart';
@@ -44,15 +45,15 @@ class _PropertyDiscoverScreenState extends State<PropertyDiscoverScreen> {
   ))
       .toList();
 
-  static const _stickyLabels = [
-    'Houses Sell',
-    'Houses Rent',
-    'New Projects',
-    'Lands Sell',
-    'Shops Rent',
-    'Shops Sell',
-    'Lands Rent',
-    'PG & Guest',
+  List<String> get _stickyLabels => [
+    AppStrings.housesSell.tr,
+    AppStrings.housesRent.tr,
+    AppStrings.newProjects.tr,
+    AppStrings.landsSell.tr,
+    AppStrings.shopsRent.tr,
+    AppStrings.shopsSell.tr,
+    AppStrings.landsRent.tr,
+    AppStrings.pgAndGuest.tr,
   ];
 
   List<StickyCategory> get _stickyCategories => _categories
@@ -150,7 +151,7 @@ class _PropertyDiscoverScreenState extends State<PropertyDiscoverScreen> {
                                 size: 20, color: Colors.white),
                             const SizedBox(width: 8),
                             CustomText(
-                              'List Your Property',
+                              AppStrings.listYourProperty.tr,
                               color: AppColors.white,
                               fontWeight: FontWeight.w700,
                               fontSize: 14,
@@ -235,7 +236,7 @@ class _PropertyDiscoverScreenState extends State<PropertyDiscoverScreen> {
     final isSortActive = sort != PropertySortBy.relevance;
     final cat = _ctrl.categories[_ctrl.selectedCategoryIndex.value];
     final cityLabel =
-    _ctrl.city.value.isNotEmpty ? _ctrl.city.value : 'your area';
+    _ctrl.city.value.isNotEmpty ? _ctrl.city.value : AppStrings.yourArea.tr;
 
     return Container(
       color: Colors.white,
@@ -282,7 +283,7 @@ class _PropertyDiscoverScreenState extends State<PropertyDiscoverScreen> {
             child: Row(
               children: [
                 CustomText(
-                  '${_ctrl.totalCount.value} RESULTS',
+                  '${_ctrl.totalCount.value} ${AppStrings.resultsCaps.tr}',
                   fontSize: 13,
                   fontWeight: FontWeight.w800,
                   color: AppColors.mainTextColor,
@@ -296,7 +297,10 @@ class _PropertyDiscoverScreenState extends State<PropertyDiscoverScreen> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: CustomText(
-                    'Property in $cityLabel for ${cat.isSale ? 'Sale' : 'Rent'}',
+                    AppStrings.propertyInForFmt.trParams({
+                      'city': cityLabel,
+                      'type': cat.isSale ? AppStrings.sale.tr : AppStrings.rent.tr,
+                    }),
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
                     color: AppColors.secondaryTextColor,
@@ -320,9 +324,9 @@ class _PropertyDiscoverScreenState extends State<PropertyDiscoverScreen> {
     final min = _ctrl.minPrice.value;
     final max = _ctrl.maxPrice.value;
     if (min.isNotEmpty && max.isNotEmpty) return '₹$min - ₹$max';
-    if (min.isNotEmpty) return 'Min ₹$min';
-    if (max.isNotEmpty) return 'Max ₹$max';
-    return 'Budget';
+    if (min.isNotEmpty) return '${AppStrings.minPrefix.tr} ₹$min';
+    if (max.isNotEmpty) return '${AppStrings.maxPrefix.tr} ₹$max';
+    return AppStrings.budget.tr;
   }
 
   /// Quick chip for a registry filter — shows the picked value when set,
@@ -466,7 +470,7 @@ class _PropertyDiscoverScreenState extends State<PropertyDiscoverScreen> {
                       children: [
                         Expanded(
                           child: CustomText(
-                            'Sort by',
+                            AppStrings.sortByTitle.tr,
                             fontSize: SizeConfig.large18,
                             fontWeight: FontWeight.w800,
                             color: AppColors.mainTextColor,
@@ -535,7 +539,7 @@ class _PropertyDiscoverScreenState extends State<PropertyDiscoverScreen> {
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: CustomText(
-                            'Done',
+                            'done'.tr,
                             fontSize: 14,
                             fontWeight: FontWeight.w700,
                             color: Colors.white,
@@ -665,8 +669,8 @@ class _PropertyDiscoverScreenState extends State<PropertyDiscoverScreen> {
             const SizedBox(height: 20),
             CustomText(
               hasFilters
-                  ? 'No matching properties'
-                  : 'No properties available',
+                  ? AppStrings.noMatchingProperties.tr
+                  : AppStrings.noPropertiesAvailable.tr,
               fontSize: SizeConfig.large18,
               fontWeight: FontWeight.w700,
               color: AppColors.mainTextColor,
@@ -675,8 +679,8 @@ class _PropertyDiscoverScreenState extends State<PropertyDiscoverScreen> {
             const SizedBox(height: 8),
             CustomText(
               hasFilters
-                  ? 'We couldn\'t find properties matching your filters. Try adjusting or clearing them.'
-                  : 'There are no properties listed in this category yet. Check back later or explore other categories.',
+                  ? AppStrings.noPropertiesMatchingHint.tr
+                  : AppStrings.noPropertiesInCategoryHint.tr,
               fontSize: SizeConfig.small,
               fontWeight: FontWeight.w400,
               color: AppColors.secondaryTextColor,
@@ -695,7 +699,7 @@ class _PropertyDiscoverScreenState extends State<PropertyDiscoverScreen> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: CustomText(
-                    'Clear All Filters',
+                    AppStrings.clearAllFilters.tr,
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
                     color: AppColors.white,
@@ -894,7 +898,7 @@ class _PropertyMapScreenState extends State<_PropertyMapScreen> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: CustomText(
-                          '$count properties on the map',
+                          '$count ${AppStrings.propertiesOnMapSuffix.tr}',
                           fontSize: SizeConfig.small,
                           color: AppColors.mainTextColor,
                           fontWeight: FontWeight.w600,

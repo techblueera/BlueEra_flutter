@@ -14,27 +14,27 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/multipart_image_service.dart';
+import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/core/services/share_service.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/widgets/business_share_banner.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/view/add_symbol/add_symbol_screen.dart';
 import 'package:BlueEra/features/chat/view/business_chat/business_chat_list.dart';
-import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
 import 'package:BlueEra/features/common/reel/view/channel/follower_following_screen.dart';
 import 'package:BlueEra/features/common/rental/widget/rental_property_card.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/self_employed/widget/earn_service_card.dart';
+import 'package:BlueEra/features/common/statistics/view/business_statistics_screen.dart';
 import 'package:BlueEra/features/common/visiting_card/view/all_personal_visiting_cards.dart';
 import 'package:BlueEra/features/contribution/controller/contribution_controller.dart';
 import 'package:BlueEra/features/contribution/view/contribution_screen.dart';
-import 'package:BlueEra/features/common/statistics/view/business_statistics_screen.dart';
 import 'package:BlueEra/features/me/professionals_consultant/controller/ai_professionals_controller.dart';
 import 'package:BlueEra/features/me/professionals_consultant/view/professionals_service_screen.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/self_employed/widget/earn_service_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/edit_profile_bottom_sheet.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/profile_designation_bottom_sheet.dart';
 import 'package:BlueEra/features/personal/personal_profile/widgets/personal_qrcode_widget.dart';
@@ -64,15 +64,13 @@ class ProfessionalsMainScreen extends StatefulWidget {
   const ProfessionalsMainScreen({super.key});
 
   @override
-  State<ProfessionalsMainScreen> createState() =>
-      _ProfessionalsMainScreenState();
+  State<ProfessionalsMainScreen> createState() => _ProfessionalsMainScreenState();
 }
 
 class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
   final _ctrl = Get.put(AiProfessionalsController());
   final _personalCtrl = getOrPut(() => PersonalCreateProfileController());
-  final _viewCtrl =
-      getOrPut(() => ViewPersonalDetailsController(), permanent: true);
+  final _viewCtrl = getOrPut(() => ViewPersonalDetailsController(), permanent: true);
 
   int _selectedTab = 1; // default to Overview
   bool _showStickyTabs = false;
@@ -87,8 +85,7 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
 
   // Drives the inquiry list shown under the Order tab â€” same controller
   // the Connect screen uses, so socket-driven updates land on both.
-  final ChatViewController _chatViewController =
-      getOrPut(() => ChatViewController());
+  final ChatViewController _chatViewController = getOrPut(() => ChatViewController());
 
   @override
   void initState() {
@@ -104,8 +101,7 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
     );
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _viewCtrl.shopStatusOpenClose.value =
-          serviceProviderStatusGlobal.toUpperCase() ==
-              AppConstants.OPEN.toUpperCase();
+          serviceProviderStatusGlobal.toUpperCase() == AppConstants.OPEN.toUpperCase();
     });
   }
 
@@ -210,8 +206,7 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
       child: Image.asset(
         AppImageAssets.chatDefaultBg,
         fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) =>
-            Container(color: const Color(0xFFEAF2FB)),
+        errorBuilder: (_, __, ___) => Container(color: const Color(0xFFEAF2FB)),
       ),
     );
   }
@@ -335,9 +330,7 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
               child: Container(
-                padding: EdgeInsets.symmetric(
-                    horizontal: SizeConfig.size10,
-                    vertical: SizeConfig.size6),
+                padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10, vertical: SizeConfig.size6),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(24),
@@ -350,9 +343,7 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     CustomText('Go live',
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.secondaryTextColor),
+                        fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.secondaryTextColor),
                     SizedBox(width: SizeConfig.size6),
                     if (isUpdating)
                       SizedBox(
@@ -360,8 +351,7 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
                         height: 16,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                              AppColors.primaryColor),
+                          valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryColor),
                         ),
                       )
                     else
@@ -370,27 +360,21 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
                         height: 18,
                         padding: const EdgeInsets.all(2),
                         decoration: BoxDecoration(
-                          color:
-                              isOn ? AppColors.primaryColor : Colors.white,
+                          color: isOn ? AppColors.primaryColor : Colors.white,
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
-                            color: AppColors.secondaryTextColor
-                                .withValues(alpha: 0.4),
+                            color: AppColors.secondaryTextColor.withValues(alpha: 0.4),
                             width: 0.5,
                           ),
                         ),
                         child: AnimatedAlign(
                           duration: const Duration(milliseconds: 180),
-                          alignment: isOn
-                              ? Alignment.centerRight
-                              : Alignment.centerLeft,
+                          alignment: isOn ? Alignment.centerRight : Alignment.centerLeft,
                           child: Container(
                             height: 14,
                             width: 14,
                             decoration: BoxDecoration(
-                              color: isOn
-                                  ? Colors.white
-                                  : AppColors.secondaryTextColor,
+                              color: isOn ? Colors.white : AppColors.secondaryTextColor,
                               shape: BoxShape.circle,
                             ),
                           ),
@@ -447,8 +431,7 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
           builder: (context, constraints) {
             final tabWidth = constraints.maxWidth / _tabs.length;
             const indicatorWidth = 28.0;
-            final indicatorLeft =
-                tabWidth * _selectedTab + (tabWidth - indicatorWidth) / 2;
+            final indicatorLeft = tabWidth * _selectedTab + (tabWidth - indicatorWidth) / 2;
             return Stack(
               children: [
                 Row(
@@ -464,13 +447,9 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
                             curve: Curves.easeOutCubic,
                             style: TextStyle(
                               fontSize: 13,
-                              fontWeight: selected
-                                  ? FontWeight.w700
-                                  : FontWeight.w500,
+                              fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
                               letterSpacing: 0.2,
-                              color: selected
-                                  ? AppColors.primaryColor
-                                  : AppColors.mainTextColor,
+                              color: selected ? AppColors.primaryColor : AppColors.mainTextColor,
                             ),
                             child: Text(_tabs[i]),
                           ),
@@ -492,8 +471,7 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
                       borderRadius: BorderRadius.circular(3),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.primaryColor
-                              .withValues(alpha: 0.4),
+                          color: AppColors.primaryColor.withValues(alpha: 0.4),
                           blurRadius: 6,
                           offset: const Offset(0, 2),
                         ),
@@ -644,12 +622,10 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
                           height: 16,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            valueColor:
-                                AlwaysStoppedAnimation(Colors.white),
+                            valueColor: AlwaysStoppedAnimation(Colors.white),
                           ),
                         )
-                      : const Icon(Icons.add_rounded,
-                          size: 18, color: Colors.white),
+                      : const Icon(Icons.add_rounded, size: 18, color: Colors.white),
                   label: Text(
                     loading ? 'Creatingâ€¦' : 'Create Professional Profile',
                     style: TextStyle(
@@ -666,8 +642,7 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
                       vertical: SizeConfig.size12,
                       horizontal: SizeConfig.size16,
                     ),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                     elevation: 0,
                   ),
                 ),
@@ -759,8 +734,7 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
                           _avatarFrame(avatarSize),
                           SizedBox(width: SizeConfig.size12),
                           Padding(
-                            padding:
-                                EdgeInsets.only(bottom: avatarOverlap - 4),
+                            padding: EdgeInsets.only(bottom: avatarOverlap - 4),
                             child: _memberSincePill(),
                           ),
                         ],
@@ -832,8 +806,7 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
               _personalCtrl.imagePath?.value = image;
               dynamic dataImage = await multiPartImage(imagePath: image);
               var reqProfile = {ApiKeys.profile_image: dataImage};
-              await _personalCtrl.updateUserProfileDetails(
-                  params: reqProfile, isFromProfileOnly: true);
+              await _personalCtrl.updateUserProfileDetails(params: reqProfile, isFromProfileOnly: true);
             },
             dialogTitle: AppStrings.uploadProfilePicture,
             showProfileBorder: false,
@@ -845,8 +818,7 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
 
   Widget _memberSincePill() {
     return Obx(() {
-      final createdAt =
-          _viewCtrl.personalProfileDetails.value.user?.createdAt ?? '';
+      final createdAt = _viewCtrl.personalProfileDetails.value.user?.createdAt ?? '';
       if (createdAt.isEmpty) return const SizedBox.shrink();
       final since = _formatJoinedDate(createdAt);
       if (since.isEmpty) return const SizedBox.shrink();
@@ -909,16 +881,11 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
           Obx(() {
             final user = _viewCtrl.personalProfileDetails.value.user;
             final profData = _ctrl.getProfessionalServiceRes?.value.data;
-            final name = _capitalizeFirst(
-                profData?.basicDetails?.fullName ?? user?.name ?? '');
+            final name = _capitalizeFirst(profData?.basicDetails?.fullName ?? user?.name ?? '');
             final username = user?.username ?? '';
-            final designation = profData?.basicDetails?.professionalTitle ??
-                user?.designation ??
-                '';
-            final bio = profData?.basicDetails?.shortTagline ??
-                profData?.about?.description ??
-                user?.bio ??
-                '';
+            final designation = profData?.basicDetails?.professionalTitle ?? user?.designation ?? '';
+            final bio =
+                profData?.basicDetails?.shortTagline ?? profData?.about?.description ?? user?.bio ?? '';
             // Address is rendered in [ProfileLocationCard] now â€” don't
             // duplicate it inside the identity card.
             final dob = user?.dateOfBirth;
@@ -933,11 +900,7 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
             final hasEmail = email.isNotEmpty;
             final hasDob = dob != null && dob.date != null && dob.month != null;
             final hasContact = hasPhone || hasEmail || hasDob;
-            final hasAnyIdentity = hasDesignation ||
-                hasName ||
-                hasUsername ||
-                hasBio ||
-                hasContact;
+            final hasAnyIdentity = hasDesignation || hasName || hasUsername || hasBio || hasContact;
 
             final children = <Widget>[];
 
@@ -991,15 +954,13 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
                 if (children.last is! SizedBox) {
                   children.add(SizedBox(height: SizeConfig.size8));
                 }
-                children.add(_infoRow(
-                    Icons.cake_rounded, 'Born ${_formatDob(dob)}'));
+                children.add(_infoRow(Icons.cake_rounded, 'Born ${_formatDob(dob)}'));
               }
               if (hasEmail) {
                 if (children.last is! SizedBox) {
                   children.add(SizedBox(height: SizeConfig.size8));
                 }
-                children
-                    .add(_infoRow(Icons.alternate_email_rounded, email));
+                children.add(_infoRow(Icons.alternate_email_rounded, email));
               }
             }
 
@@ -1114,8 +1075,7 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
           ),
           child: Row(
             children: [
-              Icon(Icons.account_circle_outlined,
-                  size: 20, color: AppColors.primaryColor),
+              Icon(Icons.account_circle_outlined, size: 20, color: AppColors.primaryColor),
               SizedBox(width: SizeConfig.size10),
               Expanded(
                 child: Text(
@@ -1128,8 +1088,7 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
                   ),
                 ),
               ),
-              Icon(Icons.arrow_forward_rounded,
-                  size: 16, color: AppColors.primaryColor),
+              Icon(Icons.arrow_forward_rounded, size: 16, color: AppColors.primaryColor),
             ],
           ),
         ),
@@ -1272,8 +1231,7 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
                 child: _statTile(
                   label: 'Followers',
                   value: _formatCount(followers),
-                  onTap: () => Get.to(() =>
-                      FollowersFollowingPage(tabIndex: 1, userID: userId)),
+                  onTap: () => Get.to(() => FollowersFollowingPage(tabIndex: 1, userID: userId)),
                 ),
               ),
               _statSeam(),
@@ -1281,8 +1239,7 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
                 child: _statTile(
                   label: 'Following',
                   value: _formatCount(following),
-                  onTap: () => Get.to(() =>
-                      FollowersFollowingPage(tabIndex: 0, userID: userId)),
+                  onTap: () => Get.to(() => FollowersFollowingPage(tabIndex: 0, userID: userId)),
                 ),
               ),
             ],
@@ -1404,9 +1361,7 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
           ),
           boxShadow: [
             BoxShadow(
-              color: filled
-                  ? AppColors.primaryColor.withValues(alpha: 0.30)
-                  : const Color(0x14001120),
+              color: filled ? AppColors.primaryColor.withValues(alpha: 0.30) : const Color(0x14001120),
               blurRadius: filled ? 14 : 8,
               offset: const Offset(0, 4),
             ),
@@ -1437,9 +1392,7 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
     // Profile share goes through ShareService so the message body
     // and accountType branching live in one place app-wide.
     final userName = _viewCtrl.personalProfileDetails.value.user?.name ?? '';
-    await ShareService.instance.shareProfile(
-        userId: userId,
-        subject: userName);
+    await ShareService.instance.shareProfile(userId: userId, subject: userName);
   }
 
   // Delegates to [PersonalQrCodeWidget] so the professional QR card
@@ -1450,11 +1403,8 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
     return Obx(() {
       final user = _viewCtrl.personalProfileDetails.value.user;
       final profData = _ctrl.getProfessionalServiceRes?.value.data;
-      final name = _capitalizeFirst(
-          profData?.basicDetails?.fullName ?? user?.name ?? 'Profile');
-      final designation = profData?.basicDetails?.professionalTitle ??
-          user?.designation ??
-          '';
+      final name = _capitalizeFirst(profData?.basicDetails?.fullName ?? user?.name ?? 'Profile');
+      final designation = profData?.basicDetails?.professionalTitle ?? user?.designation ?? '';
       return PersonalQrCodeWidget(
         userId: userId,
         name: name,
@@ -1475,14 +1425,11 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
       child: Obx(() {
         final user = _viewCtrl.personalProfileDetails.value.user;
         final profData = _ctrl.getProfessionalServiceRes?.value.data;
-        final name = _capitalizeFirst(
-            profData?.basicDetails?.fullName ?? user?.name ?? '');
+        final name = _capitalizeFirst(profData?.basicDetails?.fullName ?? user?.name ?? '');
         final photo = (_personalCtrl.imagePath?.value.trim().isNotEmpty ?? false)
             ? _personalCtrl.imagePath?.value
             : user?.profileImage;
-        final subCategory = profData?.basicDetails?.professionalTitle ??
-            user?.designation ??
-            '';
+        final subCategory = profData?.basicDetails?.professionalTitle ?? user?.designation ?? '';
         return BusinessShareBanner(
           overrideName: name,
           overridePhoto: photo,
@@ -1616,8 +1563,7 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
             children: [
               Row(
                 children: [
-                  const Icon(Icons.workspace_premium_rounded,
-                      size: 28, color: Color(0xFFFCD34D)),
+                  const Icon(Icons.workspace_premium_rounded, size: 28, color: Color(0xFFFCD34D)),
                   SizedBox(width: SizeConfig.size10),
                   Expanded(
                     child: Column(
@@ -1632,9 +1578,7 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
                             overflow: TextOverflow.ellipsis),
                         const SizedBox(height: 2),
                         CustomText(
-                          tier.isNotEmpty
-                              ? '${tier.toUpperCase()} MEMBER'
-                              : 'MEMBER',
+                          tier.isNotEmpty ? '${tier.toUpperCase()} MEMBER' : 'MEMBER',
                           fontSize: 10,
                           fontWeight: FontWeight.w600,
                           color: const Color(0xFFE9D9FF),
@@ -1659,9 +1603,7 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
                       color: const Color(0xFFE9D9FF),
                     ),
                     CustomText('$perksRemaining of $totalPerks',
-                        fontSize: 12,
-                        fontWeight: FontWeight.w800,
-                        color: const Color(0xFFFCD34D)),
+                        fontSize: 12, fontWeight: FontWeight.w800, color: const Color(0xFFFCD34D)),
                   ],
                 ),
                 SizedBox(height: SizeConfig.size6),
@@ -1671,8 +1613,7 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
                     value: progress.clamp(0.0, 1.0),
                     minHeight: 5,
                     backgroundColor: Colors.white.withValues(alpha: 0.18),
-                    valueColor:
-                        const AlwaysStoppedAnimation(Color(0xFFFCD34D)),
+                    valueColor: const AlwaysStoppedAnimation(Color(0xFFFCD34D)),
                   ),
                 ),
               ],
@@ -1697,9 +1638,7 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 100, sigmaY: 100),
           child: Container(
-            padding: EdgeInsets.symmetric(
-                horizontal: SizeConfig.size14,
-                vertical: SizeConfig.size12),
+            padding: EdgeInsets.symmetric(horizontal: SizeConfig.size14, vertical: SizeConfig.size12),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
                 begin: Alignment.centerLeft,
@@ -1730,8 +1669,7 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
                       width: 1,
                     ),
                   ),
-                  child: const Icon(Icons.workspace_premium_rounded,
-                      size: 22, color: Colors.white),
+                  child: const Icon(Icons.workspace_premium_rounded, size: 22, color: Colors.white),
                 ),
                 SizedBox(width: SizeConfig.size12),
                 Column(
@@ -1739,14 +1677,10 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     CustomText('Contribute now',
-                        fontSize: 22,
-                        fontWeight: FontWeight.w800,
-                        color: const Color(0xFF221831)),
+                        fontSize: 22, fontWeight: FontWeight.w800, color: const Color(0xFF221831)),
                     const SizedBox(height: 2),
                     CustomText('to get order & Visibility',
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: const Color(0xFF6E5F8E)),
+                        fontSize: 14, fontWeight: FontWeight.w600, color: const Color(0xFF6E5F8E)),
                   ],
                 ),
               ],
@@ -1784,14 +1718,12 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
       child: ElevatedButton.icon(
         onPressed: _showCreatePostDialog,
         icon: const Icon(Icons.add, size: 18, color: Colors.white),
-        label: CustomText('Create Post',
+        label: CustomText(AppStrings.createPost.tr,
             fontSize: 13, fontWeight: FontWeight.w700, color: Colors.white),
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primaryColor,
-          padding: EdgeInsets.symmetric(
-              horizontal: SizeConfig.size16, vertical: SizeConfig.size8),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          padding: EdgeInsets.symmetric(horizontal: SizeConfig.size16, vertical: SizeConfig.size8),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           elevation: 0,
         ),
       ),
@@ -1829,16 +1761,13 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
         backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: Padding(
-          padding: EdgeInsets.symmetric(
-              horizontal: SizeConfig.size16, vertical: SizeConfig.size16),
+          padding: EdgeInsets.symmetric(horizontal: SizeConfig.size16, vertical: SizeConfig.size16),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CustomText('Create Post',
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.mainTextColor),
+              CustomText(AppStrings.createPost.tr,
+                  fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.mainTextColor),
               SizedBox(height: SizeConfig.size12),
               for (var i = 0; i < entries.length; i++) ...[
                 InkWell(
@@ -1848,26 +1777,18 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
                     _handlePostMenu(entries[i].type);
                   },
                   child: Padding(
-                    padding: EdgeInsets.symmetric(
-                        vertical: SizeConfig.size10,
-                        horizontal: SizeConfig.size4),
+                    padding: EdgeInsets.symmetric(vertical: SizeConfig.size10, horizontal: SizeConfig.size4),
                     child: Row(
                       children: [
-                        LocalAssets(
-                            imagePath: entries[i].iconAsset,
-                            height: 24,
-                            width: 24),
+                        LocalAssets(imagePath: entries[i].iconAsset, height: 24, width: 24),
                         SizedBox(width: SizeConfig.size12),
                         CustomText(entries[i].label,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.mainTextColor),
+                            fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.mainTextColor),
                       ],
                     ),
                   ),
                 ),
-                if (i != entries.length - 1)
-                  Divider(height: 1, color: Colors.grey.shade200),
+                if (i != entries.length - 1) Divider(height: 1, color: Colors.grey.shade200),
               ],
             ],
           ),
@@ -1910,8 +1831,7 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
     if (newPath == null || newPath.isEmpty) return;
     dynamic dataImage = await multiPartImage(imagePath: newPath);
     var reqProfile = {ApiKeys.coverpicture: dataImage};
-    await _personalCtrl.updateUserProfileDetails(
-        params: reqProfile, isFromProfileOnly: true);
+    await _personalCtrl.updateUserProfileDetails(params: reqProfile, isFromProfileOnly: true);
   }
 
   // â”€â”€â”€ TEXT HELPERS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -1951,9 +1871,7 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
       'November',
       'December'
     ];
-    final month = (dob.month != null && dob.month! >= 1 && dob.month! <= 12)
-        ? months[dob.month!]
-        : '';
+    final month = (dob.month != null && dob.month! >= 1 && dob.month! <= 12) ? months[dob.month!] : '';
     final day = dob.date?.toString() ?? '';
     if (month.isEmpty && day.isEmpty) return '';
     return '$day $month'.trim();

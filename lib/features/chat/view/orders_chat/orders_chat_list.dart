@@ -1,5 +1,6 @@
 
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -22,17 +23,17 @@ extension _OrderDateFilterLabel on _OrderDateFilter {
   String get label {
     switch (this) {
       case _OrderDateFilter.all:
-        return 'All';
+        return AppStrings.all.tr;
       case _OrderDateFilter.today:
-        return 'Today';
+        return AppStrings.todayLabel.tr;
       case _OrderDateFilter.yesterday:
-        return 'Yesterday';
+        return AppStrings.yesterdayLabel.tr;
       case _OrderDateFilter.last7Days:
-        return 'Last 7 days';
+        return AppStrings.last7Days.tr;
       case _OrderDateFilter.last30Days:
-        return 'Last 30 days';
+        return AppStrings.last30Days.tr;
       case _OrderDateFilter.custom:
-        return 'Custom';
+        return AppStrings.customLabel.tr;
     }
   }
 }
@@ -150,8 +151,8 @@ class _OrdersTabViewState extends State<OrdersTabView> {
             start: now.subtract(const Duration(days: 6)),
             end: now,
           ),
-      helpText: 'Filter orders by date',
-      saveText: 'Apply',
+      helpText: AppStrings.filterOrdersByDate.tr,
+      saveText: AppStrings.applyLabel.tr,
     );
     if (picked == null) return;
     setState(() {

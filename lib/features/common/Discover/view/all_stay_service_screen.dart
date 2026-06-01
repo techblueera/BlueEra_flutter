@@ -206,19 +206,19 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
     switch (cat.slugId) {
       case AppConstants.flat:
         return (
-          label: 'Add House',
+          label: AppStrings.addHouse.tr,
           route: RouteHelper.getAddFlatRoomRentalServiceScreenRoute(),
           icon: Icons.house_rounded,
         );
       case AppConstants.vehicle:
         return (
-          label: 'Add Vehicle',
+          label: AppStrings.addVehicleLabel.tr,
           route: RouteHelper.getVehicleRentalServiceRoute(),
           icon: Icons.directions_car_rounded,
         );
       case AppConstants.property:
         return (
-          label: 'Add Other',
+          label: AppStrings.addOther.tr,
           route: RouteHelper.getHomeStayRentalServiceRoute(),
           icon: Icons.add_home_rounded,
         );
@@ -242,9 +242,8 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
           return SliverFillRemaining(
             hasScrollBody: false,
             child: _NoHotelsFound(
-              title: 'No stays available',
-              subtitle:
-                  'We couldn\'t find any stays or rooms in this area. Try another category or change your location.',
+              title: AppStrings.noStaysAvailable.tr,
+              subtitle: AppStrings.noStaysAvailableHint.tr,
               onRetry: () {
                 final serviceType = _category.toRentalServiceType();
                 controller.fetchRentalServices(rentalServiceType: serviceType);
@@ -291,9 +290,8 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
         return SliverFillRemaining(
           hasScrollBody: false,
           child: _NoHotelsFound(
-            title: 'No hotels & rooms available',
-            subtitle:
-                'No hotels or rooms found nearby. Try a different category or change your location to explore more stays.',
+            title: AppStrings.noHotelsRoomsAvailable.tr,
+            subtitle: AppStrings.noHotelsRoomsAvailableHint.tr,
             onRetry: () => controller.fetchHotelServices(category: _category),
           ),
         );
@@ -515,7 +513,7 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
         imageUrls: allImages,
         logoUrl: service.profile?.logoUrl ?? '',
         hotelName: service.profile?.name ?? "N/A",
-        subCategory: service.rooms?.firstOrNull?.bedType ?? 'Hotel',
+        subCategory: service.rooms?.firstOrNull?.bedType ?? AppStrings.hotelLabel.tr,
         address: [
           service.profile?.address?.street,
           service.profile?.address?.city,
@@ -831,7 +829,7 @@ class _PropertyCardState extends State<PropertyCard> {
 
   Future<void> _openInquiryChat() async {
     if (widget.businessId.isEmpty) {
-      Get.snackbar(AppStrings.na, 'Business not available for chat', snackPosition: SnackPosition.BOTTOM);
+      Get.snackbar(AppStrings.na.tr, AppStrings.businessNotAvailableForChat.tr, snackPosition: SnackPosition.BOTTOM);
       return;
     }
     final chatViewController = Get.find<ChatViewController>();
@@ -963,7 +961,7 @@ class _PropertyCardState extends State<PropertyCard> {
               ),
               SizedBox(width: SizeConfig.size4),
               CustomText(
-                '(${widget.reviews} reviews)',
+                '(${widget.reviews} ${AppStrings.reviewsLowercase.tr})',
                 fontSize: SizeConfig.small,
                 color: AppColors.secondaryTextColor,
               ),
@@ -1018,7 +1016,7 @@ class _PropertyCardState extends State<PropertyCard> {
                 ),
               if (widget.rent.isNotEmpty)
                 CustomText(
-                  " /day",
+                  " ${AppStrings.perDay.tr}",
                   fontSize: SizeConfig.small,
                   color: AppColors.secondaryTextColor,
                 ),
@@ -1033,7 +1031,7 @@ class _PropertyCardState extends State<PropertyCard> {
               Expanded(
                 child: _actionButton(
                   icon: Icons.star_border_rounded,
-                  label: 'Review',
+                  label: 'review'.tr,
                   onTap: _openReviewsSheet,
                   filled: false,
                 ),
@@ -1097,7 +1095,7 @@ class _PropertyCardState extends State<PropertyCard> {
             Icon(Icons.broken_image_outlined, size: SizeConfig.size40, color: AppColors.secondaryTextColor),
             SizedBox(height: SizeConfig.size6),
             CustomText(
-              'Image unavailable',
+              AppStrings.imageUnavailable.tr,
               fontSize: SizeConfig.small,
               color: AppColors.secondaryTextColor,
             ),
@@ -1215,7 +1213,7 @@ class _ReviewsBottomSheet extends StatelessWidget {
                 ),
                 SizedBox(width: SizeConfig.size6),
                 CustomText(
-                  '· ${reviews.length} reviews',
+                  '· ${reviews.length} ${AppStrings.reviewsLowercase.tr}',
                   fontSize: SizeConfig.small,
                   color: AppColors.secondaryTextColor,
                 ),
@@ -1390,7 +1388,7 @@ class _NoHotelsFound extends StatelessWidget {
                       ),
                       SizedBox(width: SizeConfig.size6),
                       CustomText(
-                        'Retry',
+                        'retry'.tr,
                         fontSize: SizeConfig.small,
                         fontWeight: FontWeight.w600,
                         color: AppColors.white,
@@ -1587,7 +1585,7 @@ class _StayMapScreenState extends State<_StayMapScreen> {
             icon: _stayIcon ?? BitmapDescriptor.defaultMarker,
             infoWindow: InfoWindow(
               title: s.profile?.name ?? AppStrings.na,
-              snippet: s.rooms?.firstOrNull?.bedType ?? 'Hotel',
+              snippet: s.rooms?.firstOrNull?.bedType ?? AppStrings.hotelLabel.tr,
               onTap: () => _openHotelDetails(s),
             ),
             onTap: () => _openHotelDetails(s),
@@ -1721,7 +1719,7 @@ class _StayMapScreenState extends State<_StayMapScreen> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: CustomText(
-                          '$count ${widget.isIndividual ? "stays" : "hotels"} on the map',
+                          '$count ${widget.isIndividual ? AppStrings.staysOnMapSuffix.tr : AppStrings.hotelsOnMapSuffix.tr}',
                           fontSize: SizeConfig.small,
                           color: AppColors.mainTextColor,
                           fontWeight: FontWeight.w600,

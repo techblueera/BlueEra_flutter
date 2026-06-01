@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/features/chat/auth/controller/call_controller.dart';
@@ -32,12 +33,12 @@ class _CallHistoryScreenState extends State<CallHistoryScreen> {
   final RxList<CallModel> _calls = <CallModel>[].obs;
   final RxInt _selectedTabIndex = 0.obs;
 
-  static const List<String> _tabLabels = [
-    'All',
-    'Missed',
-    'Incoming',
-    'Outgoing',
-  ];
+  List<String> get _tabLabels => [
+        AppStrings.all.tr,
+        AppStrings.missed.tr,
+        AppStrings.incoming.tr,
+        AppStrings.outgoing.tr,
+      ];
 
   @override
   void initState() {
@@ -89,10 +90,10 @@ class _CallHistoryScreenState extends State<CallHistoryScreen> {
     final today = DateTime(now.year, now.month, now.day);
     final yesterday = today.subtract(const Duration(days: 1));
     final cd = DateTime(d.year, d.month, d.day);
-    if (cd == today) return 'Today';
-    if (cd == yesterday) return 'Yesterday';
+    if (cd == today) return AppStrings.todayLabel.tr;
+    if (cd == yesterday) return AppStrings.yesterdayLabel.tr;
     final diff = today.difference(cd).inDays;
-    if (diff < 7) return 'Earlier this week';
+    if (diff < 7) return AppStrings.earlierThisWeek.tr;
     return '${d.day.toString().padLeft(2, '0')}/'
         '${d.month.toString().padLeft(2, '0')}/${d.year}';
   }
@@ -129,7 +130,7 @@ class _CallHistoryScreenState extends State<CallHistoryScreen> {
       CallModel call, ChatList? chat, CallType type) async {
     final otherUserId = _otherUserIdFor(call, chat);
     if (otherUserId == null || otherUserId.isEmpty) return;
-    final userName = chat?.sender?.name ?? 'User';
+    final userName = chat?.sender?.name ?? AppStrings.userFallback.tr;
     final userImage = chat?.sender?.profileImage ?? '';
     final conversationId = call.conversationId;
 
@@ -211,8 +212,8 @@ class _CallHistoryScreenState extends State<CallHistoryScreen> {
                 _callOptionTile(
                   icon: Icons.call,
                   iconColor: Colors.green,
-                  title: 'Voice Call',
-                  subtitle: 'Encrypted, no contact share',
+                  title: AppStrings.voiceCall.tr,
+                  subtitle: AppStrings.encryptedNoContactShare.tr,
                   onTap: () {
                     Navigator.pop(ctx);
                     _placeCall(call, chat, CallType.audio);
@@ -222,8 +223,8 @@ class _CallHistoryScreenState extends State<CallHistoryScreen> {
                 _callOptionTile(
                   icon: Icons.videocam,
                   iconColor: Colors.blue,
-                  title: 'Video Call',
-                  subtitle: 'Encrypted video, no contact share',
+                  title: AppStrings.videoCall.tr,
+                  subtitle: AppStrings.encryptedVideoNoContactShare.tr,
                   onTap: () {
                     Navigator.pop(ctx);
                     _placeCall(call, chat, CallType.video);
@@ -348,9 +349,9 @@ class _CallHistoryScreenState extends State<CallHistoryScreen> {
           ),
         ),
         const SizedBox(height: 16),
-        const Center(
+        Center(
           child: CustomText(
-            'No calls yet',
+            AppStrings.noCallsYet.tr,
             fontSize: 16,
             fontWeight: FontWeight.w600,
           ),
@@ -358,7 +359,7 @@ class _CallHistoryScreenState extends State<CallHistoryScreen> {
         const SizedBox(height: 4),
         Center(
           child: CustomText(
-            'Your call history will appear here',
+            AppStrings.callHistoryWillAppearHere.tr,
             fontSize: 13,
             color: AppColors.secondaryTextColor,
           ),
@@ -402,7 +403,7 @@ class _CallHistoryScreenState extends State<CallHistoryScreen> {
     final missed = _isMissed(call);
     final outgoing = _isOutgoing(call);
     final isVideo = call.callType == 'video_call';
-    final name = chat?.sender?.name ?? 'Unknown';
+    final name = chat?.sender?.name ?? AppStrings.unknown.tr;
     final image = chat?.sender?.profileImage ?? '';
     final accent = missed ? AppColors.red : AppColors.green0B;
 
@@ -471,8 +472,8 @@ class _CallHistoryScreenState extends State<CallHistoryScreen> {
                     const SizedBox(width: 4),
                     CustomText(
                       missed
-                          ? 'Missed'
-                          : (outgoing ? 'Outgoing' : 'Incoming'),
+                          ? AppStrings.missed.tr
+                          : (outgoing ? AppStrings.outgoing.tr : AppStrings.incoming.tr),
                       fontSize: 12,
                       color: AppColors.secondaryTextColor,
                     ),

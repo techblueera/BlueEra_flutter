@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/Discover/widget/banner_carousel.dart';
@@ -155,10 +156,12 @@ class _ServicesNearMeScreenState extends State<ServicesNearMeScreen> {
       }
 
       if (controller.allStore.isEmpty) {
+        final categoryName = (_selectedIndex.value >= 0 && _selectedIndex.value < _categories.length)
+            ? _categories[_selectedIndex.value].name ?? ''
+            : '';
         return Center(
           child: EmptyStateWidget(
-            message:
-                "No ${(_selectedIndex.value >= 0 && _selectedIndex.value < _categories.length) ? _categories[_selectedIndex.value].name ?? '' : ''} services found",
+            message: AppStrings.noServicesFoundForCategory.trParams({'category': categoryName}),
           ),
         );
       }

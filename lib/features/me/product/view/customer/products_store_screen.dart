@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
@@ -99,8 +100,8 @@ class _ProductsStoreScreenState extends State<ProductsStoreScreen> {
             children: [
               const Icon(Icons.error_rounded, color: Colors.red, size: 80),
               const SizedBox(height: 20),
-              const CustomText(
-                "Place Order Unless Your\nCart Will Be Empty,\nYou Can't See Selected Items",
+              CustomText(
+                AppStrings.placeOrderCartWarning.tr,
                 textAlign: TextAlign.center,
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
@@ -123,7 +124,7 @@ class _ProductsStoreScreenState extends State<ProductsStoreScreen> {
                             borderRadius: BorderRadius.circular(12)),
                       ),
                       child: CustomText(
-                        "Skip",
+                        "skip".tr,
                         color: AppColors.secondaryTextColor,
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
@@ -134,7 +135,7 @@ class _ProductsStoreScreenState extends State<ProductsStoreScreen> {
                   Expanded(
                     flex: 2,
                     child: CustomBtn(
-                      title: "Place Order",
+                      title: AppStrings.placeOrder.tr,
                       bgColor: AppColors.primaryColor,
                       onTap: () {
                         Get.back();
@@ -281,9 +282,12 @@ class _ProductsStoreScreenState extends State<ProductsStoreScreen> {
       }
 
       if (controller.allStore.isEmpty) {
+        final categoryName = (_selectedIndex.value >= 0 && _selectedIndex.value < _categories.length)
+            ? _categories[_selectedIndex.value].name ?? ''
+            : '';
         return Center(
           child: EmptyStateWidget(
-            message: "No ${(_selectedIndex.value >= 0 && _selectedIndex.value < _categories.length) ? _categories[_selectedIndex.value].name ?? '' : ''} stores found",
+            message: AppStrings.noStoresFoundForCategory.trParams({'category': categoryName}),
           ),
         );
       }

@@ -119,7 +119,7 @@
 //     return Scaffold(
 //       appBar: CommonBackAppBar(
 //         isLeading: true,
-//         title: widget.isEditReel == true ? "Edit Post" : "Create Post",
+//         title: widget.isEditReel == true ? "Edit Post" : "AppStrings.createPost.tr",
 //       ),
 //       body: SingleChildScrollView(
 //         padding: EdgeInsets.symmetric(vertical: SizeConfig.size25),
