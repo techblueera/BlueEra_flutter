@@ -318,7 +318,7 @@ class _AllProfessionConsultantScreenState
                 // it reads naturally ("No Advocate consultants…").
                 final pretty = _prettyCategoryName(selectedName);
                 final message = pretty.isNotEmpty
-                    ? 'No $pretty consultants found near you'
+                    ? AppStrings.noConsultantsFoundNearYou.trParams({'category': pretty})
                     : AppStrings.noServicesFound.tr;
                 return Center(
                     child: EmptyStateWidget(message: message));
@@ -499,10 +499,10 @@ class _AllProfessionConsultantScreenState
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(child: _specColumn('EXP', expStr)),
-                Expanded(child: _specColumn('PRICE', priceStr)),
-                Expanded(child: _specColumn('NEAR', distStr)),
-                Expanded(child: _specColumn('MODE', modeStr)),
+                Expanded(child: _specColumn(AppStrings.specLabelExp.tr, expStr)),
+                Expanded(child: _specColumn(AppStrings.specLabelPrice.tr, priceStr)),
+                Expanded(child: _specColumn(AppStrings.specLabelNear.tr, distStr)),
+                Expanded(child: _specColumn(AppStrings.specLabelMode.tr, modeStr)),
               ],
             ),
 
@@ -585,7 +585,7 @@ class _AllProfessionConsultantScreenState
               children: [
                 Expanded(
                   child: _ghostButton(
-                    label: 'View',
+                    label: 'view'.tr,
                     icon: Icons.arrow_outward_rounded,
                     onTap: openDetail,
                   ),
@@ -593,7 +593,7 @@ class _AllProfessionConsultantScreenState
                 SizedBox(width: SizeConfig.size10),
                 Expanded(
                   child: _filledButton(
-                    label: 'Enquire',
+                    label: AppStrings.enquire.tr,
                     icon: Icons.chat_outlined,
                     onTap: () {
                       final targetUserId = service.userId ?? '';

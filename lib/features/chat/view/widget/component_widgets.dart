@@ -136,7 +136,7 @@ Widget noChatsFound([bool? reminderMsg]) {
           height: 14,
         ),
         CustomText(
-          reminderMsg==null?"No Chats Found":"No Reminder Messages Found",
+          reminderMsg==null?AppStrings.noChatsFound.tr:AppStrings.noReminderMessagesFound.tr,
           fontSize: 16,
           fontWeight: FontWeight.w600,
         ),
@@ -144,7 +144,7 @@ Widget noChatsFound([bool? reminderMsg]) {
           height: 6,
         ),
         if(reminderMsg==null)
-        CustomText("Go to contacts and start new conversation"),
+        CustomText(AppStrings.goToContactsAndStartNewConversation.tr),
         const SizedBox(
           height: 6,
         ),
@@ -155,7 +155,7 @@ Widget noChatsFound([bool? reminderMsg]) {
               Get.toNamed(RouteHelper.getChatContactsRoute());
             },
             child: CustomText(
-              "Click Here to Start Conversation",
+              AppStrings.clickHereToStartConversation.tr,
               color: Colors.blue,
             )),
       ],
@@ -178,14 +178,14 @@ Widget noGroupChatsFound() {
           height: 14,
         ),
         CustomText(
-          "No Group Chats Found",
+          AppStrings.noGroupChatsFound.tr,
           fontSize: 16,
           fontWeight: FontWeight.w600,
         ),
         const SizedBox(
           height: 6,
         ),
-        CustomText("Go to contacts and create new group"),
+        CustomText(AppStrings.goToContactsAndCreateNewGroup.tr),
         const SizedBox(
           height: 6,
         ),
@@ -194,7 +194,7 @@ Widget noGroupChatsFound() {
               Get.to(ContactsPage(from: "group",));
             },
             child: CustomText(
-              "Create your first group",
+              AppStrings.createYourFirstGroup.tr,
               color: AppColors.primaryColor,
             )),
       ],
@@ -296,8 +296,8 @@ Widget _buildSymbolReplyPreview(ChatList? chat, String? lastMessage) {
       Expanded(
         child: CustomText(
           (lastMessage ?? '').isEmpty
-              ? 'Symbol reply'
-              : 'Symbol reply: $lastMessage',
+              ? AppStrings.symbolReply.tr
+              : AppStrings.symbolReplyFmt.trParams({'message': lastMessage ?? ''}),
           fontSize: SizeConfig.size14,
           color: AppColors.grey9A,
           maxLines: 1,
@@ -637,7 +637,7 @@ Widget  ChatListTile({
                     return SizedBox(
                       width: SizeConfig.size260,
                       child: CustomText(
-                        'typing...',
+                        AppStrings.typingDots.tr,
                         fontSize: SizeConfig.size14,
                         color: Colors.green,
                         overflow: TextOverflow.ellipsis,
@@ -791,7 +791,7 @@ Widget  ChatListTile({
                       }
                       if (isRecentLastMessage) {
                         return CustomText(
-                          "New",
+                          AppStrings.newTag.tr,
                           color: AppColors.primaryColor,
                           fontSize: SizeConfig.size12,
                           fontWeight: FontWeight.w600,
@@ -812,7 +812,7 @@ Widget  ChatListTile({
                     })
                   else if (isRecentLastMessage)
                     CustomText(
-                      "New",
+                      AppStrings.newTag.tr,
                       color: AppColors.primaryColor,
                       fontSize: SizeConfig.size12,
                       fontWeight: FontWeight.w600,
@@ -885,7 +885,7 @@ String formatTimeFromUtc(String utcString) {
     return DateFormat.jm().format(localDate);
   } else if (dateToCompare == yesterday) {
     // Yesterday
-    return 'Yesterday';
+    return AppStrings.yesterdayLabel.tr;
   } else {
     // Older date: return formatted date
     return DateFormat('dd/MM/yy').format(localDate);
@@ -1337,8 +1337,8 @@ void _showCallOptionsBottomSheet({
               _callOptionTile(
                 icon: Icons.call,
                 iconColor: Colors.green,
-                title: 'Voice Call',
-                subtitle: 'Call encrypted no contact share',
+                title: AppStrings.voiceCall.tr,
+                subtitle: AppStrings.callEncryptedNoContactShare.tr,
                 onTap: () {
                   print("ljkcnsdlkjcslkdcsdc ${conversationId}");
                   Navigator.pop(ctx);
@@ -1355,8 +1355,8 @@ void _showCallOptionsBottomSheet({
               _callOptionTile(
                 icon: Icons.videocam,
                 iconColor: Colors.blue,
-                title: 'Video Call',
-                subtitle: 'Video call encrypted no contact share',
+                title: AppStrings.videoCall.tr,
+                subtitle: AppStrings.videoCallEncryptedNoContactShare.tr,
                 onTap: () {
                   Navigator.pop(ctx);
                   _initiateCallFromChat(
@@ -1373,8 +1373,8 @@ void _showCallOptionsBottomSheet({
                 _callOptionTile(
                   icon: Icons.phone_forwarded,
                   iconColor: Colors.orange,
-                  title: 'Normal Call',
-                  subtitle: 'Dial $contactNo',
+                  title: AppStrings.normalCall.tr,
+                  subtitle: AppStrings.dialFmt.trParams({'number': contactNo}),
                   onTap: () {
                     Navigator.pop(ctx);
                     launchUrl(Uri.parse('tel:$contactNo'));
@@ -1602,13 +1602,24 @@ AppBar getChatTitleAppBar(BuildContext context, {
                         );
                       }
                 
+                      final String statusLabel;
+                      if (name == "BlueEra Orders") {
+                        statusLabel = "BlueCs Ltd";
+                      } else if (type != AppStrings.Admin) {
+                        if (type == "business") {
+                          statusLabel = chatViewController.userOnlineStatus.value == "Online"
+                              ? AppStrings.shopOpen.tr
+                              : AppStrings.shopClosed.tr;
+                        } else if (socketType == "order") {
+                          statusLabel = designation ?? '';
+                        } else {
+                          statusLabel = chatViewController.userOnlineStatus.value;
+                        }
+                      } else {
+                        statusLabel = AppStrings.offline.tr;
+                      }
                       return CustomText(
-                        '${(name == "BlueEra Orders") ? "BlueCs Ltd" : (type !=
-                            AppStrings.Admin) ? (type == "business") ? chatViewController
-                            .userOnlineStatus.value == "Online"
-                            ? "Shop Open"
-                            : "Shop Closed" :socketType=="order"?"${designation}": chatViewController
-                            .userOnlineStatus.value : "Offline"}',
+                        statusLabel,
                         color: AppColors.grayText,
                         fontSize: SizeConfig.size12,
                       );
@@ -1786,7 +1797,7 @@ AppBar getChatTitleAppBar(BuildContext context, {
               } else if(value == "media_docs"){
                 Get.to(() => ConversationMediaPage(
                   conversationId: conversationId ?? '',
-                  contactName: name ?? 'Chat',
+                  contactName: name ?? AppStrings.chat.tr,
                   initialTab: 0,
                 ));
               } else if(value == "chat_theme"){
@@ -1794,7 +1805,7 @@ AppBar getChatTitleAppBar(BuildContext context, {
               } else if(value == "add_shortcut"){
                 ChatShortcutService.createChatShortcut(
                   conversationId: conversationId ?? '',
-                  name: name ?? 'Chat',
+                  name: name ?? AppStrings.chat.tr,
                   userId: userId ?? '',
                   profileImage: profileImage,
                   chatType: socketType ?? 'personal',
@@ -2008,7 +2019,7 @@ void launchDialPad(String phoneNumber) async {
   if (await canLaunchUrl(url)) {
     await launchUrl(url);
   } else {
-    throw 'Could not launch dialer';
+    throw AppStrings.couldNotLaunchDialer.tr;
   }
 }
 
@@ -2037,7 +2048,7 @@ void showMessageEditDialog(String userId,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 CustomText(
-                  'Message',
+                  AppStrings.messageLabel.tr,
                   color: AppColors.black,
                   fontSize: SizeConfig.size16,
                   fontWeight: FontWeight.w600,
@@ -2084,7 +2095,7 @@ void showMessageEditDialog(String userId,
                 InkWell(
                   onTap: () => Get.back(),
                   child: CustomText(
-                    'Close',
+                    AppStrings.close.tr,
                     color: AppColors.primaryColor,
                     fontWeight: FontWeight.w600,
                     fontSize: SizeConfig.size14,
@@ -2114,7 +2125,7 @@ void showMessageEditDialog(String userId,
                     }
                   },
                   child: CustomText(
-                    'Edit',
+                    AppStrings.editLabel.tr,
                     color: AppColors.primaryColor,
                     fontWeight: FontWeight.w600,
                     fontSize: SizeConfig.size14,
@@ -2245,7 +2256,7 @@ class _BusinessToRiderOtpVerificationCardState
       return CustomBtn(
           bgColor: AppColors.primaryColor,
           isLoading: orderController.ownerOtpLoading.value,
-          onTap: () {}, title: "Submit");
+          onTap: () {}, title: AppStrings.submit.tr);
     });
   }
 }

@@ -7,13 +7,13 @@ import 'package:BlueEra/core/constants/shimmer_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/multipart_image_service.dart';
+import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/widgets/business_contact_map_card.dart';
-import 'package:BlueEra/features/common/bottomNavigationBar/controller/bottom_bar_controller.dart';
 import 'package:BlueEra/features/business/widgets/business_description_card.dart';
 import 'package:BlueEra/features/business/widgets/business_qrcode_widget.dart';
 import 'package:BlueEra/features/business/widgets/business_share_banner.dart';
-import 'package:BlueEra/core/services/photo_picker_service.dart';
+import 'package:BlueEra/features/common/bottomNavigationBar/controller/bottom_bar_controller.dart';
 import 'package:BlueEra/features/me/manufacturer/controller/manufacturer_inventory_controller.dart';
 import 'package:BlueEra/widgets/business_live_photo_bottom_sheet.dart';
 import 'package:BlueEra/widgets/common_business_live_photo.dart';
@@ -23,6 +23,7 @@ import 'package:croppy/croppy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:get/get.dart';
+
 import '../../../../../core/constants/app_colors.dart';
 
 /// ManufacturerProduct/Inventory overview body — mirrors the grocery v2 home
@@ -82,8 +83,7 @@ class _ProductHomeScreenState extends State<ManufacturerProductHomeScreen> {
         Padding(
           padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
           child: Obx(() {
-            final details =
-                _businessController.businessProfileDetails.value?.data;
+            final details = _businessController.businessProfileDetails.value?.data;
             return BusinessContactMapCard(
               businessProfileDetails: details,
             );
@@ -134,8 +134,7 @@ class _ProductHomeScreenState extends State<ManufacturerProductHomeScreen> {
     return Align(
       alignment: Alignment.center,
       child: Container(
-        padding: EdgeInsets.symmetric(
-            horizontal: SizeConfig.size12, vertical: SizeConfig.size8),
+        padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12, vertical: SizeConfig.size8),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(10),
@@ -151,8 +150,7 @@ class _ProductHomeScreenState extends State<ManufacturerProductHomeScreen> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.calendar_today_outlined,
-                size: 14, color: AppColors.primaryColor),
+            Icon(Icons.calendar_today_outlined, size: 14, color: AppColors.primaryColor),
             SizedBox(width: SizeConfig.size6),
             CustomText(
               'Joined - $joined',
@@ -193,15 +191,10 @@ class _ProductHomeScreenState extends State<ManufacturerProductHomeScreen> {
   }
 
   Widget _section2IdentityRating(dynamic details) {
-    final logo =
-        _businessController.imagePath?.value ?? details?.logo ?? '';
-    final rating =
-        double.tryParse(details?.avg_rating?.toString() ?? '0.0') ?? 0.0;
+    final logo = _businessController.imagePath?.value ?? details?.logo ?? '';
+    final rating = double.tryParse(details?.avg_rating?.toString() ?? '0.0') ?? 0.0;
     final reviews = (details?.total_ratings ?? 0).toInt();
-    final subCat = (details?.subCategoryDetails?.name ??
-            details?.typeOfBusiness ??
-            '')
-        .toString();
+    final subCat = (details?.subCategoryDetails?.name ?? details?.typeOfBusiness ?? '').toString();
 
     return Padding(
       padding: EdgeInsets.fromLTRB(
@@ -252,8 +245,7 @@ class _ProductHomeScreenState extends State<ManufacturerProductHomeScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.star_rounded,
-                  size: 18, color: Color(0xFFFFB400)),
+              const Icon(Icons.star_rounded, size: 18, color: Color(0xFFFFB400)),
               SizedBox(width: SizeConfig.size4),
               CustomText(
                 rating > 0 ? rating.toStringAsFixed(1) : 'N/A',
@@ -343,10 +335,8 @@ class _ProductHomeScreenState extends State<ManufacturerProductHomeScreen> {
                         ? CachedNetworkImage(
                             imageUrl: cover,
                             fit: BoxFit.cover,
-                            placeholder: (_, __) =>
-                                Container(color: Colors.grey.shade100),
-                            errorWidget: (_, __, ___) =>
-                                _emptyCoverPlaceholder(),
+                            placeholder: (_, __) => Container(color: Colors.grey.shade100),
+                            errorWidget: (_, __, ___) => _emptyCoverPlaceholder(),
                           )
                         : _emptyCoverPlaceholder(),
                     // Shimmer overlay while the new cover is uploading.
@@ -355,8 +345,7 @@ class _ProductHomeScreenState extends State<ManufacturerProductHomeScreen> {
                     // progress dialog is silenced and this surface
                     // owns the "uploading" feedback.
                     Obx(() {
-                      if (!_businessController
-                          .isUpdateBusinessProfileLoading.value) {
+                      if (!_businessController.isUpdateBusinessProfileLoading.value) {
                         return const SizedBox.shrink();
                       }
                       return buildLoadingShimmer(
@@ -386,28 +375,23 @@ class _ProductHomeScreenState extends State<ManufacturerProductHomeScreen> {
                   GestureDetector(
                     onTap: _onEditCover,
                     child: Container(
-                      padding: EdgeInsets.symmetric(
-                          horizontal: SizeConfig.size12,
-                          vertical: SizeConfig.size6),
+                      padding:
+                          EdgeInsets.symmetric(horizontal: SizeConfig.size12, vertical: SizeConfig.size6),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(
-                          color: AppColors.primaryColor
-                              .withValues(alpha: 0.25),
+                          color: AppColors.primaryColor.withValues(alpha: 0.25),
                           width: 1,
                         ),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.edit_outlined,
-                              size: 14, color: AppColors.primaryColor),
+                          Icon(Icons.edit_outlined, size: 14, color: AppColors.primaryColor),
                           SizedBox(width: SizeConfig.size4),
                           CustomText('Edit',
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.primaryColor),
+                              fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.primaryColor),
                         ],
                       ),
                     ),
@@ -428,13 +412,10 @@ class _ProductHomeScreenState extends State<ManufacturerProductHomeScreen> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.photo_camera_outlined,
-                size: 20, color: AppColors.primaryColor),
+            Icon(Icons.photo_camera_outlined, size: 20, color: AppColors.primaryColor),
             SizedBox(width: SizeConfig.size6),
-            CustomText('Add Your Banner Here',
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-                color: AppColors.primaryColor),
+            CustomText(AppStrings.otherAddYourBannerHere.tr,
+                fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.primaryColor),
           ],
         ),
       ),
@@ -467,8 +448,7 @@ class _ProductHomeScreenState extends State<ManufacturerProductHomeScreen> {
 
   Widget _logoFallback() => Container(
         color: Colors.grey.shade200,
-        child: Icon(Icons.storefront,
-            size: 20, color: AppColors.secondaryTextColor),
+        child: Icon(Icons.storefront, size: 20, color: AppColors.secondaryTextColor),
       );
 
   // ─────────────────────────────────────────────
@@ -504,8 +484,7 @@ class _ProductHomeScreenState extends State<ManufacturerProductHomeScreen> {
         "${file.path}_compressed.jpg",
         quality: 75,
       );
-      final dataImage =
-          await multiPartImage(imagePath: compressed?.path ?? newPath);
+      final dataImage = await multiPartImage(imagePath: compressed?.path ?? newPath);
       if (dataImage == null) {
         commonSnackBar(message: AppStrings.imageProcessingFailed);
         return;

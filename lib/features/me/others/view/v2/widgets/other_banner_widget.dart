@@ -64,8 +64,7 @@ class _OtherBannerWidgetState extends State<OtherBannerWidget> {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
       child: Obx(() {
-        final cover =
-            widget.controller.businessProfile.value?.profile?.coverUrl ?? '';
+        final cover = widget.controller.businessProfile.value?.profile?.coverUrl ?? '';
         final hasBanner = cover.isNotEmpty;
         return GestureDetector(
           onTap: _onEditCover,
@@ -88,8 +87,7 @@ class _OtherBannerWidgetState extends State<OtherBannerWidget> {
                       child: const SizedBox(
                         height: 28,
                         width: 28,
-                        child: CircularProgressIndicator(
-                            strokeWidth: 2.5, color: Colors.white),
+                        child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white),
                       ),
                     ),
                 ],
@@ -115,13 +113,10 @@ class _OtherBannerWidgetState extends State<OtherBannerWidget> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.photo_camera_outlined,
-                    size: 20, color: AppColors.primaryColor),
+                Icon(Icons.photo_camera_outlined, size: 20, color: AppColors.primaryColor),
                 SizedBox(width: SizeConfig.size6),
-                CustomText('Add Your Banner Here',
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.primaryColor),
+                CustomText(AppStrings.otherAddYourBannerHere.tr,
+                    fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.primaryColor),
               ],
             ),
           ),
@@ -152,22 +147,15 @@ class _OtherBannerWidgetState extends State<OtherBannerWidget> {
               color: Colors.white,
               borderRadius: BorderRadius.circular(8),
               boxShadow: const [
-                BoxShadow(
-                    color: Colors.black26,
-                    blurRadius: 4,
-                    offset: Offset(0, 1)),
+                BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(0, 1)),
               ],
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.edit_outlined,
-                    size: 16, color: AppColors.primaryColor),
+                Icon(Icons.edit_outlined, size: 16, color: AppColors.primaryColor),
                 SizedBox(width: SizeConfig.size4),
-                CustomText('Edit',
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.primaryColor),
+                CustomText('Edit', fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.primaryColor),
               ],
             ),
           ),

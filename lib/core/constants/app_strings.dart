@@ -5621,7 +5621,7 @@ class AppStrings {
   static const String daysAgo = "days_ago";
   static const String editComment = "edit_comment";
   static const String deleteComment = "delete_comment";
-  static const String userFallback = "user_fallback";
+  static const String userFallback = "userFallback";
 
   //business profile
   static const String nodata = "NA";
@@ -5750,4 +5750,194 @@ class AppStrings {
   static const String inquiry = "inquiry";
   static const String amenities = "amenities";
   static const String tests = "tests";
+
+  /// DISCOVER — STAY / RENTAL / HOTEL screens
+  static const String addHouse = "addHouse";
+  static const String addOther = "addOther";
+  static const String noStaysAvailable = "noStaysAvailable";
+  static const String noStaysAvailableHint = "noStaysAvailableHint";
+  static const String noHotelsRoomsAvailable = "noHotelsRoomsAvailable";
+  static const String noHotelsRoomsAvailableHint = "noHotelsRoomsAvailableHint";
+  static const String hotelLabel = "hotelLabel";
+  static const String businessNotAvailableForChat = "businessNotAvailableForChat";
+  static const String perDay = "perDay";
+  static const String imageUnavailable = "imageUnavailable";
+  static const String reviewsLowercase = "reviewsLowercase";
+  static const String staysWord = "staysWord";
+  static const String hotelsWord = "hotelsWord";
+  static const String onTheMap = "onTheMap";
+  static const String staysOnMapSuffix = "staysOnMapSuffix";
+  static const String hotelsOnMapSuffix = "hotelsOnMapSuffix";
+
+  /// PROPERTY DISCOVER screen
+  static const String yourArea = "yourArea";
+  static const String resultsCaps = "resultsCaps";
+  static const String propertyInForFmt = "propertyInForFmt";
+  static const String sale = "sale";
+  static const String rent = "rent";
+  static const String budget = "budget";
+  static const String minPrefix = "minPrefix";
+  static const String maxPrefix = "maxPrefix";
+  static const String sortByTitle = "sortByTitle";
+
+  /// PRODUCT STORE / CART screens
+  static const String placeOrderCartWarning = "placeOrderCartWarning";
+  static const String placeOrder = "placeOrder";
+  static const String noStoresFoundForCategory = "noStoresFoundForCategory";
+  static const String noServicesFoundForCategory = "noServicesFoundForCategory";
+
+  /// PROFESSIONAL / SELF-PROFESSION DISCOVER screens
+  static const String yearShort = "yearShort";
+  static const String noConsultantsFoundNearYou = "noConsultantsFoundNearYou";
+  static const String noProvidersFoundNearYou = "noProvidersFoundNearYou";
+  static const String enquire = "enquire";
+  static const String specLabelExp = "specLabelExp";
+  static const String specLabelPrice = "specLabelPrice";
+  static const String specLabelNear = "specLabelNear";
+  static const String specLabelMode = "specLabelMode";
+  static const String specLabelRating = "specLabelRating";
+  static const String specLabelHours = "specLabelHours";
+  static const String serviceProvidersOnMapSuffix = "serviceProvidersOnMapSuffix";
+  static const String serviceProviderOnMapSuffix = "serviceProviderOnMapSuffix";
+
+  /// CHANNEL FEED screen — joined-channels empty state and "see more"
+  /// suggestions CTA.
+  static const String noChannelsJoinedYet = "noChannelsJoinedYet";
+  static const String discoverCommunitiesHint = "discoverCommunitiesHint";
+  static const String browseSuggestedChannels = "browseSuggestedChannels";
+  static const String seeMoreSuggestions = "seeMoreSuggestions";
+
+  /// LOGOUT dialog (lib/core/constants/logout_helper.dart) — eyebrow,
+  /// headline, body copy, and action pair for the soft-farewell
+  /// sign-out confirmation.
+  static const String signOutEyebrow = "signOutEyebrow";
+  static const String signingOffTitle = "signingOffTitle";
+  static const String signOutDialogBody = "signOutDialogBody";
+  static const String signMeOut = "signMeOut";
+
+  /// CALL HISTORY screen — tab labels, date-bucket headers, call-type
+  /// picker sheet, and empty state.
+  static const String missed = "missed";
+  static const String incoming = "incoming";
+  static const String outgoing = "outgoing";
+  static const String todayLabel = "todayLabel";
+  static const String yesterdayLabel = "yesterdayLabel";
+  static const String earlierThisWeek = "earlierThisWeek";
+  static const String voiceCall = "voiceCall";
+  static const String videoCall = "videoCall";
+  static const String encryptedNoContactShare = "encryptedNoContactShare";
+  static const String encryptedVideoNoContactShare = "encryptedVideoNoContactShare";
+  static const String noCallsYet = "noCallsYet";
+  static const String callHistoryWillAppearHere = "callHistoryWillAppearHere";
+
+  /// BUSINESS CHAT LIST screen — Reminder sub-tab label and the empty
+  /// state copy shown when no business chats exist yet.
+  static const String reminderTab = "reminderTab";
+  static const String goToContactsAndStartNewConversation = "goToContactsAndStartNewConversation";
+  static const String recordsCountFmt = "recordsCountFmt";
+
+  /// GROCERY HOME v2 screen — top-bar pills, tab strip, contribution
+  /// peek labels, profile sections, top-selling shelf, and category
+  /// inventory grid.
+  static const String orderTab = "orderTab";
+  static const String overviewTab = "overviewTab";
+  static const String productsTab = "productsTab";
+  static const String postTabLabel = "postTabLabel";
+  static const String staticsTab = "staticsTab";
+  static const String memberCapsPrefixFmt = "memberCapsPrefixFmt";
+  static const String perksRemainingWithTypeFmt = "perksRemainingWithTypeFmt";
+  static const String perksOfTotalFmt = "perksOfTotalFmt";
+  static const String reviewSingular = "reviewSingular";
+  static const String reviewsPlural = "reviewsPlural";
+  static const String reviewsCountFmt = "reviewsCountFmt";
+  static const String coverPhoto = "coverPhoto";
+  static const String nearbyRiders = "nearbyRiders";
+  static const String handPickedBestSellers = "handPickedBestSellers";
+  static const String discountOffFmt = "discountOffFmt";
+  static const String tapCategoryToManageInventory = "tapCategoryToManageInventory";
+  static const String joinedDateFmt = "joinedDateFmt";
+
+  /// CHAT COMPONENT WIDGETS — empty states, list previews, call sheet,
+  /// edit-message dialog, and AppBar status pills.
+  static const String noGroupChatsFound = "noGroupChatsFound";
+  static const String noReminderMessagesFound = "noReminderMessagesFound";
+  static const String clickHereToStartConversation = "clickHereToStartConversation";
+  static const String goToContactsAndCreateNewGroup = "goToContactsAndCreateNewGroup";
+  static const String createYourFirstGroup = "createYourFirstGroup";
+  static const String symbolReply = "symbolReply";
+  static const String symbolReplyFmt = "symbolReplyFmt";
+  static const String typingDots = "typingDots";
+  static const String callEncryptedNoContactShare = "callEncryptedNoContactShare";
+  static const String videoCallEncryptedNoContactShare = "videoCallEncryptedNoContactShare";
+  static const String normalCall = "normalCall";
+  static const String dialFmt = "dialFmt";
+  static const String couldNotLaunchDialer = "couldNotLaunchDialer";
+  static const String shopOpen = "shopOpen";
+  static const String shopClosed = "shopClosed";
+
+  /// ORDERS CHAT LIST screen — date-range filter chip strip and the
+  /// picker dialog header / confirm copy.
+  static const String last7Days = "last7Days";
+  static const String last30Days = "last30Days";
+  static const String filterOrdersByDate = "filterOrdersByDate";
+
+  /// BUSINESS LIVE PHOTOS widget — section header, four slot labels for
+  /// the 2x2 photo grid, and the loader overlay copy used while a slot
+  /// is uploading or being removed.
+  static const String businessLivePhotos = "businessLivePhotos";
+  static const String slotStorefrontExterior = "slotStorefrontExterior";
+  static const String slotInteriorInsideShop = "slotInteriorInsideShop";
+  static const String slotBillingCounterReception = "slotBillingCounterReception";
+  static const String slotProductsServicesDisplay = "slotProductsServicesDisplay";
+  static const String uploadingPhoto = "uploadingPhoto";
+  static const String removingPhoto = "removingPhoto";
+
+  /// PRODUCT (admin) screen — section headers and the empty-state copy
+  /// shown when the merchant hasn't published anything yet.
+  static const String ourProducts = "ourProducts";
+  static const String topSelling = "topSelling";
+  static const String customersFavoritesThisMonth = "customersFavoritesThisMonth";
+  static const String noProductYetCreateOne = "noProductYetCreateOne";
+
+  /// BOTTOM NAVIGATION screen — guest-to-profile prompt dialog, the
+  /// Me-tab unknown-profile/business fallbacks, and the rider "I'm
+  /// Live" top bar.
+  static const String createYourProfile = "createYourProfile";
+  static const String guestBrowsingHint = "guestBrowsingHint";
+  static const String maybeLater = "maybeLater";
+  static const String profileTypeLabel = "profileTypeLabel";
+  static const String professionLabel = "professionLabel";
+  static const String businessTypeLabel = "businessTypeLabel";
+  static const String subCategoryLabel = "subCategoryLabel";
+  static const String imLive = "imLive";
+  static const String goOffline = "goOffline";
+
+  /// FOOD MAIN screen — Products-tab helper text, popular-dish card
+  /// review/variant pills, and the Statistics tab label (properly
+  /// spelled, separate from grocery's existing `staticsTab` typo).
+  static const String tapCategoryToManageProducts = "tapCategoryToManageProducts";
+  static const String invalidCategory = "invalidCategory";
+  static const String statisticsTab = "statisticsTab";
+  static const String variantsMoreFmt = "variantsMoreFmt";
+  static const String variantSingularFmt = "variantSingularFmt";
+  static const String reviewsKMock = "reviewsKMock";
+
+  /// BUSINESS LIVE PHOTO bottom sheet — onboarding nudge that pops on
+  /// first mount when the merchant hasn't uploaded any live photos yet.
+  static const String addPhotosToHelpCustomers = "addPhotosToHelpCustomers";
+  static const String atLeastOneLivePhotoRequired = "atLeastOneLivePhotoRequired";
+  static const String uploadFailed = "uploadFailed";
+  static const String couldNotSaveImage = "couldNotSaveImage";
+
+  /// ADD SYMBOL screen — link-sticker preview fallbacks and the paste
+  /// button in the URL input row.
+  static const String linkFallback = "linkFallback";
+  static const String linkFallbackCaps = "linkFallbackCaps";
+  static const String enterUrlBelowToSeePreview = "enterUrlBelowToSeePreview";
+  static const String pasteCaps = "pasteCaps";
+
+  /// ORDER MAIN CHAT screen — Social/Community tab labels, the forward
+  /// bottom CTA, and the snackbar warning when the user mixes account
+  /// types during a new-group selection.
+  static const String cantSelectBothChatTypes = "cantSelectBothChatTypes";
 }

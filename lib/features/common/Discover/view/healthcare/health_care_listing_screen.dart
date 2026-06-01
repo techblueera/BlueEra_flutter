@@ -492,7 +492,7 @@ class _HealthCareListingScreenState extends State<HealthCareListingScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       CustomText(
-                        'Service Description',
+                        AppStrings.serviceDescription.tr,
                         fontSize: SizeConfig.medium,
                         fontWeight: FontWeight.w600,
                         color: AppColors.mainTextColor,
@@ -564,7 +564,7 @@ class _HealthCareListingScreenState extends State<HealthCareListingScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       CustomText(
-                        'Work Experience',
+                        AppStrings.workExperience.tr,
                         fontSize: SizeConfig.medium,
                         fontWeight: FontWeight.w600,
                         color: AppColors.mainTextColor,
@@ -579,13 +579,13 @@ class _HealthCareListingScreenState extends State<HealthCareListingScreen> {
                       (service.about?.totalExperience?.years != null &&
                               service.about?.totalExperience?.years != 0)
                           ? CustomText(
-                              "${service.about?.totalExperience?.years ?? 0} Yr",
+                              "${service.about?.totalExperience?.years ?? 0} ${AppStrings.yearShort.tr}",
                               fontSize: SizeConfig.medium,
                               fontWeight: FontWeight.w400,
                               color: AppColors.secondaryTextColor,
                             )
                           : CustomText(
-                              'No Experience',
+                              AppStrings.noExperienceLabel.tr,
                               fontSize: SizeConfig.medium,
                               fontWeight: FontWeight.w400,
                               color: AppColors.secondaryTextColor,
@@ -607,7 +607,7 @@ class _HealthCareListingScreenState extends State<HealthCareListingScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       CustomText(
-                        'Portfolio',
+                        AppStrings.portfolioLabel.tr,
                         fontSize: SizeConfig.medium,
                         fontWeight: FontWeight.w600,
                         color: AppColors.mainTextColor,
@@ -667,7 +667,7 @@ class _HealthCareListingScreenState extends State<HealthCareListingScreen> {
                               ),
                             )
                           : CustomText(
-                              'No Data',
+                              AppStrings.noDataLabel.tr,
                               fontSize: SizeConfig.medium,
                               fontWeight: FontWeight.w400,
                               color: AppColors.secondaryTextColor,
@@ -689,7 +689,7 @@ class _HealthCareListingScreenState extends State<HealthCareListingScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       CustomText(
-                        'Gallery',
+                        AppStrings.gallery.tr,
                         fontSize: SizeConfig.medium,
                         fontWeight: FontWeight.w600,
                         color: AppColors.mainTextColor,
@@ -737,7 +737,7 @@ class _HealthCareListingScreenState extends State<HealthCareListingScreen> {
                               );
                             })
                           : CustomText(
-                              'No Photos Available',
+                              AppStrings.noPhotosAvailableMsg.tr,
                               fontSize: SizeConfig.medium,
                               fontWeight: FontWeight.w400,
                               color: AppColors.secondaryTextColor,
@@ -752,7 +752,7 @@ class _HealthCareListingScreenState extends State<HealthCareListingScreen> {
                   onTap: () {},
                   isValidate: true,
                   radius: SizeConfig.size10,
-                  title: 'Request Booking',
+                  title: AppStrings.requestBooking.tr,
                   // isLoading: authController.isAddBusinessUserLoading.value
                 ),
               ],
@@ -777,9 +777,9 @@ class _HealthCareListingScreenState extends State<HealthCareListingScreen> {
 
   Widget _header(BuildContext context) => Row(
         children: [
-          const Expanded(
+          Expanded(
             child: CustomText(
-              "All Variants",
+              AppStrings.allVariants.tr,
               fontWeight: FontWeight.w600,
             ),
           ),

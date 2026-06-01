@@ -355,12 +355,12 @@ class _CreateMessagePostScreenState extends State<CreateMessagePostScreen> {
     final hasLink = link.isNotEmpty;
     
     // Extract domain for display
-    String displayLink = "Link";
+    String displayLink = AppStrings.linkFallback.tr;
     try {
       if (hasLink) {
         final uri = Uri.parse(link.startsWith('http') ? link : 'https://$link');
         displayLink = uri.host.replaceAll('www.', '').toUpperCase();
-        if (displayLink.isEmpty) displayLink = "LINK";
+        if (displayLink.isEmpty) displayLink = AppStrings.linkFallbackCaps.tr;
       }
     } catch (_) {}
 
@@ -409,7 +409,7 @@ class _CreateMessagePostScreenState extends State<CreateMessagePostScreen> {
         if (!hasLink) ...[
           const SizedBox(height: 14),
           CustomText(
-            "Enter URL below to see preview",
+            AppStrings.enterUrlBelowToSeePreview.tr,
             color: Colors.white.withValues(alpha: 0.7),
             fontSize: 12,
             fontWeight: FontWeight.w500,
@@ -461,9 +461,9 @@ class _CreateMessagePostScreenState extends State<CreateMessagePostScreen> {
               minimumSize: Size.zero,
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
-            child: const CustomText(
-              "PASTE",
-              color: Color(0xFF0086FF),
+            child: CustomText(
+              AppStrings.pasteCaps.tr,
+              color: const Color(0xFF0086FF),
               fontSize: 12,
               fontWeight: FontWeight.w700,
             ),

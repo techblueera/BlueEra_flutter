@@ -36,12 +36,15 @@ class CommonBusinessLivePhoto extends StatefulWidget {
 class _CommonBusinessLivePhotoState extends State<CommonBusinessLivePhoto> {
   static const int _maxPhotos = 4;
 
-  static final List<Map<String, String>> _slotConfig = [
-    {'label': 'Storefront / Exterior\n(Roadside)', 'image': AppImageAssets.storefrontExterior},
-    {'label': 'Interior / Inside\nthe Shop', 'image': AppImageAssets.interiorInsideShop},
-    {'label': 'Billing Counter\n/ Reception Area', 'image': AppImageAssets.billingCounterReceptionArea},
-    {'label': 'Products / Services\nDisplay', 'image': AppImageAssets.productServiceDisplay},
-  ];
+  // Slot labels resolve at build time via `_slotConfig` getter so `.tr`
+  // picks up locale changes — kept as an instance getter (not a
+  // `static final` list) because const-tier values can't call `.tr`.
+  List<Map<String, String>> get _slotConfig => [
+        {'label': AppStrings.slotStorefrontExterior.tr, 'image': AppImageAssets.storefrontExterior},
+        {'label': AppStrings.slotInteriorInsideShop.tr, 'image': AppImageAssets.interiorInsideShop},
+        {'label': AppStrings.slotBillingCounterReception.tr, 'image': AppImageAssets.billingCounterReceptionArea},
+        {'label': AppStrings.slotProductsServicesDisplay.tr, 'image': AppImageAssets.productServiceDisplay},
+      ];
 
   @override
   Widget build(BuildContext context) {
@@ -51,8 +54,8 @@ class _CommonBusinessLivePhotoState extends State<CommonBusinessLivePhoto> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const CustomText(
-            'Business Live Photos',
+          CustomText(
+            AppStrings.businessLivePhotos.tr,
             fontSize: 16,
             fontWeight: FontWeight.w700,
           ),
@@ -133,7 +136,7 @@ class _CommonBusinessLivePhotoState extends State<CommonBusinessLivePhoto> {
           navigatePushTo(
             context,
             ImageViewScreen(
-              appBarTitle: AppStrings.imageViewer,
+              appBarTitle: AppStrings.imageViewer.tr,
               subTitle: '',
               imageUrls: viewingUrls,
               initialIndex:
@@ -150,7 +153,7 @@ class _CommonBusinessLivePhotoState extends State<CommonBusinessLivePhoto> {
             widget.controller.localUploadingPhotos[index] = imgStr;
 
             // Show global loader overlay while background upload is completing
-            AppLoader.show(message: 'Uploading photo...');
+            AppLoader.show(message: AppStrings.uploadingPhoto.tr);
             await _startBackgroundUpload(imgStr, index);
             AppLoader.hide();
           }
@@ -243,7 +246,7 @@ class _CommonBusinessLivePhotoState extends State<CommonBusinessLivePhoto> {
               right: 6,
               child: GestureDetector(
                 onTap: () async {
-                  AppLoader.show(message: 'Removing photo...');
+                  AppLoader.show(message: AppStrings.removingPhoto.tr);
                   try {
                     final data = {ApiKeys.image_url: serverUrl};
                     await widget.controller.deleteLiveStoreImage(data);

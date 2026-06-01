@@ -6,6 +6,7 @@ import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/constants/app_constant.dart';
 import '../../../../core/constants/app_icon_assets.dart';
+import '../../../../core/constants/app_strings.dart';
 import '../../../../core/constants/getx_utils.dart';
 import '../../../../core/constants/size_config.dart';
 import '../../../../widgets/custom_text_cm.dart';
@@ -96,7 +97,13 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
                 horizontalMargin: 14,
                 horizontalPadding: 10,
                 verticalMargin: widget.isInParentScroll ? 0 : null,
-                tabs: ['All', "Pinned", "Reminder", "Flagged", "Records"],
+                tabs: [
+                  AppStrings.allTab.tr,
+                  AppStrings.pinnedTab.tr,
+                  AppStrings.reminderTab.tr,
+                  AppStrings.flaggedTab.tr,
+                  AppStrings.recordsTab.tr,
+                ],
                 selectedIndex:
                 chatViewController.businessChatTabSelectedIndex.value,
                 onTabSelected: (index, val) {
@@ -138,12 +145,12 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
                 ),
                 const SizedBox(height: 14),
                 CustomText(
-                  "No Chats Found",
+                  AppStrings.noChatsFound.tr,
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                 ),
                 const SizedBox(height: 6),
-                CustomText("Go to contacts and start new conversation"),
+                CustomText(AppStrings.goToContactsAndStartNewConversation.tr),
               ],
             ),
           ),
@@ -176,7 +183,7 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        "Records ($count)",
+                        AppStrings.recordsCountFmt.trParams({'count': '$count'}),
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
@@ -362,7 +369,7 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  "Records",
+                  AppStrings.recordsLabel.tr,
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,

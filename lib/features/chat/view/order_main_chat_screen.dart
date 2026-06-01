@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/popup_menu_builders.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
@@ -194,7 +195,7 @@ class _OrderMainChatScreenState extends State<OrderMainChatScreen>
                           widget.isNewGroupUI == true) {
                         if (chatViewController.selectedChatList.isNotEmpty) {
                           commonSnackBar(
-                              message: "You can't select personal & business both");
+                              message: AppStrings.cantSelectBothChatTypes.tr);
                           chatViewController.selectedUserIds.clear();
                         }
                       }
@@ -205,9 +206,9 @@ class _OrderMainChatScreenState extends State<OrderMainChatScreen>
                     labelPadding: const EdgeInsets.symmetric(horizontal: 12),
                     unselectedLabelColor: Colors.black54,
                     indicatorColor: Colors.lightBlue,
-                    tabs: const [
-                      Tab(text: "Social"),
-                      Tab(text: "Community"),
+                    tabs: [
+                      Tab(text: AppStrings.social.tr),
+                      Tab(text: AppStrings.community.tr),
                     ],
                   ),
                 ),
@@ -281,7 +282,7 @@ class _OrderMainChatScreenState extends State<OrderMainChatScreen>
                                 (widget.isNewGroupUI != null &&
                                     (widget.isNewGroupUI ?? false))
                                     ? ""
-                                    : "${chatViewController.selectedUserIds.length} Forward",
+                                    : "${chatViewController.selectedUserIds.length} ${AppStrings.forward.tr}",
                                 color: Colors.white,
                               ),
                               const SizedBox(

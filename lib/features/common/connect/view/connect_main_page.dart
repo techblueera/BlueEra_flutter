@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -10,47 +11,46 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/check_internet_connectivity.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
-
 import 'package:BlueEra/features/chat/auth/controller/add_chat_symbol_controller.dart';
 import 'package:BlueEra/features/chat/view/add_symbol/add_symbol_screen.dart';
+import 'package:BlueEra/features/chat/view/business_chat/business_chat_list.dart';
 import 'package:BlueEra/features/chat/view/call_screen/call_history_screen.dart';
 import 'package:BlueEra/features/chat/view/chat_theme/chat_background_screen.dart';
 import 'package:BlueEra/features/chat/view/contacts/view/contact_list_page.dart';
-import 'package:BlueEra/features/chat/view/flag_chat/personal_flagged_chats_screen.dart';
 import 'package:BlueEra/features/chat/view/flag_chat/order_flagged_chats_screen.dart';
+import 'package:BlueEra/features/chat/view/flag_chat/personal_flagged_chats_screen.dart';
 import 'package:BlueEra/features/chat/view/personal_chat/chat_search_screen.dart';
 import 'package:BlueEra/features/chat/view/personal_chat/personal_chat_list.dart';
-import 'package:BlueEra/features/chat/view/business_chat/business_chat_list.dart';
 import 'package:BlueEra/features/chat/view/reminder_chat/reminder_todo_screen.dart';
 import 'package:BlueEra/features/chat/view/symbol_view/symbol_view_images.dart';
 import 'package:BlueEra/features/chat/view/wallet_chat/wallet_chat_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/manage_notification/notification.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
-import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/features/common/home/controller/symbol_feed_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/manage_notification/notification.dart';
 import 'package:BlueEra/widgets/bottom_nav_hide_on_scroll.dart';
+import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
-import 'package:get/get.dart';
 import 'package:flutter_upgrade_version/flutter_upgrade_version.dart';
+import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:share_handler/share_handler.dart';
 
+import '../../../../core/constants/getx_utils.dart';
 import '../../../../core/routes/route_helper.dart';
 import '../../../chat/auth/controller/chat_flag_controller.dart';
 import '../../../chat/auth/controller/chat_lock_controller.dart';
 import '../../../chat/auth/controller/chat_pin_archive_controller.dart';
 import '../../../chat/auth/controller/chat_view_controller.dart';
-import '../../../chat/view/lock_chat/locked_chats_screen.dart';
 import '../../../chat/auth/model/GetChatListModel.dart';
 import '../../../chat/view/forward_screen/chat_forward_screen.dart';
+import '../../../chat/view/lock_chat/locked_chats_screen.dart';
 import '../../../chat/view/widget/chat_flag_bottom_sheet.dart';
 import '../../../personal/personal_profile/controller/languge_list_controller.dart';
-import '../../../../core/constants/getx_utils.dart';
 
 enum SavedFeedTab {
   posts;
@@ -66,40 +66,35 @@ class ConnectMainPage extends StatefulWidget {
   State<ConnectMainPage> createState() => _ConnectMainPageState();
 }
 
-class _ConnectMainPageState extends State<ConnectMainPage>
-    with SingleTickerProviderStateMixin {
+class _ConnectMainPageState extends State<ConnectMainPage> with SingleTickerProviderStateMixin {
   final List<String> iconTab = [
     AppIconAssets.chat,
     AppIconAssets.shop,
     AppIconAssets.call,
   ];
   List<String> get postTab => [
-    AppStrings.chat.tr,
-    AppStrings.inquiry.tr,
-    AppStrings.call.tr,
-  ];
+        AppStrings.chat.tr,
+        AppStrings.inquiryTab.tr,
+        AppStrings.call.tr,
+      ];
 
   int selectedIndex = 0;
   int selectedSubIndex = 0;
   final TextEditingController searchController = TextEditingController();
   final symbolFeedController = Get.put(SymbolFeedController());
   final addSymbolController = getOrPut(() => AddChatSymbolController());
-  final ChatViewController chatViewController =
-      getOrPut(() => ChatViewController());
-  final ChatPinArchiveController chatPinArchiveController =
-      getOrPut(() => ChatPinArchiveController());
-  final ChatFlagController chatFlagController =
-      getOrPut(() => ChatFlagController());
-  final ChatLockController chatLockController =
-      getOrPut(() => ChatLockController());
-  final LanguageListController langController =
-      getOrPut(() => LanguageListController());
+  final ChatViewController chatViewController = getOrPut(() => ChatViewController());
+  final ChatPinArchiveController chatPinArchiveController = getOrPut(() => ChatPinArchiveController());
+  final ChatFlagController chatFlagController = getOrPut(() => ChatFlagController());
+  final ChatLockController chatLockController = getOrPut(() => ChatLockController());
+  final LanguageListController langController = getOrPut(() => LanguageListController());
 
   late TabController _tabController;
 
   /// Single global subscription so the share-handler stream is never listened
   /// to more than once (ConnectMainPage is re-created on every tab switch).
   static StreamSubscription? _shareSubscription;
+
   /// Guard to prevent the forward screen from being pushed while one is
   /// already being opened (e.g. rapid share intents).
   static bool _isHandlingShare = false;
@@ -115,8 +110,7 @@ class _ConnectMainPageState extends State<ConnectMainPage>
     // Chat unless explicitly requested again.
     addSymbolController.getSymbolsForPartUser(userId);
     final pendingTab = chatViewController.selectedChatTabIndex.value;
-    final initialTab =
-        (pendingTab >= 0 && pendingTab < postTab.length) ? pendingTab : 0;
+    final initialTab = (pendingTab >= 0 && pendingTab < postTab.length) ? pendingTab : 0;
     selectedIndex = initialTab;
     chatViewController.selectedChatTabIndex.value = 0;
 
@@ -205,11 +199,9 @@ class _ConnectMainPageState extends State<ConnectMainPage>
   }
 
   Future<void> _loadContactsFromStorage() async {
-    String? storedData = await SharedPreferenceUtils.getSecureValue(
-        SharedPreferenceUtils.saved_contacts);
+    String? storedData = await SharedPreferenceUtils.getSecureValue(SharedPreferenceUtils.saved_contacts);
     if (storedData != null) {
-      Map<String, dynamic> decoded =
-          await compute(jsonDecode, storedData) as Map<String, dynamic>;
+      Map<String, dynamic> decoded = await compute(jsonDecode, storedData) as Map<String, dynamic>;
       chatViewController.loadContactsFromLocalStorage(decoded);
     }
   }
@@ -220,8 +212,7 @@ class _ConnectMainPageState extends State<ConnectMainPage>
       // Switching tabs while a selection is active would strand the user
       // with no AppBar affordance to exit it — and the previous tab's
       // selection wouldn't apply to the new list anyway.
-      if ((selectedIndex == 0 || selectedIndex == 1) &&
-          chatViewController.isChatListSelectionMode.value) {
+      if ((selectedIndex == 0 || selectedIndex == 1) && chatViewController.isChatListSelectionMode.value) {
         chatViewController.exitChatListSelectionMode();
       }
       setState(() {
@@ -235,7 +226,6 @@ class _ConnectMainPageState extends State<ConnectMainPage>
   /// Hydrate the tab's chat list. Personal is also emitted in `initState`
   /// so the first paint isn't blank.
   void _emitChatListForTab(int index) {
-
     if (index == 0) {
       chatViewController.emitEvent(
         ChatEmitEvents.ChatList,
@@ -285,12 +275,10 @@ class _ConnectMainPageState extends State<ConnectMainPage>
 
     if (sharedText != null && sharedText.isNotEmpty) {
       _isHandlingShare = true;
-      Get.to(() => ChatForwardScreen(sharedText: sharedText))
-          ?.then((_) => _isHandlingShare = false);
+      Get.to(() => ChatForwardScreen(sharedText: sharedText))?.then((_) => _isHandlingShare = false);
     } else if (attachments.isNotEmpty) {
       _isHandlingShare = true;
-      Get.to(() => ChatForwardScreen(sharedFiles: attachments))
-          ?.then((_) => _isHandlingShare = false);
+      Get.to(() => ChatForwardScreen(sharedFiles: attachments))?.then((_) => _isHandlingShare = false);
     }
   }
 
@@ -300,38 +288,31 @@ class _ConnectMainPageState extends State<ConnectMainPage>
     _checkForUpdate(context, _packageInfo);
   }
 
-  Future<void> _checkForUpdate(
-      BuildContext context, PackageInfo packageInfo) async {
+  Future<void> _checkForUpdate(BuildContext context, PackageInfo packageInfo) async {
     try {
       if (Platform.isAndroid) {
         InAppUpdateManager manager = InAppUpdateManager();
         AppUpdateInfo? appUpdateInfo = await manager.checkForUpdate();
         if (appUpdateInfo == null) return;
-        if (appUpdateInfo.updateAvailability ==
-            UpdateAvailability.developerTriggeredUpdateInProgress) {
+        if (appUpdateInfo.updateAvailability == UpdateAvailability.developerTriggeredUpdateInProgress) {
           //If an in-app update is already running, resume the update.
-          String? message =
-              await manager.startAnUpdate(type: AppUpdateType.immediate);
+          String? message = await manager.startAnUpdate(type: AppUpdateType.immediate);
           debugPrint(message ?? '');
-        } else if (appUpdateInfo.updateAvailability ==
-            UpdateAvailability.updateAvailable) {
+        } else if (appUpdateInfo.updateAvailability == UpdateAvailability.updateAvailable) {
           ///Update available
           if (appUpdateInfo.immediateAllowed) {
-            String? message =
-                await manager.startAnUpdate(type: AppUpdateType.immediate);
+            String? message = await manager.startAnUpdate(type: AppUpdateType.immediate);
             debugPrint(message ?? '');
           } else if (appUpdateInfo.flexibleAllowed) {
-            String? message =
-                await manager.startAnUpdate(type: AppUpdateType.flexible);
+            String? message = await manager.startAnUpdate(type: AppUpdateType.flexible);
             debugPrint(message ?? '');
           } else {
-            debugPrint(
-                'Update available. Immediate & Flexible Update Flow not allow');
+            debugPrint('Update available. Immediate & Flexible Update Flow not allow');
           }
         }
       } else if (Platform.isIOS) {
-        VersionInfo? _versionInfo = await UpgradeVersion.getiOSStoreVersion(
-            packageInfo: packageInfo, regionCode: "US");
+        VersionInfo? _versionInfo =
+            await UpgradeVersion.getiOSStoreVersion(packageInfo: packageInfo, regionCode: "US");
         debugPrint(_versionInfo.toJson().toString());
       }
     } catch (e) {
@@ -351,7 +332,7 @@ class _ConnectMainPageState extends State<ConnectMainPage>
       isSearch: false,
       isProfile: false,
       isNotification: false,
-      isGuestLogout:false,
+      isGuestLogout: false,
       controller: searchController,
       onClearCallback: () => searchController.clear(),
       leadingWidget: _buildSymbolAvatar(),
@@ -377,8 +358,7 @@ class _ConnectMainPageState extends State<ConnectMainPage>
           InkWell(
             onTap: () => Get.to(() => const OrderFlaggedChatsScreen()),
             borderRadius: BorderRadius.circular(20),
-            child: const Icon(Icons.flag_outlined,
-                size: 24, color: Colors.black),
+            child: const Icon(Icons.flag_outlined, size: 24, color: Colors.black),
           ),
         ],
       ),
@@ -448,8 +428,7 @@ class _ConnectMainPageState extends State<ConnectMainPage>
         // Inquiry). The Orders tab uses its own filter UI and never enters
         // selection mode.
         final bool isSelectionMode =
-            chatViewController.isChatListSelectionMode.value &&
-                (selectedIndex == 0 || selectedIndex == 1);
+            chatViewController.isChatListSelectionMode.value && (selectedIndex == 0 || selectedIndex == 1);
         return WillPopScope(
           onWillPop: () async {
             if (isSelectionMode) {
@@ -458,50 +437,56 @@ class _ConnectMainPageState extends State<ConnectMainPage>
             }
             return true;
           },
-
           child: Scaffold(
             // The "+" FAB starts a new chat/group — only meaningful on the
             // Chat / Inquiry tabs, not the Call tab.
             floatingActionButton: selectedIndex == 2
                 ? null
                 : SafeArea(
-              child: Padding(
-                  padding:
-                  const EdgeInsets.only(bottom: kBottomNavigationBarHeight),
-                  child: InkWell(
-                    onTap: (){
-                      if(chatViewController.personalTabSelectedIndex.value==1){
-                        Get.to(() => ContactsPage(from: "group"));
-                      }else{
-                        Get.toNamed(RouteHelper.getChatContactsRoute());
-                      }
-                    },
-                    child: Container(
-                      // width: 60,
-                      height: 52,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(16),
-                        color: AppColors.primaryColor,
-                      ),
-                      margin:const EdgeInsets.only(bottom: 18) ,
-                      padding:const EdgeInsets.only(left: 12,right: 12) ,
-                      child: Row(mainAxisSize: MainAxisSize.min,
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          if(chatViewController.personalTabSelectedIndex.value==1)
-                            CustomText("New Group ",color: AppColors.white,fontWeight: FontWeight.w600,),
-                          Icon(Icons.add,color: AppColors.white,),
-                        ],
-                      ),
-                      // backgroundColor: AppColors.primaryColor,
-                      // foregroundColor: Colors.white,
-                      // onPressed: () {
-                      //
-                      //
-                      // },
-                    ),
-                  )),
-            ),
+                    child: Padding(
+                        padding: const EdgeInsets.only(bottom: kBottomNavigationBarHeight),
+                        child: InkWell(
+                          onTap: () {
+                            if (chatViewController.personalTabSelectedIndex.value == 1) {
+                              Get.to(() => ContactsPage(from: "group"));
+                            } else {
+                              Get.toNamed(RouteHelper.getChatContactsRoute());
+                            }
+                          },
+                          child: Container(
+                            // width: 60,
+                            height: 52,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(16),
+                              color: AppColors.primaryColor,
+                            ),
+                            margin: const EdgeInsets.only(bottom: 18),
+                            padding: const EdgeInsets.only(left: 12, right: 12),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                if (chatViewController.personalTabSelectedIndex.value == 1)
+                                  CustomText(
+                                    "New Group ",
+                                    color: AppColors.white,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                Icon(
+                                  Icons.add,
+                                  color: AppColors.white,
+                                ),
+                              ],
+                            ),
+                            // backgroundColor: AppColors.primaryColor,
+                            // foregroundColor: Colors.white,
+                            // onPressed: () {
+                            //
+                            //
+                            // },
+                          ),
+                        )),
+                  ),
             body: BottomNavHideOnScroll(
               child: NestedScrollView(
                 headerSliverBuilder: (context, innerBoxIsScrolled) {
@@ -541,9 +526,7 @@ class _ConnectMainPageState extends State<ConnectMainPage>
                   child: TabBarView(
                     // Lock swiping while selecting — otherwise an accidental
                     // pan would leave selection mode on a non-Chat tab.
-                    physics: isSelectionMode
-                        ? const NeverScrollableScrollPhysics()
-                        : null,
+                    physics: isSelectionMode ? const NeverScrollableScrollPhysics() : null,
                     controller: _tabController,
                     children: [
                       PersonalChatsList(isForwardUI: false),
@@ -600,8 +583,7 @@ class _ConnectMainPageState extends State<ConnectMainPage>
         children: [
           IconButton(
             icon: const Icon(Icons.arrow_back, color: Colors.black),
-            onPressed: () =>
-                chatViewController.exitChatListSelectionMode(),
+            onPressed: () => chatViewController.exitChatListSelectionMode(),
           ),
           CustomText(
             "$selectedCount",
@@ -613,8 +595,7 @@ class _ConnectMainPageState extends State<ConnectMainPage>
       ),
       actions: [
         _selectionActionIcon(Icons.flag_outlined, () {
-          final ids =
-              chatViewController.selectedConversationIds.toList();
+          final ids = chatViewController.selectedConversationIds.toList();
           if (ids.isEmpty) return;
           showModalBottomSheet(
             context: context,
@@ -629,11 +610,9 @@ class _ConnectMainPageState extends State<ConnectMainPage>
           );
         }),
         _selectionActionIcon(Icons.push_pin_outlined, () {
-          final ids =
-              chatViewController.selectedConversationIds.toList();
+          final ids = chatViewController.selectedConversationIds.toList();
           final isBiz = selectedIndex == 1;
-          final allPinned = ids.every((id) =>
-              chatPinArchiveController.isPinned(id, isBusiness: isBiz));
+          final allPinned = ids.every((id) => chatPinArchiveController.isPinned(id, isBusiness: isBiz));
           if (allPinned) {
             chatPinArchiveController.unpinMultiple(ids, isBusiness: isBiz);
           } else {
@@ -645,15 +624,13 @@ class _ConnectMainPageState extends State<ConnectMainPage>
           // Mute action — placeholder, matches OrderMainChatScreen.
         }),
         _selectionActionIcon(Icons.archive_outlined, () {
-          final ids =
-              chatViewController.selectedConversationIds.toList();
+          final ids = chatViewController.selectedConversationIds.toList();
           final isBiz = selectedIndex == 1;
           chatPinArchiveController.archiveMultiple(ids, isBusiness: isBiz);
           chatViewController.exitChatListSelectionMode();
         }),
         _selectionActionIcon(Icons.lock_outline, () {
-          final ids =
-              chatViewController.selectedConversationIds.toList();
+          final ids = chatViewController.selectedConversationIds.toList();
           if (ids.isEmpty) return;
           final isBiz = selectedIndex == 1;
           _handleLockSelectedChats(ids, isBiz);
@@ -674,13 +651,11 @@ class _ConnectMainPageState extends State<ConnectMainPage>
                 final isBiz = selectedIndex == 1;
                 final lockedIds = chatLockController.lockedIds(isBiz);
                 final allChats = (isBiz
-                        ? chatViewController
-                                .getBusinessChatListModel?.value.chatList
+                        ? chatViewController.getBusinessChatListModel?.value.chatList
                                 ?.whereType<ChatList>()
                                 .toList() ??
                             []
-                        : chatViewController
-                                .getPersonalChatListModel?.value.chatList
+                        : chatViewController.getPersonalChatListModel?.value.chatList
                                 ?.whereType<ChatList>()
                                 .toList() ??
                             [])
@@ -697,35 +672,27 @@ class _ConnectMainPageState extends State<ConnectMainPage>
             }
           },
           itemBuilder: (context) => [
-            const PopupMenuItem(
-                value: 'mark_unread', child: Text('Mark as unread')),
-            const PopupMenuItem(
-                value: 'select_all', child: Text('Select all')),
-            const PopupMenuItem(
-                value: 'lock_chats', child: Text('Lock chats')),
-            const PopupMenuItem(
-                value: 'add_favourites', child: Text('Add to Favourites')),
-            const PopupMenuItem(
-                value: 'clear_chats', child: Text('Clear chats')),
+            const PopupMenuItem(value: 'mark_unread', child: Text('Mark as unread')),
+            const PopupMenuItem(value: 'select_all', child: Text('Select all')),
+            const PopupMenuItem(value: 'lock_chats', child: Text('Lock chats')),
+            const PopupMenuItem(value: 'add_favourites', child: Text('Add to Favourites')),
+            const PopupMenuItem(value: 'clear_chats', child: Text('Clear chats')),
           ],
         ),
       ],
     );
   }
 
-
   /// Lock the currently-selected chats. If no PIN exists yet, route the
   /// user through the [LockedChatsScreen] to create one first — once they
   /// land there a snackbar reminds them to come back and re-select. If a
   /// PIN does exist we just confirm and lock.
-  Future<void> _handleLockSelectedChats(
-      List<String> ids, bool isBusiness) async {
+  Future<void> _handleLockSelectedChats(List<String> ids, bool isBusiness) async {
     if (!chatLockController.hasPin.value) {
       final created = await Get.to<bool>(() => const LockedChatsScreen());
       // The PIN screen returns nothing on back; recheck the reactive state.
       if (!chatLockController.hasPin.value) {
-        commonSnackBar(
-            message: "Set up a PIN first to lock chats.");
+        commonSnackBar(message: "Set up a PIN first to lock chats.");
         return;
       }
       // ignore: unused_local_variable
@@ -837,25 +804,26 @@ class _ConnectMainPageState extends State<ConnectMainPage>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           InkWell(
-                            onTap: (){
+                            onTap: () {
                               Navigator.pop(context);
 
-                              Get.to(() => SymbolViewImages(
-                                  mySymbols: ctrl.mySymbols));
+                              Get.to(() => SymbolViewImages(mySymbols: ctrl.mySymbols));
                             },
                             child: Container(
                               padding: const EdgeInsets.all(2.5),
-                              decoration:  BoxDecoration(
+                              decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                gradient: (ctrl.mySymbols.isEmpty)?null:SweepGradient(
-                                  colors: [
-                                    AppColors.symbolBorderRed,
-                                    AppColors.symbolBorderBlue,
-                                    AppColors.symbolBorderYellow,
-                                    AppColors.symbolBorderGreen,
-                                    AppColors.symbolBorderRed,
-                                  ],
-                                ),
+                                gradient: (ctrl.mySymbols.isEmpty)
+                                    ? null
+                                    : SweepGradient(
+                                        colors: [
+                                          AppColors.symbolBorderRed,
+                                          AppColors.symbolBorderBlue,
+                                          AppColors.symbolBorderYellow,
+                                          AppColors.symbolBorderGreen,
+                                          AppColors.symbolBorderRed,
+                                        ],
+                                      ),
                               ),
                               child: Container(
                                 padding: const EdgeInsets.all(2),
@@ -881,86 +849,86 @@ class _ConnectMainPageState extends State<ConnectMainPage>
                     Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                            _drawerMenuItem(
-                              icon: Icons.add_circle_outline_rounded,
-                              label: 'Add Symbol',
-                              iconColor: const Color(0xFF0086FF),
-                              bgColor: const Color(0xFFE8F3FF),
-                              onTap: () {
-                                Navigator.pop(context);
-                                Get.to(() => AddChatSymbolScreen());
-                              },
-                            ),
-                            _menuDivider(),
-                            _drawerMenuItem(
-                              icon: Icons.group_add_rounded,
-                              label: 'Create Group',
-                              iconColor: const Color(0xFF2BB67F),
-                              bgColor: const Color(0xFFE6F9F1),
-                              onTap: () {
-                                Navigator.pop(context);
-                                Get.to(() => ContactsPage(from: "group"));
-                              },
-                            ),
-                            _menuDivider(),
-                            _drawerMenuItem(
-                              icon: Icons.palette_rounded,
-                              label: 'Background',
-                              iconColor: const Color(0xFF9C27B0),
-                              bgColor: const Color(0xFFF3E5F5),
-                              onTap: () {
-                                Navigator.pop(context);
-                                Get.to(() => ChatBackgroundScreen());
-                              },
-                            ),
-                            _menuDivider(),
-                            _drawerMenuItem(
-                              icon: Icons.account_balance_wallet_rounded,
-                              label: 'Wallet',
-                              iconColor: const Color(0xFF0086FF),
-                              bgColor: const Color(0xFFE8F3FF),
-                              onTap: () {
-                                Navigator.pop(context);
-                                Get.to(() => const WalletChatScreen());
-                              },
-                            ),
-                            _menuDivider(),
-                            _drawerMenuItem(
-                              icon: Icons.lock_rounded,
-                              label: 'Lock Chat',
-                              iconColor: const Color(0xFFE88D1A),
-                              bgColor: const Color(0xFFFFF3E0),
-                              onTap: () {
-                                Navigator.pop(context);
-                                Get.to(() => LockedChatsScreen(
-                                      initialIsBusiness: selectedIndex == 1,
-                                    ));
-                              },
-                            ),
-                            _menuDivider(),
-                            _drawerMenuItem(
-                              icon: Icons.notifications_rounded,
-                              label: 'Notification',
-                              iconColor: const Color(0xFF2BB67F),
-                              bgColor: const Color(0xFFE6F9F1),
-                              onTap: () {
-                                Navigator.pop(context);
-                                Get.to(() => NotificationSettingScreen());
-                              },
-                            ),
-                            _menuDivider(),
-                            _drawerMenuItem(
-                              icon: Icons.person_add_alt_rounded,
-                              label: 'Invite Friend',
-                              iconColor: const Color(0xFF9C27B0),
-                              bgColor: const Color(0xFFF3E5F5),
-                              onTap: () {
-                                Navigator.pop(context);
-                                commonSnackBar(message: "Coming soon....");
-                              },
-                            ),
-                          ],
+                        _drawerMenuItem(
+                          icon: Icons.add_circle_outline_rounded,
+                          label: 'Add Symbol',
+                          iconColor: const Color(0xFF0086FF),
+                          bgColor: const Color(0xFFE8F3FF),
+                          onTap: () {
+                            Navigator.pop(context);
+                            Get.to(() => AddChatSymbolScreen());
+                          },
                         ),
+                        _menuDivider(),
+                        _drawerMenuItem(
+                          icon: Icons.group_add_rounded,
+                          label: 'Create Group',
+                          iconColor: const Color(0xFF2BB67F),
+                          bgColor: const Color(0xFFE6F9F1),
+                          onTap: () {
+                            Navigator.pop(context);
+                            Get.to(() => ContactsPage(from: "group"));
+                          },
+                        ),
+                        _menuDivider(),
+                        _drawerMenuItem(
+                          icon: Icons.palette_rounded,
+                          label: 'Background',
+                          iconColor: const Color(0xFF9C27B0),
+                          bgColor: const Color(0xFFF3E5F5),
+                          onTap: () {
+                            Navigator.pop(context);
+                            Get.to(() => ChatBackgroundScreen());
+                          },
+                        ),
+                        _menuDivider(),
+                        _drawerMenuItem(
+                          icon: Icons.account_balance_wallet_rounded,
+                          label: 'Wallet',
+                          iconColor: const Color(0xFF0086FF),
+                          bgColor: const Color(0xFFE8F3FF),
+                          onTap: () {
+                            Navigator.pop(context);
+                            Get.to(() => const WalletChatScreen());
+                          },
+                        ),
+                        _menuDivider(),
+                        _drawerMenuItem(
+                          icon: Icons.lock_rounded,
+                          label: 'Lock Chat',
+                          iconColor: const Color(0xFFE88D1A),
+                          bgColor: const Color(0xFFFFF3E0),
+                          onTap: () {
+                            Navigator.pop(context);
+                            Get.to(() => LockedChatsScreen(
+                                  initialIsBusiness: selectedIndex == 1,
+                                ));
+                          },
+                        ),
+                        _menuDivider(),
+                        _drawerMenuItem(
+                          icon: Icons.notifications_rounded,
+                          label: 'Notification',
+                          iconColor: const Color(0xFF2BB67F),
+                          bgColor: const Color(0xFFE6F9F1),
+                          onTap: () {
+                            Navigator.pop(context);
+                            Get.to(() => NotificationSettingScreen());
+                          },
+                        ),
+                        _menuDivider(),
+                        _drawerMenuItem(
+                          icon: Icons.person_add_alt_rounded,
+                          label: 'Invite Friend',
+                          iconColor: const Color(0xFF9C27B0),
+                          bgColor: const Color(0xFFF3E5F5),
+                          onTap: () {
+                            Navigator.pop(context);
+                            commonSnackBar(message: "Coming soon....");
+                          },
+                        ),
+                      ],
+                    ),
                     const SizedBox(height: 16),
                   ],
                 ),
@@ -1055,8 +1023,7 @@ class _HomeTabBarDelegate extends SliverPersistentHeaderDelegate {
   double get minExtent => _tabsHeight;
 
   @override
-  Widget build(
-      BuildContext context, double shrinkOffset, bool overlapsContent) {
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
     return Container(
       color: Colors.white,
       child: SizedBox(
@@ -1067,67 +1034,61 @@ class _HomeTabBarDelegate extends SliverPersistentHeaderDelegate {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: List.generate(postTab.length, (index) {
-                  bool isSelected = selectedIndex == index;
-                  return Flexible(
-                    child: Padding(
-                      padding:
-                          EdgeInsets.only(left: index == 0 ? 10.0 : 0),
-                      child: GestureDetector(
-                        onTap: () => onTabTapped(index),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.start,
+              bool isSelected = selectedIndex == index;
+              return Flexible(
+                child: Padding(
+                  padding: EdgeInsets.only(left: index == 0 ? 10.0 : 0),
+                  child: GestureDetector(
+                    onTap: () => onTabTapped(index),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Row(
                           crossAxisAlignment: CrossAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                LocalAssets(
-                                  imagePath: iconTab[index],
-                                  width: 16,
-                                  height: 16,
-                                  imgColor: isSelected
-                                      ? AppColors.black28
-                                      : AppColors.secondaryTextColor,
-                                ),
-                                const SizedBox(width: 3),
-                                Flexible(
-                                  child: CustomText(
-                                    postTab[index].tr,
-                                    fontSize: 14,
-                                    maxLines: 1,
-                                    fontWeight: FontWeight.w500,
-                                    overflow: TextOverflow.ellipsis,
-                                    color: isSelected
-                                        ? AppColors.black28
-                                        : AppColors.secondaryTextColor,
-                                  ),
-                                ),
-                              ],
+                            LocalAssets(
+                              imagePath: iconTab[index],
+                              width: 16,
+                              height: 16,
+                              imgColor: isSelected ? AppColors.black28 : AppColors.secondaryTextColor,
                             ),
-                            const SizedBox(height: 3),
-                            AnimatedContainer(
-                              duration: const Duration(milliseconds: 200),
-                              height: 3,
-                              width: isSelected ? 90 : 0,
-                              color: AppColors.primaryColor,
-                            )
+                            const SizedBox(width: 3),
+                            Flexible(
+                              child: CustomText(
+                                postTab[index].tr,
+                                fontSize: 14,
+                                maxLines: 1,
+                                fontWeight: FontWeight.w500,
+                                overflow: TextOverflow.ellipsis,
+                                color: isSelected ? AppColors.black28 : AppColors.secondaryTextColor,
+                              ),
+                            ),
                           ],
                         ),
-                      ),
+                        const SizedBox(height: 3),
+                        AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          height: 3,
+                          width: isSelected ? 90 : 0,
+                          color: AppColors.primaryColor,
+                        )
+                      ],
                     ),
-                  );
-                }),
-              ),
-            ),
+                  ),
+                ),
+              );
+            }),
           ),
+        ),
+      ),
     );
   }
 
   @override
   bool shouldRebuild(covariant _HomeTabBarDelegate oldDelegate) =>
-      selectedIndex != oldDelegate.selectedIndex ||
-      tabController != oldDelegate.tabController;
+      selectedIndex != oldDelegate.selectedIndex || tabController != oldDelegate.tabController;
 }
 
 /// Bottom sheet to apply a flag to multiple selected conversations.
@@ -1153,9 +1114,7 @@ class _MultiFlagBottomSheetState extends State<_MultiFlagBottomSheet> {
   @override
   void initState() {
     super.initState();
-    final flags = widget.conversationIds
-        .map((id) => flagController.getFlagForConversation(id))
-        .toSet();
+    final flags = widget.conversationIds.map((id) => flagController.getFlagForConversation(id)).toSet();
     if (flags.length == 1 && flags.first != null) {
       selectedFlagId = flags.first!.id;
     }
@@ -1222,17 +1181,12 @@ class _MultiFlagBottomSheetState extends State<_MultiFlagBottomSheet> {
                       });
                     },
                     child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 10, horizontal: 12),
+                      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
                       margin: const EdgeInsets.only(bottom: 4),
                       decoration: BoxDecoration(
-                        color: isSelected
-                            ? flag.color.withValues(alpha: 0.1)
-                            : Colors.transparent,
+                        color: isSelected ? flag.color.withValues(alpha: 0.1) : Colors.transparent,
                         borderRadius: BorderRadius.circular(10),
-                        border: isSelected
-                            ? Border.all(color: flag.color, width: 1.5)
-                            : null,
+                        border: isSelected ? Border.all(color: flag.color, width: 1.5) : null,
                       ),
                       child: Row(
                         children: [
@@ -1257,9 +1211,7 @@ class _MultiFlagBottomSheetState extends State<_MultiFlagBottomSheet> {
                               fontWeight: FontWeight.w500,
                             ),
                           ),
-                          if (isSelected)
-                            Icon(Icons.check_circle,
-                                color: flag.color, size: 22),
+                          if (isSelected) Icon(Icons.check_circle, color: flag.color, size: 22),
                         ],
                       ),
                     ),
@@ -1300,8 +1252,7 @@ class _MultiFlagBottomSheetState extends State<_MultiFlagBottomSheet> {
                   onPressed: selectedFlagId == null
                       ? null
                       : () {
-                          final flag = flagController.allFlags
-                              .firstWhere((f) => f.id == selectedFlagId);
+                          final flag = flagController.allFlags.firstWhere((f) => f.id == selectedFlagId);
                           for (final id in widget.conversationIds) {
                             flagController.assignFlagToConversation(id, flag);
                           }

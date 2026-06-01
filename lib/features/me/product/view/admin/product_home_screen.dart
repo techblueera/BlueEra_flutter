@@ -431,7 +431,7 @@ class _ProductHomeScreenState extends State<ProductHomeScreen> {
             Icon(Icons.photo_camera_outlined,
                 size: 20, color: AppColors.primaryColor),
             SizedBox(width: SizeConfig.size6),
-            CustomText('Add Your Banner Here',
+            CustomText(AppStrings.otherAddYourBannerHere.tr,
                 fontSize: 14,
                 fontWeight: FontWeight.w700,
                 color: AppColors.primaryColor),

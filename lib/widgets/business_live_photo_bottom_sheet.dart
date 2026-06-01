@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/widgets/app_loader.dart';
@@ -15,12 +16,15 @@ import 'package:get/get.dart';
 
 const int _maxPhotos = 4;
 
-final _slotConfigs = [
-  {'label': 'Storefront / Exterior\n(Roadside)', 'image': AppImageAssets.storefrontExterior},
-  {'label': 'Interior / Inside\nthe Shop', 'image': AppImageAssets.interiorInsideShop},
-  {'label': 'Billing Counter\n/ Reception Area', 'image': AppImageAssets.billingCounterReceptionArea},
-  {'label': 'Products / Services\nDisplay', 'image': AppImageAssets.productServiceDisplay},
-];
+// Slot labels resolve via `.tr` at sheet-build time, so keep this as a
+// function rather than a top-level const list — runtime values can't be
+// embedded in a `const`.
+List<Map<String, String>> _buildSlotConfigs() => [
+      {'label': AppStrings.slotStorefrontExterior.tr, 'image': AppImageAssets.storefrontExterior},
+      {'label': AppStrings.slotInteriorInsideShop.tr, 'image': AppImageAssets.interiorInsideShop},
+      {'label': AppStrings.slotBillingCounterReception.tr, 'image': AppImageAssets.billingCounterReceptionArea},
+      {'label': AppStrings.slotProductsServicesDisplay.tr, 'image': AppImageAssets.productServiceDisplay},
+    ];
 
 void showBusinessLivePhotoBottomSheetIfNeeded({
   required BuildContext context,
@@ -105,11 +109,11 @@ class _LivePhotoBottomSheetContent extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const CustomText('Business Live Photos',
+                    CustomText(AppStrings.businessLivePhotos.tr,
                         fontSize: 18, fontWeight: FontWeight.bold),
                     const SizedBox(height: 4),
                     CustomText(
-                      'Add photos to help customers find your business',
+                      AppStrings.addPhotosToHelpCustomers.tr,
                       fontSize: 12, color: AppColors.secondaryTextColor,
                     ),
                   ],
@@ -138,7 +142,7 @@ class _LivePhotoBottomSheetContent extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: CustomText(
-                    'If You Want To Make Your Business Live, You Must Share At Least One Live Photo.',
+                    AppStrings.atLeastOneLivePhotoRequired.tr,
                     fontSize: 12, fontWeight: FontWeight.w500,
                     color: AppColors.primaryColor,
                   ),
@@ -163,7 +167,7 @@ class _LivePhotoBottomSheetContent extends StatelessWidget {
                 mainAxisSpacing: 10, childAspectRatio: 1.1,
               ),
               itemBuilder: (ctx, index) {
-                final config = _slotConfigs[index];
+                final config = _buildSlotConfigs()[index];
                 final serverPhotos =
                     controller.businessProfileDetails.value?.data?.livePhotos ?? [];
                 final serverUrl = (index < serverPhotos.length &&
@@ -374,8 +378,8 @@ class _LivePhotoSlot extends StatelessWidget {
     } catch (_) {
       controller.localUploadingPhotos.remove(index);
       Get.snackbar(
-        'Upload Failed',
-        'Could not save image.',
+        AppStrings.uploadFailed.tr,
+        AppStrings.couldNotSaveImage.tr,
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.red.withValues(alpha: 0.9),
         colorText: Colors.white,
@@ -384,7 +388,7 @@ class _LivePhotoSlot extends StatelessWidget {
   }
 
   Future<void> _handleDelete() async {
-    AppLoader.show(message: 'Removing photo...');
+    AppLoader.show(message: AppStrings.removingPhoto.tr);
     try {
       await controller.deleteLiveStoreImage({'image_url': serverUrl});
     } finally {

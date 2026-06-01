@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/language_localization_service/language_controller_new.dart';
@@ -174,7 +175,7 @@ class _LogoutDialog extends StatelessWidget {
                     children: [
                       // Tracked eyebrow.
                       Text(
-                        'SIGN OUT',
+                        AppStrings.signOutEyebrow.tr,
                         style: TextStyle(
                           fontFamily: AppConstants.OpenSans,
                           fontSize: 10,
@@ -187,7 +188,7 @@ class _LogoutDialog extends StatelessWidget {
                       // Display headline — bigger, slightly negative
                       // tracking for a refined feel.
                       Text(
-                        'Signing off?',
+                        AppStrings.signingOffTitle.tr,
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontFamily: AppConstants.OpenSans,
@@ -213,8 +214,7 @@ class _LogoutDialog extends StatelessWidget {
                       // Reassuring body copy. Two short lines that say
                       // "we'll be here when you come back".
                       Text(
-                        "We'll keep your seat warm. Sign back in "
-                        "whenever you're ready.",
+                        AppStrings.signOutDialogBody.tr,
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 13,
@@ -230,14 +230,14 @@ class _LogoutDialog extends StatelessWidget {
                         children: [
                           Expanded(
                             child: _GhostButton(
-                              label: 'Sign me out',
+                              label: AppStrings.signMeOut.tr,
                               onTap: onConfirm,
                             ),
                           ),
                           const SizedBox(width: 10),
                           Expanded(
                             child: _PrimaryButton(
-                              label: 'Stay',
+                              label: AppStrings.stay.tr,
                               onTap: onCancel,
                             ),
                           ),

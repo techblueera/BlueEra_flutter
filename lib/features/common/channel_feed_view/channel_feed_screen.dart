@@ -115,7 +115,7 @@ class _ChannelFeedScreenState extends State<ChannelFeedScreen> {
                                         _buildCircleIcon(
                                             AppIconAssets.channelNew),
                                         SizedBox(width: SizeConfig.size6),
-                                        _buildTitleWidget(AppStrings.myChannel),
+                                        _buildTitleWidget(AppStrings.myChannel.tr),
                                       ],
                                     ),
                                     SizedBox(width: SizeConfig.size6),
@@ -136,7 +136,7 @@ class _ChannelFeedScreenState extends State<ChannelFeedScreen> {
                                         );
                                       },
                                       child: CustomText(
-                                        AppStrings.view,
+                                        AppStrings.view.tr,
                                         fontWeight: FontWeight.w500,
                                         fontSize: SizeConfig.size16,
                                         color: AppColors.primaryColor,
@@ -180,10 +180,10 @@ class _ChannelFeedScreenState extends State<ChannelFeedScreen> {
                                 children: [
                                   _buildCircleIcon(AppIconAssets.channelNew),
                                   SizedBox(width: SizeConfig.size6),
-                                  _buildTitleWidget(AppStrings.myChannel),
+                                  _buildTitleWidget(AppStrings.myChannel.tr),
                                   Spacer(),
                                   CustomText(
-                                    AppStrings.create,
+                                    AppStrings.create.tr,
                                     fontSize: SizeConfig.small,
                                     fontWeight: FontWeight.w600,
                                     color: AppColors.primaryColor,
@@ -293,14 +293,14 @@ class _ChannelFeedScreenState extends State<ChannelFeedScreen> {
                 size: 36, color: AppColors.primaryColor),
           ),
           const SizedBox(height: 16),
-          const CustomText(
-            'No channels joined yet',
+          CustomText(
+            AppStrings.noChannelsJoinedYet.tr,
             fontSize: 16,
             fontWeight: FontWeight.w600,
           ),
           const SizedBox(height: 6),
           CustomText(
-            'Discover communities you\'ll love and join the conversation.',
+            AppStrings.discoverCommunitiesHint.tr,
             fontSize: 13,
             color: AppColors.secondaryTextColor,
             textAlign: TextAlign.center,
@@ -316,14 +316,14 @@ class _ChannelFeedScreenState extends State<ChannelFeedScreen> {
                 color: AppColors.primaryColor,
                 borderRadius: BorderRadius.circular(24),
               ),
-              child: const Row(
+              child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.explore_outlined,
+                  const Icon(Icons.explore_outlined,
                       size: 18, color: Colors.white),
-                  SizedBox(width: 8),
+                  const SizedBox(width: 8),
                   CustomText(
-                    'Browse suggested channels',
+                    AppStrings.browseSuggestedChannels.tr,
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
                     color: Colors.white,
@@ -358,9 +358,9 @@ class _ChannelFeedScreenState extends State<ChannelFeedScreen> {
               const Icon(Icons.add_circle_outline,
                   size: 20, color: AppColors.primaryColor),
               const SizedBox(width: 10),
-              const Expanded(
+              Expanded(
                 child: CustomText(
-                  'See more suggestions',
+                  AppStrings.seeMoreSuggestions.tr,
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
                   color: AppColors.primaryColor,

@@ -77,7 +77,13 @@ class _ProductScreenState extends State<ProductScreen>
   void _initializeData() {
     // Tabs mirror the grocery v2 home screen exactly so the merchant
     // sees a consistent layout across me-section services.
-    _tabs = const ['Order', 'Overview', 'Products', 'Post', 'Statics'];
+    _tabs = [
+      AppStrings.orderTab.tr,
+      AppStrings.overviewTab.tr,
+      AppStrings.productsTab.tr,
+      AppStrings.postTabLabel.tr,
+      AppStrings.staticsTab.tr,
+    ];
 
     _tabViews = [
       _OrdersTabBody(),
@@ -483,7 +489,7 @@ class _ProductScreenState extends State<ProductScreen>
         ? data['rechargePlanId'] as Map<String, dynamic>
         : <String, dynamic>{};
 
-    final name = (plan['name'] ?? 'Active Contribution').toString();
+    final name = (plan['name'] ?? AppStrings.activeContribution.tr).toString();
     final tier = (plan['tier'] ?? '').toString();
     final perkType = (plan['perk_type'] ?? '').toString();
     final totalPerks = _asInt(data['total_perks']);
@@ -586,8 +592,9 @@ class _ProductScreenState extends State<ProductScreen>
                           const SizedBox(height: 2),
                           CustomText(
                             tier.isNotEmpty
-                                ? '${tier.toUpperCase()} MEMBER'
-                                : 'MEMBER',
+                                ? AppStrings.memberCapsPrefixFmt
+                                    .trParams({'tier': tier.toUpperCase()})
+                                : AppStrings.memberLabel.tr,
                             fontSize: 10,
                             fontWeight: FontWeight.w600,
                             color: const Color(0xFFE9D9FF),
@@ -624,14 +631,19 @@ class _ProductScreenState extends State<ProductScreen>
                     children: [
                       CustomText(
                         perkType.isEmpty
-                            ? 'Perks remaining'
-                            : '${perkType[0].toUpperCase()}${perkType.substring(1)} remaining',
+                            ? AppStrings.perksRemaining.tr
+                            : AppStrings.perksRemainingWithTypeFmt.trParams({
+                                'type': '${perkType[0].toUpperCase()}${perkType.substring(1)}',
+                              }),
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
                         color: const Color(0xFFE9D9FF),
                       ),
                       CustomText(
-                        '$perksRemaining of $totalPerks',
+                        AppStrings.perksOfTotalFmt.trParams({
+                          'remaining': '$perksRemaining',
+                          'total': '$totalPerks',
+                        }),
                         fontSize: 12,
                         fontWeight: FontWeight.w800,
                         color: const Color(0xFFFCD34D),
@@ -697,9 +709,9 @@ class _ProductScreenState extends State<ProductScreen>
             ),
           ),
           const SizedBox(width: 4),
-          const Text(
-            'ACTIVE',
-            style: TextStyle(
+          Text(
+            AppStrings.activeStatusLabel.tr,
+            style: const TextStyle(
               fontSize: 9,
               fontWeight: FontWeight.w800,
               color: Colors.white,
@@ -796,14 +808,14 @@ class _ProductScreenState extends State<ProductScreen>
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       CustomText(
-                        'Contribute now',
+                        AppStrings.contributeNow.tr,
                         fontSize: 26,
                         fontWeight: FontWeight.w800,
                         color: const Color(0xFF221831),
                       ),
                       const SizedBox(height: 2),
                       CustomText(
-                        'to get order & Visibility',
+                        AppStrings.toGetOrderVisibility.tr,
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
                         color: const Color(0xFF6E5F8E),
@@ -1001,7 +1013,7 @@ class _ProductScreenState extends State<ProductScreen>
                 SizedBox(width: SizeConfig.size6),
                 Flexible(
                   child: CustomText(
-                    'Nearby Riders',
+                    AppStrings.nearbyRiders.tr,
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
                     color: AppColors.secondaryTextColor,
@@ -1042,7 +1054,7 @@ class _ProductScreenState extends State<ProductScreen>
               mainAxisSize: MainAxisSize.min,
               children: [
                 CustomText(
-                  'Go live',
+                  AppStrings.goLive.tr,
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
                   color: AppColors.secondaryTextColor,
@@ -1290,7 +1302,7 @@ class _ProductsTabBodyState extends State<_ProductsTabBody> {
             mainAxisSize: MainAxisSize.min,
             children: [
               CustomText(
-                'Our Products',
+                AppStrings.ourProducts.tr,
                 fontSize: 18,
                 fontWeight: FontWeight.w800,
                 color: AppColors.mainTextColor,
@@ -1299,7 +1311,7 @@ class _ProductsTabBodyState extends State<_ProductsTabBody> {
               ),
               const SizedBox(height: 2),
               CustomText(
-                'Tap a category to manage inventory',
+                AppStrings.tapCategoryToManageInventory.tr,
                 fontSize: 11,
                 fontWeight: FontWeight.w500,
                 color: AppColors.secondaryTextColor,
@@ -1424,7 +1436,7 @@ class _ProductsTabBodyState extends State<_ProductsTabBody> {
             mainAxisSize: MainAxisSize.min,
             children: [
               CustomText(
-                'Top Selling',
+                AppStrings.topSelling.tr,
                 fontSize: 18,
                 fontWeight: FontWeight.w800,
                 color: AppColors.mainTextColor,
@@ -1433,7 +1445,7 @@ class _ProductsTabBodyState extends State<_ProductsTabBody> {
               ),
               const SizedBox(height: 2),
               CustomText(
-                "Customers' favorites this month",
+                AppStrings.customersFavoritesThisMonth.tr,
                 fontSize: 11,
                 fontWeight: FontWeight.w500,
                 color: AppColors.secondaryTextColor,
@@ -1476,7 +1488,7 @@ class _ProductsTabBodyState extends State<_ProductsTabBody> {
           mainAxisSize: MainAxisSize.min,
           children: [
             CustomText(
-              'View All',
+              AppStrings.viewAll.tr,
               fontSize: 12,
               fontWeight: FontWeight.w700,
               color: AppColors.primaryColor,
@@ -1594,7 +1606,8 @@ class _ProductsTabBodyState extends State<_ProductsTabBody> {
                             ),
                           ),
                           child: CustomText(
-                            '$discountPercent% OFF',
+                            AppStrings.discountOffFmt
+                                .trParams({'percent': '$discountPercent'}),
                             fontSize: 10,
                             fontWeight: FontWeight.w700,
                             color: Colors.white,
@@ -1712,7 +1725,7 @@ class _ProductsTabBodyState extends State<_ProductsTabBody> {
           vertical: SizeConfig.size20,
         ),
         child: EmptyStateWidget(
-          message: "You don't have product yet, Want to create one?",
+          message: AppStrings.noProductYetCreateOne.tr,
         ),
       );
     }
