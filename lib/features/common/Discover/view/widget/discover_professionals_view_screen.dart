@@ -461,7 +461,8 @@ class _ServicesSectionState extends State<_ServicesSection> {
         '';
 
     if (desc.isEmpty) {
-      return _emptyCard(AppStrings.ourServices.tr, AppStrings.noServicesListedYet.tr);
+      return _emptyCard(AppStrings.ourServices.tr, AppStrings.noServicesListedYet.tr,
+          icon: Icons.miscellaneous_services_outlined);
     }
 
     return Padding(
@@ -503,7 +504,8 @@ class _PortfolioSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final portfolio = data.portfolio ?? [];
     if (portfolio.isEmpty) {
-      return _emptyCard(AppStrings.projectsLabel.tr, AppStrings.noProjectsAddedYet.tr);
+      return _emptyCard(AppStrings.projectsLabel.tr, AppStrings.noProjectsAddedYet.tr,
+          icon: Icons.folder_open_outlined);
     }
 
     return Padding(
@@ -549,7 +551,8 @@ class _CertificatesSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final certs = data.certificates ?? [];
     if (certs.isEmpty) {
-      return _emptyCard(AppStrings.certificatesAndAwards.tr, AppStrings.noCertificatesAddedYet.tr);
+      return _emptyCard(AppStrings.certificatesAndAwards.tr, AppStrings.noCertificatesAddedYet.tr,
+          icon: Icons.workspace_premium_outlined);
     }
 
     return Padding(
@@ -660,7 +663,8 @@ class _GallerySection extends StatelessWidget {
   Widget build(BuildContext context) {
     final urls = data.gallery?.signedUrls ?? [];
     if (urls.isEmpty) {
-      return _emptyCard(AppStrings.gallery.tr, AppStrings.noPhotosAvailableMsg.tr);
+      return _emptyCard(AppStrings.gallery.tr, AppStrings.noPhotosAvailableMsg.tr,
+          icon: Icons.photo_library_outlined);
     }
 
     return Padding(
@@ -686,7 +690,8 @@ class _GallerySection extends StatelessWidget {
 class _ReviewsSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return _emptyCard(AppStrings.reviewsTitle.tr, AppStrings.noReviewsYet.tr);
+    return _emptyCard(AppStrings.reviewsTitle.tr, AppStrings.noReviewsYet.tr,
+        icon: Icons.rate_review_outlined);
   }
 }
 
@@ -706,7 +711,8 @@ class _ContactSection extends StatelessWidget {
         (contact?.address ?? '').isNotEmpty;
 
     if (!hasAny) {
-      return _emptyCard(AppStrings.contactUs.tr, AppStrings.noContactDetailsMsg.tr);
+      return _emptyCard(AppStrings.contactUs.tr, AppStrings.noContactDetailsMsg.tr,
+          icon: Icons.phone_outlined);
     }
 
     return Padding(
@@ -847,7 +853,8 @@ class _WorkingHoursSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final schedule = data.timings?.schedule;
     if (schedule == null) {
-      return _emptyCard(AppStrings.workingHours.tr, AppStrings.noWorkingHoursAddedYet.tr);
+      return _emptyCard(AppStrings.workingHours.tr, AppStrings.noWorkingHoursAddedYet.tr,
+          icon: Icons.access_time_outlined);
     }
 
     return Padding(
@@ -1258,7 +1265,7 @@ class _SocialLinksSection extends StatelessWidget {
         _SocialItem(
           icon: Icons.public,
           color: AppColors.primaryColor,
-          label: 'Website',
+          label: AppStrings.websiteLabel.tr,
           url: s.website!.trim(),
         ),
     ];
@@ -1410,7 +1417,15 @@ Widget _sectionHeader(IconData icon, String title) {
   );
 }
 
-Widget _emptyCard(String title, String message) {
+/// Empty-state card for a profile section.
+///
+/// The optional [icon] is passed explicitly so this works after section
+/// titles are localized — the previous implementation switched on the
+/// title text, which broke once `.tr` returned the localized (e.g.
+/// Hindi) string. Callers that already know the icon should pass it;
+/// the legacy English-title fallback below covers the few call sites
+/// that don't pass an explicit icon yet.
+Widget _emptyCard(String title, String message, {IconData? icon}) {
   return Padding(
     padding: EdgeInsets.symmetric(horizontal: SizeConfig.paddingXSL),
     child: CommonCardWidget(
@@ -1418,7 +1433,7 @@ Widget _emptyCard(String title, String message) {
       child: Column(
         children: [
           _sectionHeader(
-            _iconForSection(title),
+            icon ?? _iconForSection(title),
             title,
           ),
           SizedBox(height: SizeConfig.paddingM),
@@ -1434,6 +1449,9 @@ Widget _emptyCard(String title, String message) {
 }
 
 IconData _iconForSection(String title) {
+  // Fallback only — the switch matches the English-locale labels that
+  // [AppStrings.<section>.tr] would resolve to. Pass [icon] explicitly
+  // in [_emptyCard] for locale-safe icon selection.
   switch (title) {
     case "Our Services":
       return Icons.miscellaneous_services_outlined;

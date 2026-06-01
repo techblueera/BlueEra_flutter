@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -11,7 +9,6 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_flag_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
-import 'package:BlueEra/features/common/delivery_partner/view/rider_service_screen.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
 import 'package:BlueEra/features/me/hotel/controller/hotel_home_detail_controller.dart';
 import 'package:BlueEra/features/me/hotel/view/v2/tabs/hotel_amenities_tab_v2.dart';
@@ -20,7 +17,6 @@ import 'package:BlueEra/features/me/hotel/view/v2/tabs/hotel_overview_tab_v2.dar
 import 'package:BlueEra/features/me/hotel/view/v2/tabs/hotel_posts_tab_v2.dart';
 import 'package:BlueEra/features/me/hotel/view/v2/tabs/hotel_rooms_tab_v2.dart';
 import 'package:BlueEra/features/me/hotel/view/v2/tabs/hotel_stats_tab_v2.dart';
-import 'package:BlueEra/features/personal/personal_profile/widgets/profile_top_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/refer_earn_pill.dart';
 import 'package:flutter/material.dart';
@@ -39,35 +35,32 @@ class HotelHomeScreenV2 extends StatefulWidget {
 
 class _HotelHomeScreenV2State extends State<HotelHomeScreenV2> {
   late final HotelDetailController _hotelController;
-  final _businessController =
-      getOrPut(() => ViewBusinessDetailsController(), permanent: true);
+  final _businessController = getOrPut(() => ViewBusinessDetailsController(), permanent: true);
 
   bool _isGoLive = false;
   int _selectedTab = 0;
   List<String> get _tabs => [
-    AppStrings.inquiry.tr,
-    AppStrings.overview.tr,
-    AppStrings.roomLabel.tr,
-    AppStrings.amenities.tr,
-    AppStrings.stats.tr,
-  ];
-
+        AppStrings.inquiry.tr,
+        AppStrings.overview.tr,
+        AppStrings.roomLabel.tr,
+        AppStrings.amenities.tr,
+        AppStrings.posts.tr,
+        AppStrings.stats.tr,
+      ];
 
   // Drives the inquiry list shown under the Inquiry tab — same controller
   // the Connect screen uses, so socket-driven updates land on both.
   // Mirrors the wiring used by the other v2 home screens (Hospital,
   // School, Medical, Lab, Other) and the Order tab in
   // `professionals_main.dart`.
-  final ChatViewController _chatViewController =
-      getOrPut(() => ChatViewController());
+  final ChatViewController _chatViewController = getOrPut(() => ChatViewController());
 
   // Pre-registered so the Flagged sub-tab inside `BusinessChatsList`
   // (`BusinessFlagChatList` → `Get.find<ChatFlagController>()`) doesn't
   // crash when this is the first screen the user touches. Mirrors the
   // top-level registration in `connect_main_page.dart`.
   // ignore: unused_field
-  final ChatFlagController _chatFlagController =
-      getOrPut(() => ChatFlagController());
+  final ChatFlagController _chatFlagController = getOrPut(() => ChatFlagController());
 
   @override
   void initState() {
@@ -101,7 +94,6 @@ class _HotelHomeScreenV2State extends State<HotelHomeScreenV2> {
             Column(
               children: [
                 _buildTopBar(),
-
                 Expanded(
                   child: RefreshIndicator(
                     onRefresh: () async => _hotelController.loadHotelData(),
@@ -154,8 +146,7 @@ class _HotelHomeScreenV2State extends State<HotelHomeScreenV2> {
       child: Image.asset(
         AppImageAssets.chatDefaultBg,
         fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) =>
-            Container(color: const Color(0xFFEAF2FB)),
+        errorBuilder: (_, __, ___) => Container(color: const Color(0xFFEAF2FB)),
       ),
     );
   }
@@ -185,8 +176,7 @@ class _HotelHomeScreenV2State extends State<HotelHomeScreenV2> {
           // instead of pushing the row past its width.
           Flexible(child: const ReferEarnPill()),
           const Spacer(),
-          _circleIconButton(
-              icon: Icons.notifications_none, onTap: _openNotifications),
+          _circleIconButton(icon: Icons.notifications_none, onTap: _openNotifications),
           SizedBox(width: SizeConfig.size6),
           _goLivePill(),
         ],
@@ -248,25 +238,20 @@ class _HotelHomeScreenV2State extends State<HotelHomeScreenV2> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            CustomText('Go live',
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: AppColors.mainTextColor),
+            CustomText(AppStrings.goLive.tr,
+                fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.mainTextColor),
             SizedBox(width: SizeConfig.size6),
             Container(
               width: 30,
               height: 18,
               padding: const EdgeInsets.all(2),
               decoration: BoxDecoration(
-                color:
-                    _isGoLive ? AppColors.primaryColor : Colors.grey.shade400,
+                color: _isGoLive ? AppColors.primaryColor : Colors.grey.shade400,
                 borderRadius: BorderRadius.circular(20),
               ),
               child: AnimatedAlign(
                 duration: const Duration(milliseconds: 180),
-                alignment: _isGoLive
-                    ? Alignment.centerRight
-                    : Alignment.centerLeft,
+                alignment: _isGoLive ? Alignment.centerRight : Alignment.centerLeft,
                 child: Container(
                   height: 14,
                   width: 14,
@@ -283,13 +268,10 @@ class _HotelHomeScreenV2State extends State<HotelHomeScreenV2> {
     );
   }
 
-
-
   Widget _buildTabsCard() {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
       child: Container(
-
         child: SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: Row(
@@ -308,9 +290,7 @@ class _HotelHomeScreenV2State extends State<HotelHomeScreenV2> {
                       color: selected ? AppColors.primaryColor : Colors.white,
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: selected
-                            ? AppColors.primaryColor
-                            : Colors.grey.shade300,
+                        color: selected ? AppColors.primaryColor : Colors.grey.shade300,
                       ),
                     ),
                     alignment: Alignment.center,
@@ -318,8 +298,7 @@ class _HotelHomeScreenV2State extends State<HotelHomeScreenV2> {
                       _tabs[i],
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
-                      color:
-                          selected ? Colors.white : AppColors.mainTextColor,
+                      color: selected ? Colors.white : AppColors.mainTextColor,
                     ),
                   ),
                 ),
@@ -330,7 +309,6 @@ class _HotelHomeScreenV2State extends State<HotelHomeScreenV2> {
       ),
     );
   }
-
 }
 
 class _CoinStackIcon extends StatelessWidget {

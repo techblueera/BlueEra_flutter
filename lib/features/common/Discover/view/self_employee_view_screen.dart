@@ -221,11 +221,14 @@ class SelfEmployeeViewScreen extends StatelessWidget {
                     final senderName = userNameGlobal.trim();
                     final providerName = (service.name ?? '').trim();
                     final introBody = providerName.isEmpty
-                        ? "I'd like to know more about your service."
-                        : "I'd like to know more about your $providerName service.";
+                        ? AppStrings.inquiryGenericBody.tr
+                        : AppStrings.inquiryProviderBodyFmt
+                            .trParams({'provider': providerName});
                     final prefill = senderName.isEmpty
-                        ? "Hi, $introBody"
-                        : "Hi, I'm $senderName. $introBody";
+                        ? AppStrings.inquiryHiPrefixFmt
+                            .trParams({'body': introBody})
+                        : AppStrings.inquiryHiWithSenderFmt
+                            .trParams({'sender': senderName, 'body': introBody});
 
                     chatViewController.checkChatConnectionAndOpenChat(
                       userId: targetUserId,
@@ -470,7 +473,7 @@ class SelfEmployeeViewScreen extends StatelessWidget {
           CommonRatingRow(
             rating: double.tryParse(service.rating.toString()) ?? 0.0,
             reviews: service.reviewCount ?? 0,
-            distance: '${service.distance ?? 0} KM',
+            distance: '${service.distance ?? 0} ${AppStrings.km.tr}',
           ),
           if (hasBio) ...[
             // SizedBox(height: SizeConfig.size12),

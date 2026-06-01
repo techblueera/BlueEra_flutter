@@ -285,7 +285,7 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2> {
             ElevatedButton.icon(
               onPressed: () => Get.toNamed(RouteHelper.getAddMedicalSnapSearchScreenRoute()),
               icon: const Icon(Icons.add, size: 18, color: Colors.white),
-              label: CustomText('Add More Product',
+              label: CustomText(AppStrings.addMoreProduct.tr,
                   fontSize: 13, fontWeight: FontWeight.w700, color: Colors.white),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primaryColor,
@@ -411,7 +411,7 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2> {
                           Icon(Icons.arrow_forward_ios_rounded, size: 10, color: AppColors.primaryColor),
                           SizedBox(width: 4),
                           CustomText(
-                            AppStrings.medicalViewProducts,
+                            AppStrings.medicalViewProducts.tr,
                             fontSize: 11,
                             color: AppColors.primaryColor,
                             fontWeight: FontWeight.w600,
@@ -614,7 +614,7 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2> {
         child: ElevatedButton.icon(
           onPressed: _onCreateOffer,
           icon: const Icon(Icons.local_offer_outlined, size: 18, color: Colors.white),
-          label: CustomText('Create Your Offers',
+          label: CustomText(AppStrings.createYourOffers.tr,
               fontSize: 13, fontWeight: FontWeight.w700, color: Colors.white),
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.primaryColor,
@@ -628,7 +628,7 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2> {
   }
 
   void _onCreateOffer() {
-    commonSnackBar(message: AppStrings.comingSoon);
+    commonSnackBar(message: AppStrings.comingSoon.tr);
   }
 
   // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -657,7 +657,7 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2> {
                     onPressed: () {
                       Get.to(BusinessStatisticsScreen(businessId: userId));
                     },
-                    child: CustomText("Click me")),
+                    child: CustomText(AppStrings.clickMe.tr)),
                 Row(
                   children: [
                     Icon(
@@ -668,7 +668,7 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2> {
                     SizedBox(width: SizeConfig.size10),
                     Expanded(
                       child: CustomText(
-                        isVerified ? AppStrings.verifiedProfile.tr : 'Profile not verified',
+                        isVerified ? AppStrings.verifiedProfile.tr : AppStrings.profileNotVerified.tr,
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
                         color: AppColors.mainTextColor,
@@ -679,9 +679,7 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2> {
                 ),
                 SizedBox(height: SizeConfig.size10),
                 CustomText(
-                  isVerified
-                      ? 'Your business is verified. Customers can trust your profile and contact you with confidence.'
-                      : 'Verify your business to earn the verified badge, gain customer trust, and unlock enhanced visibility.',
+                  isVerified ? AppStrings.profileVerifiedHint.tr : AppStrings.profileNotVerifiedHint.tr,
                   fontSize: 12,
                   color: AppColors.secondaryTextColor,
                   maxLines: 4,
@@ -693,7 +691,7 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2> {
                     child: ElevatedButton.icon(
                       onPressed: () => Get.to(() => BusinessVerification()),
                       icon: const Icon(Icons.verified_outlined, size: 18, color: Colors.white),
-                      label: CustomText('Start Verification',
+                      label: CustomText(AppStrings.startVerification.tr,
                           fontSize: 13, fontWeight: FontWeight.w700, color: Colors.white),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primaryColor,
@@ -723,7 +721,7 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2> {
           children: [
             Icon(Icons.hourglass_empty, size: 48, color: AppColors.secondaryTextColor),
             SizedBox(height: SizeConfig.size10),
-            CustomText(AppStrings.comingSoon,
+            CustomText(AppStrings.comingSoon.tr,
                 fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.mainTextColor),
           ],
         ),
@@ -828,7 +826,8 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            CustomText('Go live', fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.mainTextColor),
+            CustomText(AppStrings.goLive.tr,
+                fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.mainTextColor),
             SizedBox(width: SizeConfig.size6),
             Container(
               width: 30,
@@ -1102,7 +1101,7 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2> {
     try {
       final newPath = await PhotoPickerService.pickSinglePhoto(
         context,
-        AppStrings.editCoverPicture,
+        AppStrings.editCoverPicture.tr,
         cropAspectRatio: CropAspectRatio(width: 16, height: 9),
       );
       if (newPath == null || newPath.isEmpty) return;
@@ -1116,7 +1115,7 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2> {
       );
       final dataImage = await multiPartImage(imagePath: compressed?.path ?? newPath);
       if (dataImage == null) {
-        commonSnackBar(message: AppStrings.imageProcessingFailed);
+        commonSnackBar(message: AppStrings.imageProcessingFailed.tr);
         return;
       }
       final reqProfile = {
@@ -1126,7 +1125,7 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2> {
       };
       await _businessController.updateBusinessProfileDetails(reqProfile);
     } catch (e) {
-      commonSnackBar(message: AppStrings.updatePictureFailed);
+      commonSnackBar(message: AppStrings.updatePictureFailed.tr);
     }
   }
 
@@ -1136,8 +1135,8 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2> {
   Widget _buildBikesSection(List<PopularProduct> products) {
     final cardWidth = MediaQuery.of(context).size.width * 0.55;
     return _SectionCard(
-      title: 'Bikes',
-      trailingLabel: 'Update',
+      title: AppStrings.bikesTitle.tr,
+      trailingLabel: AppStrings.update.tr,
       onTrailingTap: () {},
       child: SizedBox(
         height: cardWidth * 1.05,
@@ -1204,17 +1203,17 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2> {
                 SizedBox(height: SizeConfig.size6),
                 Row(
                   children: [
-                    _spec(item.category?.name ?? 'Petrol'),
+                    _spec(item.category?.name ?? AppStrings.petrolFallback.tr),
                     SizedBox(width: SizeConfig.size4),
-                    _spec(item.variant?.unit ?? 'Sports'),
+                    _spec(item.variant?.unit ?? AppStrings.sportsFallback.tr),
                   ],
                 ),
                 SizedBox(height: SizeConfig.size8),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _priceCol('Ex Showroom Price', mrp ?? sellingPrice),
-                    _priceCol('On Road Price', sellingPrice ?? mrp),
+                    _priceCol(AppStrings.exShowroomPrice.tr, mrp ?? sellingPrice),
+                    _priceCol(AppStrings.onRoadPrice.tr, sellingPrice ?? mrp),
                   ],
                 ),
               ],
@@ -1255,7 +1254,7 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2> {
       clipBehavior: Clip.none,
       children: [
         _SectionCard(
-          title: 'Business Live Photos',
+          title: AppStrings.businessLivePhotos.tr,
           child: GetBuilder<ViewBusinessDetailsController>(
             id: 'livePhotos',
             builder: (_) {
@@ -1308,14 +1307,14 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2> {
   String _slotLabel(int index) {
     switch (index) {
       case 0:
-        return 'Road Side Image';
+        return AppStrings.slotRoadSideImage.tr;
       case 1:
-        return 'Reception/Counter';
+        return AppStrings.slotReceptionCounter.tr;
       case 2:
-        return 'Interior 1';
+        return AppStrings.slotInteriorOne.tr;
       case 3:
       default:
-        return 'Interior 2';
+        return AppStrings.slotInteriorTwo.tr;
     }
   }
 
@@ -1343,8 +1342,8 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2> {
         all.addAll(entry.imageUrls ?? []);
       }
       return _SectionCard(
-        title: 'Gallery',
-        trailingLabel: 'Add Photo',
+        title: AppStrings.gallery.tr,
+        trailingLabel: AppStrings.addPhoto.tr,
         onTrailingTap: () => Get.to(() => MedicalGalleryListScreen()),
         child: all.isEmpty ? _galleryEmptyGuide() : _galleryGrid(all),
       );
@@ -1425,8 +1424,8 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2> {
     void open(int i) => navigatePushTo(
           context,
           ImageViewScreen(
-            subTitle: AppStrings.imageViewer,
-            appBarTitle: AppStrings.imageViewer,
+            subTitle: AppStrings.imageViewer.tr,
+            appBarTitle: AppStrings.imageViewer.tr,
             imageUrls: images,
             initialIndex: i,
           ),
@@ -1530,7 +1529,7 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2> {
       padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
       child: Column(
         children: [
-          CustomText('Testimonials',
+          CustomText(AppStrings.testimonialsTitle.tr,
               fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.mainTextColor),
           SizedBox(height: SizeConfig.size12),
           Container(
@@ -1591,7 +1590,7 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2> {
                 padding: EdgeInsets.symmetric(horizontal: SizeConfig.size16, vertical: SizeConfig.size4),
                 side: BorderSide(color: Colors.grey.shade300),
               ),
-              child: CustomText('Reply', fontSize: 12, color: AppColors.mainTextColor),
+              child: CustomText(AppStrings.reply.tr, fontSize: 12, color: AppColors.mainTextColor),
             ),
           ],
         ),
@@ -1613,7 +1612,8 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CustomText('Contact Us', fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.mainTextColor),
+          CustomText(AppStrings.contactUsTitle.tr,
+              fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.mainTextColor),
           SizedBox(height: SizeConfig.size12),
           Container(
             padding: EdgeInsets.all(SizeConfig.size16),
@@ -1835,7 +1835,7 @@ class _LivePhotoSlotState extends State<_LivePhotoSlot> {
                 navigatePushTo(
                   context,
                   ImageViewScreen(
-                    appBarTitle: AppStrings.imageViewer,
+                    appBarTitle: AppStrings.imageViewer.tr,
                     subTitle: '',
                     imageUrls: widget.allPhotos,
                     initialIndex: widget.index,
