@@ -2222,6 +2222,7 @@ class AppNotificationHandler {
           "postId": (operation == 'reposted_post' && repostId != null)
               ? repostId
               : payloadMap['post_id'],
+          "operation":operation
         },
       );
     }

@@ -35,6 +35,7 @@ mixin UserServiceApi {
   final String createGuestAccount = "/user-service/user/create-guest-account";
   final String updateIndividualAccountUser =
       "user-service/user/updateIndividualAccountUser/";
+  final String updateDeviceToken = "user-service/user/me/device-token";
   final String updateBusinessAccount =
       "user-service/user/updateBusinessAccount/";
   final String deleteIntroVideo = 'user-service/user/introVideo';

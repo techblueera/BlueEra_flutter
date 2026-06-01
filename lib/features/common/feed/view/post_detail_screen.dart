@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/feed/controller/post_detail_controller.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_card.dart';
@@ -13,9 +14,12 @@ class PostDeatilPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: ()async {
+    // final args = Get.arguments;
+    // String operationType = args["operation"];
+    // logs("operationType ===${operationType}");
 
+    return WillPopScope(
+      onWillPop: () async {
         Get.offAllNamed(
           RouteHelper.getBottomNavigationBarScreenRoute(),
           arguments: {ApiKeys.initialIndex: 1},
@@ -42,6 +46,7 @@ class PostDeatilPage extends StatelessWidget {
                       child: FeedCard(
                         index: 0,
                         post: controller.post,
+                        // isRepost: operationType == "reposted_post",
                         postFilteredType: PostType.otherPosts,
                         likeFeed: controller.onLikeDislikePressed,
                       ),

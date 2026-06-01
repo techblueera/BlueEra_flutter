@@ -161,7 +161,6 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                                 ),
                                 child: Obx(() {
                                   return CustomText(
-                                    // _post.title,
                                     transController.currentTitleText.value,
                                     color: AppColors.secondaryTextColor,
                                     fontWeight: FontWeight.bold,

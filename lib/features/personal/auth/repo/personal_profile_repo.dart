@@ -13,6 +13,20 @@ class PersonalProfileRepo extends BaseService {
   }
 
 
+  /// RESTORE/UPDATE DEVICE TOKEN — called when the fetched profile has a
+  /// null/empty device_token, so the backend rebinds this device for push.
+  Future<ResponseModel> updateDeviceTokenRepo(
+      {required String deviceToken}) async {
+    final response = await ApiBaseHelper().patchHTTP(
+      updateDeviceToken,
+      params: {ApiKeys.device_token: deviceToken},
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
   ///UPDATE USER PROFILE....
   Future<ResponseModel> updateUser({
     required Map<String, dynamic> formData,

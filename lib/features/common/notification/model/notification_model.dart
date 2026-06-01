@@ -165,7 +165,7 @@ class SenderProfile {
     this.email,});
 
   SenderProfile.fromJson(dynamic json) {
-    id = json['id'];
+    id = json['id'] ?? json['_id'];
     name = json['name'];
     profileImage = json['profile_image'];
     username = json['username'];

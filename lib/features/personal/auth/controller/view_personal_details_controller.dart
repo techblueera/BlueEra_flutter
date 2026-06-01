@@ -4,6 +4,7 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/api/model/individual_user_response_model.dart';
 import 'package:BlueEra/core/api/model/personal_profile_details_model.dart';
+import 'package:BlueEra/core/services/app_notification.dart';
 import 'package:BlueEra/core/services/personal_profile_cache.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -230,6 +231,11 @@ class ViewPersonalDetailsController extends GetxController {
               persistPrefs: true);
           final freshKey = userId;
           await PersonalProfileCache.write(freshKey, data);
+
+          /// The server lost this device's push token (null/empty). Restore
+          /// a fresh FCM token and rebind it on the backend so notifications
+          /// keep working.
+          await _restoreDeviceTokenIfMissing(data);
         }
         viewPersonalResponse.value = ApiResponse.complete(responseModel);
       } else {
@@ -241,6 +247,30 @@ class ViewPersonalDetailsController extends GetxController {
     } catch (e, s) {
       log('stack trace -- $s');
       viewPersonalResponse.value = ApiResponse.error('error');
+    }
+  }
+
+  /// When the fetched profile's `device_token` is null/empty, the backend
+  /// has no push token for this device. Regenerate the FCM token via
+  /// [AppNotificationHandler.getFcmToken] and PATCH it back to
+  /// `/user/me/device-token` so push delivery is restored.
+  Future<void> _restoreDeviceTokenIfMissing(Map<String, dynamic> data) async {
+    try {
+      final user = data['user'];
+      final serverToken =
+          (user is Map) ? user['device_token']?.toString() : null;
+      if (serverToken != null && serverToken.isNotEmpty) return;
+
+      // Ensure a token exists in secure storage (no-op if already cached).
+      await AppNotificationHandler.getFcmToken();
+      final fcmToken = (await SharedPreferenceUtils.getSecureValue(
+              SharedPreferenceUtils.notificationDeviceToken))
+          ?.toString();
+      if (fcmToken == null || fcmToken.isEmpty) return;
+
+      await PersonalProfileRepo().updateDeviceTokenRepo(deviceToken: fcmToken);
+    } catch (e, s) {
+      log('restore device token failed -- $e\n$s');
     }
   }
 
