@@ -110,11 +110,12 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
                     ? _businessChatListWidget(data, theme)
                     : Expanded(child: _businessChatListWidget(data, theme))
               else if (chatViewController.businessChatTabSelectedIndex.value == 1)
-                const BusinessPinChatList()
+                BusinessPinChatList(isInParentScroll: widget.isInParentScroll)
               else if (chatViewController.businessChatTabSelectedIndex.value == 2)
-                  ReminderChatList()
+                  ReminderChatList(isInParentScroll: widget.isInParentScroll)
                 else if (chatViewController.businessChatTabSelectedIndex.value == 3)
-                    const BusinessFlagChatList()
+                    BusinessFlagChatList(
+                        isInParentScroll: widget.isInParentScroll)
                   else if (chatViewController.businessChatTabSelectedIndex.value == 4)
                       _buildArchiveTab(),
             ],
@@ -153,8 +154,8 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
   }
 
   Widget _buildArchiveTab() {
-    return Expanded(
-      child: Column(
+    final column = Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           InkWell(
             onTap: () => Get.to(() => const ArchiveChatListPage(isBusiness: true)),
@@ -192,8 +193,9 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
             ),
           ),
         ],
-      ),
-    );
+      );
+
+    return widget.isInParentScroll ? column : Expanded(child: column);
   }
 
   Widget _businessChatListWidget(GetChatListModel? data, ThemeData theme) {

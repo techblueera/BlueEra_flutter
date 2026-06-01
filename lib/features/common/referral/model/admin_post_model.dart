@@ -130,6 +130,44 @@ class AdminPost {
     if (images.isNotEmpty) return images.first;
     return null;
   }
+
+  /// Platform key for this post — resolved from metadata first, then the
+  /// link, then the post's own `title` (which for user posts is just the
+  /// platform name set at create time). One of: instagram / youtube /
+  /// twitter / unknown.
+  String get platformKey {
+    final p = (metadata?.provider ?? metadata?.extractor ?? '').toLowerCase();
+    if (p.contains('instagram')) return 'instagram';
+    if (p.contains('youtube')) return 'youtube';
+    if (p.contains('twitter') || p == 'x') return 'twitter';
+
+    final url = externalLink.toLowerCase();
+    if (url.contains('instagram.com')) return 'instagram';
+    if (url.contains('youtube.com') || url.contains('youtu.be')) {
+      return 'youtube';
+    }
+    if (url.contains('twitter.com') || url.contains('x.com')) return 'twitter';
+
+    final t = title.toLowerCase().trim();
+    if (t == 'instagram' || t == 'youtube' || t == 'twitter') return t;
+    return 'unknown';
+  }
+
+  bool get isInstagram => platformKey == 'instagram';
+
+  /// True when the scraper returned something renderable — a thumbnail,
+  /// or a real title/description distinct from the bare platform name.
+  /// Instagram's login wall often leaves these empty even on success, so
+  /// the card uses this to decide between the rich preview and the
+  /// graceful "preview unavailable" fallback.
+  bool get hasResolvedMetadata {
+    final m = metadata;
+    if (m == null) return false;
+    final hasThumb = m.thumbnail?.isNotEmpty ?? false;
+    final hasTitle = m.title?.trim().isNotEmpty ?? false;
+    final hasDesc = m.description?.trim().isNotEmpty ?? false;
+    return hasThumb || hasTitle || hasDesc;
+  }
 }
 
 /// Subset of the `metaData` blob returned by `/earn-service/admin-posts`

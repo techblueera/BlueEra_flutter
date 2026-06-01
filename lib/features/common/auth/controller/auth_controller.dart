@@ -184,6 +184,15 @@ class AuthController extends GetxController {
 
         ///if true user key the user created successfully....
         if (dataUser) {
+          // When we navigate away via `offNamedUntil`, the OTP screen (and
+          // its dim loading veil) is destroyed only once the destination has
+          // been built. Keep `otpVerificationResponse` in LOADING across the
+          // navigation so the veil stays up over the heavy
+          // BottomNavigationBarScreen build — otherwise flipping to COMPLETE
+          // here removes the veil on the still-visible OTP screen a frame
+          // before the destination paints, producing a 1–2s "bare OTP screen"
+          // gap. Only the non-navigating paths below clear the loader.
+          bool navigatedAway = false;
           if (data.token != null && (data.token?.isNotEmpty ?? false)) {
             // OnesignalService.setOneSignalUserIdentity(
             //     data.data?.username ?? '');
@@ -220,6 +229,7 @@ class AuthController extends GetxController {
                   () => ViewBusinessDetailsController(),
                   permanent: true);
               await viewProfileController.viewBusinessProfile();
+              navigatedAway = true;
               Get.offNamedUntil(
                 RouteHelper.getBottomNavigationBarScreenRoute(),
                     (route) => false,
@@ -252,6 +262,7 @@ class AuthController extends GetxController {
                   ViewPersonalDetailsController(),
                   permanent: true);
               await personalController.viewPersonalProfile();
+              navigatedAway = true;
               Get.offNamedUntil(
                 RouteHelper.getBottomNavigationBarScreenRoute(),
                     (route) => false,
@@ -277,7 +288,12 @@ class AuthController extends GetxController {
           } else {
             commonSnackBar(message: response.message ?? AppStrings.tokenIsNull);
           }
-          otpVerificationResponse.value = ApiResponse.complete(response);
+          // Only clear the loader when we stayed on the OTP screen. On the
+          // nav branches the veil must persist until `offNamedUntil` tears
+          // the screen down (see `navigatedAway` note above).
+          if (!navigatedAway) {
+            otpVerificationResponse.value = ApiResponse.complete(response);
+          }
         }
 
         ///Guest create account but profile create.....
