@@ -8,6 +8,7 @@ import 'dart:typed_data';
 import 'package:BlueEra/core/api/apiService/api_base_helper.dart';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/environment_config.dart';
@@ -2396,7 +2397,7 @@ class AppNotificationHandler {
             children: [
               Expanded(
                 child: CustomText(
-                  "Notification Permission Required",
+                  AppStrings.notificationPermissionRequired.tr,
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                 ),
@@ -2418,7 +2419,7 @@ class AppNotificationHandler {
             mainAxisSize: MainAxisSize.min,
             children: [
               CustomText(
-                "Please enable notification permission to use chat features.",
+                AppStrings.enableNotificationForChatHint.tr,
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 16),
@@ -2433,7 +2434,7 @@ class AppNotificationHandler {
                       await openAppSettings();
                     }
                   },
-                  title: "Grant Permission"),
+                  title: AppStrings.grantPermission.tr),
               const SizedBox(height: 10),
               InkWell(
                 onTap: () {
@@ -2441,7 +2442,7 @@ class AppNotificationHandler {
                   _showSkipNotificationWarning();
                 },
                 child: CustomText(
-                  "Skip",
+                  AppStrings.skip.tr,
                   fontSize: 16,
                   color: AppColors.primaryColor,
                   textAlign: TextAlign.center,
@@ -2486,7 +2487,7 @@ class AppNotificationHandler {
             ),
             const SizedBox(height: 12),
             CustomText(
-              "You'll miss important alerts",
+              AppStrings.youllMissImportantAlerts.tr,
               fontSize: 16,
               fontWeight: FontWeight.w700,
               textAlign: TextAlign.center,
@@ -2494,7 +2495,7 @@ class AppNotificationHandler {
           ],
         ),
         content: CustomText(
-          "If you skip notifications, you won't be alerted about new orders, chat messages, ride requests, or payment updates. You can enable them later from your device settings.",
+          AppStrings.skipNotificationsHint.tr,
           textAlign: TextAlign.center,
           fontSize: 14,
         ),
@@ -2503,7 +2504,7 @@ class AppNotificationHandler {
           TextButton(
             onPressed: () => Get.back(),
             child: CustomText(
-              "Continue without",
+              AppStrings.continueWithout.tr,
               fontSize: 14,
               color: AppColors.secondaryTextColor,
               fontWeight: FontWeight.w600,
@@ -2517,7 +2518,7 @@ class AppNotificationHandler {
                 await openAppSettings();
               }
             },
-            title: "Enable",
+            title: AppStrings.enable.tr,
           ),
         ],
         actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

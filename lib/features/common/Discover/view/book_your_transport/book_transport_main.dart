@@ -32,34 +32,34 @@ class BookTransportMain extends StatefulWidget {
 class _BookTransportMainState extends State<BookTransportMain> {
   final discoverController = getOrPut(() => DiscoverController());
 
-  List<TransportCategoryDetailsModel> inCityVehicleList = [
-    TransportCategoryDetailsModel(
-      name: "Bike",
-      svgImage: AppIconAssets.transport_bike,
-    ),
-    TransportCategoryDetailsModel(
-      name: "Taxi",
-      svgImage: AppIconAssets.transport_taxi,
-    ),
-    TransportCategoryDetailsModel(
-      name: "Auto",
-      svgImage: AppIconAssets.transport_auto,
-    ),
-    TransportCategoryDetailsModel(
-      name: "E Rickshaws",
-      svgImage: AppIconAssets.transport_big_auto,
-    ),
-  ];
-  List<TransportCategoryDetailsModel> inOutStationVehicleList = [
-    TransportCategoryDetailsModel(
-      name: "4 Seater",
-      svgImage: AppIconAssets.transport_taxi,
-    ),
-    TransportCategoryDetailsModel(
-      name: "7 Seater",
-      svgImage: AppIconAssets.transport_7_seater,
-    ),
-  ];
+  List<TransportCategoryDetailsModel> get inCityVehicleList => [
+        TransportCategoryDetailsModel(
+          name: AppStrings.transportBike.tr,
+          svgImage: AppIconAssets.transport_bike,
+        ),
+        TransportCategoryDetailsModel(
+          name: AppStrings.transportTaxi.tr,
+          svgImage: AppIconAssets.transport_taxi,
+        ),
+        TransportCategoryDetailsModel(
+          name: AppStrings.transportAuto.tr,
+          svgImage: AppIconAssets.transport_auto,
+        ),
+        TransportCategoryDetailsModel(
+          name: AppStrings.transportERickshaw.tr,
+          svgImage: AppIconAssets.transport_big_auto,
+        ),
+      ];
+  List<TransportCategoryDetailsModel> get inOutStationVehicleList => [
+        TransportCategoryDetailsModel(
+          name: AppStrings.transportFourSeater.tr,
+          svgImage: AppIconAssets.transport_taxi,
+        ),
+        TransportCategoryDetailsModel(
+          name: AppStrings.transportSevenSeater.tr,
+          svgImage: AppIconAssets.transport_7_seater,
+        ),
+      ];
   List<TransportCategoryDetailsModel> inParcelVehicleList = [
     TransportCategoryDetailsModel(
       name: "Lorem Ip",
@@ -729,7 +729,7 @@ class RiderCardWidget extends StatelessWidget {
                         child: CustomText(
                           (rider.vehicleInformation?.vehicleName == null ||
                               rider.vehicleInformation?.vehicleName == '')
-                              ? "N/A"
+                              ? AppStrings.na.tr
                               : rider.vehicleInformation?.vehicleName,
                           fontSize: 12,
                           fontWeight: FontWeight.w500,

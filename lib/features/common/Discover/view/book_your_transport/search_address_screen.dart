@@ -7,6 +7,7 @@ import 'package:BlueEra/core/api/model/place_prediction.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/common_bloc/place/repo/place_repo.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/common/Discover/model/favorite_location_model.dart';
@@ -16,6 +17,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Rapido-rider–style "Pickup from / Drop at" search screen.
@@ -247,7 +249,7 @@ class _SearchAddressScreenState extends State<SearchAddressScreen> {
     required String address,
   }) async {
     if (address.isEmpty) {
-      commonSnackBar(message: 'Address is empty.');
+      commonSnackBar(message: AppStrings.addressIsEmpty.tr);
       return;
     }
     final existing = _findFavourite(address);
@@ -258,13 +260,13 @@ class _SearchAddressScreenState extends State<SearchAddressScreen> {
         if (!mounted) return;
         if (res.isSuccess) {
           setState(() => _favourites.removeWhere((f) => f.id == existing.id));
-          commonSnackBar(message: 'Removed from favourites');
+          commonSnackBar(message: AppStrings.removedFromFavourites.tr);
         } else {
-          commonSnackBar(message: res.message ?? 'Could not remove favourite');
+          commonSnackBar(message: res.message ?? AppStrings.couldNotRemoveFavourite.tr);
         }
       } catch (e) {
         log('deleteFavorite error: $e');
-        if (mounted) commonSnackBar(message: 'Could not remove favourite');
+        if (mounted) commonSnackBar(message: AppStrings.couldNotRemoveFavourite.tr);
       }
       return;
     }
@@ -287,7 +289,7 @@ class _SearchAddressScreenState extends State<SearchAddressScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final title = widget.isPickup ? 'Pickup from' : 'Drop at';
+    final title = widget.isPickup ? AppStrings.pickupFromTitle.tr : AppStrings.dropAtTitle.tr;
     return Scaffold(
       backgroundColor: AppColors.white,
       appBar: AppBar(
@@ -390,12 +392,12 @@ class _SearchAddressScreenState extends State<SearchAddressScreen> {
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
-              children: const [
-                Icon(Icons.location_on_outlined,
+              children: [
+                const Icon(Icons.location_on_outlined,
                     size: 16, color: AppColors.black),
-                SizedBox(width: 6),
+                const SizedBox(width: 6),
                 CustomText(
-                  'Select on map',
+                  AppStrings.selectOnMap.tr,
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
                   color: AppColors.black,
@@ -431,7 +433,7 @@ class _SearchAddressScreenState extends State<SearchAddressScreen> {
         );
       }
       if (_predictions.isEmpty) {
-        return _emptyTextCenter('No results found');
+        return _emptyTextCenter(AppStrings.noResultsFound.tr);
       }
       return ListView.separated(
         padding: EdgeInsets.zero,
@@ -467,8 +469,7 @@ class _SearchAddressScreenState extends State<SearchAddressScreen> {
       children.add(_dashedDivider());
     }
     if (children.isEmpty) {
-      children.add(_emptyTextCenter(
-          'Search a place above or use “Select on map”.'));
+      children.add(_emptyTextCenter(AppStrings.searchPlaceAboveHint.tr));
     }
     return ListView(
       padding: EdgeInsets.zero,
@@ -761,8 +762,8 @@ class _AddToFavouritesSheetState extends State<_AddToFavouritesSheet> {
                     ),
                   ),
                 ),
-                const CustomText(
-                  'Add to favourites',
+                CustomText(
+                  AppStrings.addToFavourites.tr,
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
                   color: AppColors.black,
@@ -771,7 +772,7 @@ class _AddToFavouritesSheetState extends State<_AddToFavouritesSheet> {
                 _addressCard(),
                 const SizedBox(height: 16),
                 CustomText(
-                  'SAVE LOCATION AS',
+                  AppStrings.saveLocationAs.tr,
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
                   color: AppColors.primaryColor,
@@ -781,10 +782,10 @@ class _AddToFavouritesSheetState extends State<_AddToFavouritesSheet> {
                   spacing: 8,
                   runSpacing: 8,
                   children: [
-                    _tagChip('home', 'Home', Icons.home_outlined),
-                    _tagChip('office', 'Office',
+                    _tagChip('home', AppStrings.home.tr, Icons.home_outlined),
+                    _tagChip('office', AppStrings.office.tr,
                         Icons.business_center_outlined),
-                    _tagChip('hostel', 'Hostel', Icons.apartment_outlined),
+                    _tagChip('hostel', AppStrings.hostel.tr, Icons.apartment_outlined),
                     _addNewChip(),
                   ],
                 ),
@@ -897,7 +898,7 @@ class _AddToFavouritesSheetState extends State<_AddToFavouritesSheet> {
     final selected = _selectedTag == '__custom__';
     final label = selected && (_customTag?.isNotEmpty ?? false)
         ? _customTag!
-        : 'Add New';
+        : AppStrings.addNew.tr;
     return InkWell(
       borderRadius: BorderRadius.circular(24),
       onTap: _promptCustom,
@@ -937,22 +938,22 @@ class _AddToFavouritesSheetState extends State<_AddToFavouritesSheet> {
     final tag = await showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const CustomText(
-          'Save as',
+        title: CustomText(
+          AppStrings.saveAsTitle.tr,
           fontSize: 16,
           fontWeight: FontWeight.w600,
         ),
         content: TextField(
           controller: controller,
           autofocus: true,
-          decoration: const InputDecoration(
-            hintText: 'e.g. Mom\'s house',
+          decoration: InputDecoration(
+            hintText: AppStrings.momsHouseExample.tr,
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const CustomText('Cancel', color: AppColors.grayText),
+            child: CustomText(AppStrings.cancel.tr, color: AppColors.grayText),
           ),
           TextButton(
             onPressed: () {
@@ -960,7 +961,7 @@ class _AddToFavouritesSheetState extends State<_AddToFavouritesSheet> {
               if (v.isEmpty) return;
               Navigator.of(ctx).pop(v);
             },
-            child: const CustomText('OK',
+            child: CustomText(AppStrings.ok.tr,
                 color: AppColors.primaryColor,
                 fontWeight: FontWeight.w600),
           ),
@@ -1000,8 +1001,8 @@ class _AddToFavouritesSheetState extends State<_AddToFavouritesSheet> {
                       AlwaysStoppedAnimation<Color>(AppColors.black),
                 ),
               )
-            : const CustomText(
-                'Add to favourite',
+            : CustomText(
+                AppStrings.addToFavouriteButton.tr,
                 fontSize: 15,
                 fontWeight: FontWeight.w700,
                 color: AppColors.white,
@@ -1046,14 +1047,14 @@ class _AddToFavouritesSheetState extends State<_AddToFavouritesSheet> {
           tag: tag,
           isCustomTag: _selectedTag == '__custom__',
         );
-        commonSnackBar(message: 'Added to favourites');
+        commonSnackBar(message: AppStrings.addedToFavourites.tr);
         Navigator.of(context).pop(created);
       } else {
-        commonSnackBar(message: res.message ?? 'Could not save favourite');
+        commonSnackBar(message: res.message ?? AppStrings.couldNotSaveFavourite.tr);
       }
     } catch (e) {
       log('addFavoriteLocation error: $e');
-      if (mounted) commonSnackBar(message: 'Could not save favourite');
+      if (mounted) commonSnackBar(message: AppStrings.couldNotSaveFavourite.tr);
     } finally {
       if (mounted) setState(() => _saving = false);
     }

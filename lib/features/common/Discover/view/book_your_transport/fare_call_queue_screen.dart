@@ -1448,19 +1448,19 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
     final riderInfo = data?['riderInfo'];
     final rideDetails = data?['rideDetails'];
 
-    final riderName = riderInfo?['name'] ?? _acceptedRiderInfo?['name'] ?? 'Unknown';
+    final riderName = riderInfo?['name'] ?? _acceptedRiderInfo?['name'] ?? AppStrings.unknown.tr;
     final riderContact = riderInfo?['contact'] ?? _acceptedRiderInfo?['contact'] ?? '';
     final dropAddress = rideDetails?['drop']?['address'] ??
         discoverController.selectedToAddress?.value ?? '';
     final pickupAddress = rideDetails?['pickup']?['address'] ??
         discoverController.selectedFromAddress?.value ?? '';
 
-    return '🚗 Ride Safety Details\n\n'
-        '👤 Rider: $riderName\n'
-        '📞 Contact: $riderContact\n'
-        '📍 Pickup: $pickupAddress\n'
-        '📍 Drop: $dropAddress\n\n'
-        'Shared via BlueEra for safety purposes.';
+    return AppStrings.shareRiderSafetyTextFmt.trParams({
+      'rider': riderName,
+      'contact': riderContact,
+      'pickup': pickupAddress,
+      'drop': dropAddress,
+    });
   }
 
   void _shareRiderDetails() {

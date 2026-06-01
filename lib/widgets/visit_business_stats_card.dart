@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
@@ -112,12 +113,12 @@ class VisitBusinessStatsCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildStat(
-                    label: 'Views',
+                    label: AppStrings.views.tr,
                     value: _formatCount(details?.total_views),
                   ),
                   SizedBox(height: SizeConfig.size8),
                   _buildStat(
-                    label: 'Ratings',
+                    label: AppStrings.ratings.tr,
                     value: _formatCount(details?.total_ratings),
                     icon: Icons.star_rounded,
                     iconColor: AppColors.orangelite,
@@ -144,7 +145,7 @@ class VisitBusinessStatsCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildStat(
-                    label: 'Followers',
+                    label: AppStrings.followers.tr,
                     value: _formatCount(details?.total_followers),
                     onTap: () {
                       Get.to(() => FollowersFollowingPage(
@@ -155,7 +156,7 @@ class VisitBusinessStatsCard extends StatelessWidget {
                   ),
                   SizedBox(height: SizeConfig.size8),
                   _buildStat(
-                    label: 'Following',
+                    label: AppStrings.following.tr,
                     value: _formatCount(details?.total_following),
                     onTap: () {
                       Get.to(() => FollowersFollowingPage(
@@ -177,7 +178,7 @@ class VisitBusinessStatsCard extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   CustomText(
-                    'Joined',
+                    AppStrings.joined.tr,
                     fontSize: SizeConfig.small,
                     fontWeight: FontWeight.w600,
                     color: AppColors.mainTextColor,

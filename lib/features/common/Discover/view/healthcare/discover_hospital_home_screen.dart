@@ -61,7 +61,7 @@ class _DiscoverHospitalHomeScreenState
       backgroundColor: AppColors.whiteE5,
       bottomNavigationBar: _buildBottomBar(),
       appBar: CommonBackAppBar(
-        title: AppStrings.hospital,
+        title: AppStrings.hospital.tr,
       ),
       body: RefreshIndicator(
         color: AppColors.primaryColor,
@@ -195,7 +195,7 @@ class _DiscoverHospitalHomeScreenState
                           commonSnackBar(
                               message: AppStrings.comingSoonLabel.tr);
                         },
-                        title: AppStrings.bookInquiry,
+                        title: AppStrings.bookInquiry.tr,
                       ),
                     ),
                   ],
@@ -232,9 +232,9 @@ class _DiscoverHospitalHomeScreenState
               Expanded(
                 child: _buildActionCard(
                   icon: "assets/svg/call_24.svg",
-                  title: AppStrings.emergencyContact,
+                  title: AppStrings.emergencyContact.tr,
                   subtitle: AppStrings.immediateHelp24x7.tr,
-                  buttonText: AppStrings.callNow,
+                  buttonText: AppStrings.callNow.tr,
                   isEmergency: true,
                   phoneNo: emergencyNo,
                   onTap: () => _launchCaller(emergencyNo),
@@ -246,7 +246,7 @@ class _DiscoverHospitalHomeScreenState
               Expanded(
                 child: _buildActionCard(
                   icon: "assets/svg/support_helth.svg",
-                  title: AppStrings.appointmentNumber,
+                  title: AppStrings.appointmentNumber.tr,
                   subtitle: AppStrings.scheduleYourVisitEasily.tr,
                   buttonText: AppStrings.bookNow.tr,
                   isEmergency: false,

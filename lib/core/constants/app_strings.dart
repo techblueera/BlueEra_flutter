@@ -5940,4 +5940,113 @@ class AppStrings {
   /// bottom CTA, and the snackbar warning when the user mixes account
   /// types during a new-group selection.
   static const String cantSelectBothChatTypes = "cantSelectBothChatTypes";
+
+  /// MEDICAL HOME v2 screen — Products tab CTA, Create Offers button,
+  /// debug Verify section labels, Bikes / Popular-Products spec strip,
+  /// Live Photo slot names, and Gallery / Testimonials / Contact Us
+  /// section headers.
+  static const String addMoreProduct = "addMoreProduct";
+  static const String createYourOffers = "createYourOffers";
+  static const String clickMe = "clickMe";
+  static const String profileNotVerified = "profileNotVerified";
+  static const String profileVerifiedHint = "profileVerifiedHint";
+  static const String profileNotVerifiedHint = "profileNotVerifiedHint";
+  static const String startVerification = "startVerification";
+  static const String bikesTitle = "bikesTitle";
+  static const String petrolFallback = "petrolFallback";
+  static const String sportsFallback = "sportsFallback";
+  static const String exShowroomPrice = "exShowroomPrice";
+  static const String onRoadPrice = "onRoadPrice";
+  static const String slotRoadSideImage = "slotRoadSideImage";
+  static const String slotReceptionCounter = "slotReceptionCounter";
+  static const String slotInteriorOne = "slotInteriorOne";
+  static const String slotInteriorTwo = "slotInteriorTwo";
+  static const String testimonialsTitle = "testimonialsTitle";
+  static const String contactUsTitle = "contactUsTitle";
+
+  /// SELF EMPLOYEE VIEW screen — pre-filled inquiry message that opens
+  /// the chat with the provider. Composed from two halves: the intro
+  /// body (generic or "your X service") and the optional "Hi, I'm <me>"
+  /// sender prefix.
+  static const String inquiryGenericBody = "inquiryGenericBody";
+  static const String inquiryProviderBodyFmt = "inquiryProviderBodyFmt";
+  static const String inquiryHiPrefixFmt = "inquiryHiPrefixFmt";
+  static const String inquiryHiWithSenderFmt = "inquiryHiWithSenderFmt";
+  static const String km = "km";
+
+  /// NOTIFICATION permission dialogs (lib/core/services/app_notification.dart)
+  /// — the "you need notifications" prompt and the follow-up "you'll miss
+  /// important alerts" reminder shown when the user dismisses it.
+  static const String notificationPermissionRequired = "notificationPermissionRequired";
+  static const String enableNotificationForChatHint = "enableNotificationForChatHint";
+  static const String youllMissImportantAlerts = "youllMissImportantAlerts";
+  static const String skipNotificationsHint = "skipNotificationsHint";
+  static const String continueWithout = "continueWithout";
+
+  /// BOOK TRANSPORT screen — vehicle option names (Bike/Taxi/Auto/etc.)
+  /// for the in-city and out-station selectors.
+  static const String transportBike = "transportBike";
+  static const String transportTaxi = "transportTaxi";
+  static const String transportAuto = "transportAuto";
+  static const String transportERickshaw = "transportERickshaw";
+  static const String transportFourSeater = "transportFourSeater";
+  static const String transportSevenSeater = "transportSevenSeater";
+
+  /// FARE CALL QUEUE screen — share-rider-details safety text template.
+  /// Sent to contacts when the customer taps Share during a started ride.
+  /// Placeholders: @rider, @contact, @pickup, @drop.
+  static const String shareRiderSafetyTextFmt = "shareRiderSafetyTextFmt";
+
+  /// SEARCH ADDRESS screen — pickup/drop search header, "Select on map"
+  /// pill, results empty states, favourite-toggle snackbars, and the
+  /// Add-to-Favourites bottom sheet (tag chips, custom-tag dialog, save
+  /// button + result snackbars).
+  static const String addressIsEmpty = "addressIsEmpty";
+  static const String removedFromFavourites = "removedFromFavourites";
+  static const String couldNotRemoveFavourite = "couldNotRemoveFavourite";
+  static const String pickupFromTitle = "pickupFromTitle";
+  static const String dropAtTitle = "dropAtTitle";
+  static const String selectOnMap = "selectOnMap";
+  static const String noResultsFound = "noResultsFound";
+  static const String searchPlaceAboveHint = "searchPlaceAboveHint";
+  static const String addToFavourites = "addToFavourites";
+  static const String saveLocationAs = "saveLocationAs";
+  static const String office = "office";
+  static const String saveAsTitle = "saveAsTitle";
+  static const String momsHouseExample = "momsHouseExample";
+  static const String addToFavouriteButton = "addToFavouriteButton";
+  static const String addedToFavourites = "addedToFavourites";
+  static const String couldNotSaveFavourite = "couldNotSaveFavourite";
+
+  /// VEHICLE DETAIL screen — info-card titles, stats labels, specs grid
+  /// keys, owner card copy, fuel/transmission enums, error placeholders,
+  /// and the Request-Booking inquiry message templates.
+  static const String vehicleNotFound = "vehicleNotFound";
+  static const String specificationsTitle = "specificationsTitle";
+  static const String listedByTitle = "listedByTitle";
+  static const String yearLabel = "yearLabel";
+  static const String fuelLabel = "fuelLabel";
+  static const String subCategoryShort = "subCategoryShort";
+  static const String transmissionLabel = "transmissionLabel";
+  static const String seatingLabel = "seatingLabel";
+  static const String mileageLabel = "mileageLabel";
+  static const String regNoLabel = "regNoLabel";
+  static const String noSpecificationsListed = "noSpecificationsListed";
+  static const String callTooltip = "callTooltip";
+  static const String fuelPetrol = "fuelPetrol";
+  static const String fuelDiesel = "fuelDiesel";
+  static const String fuelElectric = "fuelElectric";
+  static const String fuelCng = "fuelCng";
+  static const String fuelHybrid = "fuelHybrid";
+  static const String fuelOther = "fuelOther";
+  static const String transmissionManual = "transmissionManual";
+  static const String transmissionAutomatic = "transmissionAutomatic";
+  static const String transmissionAmt = "transmissionAmt";
+  static const String transmissionCvt = "transmissionCvt";
+  static const String inquiryVehicleGenericBody = "inquiryVehicleGenericBody";
+  static const String inquiryVehicleNamedBodyFmt = "inquiryVehicleNamedBodyFmt";
+
+  /// VISIT BUSINESS STATS CARD — Views/Ratings/Followers/Following/Joined
+  /// row used on any visited business profile (Hospital, Lab, School, etc.).
+  static const String views = "views";
 }

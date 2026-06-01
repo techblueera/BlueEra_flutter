@@ -95,7 +95,7 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
         if (state.status == Status.ERROR && v == null) {
           return _errorView(state.message ?? AppStrings.somethingWentWrong.tr);
         }
-        if (v == null) return _errorView('Vehicle not found');
+        if (v == null) return _errorView(AppStrings.vehicleNotFound.tr);
         return _buildBody(context, v);
       }),
     );
@@ -126,7 +126,7 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
                       if (_hasSpecs(v))
                         _buildInfoCard(
                           icon: Icons.settings_suggest_outlined,
-                          title: 'Specifications',
+                          title: AppStrings.specificationsTitle.tr,
                           child: _specsGrid(v),
                         ),
 
@@ -134,7 +134,7 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
                       if (_hasLocation(v))
                         _buildInfoCard(
                           icon: Icons.location_on_outlined,
-                          title: 'Location',
+                          title: AppStrings.location.tr,
                           child: _locationContent(v),
                         ),
 
@@ -142,7 +142,7 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
                       if (v.user != null || v.business != null)
                         _buildInfoCard(
                           icon: Icons.person_outline_rounded,
-                          title: 'Listed by',
+                          title: AppStrings.listedByTitle.tr,
                           child: _ownerContent(v),
                         ),
 
@@ -486,14 +486,14 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
           _buildDivider(),
           _buildStatItem(
             icon: Icons.calendar_month_rounded,
-            label: 'Year',
+            label: AppStrings.yearLabel.tr,
             value: v.year != null ? '${v.year}' : '--',
             color: Colors.green,
           ),
           _buildDivider(),
           _buildStatItem(
             icon: Icons.local_gas_station_rounded,
-            label: 'Fuel',
+            label: AppStrings.fuelLabel.tr,
             value: v.fuelType != null ? _humanFuel(v.fuelType!) : '--',
             color: AppColors.redB4,
           ),
@@ -579,18 +579,18 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
   Widget _specsGrid(Vehicle v) {
     final entries = <MapEntry<String, String>>[
       if ((v.subCategory ?? '').isNotEmpty)
-        MapEntry('Sub-category', v.subCategory!),
+        MapEntry(AppStrings.subCategoryShort.tr, v.subCategory!),
       if (v.transmission != null)
-        MapEntry('Transmission', _humanTransmission(v.transmission!)),
-      if (v.seatingCapacity != null) MapEntry('Seating', '${v.seatingCapacity}'),
-      if ((v.mileage ?? '').isNotEmpty) MapEntry('Mileage', v.mileage!),
-      if ((v.color ?? '').isNotEmpty) MapEntry('Color', v.color!),
+        MapEntry(AppStrings.transmissionLabel.tr, _humanTransmission(v.transmission!)),
+      if (v.seatingCapacity != null) MapEntry(AppStrings.seatingLabel.tr, '${v.seatingCapacity}'),
+      if ((v.mileage ?? '').isNotEmpty) MapEntry(AppStrings.mileageLabel.tr, v.mileage!),
+      if ((v.color ?? '').isNotEmpty) MapEntry(AppStrings.color.tr, v.color!),
       if ((v.registrationNo ?? '').isNotEmpty)
-        MapEntry('Reg. no.', v.registrationNo!),
+        MapEntry(AppStrings.regNoLabel.tr, v.registrationNo!),
     ];
     if (entries.isEmpty) {
       return CustomText(
-        'No specifications listed.',
+        AppStrings.noSpecificationsListed.tr,
         fontSize: SizeConfig.small,
         color: AppColors.secondaryTextColor,
       );
@@ -676,7 +676,7 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
                       size: 14, color: AppColors.primaryColor),
                   SizedBox(width: SizeConfig.size4),
                   CustomText(
-                    'Directions',
+                    AppStrings.directions.tr,
                     fontSize: SizeConfig.small,
                     fontWeight: FontWeight.w600,
                     color: AppColors.primaryColor,
@@ -712,7 +712,7 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               CustomText(
-                ownerName.isEmpty ? 'Listed by' : ownerName,
+                ownerName.isEmpty ? AppStrings.listedByTitle.tr : ownerName,
                 fontSize: SizeConfig.medium,
                 fontWeight: FontWeight.w700,
                 color: AppColors.mainTextColor,
@@ -721,7 +721,7 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
               ),
               SizedBox(height: SizeConfig.size3),
               CustomText(
-                v.business != null ? 'Business' : 'Personal',
+                v.business != null ? AppStrings.business.tr : AppStrings.personal.tr,
                 fontSize: 11,
                 fontWeight: FontWeight.w500,
                 color: AppColors.secondaryTextColor,
@@ -731,7 +731,7 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
         ),
         if (ownerPhone.isNotEmpty)
           IconButton(
-            tooltip: 'Call',
+            tooltip: AppStrings.callTooltip.tr,
             icon: Icon(Icons.call_rounded, color: AppColors.primaryColor),
             onPressed: () => _dial(ownerPhone),
           ),
@@ -794,12 +794,12 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
               ElevatedButton.icon(
                 onPressed: () => _ctrl.fetchVehicleById(widget.vehicleId),
                 icon: const Icon(Icons.refresh_rounded),
-                label: const Text('Retry'),
+                label: Text(AppStrings.retry.tr),
               ),
               SizedBox(height: SizeConfig.size8),
               TextButton(
                 onPressed: () => Get.back<void>(),
-                child: const Text('Go back'),
+                child: Text(AppStrings.goBack.tr),
               ),
             ],
           ),
@@ -865,30 +865,30 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
   String _humanFuel(VehicleFuelType f) {
     switch (f) {
       case VehicleFuelType.petrol:
-        return 'Petrol';
+        return AppStrings.fuelPetrol.tr;
       case VehicleFuelType.diesel:
-        return 'Diesel';
+        return AppStrings.fuelDiesel.tr;
       case VehicleFuelType.electric:
-        return 'Electric';
+        return AppStrings.fuelElectric.tr;
       case VehicleFuelType.cng:
-        return 'CNG';
+        return AppStrings.fuelCng.tr;
       case VehicleFuelType.hybrid:
-        return 'Hybrid';
+        return AppStrings.fuelHybrid.tr;
       case VehicleFuelType.other:
-        return 'Other';
+        return AppStrings.fuelOther.tr;
     }
   }
 
   String _humanTransmission(VehicleTransmission t) {
     switch (t) {
       case VehicleTransmission.manual:
-        return 'Manual';
+        return AppStrings.transmissionManual.tr;
       case VehicleTransmission.automatic:
-        return 'Automatic';
+        return AppStrings.transmissionAutomatic.tr;
       case VehicleTransmission.amt:
-        return 'AMT';
+        return AppStrings.transmissionAmt.tr;
       case VehicleTransmission.cvt:
-        return 'CVT';
+        return AppStrings.transmissionCvt.tr;
     }
   }
 
@@ -920,11 +920,11 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
     final senderName = userNameGlobal.trim();
     final vehicleName = v.name.trim();
     final introBody = vehicleName.isEmpty
-        ? "I'd like to know more about this vehicle."
-        : "I'd like to know more about the $vehicleName.";
+        ? AppStrings.inquiryVehicleGenericBody.tr
+        : AppStrings.inquiryVehicleNamedBodyFmt.trParams({'vehicle': vehicleName});
     final prefill = senderName.isEmpty
-        ? "Hi, $introBody"
-        : "Hi, I'm $senderName. $introBody";
+        ? AppStrings.inquiryHiPrefixFmt.trParams({'body': introBody})
+        : AppStrings.inquiryHiWithSenderFmt.trParams({'sender': senderName, 'body': introBody});
 
     chatViewController.checkChatConnectionAndOpenChat(
       userId: targetUserId,
