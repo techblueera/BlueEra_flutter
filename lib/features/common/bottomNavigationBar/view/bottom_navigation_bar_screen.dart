@@ -600,6 +600,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       // (and therefore other_repo.dart APIs). Lives in a separate
       // directory so the UI can diverge in the future without touching
       // the shared `OthersMain` tree.
+
       return const AutomotiveServiceMain();
     } else if (_isSpecificProductAutomotive()) {
       return const ProductScreen();
@@ -616,6 +617,10 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       "VEHICLE_SALES",
       "VEHICLE_PARTS",
       "VEHICLE_RENTAL",
+      "VEHICLE SALES",
+      "AUTO PARTS",
+      "VEHICLE RENTAL",
+      "AUTO RENTAL",
     };
 
     // 2. Check if it's Automotive AND in one of those sectors
@@ -634,6 +639,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       "TRANSPORT LOGISTIC",
       "VEHICLE_SUPPORT",
       "VEHICLE SUPPORT",
+
     };
 
     // 2. Check if it's Automotive AND in one of those sectors
