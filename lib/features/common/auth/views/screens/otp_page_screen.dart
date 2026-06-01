@@ -52,6 +52,13 @@ class _OtpPageScreenState extends State<OtpPageScreen> with CodeAutoFill {
   void initState() {
     super.initState();
     langController = Get.find<LanguageListController>();
+    // verifyOTP deliberately leaves `otpVerificationResponse` in LOADING on
+    // the success/navigation path so the dim veil stays up until the screen
+    // is torn down. The AuthController is permanent, so that stale LOADING
+    // survives a logout — and a fresh OTP screen would otherwise mount with
+    // the spinner + overlay already showing. Reset to INITIAL on entry.
+    Get.find<AuthController>().otpVerificationResponse.value =
+        ApiResponse.initial('Initial');
     _printAppSignature();
     _startTimer();
     listenForCode();
