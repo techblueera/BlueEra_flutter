@@ -3077,10 +3077,14 @@ void showFlutterCallNotification({
       maximumCallGroups: 1,
       maximumCallsPerCallGroup: 1,
       audioSessionMode: 'voiceChat',
-      audioSessionActive: true,
+      // Keep the plugin from activating an AVAudioSession while ringing — doing
+      // so silences the CallKit ringtone. CallKit's didActivate (after answer)
+      // and flutter_webrtc handle the in-call audio session. Must match the
+      // kill-mode path in ios/Runner/AppDelegate.swift.
+      audioSessionActive: false,
       audioSessionPreferredSampleRate: 44100.0,
       audioSessionPreferredIOBufferDuration: 0.005,
-      configureAudioSession: true,
+      configureAudioSession: false,
       // iOS: with the patched flutter_callkit_incoming fork (see
       // packages/flutter_callkit_incoming), 'system_ringtone_default' leaves
       // CXProviderConfiguration.ringtoneSound = nil, so CallKit plays the user's

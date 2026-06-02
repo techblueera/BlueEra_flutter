@@ -204,7 +204,17 @@ import flutter_callkit_incoming
         callKitData.handleType = "generic"
         callKitData.supportsVideo = true
         callKitData.audioSessionMode = "voiceChat"
-        callKitData.audioSessionActive = true
+        // CRITICAL for the ringtone: do NOT let the plugin activate an
+        // AVAudioSession while the call is ringing. configureAudioSession()
+        // runs setActive(true) with .playAndRecord *before* reportNewIncomingCall,
+        // which steals the audio route from CallKit and SILENCES the ringtone
+        // (this is why no ringtone — custom or default — ever played in kill mode).
+        // The session is instead activated by CallKit's didActivate after the user
+        // answers, and flutter_webrtc sets its own .playAndRecord category when
+        // media starts (AudioUtils.ensureAudioSessionWithRecording), so in-call
+        // audio is unaffected.
+        callKitData.audioSessionActive = false
+        callKitData.configureAudioSession = false
         // "system_ringtone_default" => the patched flutter_callkit_incoming leaves
         // CXProviderConfiguration.ringtoneSound = nil, so CallKit plays the user's
         // chosen iOS default ringtone (kill-mode VoIP path). Must match IOSParams in
