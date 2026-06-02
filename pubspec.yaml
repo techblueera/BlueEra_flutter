@@ -111,6 +111,11 @@ dependencies:
   flutter_cache_manager: any
 dependency_overrides:
   intl: ^0.19.0
+  # Local patched fork: fixes createConfiguration so iOS can play the device's
+  # default ringtone (upstream 3.0.0 always forces a custom ringtoneSound). See
+  # packages/flutter_callkit_incoming/ios/Classes/SwiftFlutterCallkitIncomingPlugin.swift
+  flutter_callkit_incoming:
+    path: packages/flutter_callkit_incoming
 
 flutter_native_splash:
   color: "#ffffff"              # Background color for older Android versions

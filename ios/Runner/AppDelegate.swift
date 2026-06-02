@@ -205,10 +205,11 @@ import flutter_callkit_incoming
         callKitData.supportsVideo = true
         callKitData.audioSessionMode = "voiceChat"
         callKitData.audioSessionActive = true
-        // Must match the bundled CAF referenced in IOSParams (lib/features/chat/
-        // auth/controller/call_controller.dart). CallKit plays silence if this
-        // names a file that isn't in the app bundle, so keep it = "ringtone.caf".
-        callKitData.ringtonePath = "ringtone.caf"
+        // "system_ringtone_default" => the patched flutter_callkit_incoming leaves
+        // CXProviderConfiguration.ringtoneSound = nil, so CallKit plays the user's
+        // chosen iOS default ringtone (kill-mode VoIP path). Must match IOSParams in
+        // lib/features/chat/auth/controller/call_controller.dart.
+        callKitData.ringtonePath = "system_ringtone_default"
 
         SwiftFlutterCallkitIncomingPlugin.sharedInstance?.showCallkitIncoming(
             callKitData,

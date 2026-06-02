@@ -3081,13 +3081,12 @@ void showFlutterCallNotification({
       audioSessionPreferredSampleRate: 44100.0,
       audioSessionPreferredIOBufferDuration: 0.005,
       configureAudioSession: true,
-      // iOS: flutter_callkit_incoming (all versions) cannot produce the
-      // device's real default ringtone — it always sets CXProviderConfiguration
-      // .ringtoneSound to this string, and a non-existent file plays SILENCE
-      // (not a fallback). So we reference a real bundled CAF (ios/ringtone.caf,
-      // generated from assets/sound/hangouts_call.mp3). Must stay ≤30s and be a
-      // Core-Audio file in the app bundle. Android keeps 'system_ringtone_default'.
-      ringtonePath: 'ringtone.caf',
+      // iOS: with the patched flutter_callkit_incoming fork (see
+      // packages/flutter_callkit_incoming), 'system_ringtone_default' leaves
+      // CXProviderConfiguration.ringtoneSound = nil, so CallKit plays the user's
+      // chosen iOS default ringtone. Must match AppDelegate.swift's VoIP/kill-mode
+      // path. Android also treats 'system_ringtone_default' as the device default.
+      ringtonePath: 'system_ringtone_default',
     ),
   );
 
