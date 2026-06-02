@@ -586,6 +586,63 @@ class PopupMenuBuilders {
     return entries;
   }
 
+  /// Three-dot menu for the AI chat screen: mute (toggles label/icon based on
+  /// [isMuted]), language, clear chat and background.
+  static List<PopupMenuEntry<String>> popupMenuForAiChatOptions(bool isMuted) {
+    final items = <Map<String, dynamic>>[
+      {
+        'title': isMuted ? 'Unmute' : 'Mute',
+        'slud_id': 'mute',
+        'icon': isMuted ? Icons.notifications_off : Icons.notifications_active_outlined,
+      },
+      {'title': 'Language', 'slud_id': 'language', 'icon': Icons.language},
+      {'title': 'Clear Chat', 'slud_id': 'clear', 'icon': Icons.delete_outline},
+      {'title': 'Background', 'slud_id': 'background', 'icon': Icons.wallpaper_outlined},
+    ];
+
+    final List<PopupMenuEntry<String>> entries = [];
+
+    for (int i = 0; i < items.length; i++) {
+      entries.add(
+        PopupMenuItem<String>(
+          height: SizeConfig.size35,
+          value: items[i]['slud_id'],
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(items[i]['icon'], size: 18, color: AppColors.black30),
+              const SizedBox(width: 8),
+              CustomText(
+                items[i]['title'],
+                fontSize: SizeConfig.medium,
+                color: AppColors.black30,
+              ),
+            ],
+          ),
+        ),
+      );
+
+      if (i != items.length - 1) {
+        entries.add(
+          const PopupMenuItem<String>(
+            enabled: false,
+            padding: EdgeInsets.zero,
+            height: 1,
+            child: Divider(
+              indent: 10,
+              endIndent: 10,
+              height: 1,
+              thickness: 0.2,
+              color: AppColors.grey99,
+            ),
+          ),
+        );
+      }
+    }
+
+    return entries;
+  }
+
   static List<PopupMenuEntry<String>> popPupMenuForPersonalChat() {
     final items = <Map<String, dynamic>>[
       {'title': "Report", "slud_id": 'report'},

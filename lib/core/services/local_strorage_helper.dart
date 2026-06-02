@@ -819,6 +819,51 @@ class AiChatLocalStorage {
   }
 }
 
+/// Local-only storage for AI chat personalization (custom name, profile image,
+/// notification mute state and a dummy language preference) keyed by the AI
+/// chat [type] (e.g. 'personal' / 'business'). Stored on-device only, so a
+/// reinstall falls back to the default name/image the screen was opened with.
+class AiChatProfileStorage {
+  static const String _boxName = "aiChatProfileBox";
+
+  static Future<Box<String>> _openBox() async {
+    if (Hive.isBoxOpen(_boxName)) {
+      return Hive.box<String>(_boxName);
+    } else {
+      return await Hive.openBox<String>(_boxName);
+    }
+  }
+
+  static String _nameKey(String type) => "${type}_name";
+  static String _imageKey(String type) => "${type}_image";
+  static String _mutedKey(String type) => "${type}_muted";
+  static String _langKey(String type) => "${type}_lang";
+
+  static Future<String?> getName(String type) async =>
+      (await _openBox()).get(_nameKey(type));
+
+  static Future<void> saveName(String type, String name) async =>
+      (await _openBox()).put(_nameKey(type), name);
+
+  static Future<String?> getImagePath(String type) async =>
+      (await _openBox()).get(_imageKey(type));
+
+  static Future<void> saveImagePath(String type, String path) async =>
+      (await _openBox()).put(_imageKey(type), path);
+
+  static Future<bool> isMuted(String type) async =>
+      (await _openBox()).get(_mutedKey(type)) == 'true';
+
+  static Future<void> setMuted(String type, bool value) async =>
+      (await _openBox()).put(_mutedKey(type), value.toString());
+
+  static Future<String?> getLanguage(String type) async =>
+      (await _openBox()).get(_langKey(type));
+
+  static Future<void> setLanguage(String type, String code) async =>
+      (await _openBox()).put(_langKey(type), code);
+}
+
 class UserImageStorage {
   static const _boxName = "userImagesBox";
 

@@ -43,8 +43,12 @@ import '../model/GetListOfMessageData.dart';
 import '../model/GetListOfMessageData.dart' as messageModel;
 import '../model/ai_chat_history_msg_model.dart';
 import '../model/ai_chat_reply_msg_model.dart';
+import '../model/chat_language.dart';
+import 'ai_chat_profile_controller.dart';
 import '../model/contactListModel.dart';
 import '../model/find_service_by_contact_model.dart';
+import '../model/user_by_phone_model.dart';
+import '../../view/widget/phone_user_bottom_sheet.dart';
 import '../model/getChatRequestProfileDetailsModel.dart';
 import '../model/getMediaMsgCommentsModel.dart' as cmdImport;
 import '../model/getMediaMsgCommentsModel.dart';
@@ -512,6 +516,34 @@ class ChatViewController extends GetxController {
     sendMessageController.value.clear();
   }
 
+  /// Select / switch the language the AI replies in for this [type]'s
+  /// conversation. Sends the `language=<Label>` directive over the socket (no
+  /// new endpoint needed) and optimistically updates the badge; the lock is
+  /// confirmed by `language` on the next [AiReplyMessageModel] reply.
+  Future<void> changeAiLanguage({
+    required String type,
+    required String label,
+  }) async {
+    // Optimistic badge update so the UI reflects the choice immediately.
+    _syncAiLanguage(type, label);
+
+    final String? converId = await AiChatLocalStorage.getConversationId(type);
+    chatBotReading.value = true;
+    aiSocket.sendMessage(
+      message: languageDirective(label),
+      conversationId: converId,
+    );
+  }
+
+  /// Persist and reactively publish the active AI language for [type] so the
+  /// AppBar badge stays in sync (from either a user selection or a server echo).
+  void _syncAiLanguage(String type, String label) {
+    final profileCtrl = Get.isRegistered<AiChatProfileController>()
+        ? Get.find<AiChatProfileController>()
+        : Get.put(AiChatProfileController());
+    profileCtrl.setLanguage(type, label);
+  }
+
   Future<void> connectAiSocket(String type) async {
     getListOfAiMessageData?.clear();
     aiSocket.disposeSocket();
@@ -521,6 +553,10 @@ class ChatViewController extends GetxController {
       chatBotReading.value = false;
       AiReplyMessageModel details = AiReplyMessageModel.fromJson(data);
       saveAiConversationId(details.conversationId, type);
+      // Backend echoes the active language lock; keep the badge in sync with it.
+      if (details.language != null && details.language!.isNotEmpty) {
+        _syncAiLanguage(type, details.language!);
+      }
       getListOfAiMessageData?.add(Messages(
           sendStatus: AppStrings.PersonalChatAi,
           messageRead: 1,
@@ -543,6 +579,19 @@ class ChatViewController extends GetxController {
     aiSocket.getHistory(converId ?? '');
     getListOfAiMessageResponse.value =
         ApiResponse.complete(getListOfAiMessageData);
+  }
+
+  /// Clears the local AI chat history for [type]: drops the stored
+  /// conversation id (so a fresh thread starts) and reconnects the socket,
+  /// which clears the on-screen messages and reloads an empty history.
+  Future<void> clearAiChat(String type) async {
+    try {
+      await AiChatLocalStorage.clearConversationId(type);
+    } catch (_) {}
+    getListOfAiMessageData?.clear();
+    getListOfAiMessageResponse.value =
+        ApiResponse.complete(getListOfAiMessageData);
+    await connectAiSocket(type);
   }
 
   Future<void> saveAiConversationId(String id, String type) async {
@@ -788,9 +837,9 @@ class ChatViewController extends GetxController {
       socketConnected.value = true;
       chatSocket.listenEvent(ChatEmitEvents.ChatList, (data) async {
 
-
-
         final parsedData = GetChatListModel.fromJson(data);
+        log("jenkwljclkcewc ChatList Len: ${parsedData.chatList?.length} -  ${data}");
+
         // The server doesn't always echo `type` back in the ChatList
         // response. When that happens, fall back to the type we asked for
         // in the most recent emit — otherwise `loadChatListWithType`
@@ -3005,6 +3054,51 @@ class ChatViewController extends GetxController {
       contactNo: contactNo ?? '',
       isFromContactList: false,
     );
+  }
+
+  /// Guards against double-tapping a phone number while a lookup is in flight.
+  RxBool isFetchingUserByPhone = false.obs;
+
+  /// Resolve a phone number tapped inside a chat message to a BlueEra user via
+  /// `user-service/user/by-phone/{phone}` and, on success, surface a bottom
+  /// sheet with their details + a "Chat" button. Accepts any raw string the
+  /// user tapped (may contain spaces / +91 / dashes) and normalizes it to the
+  /// last 10 digits the API expects.
+  Future<void> openUserDetailsByPhone(String rawPhone) async {
+    String digits = rawPhone.replaceAll(RegExp(r'[^0-9]'), '');
+    // Strip a leading country code (e.g. 91XXXXXXXXXX) — keep the last 10.
+    if (digits.length > 10) {
+      digits = digits.substring(digits.length - 10);
+    }
+    if (digits.length != 10) {
+      commonSnackBar(message: 'Invalid mobile number');
+      return;
+    }
+    if (isFetchingUserByPhone.value) return;
+    isFetchingUserByPhone.value = true;
+    try {
+      final ResponseModel responseModel =
+          await ChatViewRepo().getUserByPhoneApi(digits);
+      log('openUserDetailsByPhone($digits) response: ${responseModel.response?.data}');
+
+      final dynamic userJson = responseModel.getExtraData('user');
+      if (responseModel.isSuccess && userJson is Map) {
+        final user =
+            UserByPhoneModel.fromJson(Map<String, dynamic>.from(userJson));
+        if (user.id.isEmpty) {
+          commonSnackBar(message: AppStrings.somethingWentWrong);
+          return;
+        }
+        showUserByPhoneBottomSheet(user);
+      } else {
+        commonSnackBar(
+            message: responseModel.message ?? 'No BlueEra user found for this number');
+      }
+    } catch (e) {
+      commonSnackBar(message: e.toString());
+    } finally {
+      isFetchingUserByPhone.value = false;
+    }
   }
 
   Future<void> checkChatConnectionAndOpenChat(
