@@ -1860,14 +1860,24 @@ class _MessageCardState extends State<MessageCard>
                           overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 2),
-                        CustomText(
-                          displayNumber,
-                          color: (isReceiveMsg)
-                              ? Colors.black54
-                              : Colors.white70,
-                          fontSize: 12.5,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                        GestureDetector(
+                          onTap: () {
+                            if (displayNumber != 'No number') {
+                              chatViewController
+                                  .openUserDetailsByPhone(displayNumber);
+                            }
+                          },
+                          child: CustomText(
+                            displayNumber,
+                            color: (isReceiveMsg)
+                                ? AppColors.primaryColor
+                                : Colors.white,
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w600,
+                            decoration: TextDecoration.underline,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
                       ],
                     ),

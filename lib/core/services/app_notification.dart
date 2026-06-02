@@ -1481,6 +1481,14 @@ class AppNotificationHandler {
             .toString();
     final actionsJson = (data['actions'] ?? '[]').toString();
     final operation = (data['operation'] ?? '').toString().toLowerCase();
+
+    // Suppress AI greeting notifications when the user has muted the AI chat
+    // locally (3-dot menu → Mute). AI greetings map to the personal AI chat.
+    if (operation.contains('greeting')) {
+      final muted = await AiChatProfileStorage.isMuted('personal');
+      if (muted) return;
+    }
+
     final isChatMessage = _isChatOperation(operation);
 
     // Parse action buttons from backend

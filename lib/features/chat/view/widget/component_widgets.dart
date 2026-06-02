@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/chat/auth/model/GetListOfMessageData.dart';
+import 'package:BlueEra/features/chat/auth/model/chat_language.dart';
 import 'package:BlueEra/features/me/product/view/customer/visit_product_store_details_screen.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -30,8 +31,11 @@ import '../../../business/visit_business_profile/view/visit_business_profile_new
 import '../../../common/bottomNavigationBar/controller/bottom_bar_controller.dart';
 import '../../../personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
 import '../../auth/controller/chat_theme_controller.dart';
+import '../../auth/controller/ai_chat_profile_controller.dart';
 import '../chat_theme/chat_background_screen.dart';
 import '../../auth/controller/chat_view_controller.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
 import '../../auth/controller/order_controllar.dart';
 import '../../auth/model/GetChatListModel.dart';
 import '../order_main_chat_screen.dart';
@@ -1435,6 +1439,330 @@ Widget _callOptionTile({
   );
 }
 
+/// Avatar shown in the chat title bar. Renders network/asset/file images with
+/// a coloured initial placeholder fallback. Shared by AI and regular chats.
+Widget _chatTitleAvatar({
+  String? name,
+  String? profileImage,
+  required ThemeData theme,
+}) {
+  final hasImage =
+      profileImage != null && profileImage != 'null' && profileImage.isNotEmpty;
+  final initial = (name != null && name.isNotEmpty) ? name.substring(0, 1) : 'U';
+  final placeholder = CircleAvatar(
+    radius: SizeConfig.size18,
+    backgroundColor: theme.colorScheme.primary,
+    child: Center(
+      child: CustomText(
+        initial,
+        color: Colors.white,
+        fontWeight: FontWeight.w800,
+        fontSize: SizeConfig.size18,
+      ),
+    ),
+  );
+  if (!hasImage) return placeholder;
+  if (profileImage.contains('http')) {
+    return ClipOval(
+      child: CachedNetworkImage(
+        imageUrl: profileImage,
+        width: SizeConfig.size36,
+        height: SizeConfig.size36,
+        fit: BoxFit.cover,
+        placeholder: (_, __) => placeholder,
+        errorWidget: (_, __, ___) => placeholder,
+      ),
+    );
+  }
+  if (profileImage.startsWith('assets')) {
+    return CircleAvatar(
+      radius: SizeConfig.size18,
+      backgroundImage: AssetImage(profileImage),
+    );
+  }
+  return CircleAvatar(
+    radius: SizeConfig.size18,
+    backgroundImage: FileImage(File(profileImage)),
+  );
+}
+
+/// Large avatar preview used inside the AI profile edit sheet.
+Widget _aiAvatarPreview(String? image, String? name) {
+  final hasImage = image != null && image != 'null' && image.isNotEmpty;
+  final initial = (name != null && name.isNotEmpty && name != 'null')
+      ? name.substring(0, 1).toUpperCase()
+      : 'U';
+  final placeholder = CircleAvatar(
+    radius: 44,
+    backgroundColor: AppColors.primaryColor,
+    child: CustomText(initial,
+        color: Colors.white, fontWeight: FontWeight.w800, fontSize: 30),
+  );
+  if (!hasImage) return placeholder;
+  if (image.contains('http')) {
+    return ClipOval(
+      child: CachedNetworkImage(
+        imageUrl: image,
+        width: 88,
+        height: 88,
+        fit: BoxFit.cover,
+        placeholder: (_, __) => placeholder,
+        errorWidget: (_, __, ___) => placeholder,
+      ),
+    );
+  }
+  if (image.startsWith('assets')) {
+    return CircleAvatar(radius: 44, backgroundImage: AssetImage(image));
+  }
+  return CircleAvatar(radius: 44, backgroundImage: FileImage(File(image)));
+}
+
+/// Bottom sheet to rename the AI chat and change its profile image. Both are
+/// stored locally per [type]; on reinstall the chat falls back to its default
+/// name/image passed in by the caller.
+void showAiChatProfileEditSheet(
+  BuildContext context, {
+  required AiChatProfileController controller,
+  required String type,
+  String? defaultName,
+  String? defaultImage,
+}) {
+  final nameController = TextEditingController(
+    text: controller.customName.value.isNotEmpty
+        ? controller.customName.value
+        : ((defaultName == null || defaultName == 'null') ? '' : defaultName),
+  );
+  final RxString previewPath = controller.customImagePath.value.obs;
+
+  Future<void> pickImage() async {
+    final picked = await ImagePicker()
+        .pickImage(source: ImageSource.gallery, imageQuality: 70);
+    if (picked == null) return;
+    // Copy into app documents so the path survives cache clears / restarts.
+    try {
+      final dir = await getApplicationDocumentsDirectory();
+      final ext =
+          picked.path.contains('.') ? picked.path.split('.').last : 'jpg';
+      final saved =
+          await File(picked.path).copy('${dir.path}/ai_chat_${type}_avatar.$ext');
+      previewPath.value = saved.path;
+    } catch (_) {
+      previewPath.value = picked.path;
+    }
+  }
+
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: AppColors.white,
+    isScrollControlled: true,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    ),
+    builder: (ctx) {
+      return Padding(
+        padding: EdgeInsets.only(
+          left: 16,
+          right: 16,
+          top: 16,
+          bottom: MediaQuery.of(ctx).viewInsets.bottom + 16,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 36,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 16),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            CustomText('Edit Profile',
+                fontSize: SizeConfig.size16, fontWeight: FontWeight.w600),
+            const SizedBox(height: 16),
+            Center(
+              child: Stack(
+                children: [
+                  Obx(() => _aiAvatarPreview(
+                        previewPath.value.isNotEmpty
+                            ? previewPath.value
+                            : defaultImage,
+                        controller.customName.value.isNotEmpty
+                            ? controller.customName.value
+                            : defaultName,
+                      )),
+                  Positioned(
+                    right: 0,
+                    bottom: 0,
+                    child: InkWell(
+                      onTap: pickImage,
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryColor,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 2),
+                        ),
+                        child: const Icon(Icons.camera_alt,
+                            color: Colors.white, size: 16),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+            CustomText('Name',
+                fontSize: SizeConfig.size14, fontWeight: FontWeight.w500),
+            const SizedBox(height: 6),
+            TextField(
+              controller: nameController,
+              textCapitalization: TextCapitalization.words,
+              decoration: InputDecoration(
+                hintText: 'Enter name',
+                isDense: true,
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    child:
+                        CustomText('Cancel', color: AppColors.primaryColor),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primaryColor),
+                    onPressed: () async {
+                      final newName = nameController.text.trim();
+                      if (newName.isNotEmpty) {
+                        await controller.saveName(type, newName);
+                      }
+                      if (previewPath.value.isNotEmpty) {
+                        await controller.saveImage(type, previewPath.value);
+                      }
+                      Navigator.pop(ctx);
+                      commonSnackBar(message: 'Profile updated');
+                    },
+                    child: CustomText('Save', color: Colors.white),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      );
+    },
+  );
+}
+
+/// Language picker for the AI chat 3-dot menu. Selecting a language sends the
+/// `language=<Label>` directive over the chat socket so the AI replies only in
+/// that language; the choice is locked server-side per conversation and shown
+/// as a badge in the AppBar. Native scripts need a font (e.g. Noto Sans) that
+/// covers Indic / Arabic / CJK glyphs.
+void showAiChatLanguageSheet(
+  BuildContext context, {
+  required AiChatProfileController controller,
+  required String type,
+}) {
+  final chatViewController = Get.find<ChatViewController>();
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: AppColors.white,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    ),
+    isScrollControlled: true,
+    builder: (ctx) {
+      return SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: CustomText(AppStrings.language.tr,
+                  fontSize: SizeConfig.size16, fontWeight: FontWeight.w600),
+            ),
+            Flexible(
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: kChatLanguages.length,
+                itemBuilder: (_, i) {
+                  final lang = kChatLanguages[i];
+                  return Obx(() {
+                    final selected = controller.language.value == lang.label;
+                    return ListTile(
+                      title: CustomText(
+                        lang.label == lang.native
+                            ? lang.label
+                            : '${lang.label}  (${lang.native})',
+                      ),
+                      trailing: selected
+                          ? Icon(Icons.check, color: AppColors.primaryColor)
+                          : null,
+                      onTap: () {
+                        chatViewController.changeAiLanguage(
+                          type: type,
+                          label: lang.label,
+                        );
+                        Navigator.pop(ctx);
+                        commonSnackBar(message: '${lang.label} selected');
+                      },
+                    );
+                  });
+                },
+              ),
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      );
+    },
+  );
+}
+
+/// Confirmation dialog for clearing the local AI chat history.
+void showAiChatClearDialog({required String type}) {
+  Get.dialog(
+    AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      title: CustomText('Clear Chat',
+          fontSize: SizeConfig.size16, fontWeight: FontWeight.w600),
+      content: CustomText('Are you sure you want to clear this chat?'),
+      actions: [
+        TextButton(
+          onPressed: () => Get.back(),
+          child: CustomText('Cancel', color: AppColors.grayText),
+        ),
+        TextButton(
+          onPressed: () async {
+            Get.back();
+            await Get.find<ChatViewController>().clearAiChat(type);
+            commonSnackBar(message: 'Chat cleared');
+          },
+          child: CustomText('Clear', color: Colors.red),
+        ),
+      ],
+    ),
+  );
+}
+
 AppBar getChatTitleAppBar(BuildContext context, {
   String? userId,
   String? conversationId,
@@ -1453,6 +1781,13 @@ AppBar getChatTitleAppBar(BuildContext context, {
   final theme = Theme.of(context);
   final chatViewController = Get.find<ChatViewController>();
   final bottomBarController = Get.find<BottomBarController>();
+  // AI chat keeps a locally-personalized name/image/mute state. Resolve (and
+  // lazily register) its controller only for the AI variant of this appbar.
+  final aiProfileCtrl = (isFromAiChat == true)
+      ? (Get.isRegistered<AiChatProfileController>()
+          ? Get.find<AiChatProfileController>()
+          : Get.put(AiChatProfileController()))
+      : null;
   void SendMessageToAI({required String message, String? tag}){
     chatViewController
         .sendMessageToAiSocket(
@@ -1490,7 +1825,19 @@ AppBar getChatTitleAppBar(BuildContext context, {
     ),
     titleSpacing: 0,
     title: InkWell(
-      onTap: (type != AppStrings.Admin||type != AppStrings.PersonalChatAi||type != AppStrings.BusinessChatAi)
+      onTap: (isFromAiChat == true)
+          ? () {
+        // Tapping the AI profile lets the user rename it / change its image,
+        // stored locally only.
+        showAiChatProfileEditSheet(
+          context,
+          controller: aiProfileCtrl!,
+          type: type ?? '',
+          defaultName: name,
+          defaultImage: profileImage,
+        );
+      }
+          : (type != AppStrings.Admin||type != AppStrings.PersonalChatAi||type != AppStrings.BusinessChatAi)
           ? () {
 
         if (isGroupAppBar != null) {
@@ -1532,49 +1879,20 @@ AppBar getChatTitleAppBar(BuildContext context, {
           : () {},
       child: Row(
         children: [
-          Builder(builder: (_) {
-            final hasImage = profileImage != null &&
-                profileImage != 'null' &&
-                profileImage.isNotEmpty;
-            final initial = (name != null && name.isNotEmpty)
-                ? name.substring(0, 1)
-                : 'U';
-            final placeholder = CircleAvatar(
-              radius: SizeConfig.size18,
-              backgroundColor: theme.colorScheme.primary,
-              child: Center(
-                child: CustomText(
-                  initial,
-                  color: Colors.white,
-                  fontWeight: FontWeight.w800,
-                  fontSize: SizeConfig.size18,
-                ),
-              ),
-            );
-            if (!hasImage) return placeholder;
-            if (profileImage.contains('http')) {
-              return ClipOval(
-                child: CachedNetworkImage(
-                  imageUrl: profileImage,
-                  width: SizeConfig.size36,
-                  height: SizeConfig.size36,
-                  fit: BoxFit.cover,
-                  placeholder: (_, __) => placeholder,
-                  errorWidget: (_, __, ___) => placeholder,
-                ),
-              );
-            }
-            if (profileImage.startsWith('assets')) {
-              return CircleAvatar(
-                radius: SizeConfig.size18,
-                backgroundImage: AssetImage(profileImage),
-              );
-            }
-            return CircleAvatar(
-              radius: SizeConfig.size18,
-              backgroundImage: FileImage(File(profileImage)),
-            );
-          }),
+          // AI chat shows the locally-personalized avatar (reactive); other
+          // chats use the avatar passed in from the chat list.
+          (isFromAiChat == true)
+              ? Obx(() => _chatTitleAvatar(
+                    name: aiProfileCtrl!.customName.value.isNotEmpty
+                        ? aiProfileCtrl.customName.value
+                        : name,
+                    profileImage: aiProfileCtrl.customImagePath.value.isNotEmpty
+                        ? aiProfileCtrl.customImagePath.value
+                        : profileImage,
+                    theme: theme,
+                  ))
+              : _chatTitleAvatar(
+                  name: name, profileImage: profileImage, theme: theme),
           SizedBox(width: SizeConfig.size6), // Slightly smaller spacing
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1582,12 +1900,21 @@ AppBar getChatTitleAppBar(BuildContext context, {
             children: [
               SizedBox(
                 width: SizeConfig.size160,
-                child: CustomText(
-                  '${(name == "null") ? (contactNo) : name ?? contactNo}',
-                  color: Colors.black,
-                  fontWeight: FontWeight.bold,
-                  fontSize: SizeConfig.size16,
-                ),
+                child: (isFromAiChat == true)
+                    ? Obx(() => CustomText(
+                          aiProfileCtrl!.customName.value.isNotEmpty
+                              ? aiProfileCtrl.customName.value
+                              : '${(name == "null") ? (contactNo) : name ?? contactNo}',
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold,
+                          fontSize: SizeConfig.size16,
+                        ))
+                    : CustomText(
+                        '${(name == "null") ? (contactNo) : name ?? contactNo}',
+                        color: Colors.black,
+                        fontWeight: FontWeight.bold,
+                        fontSize: SizeConfig.size16,
+                      ),
               ),
               if(isGroupAppBar == null)
                 Row(
@@ -1704,21 +2031,6 @@ AppBar getChatTitleAppBar(BuildContext context, {
               ),
             )),
       if(isFromAiChat==true)
-        PopupMenuButton<String>(
-          menuPadding: EdgeInsets.zero,
-          icon: LocalAssets(
-            imagePath: AppIconAssets.editIcon,
-            imgColor: AppColors.black,),
-          padding: EdgeInsets.zero,
-          color: AppColors.white,
-          elevation: 8,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          onSelected: (value) {
-
-          },
-          itemBuilder: (context) => PopupMenuBuilders.popPupMenuForAiChat(),
-        ),
-      if(isFromAiChat==true)
       InkWell(
         onTap: (){
           Get.dialog(
@@ -1762,7 +2074,72 @@ AppBar getChatTitleAppBar(BuildContext context, {
       SizedBox(width: SizeConfig.size12),
       // SvgPicture.asset(AppIconAssets.chat_video_call),
       // const SizedBox(width: 12),
-      if(isGroupAppBar == null)
+      // Active AI reply-language badge (persists until the user changes it).
+      if(isFromAiChat == true)
+        Obx(() {
+          final lang = aiProfileCtrl!.language.value;
+          if (lang.isEmpty) return const SizedBox.shrink();
+          return Container(
+            margin: EdgeInsets.only(right: SizeConfig.size6),
+            padding: EdgeInsets.symmetric(
+                horizontal: SizeConfig.size8, vertical: SizeConfig.size3),
+            decoration: BoxDecoration(
+              color: AppColors.primaryColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.language,
+                    size: SizeConfig.size14, color: AppColors.primaryColor),
+                SizedBox(width: SizeConfig.size3),
+                CustomText(lang,
+                    fontSize: SizeConfig.size12,
+                    color: AppColors.primaryColor),
+              ],
+            ),
+          );
+        }),
+      if(isFromAiChat == true)
+        Obx(() {
+          // Read .value synchronously so Obx tracks it and rebuilds the menu
+          // icon/labels when the mute state changes.
+          final isMuted = aiProfileCtrl!.isMuted.value;
+          return PopupMenuButton<String>(
+            icon: LocalAssets(
+              imagePath: AppIconAssets.chat_info_pop,
+              height: 20,
+              width: 20,
+              imgColor: AppColors.black,
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            constraints: const BoxConstraints(),
+            offset: const Offset(-6, 36),
+            color: AppColors.white,
+            elevation: 8,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            onSelected: (value) async {
+              final t = type ?? '';
+              if (value == "mute") {
+                await aiProfileCtrl.toggleMute(t);
+                commonSnackBar(
+                    message: aiProfileCtrl.isMuted.value
+                        ? 'Notifications muted'
+                        : 'Notifications unmuted');
+              } else if (value == "language") {
+                showAiChatLanguageSheet(context,
+                    controller: aiProfileCtrl, type: t);
+              } else if (value == "clear") {
+                showAiChatClearDialog(type: t);
+              } else if (value == "background") {
+                Get.to(() => ChatBackgroundScreen());
+              }
+            },
+            itemBuilder: (context) =>
+                PopupMenuBuilders.popupMenuForAiChatOptions(isMuted),
+          );
+        })
+      else if(isGroupAppBar == null)
         PopupMenuButton<String>(
             icon: LocalAssets(
               imagePath: AppIconAssets.chat_info_pop,

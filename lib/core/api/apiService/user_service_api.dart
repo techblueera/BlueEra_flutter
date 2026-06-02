@@ -32,6 +32,9 @@ mixin UserServiceApi {
   final String FollowersAndPostsCount =
       'user-service/user/getUserWithFollowersAndPostsCount';
   final String checkUsername = "user-service/user/checkUsername";
+  // Look up a user by their 10-digit phone number — used when a phone number
+  // tapped inside a chat message needs to be resolved to a BlueEra user.
+  String getUserByPhone(String phone) => 'user-service/user/by-phone/$phone';
   final String createGuestAccount = "/user-service/user/create-guest-account";
   final String updateIndividualAccountUser =
       "user-service/user/updateIndividualAccountUser/";

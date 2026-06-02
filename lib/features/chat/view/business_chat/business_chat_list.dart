@@ -78,7 +78,6 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Obx(() {
-      print("dljnclsncsdc ${chatViewController.businessChatListResponse.value.status}");
       if (chatViewController.businessChatListResponse.value.status ==
           Status.COMPLETE) {
         GetChatListModel? data =
