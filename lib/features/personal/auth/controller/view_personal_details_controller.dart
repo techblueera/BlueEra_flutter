@@ -363,6 +363,13 @@ class ViewPersonalDetailsController extends GetxController {
     debugPrint(
         '=== earnProfileType: "${earnProfileType.value}", raw: "${personalProfileDetails.value.earnProfileType}" ===');
 
+    /// Seed the location fallback from the personal profile so nearby APIs
+    /// still work when device GPS is off.
+    LocationService.setProfileLocation(
+      personalProfileDetails.value.user?.userLocation?.lat,
+      personalProfileDetails.value.user?.userLocation?.lon,
+    );
+
     if (!persistPrefs) return;
 
     await SharedPreferenceUtils.userLoggedInIndividualGuest(

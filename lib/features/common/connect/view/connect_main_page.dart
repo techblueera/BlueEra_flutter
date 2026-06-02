@@ -532,13 +532,21 @@ class _ConnectMainPageState extends State<ConnectMainPage> with SingleTickerProv
                       PersonalChatsList(isForwardUI: false),
                       // Inquiry tab: the business lane. Now that `order` is
                       // merged into `business`, former order threads also
-                      // surface here. `onlySenderId` keeps it to the user's
-                      // own outgoing inquiries/orders (the inverse of the
-                      // provider-side Grocery/self-employed views which use
-                      // `excludeSenderId: userId`).
+                      // surface here. This is the buyer/general business view,
+                      // so it renders the [ChatBucket.chats] bucket (my buyer
+                      // orders, friends' orders, groups) via the default
+                      // `bucketChat` routing — the inverse of the provider-side
+                      // Grocery/self-employed views which pass
+                      // `excludeSenderId: userId` to show the seller's "me"
+                      // (stranger customers) bucket.
+                      //
+                      // NOTE: do NOT pass `onlySenderId` here. It is a legacy
+                      // last-message-author filter that predates `bucketChat`
+                      // and silently drops every row whose latest message was
+                      // sent by the other party (e.g. "New self-pickup food
+                      // order" from a customer), emptying the tab.
                       BusinessChatsList(
                         isForwardUI: false,
-                        onlySenderId: userId,
                       ),
                       // Call tab. CallHistoryScreen owns its own scrollable;
                       // detach it from the parent NestedScrollView's inherited

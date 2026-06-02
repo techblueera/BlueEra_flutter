@@ -7,6 +7,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/controller/navigation_helper_controller.dart';
@@ -784,6 +785,11 @@ Future<void> main() async {
 // ═══════════════════════════════════════════════════════════════════════════
 
 Future<void> _initDeferred(LocalizationService localizationService) async {
+  /// Kick off the location fetch as early as possible on cold start so
+  /// lat/lng are populated before the default Discover tab fires its
+  /// location-based APIs. Fire-and-forget — must not block the first frame.
+  unawaited(LocationService.fetchLocation());
+
   /// Fire-and-forget parallel batch -- none of these block the UI
   await Future.wait<void>([
     getDeviceInfo(),

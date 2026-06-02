@@ -45,6 +45,14 @@ mixin EarnServiceApi {
   /// Earn Profiles
   final String earnProfiles = "earn-service/earn-profiles";
 
+  /// All home made food items for a given earn profile — backs the consumer
+  /// store details screen. `GET earn-service/earn-profiles/{id}/home-foods`.
+  String earnProfileHomeFoods(String id) =>
+      'earn-service/earn-profiles/$id/home-foods';
+
+  /// Place a home made food order. `POST earn-service/homeFoodOrders`.
+  final String homeFoodOrders = "earn-service/homeFoodOrders";
+
   /// Admin posts feed — drives the testimonials, overview and tutorial
   /// sections on the new BDM/referral dashboard. Filter by `type` query
   /// param (`testimonial` | `overview` | `tutorial`) plus `page` / `limit`.

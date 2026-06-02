@@ -80,6 +80,7 @@ class ChatList {
     this.repliedSymbolId,
     this.iOwnBusiness,
     this.isFriend,
+    this.type,
   });
 
   ChatList.fromJson(dynamic json) {
@@ -128,6 +129,12 @@ class ChatList {
     // so the bucketer can apply its legacy account-type fallback.
     iOwnBusiness = _asBool(json['i_own_business']);
     isFriend = _asBool(json['is_friend']);
+
+    // Conversation type ("business" | "group" | …) — the `type` column of
+    // the B2B routing truth table. Drives `bucketChat`. Null on legacy
+    // payloads, in which case the bucketer falls back to `isGroup` / the
+    // account-type heuristic.
+    type = json['type']?.toString();
   }
 
   static bool? _asBool(dynamic v) {
@@ -181,6 +188,11 @@ class ChatList {
   /// the seller-side "me" routing so a friend's order stays in chats.
   bool? isFriend;
 
+  /// Conversation type from the server ("business", "group", …). Used by
+  /// `bucketChat` to mirror the backend routing spec. Null on legacy
+  /// payloads.
+  String? type;
+
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
     map['conversation_id'] = conversationId;
@@ -216,6 +228,7 @@ class ChatList {
     }
     map['i_own_business'] = iOwnBusiness;
     map['is_friend'] = isFriend;
+    map['type'] = type;
 
     return map;
   }

@@ -126,10 +126,10 @@ class CommonGenericLeftSideCategoryList<T> extends StatelessWidget {
                         padding: EdgeInsets.all(6),
                         height: selected ? 55 : 45,
                         width: selected ? 55 : 45,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: selected ? null : AppColors.skyBlueE4,
-                        ),
+                        // decoration: BoxDecoration(
+                        //   shape: BoxShape.circle,
+                        //   color: selected ? null : AppColors.skyBlueE4,
+                        // ),
                         child: (icon.isEmpty)
                             ? _fallbackIcon(selected ? 55 : 45)
                             : isNetworkImage(icon)

@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 
 import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/api/apiService/api_response.dart';
+import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_constant.dart';
 import '../../../../core/constants/app_icon_assets.dart';
 import '../../../../core/constants/shared_preference_utils.dart';
@@ -12,8 +13,10 @@ import '../../../../core/constants/getx_utils.dart';
 import '../../../../core/constants/size_config.dart';
 import '../../../../widgets/custom_text_cm.dart';
 import '../../../../widgets/horizontal_tab_selector.dart';
+import '../../auth/controller/chat_flag_controller.dart';
 import '../../auth/controller/chat_lock_controller.dart';
 import '../../auth/controller/chat_pin_archive_controller.dart';
+import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/model/GetChatListModel.dart';
 import '../ai_chat/view/ai_chat_screen.dart';
@@ -32,11 +35,13 @@ enum ChatBucket { chats, me, skip }
 /// Single source of truth for routing one chat row — the Dart twin of the
 /// backend `bucketChat` spec. Call once per row.
 ///
-/// Priority:
+/// Priority (mirrors the backend `bucketChat`):
 ///   1. Group rows always go to [ChatBucket.chats].
-///   2. Seller side (`i_own_business`) — friend orders stay in chats,
+///   2. Non-business conversation types → [ChatBucket.chats] by default,
+///      or [ChatBucket.skip] when [includeNonBusinessInChats] is false.
+///   3. Seller side (`i_own_business`) — friend orders stay in chats,
 ///      stranger customers go to [ChatBucket.me].
-///   3. Buyer side (I ordered from someone else's business) → chats.
+///   4. Buyer side (I ordered from someone else's business) → chats.
 ///
 /// `i_own_business` is read straight from the row; when the server hasn't
 /// sent it (legacy payload) we fall back to *my own* account type — if I'm
@@ -45,9 +50,20 @@ enum ChatBucket { chats, me, skip }
 /// false. (We use `accountTypeGlobal`, the current user's account type,
 /// not `businessTypeGlobal`, which holds the business *category* like
 /// Food / Grocery / OTHER.)
-ChatBucket bucketChat(ChatList chat) {
-  // Group chats always live in the chat list.
-  if (chat.isGroup == true) return ChatBucket.chats;
+///
+/// The conversation `type` is null-tolerant: legacy payloads that omit it
+/// fall straight through to the seller/buyer logic (this widget is fed by
+/// the business endpoint, so an absent type means "business").
+ChatBucket bucketChat(ChatList chat, {bool includeNonBusinessInChats = true}) {
+  // Group rows always live in the chat list.
+  if (chat.isGroup == true || chat.type == AppConstants.group_Chat_Type) {
+    return ChatBucket.chats;
+  }
+
+  // Known non-business conversation type → chats (or skip when opted out).
+  if (chat.type != null && chat.type != AppConstants.business_Chat_Type) {
+    return includeNonBusinessInChats ? ChatBucket.chats : ChatBucket.skip;
+  }
 
   final iOwnBusiness =
       chat.iOwnBusiness ?? (accountTypeGlobal == AppConstants.business);
@@ -64,6 +80,32 @@ ChatBucket bucketChat(ChatList chat) {
   return ChatBucket.chats;
 }
 
+/// Date-range presets surfaced as filter chips above the list when
+/// [BusinessChatsList.showDateFilter] is set (the provider/seller "order"
+/// tabs that absorbed the old `OrdersTabView`). Resolved against
+/// `chat.createdAt` (falling back to `updatedAt` when missing) by
+/// `_BusinessChatsListState._matchesDateFilter`.
+enum _OrderDateFilter { all, today, yesterday, last7Days, last30Days, custom }
+
+extension _OrderDateFilterLabel on _OrderDateFilter {
+  String get label {
+    switch (this) {
+      case _OrderDateFilter.all:
+        return AppStrings.all.tr;
+      case _OrderDateFilter.today:
+        return AppStrings.todayLabel.tr;
+      case _OrderDateFilter.yesterday:
+        return AppStrings.yesterdayLabel.tr;
+      case _OrderDateFilter.last7Days:
+        return AppStrings.last7Days.tr;
+      case _OrderDateFilter.last30Days:
+        return AppStrings.last30Days.tr;
+      case _OrderDateFilter.custom:
+        return AppStrings.customLabel.tr;
+    }
+  }
+}
+
 class BusinessChatsList extends StatefulWidget {
   const BusinessChatsList({
     super.key,
@@ -72,6 +114,7 @@ class BusinessChatsList extends StatefulWidget {
     this.excludeSenderId,
     this.onlySenderId,
     this.isInParentScroll = false,
+    this.showDateFilter = false,
   });
   final bool? isForwardUI;
   final bool? isNewGroupUI;
@@ -97,6 +140,14 @@ class BusinessChatsList extends StatefulWidget {
   /// rely on the bounded `Expanded` layout, unchanged.
   final bool isInParentScroll;
 
+  /// Surfaces the date-range filter chip row above the "All" list — the
+  /// feature carried over from the merged-in `OrdersTabView`. Used by the
+  /// provider/seller order tabs (food / grocery / product / manufacturer)
+  /// so a merchant can narrow incoming orders by date. Defaults to `false`
+  /// — the Connect / forward / group-add flows render no date filter,
+  /// unchanged.
+  final bool showDateFilter;
+
   @override
   State<BusinessChatsList> createState() => _BusinessChatsListState();
 }
@@ -106,12 +157,24 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
   late final ChatPinArchiveController pinArchiveController;
   late final ChatLockController lockController;
 
+  // Date-range filter state — only surfaced when [widget.showDateFilter]
+  // is true (provider/seller order tabs). `_selectedDateFilter` drives the
+  // chip row; `_customRange` holds the calendar picker result for `custom`.
+  _OrderDateFilter _selectedDateFilter = _OrderDateFilter.all;
+  DateTimeRange? _customRange;
+
   @override
   void initState() {
     super.initState();
 
     pinArchiveController =getOrPut(() => ChatPinArchiveController());
     lockController = getOrPut(() => ChatLockController());
+    // The full chrome's sub-tabs Get.find these controllers (Flagged →
+    // ChatFlagController, Reminder → ChatThemeController). Register them here
+    // so BusinessChatsList is self-sufficient on the provider/seller screens,
+    // which previously relied on ConnectMainPage having pre-registered them.
+    getOrPut(() => ChatFlagController());
+    getOrPut(() => ChatThemeController());
     if (chatViewController.canPopBusiness.value) {
       chatViewController.canPopBusiness.value = false;
     }
@@ -290,6 +353,12 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
           .toList();
     }
 
+    // Date-range filter (provider/seller order tabs only). No-op when the
+    // filter row isn't shown, since `_selectedDateFilter` stays `all`.
+    if (widget.showDateFilter) {
+      chatList = chatList.where(_matchesDateFilter).toList();
+    }
+
     // Sort pinned to top
     chatList.sort((a, b) {
       final aPinned = pinnedIds.contains(a?.conversationId);
@@ -306,7 +375,7 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
     final aiOffset = 1; // always show AI chat
     final topRowCount = recordsOffset + aiOffset;
 
-    return Container(
+    final listBody = Container(
       margin: EdgeInsets.only(bottom: SizeConfig.size70),
       child:  ListView.builder(
         itemCount: chatList.length + topRowCount,
@@ -399,6 +468,231 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
             context: context,
           );
         },
+      ),
+    );
+
+    // Without the date filter the list body is returned as-is — the All-tab
+    // branch in `build` handles the Expanded/parent-scroll wrapping. With the
+    // filter on, prepend the chip row and re-apply that same wrapping here so
+    // the bounded (Connect) and parent-scroll (provider) layouts both hold.
+    if (!widget.showDateFilter) return listBody;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildDateFilterRow(),
+        const SizedBox(height: 8),
+        widget.isInParentScroll ? listBody : Expanded(child: listBody),
+      ],
+    );
+  }
+
+  /// Returns true when [chat]'s timestamp falls inside the selected date
+  /// window. `createdAt` is preferred (order-placed moment); falls back to
+  /// `updatedAt`. Unparseable / missing dates are dropped for any non-`all`
+  /// filter so they don't leak into narrow windows. Ported from the merged
+  /// `OrdersTabView`.
+  bool _matchesDateFilter(ChatList? chat) {
+    if (_selectedDateFilter == _OrderDateFilter.all) return true;
+
+    final raw = (chat?.createdAt?.isNotEmpty ?? false)
+        ? chat!.createdAt
+        : chat?.updatedAt;
+    if (raw == null || raw.isEmpty) return false;
+
+    DateTime date;
+    try {
+      date = DateTime.parse(raw).toLocal();
+    } catch (_) {
+      return false;
+    }
+
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    switch (_selectedDateFilter) {
+      case _OrderDateFilter.today:
+        final tomorrow = today.add(const Duration(days: 1));
+        return !date.isBefore(today) && date.isBefore(tomorrow);
+      case _OrderDateFilter.yesterday:
+        final yesterday = today.subtract(const Duration(days: 1));
+        return !date.isBefore(yesterday) && date.isBefore(today);
+      case _OrderDateFilter.last7Days:
+        // Inclusive of today + previous 6 days = 7-day rolling window.
+        final start = today.subtract(const Duration(days: 6));
+        return !date.isBefore(start);
+      case _OrderDateFilter.last30Days:
+        final start = today.subtract(const Duration(days: 29));
+        return !date.isBefore(start);
+      case _OrderDateFilter.custom:
+        if (_customRange == null) return true;
+        final start = DateTime(_customRange!.start.year,
+            _customRange!.start.month, _customRange!.start.day);
+        // End is inclusive of the picked day, so add one full day to make
+        // the upper bound exclusive against the local timestamp.
+        final endExclusive = DateTime(_customRange!.end.year,
+                _customRange!.end.month, _customRange!.end.day)
+            .add(const Duration(days: 1));
+        return !date.isBefore(start) && date.isBefore(endExclusive);
+      case _OrderDateFilter.all:
+        return true;
+    }
+  }
+
+  /// Opens the system date-range picker for `_OrderDateFilter.custom`.
+  /// Cancelling leaves the previous filter in place. Ported from the merged
+  /// `OrdersTabView`.
+  Future<void> _pickCustomRange() async {
+    final now = DateTime.now();
+    final picked = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime(now.year - 5),
+      lastDate: now,
+      initialDateRange: _customRange ??
+          DateTimeRange(
+            start: now.subtract(const Duration(days: 6)),
+            end: now,
+          ),
+      helpText: AppStrings.filterOrdersByDate.tr,
+      saveText: AppStrings.applyLabel.tr,
+    );
+    if (picked == null) return;
+    setState(() {
+      _customRange = picked;
+      _selectedDateFilter = _OrderDateFilter.custom;
+    });
+  }
+
+  String _formatRange(DateTimeRange r) {
+    String two(int n) => n.toString().padLeft(2, '0');
+    final s = r.start, e = r.end;
+    final sameYear = s.year == e.year;
+    final left = '${two(s.day)}/${two(s.month)}'
+        '${sameYear ? '' : '/${s.year}'}';
+    final right = '${two(e.day)}/${two(e.month)}/${e.year}';
+    return '$left – $right';
+  }
+
+  /// Compact date-range dropdown. Deliberately styled as a single trigger +
+  /// popup menu — NOT a pill strip — so it reads as a distinct control and
+  /// doesn't visually echo the `All / Pinned / …` tab selector directly
+  /// above it. A non-`all` selection tints the trigger and exposes a clear
+  /// (✕) affordance. "Custom" launches the system date-range picker.
+  Widget _buildDateFilterRow() {
+    const presets = [
+      _OrderDateFilter.all,
+      _OrderDateFilter.today,
+      _OrderDateFilter.yesterday,
+      _OrderDateFilter.last7Days,
+      _OrderDateFilter.last30Days,
+      _OrderDateFilter.custom,
+    ];
+
+    final isFiltered = _selectedDateFilter != _OrderDateFilter.all;
+    final triggerLabel =
+        (_selectedDateFilter == _OrderDateFilter.custom && _customRange != null)
+            ? _formatRange(_customRange!)
+            : _selectedDateFilter.label;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 14),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          PopupMenuButton<_OrderDateFilter>(
+            offset: const Offset(0, 42),
+            color: Colors.white,
+            elevation: 3,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            onSelected: (f) {
+              if (f == _OrderDateFilter.custom) {
+                _pickCustomRange();
+              } else {
+                setState(() => _selectedDateFilter = f);
+              }
+            },
+            itemBuilder: (_) => [
+              for (final f in presets)
+                PopupMenuItem<_OrderDateFilter>(
+                  value: f,
+                  height: 44,
+                  child: Row(
+                    children: [
+                      Icon(
+                        f == _OrderDateFilter.custom
+                            ? Icons.date_range
+                            : Icons.event_note_outlined,
+                        size: 18,
+                        color: Colors.grey.shade600,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: CustomText(f.label, fontSize: 14),
+                      ),
+                      if (_selectedDateFilter == f)
+                        const Icon(Icons.check,
+                            size: 16, color: AppColors.primaryColor),
+                    ],
+                  ),
+                ),
+            ],
+            child: Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: isFiltered ? AppColors.buttonLiteBlue : Colors.white,
+                border: Border.all(
+                  color: isFiltered
+                      ? AppColors.primaryColor
+                      : Colors.grey.shade300,
+                ),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.date_range,
+                    size: 16,
+                    color:
+                        isFiltered ? AppColors.primaryColor : Colors.black54,
+                  ),
+                  const SizedBox(width: 6),
+                  CustomText(
+                    triggerLabel,
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w500,
+                    color:
+                        isFiltered ? AppColors.primaryColor : Colors.black87,
+                  ),
+                  const SizedBox(width: 2),
+                  Icon(
+                    Icons.keyboard_arrow_down,
+                    size: 18,
+                    color:
+                        isFiltered ? AppColors.primaryColor : Colors.black54,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          if (isFiltered) ...[
+            const SizedBox(width: 8),
+            InkWell(
+              onTap: () => setState(() {
+                _selectedDateFilter = _OrderDateFilter.all;
+                _customRange = null;
+              }),
+              borderRadius: BorderRadius.circular(20),
+              child: Padding(
+                padding: const EdgeInsets.all(4),
+                child: Icon(Icons.close, size: 16, color: Colors.grey.shade600),
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }

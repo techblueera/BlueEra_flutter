@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:developer';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -18,13 +19,85 @@ class LocationService extends GetxService {
   // static RxList<String> userCurrentAddress = <String>[].obs;
   static bool isLoading = false;
 
+  /// Fallback coordinates pulled from the user's personal / business profile.
+  /// Used when device GPS is off so location-based APIs still work instead of
+  /// failing with 0,0. Set via [setProfileLocation] when a profile loads.
+  static double? profileLat;
+  static double? profileLng;
+
+  /// Reactive flag: true only when a real device GPS position was obtained.
+  /// Drives the app-wide "turn on location" banner. Profile-seeded coords do
+  /// NOT flip this on — they're a silent fallback, not real device location.
+  static final RxBool isDeviceLocationOn = false.obs;
+
+  /// Bumps whenever usable coordinates first become available (a GPS fix or a
+  /// profile seed). Lets screens that were built before location was ready
+  /// wait for it — see [ensureUsableLocation].
+  static final RxInt locationTick = 0.obs;
+
+  /// True when we have usable coordinates from either device GPS or the
+  /// profile fallback — i.e. location-based APIs can safely run.
+  static bool get hasUsableLocation => lat != 0.0 || lng != 0.0;
+
+  /// Resolves once usable coordinates exist — first trying a device GPS fetch,
+  /// then (if GPS is off) waiting briefly for a profile load that may still be
+  /// in flight to seed the fallback. Bounded by [timeout] so callers never
+  /// hang if neither source ever produces coordinates.
+  static Future<void> ensureUsableLocation({
+    Duration timeout = const Duration(seconds: 6),
+  }) async {
+    if (hasUsableLocation) return;
+
+    await fetchLocation();
+    if (hasUsableLocation) return;
+
+    // Device GPS gave nothing and the profile hasn't seeded yet — wait for the
+    // next location tick (e.g. profile finishes loading) or the timeout.
+    final completer = Completer<void>();
+    Worker? worker;
+    Timer? timer;
+    void finish() {
+      if (!completer.isCompleted) completer.complete();
+      worker?.dispose();
+      timer?.cancel();
+    }
+
+    worker = ever<int>(locationTick, (_) {
+      if (hasUsableLocation) finish();
+    });
+    timer = Timer(timeout, finish);
+    return completer.future;
+  }
+
+  /// Record the profile's stored location as a fallback and seed [lat]/[lng]
+  /// from it when device GPS hasn't provided coordinates yet.
+  static void setProfileLocation(double? pLat, double? pLng) {
+    if (pLat != null && pLat != 0.0) profileLat = pLat;
+    if (pLng != null && pLng != 0.0) profileLng = pLng;
+    seedFromProfileIfNeeded();
+  }
+
+  /// Fill [lat]/[lng] from the profile fallback only when device coords are
+  /// still empty. Real GPS values (set in [fetchLocation]) always win.
+  static void seedFromProfileIfNeeded() {
+    if (lat != 0.0 || lng != 0.0) return;
+    final pLat = profileLat ?? 0.0;
+    final pLng = profileLng ?? 0.0;
+    if (pLat != 0.0 && pLng != 0.0) {
+      lat = pLat;
+      lng = pLng;
+      locationTick.value++;
+      log('Location seeded from profile fallback: $lat, $lng');
+    }
+  }
+
   Future<bool> isLocationAvailable() async {
     final permission = await Permission.location.status;
     final gps = await Geolocator.isLocationServiceEnabled();
     return permission.isGranted && gps;
   }
 
-  static Future<String> getAddressUsingLatLng({required double latitude,required double longitude})async{
+  static Future<String> getAddressUsingLatLng({required double latitude,required double longitude}) async {
     final placeMarks = await placemarkFromCoordinates(latitude, longitude);
 
     if (placeMarks.isNotEmpty) {
@@ -58,6 +131,7 @@ class LocationService extends GetxService {
 
       // Permanently denied
       if (permission.isPermanentlyDenied) {
+        isDeviceLocationOn.value = false;
         if (openSettingsOnDeny) {
           await openAppSettings();
 
@@ -71,6 +145,7 @@ class LocationService extends GetxService {
         final result = await Permission.location.request();
 
         if (result.isDenied || result.isRestricted || result.isPermanentlyDenied) {
+          isDeviceLocationOn.value = false;
           if (openSettingsOnDeny) {
             await openAppSettings();
           }
@@ -88,7 +163,10 @@ class LocationService extends GetxService {
 
         // re-check
         serviceEnabled = await Geolocator.isLocationServiceEnabled();
-        if (!serviceEnabled) return null;
+        if (!serviceEnabled) {
+          isDeviceLocationOn.value = false;
+          return null;
+        }
       }
 
       // Step 3: Get location
@@ -100,6 +178,8 @@ class LocationService extends GetxService {
 
       lat = position.latitude;
       lng = position.longitude;
+      isDeviceLocationOn.value = true;
+      locationTick.value++;
       log('lat--> $lat, lng--> $lng');
 
       // Step 4: Get address
@@ -128,95 +208,15 @@ class LocationService extends GetxService {
       };
     } catch (e) {
       debugPrint('Location error: $e');
+      isDeviceLocationOn.value = false;
       return null;
     } finally {
       isLoading = false;
+      // Whenever device coords are unavailable, fall back to the profile
+      // location so downstream APIs don't run with 0,0.
+      seedFromProfileIfNeeded();
     }
   }
-
-
-  /// 📌 Get formatted address parts as a list
-  // static List<String> _composeAddress(
-  //     {String? thoroughfare,
-  //     String? subLocality,
-  //     String? locality,
-  //     String? administrativeArea,
-  //     String? country,
-  //     String? postalCode}) {
-  //   final List<String> parts = [];
-  //
-  //   if (thoroughfare?.isNotEmpty ?? false) {
-  //     parts.add(thoroughfare!);
-  //   }
-  //   if (subLocality?.isNotEmpty ?? false) {
-  //     parts.add(subLocality!);
-  //   }
-  //   if (locality?.isNotEmpty ?? false) {
-  //     parts.add(locality!);
-  //   }
-  //   if (administrativeArea?.isNotEmpty ?? false) {
-  //     parts.add(administrativeArea!);
-  //   }
-  //   if (country?.isNotEmpty ?? false) {
-  //     parts.add(country!);
-  //   }
-  //   if (postalCode?.isNotEmpty ?? false) {
-  //     parts.add(postalCode!);
-  //   }
-  //
-  //   return parts;
-  // }
-
-  /// Helper: Show a permission alert dialog with optional settings redirection
-  // static Future<void> _showPermissionDialog({
-  //   required String title,
-  //   required String message,
-  //   bool openAppSettingsOnConfirm = false,
-  //   bool openLocationSettingsOnConfirm = false,
-  //   String confirmText = "OK",
-  // }) async {
-  //   return Get.dialog(
-  //     AlertDialog(
-  //       backgroundColor: AppColors.white,
-  //       title: CustomText(
-  //         title,
-  //         color: AppColors.black28,
-  //         fontWeight: FontWeight.w700,
-  //       ),
-  //       content: CustomText(
-  //         message,
-  //         color: AppColors.black28,
-  //       ),
-  //       actions: [
-  //           TextButton(
-  //             onPressed: () => Get.back(),
-  //             child: CustomText(
-  //               "Cancel",
-  //               color: AppColors.red,
-  //               fontWeight: FontWeight.w600,
-  //             ),
-  //           ),
-  //           TextButton(
-  //           onPressed: () async {
-  //             Get.back(); // close the dialog first
-  //             // Perform the required action after closing dialog
-  //             if (openAppSettingsOnConfirm) {
-  //               await openAppSettings();
-  //             } else if (openLocationSettingsOnConfirm) {
-  //               await Geolocator.openLocationSettings();
-  //             }
-  //           },
-  //           child: CustomText(
-  //             confirmText,
-  //             color: AppColors.primaryColor,
-  //             fontWeight: FontWeight.w600,
-  //           ),
-  //         ),
-  //       ],
-  //     ),
-  //     barrierDismissible: false,
-  //   );
-  // }
 
   static Position? _lastPosition;
 

@@ -44,6 +44,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/location_permission_banner.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
 import 'package:get/get.dart';
@@ -255,7 +256,12 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   }
 
   Future<void> _checkAndFetchLocationData() async {
-    await LocationService.fetchLocation();
+    // Cold start already kicks off a fetch in main._initDeferred; only
+    // fetch here if that hasn't populated coords yet (avoids a duplicate
+    // permission prompt / position request).
+    if (LocationService.lat == 0.0 && LocationService.lng == 0.0) {
+      await LocationService.fetchLocation();
+    }
   }
 
   void _getAllCategories() {
@@ -451,28 +457,28 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
                       offset: showBar ? Offset.zero : const Offset(0, 1),
                       duration: const Duration(milliseconds: 300),
                       curve: Curves.easeInOut,
-                      child: BottomNavigationBarWidget(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // App-wide "turn on location" nudge, sits directly
+                          // above the bottom nav. Self-hides when GPS is on.
+                          const LocationPermissionBanner(),
+                          BottomNavigationBarWidget(
                         onHeaderVisibilityChanged: _toggleAppBar,
                         isBottomNavVisible: isVisible,
                         currentIndex: bottomBarController.currentIndex.value,
                         showShadow: true,
                         onTap: (index) async {
                           // Tabs: 0=Me, 1=Discover, 2=Connect, 3=Order.
-
-                          /// Me (0) and Discover (1) need location permission.
-                          if (index == 0 || index == 1) {
-                            if (LocationService.lat == 0.0 ||
-                                LocationService.lng == 0.0) {
-                              await LocationService.askLocationPermission();
-                            } else {
-                              bottomBarController.onChangeIndex(index);
-                            }
-                          }
+                          // Location is fetched at app start (and on resume via
+                          // AppLifecycleHandler), so tab changes no longer gate
+                          // on lat/lng — gating blocked navigation when the
+                          // first-launch fetch hadn't completed yet.
 
                           /// Order/Chat (3) prompts for notification permission
                           /// but no longer blocks navigation if the user skips —
                           /// the prompt itself surfaces a follow-up warning.
-                          else if (index == 3) {
+                          if (index == 3) {
                             await AppNotificationHandler()
                                 .checkNotificationPermission();
                             if (chatViewController.chatMainTabController !=
@@ -486,13 +492,12 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
                                 ChatEmitEvents.ChatList, {
                               ApiKeys.type: AppConstants.personal_Chat_Type
                             });
-                            bottomBarController.onChangeIndex(index);
-                          } else {
-                            bottomBarController.onChangeIndex(index);
-                            // Stay on the same screen until permission is granted
                           }
+                          bottomBarController.onChangeIndex(index);
                         },
                         chatNotificationCount: chatNotificationCount,
+                          ),
+                        ],
                       ),
                     ),
                   );

@@ -25,7 +25,7 @@ import 'package:BlueEra/features/business/widgets/business_qrcode_widget.dart';
 import 'package:BlueEra/features/business/widgets/business_share_banner.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/view/add_symbol/add_symbol_screen.dart';
-import 'package:BlueEra/features/chat/view/orders_chat/orders_chat_list.dart';
+import 'package:BlueEra/features/chat/view/business_chat/business_chat_list.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
@@ -92,7 +92,7 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
     // ConnectMainPage does for its Order tab.
     _chatViewController.emitEvent(
       ChatEmitEvents.ChatList,
-      {ApiKeys.type: AppConstants.order_Chat_Type},
+      {ApiKeys.type: AppConstants.business_Chat_Type},
     );
     // Fire the API(s) backing the tab the screen lands on (Overview by
     // default). Switching tabs later will fire other tabs' APIs lazily
@@ -145,7 +145,7 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
       case 0:
         _chatViewController.emitEvent(
           ChatEmitEvents.ChatList,
-          {ApiKeys.type: AppConstants.order_Chat_Type},
+          {ApiKeys.type: AppConstants.business_Chat_Type},
         );
         if (Get.isRegistered<ContributionController>()) {
           await Get.find<ContributionController>().fetchCurrent();
@@ -437,9 +437,10 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
       Builder(builder: (_) {
         debugPrint('[GroceryHomeV2] excludeSenderId(userId) = "$userId" '
             '| businessId="${widget.businessId}"');
-        return OrdersTabView(
+        return BusinessChatsList(
           excludeSenderId: userId,
           isInParentScroll: true,
+          showDateFilter: true,
         );
       }),
     ];

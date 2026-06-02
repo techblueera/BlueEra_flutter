@@ -5,7 +5,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/Discover/view/discover_screen.dart';
-import 'package:BlueEra/features/common/Discover/view/home_made_food_screen.dart';
+import 'package:BlueEra/features/common/Discover/view/home_made_food_discover_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/grid_icon_image_widget.dart';
 import 'package:BlueEra/features/me/food/view/customer/restaurant_near_me_screen.dart';
 import 'package:flutter/material.dart';
@@ -45,7 +45,7 @@ class GroceryCardWidget extends StatelessWidget {
                     Get.to(() => const RestaurantNearMeScreen());
                     // _chooseFoodOption();
                   } else {
-                    Get.to(() => const HomeMadeFoodScreen());
+                    Get.to(() => const HomeMadeFoodDiscoverScreen());
                   }
                 },
               ),

@@ -3,6 +3,7 @@ import 'dart:developer';
 
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/services/business_profile_cache.dart';
+import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/core/api/model/type_of_business_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
@@ -239,6 +240,13 @@ class ViewBusinessDetailsController extends GetxController {
     required bool persistPrefs,
   }) async {
     businessProfileDetails.value = ViewBusinessProfileModel.fromJson(data);
+
+    /// Seed the location fallback from the business profile so nearby APIs
+    /// still work when device GPS is off.
+    LocationService.setProfileLocation(
+      businessProfileDetails.value?.data?.businessLocation?.lat?.toDouble(),
+      businessProfileDetails.value?.data?.businessLocation?.lon?.toDouble(),
+    );
 
     selectDay?.value =
         businessProfileDetails.value?.data?.dateOfIncorporation?.date ?? 0;

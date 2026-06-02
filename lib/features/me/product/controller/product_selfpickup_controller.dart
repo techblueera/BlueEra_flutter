@@ -203,8 +203,10 @@ class ProductSelfPickupController extends GetxController {
 
       ChatViewController chatViewController =
           getOrPut(() => ChatViewController());
-      chatViewController.emitEvent(ChatEmitEvents.ChatList, {ApiKeys.type: AppConstants.order_Chat_Type},);
-      chatViewController.onSelectChatTab(2);
+      chatViewController.emitEvent(ChatEmitEvents.ChatList, {ApiKeys.type: AppConstants.business_Chat_Type},);
+      // Land on the Inquiry (business) tab — the placed order is a buyer-side
+      // business chat, so it surfaces there under the merged BusinessChatsList.
+      chatViewController.onSelectChatTab(1);
 
 
       Get.until((route) =>

@@ -33,6 +33,62 @@ class EarnProfileResponse {
   }
 }
 
+/// Response for `GET earn-service/earn-profiles?profileType=...` — a flat list
+/// of earn-profile objects (the store/kitchen/provider profiles) plus
+/// pagination. Used by the Discover home-made-food / product / service lists.
+class EarnProfilesListResponse {
+  final bool success;
+  final List<EarnProfileModel> data;
+  final EarnProfilePagination? pagination;
+
+  const EarnProfilesListResponse({
+    this.success = false,
+    this.data = const [],
+    this.pagination,
+  });
+
+  factory EarnProfilesListResponse.fromJson(Map<String, dynamic> json) {
+    final rawList = json['data'];
+    return EarnProfilesListResponse(
+      success: json['success'] ?? false,
+      data: rawList is List
+          ? rawList
+              .whereType<Map<String, dynamic>>()
+              .map(EarnProfileModel.fromJson)
+              .toList()
+          : const [],
+      pagination: json['pagination'] is Map<String, dynamic>
+          ? EarnProfilePagination.fromJson(
+              json['pagination'] as Map<String, dynamic>)
+          : null,
+    );
+  }
+}
+
+/// Pagination metadata for earn-profile / home-food list responses.
+class EarnProfilePagination {
+  final int totalCount;
+  final int page;
+  final int limit;
+  final int totalPages;
+
+  const EarnProfilePagination({
+    this.totalCount = 0,
+    this.page = 1,
+    this.limit = 20,
+    this.totalPages = 1,
+  });
+
+  factory EarnProfilePagination.fromJson(Map<String, dynamic> json) {
+    return EarnProfilePagination(
+      totalCount: json['totalCount'] ?? 0,
+      page: json['page'] ?? 1,
+      limit: json['limit'] ?? 20,
+      totalPages: json['totalPages'] ?? 1,
+    );
+  }
+}
+
 class EarnProfileUploadUrls {
   final String? serviceLogo;
   final String? coverImage;

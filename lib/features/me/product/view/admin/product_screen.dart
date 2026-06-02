@@ -16,7 +16,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
-import 'package:BlueEra/features/chat/view/orders_chat/orders_chat_list.dart';
+import 'package:BlueEra/features/chat/view/business_chat/business_chat_list.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
@@ -70,7 +70,7 @@ class _ProductScreenState extends State<ProductScreen>
     // ConnectMainPage does for its Order tab.
     _chatViewController.emitEvent(
       ChatEmitEvents.ChatList,
-      {ApiKeys.type: AppConstants.order_Chat_Type},
+      {ApiKeys.type: AppConstants.business_Chat_Type},
     );
   }
 
@@ -129,7 +129,7 @@ class _ProductScreenState extends State<ProductScreen>
         // Orders: re-pull the order chat list + recharge status.
         _chatViewController.emitEvent(
           ChatEmitEvents.ChatList,
-          {ApiKeys.type: AppConstants.order_Chat_Type},
+          {ApiKeys.type: AppConstants.business_Chat_Type},
         );
         if (Get.isRegistered<ContributionController>()) {
           await Get.find<ContributionController>().fetchCurrent();
@@ -367,9 +367,10 @@ class _ProductScreenState extends State<ProductScreen>
       // CustomScrollView owns the scroll â€” no fixed height needed.
       // The parent SliverToBoxAdapter's left: 20 padding insets the
       // orders list naturally â€” no Transform needed.
-      OrdersTabView(
+      BusinessChatsList(
         excludeSenderId: userId,
         isInParentScroll: true,
+        showDateFilter: true,
       ),
     ];
   }

@@ -57,6 +57,13 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
   /// 0=Overview, 1=Bookings, 2=Professionals, 3=Shopping, 4=Services
   int _activeTabIndex = 0;
 
+  /// Every Discover section fetches against the user's lat/lng, so we hold
+  /// the sections back behind the shimmer until the location attempt has
+  /// resolved — otherwise on first launch they'd fire with 0,0. Flips true
+  /// once coords are available OR the fetch attempt finishes (even if the
+  /// user denied permission, so we never block forever).
+  bool _locationResolved = false;
+
   /// Section list with the set of tab indices each section belongs to.
   /// Tab 0 (Overview) shows everything, so it's not listed explicitly.
   ///
@@ -118,7 +125,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
     return SliverToBoxAdapter(
       child: Obx(() {
         final auth = Get.find<AuthController>();
-        if (auth.isInitialCategoriesLoading.value) {
+        if (auth.isInitialCategoriesLoading.value || !_locationResolved) {
           return const _DiscoverSectionsShimmer();
         }
         return _buildSectionsColumn();
@@ -135,6 +142,19 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
     // Register controllers here not in build
     emergencyController = getOrPut(() => EmergencyProfileController());
 
+    // Gate the location-dependent sections until coords are ready (device GPS
+    // or the profile fallback). If already available, build immediately.
+    _locationResolved = LocationService.hasUsableLocation;
+    if (!_locationResolved) _ensureLocationThenBuild();
+  }
+
+  Future<void> _ensureLocationThenBuild() async {
+    // Wait for usable coords — device GPS, or a profile seed that may still be
+    // loading — before building the sections, so they don't fire with 0,0.
+    // Bounded internally, so a denied fetch with no profile fallback still
+    // releases the shimmer instead of hanging forever.
+    await LocationService.ensureUsableLocation();
+    if (mounted) setState(() => _locationResolved = true);
   }
 
   @override

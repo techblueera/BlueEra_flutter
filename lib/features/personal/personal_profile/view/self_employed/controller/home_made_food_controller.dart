@@ -46,14 +46,7 @@ class HomeMadeFoodController extends GetxController {
   final formKey = GlobalKey<FormState>();
 
   final foodTypeList = ['Veg', 'Non-Veg', 'Vegan'].obs;
-  final cookingMethodList =
-      ['Boiled', 'Fried', 'Grilled', 'Steamed', 'Baked'].obs;
-
-  @override
-  void onInit() {
-    super.onInit();
-    fetchAllItems();
-  }
+  final cookingMethodList = ['Boiled', 'Fried', 'Grilled', 'Steamed', 'Baked'].obs;
 
   //  check if category can add more (max 2)
   bool canAddMore(FoodCategoryType type) {

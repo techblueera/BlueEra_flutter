@@ -24,7 +24,7 @@ import 'package:BlueEra/features/business/widgets/business_qrcode_widget.dart';
 import 'package:BlueEra/features/business/widgets/business_share_banner.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/view/add_symbol/add_symbol_screen.dart';
-import 'package:BlueEra/features/chat/view/orders_chat/orders_chat_list.dart';
+import 'package:BlueEra/features/chat/view/business_chat/business_chat_list.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/controller/bottom_bar_controller.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
@@ -98,7 +98,7 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
     // ConnectMainPage does for its Order tab.
     _chatViewController.emitEvent(
       ChatEmitEvents.ChatList,
-      {ApiKeys.type: AppConstants.order_Chat_Type},
+      {ApiKeys.type: AppConstants.business_Chat_Type},
     );
     // Fire the API(s) backing the tab the screen lands on (Overview by
     // default). Switching tabs later will fire other tabs' APIs lazily
@@ -160,9 +160,7 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
     _fetchForTab(i);
   }
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // BUILD
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   @override
   Widget build(BuildContext context) {
     final topInset = MediaQuery.of(context).padding.top;
@@ -278,7 +276,7 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
       case 0:
         _chatViewController.emitEvent(
           ChatEmitEvents.ChatList,
-          {ApiKeys.type: AppConstants.order_Chat_Type},
+          {ApiKeys.type: AppConstants.business_Chat_Type},
         );
         if (Get.isRegistered<ContributionController>()) {
           await Get.find<ContributionController>().fetchCurrent();
@@ -328,14 +326,12 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
     }
   }
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // ORDER TAB â€” top slot is reactive to the contribution status:
   //   â€¢ Active recharge present â†’ premium "membership peek" card with
   //     plan name, perks-remaining strip, and a forward chevron that
   //     pushes ContributionScreen.
   //   â€¢ Otherwise â†’ the lavender "Contribute now" CTA.
   // The orders list itself is still a coming-soon placeholder.
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   List<Widget> _buildOrderTab() {
     // Lazy-register the contribution controller â€” its `onInit` fires
     // /recharge/plans + /recharge/current. Bound here (only when the
@@ -363,7 +359,7 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
         ),
       ),
       SizedBox(height: SizeConfig.size12),
-      // Incoming orders â€” same widget the Connect screen renders under
+
       // its Orders tab. Wrapped in a SizedBox because OrdersTabView
       // uses an Expanded ListView internally and needs a bounded
       // height. Translated -20 on x (and given matching width) to
@@ -371,25 +367,23 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
       // the filter pills and chat tiles align edge-to-edge like on
       // ConnectMainPage. `excludeSenderId: userId` hides chats whose
       // last message was authored by the merchant, leaving only
-      // incoming order pings â€” same approach as the Grocery screen.
       // `isInParentScroll: true` makes OrdersTabView drop its inner
       // `Expanded` and switch the orders ListView to
       // NeverScrollableScrollPhysics so the surrounding
       // CustomScrollView owns the scroll â€” no fixed height needed.
       // The parent SliverToBoxAdapter's left: 20 padding insets the
       // orders list naturally â€” no Transform needed.
-      OrdersTabView(
+      BusinessChatsList(
         excludeSenderId: userId,
         isInParentScroll: true,
+        showDateFilter: true,
       ),
     ];
   }
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // PEEK SKELETON â€” placeholder shown while /recharge/current is
   // in-flight. Matches the active-plan peek silhouette so the slot
   // doesn't jump height when the answer lands.
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _planPeekSkeleton() {
     return DecoratedBox(
       decoration: BoxDecoration(

@@ -101,7 +101,9 @@ class _HomeMadeFoodProfileScreenState extends State<HomeMadeFoodProfileScreen> {
       foodType: _selectedFoodType,
       address: _addressController.text.trim(),
       houseNumber: _houseNumberController.text.trim(),
-      alternatePhoneNumber: _altContactController.text.trim(),
+      alternatePhoneNumber: _altContactController.text.trim().isNotEmpty
+          ? _altContactController.text.trim()
+          : null,
       homeDelivery: _homeDelivery,
       monthlyPayment: _monthlyPayment,
       lat: _selectedLat,
@@ -109,8 +111,7 @@ class _HomeMadeFoodProfileScreenState extends State<HomeMadeFoodProfileScreen> {
       galleryImages: galleryFiles.isNotEmpty ? galleryFiles : null,
     );
 
-    if (success) {
-      Navigator.of(context).pop();
+    if (success && mounted) {
       Navigator.of(context).pop();
     }
   }
@@ -300,6 +301,7 @@ class _HomeMadeFoodProfileScreenState extends State<HomeMadeFoodProfileScreen> {
                 hintText: '1234567890',
                 keyBoardType: TextInputType.phone,
                 maxLength: 10,
+                isValidate: false,
               ),
             ),
           ],

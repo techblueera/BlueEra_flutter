@@ -335,6 +335,15 @@ class AppConstants {
   static const bookingServices = "Booking";
   static const homeServices = "Home Services";
 
+  /// Earn-service profile slugs that already have a dedicated dashboard.
+  /// If a user's `earnProfileType` is one of these, open the dashboard;
+  /// otherwise send them to the "choose earn service" screen.
+  static const Set<String> earnServiceProfileSlugs = {
+    'homeMadeFood',
+    'homeMadeProduct',
+    'homeService',
+  };
+
   //skilledWork ,consultant ,travel
   static const all = "All";
   static const skilledWork = "Skilled Work";

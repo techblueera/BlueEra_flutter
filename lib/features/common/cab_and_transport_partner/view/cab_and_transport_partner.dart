@@ -55,7 +55,7 @@ import 'package:intl/intl.dart';
 ///     "Document" (verification pending) and "My Order" (approved).
 ///     Body shows [CabsAndTransportPartnerOrders] when approved,
 ///     otherwise [RiderProfileStatusScreen] handles every other state.
-///   â€¢ Chat     â€” incoming order inquiries via [OrdersTabView] with
+///   â€¢ Chat     â€” incoming order inquiries via [BusinessChatsList] with
 ///     `excludeSenderId: userId` so the partner only sees conversations
 ///     awaiting a reply.
 ///   â€¢ Overview â€” personal profile (cover + identity + stats + actions)
