@@ -261,7 +261,8 @@ class ViewPersonalDetailsController extends GetxController {
           (user is Map) ? user['device_token']?.toString() : null;
       if (serverToken != null && serverToken.isNotEmpty) return;
 
-      // Ensure a token exists in secure storage (no-op if already cached).
+      // Fetch the live FCM token and reconcile it into secure storage
+      // (picks up a rotated token, not just an empty cache).
       await AppNotificationHandler.getFcmToken();
       final fcmToken = (await SharedPreferenceUtils.getSecureValue(
               SharedPreferenceUtils.notificationDeviceToken))

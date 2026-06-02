@@ -845,18 +845,16 @@ class AppNotificationHandler {
       sound: true,
     );
 
-    ///Get FCM Token..
-    await getFcmToken();
-
-    // Re-sync whatever token we have now with the backend. FCM's
-    // device_token is only POSTed inside verifyOTP at first login, so any
-    // token rotation since then leaves the server routing APNs/FCM pushes
-    // to a dead token — which is exactly why iOS bg/terminated chat
-    // notifications stopped arriving.
-    final cachedToken = await SharedPreferenceUtils.getSecureValue(
-        SharedPreferenceUtils.notificationDeviceToken);
-    if (cachedToken is String && cachedToken.isNotEmpty) {
-      await _registerDeviceTokenWithBackend(cachedToken);
+    /// Get the CURRENT FCM token (reconciles + updates the cache on rotation)
+    /// and re-sync it with the backend on every launch. FCM's device_token is
+    /// only POSTed inside verifyOTP at first login, so any token rotation
+    /// since then leaves the server routing APNs/FCM pushes to a dead token —
+    /// which is exactly why iOS terminated-state notifications worked once and
+    /// then went silent until the app was reopened. Syncing the LIVE token
+    /// here (not a possibly-stale cached read) heals that on every cold start.
+    final liveToken = await getFcmToken();
+    if (liveToken != null && liveToken.isNotEmpty) {
+      await _registerDeviceTokenWithBackend(liveToken);
     }
 
     // Persist rotated FCM tokens so the backend always has the current one.
@@ -962,8 +960,8 @@ class AppNotificationHandler {
       return;
     }
     try {
-      await ApiBaseHelper().putHTTP(
-        'user-service/user/updateUser',
+      await ApiBaseHelper().patchHTTP(
+        'user-service/user/me/device-token',
         params: {ApiKeys.device_token: token},
         showProgress: false,
         onError: (e) {
@@ -995,32 +993,55 @@ class AppNotificationHandler {
     return apns;
   }
 
-  ///get fcm token
-  static Future<void> getFcmToken() async {
-    final fcmToken = await SharedPreferenceUtils.getSecureValue(
-        SharedPreferenceUtils.notificationDeviceToken);
-    logs("fcmToken==== $fcmToken");
-    if (fcmToken == null || fcmToken.toString().isEmpty) {
-      FirebaseMessaging firebaseMessaging = FirebaseMessaging.instance;
-      try {
-        // On iOS, getToken() fails with apns-token-not-set if APNs has not
-        // yet attached a device token. Guard here in case callers invoke
-        // getFcmToken() outside the init flow.
-        if (Platform.isIOS) {
-          final apns = await firebaseMessaging.getAPNSToken();
-          if (apns == null || apns.isEmpty) {
-            print("=========fcm- skipped: APNS token not ready on iOS");
-            return;
-          }
+  /// Fetch the CURRENT FCM token, reconcile it with the cached copy, and
+  /// return the live token so the caller can re-sync it with the backend.
+  ///
+  /// BUG FIX: previously this only called getToken() when the cache was
+  /// EMPTY — once a token was cached it was never re-fetched. iOS re-binds
+  /// the APNs↔FCM token on reinstall, restore-from-backup and OS updates,
+  /// and FCM rotates tokens periodically. When that happened the stale
+  /// cached token kept being re-sent to the backend, every push routed to a
+  /// dead token, and terminated-state notifications silently stopped after
+  /// the first one — until the user reopened the app and `onTokenRefresh`
+  /// happened to fire. Now we always ask the SDK for the live token and
+  /// update the cache when it differs, so the backend gets the current token
+  /// on every cold start.
+  static Future<String?> getFcmToken() async {
+    final firebaseMessaging = FirebaseMessaging.instance;
+
+    Future<String?> cached() async {
+      final v = await SharedPreferenceUtils.getSecureValue(
+          SharedPreferenceUtils.notificationDeviceToken);
+      return (v is String && v.isNotEmpty) ? v : null;
+    }
+
+    try {
+      // On iOS, getToken() fails with apns-token-not-set if APNs has not yet
+      // attached a device token. Fall back to the cached value so the caller
+      // can still re-sync whatever we last had.
+      if (Platform.isIOS) {
+        final apns = await firebaseMessaging.getAPNSToken();
+        if (apns == null || apns.isEmpty) {
+          print("=========fcm- skipped: APNS token not ready on iOS");
+          return cached();
         }
-        String? newFcmToken = await firebaseMessaging.getToken();
-        await SharedPreferenceUtils.setSecureValue(
-            SharedPreferenceUtils.notificationDeviceToken, newFcmToken);
-        print("=========fcm-token===$newFcmToken =====END ");
-      } catch (e) {
-        print("=========fcm- Error :$e");
-        return;
       }
+
+      final liveToken = await firebaseMessaging.getToken();
+      if (liveToken == null || liveToken.isEmpty) {
+        return cached();
+      }
+
+      final previous = await cached();
+      if (previous != liveToken) {
+        await SharedPreferenceUtils.setSecureValue(
+            SharedPreferenceUtils.notificationDeviceToken, liveToken);
+        print("=========fcm-token=== updated (rotated): $liveToken");
+      }
+      return liveToken;
+    } catch (e) {
+      print("=========fcm- Error :$e");
+      return cached();
     }
   }
 
