@@ -1,5 +1,6 @@
+https://be.beapp.in/api/user-service/user/me/device-token
 
-
+https://be.beapp.in/api/user-service/user/updateUser
 api login otp verification ===>D token===>spstore====>logout 123
 
 api update api ===> D token===>store==>api wotking ===
