@@ -78,6 +78,13 @@ class ChatViewRepo extends BaseService {
         params: params, onError: (error) {}, onSuccess: (data) {});
     return response;
   }
+  Future<ResponseModel> getUserByPhoneApi(String phone) async {
+    final response = await ApiBaseHelper().getHTTP(
+        getUserByPhone(phone),
+        showProgress: false,
+        onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
   Future<ResponseModel> checkChatConnectionApi(Map<String, dynamic> params) async {
     final response = await ApiBaseHelper().getHTTP(
         checkChatConnection,

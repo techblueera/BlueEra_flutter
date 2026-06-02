@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 
 import '../../../auth/controller/chat_theme_controller.dart';
 import '../../../auth/controller/chat_view_controller.dart';
+import '../../../auth/controller/ai_chat_profile_controller.dart';
 import '../../widget/component_widgets.dart';
 import 'ai_chat_message_view_screen.dart';
 
@@ -28,12 +29,18 @@ class AiChatScreen extends StatefulWidget {
 class _AiChatScreenState extends State<AiChatScreen> {
   final chatViewController = Get.find<ChatViewController>();
   final chatThemeController = Get.find<ChatThemeController>();
+  final aiChatProfileController = Get.isRegistered<AiChatProfileController>()
+      ? Get.find<AiChatProfileController>()
+      : Get.put(AiChatProfileController());
 
   @override
   void initState() {
     chatViewController.sendMessageController.value.clear();
     chatViewController.isTextFieldEmpty.value = false;
     chatThemeController.resetSelection();
+    // Load locally-saved name/image/mute for this AI chat so the appbar shows
+    // the personalized values.
+    aiChatProfileController.loadForType(widget.type ?? '');
     chatViewController.connectAiSocket(widget.type ?? '');
     super.initState();
   }

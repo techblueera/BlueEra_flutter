@@ -130,6 +130,43 @@ class _MessageBubbleState extends State<MessageBubble> {
       ),
     );
   }
+  /// Splits [text] into inline spans, rendering any standalone 10-digit Indian
+  /// mobile number (starts 6–9) as a tappable link. Tapping resolves the
+  /// number to a BlueEra user and opens the details bottom sheet.
+  List<InlineSpan> _buildPhoneAwareSpans(String text, TextStyle baseStyle) {
+    final phoneReg = RegExp(r'(?<!\d)([6-9]\d{9})(?!\d)');
+    final matches = phoneReg.allMatches(text).toList();
+    if (matches.isEmpty) {
+      return [TextSpan(text: text, style: baseStyle)];
+    }
+    final spans = <InlineSpan>[];
+    int last = 0;
+    for (final m in matches) {
+      if (m.start > last) {
+        spans.add(TextSpan(text: text.substring(last, m.start), style: baseStyle));
+      }
+      final phone = m.group(0)!;
+      spans.add(TextSpan(
+        text: phone,
+        style: baseStyle.copyWith(
+          color: AppColors.primaryColor,
+          fontWeight: FontWeight.w600,
+          decoration: TextDecoration.underline,
+        ),
+        recognizer: TapGestureRecognizer()
+          ..onTap = () {
+            FocusScope.of(context).unfocus();
+            chatViewController.openUserDetailsByPhone(phone);
+          },
+      ));
+      last = m.end;
+    }
+    if (last < text.length) {
+      spans.add(TextSpan(text: text.substring(last), style: baseStyle));
+    }
+    return spans;
+  }
+
   String? _getReplyMediaUrl() {
     final parent = widget.messages.replyParentMessage;
     if (parent?.url != null && parent!.url!.isNotEmpty) {
@@ -293,11 +330,11 @@ class _MessageBubbleState extends State<MessageBubble> {
                                         : RichText(
                                             text: TextSpan(
                                               children: [
-                                                TextSpan(
-                                                  text: (widget.message.length <= 100)
+                                                ..._buildPhoneAwareSpans(
+                                                  (widget.message.length <= 100)
                                                       ? widget.message
                                                       : widget.message.substring(0, 100),
-                                                  style: chatThemeController.chatTextStyle(
+                                                  chatThemeController.chatTextStyle(
                                                     fontWeight: FontWeight.w500,
                                                     isMyMessage: !widget.isReceiveMsg,
                                                   ),

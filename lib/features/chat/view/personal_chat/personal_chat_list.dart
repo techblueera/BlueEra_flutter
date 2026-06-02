@@ -9,6 +9,7 @@ import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/constants/getx_utils.dart';
 import '../../../../core/constants/size_config.dart';
+import '../../../../core/services/local_strorage_helper.dart';
 import '../../auth/controller/chat_lock_controller.dart';
 import '../../auth/controller/chat_pin_archive_controller.dart';
 import '../../auth/controller/chat_view_controller.dart';
@@ -45,6 +46,28 @@ class _PersonalChatsListState extends State<PersonalChatsList> {
   final pinArchiveController = getOrPut(() => ChatPinArchiveController());
   final lockController = getOrPut(() => ChatLockController());
 
+  // Locally-personalized name/image for the personal AI chat row. Loaded from
+  // [AiChatProfileStorage] and refreshed when returning from the AI chat
+  // screen so a rename/avatar change made there is reflected in this list.
+  String _aiName = '';
+  String _aiImage = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAiProfile();
+  }
+
+  Future<void> _loadAiProfile() async {
+    const aiType = AppConstants.personal_Chat_Type;
+    final name = (await AiChatProfileStorage.getName(aiType)) ?? '';
+    final image = (await AiChatProfileStorage.getImagePath(aiType)) ?? '';
+    if (!mounted) return;
+    setState(() {
+      _aiName = name;
+      _aiImage = image;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -187,6 +210,14 @@ Widget personalChatListWidget(GetChatListModel? data,ThemeData theme ){
           // AI chat right after Records row
           if (index == recordsOffset && widget.hideAiChats != true) {
             final chat = ChatViewController.personalAiChatModule;
+            // Apply the locally-saved custom name/image so the row matches
+            // what the user set inside the AI chat screen.
+            if (_aiName.isNotEmpty) {
+              chat?.sender?.name = _aiName;
+            }
+            if (_aiImage.isNotEmpty) {
+              chat?.sender?.profileImage = _aiImage;
+            }
             final isInSelectionMode = chatViewController.isChatListSelectionMode.value;
             final isChatSelected = chatViewController.selectedConversationIds
                 .contains(chat?.conversationId ?? '');
@@ -202,7 +233,7 @@ Widget personalChatListWidget(GetChatListModel? data,ThemeData theme ){
                   profileImage: chat?.sender?.profileImage,
                   name: chat?.sender?.name,
                   type: chat?.sender?.accountType,
-                ));
+                ))?.then((_) => _loadAiProfile());
               } : null,
               isFromGroupSelect: widget.isNewGroupUI,
               onLongPress: () {
