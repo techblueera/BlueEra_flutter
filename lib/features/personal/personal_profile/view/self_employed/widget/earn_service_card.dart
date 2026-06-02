@@ -2,8 +2,11 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/self_employed/controller/earn_service_controller.dart';
+import 'package:BlueEra/widgets/collapsible_grid_model.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -15,6 +18,9 @@ class EarnServiceCard extends StatelessWidget {
     super.key,
     this.margin = const EdgeInsets.symmetric(horizontal: 14),
   });
+
+  EarnServiceController get _controller =>
+      getOrPut(() => EarnServiceController());
 
   @override
   Widget build(BuildContext context) {
@@ -60,6 +66,8 @@ class EarnServiceCard extends StatelessWidget {
                     context: context,
                     icon: Icons.restaurant_rounded,
                     label: 'Home Made Food',
+                    slugId: HOME_MADE_FOOD,
+                    profileType: 'homeMadeFood',
                     accentColor: const Color(0xFFE8590C),
                     bgColor: const Color(0xFFFFF1E9),
                   ),
@@ -68,6 +76,8 @@ class EarnServiceCard extends StatelessWidget {
                     context: context,
                     icon: Icons.shopping_bag_rounded,
                     label: 'Home Made Product',
+                    slugId: HOME_MADE_PRODUCTS,
+                    profileType: 'homeMadeProduct',
                     accentColor: const Color(0xFF0086FF),
                     bgColor: const Color(0xFFEBF5FF),
                   ),
@@ -76,6 +86,8 @@ class EarnServiceCard extends StatelessWidget {
                     context: context,
                     icon: Icons.home_repair_service_rounded,
                     label: 'Home Service',
+                    slugId: HOME_SERVICES,
+                    profileType: 'homeService',
                     accentColor: const Color(0xFF00B87A),
                     bgColor: const Color(0xFFE6FAF3),
                   ),
@@ -165,6 +177,8 @@ class EarnServiceCard extends StatelessWidget {
     required BuildContext context,
     required IconData icon,
     required String label,
+    required String slugId,
+    required String profileType,
     required Color accentColor,
     required Color bgColor,
   }) {
@@ -175,10 +189,16 @@ class EarnServiceCard extends StatelessWidget {
         final earnType =
             (viewProfileController.earnProfileType.value ?? '').trim();
         debugPrint('earn profile type -- $earnType');
-        if (AppConstants.earnServiceProfileSlugs.contains(earnType)) {
+        // Open the dashboard only when the user's existing earn profile is of
+        // the SAME type as the tapped option; otherwise route to that option's
+        // create flow.
+        if (earnType == profileType) {
           Get.toNamed(RouteHelper.getEarnServiceDashboardViewRoute());
         } else {
-          Get.toNamed(RouteHelper.getChooseEarnServiceScreenRoute());
+          _controller.handleServiceTap(
+            context,
+            CollapsibleGridModel(name: label, slugId: slugId, icon: ''),
+          );
         }
       },
       borderRadius: radius,

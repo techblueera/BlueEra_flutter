@@ -213,8 +213,7 @@ class _HomeMadeFoodDiscoverScreenState extends State<HomeMadeFoodDiscoverScreen>
             footerLabel: 'View Kitchen Menu',
             emptyMessage: 'No home made food kitchens found nearby.',
             bottomPadding: 96,
-            onStoreTap: (store) =>
-                Get.to(() => HomeMadeFoodStoreDetailsDiscoverScreen(store: store)),
+            onStoreTap: (store) => Get.to(() => HomeMadeFoodStoreDetailsDiscoverScreen(store: store)),
           ),
         ),
       ],
