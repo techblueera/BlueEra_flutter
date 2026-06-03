@@ -217,7 +217,7 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
 
           const SizedBox(height: 28),
           CustomText(
-            'Application Submitted\nSuccessfully!',
+            AppStrings.applicationSubmittedSuccessfully.tr,
             fontSize: SizeConfig.extraLarge,
             fontWeight: FontWeight.bold,
             color: AppColors.mainTextColor,
@@ -240,7 +240,7 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
                 const SizedBox(width: 12),
                 Expanded(
                   child: CustomText(
-                    'Your profile is under verification. We will notify you once your profile is verified.',
+                    AppStrings.profileUnderVerificationMsg.tr,
                     fontSize: SizeConfig.small,
                     color: AppColors.mainTextColor,
                     maxLines: 4,
@@ -271,7 +271,7 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 CustomText(
-                  'What happens next?',
+                  AppStrings.whatHappensNext.tr,
                   fontSize: SizeConfig.medium,
                   fontWeight: FontWeight.w600,
                   color: AppColors.mainTextColor,
@@ -279,22 +279,22 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
                 const SizedBox(height: 14),
                 _buildTimelineStep(
                   icon: Icons.fact_check_rounded,
-                  title: 'Document Review',
-                  subtitle: 'Our team will verify all your uploaded documents',
+                  title: AppStrings.documentReview.tr,
+                  subtitle: AppStrings.documentReviewSubtitle.tr,
                   isActive: true,
                 ),
                 _buildTimelineConnector(),
                 _buildTimelineStep(
                   icon: Icons.notifications_active_rounded,
-                  title: 'Get Notified',
-                  subtitle: 'You\'ll receive a notification once approved',
+                  title: AppStrings.getNotified.tr,
+                  subtitle: AppStrings.getNotifiedSubtitle.tr,
                   isActive: false,
                 ),
                 _buildTimelineConnector(),
                 _buildTimelineStep(
                   icon: Icons.delivery_dining_rounded,
-                  title: 'Start Delivering',
-                  subtitle: 'Accept orders and start earning',
+                  title: AppStrings.startDelivering.tr,
+                  subtitle: AppStrings.startDeliveringSubtitle.tr,
                   isActive: false,
                 ),
               ],
@@ -422,14 +422,14 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       CustomText(
-                        'Profile Verified',
+                        AppStrings.profileVerified.tr,
                         fontSize: SizeConfig.large,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
                       ),
                       const SizedBox(height: 4),
                       CustomText(
-                        'You\'re all set to accept deliveries!',
+                        AppStrings.allSetToAcceptDeliveries.tr,
                         fontSize: SizeConfig.small,
                         color: Colors.white.withAlpha(220),
                         maxLines: 2,
@@ -475,7 +475,7 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
                 ),
                 const SizedBox(height: 16),
                 CustomText(
-                  'No Orders Yet',
+                  AppStrings.noOrdersYet.tr,
                   fontSize: SizeConfig.medium,
                   fontWeight: FontWeight.w600,
                   color: AppColors.mainTextColor,
@@ -483,7 +483,7 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
                 ),
                 const SizedBox(height: 8),
                 CustomText(
-                  'New delivery requests will appear here.\nStay online to receive orders nearby.',
+                  AppStrings.noOrdersYetSubtitle.tr,
                   fontSize: SizeConfig.small,
                   color: AppColors.secondaryTextColor,
                   textAlign: TextAlign.center,
@@ -514,7 +514,7 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 CustomText(
-                  'Tips to Get More Orders',
+                  AppStrings.tipsToGetMoreOrders.tr,
                   fontSize: SizeConfig.medium,
                   fontWeight: FontWeight.w600,
                   color: AppColors.mainTextColor,
@@ -523,25 +523,25 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
                 _buildTipRow(
                   icon: Icons.location_on_rounded,
                   color: const Color(0xFFE53935),
-                  text: 'Stay in high-demand areas for faster pickups',
+                  text: AppStrings.tipStayHighDemand.tr,
                 ),
                 const SizedBox(height: 12),
                 _buildTipRow(
                   icon: Icons.access_time_rounded,
                   color: const Color(0xFFFFA000),
-                  text: 'Peak hours: 11 AM - 2 PM & 6 PM - 10 PM',
+                  text: AppStrings.tipPeakHours.tr,
                 ),
                 const SizedBox(height: 12),
                 _buildTipRow(
                   icon: Icons.star_rounded,
                   color: const Color(0xFF4CAF50),
-                  text: 'Maintain good ratings to get priority orders',
+                  text: AppStrings.tipMaintainRatings.tr,
                 ),
                 const SizedBox(height: 12),
                 _buildTipRow(
                   icon: Icons.wifi_rounded,
                   color: AppColors.primaryColor,
-                  text: 'Keep your internet connection stable',
+                  text: AppStrings.tipStableInternet.tr,
                 ),
               ],
             ),
@@ -605,7 +605,7 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
           const SizedBox(width: 12),
           Expanded(
             child: CustomText(
-              'Your verification was rejected. Please review and re-upload the required documents.',
+              AppStrings.verificationRejectedMsg.tr,
               fontSize: SizeConfig.small,
               color: AppColors.mainTextColor,
               maxLines: 3,
@@ -641,7 +641,7 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
           ],
         ),
         child: CustomText(
-          'Joined - $formatted',
+          '${AppStrings.joinedLabel.tr} - $formatted',
           fontSize: SizeConfig.small,
           fontWeight: FontWeight.w500,
           color: AppColors.mainTextColor,
@@ -655,7 +655,7 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
   Widget _buildSubmitButton() {
     return CustomBtn(
       onTap: () => _showSubmitConfirmationDialog(),
-      title: 'Submit for Verification',
+      title: AppStrings.submitForVerification.tr,
       bgColor: AppColors.primaryColor,
       radius: 12,
       isValidate: true,
@@ -686,7 +686,7 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
               ),
               const SizedBox(height: 16),
               CustomText(
-                'Submit Application?',
+                AppStrings.submitApplicationQuestion.tr,
                 fontSize: SizeConfig.large,
                 fontWeight: FontWeight.bold,
                 color: AppColors.mainTextColor,
@@ -694,7 +694,7 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
               ),
               const SizedBox(height: 10),
               CustomText(
-                'Please make sure all your documents are correct. Once submitted, your application will be reviewed by our team.',
+                AppStrings.submitApplicationConfirmMsg.tr,
                 fontSize: SizeConfig.small,
                 color: AppColors.secondaryTextColor,
                 textAlign: TextAlign.center,
@@ -706,7 +706,7 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
                   Expanded(
                     child: CustomBtn(
                       onTap: () => Get.back(),
-                      title: 'Cancel',
+                      title: AppStrings.cancel.tr,
                       bgColor: Colors.white,
                       textColor: AppColors.secondaryTextColor,
                       borderColor: const Color(0xFFE5E5E5),
@@ -722,7 +722,7 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
                         _isSubmitted.value = true;
                         _animController.reset();
                       },
-                      title: 'Submit',
+                      title: AppStrings.submit.tr,
                       bgColor: AppColors.primaryColor,
                       radius: 10,
                       height: 44,
@@ -768,7 +768,7 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
               ),
               const SizedBox(height: 14),
               CustomText(
-                'Choose Your Ride Type',
+                AppStrings.chooseYourRideType.tr,
                 fontSize: SizeConfig.large,
                 fontWeight: FontWeight.bold,
                 color: AppColors.mainTextColor,
@@ -776,7 +776,7 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
               ),
               const SizedBox(height: 6),
               CustomText(
-                'Select how you\'d like to serve on BlueEra',
+                AppStrings.selectHowToServe.tr,
                 fontSize: SizeConfig.small,
                 color: AppColors.secondaryTextColor,
                 textAlign: TextAlign.center,
@@ -792,8 +792,8 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
                         value: 'passenger',
                         icon: Icons.person_pin_circle_rounded,
                         iconColor: const Color(0xFF1E88E5),
-                        title: 'Passenger Rider',
-                        subtitle: 'Pick up & drop off passengers',
+                        title: AppStrings.passengerRider.tr,
+                        subtitle: AppStrings.passengerRiderSubtitle.tr,
                       ),
                       const SizedBox(height: 10),
                       _buildRiderTypeOption(
@@ -801,8 +801,8 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
                         value: 'delivery',
                         icon: Icons.local_shipping_rounded,
                         iconColor: const Color(0xFFFB8C00),
-                        title: 'Delivery Rider',
-                        subtitle: 'Deliver food, parcels & groceries',
+                        title: AppStrings.deliveryRider.tr,
+                        subtitle: AppStrings.deliveryRiderSubtitle.tr,
                       ),
                       const SizedBox(height: 10),
                       _buildRiderTypeOption(
@@ -810,8 +810,8 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
                         value: 'both',
                         icon: Icons.all_inclusive_rounded,
                         iconColor: const Color(0xFF43A047),
-                        title: 'Both',
-                        subtitle: 'Passenger rides & deliveries',
+                        title: AppStrings.bothRideType.tr,
+                        subtitle: AppStrings.bothRiderSubtitle.tr,
                       ),
                     ],
                   )),
@@ -827,10 +827,9 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
                                 'riderTypePreference', selectedType.value);
                             Get.back();
                             commonSnackBar(
-                                message:
-                                    'Preference saved! You can change this later.');
+                                message: AppStrings.preferenceSaved.tr);
                           },
-                    title: 'Continue',
+                    title: AppStrings.continueBtn.tr,
                     bgColor: selectedType.value.isEmpty
                         ? const Color(0xFFB0B4BF)
                         : AppColors.primaryColor,
@@ -972,14 +971,14 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CustomText(
-                    'Need Help?',
+                    AppStrings.needHelpQuestion.tr,
                     fontSize: SizeConfig.medium,
                     fontWeight: FontWeight.w600,
                     color: AppColors.mainTextColor,
                   ),
                   const SizedBox(height: 2),
                   CustomText(
-                    'Contact us for any queries or support',
+                    AppStrings.contactUsForQueries.tr,
                     fontSize: SizeConfig.small,
                     color: AppColors.secondaryTextColor,
                     maxLines: 1,
@@ -1001,8 +1000,14 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
 
   void _showEnquiryDialog() {
     final queryController = TextEditingController();
-    final selectedCategory = RxString('General');
-    final categories = ['General', 'Document Issue', 'Verification Delay', 'Technical Issue', 'Other'];
+    final selectedCategory = RxString(AppStrings.categoryGeneral.tr);
+    final categories = [
+      AppStrings.categoryGeneral.tr,
+      AppStrings.categoryDocumentIssue.tr,
+      AppStrings.categoryVerificationDelay.tr,
+      AppStrings.categoryTechnicalIssue.tr,
+      AppStrings.categoryOther.tr,
+    ];
 
     Get.dialog(
       Dialog(
@@ -1019,7 +1024,7 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   CustomText(
-                    'Contact Us',
+                    AppStrings.contactUs.tr,
                     fontSize: SizeConfig.large,
                     fontWeight: FontWeight.bold,
                     color: AppColors.mainTextColor,
@@ -1043,7 +1048,7 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
 
               // Category selector
               CustomText(
-                'Category',
+                AppStrings.category.tr,
                 fontSize: SizeConfig.small,
                 fontWeight: FontWeight.w500,
                 color: AppColors.secondaryTextColor,
@@ -1088,7 +1093,7 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
 
               // Query input
               CustomText(
-                'Describe your query',
+                AppStrings.describeYourQuery.tr,
                 fontSize: SizeConfig.small,
                 fontWeight: FontWeight.w500,
                 color: AppColors.secondaryTextColor,
@@ -1099,7 +1104,7 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
                 maxLines: 4,
                 maxLength: 500,
                 decoration: InputDecoration(
-                  hintText: 'Type your question or concern here...',
+                  hintText: AppStrings.queryHintText.tr,
                   hintStyle: TextStyle(
                     color: const Color(0xFFB0B4BF),
                     fontSize: SizeConfig.small,
@@ -1130,13 +1135,13 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
                 child: CustomBtn(
                   onTap: () {
                     if (queryController.text.trim().isEmpty) {
-                      commonSnackBar(message: 'Please describe your query');
+                      commonSnackBar(message: AppStrings.pleaseDescribeQuery.tr);
                       return;
                     }
                     Get.back();
                     _showQuerySubmittedPopup();
                   },
-                  title: 'Submit Query',
+                  title: AppStrings.submitQuery.tr,
                   bgColor: AppColors.primaryColor,
                   radius: 10,
                   height: 46,
@@ -1173,7 +1178,7 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
               ),
               const SizedBox(height: 16),
               CustomText(
-                'Query Submitted!',
+                AppStrings.querySubmitted.tr,
                 fontSize: SizeConfig.large,
                 fontWeight: FontWeight.bold,
                 color: AppColors.mainTextColor,
@@ -1181,7 +1186,7 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
               ),
               const SizedBox(height: 10),
               CustomText(
-                'Thank you for reaching out. Our support team will get back to you shortly.',
+                AppStrings.querySubmittedMsg.tr,
                 fontSize: SizeConfig.small,
                 color: AppColors.secondaryTextColor,
                 textAlign: TextAlign.center,
@@ -1192,7 +1197,7 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
                 width: double.infinity,
                 child: CustomBtn(
                   onTap: () => Get.back(),
-                  title: 'Done',
+                  title: AppStrings.done.tr,
                   bgColor: AppColors.primaryColor,
                   radius: 10,
                   height: 44,
@@ -1212,14 +1217,14 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
       _DocumentItem(
         stepNumber: 1,
         icon: Icons.directions_car_rounded,
-        title: 'Add Your Vehicle Info',
-        example: 'E.g. WB40 5566',
+        title: AppStrings.addYourVehicleInfo.tr,
+        example: AppStrings.egVehicleNo.tr,
         currentValue: riderOnboardingStatusData.vehicleNo ?? '',
         isCompleted: riderOnboardingStatusData.vehicleInformation ?? false,
         onTap: () {
           Get.bottomSheet(
             CommonBottomSheet(
-              title: AppStrings.vehicleInformation,
+              title: AppStrings.vehicleInformation.tr,
               height: MediaQuery.of(context).size.height * 0.80,
               child: VehicleInformationWidget(
                 screeName: 'from_bottom_view',
@@ -1233,16 +1238,16 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
       _DocumentItem(
         stepNumber: 2,
         icon: Icons.badge_rounded,
-        title: 'Add Your Aadhar Number',
-        dialogTitle: 'Aadhar Card',
-        example: 'E.g. 1233 1236 1233',
+        title: AppStrings.addYourAadharNumber.tr,
+        dialogTitle: AppStrings.aadharCard.tr,
+        example: AppStrings.egAadharNo.tr,
         currentValue: riderOnboardingStatusData.aadharNo ?? '',
         isCompleted: riderOnboardingStatusData.aadhar ?? false,
         imageUrl: riderOnboardingStatusData.aadharImage,
         onTap: () {
           Get.bottomSheet(
             CommonBottomSheet(
-              title: "Aadhar Card",
+              title: AppStrings.aadharCard.tr,
               height: MediaQuery.of(context).size.height * 0.40,
               child: AadharCardWidget(),
             ),
@@ -1254,16 +1259,16 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
       _DocumentItem(
         stepNumber: 3,
         icon: Icons.credit_card_rounded,
-        title: 'Add Your Pan Number',
-        dialogTitle: 'PAN Card',
-        example: 'E.g. ABCDE1234F',
+        title: AppStrings.addYourPanNumber.tr,
+        dialogTitle: AppStrings.panCard.tr,
+        example: AppStrings.egPanNo.tr,
         currentValue: riderOnboardingStatusData.panNo ?? '',
         isCompleted: riderOnboardingStatusData.pan ?? false,
         imageUrl: riderOnboardingStatusData.panImage,
         onTap: () {
           Get.bottomSheet(
             CommonBottomSheet(
-              title: "Pan Card",
+              title: AppStrings.panCard.tr,
               height: MediaQuery.of(context).size.height * 0.40,
               child: PanCardWidget(),
             ),
@@ -1275,16 +1280,16 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
       _DocumentItem(
         stepNumber: 4,
         icon: Icons.card_membership_rounded,
-        title: 'Add Your Driving Licence Number',
-        dialogTitle: 'Driving Licence',
-        example: 'E.g. DL01201110012345',
+        title: AppStrings.addYourDrivingLicenceNumber.tr,
+        dialogTitle: AppStrings.drivingLicence.tr,
+        example: AppStrings.egDlNo.tr,
         currentValue: riderOnboardingStatusData.dlNo ?? '',
         isCompleted: riderOnboardingStatusData.dl ?? false,
         imageUrl: riderOnboardingStatusData.dlImage,
         onTap: () {
           Get.bottomSheet(
             CommonBottomSheet(
-              title: "Driving Licence",
+              title: AppStrings.drivingLicence.tr,
               height: MediaQuery.of(context).size.height * 0.40,
               child: DrivingLicenceCardWidget(),
             ),
@@ -1296,16 +1301,16 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
       _DocumentItem(
         stepNumber: 5,
         icon: Icons.description_rounded,
-        title: 'Add Your RC Number',
-        dialogTitle: 'RC Book',
-        example: 'E.g. WB12kmxl',
+        title: AppStrings.addYourRcNumber.tr,
+        dialogTitle: AppStrings.rcBook.tr,
+        example: AppStrings.egRcNo.tr,
         currentValue: riderOnboardingStatusData.rcNo ?? '',
         isCompleted: riderOnboardingStatusData.rc ?? false,
         imageUrl: riderOnboardingStatusData.rcImage,
         onTap: () {
           Get.bottomSheet(
             CommonBottomSheet(
-              title: "RC",
+              title: AppStrings.rc.tr,
               height: MediaQuery.of(context).size.height * 0.40,
               child: RcBookCardWidget(),
             ),
@@ -1317,14 +1322,14 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
       _DocumentItem(
         stepNumber: 6,
         icon: Icons.photo_camera_rounded,
-        title: 'Vehicle Images',
-        example: 'Upload Vehicle Image',
+        title: AppStrings.vehicleImages.tr,
+        example: AppStrings.uploadVehicleImage.tr,
         currentValue: '',
         isCompleted: riderOnboardingStatusData.vehicleImages ?? false,
         onTap: () {
           Get.bottomSheet(
             CommonBottomSheet(
-              title: AppStrings.vehicleImages,
+              title: AppStrings.vehicleImages.tr,
               height: MediaQuery.of(context).size.height * 0.80,
               child: VehicleImagesRidingWidget(),
             ),
@@ -1581,7 +1586,7 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
           ),
           const SizedBox(height: 4),
           CustomText(
-            showViewDocument ? 'Document received' : item.example,
+            showViewDocument ? AppStrings.documentReceived.tr : item.example,
             fontSize: SizeConfig.small,
             color: showViewDocument
                 ? AppColors.primaryColor
@@ -1621,7 +1626,7 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
         ),
         const SizedBox(width: 6),
         CustomText(
-          'View Document',
+          AppStrings.viewDocument.tr,
           fontSize: SizeConfig.small,
           fontWeight: FontWeight.w600,
           color: AppColors.primaryColor,
@@ -1669,7 +1674,7 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
         ),
         const SizedBox(width: 4),
         CustomText(
-          'Add Now',
+          AppStrings.addNowCta.tr,
           fontSize: SizeConfig.small,
           fontWeight: FontWeight.w600,
           color: AppColors.primaryColor,
@@ -1757,7 +1762,7 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
                                 ),
                                 const SizedBox(height: 8),
                                 CustomText(
-                                  'Could not load image',
+                                  AppStrings.couldNotLoadImage.tr,
                                   fontSize: SizeConfig.small,
                                   color: AppColors.secondaryTextColor,
                                 ),
@@ -1783,7 +1788,7 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
                       ),
                       const SizedBox(width: 4),
                       CustomText(
-                        'Pinch to zoom',
+                        AppStrings.pinchToZoom.tr,
                         fontSize: SizeConfig.small,
                         color: AppColors.secondaryTextColor,
                       ),
@@ -1903,7 +1908,7 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
             ),
             const SizedBox(width: 6),
             CustomText(
-              'Replace',
+              AppStrings.replaceLabel.tr,
               fontSize: SizeConfig.small,
               fontWeight: FontWeight.w700,
               color: AppColors.primaryColor,
@@ -1933,7 +1938,7 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
         ),
         child: Center(
           child: CustomText(
-            'Done',
+            AppStrings.done.tr,
             fontSize: SizeConfig.small,
             fontWeight: FontWeight.w700,
             color: Colors.white,
@@ -1961,7 +1966,7 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
           ),
           const SizedBox(width: 4),
           CustomText(
-            'Done',
+            AppStrings.done.tr,
             fontSize: SizeConfig.small,
             fontWeight: FontWeight.w600,
             color: const Color(0xFF4CAF50),

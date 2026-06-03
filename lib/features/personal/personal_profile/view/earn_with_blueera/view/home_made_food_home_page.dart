@@ -6,6 +6,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -322,7 +323,7 @@ class _HomeMadeFoodHomePageState extends State<HomeMadeFoodHomePage> {
                           TiffinBottomSheet.show(context, true);
                         },
                         icon: AppIconAssets.pen_line,
-                        label: 'Edit',
+                        label: AppStrings.edit,
                       ),
                     ],
                   ),

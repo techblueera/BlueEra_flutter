@@ -662,7 +662,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen> with RouteAware
                             right: 12,
                             child: _glassActionPill(
                               icon: Icons.camera_alt_rounded,
-                              label: 'Edit cover',
+                              label: AppStrings.editCover.tr,
                               onTap: () => _onCoverImageEdit(context),
                             ),
                           ),
@@ -775,7 +775,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen> with RouteAware
                   alignment: Alignment.centerRight,
                   child: _editChip(
                     onTap: () => EditProfileBottomSheet.show(Get.context!),
-                    label: 'Edit',
+                    label: AppStrings.edit,
                     icon: Icons.edit_outlined,
                   ),
                 ),
@@ -964,7 +964,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen> with RouteAware
         SizedBox(width: SizeConfig.size8),
         _editChip(
           onTap: () => EditProfileBottomSheet.show(Get.context!),
-          label: 'Edit',
+          label: AppStrings.edit,
           icon: Icons.edit_outlined,
         ),
       ],
@@ -1248,7 +1248,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen> with RouteAware
           Expanded(
             child: _actionPill(
               icon: Icons.share_outlined,
-              label: 'Share Profile',
+              label: AppStrings.shareProfile.tr,
               filled: false,
               onTap: _onShareProfile,
             ),
@@ -1257,7 +1257,8 @@ class _RiderServiceScreenState extends State<RiderServiceScreen> with RouteAware
           Expanded(
             child: _actionPill(
               icon: Icons.contact_page_outlined,
-              label: 'Personal Cards',
+              label: AppStrings.personalCards.tr,
+
               filled: true,
               onTap: () => Get.to(() => AllPersonalVisitingCards(
                     personalDetails: _viewCtrl.personalProfileDetails.value,

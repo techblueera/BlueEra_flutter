@@ -7,6 +7,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -262,7 +263,7 @@ class _HomeServiceHomePageState extends State<HomeServiceHomePage> {
                                     ),
                                     SizedBox(width: SizeConfig.size6),
                                     CustomText(
-                                      'Edit',
+                                      AppStrings.edit,
                                       fontSize: SizeConfig.small,
                                       fontWeight: FontWeight.w600,
                                       color: AppColors.primaryColor,

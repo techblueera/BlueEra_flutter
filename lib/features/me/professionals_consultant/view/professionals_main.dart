@@ -717,7 +717,7 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
                             right: 12,
                             child: _glassActionPill(
                               icon: Icons.camera_alt_rounded,
-                              label: 'Edit cover',
+                              label: AppStrings.editCover.tr,
                               onTap: () => _onCoverImageEdit(context),
                             ),
                           ),
@@ -922,7 +922,7 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
                   alignment: Alignment.centerRight,
                   child: _editChip(
                     onTap: () => EditProfileBottomSheet.show(Get.context!),
-                    label: 'Edit',
+                    label:AppStrings.edit,
                     icon: Icons.edit_outlined,
                   ),
                 ),
@@ -1034,7 +1034,7 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
         SizedBox(width: SizeConfig.size8),
         _editChip(
           onTap: () => EditProfileBottomSheet.show(Get.context!),
-          label: 'Edit',
+          label: AppStrings.edit,
           icon: Icons.edit_outlined,
         ),
       ],
@@ -1079,7 +1079,7 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
               SizedBox(width: SizeConfig.size10),
               Expanded(
                 child: Text(
-                  'Complete your profile',
+                  AppStrings.completeProfile.tr,
                   style: TextStyle(
                     fontFamily: AppConstants.OpenSans,
                     fontSize: 13,
@@ -1225,11 +1225,11 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
           final posts = _viewCtrl.postsCount.value;
           return Row(
             children: [
-              Expanded(child: _statTile(label: 'Posts', value: '$posts')),
+              Expanded(child: _statTile(label: AppStrings.posts.tr, value: '$posts')),
               _statSeam(),
               Expanded(
                 child: _statTile(
-                  label: 'Followers',
+                  label: AppStrings.followers.tr,
                   value: _formatCount(followers),
                   onTap: () => Get.to(() => FollowersFollowingPage(tabIndex: 1, userID: userId)),
                 ),
@@ -1237,7 +1237,7 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
               _statSeam(),
               Expanded(
                 child: _statTile(
-                  label: 'Following',
+                  label: AppStrings.following.tr,
                   value: _formatCount(following),
                   onTap: () => Get.to(() => FollowersFollowingPage(tabIndex: 0, userID: userId)),
                 ),
@@ -1318,7 +1318,7 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
           Expanded(
             child: _actionPill(
               icon: Icons.share_outlined,
-              label: 'Share Profile',
+              label: AppStrings.shareProfile.tr,
               filled: false,
               onTap: _onShareProfile,
             ),
@@ -1327,7 +1327,7 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
           Expanded(
             child: _actionPill(
               icon: Icons.contact_page_outlined,
-              label: 'Personal Cards',
+              label: AppStrings.personalCards.tr,
               filled: true,
               onTap: () => Get.to(() => AllPersonalVisitingCards(
                     personalDetails: _viewCtrl.personalProfileDetails.value,

@@ -15,12 +15,10 @@ class PersonalChatProfileController extends GetxController
     with GetSingleTickerProviderStateMixin {
   late TabController tabController;
 
-  final List<String> tabs = const [
-    'Overview',
-    'Testimonials',
-    // 'Posts',
-    // 'Shorts',
-    'Videos',
+  final List<String> tabs =  [
+    AppStrings.overview.tr,
+    AppStrings.testimonials.tr,
+    AppStrings.video.tr,
   ];
   
   ApiResponse postsResponse = ApiResponse.initial('Initial');

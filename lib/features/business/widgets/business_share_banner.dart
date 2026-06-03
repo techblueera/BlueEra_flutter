@@ -22,6 +22,8 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:share_plus/share_plus.dart';
 
+import '../../../core/constants/app_strings.dart';
+
 /// Share-worthy promo banner used at the bottom of every business home
 /// screen (food, grocery, hospital, medical, hotel, laboratory, school,
 /// product, manufacture, others). Reads the signed-in business from
@@ -148,7 +150,7 @@ class _BusinessShareBannerState extends State<BusinessShareBanner> {
         Expanded(
           child: _actionTile(
             icon: Icons.ios_share_rounded,
-            label: 'Share',
+            label:  AppStrings.share.tr,
             onTap: _isExporting ? null : () => _shareAsImage(shopName),
           ),
         ),

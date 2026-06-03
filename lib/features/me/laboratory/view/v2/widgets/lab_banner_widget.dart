@@ -168,7 +168,7 @@ class _LabBannerWidgetState extends State<LabBannerWidget> {
                 Icon(Icons.edit_outlined, size: 16, color: AppColors.primaryColor),
                 SizedBox(width: SizeConfig.size4),
                 CustomText(
-                  'Edit',
+                  AppStrings.edit,
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
                   color: AppColors.primaryColor,

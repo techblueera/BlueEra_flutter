@@ -592,7 +592,7 @@ class _AddProductVariantScreenState extends State<AddProductVariantScreen> {
                         ),
                         SizedBox(width: SizeConfig.size4),
                         CustomText(
-                          'Edit',
+                          AppStrings.edit,
                           fontSize: SizeConfig.extraSmall,
                           color: AppColors.primaryColor,
                           fontWeight: FontWeight.w600,

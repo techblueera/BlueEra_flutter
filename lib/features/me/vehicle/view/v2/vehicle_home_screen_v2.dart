@@ -932,7 +932,7 @@ class _ContactCard extends StatelessWidget {
               IconButton(
                 onPressed: onEdit,
                 icon: const Icon(Icons.edit_outlined, size: 18),
-                tooltip: 'Edit',
+                tooltip:AppStrings.edit.tr,
               ),
               InkWell(
                 onTap: onDelete,

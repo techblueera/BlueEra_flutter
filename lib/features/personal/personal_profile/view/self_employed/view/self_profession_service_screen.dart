@@ -356,7 +356,7 @@ class _SelfProfessionServiceScreenState
                     if (onEdit != null)
                       _editChip(
                         onEdit,
-                        label: hasData ? 'Edit' : 'Add',
+                        label: hasData ? AppStrings.edit.tr : AppStrings.edit.tr,
                         icon: hasData
                             ? Icons.edit_outlined
                             : Icons.add_rounded,

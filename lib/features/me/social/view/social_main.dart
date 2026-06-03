@@ -692,7 +692,7 @@ class _SocialMainScreenState extends State<SocialMainScreen>
                 size: 14, color: AppColors.primaryColor),
             const SizedBox(width: 4),
             CustomText(
-              'Edit',
+              AppStrings.edit.tr,
               fontSize: SizeConfig.extraSmall,
               color: AppColors.primaryColor,
               fontWeight: FontWeight.w600,

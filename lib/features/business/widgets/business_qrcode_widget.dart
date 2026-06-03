@@ -109,7 +109,7 @@ class _BusinessQrCodeWidgetState extends State<BusinessQrCodeWidget> {
                     icon: AppIconAssets.downloadIcon,
                     label: _isSaving.value
                         ? '${AppStrings.saving.tr}...'
-                        : 'Download',
+                        : AppStrings.download.tr,
                     onTap: _isSaving.value
                         ? null
                         : (widget.onDownload ?? _saveQrToGallery),
@@ -117,7 +117,7 @@ class _BusinessQrCodeWidgetState extends State<BusinessQrCodeWidget> {
               const SizedBox(width: 10),
               Obx(() => _buildActionButton(
                     icon: AppIconAssets.reelShare,
-                    label: 'Share',
+                    label: AppStrings.share.tr,
                     onTap: _isSharing.value
                         ? null
                         : (widget.onShare ?? _shareQr),

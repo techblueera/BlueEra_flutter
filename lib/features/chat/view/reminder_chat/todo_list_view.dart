@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/features/chat/auth/controller/todo_controller.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -327,7 +328,7 @@ class _TodoTile extends StatelessWidget {
             children: [
               ListTile(
                 leading: const Icon(Icons.edit_outlined),
-                title: const CustomText('Edit'),
+                title:  CustomText(AppStrings.edit),
                 onTap: () {
                   Navigator.pop(ctx);
                   onTap();

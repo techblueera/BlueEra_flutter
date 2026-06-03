@@ -1088,7 +1088,7 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2> {
               children: [
                 Icon(Icons.edit_outlined, size: 16, color: AppColors.primaryColor),
                 SizedBox(width: SizeConfig.size4),
-                CustomText('Edit', fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.primaryColor),
+                CustomText(AppStrings.edit, fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.primaryColor),
               ],
             ),
           ),

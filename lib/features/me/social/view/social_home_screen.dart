@@ -1380,7 +1380,7 @@ class _SectionEditPill extends StatelessWidget {
                 size: 13, color: AppColors.primaryColor),
             const SizedBox(width: 5),
             Text(
-              'Edit',
+              AppStrings.edit.tr,
               style: TextStyle(
                 fontFamily: AppConstants.OpenSans,
                 fontSize: 11,

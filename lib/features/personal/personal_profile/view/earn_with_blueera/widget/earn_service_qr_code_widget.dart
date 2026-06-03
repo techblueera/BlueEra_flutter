@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/controller/earn_profile_controller.dart';
@@ -65,13 +66,13 @@ class EarnServiceQrCodeWidget extends StatelessWidget {
               children: [
                 _buildActionButton(
                   icon: AppIconAssets.downloadIcon,
-                  label: 'Download',
+                  label:AppStrings.download.tr,
                   onTap: onDownload,
                 ),
                 const SizedBox(width: 10),
                 _buildActionButton(
                   icon: AppIconAssets.reelShare,
-                  label: 'Share',
+                  label: AppStrings.share.tr,
                   onTap: onShare,
                 ),
               ],

@@ -497,7 +497,7 @@ class _FoodCartScreenState extends State<FoodCartScreen> {
                       ),
                       SizedBox(width: SizeConfig.size4),
                       CustomText(
-                        'Edit',
+                        AppStrings.edit,
                         fontSize: SizeConfig.extraSmall,
                         color: AppColors.primaryColor,
                         fontWeight: FontWeight.w600,

@@ -2,12 +2,14 @@ import 'dart:ui';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/features/common/visiting_card/widget/share_button.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get_utils/src/extensions/internacionalization.dart';
 
 class VisitingCardThirteen extends StatefulWidget {
   final GlobalKey cardKey;
@@ -149,7 +151,7 @@ class _VisitingCardThirteenState extends State<VisitingCardThirteen> {
                                         ),
                                         const TextSpan(text: "अभी "),
                                         TextSpan(
-                                          text: "Download ",
+                                          text: AppStrings.download.tr,
                                           style: TextStyle(color: AppColors.primaryColor),
                                         ),
                                         const TextSpan(text: "करें "),

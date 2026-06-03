@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/api/model/personal_profile_details_model.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
 import 'package:BlueEra/features/common/visiting_card/view/visiting_card_eight.dart';
@@ -16,6 +17,7 @@ import 'package:BlueEra/features/common/visiting_card/view/visiting_card_twelve.
 import 'package:BlueEra/features/common/visiting_card/view/visiting_card_two.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get_utils/src/extensions/internacionalization.dart';
 
 class AllVisitingCards extends StatefulWidget {
   final ScrollController? scrollController;
@@ -55,7 +57,7 @@ class _AllVisitingCardsState extends State<AllVisitingCards> {
 
     return Scaffold(
       appBar: (widget.showAppBar!=null) ? CommonBackAppBar(
-        title: 'Visiting Cards',
+        title:  AppStrings.visitingCard.tr,
       ) : null,
       body: SingleChildScrollView(
         controller: widget.scrollController,

@@ -6049,4 +6049,75 @@ class AppStrings {
   /// VISIT BUSINESS STATS CARD — Views/Ratings/Followers/Following/Joined
   /// row used on any visited business profile (Hospital, Lab, School, etc.).
   static const String views = "views";
+
+  /// RIDER / DELIVERY-PARTNER ONBOARDING (rider_profile_status_screen) —
+  /// KYC document cards, the submitted/verified/rejected states, the
+  /// ride-type chooser popup and the Contact-Us enquiry sheet. Values are
+  /// served by the language API (hi/en/gu/kn/mr) and mirrored in local
+  /// assets. Common labels (cancel/submit/done/contactUs/continueBtn/
+  /// aadharCard/panCard/drivingLicence/rc/vehicleInformation/vehicleImages)
+  /// reuse existing keys.
+  static const String applicationSubmittedSuccessfully = "applicationSubmittedSuccessfully";
+  static const String profileUnderVerificationMsg = "profileUnderVerificationMsg";
+  static const String whatHappensNext = "whatHappensNext";
+  static const String documentReview = "documentReview";
+  static const String documentReviewSubtitle = "documentReviewSubtitle";
+  static const String getNotified = "getNotified";
+  static const String getNotifiedSubtitle = "getNotifiedSubtitle";
+  static const String startDelivering = "startDelivering";
+  static const String startDeliveringSubtitle = "startDeliveringSubtitle";
+  static const String profileVerified = "profileVerified";
+  static const String allSetToAcceptDeliveries = "allSetToAcceptDeliveries";
+  static const String noOrdersYet = "noOrdersYet";
+  static const String noOrdersYetSubtitle = "noOrdersYetSubtitle";
+  static const String tipsToGetMoreOrders = "tipsToGetMoreOrders";
+  static const String tipStayHighDemand = "tipStayHighDemand";
+  static const String tipPeakHours = "tipPeakHours";
+  static const String tipMaintainRatings = "tipMaintainRatings";
+  static const String tipStableInternet = "tipStableInternet";
+  static const String verificationRejectedMsg = "verificationRejectedMsg";
+  static const String joinedLabel = "joinedLabel";
+  static const String submitForVerification = "submitForVerification";
+  static const String submitApplicationQuestion = "submitApplicationQuestion";
+  static const String submitApplicationConfirmMsg = "submitApplicationConfirmMsg";
+  static const String chooseYourRideType = "chooseYourRideType";
+  static const String selectHowToServe = "selectHowToServe";
+  static const String passengerRider = "passengerRider";
+  static const String passengerRiderSubtitle = "passengerRiderSubtitle";
+  static const String deliveryRider = "deliveryRider";
+  static const String deliveryRiderSubtitle = "deliveryRiderSubtitle";
+  static const String bothRideType = "bothRideType";
+  static const String bothRiderSubtitle = "bothRiderSubtitle";
+  static const String preferenceSaved = "preferenceSaved";
+  static const String needHelpQuestion = "needHelpQuestion";
+  static const String contactUsForQueries = "contactUsForQueries";
+  static const String describeYourQuery = "describeYourQuery";
+  static const String queryHintText = "queryHintText";
+  static const String pleaseDescribeQuery = "pleaseDescribeQuery";
+  static const String submitQuery = "submitQuery";
+  static const String querySubmitted = "querySubmitted";
+  static const String querySubmittedMsg = "querySubmittedMsg";
+  static const String categoryGeneral = "categoryGeneral";
+  static const String categoryDocumentIssue = "categoryDocumentIssue";
+  static const String categoryVerificationDelay = "categoryVerificationDelay";
+  static const String categoryTechnicalIssue = "categoryTechnicalIssue";
+  static const String categoryOther = "categoryOther";
+  static const String addYourVehicleInfo = "addYourVehicleInfo";
+  static const String egVehicleNo = "egVehicleNo";
+  static const String addYourAadharNumber = "addYourAadharNumber";
+  static const String egAadharNo = "egAadharNo";
+  static const String addYourPanNumber = "addYourPanNumber";
+  static const String egPanNo = "egPanNo";
+  static const String addYourDrivingLicenceNumber = "addYourDrivingLicenceNumber";
+  static const String egDlNo = "egDlNo";
+  static const String addYourRcNumber = "addYourRcNumber";
+  static const String egRcNo = "egRcNo";
+  static const String rcBook = "rcBook";
+  static const String uploadVehicleImage = "uploadVehicleImage";
+  static const String documentReceived = "documentReceived";
+  static const String viewDocument = "viewDocument";
+  static const String addNowCta = "addNowCta";
+  static const String couldNotLoadImage = "couldNotLoadImage";
+  static const String pinchToZoom = "pinchToZoom";
+  static const String replaceLabel = "replaceLabel";
 }

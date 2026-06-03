@@ -404,7 +404,7 @@ class _ProductHomeScreenState extends State<ProductHomeScreen> {
                           Icon(Icons.edit_outlined,
                               size: 14, color: AppColors.primaryColor),
                           SizedBox(width: SizeConfig.size4),
-                          CustomText('Edit',
+                          CustomText(AppStrings.edit,
                               fontSize: 13,
                               fontWeight: FontWeight.w700,
                               color: AppColors.primaryColor),

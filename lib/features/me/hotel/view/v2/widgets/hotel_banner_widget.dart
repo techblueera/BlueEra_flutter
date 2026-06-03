@@ -167,7 +167,7 @@ class _HotelBannerWidgetState extends State<HotelBannerWidget> {
                     size: 16, color: AppColors.primaryColor),
                 SizedBox(width: SizeConfig.size4),
                 CustomText(
-                  'Edit',
+                  AppStrings.edit,
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
                   color: AppColors.primaryColor,
