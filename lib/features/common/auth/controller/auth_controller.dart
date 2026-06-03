@@ -210,6 +210,16 @@ class AuthController extends GetxController {
               await getUserLoginBusinessId();
               await getUserLoginAccountType();
               await getUserAuthToken();
+              // Auth is now available — flush any FCM token that was queued
+              // during the pre-login window so the backend gets the live
+              // device token immediately.
+              unawaited(AppNotificationHandler.flushPendingTokenSync());
+              // iOS: also (re)register the VoIP/PushKit token now that we're
+              // authenticated. The one-shot launch sync bailed while logged
+              // out, so without this first-login devices never deliver their
+              // VoIP token and the backend falls back to non-CallKit FCM
+              // pushes. force: true bypasses the optimistic cache.
+              unawaited(AppNotificationHandler.syncVoipToken(force: true));
               // Token is now in `authTokenGlobal` — open the chat socket
               // so incoming-call / chat events flow immediately this
               // session. CallController.onInit skipped the cold-start
@@ -249,6 +259,12 @@ class AuthController extends GetxController {
                   SharedPreferenceUtils.authToken, data.token);
 
               await getUserAuthToken();
+              // Auth is now available — flush any FCM token queued during the
+              // pre-login window (see business branch above).
+              unawaited(AppNotificationHandler.flushPendingTokenSync());
+              // iOS: (re)register the VoIP/PushKit token now we're authed —
+              // see business branch above.
+              unawaited(AppNotificationHandler.syncVoipToken(force: true));
               // First authenticated connect — see business branch above.
               unawaited(ChatSocketService().connectToSocket());
               // Same first-time rationale as the business branch:

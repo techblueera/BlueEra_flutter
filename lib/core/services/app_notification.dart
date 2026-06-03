@@ -591,6 +591,12 @@ class AppNotificationHandler {
   /// SplashScreen awaits this before deciding its own navigation.
   static Completer<void>? notificationNavigationCompleter;
 
+  /// Holds an FCM device token that couldn't be POSTed because the user
+  /// wasn't authenticated yet (e.g. token fetched during the cold-start
+  /// pre-login window). `flushPendingTokenSync()` drains it right after
+  /// auth becomes available so the backend never misses the live token.
+  static String? _pendingTokenSync;
+
   /// Call early (before runApp or in _initDeferred before splash navigates)
   /// to detect if the app was launched via a notification tap.
   static Future<void> checkNotificationLaunch() async {
@@ -852,18 +858,21 @@ class AppNotificationHandler {
     /// which is exactly why iOS terminated-state notifications worked once and
     /// then went silent until the app was reopened. Syncing the LIVE token
     /// here (not a possibly-stale cached read) heals that on every cold start.
-    final liveToken = await getFcmToken();
-    if (liveToken != null && liveToken.isNotEmpty) {
-      await _registerDeviceTokenWithBackend(liveToken);
-    }
-
-    // Persist rotated FCM tokens so the backend always has the current one.
+    // Attach the rotation listener BEFORE fetching the current token so a
+    // token rotation that lands between getToken() returning and the listener
+    // being wired up isn't dropped. Persist rotated FCM tokens so the backend
+    // always has the current one.
     FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
       print("===fcm-token-refresh=== $newToken");
       await SharedPreferenceUtils.setSecureValue(
           SharedPreferenceUtils.notificationDeviceToken, newToken);
       await _registerDeviceTokenWithBackend(newToken);
     });
+
+    final liveToken = await getFcmToken();
+    if (liveToken != null && liveToken.isNotEmpty) {
+      await _registerDeviceTokenWithBackend(liveToken);
+    }
 
     // iOS-only: register VoIP push token with the backend so calls can wake
     // the app in terminated state via PushKit + CallKit. Without this the
@@ -876,17 +885,38 @@ class AppNotificationHandler {
       // Fire-and-forget: token retrieval can take a moment after app launch
       // (PushKit delegate is async), so we poll briefly rather than blocking
       // the rest of setupFcmToken().
-      _syncVoipTokenToBackend();
+      //
+      // force: true so every cold start makes one idempotent delivery attempt
+      // regardless of the local cache. This self-heals installs whose cache
+      // was poisoned by the earlier cache-on-failure bug (token cached even
+      // though the 404'd PATCH never reached the backend), which otherwise
+      // would skip re-sending forever and keep receiving plain FCM banners
+      // instead of CallKit VoIP pushes.
+      _syncVoipTokenToBackend(force: true);
     }
   }
 
+  /// Secure-storage key for the last VoIP token we successfully delivered to
+  /// the backend. Kept separate from the FCM token cache. ONLY written after a
+  /// confirmed-success PATCH (see below) — caching on failure was a bug that
+  /// permanently suppressed retries once the endpoint 404'd.
+  static const String _voipCacheKey = 'voipTokenCache';
+
+  /// Public entry point to (re)register the iOS VoIP push token with the
+  /// backend. Call after auth becomes available (login) and on app resume.
+  /// `force: true` bypasses the unchanged-token short-circuit — use it when
+  /// we can't trust the cache (e.g. right after login, or when a previous
+  /// session may have failed to actually deliver the token).
+  static Future<void> syncVoipToken({bool force = false}) =>
+      _syncVoipTokenToBackend(force: force);
+
   /// Poll `flutter_callkit_incoming` for the VoIP token that iOS hands to
-  /// PushKit (forwarded in `AppDelegate.swift` via
-  /// `setDevicePushTokenVoIP`), then PUT it to the backend's user-update
-  /// endpoint. Safe to call multiple times — idempotent on the server side
-  /// because the payload is just `{voip_token: ...}`. Silent: no UI side
-  /// effects, non-fatal on any failure path.
-  static Future<void> _syncVoipTokenToBackend() async {
+  /// PushKit (forwarded in `AppDelegate.swift` via `setDevicePushTokenVoIP`),
+  /// then PATCH it to the backend so it can send VoIP/PushKit pushes for
+  /// incoming calls (the ONLY push type that wakes CallKit in background /
+  /// terminated state on iOS). Idempotent on the server side because the
+  /// payload is just `{voip_token: ...}`. Silent: no UI side effects.
+  static Future<void> _syncVoipTokenToBackend({bool force = false}) async {
     if (!Platform.isIOS) return;
 
     const Duration timeout = Duration(seconds: 10);
@@ -919,31 +949,38 @@ class AppNotificationHandler {
       return;
     }
 
-    // Avoid pointless network calls if the token hasn't changed since last
-    // session. Stored under a separate key so it can't collide with the FCM
-    // token cache.
-    const String voipCacheKey = 'voipTokenCache';
-    try {
-      final cached = await SharedPreferenceUtils.getSecureValue(voipCacheKey);
-      if (cached is String && cached == voipToken) {
-        print("===voip-token-sync=== skipped (unchanged)");
-        return;
-      }
-    } catch (_) {}
+    // Avoid pointless network calls if the token hasn't changed since the last
+    // SUCCESSFUL delivery. Skipped when force is set (post-login / resume),
+    // because the cache can't prove the backend actually has the token — a
+    // prior session may have cached optimistically then failed.
+    if (!force) {
+      try {
+        final cached =
+            await SharedPreferenceUtils.getSecureValue(_voipCacheKey);
+        if (cached is String && cached == voipToken) {
+          print("===voip-token-sync=== skipped (unchanged)");
+          return;
+        }
+      } catch (_) {}
+    }
 
     try {
-      await ApiBaseHelper().putHTTP(
-        'user-service/user/updateUser',
+      await ApiBaseHelper().patchHTTP(
+        'user-service/user/me/voip-token',
         params: {'voip_token': voipToken},
         showProgress: false,
         onError: (e) {
+          // Do NOT cache on error — leaving the cache untouched guarantees the
+          // next launch / resume / login retries instead of assuming success.
           print("===voip-token-sync=== error: $e");
         },
         onSuccess: (_) {
+          // Cache ONLY on confirmed success so the unchanged-short-circuit
+          // above can never suppress a delivery that never actually landed.
+          SharedPreferenceUtils.setSecureValue(_voipCacheKey, voipToken);
           print("===voip-token-sync=== ok");
         },
       );
-      await SharedPreferenceUtils.setSecureValue(voipCacheKey, voipToken);
     } catch (e) {
       print("===voip-token-sync=== threw: $e");
     }
@@ -956,7 +993,10 @@ class AppNotificationHandler {
   static Future<void> _registerDeviceTokenWithBackend(String token) async {
     if (token.isEmpty) return;
     if (authTokenGlobal == null || authTokenGlobal!.isEmpty) {
-      print("===fcm-token-sync=== skipped (no auth token)");
+      // Not authenticated yet — queue the token so it can be flushed to the
+      // backend the moment auth becomes available (see flushPendingTokenSync).
+      _pendingTokenSync = token;
+      print("===fcm-token-sync=== queued (no auth yet)");
       return;
     }
     try {
@@ -975,6 +1015,28 @@ class AppNotificationHandler {
       print("===fcm-token-sync=== threw: $e");
     }
   }
+
+  /// Drain any token that was queued while unauthenticated. Call this right
+  /// after auth becomes available (e.g. after OTP verification). If nothing
+  /// was queued, re-fetch the live token and POST it anyway in case a
+  /// rotation happened during the unauthenticated window.
+  static Future<void> flushPendingTokenSync() async {
+    final pending = _pendingTokenSync;
+    _pendingTokenSync = null;
+    if (pending != null && pending.isNotEmpty) {
+      await _registerDeviceTokenWithBackend(pending);
+    } else {
+      final live = await getFcmToken();
+      if (live != null && live.isNotEmpty) {
+        await _registerDeviceTokenWithBackend(live);
+      }
+    }
+  }
+
+  /// Public wrapper to POST the current FCM device token to the backend.
+  /// Used by the app-resume re-sync path.
+  static Future<void> syncCurrentToken(String token) =>
+      _registerDeviceTokenWithBackend(token);
 
   /// Polls FirebaseMessaging.getAPNSToken() until it returns a non-null value
   /// or the timeout elapses. Required on iOS real devices before getToken().
@@ -1113,16 +1175,16 @@ class AppNotificationHandler {
       return newToken;
     }
 
-    // GMS never handed us a new token. Keep the old one in cache so
-    // verifyOTP still sends something addressable; onTokenRefresh will
-    // upgrade the server-side token when GMS comes back.
+    // GMS never handed us a new token. Don't revert the cache to oldToken —
+    // deleteToken() already invalidated it on FCM, so re-caching guarantees
+    // the next sync POSTs a dead token. Clear the cache so the next session
+    // triggers a fresh fetch; onTokenRefresh will sync the real new token to
+    // the backend once GMS comes back.
     print(
-        "===fcm-refresh=== failed to obtain new token, keeping old: $oldToken");
-    if (oldToken != null) {
-      await SharedPreferenceUtils.setSecureValue(
-          SharedPreferenceUtils.notificationDeviceToken, oldToken);
-    }
-    return oldToken;
+        "===fcm-refresh=== failed to obtain new token, dropping dead old token");
+    await SharedPreferenceUtils.setSecureValue(
+        SharedPreferenceUtils.notificationDeviceToken, '');
+    return null;
   }
 
   /// handle notification when app in fore ground.. local notification......

@@ -1,4 +1,7 @@
 
+import 'dart:io';
+
+import 'package:BlueEra/core/api/apiService/api_base_helper.dart';
 import 'package:BlueEra/core/language_localization_service/language_service_app.dart';
 import 'package:BlueEra/core/services/app_notification.dart';
 import 'package:BlueEra/environment_config.dart';
@@ -277,6 +280,31 @@ class SharedPreferenceUtils {
       lastHomeFetchTime = null;
       // Re-init localization Hive box after logout clears disk
       await LocalizationService().init();
+
+      // Unbind this device from the user on the backend so pushes/calls stop
+      // routing here after logout. Runs while authTokenGlobal is still set
+      // (the API interceptor reads the in-memory global, which we clear just
+      // below) so the request is authenticated. Best-effort: never block or
+      // throw out of logout.
+      try {
+        if (authTokenGlobal != null && authTokenGlobal!.isNotEmpty) {
+          await ApiBaseHelper().deleteHTTP(
+            'user-service/user/me/device-token',
+            showProgress: false,
+            onError: (_) {},
+            onSuccess: (_) {},
+          );
+          if (Platform.isIOS) {
+            await ApiBaseHelper().deleteHTTP(
+              'user-service/user/me/voip-token',
+              showProgress: false,
+              onError: (_) {},
+              onSuccess: (_) {},
+            );
+          }
+        }
+      } catch (_) {}
+
       authTokenGlobal = '';
       accountTypeGlobal = '';
       userId = '';
