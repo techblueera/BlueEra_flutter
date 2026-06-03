@@ -1,131 +1,127 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
-	<dict>
-		<key>CFBundleDevelopmentRegion</key>
-		<string>$(DEVELOPMENT_LANGUAGE)</string>
-		<key>CFBundleDisplayName</key>
-		<string>BlueEra</string>
-		<key>CFBundleExecutable</key>
-		<string>$(EXECUTABLE_NAME)</string>
-		<key>CFBundleIdentifier</key>
-		<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
-		<key>CFBundleInfoDictionaryVersion</key>
-		<string>6.0</string>
-		<key>CFBundleName</key>
-		<string>BlueEra</string>
-		<key>CFBundlePackageType</key>
-		<string>APPL</string>
-		<key>CFBundleShortVersionString</key>
-		<string>$(FLUTTER_BUILD_NAME)</string>
-		<key>CFBundleSignature</key>
-		<string>????</string>
-		<key>CFBundleVersion</key>
-		<string>$(FLUTTER_BUILD_NUMBER)</string>
-		<key>LSRequiresIPhoneOS</key>
-		<true/>
-		<key>UILaunchStoryboardName</key>
-		<string>LaunchScreen</string>
-		<key>UIMainStoryboardFile</key>
-		<string>Main</string>
-		<key>UISupportedInterfaceOrientations</key>
-		<array>
-			<string>UIInterfaceOrientationPortrait</string>
-			<string>UIInterfaceOrientationLandscapeLeft</string>
-			<string>UIInterfaceOrientationLandscapeRight</string>
-		</array>
-		<key>UISupportedInterfaceOrientations~ipad</key>
-		<array>
-			<string>UIInterfaceOrientationPortrait</string>
-			<string>UIInterfaceOrientationPortraitUpsideDown</string>
-			<string>UIInterfaceOrientationLandscapeLeft</string>
-			<string>UIInterfaceOrientationLandscapeRight</string>
-		</array>
-		<key>CADisableMinimumFrameDurationOnPhone</key>
-		<true/>
-		<key>UIApplicationSupportsIndirectInputEvents</key>
-		<true/>
-		<key>UIBackgroundModes</key>
-		<array>
-			<string>fetch</string>
-			<string>remote-notification</string>
-			<string>processing</string>
-			<string>voip</string>
-		</array>
-		<key>BGTaskSchedulerPermittedIdentifiers</key>
-		<array>
-			<string>ai.bluecs.app.videoUploadTask</string>
-		</array>
-		<key>NSLocalNetworkUsageDescription</key>
-		<string>This app uses the local network to discover and communicate with nearby devices.</string>
-		<key>io.flutter.embedded_views_preview</key>
-		<true/>
-		<!-- Keep FALSE: we use the `app_links` Flutter plugin (splash_screen.dart),
-		     which handles NSUserActivity via its own method channel. Setting
-		     this to true makes Flutter's built-in router consume the URL before
-		     the plugin sees it, so the Dart deep-link handler never fires. -->
-		<key>FlutterDeepLinkingEnabled</key>
-		<false/>
-		<key>UIRequiredDeviceCapabilities</key>
-		<array>
-			<string>arm64</string>
-		</array>
-		<key>NSPhotoLibraryAddUsageDescription</key>
-		<string>Blue Era needs access to your photo library to save and share photos, videos, and media from chats.</string>
-		<key>NSPhotoLibraryUsageDescription</key>
-		<string>Blue Era needs access to your photo library to select and upload photos for profile pictures, chat messages, and service documentation.</string>
-		<key>NSCameraUsageDescription</key>
-		<string>Blue Era needs access to your camera to take photos, make video calls, scan QR codes, and upload images.</string>
-		<key>NSMicrophoneUsageDescription</key>
-		<string>Blue Era needs access to your microphone to make voice and video calls, record audio messages, and use speech-to-text.</string>
-		<key>NSDocumentsFolderUsageDescription</key>
-		<string>Blue Era needs access to your Documents folder to open, edit, and save files you choose to work with.</string>
-		<key>NSAppleMusicUsageDescription</key>
-		<string>Blue Era would like access to your music library to enhance your experience with music-related features.</string>
-		<key>NSLocationWhenInUseUsageDescription</key>
-		<string>Blue Era requires your location while using the app to help you find products available near you and to provide real-time tracking of riders delivering your orders.</string>
-		<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-		<string>Blue Era requires your location while using the app to help you find products available near you and to provide real-time tracking of riders delivering your orders.</string>
-		<key>NSLocationAlwaysUsageDescription</key>
-		<string>Blue Era requires your location while using the app to help you find products available near you and to provide real-time tracking of riders delivering your orders.</string>
-		<key>NSContactsUsageDescription</key>
-		<string>Blue Era needs access to your contacts to help you connect with friends, share services, or autofill contact details.</string>
-		<key>NSFaceIDUsageDescription</key>
-		<string>Blue Era uses Face ID to quickly and securely authenticate you when logging in or accessing sensitive information.</string>
-		<key>NSSpeechRecognitionUsageDescription</key>
-		<string>Blue Era uses speech recognition to convert your voice to text.</string>
-		<key>GADApplicationIdentifier</key>
-		<string>ca-app-pub-4151367085462604~5043177104</string>
-		<key>FirebaseAppDelegateProxyEnabled</key>
-		<true/>
-		<key>FirebaseMessagingAutoInitEnabled</key>
-		<true/>
-		<!-- share_handler -->
-		<key>NSUserActivityTypes</key>
-		<array>
-			<string>INSendMessageIntent</string>
-		</array>
-		<key>CFBundleURLTypes</key>
-		<array>
-			<dict>
-				<key>CFBundleTypeRole</key>
-				<string>Editor</string>
-				<key>CFBundleURLSchemes</key>
-				<array>
-					<string>ShareMedia-$(PRODUCT_BUNDLE_IDENTIFIER)</string>
-				</array>
-			</dict>
-		</array>
-		<key>GoogleMapsApiKey</key>
-		<string>AIzaSyD4dbz7eaxd8tFF3tZFJwA4y6KvwozkpdU</string>
-		<key>NSAppTransportSecurity</key>
+<dict>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>ai.bluecs.app.videoUploadTask</string>
+	</array>
+	<key>CADisableMinimumFrameDurationOnPhone</key>
+	<true/>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<key>CFBundleDisplayName</key>
+	<string>BlueEra</string>
+	<key>CFBundleExecutable</key>
+	<string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundleIdentifier</key>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>BlueEra</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>$(FLUTTER_BUILD_NAME)</string>
+	<key>CFBundleSignature</key>
+	<string>????</string>
+	<key>CFBundleURLTypes</key>
+	<array>
 		<dict>
-			<key>NSAllowsArbitraryLoads</key>
-			<true/>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>ShareMedia-$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+			</array>
 		</dict>
-		<key>UIStatusBarHidden</key>
-		<false/>
-		<key>UIViewControllerBasedStatusBarAppearance</key>
-		<false/>
+	</array>
+	<key>CFBundleVersion</key>
+	<string>$(FLUTTER_BUILD_NUMBER)</string>
+	<key>FirebaseAppDelegateProxyEnabled</key>
+	<true/>
+	<key>FirebaseMessagingAutoInitEnabled</key>
+	<true/>
+	<key>FlutterDeepLinkingEnabled</key>
+	<false/>
+	<key>GADApplicationIdentifier</key>
+	<string>ca-app-pub-4151367085462604~5043177104</string>
+	<key>GoogleMapsApiKey</key>
+	<string>AIzaSyD4dbz7eaxd8tFF3tZFJwA4y6KvwozkpdU</string>
+	<key>LSRequiresIPhoneOS</key>
+	<true/>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
 	</dict>
+	<key>NSAppleMusicUsageDescription</key>
+	<string>Blue Era would like access to your music library to enhance your experience with music-related features.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Blue Era needs access to your camera to take photos, make video calls, scan QR codes, and upload images.</string>
+	<key>NSContactsUsageDescription</key>
+	<string>Blue Era needs access to your contacts to help you connect with friends, share services, or autofill contact details.</string>
+	<key>NSDocumentsFolderUsageDescription</key>
+	<string>Blue Era needs access to your Documents folder to open, edit, and save files you choose to work with.</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>Blue Era uses Face ID to quickly and securely authenticate you when logging in or accessing sensitive information.</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>This app uses the local network to discover and communicate with nearby devices.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Blue Era requires your location while using the app to help you find products available near you and to provide real-time tracking of riders delivering your orders.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>Blue Era requires your location while using the app to help you find products available near you and to provide real-time tracking of riders delivering your orders.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Blue Era requires your location while using the app to help you find products available near you and to provide real-time tracking of riders delivering your orders.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Blue Era needs access to your microphone to make voice and video calls, record audio messages, and use speech-to-text.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Blue Era needs access to your photo library to save and share photos, videos, and media from chats.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Blue Era needs access to your photo library to select and upload photos for profile pictures, chat messages, and service documentation.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Blue Era uses speech recognition to convert your voice to text.</string>
+	<key>NSUserActivityTypes</key>
+	<array>
+		<string>INSendMessageIntent</string>
+	</array>
+	<key>UIApplicationSupportsIndirectInputEvents</key>
+	<true/>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>fetch</string>
+		<string>remote-notification</string>
+		<string>processing</string>
+		<string>voip</string>
+		<string>push-to-talk</string>
+	</array>
+	<key>UILaunchStoryboardName</key>
+	<string>LaunchScreen</string>
+	<key>UIMainStoryboardFile</key>
+	<string>Main</string>
+	<key>UIRequiredDeviceCapabilities</key>
+	<array>
+		<string>arm64</string>
+	</array>
+	<key>UIStatusBarHidden</key>
+	<false/>
+	<key>UISupportedInterfaceOrientations</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	<key>UISupportedInterfaceOrientations~ipad</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationPortraitUpsideDown</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	<key>UIViewControllerBasedStatusBarAppearance</key>
+	<false/>
+	<key>io.flutter.embedded_views_preview</key>
+	<true/>
+</dict>
 </plist>

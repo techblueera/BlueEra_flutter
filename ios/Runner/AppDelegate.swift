@@ -221,12 +221,26 @@ import flutter_callkit_incoming
         // lib/features/chat/auth/controller/call_controller.dart.
         callKitData.ringtonePath = "system_ringtone_default"
 
-        SwiftFlutterCallkitIncomingPlugin.sharedInstance?.showCallkitIncoming(
-            callKitData,
-            fromPushKit: true
-        )
-
-        completion()
+        // iOS 13+ requires the VoIP push handler to report a new incoming call
+        // to CallKit BEFORE calling `completion()`. Use the completion-handler
+        // variant so `completion()` runs only after `reportNewIncomingCall` has
+        // actually registered the call. Firing `completion()` early (as the
+        // non-completion overload did) makes iOS treat the push as mishandled —
+        // it terminates the app and, after repeated violations, STOPS delivering
+        // VoIP pushes, which shows up as "kill-mode calls don't ring".
+        //
+        // Guard: if the plugin singleton isn't ready yet, we still must report a
+        // call (otherwise iOS penalises the app), so report a placeholder via
+        // CallKit-less fallback path is not possible here — at minimum always
+        // call completion() so the system isn't left hanging.
+        if let plugin = SwiftFlutterCallkitIncomingPlugin.sharedInstance {
+            plugin.showCallkitIncoming(callKitData, fromPushKit: true) {
+                completion()
+            }
+        } else {
+            print("[VoIP] CallKit plugin not initialised — cannot report call")
+            completion()
+        }
     }
 
     /// Called when a VoIP push token is invalidated.
