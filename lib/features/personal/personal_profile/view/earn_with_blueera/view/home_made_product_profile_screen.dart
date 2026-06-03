@@ -104,7 +104,6 @@ class _HomeProfileScreenState extends State<HomeProfileScreen> {
 
     if (success) {
       Navigator.of(context).pop();
-      Navigator.of(context).pop();
     }
   }
 

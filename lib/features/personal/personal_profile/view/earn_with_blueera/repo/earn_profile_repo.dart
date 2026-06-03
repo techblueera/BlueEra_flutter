@@ -55,12 +55,15 @@ class EarnProfileRepo extends BaseService {
     );
   }
 
-  /// Fetch earn profile by userId.
+  /// Fetch earn profile(s) by userId, optionally filtered via [queryParams]
+  /// (e.g. `{'profileType': 'homeMadeFood'}`).
   Future<ResponseModel> fetchEarnProfileByUserId({
     required String userId,
+    Map<String, dynamic>? queryParams,
   }) async {
     return ApiBaseHelper().getHTTP(
       '$earnProfiles/user/$userId',
+      params: queryParams,
       showProgress: false,
     );
   }

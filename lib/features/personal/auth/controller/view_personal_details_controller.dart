@@ -196,7 +196,7 @@ class ViewPersonalDetailsController extends GetxController {
   RxDouble myProfileCompletionPercent = 0.0.obs;
 
   RxString userProfileType = userProfileTypeGlobal.obs;
-  Rxn<String> earnProfileType = Rxn<String>();
+  RxList<String> earnProfileType = <String>[].obs;
 
   Future<void> viewPersonalProfile() async {
     // Skip when logged out: stale screens / in-flight asyncs / Obx rebuilds
@@ -360,9 +360,9 @@ class ViewPersonalDetailsController extends GetxController {
     }
 
     /// Check Earn services
-    earnProfileType.value = personalProfileDetails.value.earnProfileType;
+    earnProfileType.assignAll(personalProfileDetails.value.earnProfileType);
     debugPrint(
-        '=== earnProfileType: "${earnProfileType.value}", raw: "${personalProfileDetails.value.earnProfileType}" ===');
+        '=== earnProfileType: $earnProfileType ===');
 
     /// Seed the location fallback from the personal profile so nearby APIs
     /// still work when device GPS is off.

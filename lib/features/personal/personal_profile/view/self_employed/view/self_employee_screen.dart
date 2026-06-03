@@ -12,6 +12,7 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/earn_store_section.dart';
 import 'package:BlueEra/core/services/multipart_image_service.dart';
 import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/core/services/share_service.dart';
@@ -32,8 +33,8 @@ import 'package:BlueEra/features/contribution/controller/contribution_controller
 import 'package:BlueEra/features/contribution/view/contribution_screen.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/controller/earn_profile_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/self_profession_service_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/self_employed/widget/earn_service_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/edit_profile_bottom_sheet.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/profile_designation_bottom_sheet.dart';
 import 'package:BlueEra/features/personal/personal_profile/widgets/personal_qrcode_widget.dart';
@@ -72,11 +73,22 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
   // the Connect screen uses, so socket-driven updates land on both.
   final ChatViewController _chatViewController = getOrPut(() => ChatViewController());
 
+  // Backs the "Store" tab cards — holds the user's earn profile (logo,
+  // cover, address, diet, delivery flags, gallery) for the summary card.
+  final EarnProfileController _earnProfileCtrl =
+      getOrPut(() => EarnProfileController());
+
+  // True when the user has created one of the home-made earn profiles.
+  // Used to decide whether to hydrate the earn profile on load.
+  bool get _hasEarnProfile => _viewCtrl.earnProfileType.isNotEmpty;
+
+  // The Store tab is always present, placed just before Statics (index 4).
   List<String> get _tabs => [
         AppStrings.order.tr,
         AppStrings.overview.tr,
         AppStrings.service.tr,
         AppStrings.post.tr,
+        AppStrings.store.tr,
         AppStrings.statics.tr,
       ];
 
@@ -91,6 +103,11 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
       ChatEmitEvents.ChatList,
       {ApiKeys.type: AppConstants.business_Chat_Type},
     );
+    // Hydrate the earn profile so the "Store" tab card can show real
+    // store details (name / cover / address / chips).
+    if (_hasEarnProfile) {
+      _earnProfileCtrl.fetchEarnProfile();
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _viewCtrl.shopStatusOpenClose.value =
           serviceProviderStatusGlobal.toUpperCase() == AppConstants.OPEN.toUpperCase();
@@ -102,7 +119,6 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
     return _buildScaffold(context);
   }
 
-  // SCAFFOLD â€” fixed glassmorphic top bar + scrolling tab content,
   // with a sticky tab overlay that engages once the in-flow tabs
   // have scrolled past the top bar (mirrors grocery v2).
   Widget _buildScaffold(BuildContext context) {
@@ -514,6 +530,7 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
   }
 
   List<Widget> _buildTabContent() {
+    // The "Store" tab sits at index 4, just before Statics.
     switch (_selectedTab) {
       case 0:
         return _buildOrderTab();
@@ -524,10 +541,22 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
       case 3:
         return _buildPostTab();
       case 4:
+        return _buildEarnTab();
+      case 5:
         return _buildStaticsTab();
       default:
         return const [SizedBox.shrink()];
     }
+  }
+
+  // STORE TAB — always visible. Lists all three earn flavours (food /
+  // product / service). The flavour the user has created shows a rich
+  // storefront card that opens the earn dashboard; the rest show an "Add"
+  // card that routes to that flavour's create flow.
+  List<Widget> _buildEarnTab() {
+    // Reuses the shared [EarnStoreCards] so the made/add storefront cards are
+    // identical across all individual profile screens.
+    return [const EarnStoreCards()];
   }
 
   // Order tab â€” top slot is reactive to the contribution status:
@@ -1147,7 +1176,76 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
   List<Widget> _buildStaticsTab() {
     return [
       BusinessStatisticsScreen(businessId: userId),
+      SizedBox(height: SizeConfig.size12),
+      _earnStatPlaceholder('Home Made Food Statistics'),
+      _earnStatPlaceholder('Home Made Products Statistics'),
+      _earnStatPlaceholder('Home Service Statistics'),
+      SizedBox(height: SizeConfig.size16),
     ];
+  }
+
+  // Per-earn-type statistics shown below the main chat-click analytics.
+  // Labeled placeholders for now — real data will be wired in later.
+  Widget _earnStatPlaceholder(String title) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFEDEFF4), width: 1),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x14001120),
+              blurRadius: 14,
+              offset: Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 4,
+                  height: 18,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        AppColors.primaryColor,
+                        AppColors.primaryColor.withValues(alpha: 0.45),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+                SizedBox(width: SizeConfig.size10),
+                Expanded(
+                  child: CustomText(
+                    title,
+                    fontSize: SizeConfig.large,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.mainTextColor,
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: SizeConfig.size10),
+            CustomText(
+              'Statistics coming soon',
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: AppColors.secondaryTextColor,
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   // OVERVIEW TAB â€” refined editorial identity dossier:
@@ -1167,9 +1265,6 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
         child: const ProfileBioCard(margin: EdgeInsets.zero),
       ),
       _buildActionRow(),
-      const EarnServiceCard(
-        margin: EdgeInsets.only(top: 10, left: 20, right: 10),
-      ),
       const RentalPropertyCard(
         margin: EdgeInsets.only(top: 10, left: 20, right: 10),
       ),

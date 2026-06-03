@@ -20,7 +20,9 @@ class HomeMadeFoodCartScreen extends StatelessWidget {
 
   const HomeMadeFoodCartScreen({super.key, required this.store});
 
-  static const Color _warm = Color(0xFFE8590C);
+  // App primary color combination (theme-aligned accent for this flow).
+  static const Color _primary = AppColors.primaryColor; // 0xFF0086FF
+  static const Color _primaryDeep = AppColors.blue5CAF; // 0xFF005CAF
 
   HomeMadeFoodCartController get _controller =>
       getOrPut(() => HomeMadeFoodCartController());
@@ -92,11 +94,11 @@ class HomeMadeFoodCartScreen extends StatelessWidget {
   Widget _storeBanner() {
     return Container(
       width: double.infinity,
-      color: _warm.withValues(alpha: 0.06),
+      color: _primary.withValues(alpha: 0.06),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       child: Row(
         children: [
-          Icon(Icons.soup_kitchen_rounded, size: 16, color: _warm),
+          Icon(Icons.soup_kitchen_rounded, size: 16, color: _primary),
           const SizedBox(width: 8),
           Expanded(
             child: CustomText(
@@ -197,14 +199,14 @@ class HomeMadeFoodCartScreen extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(10),
-        color: _warm.withValues(alpha: 0.08),
+        color: _primary.withValues(alpha: 0.08),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           _stepBtn(
             icon: qty == 1 ? Icons.delete_outline_rounded : Icons.remove,
-            color: qty == 1 ? AppColors.red : _warm,
+            color: qty == 1 ? AppColors.red : _primary,
             onTap: () => controller.remove(item),
           ),
           Container(
@@ -219,7 +221,7 @@ class HomeMadeFoodCartScreen extends StatelessWidget {
           ),
           _stepBtn(
             icon: Icons.add,
-            color: _warm,
+            color: _primary,
             onTap: () {
               final kitchen = controller.store.value;
               if (kitchen != null) controller.add(item, kitchen);
@@ -326,12 +328,12 @@ class HomeMadeFoodCartScreen extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           decoration: BoxDecoration(
                             gradient: const LinearGradient(
-                              colors: [_warm, Color(0xFFF7A23B)],
+                              colors: [_primaryDeep, _primary],
                             ),
                             borderRadius: BorderRadius.circular(12),
                             boxShadow: [
                               BoxShadow(
-                                color: _warm.withValues(alpha: 0.3),
+                                color: _primary.withValues(alpha: 0.3),
                                 blurRadius: 8,
                                 offset: const Offset(0, 3),
                               ),

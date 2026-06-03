@@ -19,7 +19,20 @@ class EarnProfileController extends GetxController {
   RxBool isCreatingProfile = false.obs;
   RxBool isProfileLoading = false.obs;
   RxBool isProfileUpdating = false.obs;
+
+  /// The "active" earn profile — the one currently being viewed/edited
+  /// (gallery, contact, logo edits all act on this one).
   final Rx<EarnProfileModel?> earnProfile = Rx<EarnProfileModel?>(null);
+
+  /// Every earn profile the user owns, keyed by `profileType`
+  /// (homeMadeFood / homeMadeProduct / homeService). Lets each store card
+  /// render its own profile when the user has more than one.
+  final RxMap<String, EarnProfileModel> profilesByType =
+      <String, EarnProfileModel>{}.obs;
+
+  /// The user's profile for [type], or null if they haven't created it.
+  EarnProfileModel? profileOfType(String? type) =>
+      type == null ? null : profilesByType[type];
 
   final _uploader = S3ImageUploader();
   final EarnProfileRepo _repo = EarnProfileRepo();
@@ -163,20 +176,77 @@ class EarnProfileController extends GetxController {
     } catch (_) {}
   }
 
-  /// GET /earn-profiles/user/{userId}
-  Future<void> fetchEarnProfile({bool showLoading = true}) async {
+  /// Fetches every earn profile the user owns — one request per type in
+  /// `earnProfileTypes`, each filtered by `profileType` query param —
+  /// and populates [profilesByType] so the food / product / service cards all
+  /// have their own data on every individual screen.
+  ///
+  /// Sets the active [earnProfile] to [activeType] when given, else preserves
+  /// the current active type, else the first profile.
+  Future<void> fetchEarnProfile({
+    bool showLoading = true,
+    String? activeType,
+  }) async {
     if (userId.isEmpty) return;
+
+    final List<String> types = Get.isRegistered<ViewPersonalDetailsController>()
+        ? Get.find<ViewPersonalDetailsController>().earnProfileType.toList()
+        : <String>[];
+
+    if (types.isEmpty) {
+      profilesByType.clear();
+      earnProfile.value = null;
+      return;
+    }
+
     try {
       if (showLoading) isProfileLoading.value = true;
-      final response = await _repo.fetchEarnProfileByUserId(userId: userId);
-      if (!response.isSuccess) return;
-      final parsed = EarnProfileResponse.fromJson(response.response!.data);
-      if (parsed.success) earnProfile.value = parsed.data;
+
+      // One request per owned type, in parallel.
+      final entries = await Future.wait(types.map((type) async {
+        try {
+          final response = await _repo.fetchEarnProfileByUserId(
+            userId: userId,
+            queryParams: {'profileType': type},
+          );
+          if (!response.isSuccess) return null;
+          final profile = _extractProfile(response.response?.data);
+          return profile == null ? null : MapEntry(type, profile);
+        } catch (e) {
+          debugPrint('fetchEarnProfile($type) error: $e');
+          return null;
+        }
+      }));
+
+      profilesByType.assignAll({
+        for (final e in entries)
+          if (e != null) e.key: e.value,
+      });
+
+      // Active profile: requested type → currently-active type → first.
+      final preferredType = activeType ?? earnProfile.value?.profileType;
+      earnProfile.value = profilesByType[preferredType] ??
+          (profilesByType.isEmpty ? null : profilesByType.values.first);
     } catch (e) {
       debugPrint('fetchEarnProfile error: $e');
     } finally {
       if (showLoading) isProfileLoading.value = false;
     }
+  }
+
+  /// Extracts a single [EarnProfileModel] from a response whose `data` may be
+  /// a single object or a list (in which case the first entry is taken).
+  EarnProfileModel? _extractProfile(dynamic raw) {
+    if (raw is! Map) return null;
+    final data = raw['data'];
+    if (data is List) {
+      final list =
+          EarnProfilesListResponse.fromJson(raw as Map<String, dynamic>).data;
+      return list.isEmpty ? null : list.first;
+    } else if (data is Map<String, dynamic>) {
+      return EarnProfileResponse.fromJson(raw as Map<String, dynamic>).data;
+    }
+    return null;
   }
 
   /// PATCH /earn-profiles/{id} with arbitrary JSON keys.

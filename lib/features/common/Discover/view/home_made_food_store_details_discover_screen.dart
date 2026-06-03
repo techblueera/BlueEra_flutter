@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
@@ -9,18 +7,19 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
+import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
+import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
 import 'package:BlueEra/features/common/Discover/controller/home_made_food_cart_controller.dart';
 import 'package:BlueEra/features/common/Discover/controller/home_made_food_store_details_controller.dart';
 import 'package:BlueEra/features/common/Discover/view/home_made_food_cart_screen.dart';
-import 'package:BlueEra/features/common/Discover/widget/discover_chat_icon.dart';
-import 'package:BlueEra/features/me/grocery/widget/discount_badge.dart';
 import 'package:BlueEra/features/me/grocery/widget/food_type_or_cooking_method.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/model/earn_profile_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/model/food_item_model.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/self_employed/model/tiffin_meal_model.dart';
+import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/floating_cart_widget.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -42,7 +41,9 @@ class HomeMadeFoodStoreDetailsDiscoverScreen extends StatefulWidget {
 
 class _HomeMadeFoodStoreDetailsDiscoverScreenState
     extends State<HomeMadeFoodStoreDetailsDiscoverScreen> {
-  static const Color _warm = Color(0xFFE8590C);
+  // App primary color combination (theme-aligned accent for this flow).
+  static const Color _primary = AppColors.primaryColor; // 0xFF0086FF
+  static const Color _placeholderBg = AppColors.blue5CFF; // 0xFFEBF5FF
 
   EarnProfileModel get store => widget.store;
 
@@ -55,6 +56,9 @@ class _HomeMadeFoodStoreDetailsDiscoverScreenState
   // screen) — found here so adds survive coming back to the list.
   late final HomeMadeFoodCartController cartController =
       getOrPut(() => HomeMadeFoodCartController());
+
+  // Selected Home Made Food category tab (index into availableCategories).
+  final RxInt _selectedCat = 0.obs;
 
   static const Map<FoodCategoryType, String> _categoryTitles = {
     FoodCategoryType.bakery: 'Bakery',
@@ -89,16 +93,18 @@ class _HomeMadeFoodStoreDetailsDiscoverScreenState
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildHero(),
+                  _buildIdentity(),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildFeatureRow(),
-                        _buildContactCard(),
-                        const SizedBox(height: 10),
+                        _buildTiffinSection(),
                         _buildMenu(),
                         _buildGallery(),
+                        _buildTestimonials(),
+                        _buildContactCard(),
+                        const SizedBox(height: 10),
                       ],
                     ),
                   ),
@@ -137,14 +143,13 @@ class _HomeMadeFoodStoreDetailsDiscoverScreenState
     });
   }
 
-  // ── Immersive hero: cover image + scrim + back + logo + name + diet ──────
+  // ── Hero cover image with back / save / share top bar ────────────────────
   Widget _buildHero() {
     final statusBar = MediaQuery.of(context).padding.top;
     final cover = store.galleryImages.isNotEmpty ? store.galleryImages.first : '';
-    final diet = (store.foodType ?? '').trim();
 
     return SizedBox(
-      height: 250 + statusBar,
+      height: 210 + statusBar,
       width: double.infinity,
       child: Stack(
         fit: StackFit.expand,
@@ -154,28 +159,25 @@ class _HomeMadeFoodStoreDetailsDiscoverScreenState
               imageUrl: cover,
               fit: BoxFit.cover,
               memCacheWidth: 1000,
-              placeholder: (_, __) => Container(color: const Color(0xFFF5E6C8)),
+              placeholder: (_, __) => Container(color: _placeholderBg),
               errorWidget: (_, __, ___) => _coverFallback(),
             )
           else
             _coverFallback(),
 
+          // Light top scrim so the status bar icons stay legible.
           const DecoratedBox(
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [
-                  Color(0x73000000),
-                  Color(0x00000000),
-                  Color(0xE6000000),
-                ],
-                stops: [0.0, 0.4, 1.0],
+                colors: [Color(0x40000000), Color(0x00000000)],
+                stops: [0.0, 0.35],
               ),
             ),
           ),
 
-          // Back + chat row.
+          // Back (left) · save + share (right).
           Positioned(
             top: statusBar + 8,
             left: 12,
@@ -184,70 +186,17 @@ class _HomeMadeFoodStoreDetailsDiscoverScreenState
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 _circleButton(
-                  icon: Icons.arrow_back_rounded,
+                  asset: AppIconAssets.back_arrow,
                   onTap: () => Navigator.of(context).pop(),
                 ),
-                Container(
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white,
-                  ),
-                  child: DiscoverChatIcon(
-                    userId: store.userId ?? '',
-                    name: store.serviceName,
-                    profile: store.serviceLogo,
-                    businessId: store.id,
-                    trackingSource: ChatClickSource.searchResult,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // Logo + name + pills.
-          Positioned(
-            left: 16,
-            right: 16,
-            bottom: 16,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 2.5),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.3),
-                        blurRadius: 8,
-                        offset: const Offset(0, 3),
-                      ),
-                    ],
-                  ),
-                  child: CachedAvatarWidget(
-                    imageUrl: store.serviceLogo ?? '',
-                    size: 64,
-                    borderColor: Colors.transparent,
-                    borderRadius: 32,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                CustomText(
-                  store.serviceName ?? AppStrings.na,
-                  fontSize: 22,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.white,
-                  letterSpacing: 0.2,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 6,
-                  runSpacing: 6,
+                Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    _heroPill('Home Made Food', Icons.soup_kitchen_rounded),
-                    if (diet.isNotEmpty) _dietPill(diet),
+                    _circleButton(
+                        asset: AppIconAssets.star_rounded, onTap: () {}),
+                    const SizedBox(width: 10),
+                    _circleButton(
+                        asset: AppIconAssets.reelShare, onTap: () {}),
                   ],
                 ),
               ],
@@ -258,26 +207,24 @@ class _HomeMadeFoodStoreDetailsDiscoverScreenState
     );
   }
 
-  Widget _circleButton({required IconData icon, required VoidCallback onTap}) {
+  Widget _circleButton({required String asset, required VoidCallback onTap}) {
     return GestureDetector(
       onTap: onTap,
-      child: ClipOval(
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
-          child: Container(
-            width: 40,
-            height: 40,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.black.withValues(alpha: 0.4),
-              border: Border.all(
-                color: Colors.white.withValues(alpha: 0.2),
-                width: 0.6,
-              ),
-            ),
-            child: Icon(icon, color: Colors.white, size: 20),
-          ),
+      child: Container(
+        width: 38,
+        height: 38,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: Colors.black.withValues(alpha: 0.35),
+          border: Border.all(
+              color: Colors.white.withValues(alpha: 0.25), width: 0.6),
+        ),
+        child: LocalAssets(
+          imagePath: asset,
+          width: 18,
+          height: 18,
+          imgColor: Colors.white,
         ),
       ),
     );
@@ -285,228 +232,556 @@ class _HomeMadeFoodStoreDetailsDiscoverScreenState
 
   Widget _coverFallback() {
     return Container(
-      color: const Color(0xFFF5E6C8),
+      color: _placeholderBg,
       alignment: Alignment.center,
       child: Icon(Icons.lunch_dining_rounded,
-          size: 56, color: Colors.orange.shade300),
+          size: 56, color: _primary.withValues(alpha: 0.45)),
     );
   }
 
-  Widget _heroPill(String text, IconData icon) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
-      decoration: BoxDecoration(
-        color: _warm,
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 13, color: Colors.white),
-          const SizedBox(width: 5),
-          CustomText(text,
-              fontSize: 10.5, fontWeight: FontWeight.w800, color: Colors.white),
-        ],
-      ),
-    );
-  }
-
-  Widget _dietPill(String text) {
-    final isVeg = !text.toLowerCase().contains('non');
-    final color = isVeg ? const Color(0xFF1E7D34) : const Color(0xFFC0341D);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _vegMark(color),
-          const SizedBox(width: 5),
-          CustomText(text,
-              fontSize: 10.5, fontWeight: FontWeight.w800, color: color),
-        ],
-      ),
-    );
-  }
-
-  Widget _vegMark(Color color) {
-    return Container(
-      width: 12,
-      height: 12,
-      decoration: BoxDecoration(
-        border: Border.all(color: color, width: 1.5),
-        borderRadius: BorderRadius.circular(2),
-      ),
-      child: Center(
-        child: Container(
-          width: 5,
-          height: 5,
-          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-        ),
-      ),
-    );
-  }
-
-  // ── Feature chips (home delivery / monthly payment) ──────────────────────
-  Widget _buildFeatureRow() {
-    final chips = <Widget>[
-      if (store.homeDelivery)
-        _featureChip(Icons.delivery_dining_rounded, 'Home Delivery'),
-      if (store.monthlyPayment)
-        _featureChip(Icons.event_repeat_rounded, 'Monthly Payment'),
-    ];
-    if (chips.isEmpty) return const SizedBox.shrink();
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: Wrap(spacing: 8, runSpacing: 8, children: chips),
-    );
-  }
-
-  Widget _featureChip(IconData icon, String label) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-      decoration: BoxDecoration(
-        color: _warm.withValues(alpha: 0.07),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: _warm.withValues(alpha: 0.18), width: 1),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 15, color: _warm),
-          const SizedBox(width: 6),
-          CustomText(
-            label,
-            fontSize: 12,
-            color: AppColors.mainTextColor,
-            fontWeight: FontWeight.w600,
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ── Contact & address ────────────────────────────────────────────────────
-  Widget _buildContactCard() {
+  // ── Identity: logo (overlapping) + name + Chat + tags + rating + location ─
+  Widget _buildIdentity() {
     final lat = store.latitude ?? 0.0;
     final lng = store.longitude ?? 0.0;
     final km = calculateDistanceKm(
         LocationService.lat, LocationService.lng, lat, lng);
-    final address = store.address ?? AppStrings.na;
-    final house = (store.houseNumber ?? '').trim();
-    final phone = (store.alternatePhoneNumber ?? '').trim();
     final hasLoc = !(lat == 0.0 && lng == 0.0);
 
-    return CustomFormCard(
-      padding: const EdgeInsets.all(12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _sectionTitle('Contact & Location'),
-          const SizedBox(height: 12),
-          _buildInfoRow(
-            icon: Icons.location_on_rounded,
-            title: hasLoc ? '${km.toStringAsFixed(2)} Km Away' : address,
-            subtitle: hasLoc
-                ? (house.isNotEmpty ? '$house, $address' : address)
-                : (house.isNotEmpty ? house : 'Address'),
-            onTap: hasLoc ? _showMapBottomSheet : null,
-            trailing: hasLoc
-                ? CustomText('View Map',
-                    fontSize: 12, color: _warm, fontWeight: FontWeight.w700)
-                : null,
-          ),
-          if (phone.isNotEmpty) ...[
-            const SizedBox(height: 10),
-            _buildInfoRow(
-              icon: Icons.call_rounded,
-              title: phone,
-              subtitle: 'Alternate Contact',
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _sectionTitle(String text) {
-    return Row(
+    return Stack(
+      clipBehavior: Clip.none,
       children: [
+        // White sheet holding everything from the name down to Veg Food.
+        // Full-bleed width with only the top corners rounded over the hero.
         Container(
-          width: 4,
-          height: 18,
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [_warm, Color(0xFFF7A23B)],
-            ),
-            borderRadius: BorderRadius.circular(4),
+          width: double.infinity,
+          padding: const EdgeInsets.fromLTRB(16, 60, 16, 16),
+          decoration: const BoxDecoration(
+            color: AppColors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CustomText(
+                store.serviceName ?? AppStrings.na,
+                fontSize: 20,
+                fontWeight: FontWeight.w800,
+                color: AppColors.mainTextColor,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 10),
+              Wrap(
+                spacing: 10,
+                runSpacing: 8,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  _tagPill('Home Made Food'),
+                  _ratingChip(),
+                ],
+              ),
+              const SizedBox(height: 12),
+              _locationPill(km, hasLoc),
+              const SizedBox(height: 14),
+              const Divider(height: 1, color: Color(0xFFEDEFF4)),
+              const SizedBox(height: 14),
+              _buildFeatureRow(),
+            ],
           ),
         ),
-        const SizedBox(width: 8),
-        CustomText(
-          text,
-          fontSize: SizeConfig.large,
-          fontWeight: FontWeight.w800,
-          color: AppColors.mainTextColor,
+
+        // Logo straddling the sheet's top-left edge.
+        Positioned(
+          left: 16,
+          top: -14,
+          child: Container(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white, width: 3),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.18),
+                  blurRadius: 8,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+            ),
+            child: CachedAvatarWidget(
+              imageUrl: store.serviceLogo ?? '',
+              size: 62,
+              borderColor: Colors.transparent,
+              borderRadius: 31,
+            ),
+          ),
+        ),
+
+        // Chat — top-right, aligned with the logo.
+        Positioned(
+          right: 16,
+          top: 6,
+          child: _chatPill(),
         ),
       ],
     );
   }
 
-  Widget _buildInfoRow({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    VoidCallback? onTap,
-    Widget? trailing,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
-      child: Row(
+  Widget _chatPill() {
+    return GestureDetector(
+      onTap: _openChat,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+        decoration: BoxDecoration(
+          color: _primary,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: _primary.withValues(alpha: 0.30),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            LocalAssets(
+              imagePath: AppIconAssets.chat,
+              width: 15,
+              height: 15,
+              imgColor: Colors.white,
+            ),
+            const SizedBox(width: 6),
+            CustomText('Chat',
+                fontSize: 13, fontWeight: FontWeight.w800, color: Colors.white),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _tagPill(String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.greyE5),
+      ),
+      child: CustomText(text,
+          fontSize: 11.5,
+          fontWeight: FontWeight.w700,
+          color: AppColors.secondaryTextColor),
+    );
+  }
+
+  // NOTE: placeholder rating — the model has no rating field yet.
+  Widget _ratingChip() {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        LocalAssets(
+          imagePath: AppIconAssets.fill_star,
+          width: 14,
+          height: 14,
+          imgColor: AppColors.yellow,
+        ),
+        const SizedBox(width: 3),
+        CustomText('4.8',
+            fontSize: 12.5,
+            fontWeight: FontWeight.w800,
+            color: AppColors.mainTextColor),
+        const SizedBox(width: 3),
+        CustomText('(48 reviews)',
+            fontSize: 11.5,
+            fontWeight: FontWeight.w500,
+            color: AppColors.secondaryTextColor),
+      ],
+    );
+  }
+
+  Widget _locationPill(double km, bool hasLoc) {
+    return GestureDetector(
+      onTap: hasLoc ? _showMapBottomSheet : null,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: _primary.withValues(alpha: 0.06),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: _primary.withValues(alpha: 0.15)),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.location_on_rounded, size: 15, color: _primary),
+            const SizedBox(width: 6),
+            if (hasLoc) ...[
+              CustomText('${km.toStringAsFixed(0)} KM',
+                  fontSize: 12, fontWeight: FontWeight.w800, color: _primary),
+              CustomText('  |  ', fontSize: 12, color: AppColors.greyE5),
+            ],
+            Expanded(
+              child: CustomText(
+                store.address ?? AppStrings.na,
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: AppColors.secondaryTextColor,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _openChat() {
+    final uid = store.userId ?? '';
+    if (uid.trim().isEmpty) return;
+    if (isGuestUser()) {
+      createProfileScreen();
+      return;
+    }
+    final bId = store.id?.trim();
+    if (bId != null && bId.isNotEmpty) {
+      ChatClickTracker.track(
+          businessId: bId, source: ChatClickSource.searchResult);
+    }
+    final chatViewController = getOrPut(() => ChatViewController());
+    chatViewController.checkChatConnectionAndOpenChat(
+      userId: uid,
+      name: store.serviceName,
+      profile: store.serviceLogo,
+      route: AppConstants.route_discover,
+    );
+  }
+
+  // ── 3-column feature strip (delivery / payment / diet) ───────────────────
+  Widget _buildFeatureRow() {
+    const cellBg = Color(0xFFF6F7F9);
+    const dark = AppColors.mainTextColor;
+    final diet = (store.foodType ?? '').trim();
+    final hasDiet = diet.isNotEmpty;
+    final isVeg = !diet.toLowerCase().contains('non');
+    final dietColor =
+        isVeg ? const Color(0xFF1E7D34) : const Color(0xFFC0341D);
+
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.greyE5),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: IntrinsicHeight(
+        child: Row(
+          children: [
+            Expanded(
+              child: _featureCol(Icons.delivery_dining_rounded,
+                  'Home Delivery', dark, cellBg),
+            ),
+            _vDivider(),
+            Expanded(
+              child: _featureCol(Icons.currency_rupee_rounded,
+                  'Monthly Payment', dark, cellBg),
+            ),
+            _vDivider(),
+            Expanded(
+              child: hasDiet
+                  ? _featureCol(
+                      Icons.check_box_rounded,
+                      isVeg ? 'Veg Food' : 'Non-Veg',
+                      dietColor,
+                      dietColor.withValues(alpha: 0.08),
+                    )
+                  : _featureCol(
+                      Icons.verified_rounded, 'Verified', _primary, cellBg),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _vDivider() => Container(width: 1, color: AppColors.greyE5);
+
+  Widget _featureCol(IconData icon, String label, Color color, Color bg) {
+    return Container(
+      color: bg,
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 6),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 20, color: color),
+          const SizedBox(height: 6),
+          CustomText(
+            label,
+            fontSize: 11.5,
+            fontWeight: FontWeight.w600,
+            color: color,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── Testimonials ─────────────────────────────────────────────────────────
+  // ── Testimonials — centered heading + a soft pink quote card ─────────────
+  // NOTE: placeholder content — no testimonials data on the model yet.
+  static const List<({String text, String name, String role})> _testimonials = [
+    (
+      text:
+          'Qorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc '
+              'vulputate libero et velit interdum, ac aliquet odio mattis. '
+              'Class aptent taciti sociosqu ad litora torquent.',
+      name: 'Dr. Ramesh Gupta',
+      role: 'Managing Director',
+    ),
+    (
+      text:
+          'Fresh, home-made and delicious every single time. Ordering tiffin '
+              'here has been a wonderful experience for my whole family.',
+      name: 'Anita Sharma',
+      role: 'Verified Buyer',
+    ),
+  ];
+
+  // ── Testimonials — light-blue band + carousel of white quote cards ───────
+  Widget _buildTestimonials() {
+    return Container(
+      margin: const EdgeInsets.only(top: 16),
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      decoration: BoxDecoration(
+        color: _primary.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        children: [
+          Center(child: _sectionHeading('Testimonials')),
+          const SizedBox(height: 14),
+          SizedBox(
+            height: 250,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              itemCount: _testimonials.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 12),
+              itemBuilder: (_, i) => SizedBox(
+                width: SizeConfig.screenWidth * 0.78,
+                child: _testimonialCard(_testimonials[i]),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _testimonialCard(({String text, String name, String role}) t) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Icon(Icons.format_quote_rounded, size: 32, color: _primary),
+          const SizedBox(height: 6),
+          Expanded(
+            child: Center(
+              child: CustomText(
+                t.text,
+                fontSize: 12.5,
+                fontWeight: FontWeight.w500,
+                color: AppColors.secondaryTextColor,
+                textAlign: TextAlign.center,
+                maxLines: 6,
+                overflow: TextOverflow.ellipsis,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ),
+          Divider(color: AppColors.greyE5, height: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const CircleAvatar(
+                radius: 16,
+                backgroundColor: Color(0xFFE3ECF7),
+                child: Icon(Icons.person_rounded, size: 18, color: _primary),
+              ),
+              const SizedBox(width: 8),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CustomText('-${t.name}',
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.mainTextColor),
+                  CustomText(t.role,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.secondaryTextColor),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── Contact Us — heading + bordered card (logo, name, desc, rows, map) ───
+  Widget _buildContactCard() {
+    final lat = store.latitude ?? 0.0;
+    final lng = store.longitude ?? 0.0;
+    final hasLoc = !(lat == 0.0 && lng == 0.0);
+    final website = (store.website ?? '').trim();
+    final phone = (store.alternatePhoneNumber ?? '').trim();
+    final email = (store.email ?? '').trim();
+    final address = (store.address ?? '').trim();
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 14),
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          _sectionHeading('Contact Us'),
+          const SizedBox(height: 10),
           Container(
-            padding: const EdgeInsets.all(8),
+            width: double.infinity,
+            padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: _warm.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(8),
+              color: AppColors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.greyE5),
             ),
-            child: Icon(icon, size: 18, color: _warm),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CustomText(
-                  title,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.mainTextColor,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                ClipOval(
+                  child: SizedBox(
+                    width: 64,
+                    height: 64,
+                    child: (store.serviceLogo?.isNotEmpty ?? false)
+                        ? CachedNetworkImage(
+                            imageUrl: store.serviceLogo!,
+                            fit: BoxFit.cover,
+                            errorWidget: (_, __, ___) => _logoFallback(),
+                          )
+                        : _logoFallback(),
+                  ),
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: 10),
                 CustomText(
-                  subtitle,
-                  fontSize: 11,
-                  color: AppColors.secondaryTextColor,
+                  store.serviceName ?? AppStrings.na,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.mainTextColor,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
+                const SizedBox(height: 6),
+                CustomText(
+                  'Home-made food made fresh daily — tiffins, snacks and more, '
+                  'served with care for nearby foodies.',
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.secondaryTextColor,
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 16),
+                if (website.isNotEmpty)
+                  _contactRow(Icons.language_rounded, website, isLink: true),
+                if (email.isNotEmpty) _contactRow(Icons.email_outlined, email),
+                if (phone.isNotEmpty) _contactRow(Icons.call_rounded, phone),
+                if (address.isNotEmpty)
+                  _contactRow(Icons.location_on_rounded, address, maxLines: 2),
+                if (hasLoc) ...[
+                  const SizedBox(height: 4),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: BusinessLocationMapWidget(
+                      latitude: lat,
+                      longitude: lng,
+                      businessName: store.serviceName ?? AppStrings.na,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  GestureDetector(
+                    onTap: _showMapBottomSheet,
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 11),
+                      decoration: BoxDecoration(
+                        color: _primary.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(10),
+                        border:
+                            Border.all(color: _primary.withValues(alpha: 0.3)),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.directions_rounded,
+                              size: 16, color: _primary),
+                          const SizedBox(width: 6),
+                          CustomText('Get Directions',
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w800,
+                              color: _primary),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
-          if (trailing != null) ...[
-            const SizedBox(width: 8),
-            trailing,
-          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _logoFallback() {
+    return Container(
+      color: _placeholderBg,
+      alignment: Alignment.center,
+      child: Icon(Icons.storefront_rounded,
+          size: 26, color: _primary.withValues(alpha: 0.5)),
+    );
+  }
+
+  Widget _contactRow(IconData icon, String text,
+      {int maxLines = 1, bool isLink = false}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 18, color: AppColors.secondaryTextColor),
+          const SizedBox(width: 12),
+          Expanded(
+            child: CustomText(
+              text,
+              fontSize: 12.5,
+              fontWeight: FontWeight.w500,
+              color: isLink ? _primary : AppColors.mainTextColor,
+              maxLines: maxLines,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
         ],
       ),
     );
@@ -523,170 +798,251 @@ class _HomeMadeFoodStoreDetailsDiscoverScreenState
     );
   }
 
-  // ── Menu (fetched, grouped by category) ──────────────────────────────────
+  // ── Section heading (plain bold title) ───────────────────────────────────
+  Widget _sectionHeading(String text) {
+    return CustomText(
+      text,
+      fontSize: 17,
+      fontWeight: FontWeight.w800,
+      color: AppColors.mainTextColor,
+      letterSpacing: 0.2,
+    );
+  }
+
+  // ── Tiffin — horizontal cards, shown only when the store has tiffins ──────
+  Widget _buildTiffinSection() {
+    return Obx(() {
+      if (controller.tiffins.isEmpty) return const SizedBox.shrink();
+      final tiffins = controller.tiffins;
+      return CustomFormCard(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _sectionHeading('Tiffin'),
+            const SizedBox(height: 12),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  for (int i = 0; i < tiffins.length; i++) ...[
+                    if (i > 0) const SizedBox(width: 12),
+                    SizedBox(
+                      width: SizeConfig.screenWidth * 0.44,
+                      child: _tiffinCard(tiffins[i]),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    });
+  }
+
+  // ── Home Made Food — category tabs + 2-col grid ──────────────────────────
   Widget _buildMenu() {
     return Obx(() {
-      if (controller.isFoodLoading.value) {
+      if (controller.isFoodLoading.value && controller.hasNoFood) {
         return const Padding(
           padding: EdgeInsets.symmetric(vertical: 30),
           child: Center(child: CircularProgressIndicator()),
         );
       }
 
-      if (controller.hasNoFood) {
-        return CustomFormCard(
-          padding: const EdgeInsets.all(16),
-          child: EmptyStateWidget(
-            message:
-                '${store.serviceName ?? AppStrings.foodThisShopLabel.tr} hasn\'t listed any food yet.',
-          ),
-        );
-      }
+      final cats = controller.availableCategories;
+      if (cats.isEmpty) return const SizedBox.shrink();
 
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          for (final type in FoodCategoryType.values)
-            if ((controller.categoryData[type]?.isNotEmpty ?? false))
-              _buildCategorySection(type, controller.categoryData[type]!),
-        ],
+      final sel = _selectedCat.value.clamp(0, cats.length - 1);
+      final type = cats[sel];
+      final items = controller.categoryData[type] ?? <FoodItemModel>[];
+
+      return CustomFormCard(
+        padding: const EdgeInsets.all(12),
+        margin: const EdgeInsets.only(top: 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _sectionHeading('Home Made Food'),
+            const SizedBox(height: 12),
+            HorizontalTabSelector<FoodCategoryType>(
+              tabs: cats,
+              selectedIndex: sel,
+              labelBuilder: (t) => _categoryTitles[t] ?? '',
+              horizontalPadding: 16,
+              verticalPadding: 7,
+              horizontalMargin: 0,
+              verticalMargin: 0,
+              unSelectedBackgroundColor: AppColors.white,
+              unSelectedBorderColor: AppColors.greyE5,
+              onTabSelected: (index, _) => _selectedCat.value = index,
+            ),
+            const SizedBox(height: 12),
+            // Wrap with LayoutBuilder so each card sizes to its own content
+            // height (no fixed grid extent → no wasted vertical space).
+            LayoutBuilder(
+              builder: (context, constraints) {
+                const spacing = 12.0;
+                final cardWidth = (constraints.maxWidth - spacing) / 2;
+                return Wrap(
+                  spacing: spacing,
+                  runSpacing: spacing,
+                  children: [
+                    for (final item in items)
+                      SizedBox(width: cardWidth, child: _foodCard(item)),
+                  ],
+                );
+              },
+            ),
+          ],
+        ),
       );
     });
   }
 
-  Widget _buildCategorySection(
-      FoodCategoryType type, List<FoodItemModel> items) {
-    return CustomFormCard(
-      padding: const EdgeInsets.all(12),
-      margin: const EdgeInsets.only(bottom: 10),
+  // ── Cards ─────────────────────────────────────────────────────────────────
+  Widget _foodCard(FoodItemModel item) {
+    return _itemCard(
+      imageUrl: item.imageUrl,
+      name: item.foodName,
+      cookingMethod: item.cookingMethod,
+      sellingPrice: item.sellingPrice,
+      mrpPrice: item.mrpPrice,
+      cartItem: item,
+    );
+  }
+
+  Widget _tiffinCard(TiffinMealModel meal) {
+    return _itemCard(
+      imageUrl: meal.imageUrl,
+      name: meal.tiffinName,
+      cookingMethod: meal.selectedCookingMethod,
+      sellingPrice: meal.sellingPrice,
+      mrpPrice: meal.mrpPrice,
+      cartItem: _tiffinAsFood(meal),
+    );
+  }
+
+  /// Maps a tiffin onto the cart's [FoodItemModel] so both share one cart.
+  FoodItemModel _tiffinAsFood(TiffinMealModel meal) => FoodItemModel(
+        id: meal.id,
+        categoryType: FoodCategoryType.bakery,
+        foodName: meal.tiffinName,
+        images: meal.images,
+        mrpPrice: meal.mrpPrice,
+        sellingPrice: meal.sellingPrice,
+        foodType: meal.selectedFoodType,
+        cookingMethod: meal.selectedCookingMethod,
+        isLive: meal.isLive,
+      );
+
+  Widget _itemCard({
+    required String? imageUrl,
+    required String name,
+    required String cookingMethod,
+    required String sellingPrice,
+    required String mrpPrice,
+    required FoodItemModel cartItem,
+  }) {
+    final discount = _discountText(sellingPrice, mrpPrice);
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.greyE5),
+      ),
+      clipBehavior: Clip.antiAlias,
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
+          Stack(
             children: [
-              _sectionTitle(_categoryTitles[type] ?? 'Items'),
-              const SizedBox(width: 6),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                decoration: BoxDecoration(
-                  color: _warm.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(999),
-                ),
-                child: CustomText(
-                  '${items.length}',
-                  fontSize: 11,
-                  fontWeight: FontWeight.w800,
-                  color: _warm,
-                ),
+              SizedBox(
+                height: 94,
+                width: double.infinity,
+                child: imageUrl != null && imageUrl.isNotEmpty
+                    ? CachedNetworkImage(
+                        imageUrl: imageUrl,
+                        fit: BoxFit.cover,
+                        placeholder: (_, __) =>
+                            Container(color: Colors.grey.shade200),
+                        errorWidget: (_, __, ___) => _cardImageFallback(),
+                      )
+                    : _cardImageFallback(),
+              ),
+              Positioned(
+                right: 8,
+                top: 8,
+                child: Obx(() => _addControl(cartItem)),
               ),
             ],
           ),
-          const SizedBox(height: 10),
-          ListView.separated(
-            shrinkWrap: true,
-            primary: false,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: items.length,
-            separatorBuilder: (_, __) => const Divider(height: 18),
-            itemBuilder: (context, index) => _buildFoodItem(items[index]),
+          Padding(
+            padding: const EdgeInsets.all(10),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CustomText(
+                  name,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.mainTextColor,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                if (cookingMethod.isNotEmpty) ...[
+                  const SizedBox(height: 6),
+                  FoodTypeOrCookingMethod(
+                    label: cookingMethod,
+                    icon: AppIconAssets.boiled,
+                  ),
+                ],
+                const SizedBox(height: 8),
+                Wrap(
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 6,
+                  runSpacing: 2,
+                  children: [
+                    CustomText(
+                      '${AppConstants.rupeeSymbol}$sellingPrice',
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.mainTextColor,
+                    ),
+                    if (mrpPrice.isNotEmpty)
+                      CustomText(
+                        '${AppConstants.rupeeSymbol}$mrpPrice',
+                        fontSize: 11,
+                        color: AppColors.secondaryTextColor,
+                        decoration: TextDecoration.lineThrough,
+                        decorationColor: AppColors.secondaryTextColor,
+                      ),
+                    if (discount.isNotEmpty)
+                      CustomText(
+                        discount,
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFF1E7D34),
+                      ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildFoodItem(FoodItemModel item) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Stack(
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: SizedBox(
-                width: 86,
-                height: 86,
-                child: item.imageUrl != null
-                    ? CachedNetworkImage(
-                        imageUrl: item.imageUrl!,
-                        fit: BoxFit.cover,
-                        placeholder: (_, __) =>
-                            Container(color: Colors.grey.shade200),
-                        errorWidget: (_, __, ___) => _foodFallback(),
-                      )
-                    : _foodFallback(),
-              ),
-            ),
-            if (item.foodType.isNotEmpty)
-              Positioned(
-                top: 4,
-                left: 4,
-                child: Container(
-                  padding: const EdgeInsets.all(2),
-                  decoration: BoxDecoration(
-                    color: AppColors.white,
-                    borderRadius: BorderRadius.circular(3),
-                  ),
-                  child: _vegMark(
-                    !item.foodType.toLowerCase().contains('non')
-                        ? const Color(0xFF1E7D34)
-                        : const Color(0xFFC0341D),
-                  ),
-                ),
-              ),
-          ],
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              CustomText(
-                item.foodName,
-                fontSize: 13.5,
-                fontWeight: FontWeight.w700,
-                color: AppColors.mainTextColor,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 5),
-              Wrap(
-                crossAxisAlignment: WrapCrossAlignment.center,
-                spacing: 6,
-                runSpacing: 4,
-                children: [
-                  CustomText(
-                    '${AppConstants.rupeeSymbol}${item.sellingPrice}',
-                    fontSize: 15,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.mainTextColor,
-                  ),
-                  if (item.mrpPrice.isNotEmpty)
-                    CustomText(
-                      '${AppConstants.rupeeSymbol}${item.mrpPrice}',
-                      fontSize: 11,
-                      color: AppColors.secondaryTextColor,
-                      decoration: TextDecoration.lineThrough,
-                      decorationColor: AppColors.secondaryTextColor,
-                    ),
-                  if (item.discount.isNotEmpty)
-                    DiscountBadge(discountText: item.discount),
-                ],
-              ),
-              if (item.cookingMethod.isNotEmpty) ...[
-                const SizedBox(height: 6),
-                FoodTypeOrCookingMethod(
-                  label: item.cookingMethod,
-                  icon: AppIconAssets.boiled,
-                ),
-              ],
-            ],
-          ),
-        ),
-        const SizedBox(width: 8),
-        Obx(() => _buildAddControl(item)),
-      ],
-    );
+  String _discountText(String sellingStr, String mrpStr) {
+    final s = double.tryParse(sellingStr) ?? 0;
+    final m = double.tryParse(mrpStr) ?? 0;
+    if (m <= 0 || s <= 0 || s >= m) return '';
+    return '${((m - s) / m * 100).round()}% Off';
   }
 
   void _onAddTap(FoodItemModel item) {
@@ -749,7 +1105,7 @@ class _HomeMadeFoodStoreDetailsDiscoverScreenState
                         cartController.add(item, store);
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: _warm,
+                        backgroundColor: _primary,
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10)),
@@ -769,72 +1125,81 @@ class _HomeMadeFoodStoreDetailsDiscoverScreenState
     );
   }
 
-  Widget _buildAddControl(FoodItemModel item) {
+  // Blue "+" on the image; expands to a − qty + stepper once added.
+  Widget _addControl(FoodItemModel item) {
     final qty = cartController.qty(item.id);
     if (qty == 0) {
-      return InkWell(
+      return GestureDetector(
         onTap: () => _onAddTap(item),
-        borderRadius: BorderRadius.circular(8),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          width: 30,
+          height: 30,
+          alignment: Alignment.center,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: _warm, width: 1.2),
-            color: _warm.withValues(alpha: 0.06),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.add, size: 14, color: _warm),
-              const SizedBox(width: 3),
-              CustomText('ADD',
-                  fontSize: 12, fontWeight: FontWeight.w800, color: _warm),
+            shape: BoxShape.circle,
+            color: _primary,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.2),
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
             ],
           ),
+          child: const Icon(Icons.add_rounded, size: 19, color: Colors.white),
         ),
       );
     }
     return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: _warm.withValues(alpha: 0.4)),
-        color: _warm.withValues(alpha: 0.06),
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: _primary, width: 1.2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.15),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _miniStep(qty == 1 ? Icons.delete_outline_rounded : Icons.remove,
-              qty == 1 ? AppColors.red : _warm, () => cartController.remove(item)),
+          _stepBtn(qty == 1 ? Icons.delete_outline_rounded : Icons.remove,
+              qty == 1 ? AppColors.red : _primary, () => cartController.remove(item)),
           Container(
-            constraints: const BoxConstraints(minWidth: 20),
+            constraints: const BoxConstraints(minWidth: 18),
             alignment: Alignment.center,
             child: CustomText('$qty',
                 fontSize: 13,
                 fontWeight: FontWeight.w800,
                 color: AppColors.mainTextColor),
           ),
-          _miniStep(Icons.add, _warm, () => cartController.add(item, store)),
+          _stepBtn(Icons.add, _primary, () => cartController.add(item, store)),
         ],
       ),
     );
   }
 
-  Widget _miniStep(IconData icon, Color color, VoidCallback onTap) {
+  Widget _stepBtn(IconData icon, Color color, VoidCallback onTap) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(20),
       child: SizedBox(
-        width: 30,
-        height: 30,
+        width: 28,
+        height: 28,
         child: Center(child: Icon(icon, size: 15, color: color)),
       ),
     );
   }
 
-  Widget _foodFallback() {
+  Widget _cardImageFallback() {
     return Container(
-      color: const Color(0xFFF5E6C8),
-      child: Icon(Icons.lunch_dining, size: 32, color: Colors.orange.shade300),
+      color: _placeholderBg,
+      alignment: Alignment.center,
+      child: Icon(Icons.lunch_dining,
+          size: 32, color: _primary.withValues(alpha: 0.45)),
     );
   }
 
@@ -850,47 +1215,70 @@ class _HomeMadeFoodStoreDetailsDiscoverScreenState
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _sectionTitle(AppStrings.gallery.tr),
+          _sectionHeading(AppStrings.gallery.tr),
           const SizedBox(height: 10),
-          GridView.builder(
-            shrinkWrap: true,
-            primary: false,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 3,
-              crossAxisSpacing: 8,
-              mainAxisSpacing: 8,
-            ),
-            itemCount: images.length,
-            itemBuilder: (context, index) {
-              return InkWell(
-                onTap: () => navigatePushTo(
-                  context,
-                  ImageViewScreen(
-                    appBarTitle: store.serviceName ?? AppStrings.gallery.tr,
-                    subTitle: AppStrings.imageViewer.tr,
-                    imageUrls: images,
-                    initialIndex: index,
-                  ),
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: CachedNetworkImage(
-                    imageUrl: images[index],
-                    fit: BoxFit.cover,
-                    placeholder: (_, __) =>
-                        Container(color: Colors.grey.shade200),
-                    errorWidget: (_, __, ___) => LocalAssets(
-                      imagePath: AppIconAssets.place_holder_image,
-                      boxFix: BoxFit.cover,
-                    ),
-                  ),
-                ),
-              );
-            },
-          ),
+          _buildGalleryLayout(images),
         ],
       ),
     );
   }
+
+  // 1 image → full-width banner · 2 images → side-by-side · 3+ → 2-col grid.
+  Widget _buildGalleryLayout(List<String> images) {
+    if (images.length == 1) {
+      return _galleryTile(images, 0, height: 190);
+    }
+    if (images.length == 2) {
+      return Row(
+        children: [
+          Expanded(child: _galleryTile(images, 0, height: 140)),
+          const SizedBox(width: 10),
+          Expanded(child: _galleryTile(images, 1, height: 140)),
+        ],
+      );
+    }
+    return GridView.builder(
+      shrinkWrap: true,
+      primary: false,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
+        childAspectRatio: 1.3,
+      ),
+      itemCount: images.length,
+      itemBuilder: (_, index) => _galleryTile(images, index),
+    );
+  }
+
+  Widget _galleryTile(List<String> images, int index, {double? height}) {
+    final tile = InkWell(
+      onTap: () => navigatePushTo(
+        context,
+        ImageViewScreen(
+          appBarTitle: store.serviceName ?? AppStrings.gallery.tr,
+          subTitle: AppStrings.imageViewer.tr,
+          imageUrls: images,
+          initialIndex: index,
+        ),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(10),
+        child: CachedNetworkImage(
+          imageUrl: images[index],
+          fit: BoxFit.cover,
+          width: double.infinity,
+          height: height,
+          placeholder: (_, __) => Container(color: Colors.grey.shade200),
+          errorWidget: (_, __, ___) => LocalAssets(
+            imagePath: AppIconAssets.place_holder_image,
+            boxFix: BoxFit.cover,
+          ),
+        ),
+      ),
+    );
+    return height != null ? SizedBox(height: height, child: tile) : tile;
+  }
+
 }

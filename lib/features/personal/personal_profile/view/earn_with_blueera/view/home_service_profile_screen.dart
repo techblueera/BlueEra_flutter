@@ -104,7 +104,6 @@ class _HomeServiceProfileScreenState extends State<HomeServiceProfileScreen> {
 
     if (success) {
       Navigator.of(context).pop();
-      Navigator.of(context).pop();
     }
   }
 

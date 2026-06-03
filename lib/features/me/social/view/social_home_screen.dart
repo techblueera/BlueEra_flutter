@@ -14,7 +14,6 @@ import 'package:BlueEra/features/me/social/view/social_contact_us/social_contact
 import 'package:BlueEra/features/me/social/view/social_feed/social_feed_screen.dart';
 import 'package:BlueEra/features/me/social/view/social_vision_mission_screen.dart';
 import 'package:BlueEra/features/common/rental/widget/rental_property_card.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/self_employed/widget/earn_service_card.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -137,10 +136,6 @@ class _SocialHomeScreenState extends State<SocialHomeScreen>
             children: [
               const SizedBox(height: 14),
               _reveal(0, _buildActivitiesCard(data?.activities ?? [])),
-              const SizedBox(height: 14),
-              _reveal(1, const EarnServiceCard(
-                margin: EdgeInsets.zero,
-              )),
               const SizedBox(height: 14),
               _reveal(1, const RentalPropertyCard(
                 margin: EdgeInsets.zero,

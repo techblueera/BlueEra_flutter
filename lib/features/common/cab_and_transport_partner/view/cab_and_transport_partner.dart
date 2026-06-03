@@ -20,7 +20,7 @@ import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/common/cab_and_transport_partner/view/widgets/cab_transport_orders_widget.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/rider_service_screen.dart';
 import 'package:BlueEra/features/common/rental/widget/rental_property_card.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/self_employed/widget/earn_service_card.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/earn_store_section.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/rider_profile_status_screen.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
@@ -95,7 +95,8 @@ class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
   static const _orderIndex = 0;
   static const _overviewIndex = 1;
   static const _postIndex = 2;
-  static const _staticsIndex = 3;
+  static const _storeIndex = 3;
+  static const _staticsIndex = 4;
 
   @override
   void initState() {
@@ -506,6 +507,7 @@ class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
             approved ? AppStrings.myOrder.tr : AppStrings.document.tr,
             'Overview',
             'Post',
+            'Store',
             'Statics',
           ];
           return LayoutBuilder(
@@ -590,6 +592,8 @@ class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
         return _buildOverviewTab();
       case _postIndex:
         return _buildPostTab();
+      case _storeIndex:
+        return const [EarnStoreCards()];
       case _staticsIndex:
         return _buildStaticsTab();
       default:
@@ -828,6 +832,9 @@ class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
   List<Widget> _buildStaticsTab() {
     return [
       BusinessStatisticsScreen(businessId: userId),
+      SizedBox(height: SizeConfig.size12),
+      const EarnStatSections(),
+      SizedBox(height: SizeConfig.size16),
     ];
   }
 
@@ -856,10 +863,6 @@ class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
       // action/contact rows â€” bio reads as identity content, not
       // secondary detail.
       const ProfileBioCard(),
-      SizedBox(height: SizeConfig.size12),
-      const EarnServiceCard(
-        margin: EdgeInsets.only(top: 10, left: 20, right: 10),
-      ),
       SizedBox(height: SizeConfig.size12),
       const RentalPropertyCard(
         margin: EdgeInsets.only(top: 10, left: 20, right: 10),

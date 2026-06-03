@@ -14,17 +14,27 @@ class PersonalProfileDetailsModel {
     this.isProfileCreated,
     this.isRiderServiceUser,
     this.isEarnServiceUser,
-    this.earnProfileType,
+    this.earnProfileType = const <String>[],
   });
 
-  PersonalProfileDetailsModel.fromJson(dynamic json) {
+  PersonalProfileDetailsModel.fromJson(dynamic json)
+      : earnProfileType = _parseEarnProfileTypes(
+            json['earnProfileTypes'] ?? json['earnProfileType']) {
     status = json['status'];
     message = json['message'];
     user = json['user'] != null ? User.fromJson(json['user']) : null;
     isProfileCreated = json['isProfileCreated'];
     isRiderServiceUser = json['isRiderServiceUser'];
     isEarnServiceUser = json['isEarnServiceUser'];
-    earnProfileType = json['earnProfileType'];
+  }
+
+  /// Tolerates the API returning a list, a single string (legacy), or null.
+  static List<String> _parseEarnProfileTypes(dynamic raw) {
+    if (raw is List) {
+      return raw.map((e) => e.toString()).where((e) => e.isNotEmpty).toList();
+    }
+    if (raw is String && raw.isNotEmpty) return [raw];
+    return <String>[];
   }
 
   bool? status;
@@ -33,7 +43,7 @@ class PersonalProfileDetailsModel {
   bool? isProfileCreated;
   bool? isRiderServiceUser;
   bool? isEarnServiceUser;
-  String? earnProfileType;
+  List<String> earnProfileType;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
@@ -45,7 +55,7 @@ class PersonalProfileDetailsModel {
     map['isProfileCreated'] = isProfileCreated;
     map['isRiderServiceUser'] = isRiderServiceUser;
     map['isEarnServiceUser'] = isEarnServiceUser;
-    map['earnProfileType'] = earnProfileType;
+    map['earnProfileTypes'] = earnProfileType;
     return map;
   }
 }
