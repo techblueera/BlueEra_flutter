@@ -4129,5 +4129,13 @@
   "your_role_hint": "उदा., सह-संस्थापक / मालिक",
   "youtube": "यूट्यूब",
   "youtubeHint": "अपना यूट्यूब यूआरएल यहां दर्ज करें",
-  "youvereachedtheendofthefeed": "यू हैव रीच्ड द एंड ऑफ द फीड"
+  "youvereachedtheendofthefeed": "यू हैव रीच्ड द एंड ऑफ द फीड",
+  "doYouHavePromoCode": "क्या आपके पास\nप्रोमो कोड है ?",
+  "enterPromoCode": "प्रोमो कोड दर्ज करें",
+  "egPromoCode": "उदा. SAVE20",
+  "referralCodeLengthError": "रेफरल कोड 4 से 10 अक्षरों के बीच होना चाहिए",
+  "codeMustContainLettersAndNumbers": "कोड में अक्षर और संख्या दोनों होने चाहिए",
+  "checking": "जाँच हो रही है…",
+  "noIDontHave": "नहीं, मेरे पास नहीं है",
+  "referralCodeInvalid": "रेफरल कोड अमान्य है"
 }

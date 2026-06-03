@@ -2405,6 +2405,16 @@ class AppStrings {
   static const String enterReferralCode = 'enterReferralCode';
   static const String pleaseEnterReferralCode = 'pleaseEnterReferralCode';
   static const String doYouHaveReferralCode = 'doYouHaveReferralCode';
+  // Promo / referral code entry dialog (promo_code_dialog.dart)
+  static const String doYouHavePromoCode = 'doYouHavePromoCode';
+  static const String enterPromoCode = 'enterPromoCode';
+  static const String egPromoCode = 'egPromoCode';
+  static const String referralCodeLengthError = 'referralCodeLengthError';
+  static const String codeMustContainLettersAndNumbers =
+      'codeMustContainLettersAndNumbers';
+  static const String checking = 'checking';
+  static const String noIDontHave = 'noIDontHave';
+  static const String referralCodeInvalid = 'referralCodeInvalid';
   static const String enableLocationPermission = 'enableLocationPermission';
   static const String specialCharactersNotAllowed = 'specialCharactersNotAllowed';
   static const String pleaseEnterBusinessSpecialization = 'pleaseEnterBusinessSpecialization';

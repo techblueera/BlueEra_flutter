@@ -2422,5 +2422,13 @@
   "yourbrowserdoesnotsupportthevideotag": "ನಿಮ್ಮ ಬ್ರೌಸರ್ ವೀಡಿಯೊ ಟ್ಯಾಗ್ ಬೆಂಬಲಿಸುವುದಿಲ್ಲ",
   "youtube": "ಯೂಟ್ಯೂಬ್",
   "youtubeHint": "ನಿಮ್ಮ ಯೂಟ್ಯೂಬ್ URL ಇಲ್ಲಿ",
-  "youvereachedtheendofthefeed": "ನೀವು ಫೀಡ್ ಅಂತ್ಯಕ್ಕೆ ತಲುಪಿದ್ದೀರಿ"
+  "youvereachedtheendofthefeed": "ನೀವು ಫೀಡ್ ಅಂತ್ಯಕ್ಕೆ ತಲುಪಿದ್ದೀರಿ",
+  "doYouHavePromoCode": "ನಿಮ್ಮ ಬಳಿ\nಪ್ರೊಮೋ ಕೋಡ್ ಇದೆಯೇ ?",
+  "enterPromoCode": "ಪ್ರೊಮೋ ಕೋಡ್ ನಮೂದಿಸಿ",
+  "egPromoCode": "ಉದಾ. SAVE20",
+  "referralCodeLengthError": "ರೆಫರಲ್ ಕೋಡ್ 4 ರಿಂದ 10 ಅಕ್ಷರಗಳ ನಡುವೆ ಇರಬೇಕು",
+  "codeMustContainLettersAndNumbers": "ಕೋಡ್‌ನಲ್ಲಿ ಅಕ್ಷರಗಳು ಮತ್ತು ಸಂಖ್ಯೆಗಳು ಎರಡೂ ಇರಬೇಕು",
+  "checking": "ಪರಿಶೀಲಿಸಲಾಗುತ್ತಿದೆ…",
+  "noIDontHave": "ಇಲ್ಲ, ನನ್ನ ಬಳಿ ಇಲ್ಲ",
+  "referralCodeInvalid": "ರೆಫರಲ್ ಕೋಡ್ ಅಮಾನ್ಯವಾಗಿದೆ"
 }

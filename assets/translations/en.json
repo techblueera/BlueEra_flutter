@@ -5046,5 +5046,13 @@
   "yourbrowserdoesnotsupportthevideotag": "Your browser does not support the video tag",
   "youtube": "YouTube",
   "youtubeHint": "Your YouTube URL here",
-  "youvereachedtheendofthefeed": "You've reached the end of the feed"
+  "youvereachedtheendofthefeed": "You've reached the end of the feed",
+  "doYouHavePromoCode": "Do You Have\nPromo Code ?",
+  "enterPromoCode": "Enter Promo Code",
+  "egPromoCode": "E.g. SAVE20",
+  "referralCodeLengthError": "Referral code must be between 4 to 10 characters",
+  "codeMustContainLettersAndNumbers": "Code must contain both letters and numbers",
+  "checking": "Checking…",
+  "noIDontHave": "No, I Don't have",
+  "referralCodeInvalid": "Referral code is invalid"
 }

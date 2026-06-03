@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/personal/personal_profile/repo/user_repo.dart';
@@ -9,6 +10,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 
 /// Reusable referral / promo code entry dialog. Validates the typed code
 /// via `wallet-service/wallet/check-referral` (UserRepo) before invoking
@@ -61,7 +63,7 @@ class _PromoCodeDialogState extends State<PromoCodeDialog> {
     if (!isValid) {
       final message = (data is Map && data['message'] is String)
           ? data['message'] as String
-          : 'Referral code is invalid';
+          : AppStrings.referralCodeInvalid.tr;
       commonSnackBar(message: message);
       return;
     }
@@ -89,7 +91,7 @@ class _PromoCodeDialogState extends State<PromoCodeDialog> {
             LocalAssets(imagePath: AppIconAssets.questionMarkIcon),
             SizedBox(height: SizeConfig.paddingM),
             CustomText(
-              'Do You Have\nPromo Code ?',
+              AppStrings.doYouHavePromoCode.tr,
               fontSize: 26,
               fontWeight: FontWeight.bold,
               color: AppColors.mainTextColor,
@@ -98,8 +100,8 @@ class _PromoCodeDialogState extends State<PromoCodeDialog> {
             CommonTextField(
               textEditController: promoCodeController,
               keyBoardType: TextInputType.text,
-              title: 'Enter Promo Code',
-              hintText: 'E.g. SAVE20',
+              title: AppStrings.enterPromoCode.tr,
+              hintText: AppStrings.egPromoCode.tr,
               isValidate: false,
               isCapitalize: true,
               inputLength: 10,
@@ -110,11 +112,11 @@ class _PromoCodeDialogState extends State<PromoCodeDialog> {
                 final trimmedValue = value?.trim();
                 if (trimmedValue == null || trimmedValue.isEmpty) return null;
                 if (trimmedValue.length < 4 || trimmedValue.length > 10) {
-                  return "Referral code must be between 4 to 10 characters";
+                  return AppStrings.referralCodeLengthError.tr;
                 }
                 if (!RegExp(r'^(?=.*[A-Za-z])(?=.*\d)[A-Za-z0-9]+$')
                     .hasMatch(trimmedValue)) {
-                  return "Code must contain both letters and numbers";
+                  return AppStrings.codeMustContainLettersAndNumbers.tr;
                 }
                 return null;
               },
@@ -126,8 +128,8 @@ class _PromoCodeDialogState extends State<PromoCodeDialog> {
               builder: (context, value, child) {
                 bool hasText = value.text.trim().isNotEmpty;
                 final title = _isChecking
-                    ? 'Checking…'
-                    : (hasText ? 'Submit' : "No, I Don’t have");
+                    ? AppStrings.checking.tr
+                    : (hasText ? AppStrings.submit.tr : AppStrings.noIDontHave.tr);
                 return CustomBtn(
                   width: double.infinity,
                   textColor: AppColors.white,

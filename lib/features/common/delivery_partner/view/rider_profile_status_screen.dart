@@ -1244,7 +1244,15 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
         currentValue: riderOnboardingStatusData.aadharNo ?? '',
         isCompleted: riderOnboardingStatusData.aadhar ?? false,
         imageUrl: riderOnboardingStatusData.aadharImage,
+        // Aadhar is the one document that stays viewable (View + Edit)
+        // once filled even if no image URL is on file — the dialog
+        // surfaces the saved number and re-opens this sheet to edit.
+        enableDataView: true,
         onTap: () {
+          // Pre-fill the saved number so the sheet opens in "edit"
+          // mode when reached from the View dialog's Edit action.
+          widget.deliveryPartnerController.aadharController.text =
+              riderOnboardingStatusData.aadharNo ?? '';
           Get.bottomSheet(
             CommonBottomSheet(
               title: AppStrings.aadharCard.tr,
@@ -1355,14 +1363,27 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
     //      backend returns image URLs).
     final hasUploadedImage = item.isCompleted &&
         (item.imageUrl?.isNotEmpty ?? false);
+    // Aadhar (enableDataView) stays viewable once completed even when no
+    // image URL is on file — the view dialog surfaces the saved number
+    // and an Edit action instead of the plain "Done" pill.
+    final isViewable =
+        item.isCompleted && (hasUploadedImage || item.enableDataView);
     final allowUpload =
         !item.isCompleted || state == RiderVerificationState.rejected;
-    final VoidCallback? onCardTap = hasUploadedImage
+    final VoidCallback? onCardTap = isViewable
         ? () => _showDocumentViewDialog(
               context,
               title: item.dialogTitle ?? item.title,
-              imageUrl: item.imageUrl!,
+              imageUrl: item.imageUrl,
+              dataLabel:
+                  item.enableDataView ? AppStrings.aadharNumber.tr : null,
+              dataValue: item.enableDataView ? item.currentValue : null,
               onReplace: item.onTap,
+              actionLabel:
+                  item.enableDataView ? AppStrings.editLabel.tr : null,
+              actionIcon: item.enableDataView
+                  ? Icons.edit_rounded
+                  : Icons.refresh_rounded,
             )
         : (allowUpload ? item.onTap : null);
 
@@ -1402,7 +1423,7 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
                         Expanded(
                           child: _buildContentColumn(
                             item,
-                            showViewDocument: hasUploadedImage,
+                            showViewDocument: isViewable,
                           ),
                         ),
                       ],
@@ -1699,10 +1720,16 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
   void _showDocumentViewDialog(
     BuildContext context, {
     required String title,
-    required String imageUrl,
+    String? imageUrl,
+    String? dataLabel,
+    String? dataValue,
     required VoidCallback onReplace,
+    String? actionLabel,
+    IconData actionIcon = Icons.refresh_rounded,
   }) {
     final maxImageHeight = MediaQuery.of(context).size.height * 0.55;
+    final hasImage = imageUrl?.isNotEmpty ?? false;
+    final hasData = dataValue?.isNotEmpty ?? false;
     Get.dialog(
       Dialog(
         backgroundColor: Colors.transparent,
@@ -1732,6 +1759,7 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
               mainAxisSize: MainAxisSize.min,
               children: [
                 _buildDialogHeader(title),
+                if (hasImage) ...[
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                   child: ConstrainedBox(
@@ -1744,7 +1772,7 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
                         minScale: 1.0,
                         maxScale: 4.0,
                         child: CachedNetworkImage(
-                          imageUrl: imageUrl,
+                          imageUrl: imageUrl!,
                           fit: BoxFit.contain,
                           placeholder: (_, __) => _buildDialogImageFallback(
                             const CircularProgressIndicator(strokeWidth: 2),
@@ -1795,12 +1823,18 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
                     ],
                   ),
                 ),
+                ],
+                if (hasData) _buildDialogDataRow(dataLabel, dataValue!),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
                   child: Row(
                     children: [
                       Expanded(
-                        child: _buildDialogReplaceBtn(onReplace),
+                        child: _buildDialogReplaceBtn(
+                          onReplace,
+                          label: actionLabel,
+                          icon: actionIcon,
+                        ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
@@ -1881,7 +1915,11 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
     );
   }
 
-  Widget _buildDialogReplaceBtn(VoidCallback onReplace) {
+  Widget _buildDialogReplaceBtn(
+    VoidCallback onReplace, {
+    String? label,
+    IconData icon = Icons.refresh_rounded,
+  }) {
     return InkWell(
       onTap: () {
         Get.back();
@@ -1902,16 +1940,58 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.refresh_rounded,
+              icon,
               size: 16,
               color: AppColors.primaryColor,
             ),
             const SizedBox(width: 6),
             CustomText(
-              AppStrings.replaceLabel.tr,
+              label ?? AppStrings.replaceLabel.tr,
               fontSize: SizeConfig.small,
               fontWeight: FontWeight.w700,
               color: AppColors.primaryColor,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Labeled data row shown inside the view dialog for documents that
+  // carry a saved text value (currently just the Aadhar number). Sits
+  // between the (optional) image and the action buttons.
+  Widget _buildDialogDataRow(String? label, String value) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: AppColors.primaryColor.withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: AppColors.primaryColor.withValues(alpha: 0.15),
+            width: 1,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (label != null && label.isNotEmpty) ...[
+              CustomText(
+                label,
+                fontSize: SizeConfig.small,
+                color: AppColors.secondaryTextColor,
+                fontWeight: FontWeight.w500,
+              ),
+              const SizedBox(height: 4),
+            ],
+            CustomText(
+              value,
+              fontSize: SizeConfig.large,
+              color: AppColors.mainTextColor,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.5,
             ),
           ],
         ),
@@ -2000,6 +2080,11 @@ class _DocumentItem {
   // Clean title shown at the top of the view dialog. Falls back to
   // [title] when null.
   final String? dialogTitle;
+  // When true, the card stays viewable (View + Edit) once completed even
+  // if no [imageUrl] is on file — the view dialog surfaces the saved
+  // [currentValue] and re-opens [onTap] as an edit flow. Currently only
+  // the Aadhar card opts in.
+  final bool enableDataView;
 
   _DocumentItem({
     required this.stepNumber,
@@ -2011,5 +2096,6 @@ class _DocumentItem {
     required this.onTap,
     this.imageUrl,
     this.dialogTitle,
+    this.enableDataView = false,
   });
 }

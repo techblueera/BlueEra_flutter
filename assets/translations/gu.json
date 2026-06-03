@@ -2422,5 +2422,13 @@
   "yourbrowserdoesnotsupportthevideotag": "તમારો બ્રાઉઝર વિડિયો ટૅગને સપોર્ટ કરતો નથી",
   "youtube": "યુટ્યુબ",
   "youtubeHint": "તમારું YouTube URL અહીં",
-  "youvereachedtheendofthefeed": "તમે ફીડના અંતે પહોંચી ગયા છો"
+  "youvereachedtheendofthefeed": "તમે ફીડના અંતે પહોંચી ગયા છો",
+  "doYouHavePromoCode": "શું તમારી પાસે\nપ્રોમો કોડ છે ?",
+  "enterPromoCode": "પ્રોમો કોડ દાખલ કરો",
+  "egPromoCode": "ઉદા. SAVE20",
+  "referralCodeLengthError": "રેફરલ કોડ 4 થી 10 અક્ષરોની વચ્ચે હોવો જોઈએ",
+  "codeMustContainLettersAndNumbers": "કોડમાં અક્ષરો અને સંખ્યાઓ બંને હોવા જોઈએ",
+  "checking": "તપાસ થઈ રહી છે…",
+  "noIDontHave": "ના, મારી પાસે નથી",
+  "referralCodeInvalid": "રેફરલ કોડ અમાન્ય છે"
 }
