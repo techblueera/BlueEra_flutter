@@ -534,20 +534,12 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
             color: _emerald,
             title: AppStrings.earnWithBlueEra.tr,
             onTap: () {
-              final earnType = viewProfileController.earnProfileType.value ?? '';
-              debugPrint(
-                '[drawer.earnWithBlueEra] earnType="$earnType" '
-                'len=${earnType.length}',
-              );
-              const handledSlugs = <String>{
-                'homeMadeFood',
-                'homeMadeProduct',
-                'homeService',
-              };
-              if (handledSlugs.contains(earnType)) {
-                Get.toNamed(RouteHelper.getEarnServiceDashboardViewRoute());
-              } else {
+              final earnTypes = viewProfileController.earnProfileType;
+              debugPrint('[drawer.earnWithBlueEra] earnTypes=$earnTypes');
+              if (earnTypes.isEmpty) {
                 Get.toNamed(RouteHelper.getChooseEarnServiceScreenRoute());
+              } else {
+                Get.toNamed(RouteHelper.getEarnServiceDashboardViewRoute());
               }
             },
           ),

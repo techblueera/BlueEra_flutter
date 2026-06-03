@@ -82,7 +82,13 @@ class _CommonLocationSearchFieldState extends State<CommonLocationSearchField> {
     currentAddress.value = query;
 
     try {
-      final response = await PlaceRepo().autoCompleteSearch(query: query);
+      final response = await PlaceRepo()
+          .autoCompleteSearch(query: query)
+          .timeout(const Duration(seconds: 12));
+
+      // A newer keystroke already superseded this request — drop the result.
+      if (query != currentAddress.value) return;
+
       if (response.statusCode == 200) {
         final data = response.response?.data;
         logs("SEARCH DATA === ${data}");
@@ -96,10 +102,16 @@ class _CommonLocationSearchFieldState extends State<CommonLocationSearchField> {
         errorMessage.value =
             response.data['error_message'] ?? 'Something went wrong';
       }
+    } on TimeoutException {
+      if (query != currentAddress.value) return;
+      predictions.clear();
+      errorMessage.value = 'Taking too long. Please check your connection and try again.';
     } catch (e) {
-      errorMessage.value = e.toString();
+      if (query != currentAddress.value) return;
+      predictions.clear();
+      errorMessage.value = 'Something went wrong. Please try again.';
     } finally {
-      isLoading.value = false;
+      if (query == currentAddress.value) isLoading.value = false;
     }
   }
 
@@ -126,29 +138,41 @@ class _CommonLocationSearchFieldState extends State<CommonLocationSearchField> {
     final offset = renderBox.localToGlobal(Offset.zero);
 
     overlayEntry = OverlayEntry(
-      builder: (context) => Positioned(
-        left: offset.dx,
-        top: offset.dy + size.height + 5,
-        width: size.width,
-        child: CompositedTransformFollower(
-          link: layerLink,
-          showWhenUnlinked: false,
-          offset: Offset(0, size.height + 5),
-          child: Material(
-            elevation: 4,
-            borderRadius: BorderRadius.circular(10),
-            child: Obx(
-              () => Container(
-                constraints: const BoxConstraints(maxHeight: 300),
-                decoration: BoxDecoration(
-                  color: AppColors.white,
-                  borderRadius: BorderRadius.circular(10),
+      builder: (context) => Stack(
+        children: [
+          // Full-screen barrier — tapping anywhere outside the dropdown
+          // dismisses it so the user is never stuck behind a pending request.
+          Positioned.fill(
+            child: GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onTap: _removeOverlay,
+            ),
+          ),
+          Positioned(
+            left: offset.dx,
+            top: offset.dy + size.height + 5,
+            width: size.width,
+            child: CompositedTransformFollower(
+              link: layerLink,
+              showWhenUnlinked: false,
+              offset: Offset(0, size.height + 5),
+              child: Material(
+                elevation: 4,
+                borderRadius: BorderRadius.circular(10),
+                child: Obx(
+                  () => Container(
+                    constraints: const BoxConstraints(maxHeight: 300),
+                    decoration: BoxDecoration(
+                      color: AppColors.white,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: _buildOverlayBody(),
+                  ),
                 ),
-                child: _buildOverlayBody(),
               ),
             ),
           ),
-        ),
+        ],
       ),
     );
 
@@ -215,7 +239,8 @@ class _CommonLocationSearchFieldState extends State<CommonLocationSearchField> {
                   try {
                     isLoading.value = true;
                     final res = await PlaceRepo()
-                        .getCompletePlaceDetails(placeId: placeId);
+                        .getCompletePlaceDetails(placeId: placeId)
+                        .timeout(const Duration(seconds: 12));
                     final loc = res.response?.data?['result']?['geometry']
                         ?['location'];
                     latitude = (loc?['lat'] as num?)?.toDouble() ?? 0.0;
@@ -262,17 +287,20 @@ class _CommonLocationSearchFieldState extends State<CommonLocationSearchField> {
         textEditController: widget.controller,
         onChange: onSearchChanged,
         sIcon: Obx(() => currentAddress.isNotEmpty
-            ? InkWell(
+            ? GestureDetector(
+                behavior: HitTestBehavior.opaque,
                 onTap: () {
                   widget.controller.clear();
                   currentAddress.value = '';
                   predictions.clear();
+                  errorMessage.value = '';
+                  isLoading.value = false;
                   _removeOverlay();
                 },
-                borderRadius: BorderRadius.circular(20),
-                child: const Padding(
-                  padding: EdgeInsets.all(8),
-                  child: Icon(Icons.clear, size: 18),
+                child: const SizedBox(
+                  width: 40,
+                  height: 20,
+                  child: Center(child: Icon(Icons.clear, size: 18)),
                 ),
               )
             : const SizedBox.shrink()),

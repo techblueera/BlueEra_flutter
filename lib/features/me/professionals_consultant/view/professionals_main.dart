@@ -34,7 +34,7 @@ import 'package:BlueEra/features/me/professionals_consultant/controller/ai_profe
 import 'package:BlueEra/features/me/professionals_consultant/view/professionals_service_screen.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/self_employed/widget/earn_service_card.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/earn_store_section.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/edit_profile_bottom_sheet.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/profile_designation_bottom_sheet.dart';
 import 'package:BlueEra/features/personal/personal_profile/widgets/personal_qrcode_widget.dart';
@@ -80,6 +80,7 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
     'Overview',
     'Service',
     'Post',
+    'Store',
     'Statics',
   ];
 
@@ -498,6 +499,8 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
       case 3:
         return _buildPostTab();
       case 4:
+        return const [EarnStoreCards()];
+      case 5:
         return _buildStaticsTab();
       default:
         return const [SizedBox.shrink()];
@@ -514,8 +517,6 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
       // detail. Bio used to live inside the identity block; lifting
       // it here gives it a clear edit affordance.
       const ProfileBioCard(),
-      SizedBox(height: SizeConfig.size12),
-      const EarnServiceCard(),
       SizedBox(height: SizeConfig.size12),
       // _buildRentalCard(),
       const RentalPropertyCard(),
@@ -1818,7 +1819,12 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
 
   // â”€â”€â”€ STATICS TAB â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   List<Widget> _buildStaticsTab() {
-    return [BusinessStatisticsScreen(businessId: userId)];
+    return [
+      BusinessStatisticsScreen(businessId: userId),
+      SizedBox(height: SizeConfig.size12),
+      const EarnStatSections(),
+      SizedBox(height: SizeConfig.size16),
+    ];
   }
 
   // â”€â”€â”€ COVER IMAGE EDIT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€

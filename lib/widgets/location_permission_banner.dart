@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
@@ -20,8 +21,9 @@ class LocationPermissionBanner extends StatefulWidget {
 }
 
 class _LocationPermissionBannerState extends State<LocationPermissionBanner> {
-  static const Color _c1 = Color(0xFFE8590C);
-  static const Color _c2 = Color(0xFFF7A23B);
+  // App primary color combination (deep -> bright blue).
+  static const Color _c1 = AppColors.blue5CAF; // 0xFF005CAF
+  static const Color _c2 = AppColors.primaryColor; // 0xFF0086FF
 
   // Session-scoped dismissal — the banner reappears on a fresh launch.
   bool _dismissed = false;

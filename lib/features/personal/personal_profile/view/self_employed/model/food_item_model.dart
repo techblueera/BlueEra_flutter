@@ -2,6 +2,10 @@ import 'package:BlueEra/core/constants/app_enum.dart';
 
 class FoodItemModel {
   final String? id;
+
+  /// Owning user (kitchen) id. Populated by the consumer listing API so the
+  /// discover screen can resolve the item's store. Null on the owner side.
+  final String? userId;
   final FoodCategoryType categoryType;
   final String foodName;
   final String? imagePath;
@@ -17,6 +21,7 @@ class FoodItemModel {
 
   const FoodItemModel({
     this.id,
+    this.userId,
     required this.categoryType,
     this.foodName = '',
     this.imagePath,
@@ -47,6 +52,7 @@ class FoodItemModel {
       Map<String, dynamic> json, FoodCategoryType type) {
     return FoodItemModel(
       id: json['_id'],
+      userId: json['userId']?.toString(),
       categoryType: type,
       foodName: json['foodName'] ?? '',
       images: List<String>.from(json['images'] ?? []),

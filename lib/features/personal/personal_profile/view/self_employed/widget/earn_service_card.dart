@@ -3,8 +3,8 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
-import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_dashboard_view.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/controller/earn_service_controller.dart';
 import 'package:BlueEra/widgets/collapsible_grid_model.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -186,14 +186,10 @@ class EarnServiceCard extends StatelessWidget {
     return InkWell(
       onTap: () {
         final viewProfileController = Get.find<ViewPersonalDetailsController>();
-        final earnType =
-            (viewProfileController.earnProfileType.value ?? '').trim();
-        debugPrint('earn profile type -- $earnType');
-        // Open the dashboard only when the user's existing earn profile is of
-        // the SAME type as the tapped option; otherwise route to that option's
-        // create flow.
-        if (earnType == profileType) {
-          Get.toNamed(RouteHelper.getEarnServiceDashboardViewRoute());
+        // Open the dashboard for this flavour when the user has already
+        // created it; otherwise route to that option's create flow.
+        if (viewProfileController.earnProfileType.contains(profileType)) {
+          Get.to(() => EarnServiceDashboardView(earnType: profileType));
         } else {
           _controller.handleServiceTap(
             context,

@@ -22,9 +22,9 @@ import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
 import 'package:BlueEra/features/common/reel/view/channel/follower_following_screen.dart';
 import 'package:BlueEra/features/common/visiting_card/view/all_personal_visiting_cards.dart';
-import 'package:BlueEra/features/me/school/view/coming_soon.dart';
 import 'package:BlueEra/features/me/social/controller/social_home_controller.dart';
 import 'package:BlueEra/features/me/social/view/social_home_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/earn_store_section.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/edit_profile_bottom_sheet.dart';
@@ -66,8 +66,9 @@ class _SocialMainScreenState extends State<SocialMainScreen>
     // Rental sits after Profile so the identity-then-content
     // rhythm matches the other dashboards (self-employee /
     // professionals / rider / cab) that surface RentalTabBody.
+    // Tabs: Post · Profile · [Website?] · Store · Statistics
     _tabController = TabController(
-      length: _lastHasWebsite ? 4 : 3,
+      length: _lastHasWebsite ? 5 : 4,
       vsync: this,
     );
     _viewCtrl.UserFollowersAndPostsCount(userId);
@@ -156,6 +157,7 @@ class _SocialMainScreenState extends State<SocialMainScreen>
                     const Tab(text: 'Profile'),
                     if (_lastHasWebsite)
                       Tab(text: AppStrings.website.tr),
+                    const Tab(text: 'Store'),
                     Tab(text: AppStrings.statistics.tr),
                   ],
                 ),
@@ -177,7 +179,16 @@ class _SocialMainScreenState extends State<SocialMainScreen>
                   urlTitle: '',
                   hideAppBar: true,
                 ),
-              ComingSoon(),
+              const SingleChildScrollView(
+                physics: AlwaysScrollableScrollPhysics(),
+                padding: EdgeInsets.only(top: 12, bottom: 24),
+                child: EarnStoreCards(),
+              ),
+              const SingleChildScrollView(
+                physics: AlwaysScrollableScrollPhysics(),
+                padding: EdgeInsets.only(top: 12, bottom: 24),
+                child: EarnStatSections(),
+              ),
             ],
           ),
         ),

@@ -9,6 +9,7 @@ import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/core/constants/shimmer_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/grocery/widget/discount_badge.dart';
 import 'package:BlueEra/features/common/delivery_partner/widget/common_image_upload_section.dart';
@@ -106,10 +107,7 @@ class _HomeMadeFoodHomePageState extends State<HomeMadeFoodHomePage> {
   Widget _buildTiffinSection() {
     return Obx(() {
       if (tiffinController.isLoading.value) {
-        return Padding(
-          padding: EdgeInsets.symmetric(vertical: 20),
-          child: Center(child: CircularProgressIndicator()),
-        );
+        return _buildTiffinShimmer();
       }
 
       return _sectionCard(
@@ -126,6 +124,53 @@ class _HomeMadeFoodHomePageState extends State<HomeMadeFoodHomePage> {
         ),
       );
     });
+  }
+
+  Widget _buildTiffinShimmer() {
+    return _sectionCard(
+      index: 1,
+      title: 'Tiffin',
+      child: SizedBox(
+        height: 290,
+        child: buildLoadingShimmer(
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: _tiffinSlots.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 10),
+            itemBuilder: (_, __) => _tiffinShimmerCard(),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _tiffinShimmerCard() {
+    return SizedBox(
+      width: SizeConfig.screenWidth * 0.52,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          shimmerContainer(height: 130),
+          const SizedBox(height: 10),
+          shimmerContainer(height: 12, width: 90, radius: 4),
+          const SizedBox(height: 8),
+          shimmerContainer(height: 16, width: 140, radius: 4),
+          const SizedBox(height: 10),
+          shimmerContainer(height: 12, radius: 4),
+          const SizedBox(height: 8),
+          shimmerContainer(height: 12, width: 110, radius: 4),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              shimmerContainer(height: 32, width: 70, radius: 6),
+              const Spacer(),
+              shimmerContainer(height: 32, width: 70, radius: 6),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildTiffinSlotCard(
@@ -544,10 +589,7 @@ class _HomeMadeFoodHomePageState extends State<HomeMadeFoodHomePage> {
   Widget _buildHomeMadeFoodSection() {
     return Obx(() {
       if (foodController.isLoading.value) {
-        return Padding(
-          padding: EdgeInsets.symmetric(vertical: 20),
-          child: Center(child: CircularProgressIndicator()),
-        );
+        return _buildHomeMadeFoodShimmer();
       }
 
       return _sectionCard(
@@ -563,6 +605,52 @@ class _HomeMadeFoodHomePageState extends State<HomeMadeFoodHomePage> {
         ),
       );
     });
+  }
+
+  Widget _buildHomeMadeFoodShimmer() {
+    return _sectionCard(
+      index: 2,
+      title: 'Home Made Food',
+      child: buildLoadingShimmer(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: List.generate(
+                4,
+                (_) => Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: shimmerContainer(height: 30, width: 70, radius: 20),
+                ),
+              ),
+            ),
+            SizedBox(height: SizeConfig.size10),
+            Row(
+              children: [
+                Expanded(child: _foodShimmerCard()),
+                const SizedBox(width: 8),
+                Expanded(child: _foodShimmerCard()),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _foodShimmerCard() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        shimmerContainer(height: SizeConfig.size170),
+        const SizedBox(height: 10),
+        shimmerContainer(height: 13, radius: 4),
+        const SizedBox(height: 8),
+        shimmerContainer(height: 12, width: 90, radius: 4),
+        const SizedBox(height: 8),
+        shimmerContainer(height: 14, width: 70, radius: 4),
+      ],
+    );
   }
 
   Widget _buildFoodCategoryTabs() {
