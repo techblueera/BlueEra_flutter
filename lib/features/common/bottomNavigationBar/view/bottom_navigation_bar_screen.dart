@@ -645,7 +645,8 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       "TRANSPORT LOGISTIC",
       "VEHICLE_SUPPORT",
       "VEHICLE SUPPORT",
-
+      "TRANSPORT_LOGISTICS_PARKING",
+      "TRANSPORT LOGISTICS PARKING",
     };
 
     // 2. Check if it's Automotive AND in one of those sectors

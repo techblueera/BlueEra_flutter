@@ -94,7 +94,6 @@
 		<string>remote-notification</string>
 		<string>processing</string>
 		<string>voip</string>
-		<string>push-to-talk</string>
 	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>

@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/api/apiService/api_base_helper.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/features/common/Discover/model/finance_search_res_model.dart';
 import 'package:get/get.dart';
 
@@ -40,12 +41,16 @@ class FinanceDiscoverController extends GetxController {
       }
       error.value = '';
 
-      _mapCategoryToApiType(selectedCategory.value);
-
+    // String catData=  _mapCategoryToApiType(selectedCategory.value);
+// logs("catData= ${catData}");
+logs("selectedCategory.value= ${selectedCategory.value}");
       final ResponseModel res = await ApiBaseHelper().getHTTP(
         // "other-service/business-profile/search?distance=5000&limit=$_limit&type=BANKING_SECTOR",
         // "other-service/business-profile/search?distance=5000&limit=$_limit&type=LOANS_SECTOR",
-        "other-service/business-profile/search?distance=5000&limit=$_limit&type=finance",
+        // "other-service/business-profile/search?distance=5000&limit=$_limit&sub_type=LOANS_SECTOR",
+        // "other-service/business-profile/search?distance=5000&limit=$_limit&sub_type=BANKING_SECTOR",
+        "other-service/business-profile/search?distance=5000&limit=$_limit&sub_type=${selectedCategory.value}",
+        // "other-service/business-profile/search?distance=5000&limit=$_limit&type=finance",
         // "other-service/business-profile/search?distance=5000&limit=$_limit&type=$categoryType",
         onError: (e) {},
         onSuccess: (data) {},

@@ -86,6 +86,9 @@ class CallController extends GetxController {
   var isMicOn = true.obs;
   var isCameraOn = true.obs;
   var isSpeakerOn = false.obs;
+  // Whether call audio is currently routed to a connected Bluetooth headset.
+  // Mutually exclusive with isSpeakerOn — turning one on clears the other.
+  var isBluetoothOn = false.obs;
   var isFrontCamera = true.obs;
 
   // Remote user media state (1-to-1)
@@ -125,6 +128,7 @@ class CallController extends GetxController {
   void startOutgoingRingback() {
     try {
       _outgoingRingbackPlayer.setReleaseMode(ReleaseMode.loop);
+      _outgoingRingbackPlayer.setVolume(0.3);
       _outgoingRingbackPlayer.play(AssetSource('sound/old_phone_ring.mp3'));
     } catch (e) {
       if (kDebugMode) print('startOutgoingRingback error: $e');
@@ -2162,7 +2166,48 @@ class CallController extends GetxController {
 
   void toggleSpeaker() {
     isSpeakerOn.value = !isSpeakerOn.value;
+    // Speaker and Bluetooth are different sinks — selecting speaker (or
+    // dropping back to the earpiece) ends any Bluetooth routing.
+    isBluetoothOn.value = false;
     _setSpeakerphone(isSpeakerOn.value);
+  }
+
+  /// Route call audio to a connected Bluetooth headset. Tapping again falls
+  /// back to the earpiece. If no Bluetooth device is connected the platform
+  /// keeps the earpiece, so we reset the flag to keep the UI honest.
+  Future<void> toggleBluetooth() async {
+    final enable = !isBluetoothOn.value;
+    isBluetoothOn.value = enable;
+    if (enable) {
+      // Bluetooth replaces speaker output.
+      isSpeakerOn.value = false;
+    }
+    try {
+      if (enable) {
+        if (Platform.isAndroid) {
+          // Prefers a Bluetooth SCO device when one is available, otherwise
+          // keeps the earpiece (speakerphone stays off).
+          await Helper.setSpeakerphoneOnButPreferBluetooth();
+        } else if (Platform.isIOS) {
+          // Clearing the speaker override lets the audio session route to a
+          // connected Bluetooth device (allowed via the options below).
+          await Helper.setSpeakerphoneOn(false);
+          await Helper.setAppleAudioConfiguration(AppleAudioConfiguration(
+            appleAudioCategory: AppleAudioCategory.playAndRecord,
+            appleAudioCategoryOptions: {
+              AppleAudioCategoryOption.allowBluetooth,
+              AppleAudioCategoryOption.allowBluetoothA2DP,
+            },
+            appleAudioMode: AppleAudioMode.voiceChat,
+          ));
+        }
+      } else {
+        // Back to the earpiece.
+        _setSpeakerphone(false);
+      }
+    } catch (e) {
+      if (kDebugMode) print('Failed to toggle bluetooth audio: $e');
+    }
   }
 
   void _setSpeakerphone(bool enabled) {

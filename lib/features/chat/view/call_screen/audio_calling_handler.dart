@@ -1925,6 +1925,34 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
                 ),
               ),
               const SizedBox(height: 8),
+              // Audio output — route the call to a connected Bluetooth headset.
+              Obx(() {
+                final btOn = controller.isBluetoothOn.value;
+                return ListTile(
+                  leading: Icon(
+                    btOn
+                        ? Icons.bluetooth_audio_rounded
+                        : Icons.bluetooth_rounded,
+                    color: btOn ? const Color(0xFF25D366) : Colors.white,
+                  ),
+                  title: Text(
+                    btOn ? 'Bluetooth (on)' : 'Bluetooth',
+                    style: TextStyle(
+                      color: btOn ? const Color(0xFF25D366) : Colors.white,
+                      fontSize: 14,
+                    ),
+                  ),
+                  trailing: Switch(
+                    value: btOn,
+                    activeThumbColor: const Color(0xFF25D366),
+                    onChanged: (_) => controller.toggleBluetooth(),
+                  ),
+                  onTap: () {
+                    Get.back();
+                    controller.toggleBluetooth();
+                  },
+                );
+              }),
               if (isConnected)
                 ListTile(
                   leading: Icon(

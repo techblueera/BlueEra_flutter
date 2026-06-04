@@ -124,7 +124,7 @@ class AppConstants {
   static const String REGISTER = 'REGISTER';
   static const String SMS = 'SMS';
   static const String WhatsApp = 'WhatsApp';
- static final List<Map<String, String>> aiChatTopics = [
+  static final List<Map<String, String>> aiChatTopics = [
     {"title": "News", "tag": "news"},
     {"title": "Jokes", "tag": "jokes"},
     {"title": "Debate", "tag": "debate"},
@@ -264,6 +264,7 @@ class AppConstants {
   static const String personal = 'personal';
 
   static const String aiChat = 'aiChat';
+
   /// Services Category
   static const consulting = "Consulting Services";
   static const automotive = "Automotive Services";
@@ -449,6 +450,7 @@ String formatIndianNumber(num? number) {
     return number.toString();
   }
 }
+
 final List<Map<String, String>> categories = [
   {
     "title": "Ayurveda & Nutrition",
@@ -628,8 +630,6 @@ List<String> years = ['YYYY'] +
 
 // AppLocalizationsEn loc = AppLocalizationsEn();
 
-
-
 openBusinessProfile({required String? businessUserId}) {
   if (businessId == businessUserId) {
     Get.to(() => BusinessOwnProfileScreen());
@@ -678,7 +678,8 @@ List<String> isShowFood = [AppConstants.food];
 
 String? businessType() {
   final controller = Get.find<ViewBusinessDetailsController>();
-  return controller.businessProfileDetails.value?.data?.typeOfBusiness?.toLowerCase();
+  return controller.businessProfileDetails.value?.data?.typeOfBusiness
+      ?.toLowerCase();
 }
 
 final List<SocialInputFieldsModel> selectedInputFieldsPersonalProfile = [
@@ -781,7 +782,6 @@ const String SWEET_NAMKEEN_SHOP = "SWEET_NAMKEEN_SHOP";
 const String ICE_CREAM_CORNER = "ICE_CREAM_CORNER";
 const String COFFEE_BEVERAGES_SHOP = "COFFEE_BEVERAGES_SHOP";
 
-
 // Product
 const String FURNITURE_HOME_DECOR = "FURNITURE_HOME_DECOR";
 const String FASHION_LIFESTYLE = "FASHION_LIFESTYLE";
@@ -833,7 +833,6 @@ const String IT_DIGITAL_SERVICES = "IT_DIGITAL_SERVICES";
 const String MEDIA_NEWS_CREATIVE = "MEDIA_NEWS_CREATIVE";
 const String TRAVEL_HOSPITALITY = "TRAVEL_HOSPITALITY";
 const String REAL_ESTATE_PROPERTY = "REAL_ESTATE_PROPERTY";
-
 
 const String INSTRUMENTS_PHARMACY_ = "INSTRUMENTS PHARMACY";
 const String EDUCATION_TRAINING = "EDUCATION_TRAINING";
@@ -1118,17 +1117,18 @@ class ChatEmitEvents {
 
   // ── E2E Encryption Events (Phase 1–4) ─────────────────────────────────────
   // Events this client EMITS → server
-  static const e2eMessageSend       = "message:send";         // Phase 3: send encrypted msg
-  static const e2eMessageAck        = "message:ack";          // Phase 3: delivery ACK
-  static const e2eMessageSyncComplete = "message:sync-complete"; // Phase 4: cursor advance
+  static const e2eMessageSend = "message:send"; // Phase 3: send encrypted msg
+  static const e2eMessageAck = "message:ack"; // Phase 3: delivery ACK
+  static const e2eMessageSyncComplete =
+      "message:sync-complete"; // Phase 4: cursor advance
 
   // Events this client RECEIVES ← server
-  static const e2eProtocolResolved      = "protocol:resolved";       // Phase 1
-  static const e2eProtocolUpgrade       = "protocol:upgrade_available"; // Phase 1
-  static const e2ePrekeyLow             = "prekey:low";              // Phase 2
-  static const e2eMessageNew            = "message:new";             // Phase 3
-  static const e2eMessageStatus         = "message:status";          // Phase 3
-  static const e2eSyncComplete          = "sync:complete";           // Phase 4
+  static const e2eProtocolResolved = "protocol:resolved"; // Phase 1
+  static const e2eProtocolUpgrade = "protocol:upgrade_available"; // Phase 1
+  static const e2ePrekeyLow = "prekey:low"; // Phase 2
+  static const e2eMessageNew = "message:new"; // Phase 3
+  static const e2eMessageStatus = "message:status"; // Phase 3
+  static const e2eSyncComplete = "sync:complete"; // Phase 4
 }
 
 class LiveTrackEmitEvents {
@@ -1308,7 +1308,7 @@ final List<OnboardingCategoryModel> findServiceByContactSubCate = [
 // --- OnBoarding Category ---
 
 final List<OnboardingCategoryModel>
-businessOnboardingEducationTrainingCategories = [
+    businessOnboardingEducationTrainingCategories = [
   OnboardingCategoryModel(
       name: AppStrings.schoolEducation,
       slugId: SCHOOL_EDUCATION,
@@ -1347,39 +1347,37 @@ businessOnboardingEducationTrainingCategories = [
       businessType: BusinessType.Siksha),
 ];
 
-final List<OnboardingCategoryModel>  jobCategories = [
+final List<OnboardingCategoryModel> jobCategories = [
   OnboardingCategoryModel(
-      name: 'Full Time',
-      slugId: '',
-      icon: AppImageAssets.job_full_time,
-      accountType: AppConstants.business,
-     ),
+    name: 'Full Time',
+    slugId: '',
+    icon: AppImageAssets.job_full_time,
+    accountType: AppConstants.business,
+  ),
   OnboardingCategoryModel(
-      name: 'Part Time',
-      slugId: '',
-      icon: AppImageAssets.job_part_time,
-      accountType: AppConstants.business,
-
-      ),
+    name: 'Part Time',
+    slugId: '',
+    icon: AppImageAssets.job_part_time,
+    accountType: AppConstants.business,
+  ),
   OnboardingCategoryModel(
-      name: 'Remote',
-      slugId: '',
-      icon: AppImageAssets.job_remote,
-      accountType: AppConstants.business,
-     ),
+    name: 'Remote',
+    slugId: '',
+    icon: AppImageAssets.job_remote,
+    accountType: AppConstants.business,
+  ),
   OnboardingCategoryModel(
-      name: 'Onsite',
-      slugId: '',
-      icon: AppImageAssets.job_onsite,
-      accountType: AppConstants.business,
-),
+    name: 'Onsite',
+    slugId: '',
+    icon: AppImageAssets.job_onsite,
+    accountType: AppConstants.business,
+  ),
   OnboardingCategoryModel(
-      name: 'Near By',
-      slugId: '',
-      icon: AppImageAssets.job_near_by,
-      accountType: AppConstants.business,
-      ),
-
+    name: 'Near By',
+    slugId: '',
+    icon: AppImageAssets.job_near_by,
+    accountType: AppConstants.business,
+  ),
 ];
 
 // final List<OnboardingCategoryModel> businessOnboardingProductsCategories = [
@@ -1908,7 +1906,8 @@ String getProductCategoryIcon(String? tagId) {
 final Map<String, String> serviceCategoryIcons = {
   BEAUTY_FITNESS_PERSONAL_CARE: OnboardingBusinessAssets.beautyAndPersonalCare,
   CONSULTING_BUSINESS_SERVICES: OnboardingBusinessAssets.consultingFirm,
-  REPAIR_ESSENTIAL_SERVICES: OnboardingBusinessAssets.serviceCenterAndEssentialUtils,
+  REPAIR_ESSENTIAL_SERVICES:
+      OnboardingBusinessAssets.serviceCenterAndEssentialUtils,
   HOME_SERVICES_CONTRACTORS: OnboardingBusinessAssets.homeServiceAndUtility,
   IT_DIGITAL_SERVICES: OnboardingBusinessAssets.itAndCommunication,
   MEDIA_NEWS_CREATIVE: OnboardingBusinessAssets.mediaPublicityAndCreative,
@@ -2063,7 +2062,6 @@ final List<OnboardingCategoryModel> findShoppingByContactCate = [
       accountType: AppConstants.business,
       businessType: BusinessType.Product),
 ];
-
 
 /// Individual Categories
 
@@ -2272,7 +2270,8 @@ final Map<String, String> individualProfessionIcons = {
   EVENT_PLANNER_DETECTIVE: OnboardingIndividualAssets.eventPlanDetective,
   PROPERTY_BROKER_ARCHITECT: OnboardingIndividualAssets.propertyBrokerArchitect,
   BUSINESS_HR_CONSULTANT: OnboardingIndividualAssets.businessHrConsultant,
-  INDUSTRY_QUALITY_CONSULTANT: OnboardingIndividualAssets.industryQualityConsultant,
+  INDUSTRY_QUALITY_CONSULTANT:
+      OnboardingIndividualAssets.industryQualityConsultant,
   TECH_DIGITAL_FREELANCER: OnboardingIndividualAssets.techDigitalFreelancer,
 };
 
@@ -2456,14 +2455,54 @@ class PropertyTileData {
 }
 
 final List<PropertyTileData> propertyDiscoverTiles = [
-  PropertyTileData(image: AppImageAssets.propertyHouseSell, label: 'Houses & Apartments', isSale: true, listingType: 'Sell', propertyType: 'HouseAndApartment'),
-  PropertyTileData(image: AppImageAssets.propertyHouseRent, label: 'Houses & Apartments', isSale: false, listingType: 'Rent', propertyType: 'HouseAndApartment'),
-  PropertyTileData(image: AppImageAssets.propertyNewProjectSell, label: 'New Projects & Properties', isSale: true, listingType: 'Sell', propertyType: 'NewProjectsAndProperties'),
-  PropertyTileData(image: AppImageAssets.propertyLandPlotSell, label: 'Lands & Plots', isSale: true, listingType: 'Sell', propertyType: 'LandAndPlots'),
-  PropertyTileData(image: AppImageAssets.propertyShopOfficeRent, label: 'Shops & Offices', isSale: false, listingType: 'Rent', propertyType: 'ShopAndOffices'),
-  PropertyTileData(image: AppImageAssets.propertyShopOfficeSell, label: 'Shops & Offices', isSale: true, listingType: 'Sell', propertyType: 'ShopAndOffices'),
-  PropertyTileData(image: AppImageAssets.propertyLandPlotRent, label: 'Lands & Plots', isSale: false, listingType: 'Rent', propertyType: 'LandAndPlots'),
-  PropertyTileData(image: AppImageAssets.propertyPgRent, label: 'PG & Guest House', isSale: false, listingType: 'Rent', propertyType: 'PGAndGuestHouse'),
+  PropertyTileData(
+      image: AppImageAssets.propertyHouseSell,
+      label: 'Houses & Apartments',
+      isSale: true,
+      listingType: 'Sell',
+      propertyType: 'HouseAndApartment'),
+  PropertyTileData(
+      image: AppImageAssets.propertyHouseRent,
+      label: 'Houses & Apartments',
+      isSale: false,
+      listingType: 'Rent',
+      propertyType: 'HouseAndApartment'),
+  PropertyTileData(
+      image: AppImageAssets.propertyNewProjectSell,
+      label: 'New Projects & Properties',
+      isSale: true,
+      listingType: 'Sell',
+      propertyType: 'NewProjectsAndProperties'),
+  PropertyTileData(
+      image: AppImageAssets.propertyLandPlotSell,
+      label: 'Lands & Plots',
+      isSale: true,
+      listingType: 'Sell',
+      propertyType: 'LandAndPlots'),
+  PropertyTileData(
+      image: AppImageAssets.propertyShopOfficeRent,
+      label: 'Shops & Offices',
+      isSale: false,
+      listingType: 'Rent',
+      propertyType: 'ShopAndOffices'),
+  PropertyTileData(
+      image: AppImageAssets.propertyShopOfficeSell,
+      label: 'Shops & Offices',
+      isSale: true,
+      listingType: 'Sell',
+      propertyType: 'ShopAndOffices'),
+  PropertyTileData(
+      image: AppImageAssets.propertyLandPlotRent,
+      label: 'Lands & Plots',
+      isSale: false,
+      listingType: 'Rent',
+      propertyType: 'LandAndPlots'),
+  PropertyTileData(
+      image: AppImageAssets.propertyPgRent,
+      label: 'PG & Guest House',
+      isSale: false,
+      listingType: 'Rent',
+      propertyType: 'PGAndGuestHouse'),
 ];
 
 final List<OnboardingCategoryModel> stayItemsCategories = [
@@ -2555,23 +2594,26 @@ final List<OnboardingCategoryModel> financeCategories = [
   ),
   OnboardingCategoryModel(
     name: 'Loan Sector',
-    slugId: 'LOAN_SECTOR',
+    slugId: 'LOANS_SECTOR',
     icon: AppImageAssets.loanSector,
     subtitle: "Home, vehicle,\npersonal",
-    accountType: AppConstants.business,),
+    accountType: AppConstants.business,
+  ),
   OnboardingCategoryModel(
     name: 'Insurance Sector',
     slugId: 'INSURANCE_SECTOR',
     icon: AppImageAssets.insuranceSector,
     subtitle: "Health.\nlife, vehicle",
-    accountType: AppConstants.business,),
+    accountType: AppConstants.business,
+  ),
   OnboardingCategoryModel(
-    name: 'Capital Market',
-    slugId: 'CAPITAL_MARKET',
+    name: 'Finance',
+    slugId: 'finance',
     icon: AppImageAssets.capitalMarket,
     subtitle: "Stocks, mutual\nfunds, trading",
-    accountType: AppConstants.business,),
-  OnboardingCategoryModel(
+    accountType: AppConstants.business,
+  ),
+  /* OnboardingCategoryModel(
     name: 'Data Sector',
     slugId: 'DATA_SECTOR',
     icon: AppImageAssets.dataSector,
@@ -2582,7 +2624,7 @@ final List<OnboardingCategoryModel> financeCategories = [
     slugId: 'ADVISORY_SECTOR',
     icon: AppImageAssets.advisorySector,
     subtitle: "Financial planning, consultation",
-    accountType: AppConstants.business,),
+    accountType: AppConstants.business,),*/
 ];
 
 final List<CollapsibleGridModel> automotiveServiceItemsCategories = [
@@ -2687,8 +2729,6 @@ final List<CollapsibleGridModel> bookingList = [
 //       accountType: AppConstants.business,
 //       businessType: BusinessType.Grocery),
 // ];
-
-
 
 // final List<CollapsibleGridModel> cloudKitchenHomeMadeFood = [
 //   CollapsibleGridModel(
