@@ -29,7 +29,6 @@ mixin EarnServiceApi {
   final String professionalsPortfolio = 'earn-service/professional/portfolio';
   final String professionalSearch = 'earn-service/professional/search';
 
-  final String checkAnyEarnServiceCreated = 'earn-service/services/any/check';
   String predefinedServiceCategory(String category) =>
       'earn-service/predefined/$category';
   String predefinedProfessionServices(String professionSlugId) =>
@@ -52,6 +51,9 @@ mixin EarnServiceApi {
 
   /// Place a home made food order. `POST earn-service/homeFoodOrders`.
   final String homeFoodOrders = "earn-service/homeFoodOrders";
+
+  /// Place a home made product order. `POST earn-service/homeProductOrders`.
+  final String homeProductOrders = "earn-service/homeProductOrders";
 
   /// Admin posts feed — drives the testimonials, overview and tutorial
   /// sections on the new BDM/referral dashboard. Filter by `type` query

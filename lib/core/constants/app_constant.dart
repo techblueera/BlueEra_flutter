@@ -2387,34 +2387,6 @@ final List<OnboardingCategoryModel> homeServicesCategories = [
   // ),
 ];
 
-final List<CollapsibleGridModel> homeMadeProductsCategories = [
-  CollapsibleGridModel(
-    name: 'Handicrafts',
-    slugId: HANDICRAFTS,
-    icon: AppImageAssets.handicraft,
-  ),
-  CollapsibleGridModel(
-    name: 'Gift Items',
-    slugId: GIFT_ITEMS,
-    icon: AppImageAssets.giftItems,
-  ),
-  CollapsibleGridModel(
-    name: 'Textile & Fashion',
-    slugId: TEXTILE_FASHION,
-    icon: AppImageAssets.fashionLifestyle,
-  ),
-  CollapsibleGridModel(
-    name: 'Utility Products',
-    slugId: UTILITY_PRODUCTS,
-    icon: AppImageAssets.utilityProducts,
-  ),
-  CollapsibleGridModel(
-    name: 'Art & Craft',
-    slugId: ART_CRAFT,
-    icon: AppImageAssets.artCrafts,
-  ),
-];
-
 final List<CollapsibleGridModel> homeMadeItemsCategories = [
   // CollapsibleGridModel(
   //     name: 'Home Made\nFood',

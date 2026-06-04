@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
@@ -31,21 +30,22 @@ class AddProductViaAiStep1 extends StatefulWidget {
 class _AddProductViaAiStep1State extends State<AddProductViaAiStep1> {
   final ProductController controller = getOrPut(() => ProductController());
 
-  final List<CollapsibleGridModel> _homeMadeCategories =
-      homeMadeProductsCategories;
-
   bool get _isBusiness => widget.providerType == ProviderType.business;
 
   @override
   void initState() {
     super.initState();
-    if (_isBusiness) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_isBusiness) {
         if (controller.productsNestedCategoryList.isEmpty) {
           controller.fetchProductsNestedCategory();
         }
-      });
-    }
+      } else {
+        if (controller.homeMadeProductCategoryList.isEmpty) {
+          controller.fetchHomeMadeProductCategories();
+        }
+      }
+    });
   }
 
   @override
@@ -174,13 +174,15 @@ class _AddProductViaAiStep1State extends State<AddProductViaAiStep1> {
 
                       SizedBox(height: SizeConfig.paddingXSL),
 
-                      /// Product Description
+                      /// Product Description (optional)
                       CommonTextField(
                           textEditController: this.controller.productDescriptionStep1Controller,
                           title: AppStrings.productDescSpec,
                           hintText: AppStrings.hintProductDesc,
                           maxLine: 4,
-                          validator: ValidationMethod().validateProductDescription,
+                          validator: (val) => (val == null || val.trim().isEmpty)
+                              ? null
+                              : ValidationMethod().validateProductDescription(val),
                           maxLength: 100,
                           isCounterVisible: true
                       ),
@@ -221,6 +223,20 @@ class _AddProductViaAiStep1State extends State<AddProductViaAiStep1> {
 
   Widget _buildUserCategoryGrid() {
     return Obx(() {
+      // Read the observables in the Obx closure body so dependencies are
+      // registered synchronously (itemBuilder runs later, during layout).
+      final categories = controller.homeMadeProductCategoryList.toList();
+      final selectedSlug = controller.selectedHomeMadeCategory.value?.slugId;
+
+      if (controller.isHomeMadeProductCategoryLoading.value &&
+          categories.isEmpty) {
+        return const Padding(
+          padding: EdgeInsets.symmetric(vertical: 24),
+          child: Center(child: CircularProgressIndicator()),
+        );
+      }
+      if (categories.isEmpty) return const SizedBox.shrink();
+
       return GridView.builder(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
@@ -231,11 +247,10 @@ class _AddProductViaAiStep1State extends State<AddProductViaAiStep1> {
           mainAxisSpacing: 8,
           childAspectRatio: 0.9,
         ),
-        itemCount: _homeMadeCategories.length,
+        itemCount: categories.length,
         itemBuilder: (_, i) {
-          final category = _homeMadeCategories[i];
-          final isSelected =
-              controller.selectedHomeMadeCategory.value?.slugId == category.slugId;
+          final category = categories[i];
+          final isSelected = selectedSlug == category.slugId;
           return CommonServiceCard<CollapsibleGridModel>(
             service: category,
             getName: (item) => item.name,

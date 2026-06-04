@@ -55,6 +55,19 @@ class EarnProfileRepo extends BaseService {
     );
   }
 
+  /// Place a home made product order.
+  Future<ResponseModel> placeHomeProductOrder({
+    required Map<String, dynamic> params,
+  }) async {
+    return ApiBaseHelper().postHTTP(
+      homeProductOrders,
+      params: params,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+  }
+
   /// Fetch earn profile(s) by userId, optionally filtered via [queryParams]
   /// (e.g. `{'profileType': 'homeMadeFood'}`).
   Future<ResponseModel> fetchEarnProfileByUserId({

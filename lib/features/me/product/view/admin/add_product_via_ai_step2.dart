@@ -99,10 +99,6 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
       );
     }).toList();
 
-    if (widget.generateAiProductContent.brandWebsite != null)
-      controller.linkController.text =
-          widget.generateAiProductContent.brandWebsite ?? '';
-
     controller.mrpController.text =
         widget.generateAiProductContent.mrp?.toInt().toString() ?? '';
     List<String> userGuide = widget.generateAiProductContent.userGuide ?? [];
@@ -117,6 +113,10 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
         widget.generateAiProductContent.warranty ?? '';
     controller.productExpiryDurationController.text =
         widget.generateAiProductContent.durationOfExpiryFromManufacture ?? '';
+
+    // Keep the full per-variant data (attributes + pricing) for the
+    // create-product request body.
+    controller.aiVariantData = widget.generateAiProductContent.variantData;
 
     final variantMap = widget.generateAiProductContent.variant ?? {};
 
@@ -733,29 +733,6 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
             height: 1.0,
             color: AppColors.whiteE0,
           ),
-          (controller.mrpController.text.isNotEmpty)
-              ? Padding(
-                  padding: EdgeInsets.only(top: 10.0),
-                  child: Row(
-                    children: [
-                      CustomText(
-                        '${AppStrings.mrp.tr}: ',
-                        fontSize: SizeConfig.medium,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.secondaryTextColor,
-                      ),
-                      Expanded(
-                        child: CustomText(
-                          "${controller.mrpController.text}",
-                          fontSize: SizeConfig.large,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.secondaryTextColor,
-                        ),
-                      ),
-                    ],
-                  ),
-                )
-              : SizedBox(),
           if (controller.productWarrantyController.text.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(top: 10.0),
@@ -857,6 +834,7 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
   }
 
   Widget _buildProductVariant() {
+    final variants = widget.generateAiProductContent.variantData;
     return Container(
       padding: EdgeInsets.all(SizeConfig.size8),
       decoration: BoxDecoration(
@@ -872,22 +850,6 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
             fontWeight: FontWeight.w600,
             color: AppColors.mainTextColor,
           ),
-          // Row(
-          //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          //   children: [
-          //     CustomText(
-          //       'Variant',
-          //       fontSize: SizeConfig.large,
-          //       fontWeight: FontWeight.w600,
-          //       color: AppColors.mainTextColor,
-          //     ),
-          //     InkWell(
-          //         onTap: () {
-          //           Get.to(()=> Step4Section(controller: controller));
-          //         },
-          //         child: LocalAssets(imagePath: AppIconAssets.pen_line))
-          //   ],
-          // ),
           SizedBox(height: SizeConfig.size6),
           CommonHorizontalDivider(
             height: 1.0,
@@ -895,120 +857,229 @@ class _AddProductViaAiStep2State extends State<AddProductViaAiStep2> {
           ),
           SizedBox(height: SizeConfig.size8),
 
-          if (controller.selectedColors.isNotEmpty) ...[
-            CustomText(
-              '${AppStrings.color.tr}: ',
-              fontSize: SizeConfig.medium,
-              fontWeight: FontWeight.w600,
-              color: AppColors.secondaryTextColor,
-            ),
-            SizedBox(height: 5.0),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: List.generate(
-                controller.selectedColors.length, // number of items
-                (i) {
-                  final selected = controller.selectedColors[i];
-                  return Container(
-                    padding: EdgeInsets.all(6.0),
-                    margin: EdgeInsets.only(bottom: 6.0),
-                    decoration: BoxDecoration(
-                      color: AppColors.lightBlue,
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Container(
-                          width: 16,
-                          height: 16,
-                          decoration: BoxDecoration(
-                            color: selected.color,
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 1),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          '${selected.name}',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: AppColors.secondaryTextColor,
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-            ),
-            SizedBox(height: SizeConfig.size10),
-          ],
-
-          Obx(() {
-            if (controller.dynamicAttributes.isEmpty) return SizedBox.shrink();
-
-            return Column(
+          // Show every variant possibility coming from variantData.
+          if (variants.isNotEmpty)
+            Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: controller.dynamicAttributes.entries.map((entry) {
-                final key = entry.key; // attribute name
-                final values = entry.value; // RxList<String>
+              children: List.generate(
+                variants.length,
+                (i) => Padding(
+                  padding: EdgeInsets.only(
+                    bottom:
+                        i == variants.length - 1 ? 0 : SizeConfig.size8,
+                  ),
+                  child: _variantCard(variants[i]),
+                ),
+              ),
+            )
+          else
+            _buildLegacyVariantInfo(),
+        ],
+      ),
+    );
+  }
 
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Attribute title
-                    CustomText(
-                      '$key:',
-                      fontSize: SizeConfig.medium,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.secondaryTextColor,
-                    ),
-                    const SizedBox(height: 3.0),
+  // One card per variant — name + price, with attribute / specification chips.
+  Widget _variantCard(AiVariantData v) {
+    final pricing = v.pricing.isNotEmpty ? v.pricing.first : null;
+    final attrEntries = <MapEntry<String, dynamic>>[
+      ...v.attributes.entries,
+      ...v.specification.entries,
+    ];
+    final showStrike = pricing?.mrp != null &&
+        pricing?.sellingPrice != null &&
+        (pricing!.mrp! > pricing.sellingPrice!);
 
-                    // Values
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: List.generate(
-                        values.length,
-                        (index) => Padding(
-                          padding: const EdgeInsets.only(bottom: 4.0),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Container(
-                                margin: EdgeInsets.only(top: 6.0, right: 8.0),
-                                width: 4.0,
-                                height: 4.0,
-                                decoration: BoxDecoration(
-                                  color: AppColors.secondaryTextColor,
-                                  shape: BoxShape.circle,
-                                ),
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(SizeConfig.size8),
+      decoration: BoxDecoration(
+        color: AppColors.whiteFE,
+        borderRadius: BorderRadius.circular(8.0),
+        border: Border.all(color: AppColors.greyE5),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: CustomText(
+                  v.variantName ?? v.value ?? AppStrings.na,
+                  fontSize: SizeConfig.medium,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.mainTextColor,
+                ),
+              ),
+              if (pricing != null) ...[
+                const SizedBox(width: 6),
+                CustomText(
+                  '₹${pricing.sellingPrice ?? pricing.mrp ?? ''}',
+                  fontSize: SizeConfig.medium,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.primaryColor,
+                ),
+                if (showStrike) ...[
+                  const SizedBox(width: 6),
+                  CustomText(
+                    '₹${pricing.mrp}',
+                    fontSize: SizeConfig.small,
+                    fontWeight: FontWeight.w400,
+                    color: AppColors.secondaryTextColor,
+                    decoration: TextDecoration.lineThrough,
+                    decorationColor: AppColors.secondaryTextColor,
+                  ),
+                ],
+              ],
+            ],
+          ),
+          if (attrEntries.isNotEmpty) ...[
+            SizedBox(height: SizeConfig.size6),
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: attrEntries
+                  .map((e) => _variantChip('${e.key}: ${e.value}'))
+                  .toList(),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _variantChip(String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: AppColors.lightBlue,
+        borderRadius: BorderRadius.circular(6.0),
+      ),
+      child: CustomText(
+        label,
+        fontSize: SizeConfig.small,
+        fontWeight: FontWeight.w500,
+        color: AppColors.secondaryTextColor,
+      ),
+    );
+  }
+
+  // Fallback display (colors + flattened attributes) when no variantData
+  // is present.
+  Widget _buildLegacyVariantInfo() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (controller.selectedColors.isNotEmpty) ...[
+          CustomText(
+            '${AppStrings.color.tr}: ',
+            fontSize: SizeConfig.medium,
+            fontWeight: FontWeight.w600,
+            color: AppColors.secondaryTextColor,
+          ),
+          SizedBox(height: 5.0),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: List.generate(
+              controller.selectedColors.length,
+              (i) {
+                final selected = controller.selectedColors[i];
+                return Container(
+                  padding: EdgeInsets.all(6.0),
+                  margin: EdgeInsets.only(bottom: 6.0),
+                  decoration: BoxDecoration(
+                    color: AppColors.lightBlue,
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Container(
+                        width: 16,
+                        height: 16,
+                        decoration: BoxDecoration(
+                          color: selected.color,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 1),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        '${selected.name}',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.secondaryTextColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+          SizedBox(height: SizeConfig.size10),
+        ],
+        Obx(() {
+          if (controller.dynamicAttributes.isEmpty) return SizedBox.shrink();
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: controller.dynamicAttributes.entries.map((entry) {
+              final key = entry.key; // attribute name
+              final values = entry.value; // RxList<String>
+
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CustomText(
+                    '$key:',
+                    fontSize: SizeConfig.medium,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.secondaryTextColor,
+                  ),
+                  const SizedBox(height: 3.0),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: List.generate(
+                      values.length,
+                      (index) => Padding(
+                        padding: const EdgeInsets.only(bottom: 4.0),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              margin: EdgeInsets.only(top: 6.0, right: 8.0),
+                              width: 4.0,
+                              height: 4.0,
+                              decoration: BoxDecoration(
+                                color: AppColors.secondaryTextColor,
+                                shape: BoxShape.circle,
                               ),
-                              Expanded(
-                                child: CustomText(
-                                  values[index],
-                                  fontSize: SizeConfig.medium,
-                                  fontWeight: FontWeight.w400,
-                                  color: AppColors.secondaryTextColor,
-                                  height: 1.5,
-                                ),
+                            ),
+                            Expanded(
+                              child: CustomText(
+                                values[index],
+                                fontSize: SizeConfig.medium,
+                                fontWeight: FontWeight.w400,
+                                color: AppColors.secondaryTextColor,
+                                height: 1.5,
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
-                    SizedBox(height: SizeConfig.size8),
-                  ],
-                );
-              }).toList(),
-            );
-          })
-        ],
-      ),
+                  ),
+                  SizedBox(height: SizeConfig.size8),
+                ],
+              );
+            }).toList(),
+          );
+        }),
+      ],
     );
   }
 }

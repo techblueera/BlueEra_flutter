@@ -318,7 +318,9 @@ class Variant {
   factory Variant.fromJson(Map<String, dynamic> json) {
     return Variant(
       mediaRelatedToVariant: List<String>.from(json['media_related_to_varient'] ?? []),
-      attributesMap: json['attributes_map'] ?? {},
+      // Some endpoints return `attributes_map`, others (e.g. get-product-by-id)
+      // return `attributes` — accept either.
+      attributesMap: json['attributes_map'] ?? json['attributes'] ?? {},
       attributesStruct: json['attributes_struct'] ?? {},
       sku: json['sku'] ?? '',
       hsn: json['hsn'] ?? '',
@@ -332,7 +334,7 @@ class Variant {
       variantIsActive: json['varientIsActive'] ?? false,
       createdAt: json['createdAt'] ?? '',
       updatedAt: json['updatedAt'] ?? '',
-      id: json['id'] ?? '',
+      id: json['id'] ?? json['_id'] ?? '',
     );
   }
 

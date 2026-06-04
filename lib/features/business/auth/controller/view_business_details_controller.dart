@@ -730,8 +730,7 @@ class ViewBusinessDetailsController extends GetxController {
       };
       queryParams[ApiKeys.businessId] = visitBusinessId;
 
-      final responseModel = await ProductRepo()
-          .fetchProductsRepo(queryParams: queryParams);
+      final responseModel = await ProductRepo().fetchProductsRepo(queryParams: queryParams);
 
       final getOwnProductModel =
           GetProductModel.fromJson(responseModel.response!.data);

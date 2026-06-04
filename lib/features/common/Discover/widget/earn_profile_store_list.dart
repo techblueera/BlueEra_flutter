@@ -23,10 +23,6 @@ import 'package:get/get.dart';
 const Color kEarnProfilePrimary = AppColors.primaryColor; // 0xFF0086FF
 const Color kEarnProfilePrimaryDeep = AppColors.blue5CAF; // 0xFF005CAF
 
-/// Shared "stores near me" list for the Discover earn-service surfaces
-/// (home made food / product / service). Renders the editorial store cards,
-/// loading and empty states. Pagination scroll is handled by the host screen
-/// via [EarnProfilesDiscoverController.onScrollEnd].
 class EarnProfileStoreList extends StatelessWidget {
   final EarnProfilesDiscoverController controller;
   final void Function(EarnProfileModel store) onStoreTap;

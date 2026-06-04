@@ -10,9 +10,9 @@ import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
-import 'package:BlueEra/features/common/Discover/controller/home_made_food_cart_controller.dart';
-import 'package:BlueEra/features/common/Discover/controller/home_made_food_store_details_controller.dart';
-import 'package:BlueEra/features/common/Discover/view/home_made_food_cart_screen.dart';
+import 'package:BlueEra/features/common/Discover/controller/hmf_cart_controller.dart';
+import 'package:BlueEra/features/common/Discover/controller/hmf_store_details_controller.dart';
+import 'package:BlueEra/features/common/Discover/view/hmf_cart_screen.dart';
 import 'package:BlueEra/features/me/grocery/widget/food_type_or_cooking_method.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/model/earn_profile_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/model/food_item_model.dart';
@@ -29,33 +29,33 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
-class HomeMadeFoodStoreDetailsDiscoverScreen extends StatefulWidget {
+class HmfStoreDetailsDiscoverScreen extends StatefulWidget {
   final EarnProfileModel store;
 
-  const HomeMadeFoodStoreDetailsDiscoverScreen({super.key, required this.store});
+  const HmfStoreDetailsDiscoverScreen({super.key, required this.store});
 
   @override
-  State<HomeMadeFoodStoreDetailsDiscoverScreen> createState() =>
-      _HomeMadeFoodStoreDetailsDiscoverScreenState();
+  State<HmfStoreDetailsDiscoverScreen> createState() =>
+      _HmfStoreDetailsDiscoverScreenState();
 }
 
-class _HomeMadeFoodStoreDetailsDiscoverScreenState
-    extends State<HomeMadeFoodStoreDetailsDiscoverScreen> {
+class _HmfStoreDetailsDiscoverScreenState
+    extends State<HmfStoreDetailsDiscoverScreen> {
   // App primary color combination (theme-aligned accent for this flow).
   static const Color _primary = AppColors.primaryColor; // 0xFF0086FF
   static const Color _placeholderBg = AppColors.blue5CFF; // 0xFFEBF5FF
 
   EarnProfileModel get store => widget.store;
 
-  late final HomeMadeFoodStoreDetailsController controller = getOrPut(
-    () => HomeMadeFoodStoreDetailsController(profileId: store.id ?? ''),
+  late final HmfStoreDetailsController controller = getOrPut(
+    () => HmfStoreDetailsController(profileId: store.id ?? ''),
     tag: store.id ?? store.userId ?? '',
   );
 
   // Shared cart for the whole home made food flow (registered at the list
   // screen) — found here so adds survive coming back to the list.
-  late final HomeMadeFoodCartController cartController =
-      getOrPut(() => HomeMadeFoodCartController());
+  late final HmfCartController cartController =
+      getOrPut(() => HmfCartController());
 
   // Selected Home Made Food category tab (index into availableCategories).
   final RxInt _selectedCat = 0.obs;
@@ -71,7 +71,7 @@ class _HomeMadeFoodStoreDetailsDiscoverScreenState
   void dispose() {
     // Only the details controller is scoped to this screen. The cart
     // controller is shared with the list screen and cleaned up there.
-    deleteIfRegistered<HomeMadeFoodStoreDetailsController>(
+    deleteIfRegistered<HmfStoreDetailsController>(
         tag: store.id ?? store.userId ?? '');
     super.dispose();
   }
@@ -137,7 +137,7 @@ class _HomeMadeFoodStoreDetailsDiscoverScreenState
           cartLabel: 'View Cart',
           itemLabel:
               '$count ${count == 1 ? 'item' : 'items'}  •  ${AppConstants.rupeeSymbol}${cartController.totalPrice.toStringAsFixed(0)}',
-          onTap: () => Get.to(() => HomeMadeFoodCartScreen(store: store)),
+          onTap: () => Get.to(() => HmfCartScreen(store: store)),
         ),
       );
     });

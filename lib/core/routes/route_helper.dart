@@ -1356,22 +1356,12 @@ class RouteHelper {
                   providerType: providerType,
                 ),
             settings: RouteSettings(name: getAddProductViaAiStep2Route()));
-      // case RouteConstant.productPreviewScreen:
-      //   final args = settings.arguments as Map<String, dynamic>?;
-      //   final OwnProductData? productData =
-      //       args?[ApiKeys.argProductData] as OwnProductData?;
-      //
-      //   return MaterialPageRoute(
-      //       builder: (_) => ProductPreviewScreen(productData: productData),
-      //       settings: RouteSettings(name: getProductPreviewScreenRoute()));
       case RouteConstant.productPreviewScreen:
         final args = settings.arguments as Map<String, dynamic>?;
         final ProductPreviewArgs? argProductData =
             args?[ApiKeys.argProductData] as ProductPreviewArgs?;
         final bool? isFromProductCreation =
             args?[ApiKeys.isFromProductCreation] as bool?;
-        final bool? isUserCanCreateVariants =
-            args?[ApiKeys.isUserCanCreateVariants] as bool?;
         final String? id = args?[ApiKeys.id] as String?;
         final ProviderType? providerType =
             args?[ApiKeys.providerType] as ProviderType?;
@@ -1382,7 +1372,6 @@ class RouteHelper {
                   providerType: providerType,
                   productPreviewArgs: argProductData,
                   isFromProductCreation: isFromProductCreation ?? false,
-                  isUserCanCreateVariants: isUserCanCreateVariants ?? true,
                 ),
             settings: RouteSettings(name: getProductPreviewScreenRoute()));
       case RouteConstant.productsStoreDetailsScreen:

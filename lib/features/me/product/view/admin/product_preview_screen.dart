@@ -1,18 +1,17 @@
 import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
-import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/me/product/controller/product_controller.dart';
+import 'package:BlueEra/features/me/product/model/generate_ai_product_content.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -52,6 +51,10 @@ class ProductPreviewArgs {
 
   /// we will send all the dynamic attribute available
 
+  /// Full per-variant data (name, attributes, specification, pricing) coming
+  /// from the create-product response — drives the variant section.
+  final List<AiVariantData>? variants;
+
   ProductPreviewArgs({
     this.productId,
     this.media,
@@ -70,6 +73,7 @@ class ProductPreviewArgs {
     this.selectedColors,
     this.dynamicAttributes,
     this.listedProducts,
+    this.variants,
   });
 }
 
@@ -80,20 +84,20 @@ class DetailPair {
 }
 
 class ProductPreviewScreen extends StatefulWidget {
-  // final OwnProductData? productData;
   final String? id;
   final ProviderType? providerType;
   final ProductPreviewArgs? productPreviewArgs;
+
+  /// True when reached right after creating a product (AI flow). Drives both
+  /// the back-navigation behavior and whether the "Create Variant" CTA shows.
   final bool isFromProductCreation;
-  final bool isUserCanCreateVariants;
 
   const ProductPreviewScreen(
       {super.key,
       required this.id,
       required this.providerType,
       required this.productPreviewArgs,
-      required this.isFromProductCreation,
-      required this.isUserCanCreateVariants});
+      required this.isFromProductCreation});
 
   @override
   State<ProductPreviewScreen> createState() => _ProductPreviewScreenState();
@@ -104,6 +108,9 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
       CarouselSliderController();
   final ProductController controller = Get.put(ProductController());
   int _currentIndex = 0;
+
+  List<AiVariantData> get _variants =>
+      widget.productPreviewArgs?.variants ?? const [];
 
   @override
   void initState() {
@@ -132,6 +139,22 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
     controller.mrpController.text = args.MRPPrice ?? '';
     controller.productWarrantyController.text = args.warranty ?? '';
     controller.productExpiryDurationController.text = args.expiry ?? '';
+
+    // Headline price from the first variant's pricing, when available.
+    final firstPricing = (args.variants?.isNotEmpty ?? false) &&
+            args.variants!.first.pricing.isNotEmpty
+        ? args.variants!.first.pricing.first
+        : null;
+    if (firstPricing != null) {
+      controller.selectedProductOrVariantMrp.value =
+          (firstPricing.mrp ?? '').toString();
+      controller.selectedProductOrVariantPrice.value =
+          (firstPricing.sellingPrice ?? firstPricing.mrp ?? '').toString();
+      controller.selectedProductOrVariantDiscount.value = calculateDiscount(
+              controller.selectedProductOrVariantPrice.value,
+              controller.selectedProductOrVariantMrp.value.toString())
+          .toStringAsFixed(2);
+    }
 
     // Reactive lists
     controller.allProductImages.assignAll(args.media ?? []);
@@ -449,7 +472,8 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
                           title: AppStrings.pricingAndWarranty,
                           content: _buildPricingAndWarrantyContent()),
 
-                      if ((widget.productPreviewArgs?.selectedColors
+                      if (_variants.isNotEmpty ||
+                          (widget.productPreviewArgs?.selectedColors
                                   ?.isNotEmpty ??
                               false) ||
                           (widget.productPreviewArgs?.dynamicAttributes
@@ -462,7 +486,7 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
                       SizedBox(height: SizeConfig.size20),
 
                       /// Submit
-                      if (widget.isUserCanCreateVariants)
+                      if (widget.isFromProductCreation)
                         CustomBtn(
                           title: AppStrings.createVariantStartSelling,
                           onTap: () {
@@ -740,29 +764,6 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        (controller.selectedProductOrVariantMrp.isNotEmpty)
-            ? Padding(
-                padding: EdgeInsets.only(top: 10.0),
-                child: Row(
-                  children: [
-                    CustomText(
-                      '${AppStrings.mrp.tr}: ',
-                      fontSize: SizeConfig.medium,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.secondaryTextColor,
-                    ),
-                    Expanded(
-                      child: CustomText(
-                        "${controller.selectedProductOrVariantMrp.value}",
-                        fontSize: SizeConfig.large,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.secondaryTextColor,
-                      ),
-                    ),
-                  ],
-                ),
-              )
-            : SizedBox(),
         if (controller.productWarrantyController.text.isNotEmpty)
           Padding(
             padding: const EdgeInsets.only(top: 10.0),
@@ -866,6 +867,22 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Variants from the create-product response (name + attributes + price).
+        if (_variants.isNotEmpty) ...[
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: List.generate(
+              _variants.length,
+              (i) => Padding(
+                padding: EdgeInsets.only(
+                  bottom: i == _variants.length - 1 ? 0 : SizeConfig.size8,
+                ),
+                child: _responseVariantCard(_variants[i]),
+              ),
+            ),
+          ),
+          SizedBox(height: SizeConfig.size10),
+        ],
         if (controller.selectedColors.isNotEmpty) ...[
           CustomText(
             '${AppStrings.color.tr}: ',
@@ -977,6 +994,92 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
             }).toList(),
           )
       ],
+    );
+  }
+
+  // One card per response variant — name + price, with attribute /
+  // specification chips.
+  Widget _responseVariantCard(AiVariantData v) {
+    final pricing = v.pricing.isNotEmpty ? v.pricing.first : null;
+    final attrEntries = <MapEntry<String, dynamic>>[
+      ...v.attributes.entries,
+      ...v.specification.entries,
+    ];
+    final showStrike = pricing?.mrp != null &&
+        pricing?.sellingPrice != null &&
+        (pricing!.mrp! > pricing.sellingPrice!);
+
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(SizeConfig.size8),
+      decoration: BoxDecoration(
+        color: AppColors.whiteFE,
+        borderRadius: BorderRadius.circular(8.0),
+        border: Border.all(color: AppColors.greyE5),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: CustomText(
+                  v.variantName ?? v.value ?? AppStrings.na,
+                  fontSize: SizeConfig.medium,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.mainTextColor,
+                ),
+              ),
+              if (pricing != null) ...[
+                const SizedBox(width: 6),
+                CustomText(
+                  '₹${pricing.sellingPrice ?? pricing.mrp ?? ''}',
+                  fontSize: SizeConfig.medium,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.primaryColor,
+                ),
+                if (showStrike) ...[
+                  const SizedBox(width: 6),
+                  CustomText(
+                    '₹${pricing.mrp}',
+                    fontSize: SizeConfig.small,
+                    fontWeight: FontWeight.w400,
+                    color: AppColors.secondaryTextColor,
+                    decoration: TextDecoration.lineThrough,
+                  ),
+                ],
+              ],
+            ],
+          ),
+          if (attrEntries.isNotEmpty) ...[
+            SizedBox(height: SizeConfig.size6),
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: attrEntries
+                  .map((e) => _responseVariantChip('${e.key}: ${e.value}'))
+                  .toList(),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _responseVariantChip(String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: AppColors.lightBlue,
+        borderRadius: BorderRadius.circular(6.0),
+      ),
+      child: CustomText(
+        label,
+        fontSize: SizeConfig.small,
+        fontWeight: FontWeight.w500,
+        color: AppColors.secondaryTextColor,
+      ),
     );
   }
 

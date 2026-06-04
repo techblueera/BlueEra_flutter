@@ -86,7 +86,7 @@ class OwnProductCard extends StatelessWidget {
         Get.toNamed(
           RouteHelper.getProductPreviewScreenRoute(),
           arguments: {
-            ApiKeys.isUserCanCreateVariants: false,
+            ApiKeys.isFromProductCreation: false,
             ApiKeys.argProductData: productPreviewArgs,
           },
         );

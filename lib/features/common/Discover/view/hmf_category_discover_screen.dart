@@ -6,10 +6,10 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/features/common/Discover/controller/home_made_food_cart_controller.dart';
-import 'package:BlueEra/features/common/Discover/controller/home_made_food_consumer_controller.dart';
-import 'package:BlueEra/features/common/Discover/view/home_made_food_cart_screen.dart';
-import 'package:BlueEra/features/common/Discover/view/home_made_food_store_details_discover_screen.dart';
+import 'package:BlueEra/features/common/Discover/controller/hmf_cart_controller.dart';
+import 'package:BlueEra/features/common/Discover/controller/hmf_consumer_controller.dart';
+import 'package:BlueEra/features/common/Discover/view/hmf_cart_screen.dart';
+import 'package:BlueEra/features/common/Discover/view/hmf_store_details_discover_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_dashboard_view.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/home_made_food_profile_screen.dart';
 import 'package:BlueEra/features/common/Discover/widget/banner_carousel.dart';
@@ -32,23 +32,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
-class HomeMadeFoodDiscoverScreen extends StatefulWidget {
-  const HomeMadeFoodDiscoverScreen({super.key});
+class HmfCategoryDiscoverScreen extends StatefulWidget {
+  const HmfCategoryDiscoverScreen({super.key});
 
   @override
-  State<HomeMadeFoodDiscoverScreen> createState() => _HomeMadeFoodDiscoverScreenState();
+  State<HmfCategoryDiscoverScreen> createState() => _HmfCategoryDiscoverScreenState();
 }
 
-class _HomeMadeFoodDiscoverScreenState extends State<HomeMadeFoodDiscoverScreen> {
+class _HmfCategoryDiscoverScreenState extends State<HmfCategoryDiscoverScreen> {
   // Theme accents for this flow (aligned with the app primary).
   static const Color _primary = AppColors.primaryColor; // 0xFF0086FF
   static const Color _primaryDeep = AppColors.blue5CAF; // 0xFF005CAF
 
-  final controller = getOrPut(() => HomeMadeFoodConsumerController());
+  final controller = getOrPut(() => HmfConsumerController());
 
   // Shared cart for the whole home made food flow — the floating bar here
   // observes the same instance the store details screen adds to.
-  final cartController = getOrPut(() => HomeMadeFoodCartController());
+  final cartController = getOrPut(() => HmfCartController());
 
   final EarnProfileRepo _earnProfileRepo = EarnProfileRepo();
 
@@ -80,7 +80,7 @@ class _HomeMadeFoodDiscoverScreenState extends State<HomeMadeFoodDiscoverScreen>
 
   @override
   void dispose() {
-    deleteIfRegistered<HomeMadeFoodConsumerController>();
+    deleteIfRegistered<HmfConsumerController>();
     super.dispose();
   }
 
@@ -208,7 +208,7 @@ class _HomeMadeFoodDiscoverScreenState extends State<HomeMadeFoodDiscoverScreen>
           cartLabel: 'View Cart',
           itemLabel:
               '$count ${count == 1 ? 'item' : 'items'}  •  ${AppConstants.rupeeSymbol}${cartController.totalPrice.toStringAsFixed(0)}',
-          onTap: () => Get.to(() => HomeMadeFoodCartScreen(store: kitchen)),
+          onTap: () => Get.to(() => HmfCartScreen(store: kitchen)),
         ),
       );
     });
@@ -240,7 +240,7 @@ class _HomeMadeFoodDiscoverScreenState extends State<HomeMadeFoodDiscoverScreen>
         return;
       }
 
-      Get.to(() => HomeMadeFoodStoreDetailsDiscoverScreen(store: store));
+      Get.to(() => HmfStoreDetailsDiscoverScreen(store: store));
     } catch (e) {
       AppLoader.hide();
       commonSnackBar(message: AppStrings.somethingWentWrong);

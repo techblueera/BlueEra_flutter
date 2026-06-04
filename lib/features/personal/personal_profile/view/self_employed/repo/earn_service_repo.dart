@@ -39,17 +39,6 @@ class EarnServiceRepo extends BaseService {
     return response;
   }
 
-  /// CHECK ANY EARN SERVICE CREATED OR NOT
-  Future<ResponseModel> getEarnServiceExistsStatusRepo() async {
-    final response = await ApiBaseHelper().getHTTP(
-      "${checkAnyEarnServiceCreated}",
-      showProgress: false,
-      onError: (error) {},
-      onSuccess: (data) {},
-    );
-    return response;
-  }
-
   ///Fetch Earn SERVICE Data....
   Future<ResponseModel> fetchProfessionDataRepo(Map<String, dynamic> parms) async {
     final response = await ApiBaseHelper().getHTTP(

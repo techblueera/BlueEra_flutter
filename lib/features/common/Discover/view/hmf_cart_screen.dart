@@ -3,7 +3,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/common/Discover/controller/home_made_food_cart_controller.dart';
+import 'package:BlueEra/features/common/Discover/controller/hmf_cart_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/model/earn_profile_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/model/food_item_model.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -15,17 +15,17 @@ import 'package:get/get.dart';
 /// Cart page for a single home made food kitchen. Finds the cart controller
 /// the details screen registered (tagged by store id), lists the chosen
 /// items with qty steppers, and places the order.
-class HomeMadeFoodCartScreen extends StatelessWidget {
+class HmfCartScreen extends StatelessWidget {
   final EarnProfileModel store;
 
-  const HomeMadeFoodCartScreen({super.key, required this.store});
+  const HmfCartScreen({super.key, required this.store});
 
   // App primary color combination (theme-aligned accent for this flow).
   static const Color _primary = AppColors.primaryColor; // 0xFF0086FF
   static const Color _primaryDeep = AppColors.blue5CAF; // 0xFF005CAF
 
-  HomeMadeFoodCartController get _controller =>
-      getOrPut(() => HomeMadeFoodCartController());
+  HmfCartController get _controller =>
+      getOrPut(() => HmfCartController());
 
   @override
   Widget build(BuildContext context) {
@@ -115,7 +115,7 @@ class HomeMadeFoodCartScreen extends StatelessWidget {
     );
   }
 
-  Widget _cartLine(HomeMadeFoodCartController controller, FoodItemModel item) {
+  Widget _cartLine(HmfCartController controller, FoodItemModel item) {
     final mrp = double.tryParse(item.mrpPrice) ?? 0;
     final sp = double.tryParse(item.sellingPrice) ?? 0;
     return Container(
@@ -194,7 +194,7 @@ class HomeMadeFoodCartScreen extends StatelessWidget {
     );
   }
 
-  Widget _stepper(HomeMadeFoodCartController controller, FoodItemModel item) {
+  Widget _stepper(HmfCartController controller, FoodItemModel item) {
     final qty = controller.qty(item.id);
     return Container(
       decoration: BoxDecoration(
@@ -248,7 +248,7 @@ class HomeMadeFoodCartScreen extends StatelessWidget {
   }
 
   Widget _summaryBar(
-      BuildContext context, HomeMadeFoodCartController controller) {
+      BuildContext context, HmfCartController controller) {
     final total = controller.totalPrice;
     final savings = controller.totalSavings;
     return Container(

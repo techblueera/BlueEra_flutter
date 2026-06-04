@@ -49,14 +49,13 @@ class _HomeServiceHomePageState extends State<HomeServiceHomePage> {
   }
 
   void _fetchHomeServices() {
-    serviceController.getServices(
+    serviceController.getEarnServices(
       {
         ApiKeys.all: false,
         ApiKeys.type: AppConstants.service,
         ApiKeys.providerType: ProviderType.user.title,
         ApiKeys.subType: 'homeService',
       },
-      isFromEarnWithBlueEra: true,
     );
   }
 

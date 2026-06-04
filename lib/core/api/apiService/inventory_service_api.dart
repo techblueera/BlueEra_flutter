@@ -11,11 +11,6 @@ mixin InventoryServiceApi {
   // Need to verify
   final String homePageProduct = 'inventory-service/products/homePageProduct';
 
-  final String addProductToInventory =
-      "inventory-service/products/addProductToInventory";
-  String updateProductInventoryVariant(String inventoryId, String variantId) =>
-      "inventory-service/products/inventory/$inventoryId/variants/$variantId";
-
   // Product self-pickup orders
   final String placeBulkProductOrder = 'inventory-service/orders';
   String productOrderReady(String orderId) =>

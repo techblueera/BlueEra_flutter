@@ -30,13 +30,14 @@ class ManufacturerProductRepo extends BaseService {
   }
 
   /// Update product inventory variant — PATCH only price/mrp etc.
+  /// `PATCH product-service/api/inventory/{id}`.
   Future<ResponseModel> updateInventoryVariantRepo({
     required String inventoryId,
     required String variantId,
     required Map<String, dynamic> params,
   }) async {
     return ApiBaseHelper().patchHTTP(
-      updateProductInventoryVariant(inventoryId, variantId),
+      updateProductInventory(inventoryId),
       params: params,
       showProgress: false,
     );

@@ -1,7 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/common/Discover/view/home_made_food_store_discover_screen.dart';
-import 'package:BlueEra/features/common/Discover/view/home_made_food_discover_screen.dart';
+import 'package:BlueEra/features/common/Discover/view/hmf_store_discover_screen.dart';
+import 'package:BlueEra/features/common/Discover/view/hmf_category_discover_screen.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -71,7 +71,7 @@ class ChooseHomeMadeFoodOptionDialog extends StatelessWidget {
               subtitle: 'Browse nearby home made food kitchens',
               onTap: () {
                 Get.back();
-                Get.to(() => const HomeMadeFoodStoreDiscoverScreen());
+                Get.to(() => const HmfStoreDiscoverScreen());
               },
             ),
             const SizedBox(height: 12),
@@ -82,7 +82,7 @@ class ChooseHomeMadeFoodOptionDialog extends StatelessWidget {
               subtitle: 'Explore tiffin & food items by category',
               onTap: () {
                 Get.back();
-                Get.to(() => const HomeMadeFoodDiscoverScreen());
+                Get.to(() => const HmfCategoryDiscoverScreen());
               },
             ),
           ],

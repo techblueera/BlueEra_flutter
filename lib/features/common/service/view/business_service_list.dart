@@ -16,31 +16,31 @@ import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 
-class ViewServiceList extends StatefulWidget {
+/// Service listing scoped to business & channel providers only (no
+/// earn-with-BlueEra / user path). [providerType] must be
+/// [ProviderType.business] or [ProviderType.channel].
+class BusinessServiceList extends StatefulWidget {
   final ProviderType providerType;
-  final String? serviceSubType;
   final String? channelId;
   final bool isShowGrid;
   final bool showScaffold;
 
-  const ViewServiceList({
+  const BusinessServiceList({
     super.key,
     required this.providerType,
-    this.serviceSubType,
     this.channelId,
     this.isShowGrid = true,
     this.showScaffold = false,
   });
 
   @override
-  State<ViewServiceList> createState() => _ViewServiceListState();
+  State<BusinessServiceList> createState() => _BusinessServiceListState();
 }
 
-class _ViewServiceListState extends State<ViewServiceList> {
+class _BusinessServiceListState extends State<BusinessServiceList> {
   ServiceController serviceController = Get.put(ServiceController());
   final ScrollController scrollController = ScrollController();
   late Map<String, dynamic> queryParams;
-  late bool isFromEarnWithBlueEra;
 
   @override
   void initState() {
@@ -51,38 +51,26 @@ class _ViewServiceListState extends State<ViewServiceList> {
 
   /// Refactored to reuse between initState & didUpdateWidget
   void _initQueryAndFetch() {
-    isFromEarnWithBlueEra =
-        widget.providerType == ProviderType.user;
-
     queryParams = {
       ApiKeys.all: false,
       ApiKeys.type: AppConstants.service,
       ApiKeys.providerType: widget.providerType.title,
-      ApiKeys.subType: 'homeService',
     };
-
-    if (isFromEarnWithBlueEra) {
-      queryParams[ApiKeys.subType] = widget.serviceSubType;
-    }
 
     if (widget.channelId != null) {
       queryParams[ApiKeys.channelId] = widget.channelId;
     }
 
-    serviceController.getServices(
-      queryParams,
-      isFromEarnWithBlueEra: isFromEarnWithBlueEra,
-    );
+    serviceController.getBusinessServices(queryParams);
   }
 
-  /// Detects changes to serviceSubType or providerType and refreshes data
+  /// Detects changes to providerType / channelId and refreshes data
   @override
-  void didUpdateWidget(covariant ViewServiceList oldWidget) {
+  void didUpdateWidget(covariant BusinessServiceList oldWidget) {
     super.didUpdateWidget(oldWidget);
 
     final bool shouldRefetch =
-        oldWidget.serviceSubType != widget.serviceSubType ||
-            oldWidget.providerType != widget.providerType ||
+        oldWidget.providerType != widget.providerType ||
             oldWidget.channelId != widget.channelId;
 
     if (shouldRefetch) {
@@ -93,10 +81,7 @@ class _ViewServiceListState extends State<ViewServiceList> {
   void _scrollListener() {
     if (scrollController.position.pixels >=
         scrollController.position.maxScrollExtent - 200) {
-      serviceController.getServices(
-          queryParams,
-          isFromEarnWithBlueEra: isFromEarnWithBlueEra,
-          isLoadMore: true);
+      serviceController.getBusinessServices(queryParams, isLoadMore: true);
     }
   }
 
@@ -227,7 +212,7 @@ class _ViewServiceListState extends State<ViewServiceList> {
                                     confirmCallback: () {
                                       serviceController.deleteService(
                                           serviceId: serviceData.id ?? '',
-                                          isFromEarnWithBlueEra: isFromEarnWithBlueEra
+                                          isFromEarnWithBlueEra: false
                                       );
                                     },
                                     cancelCallback: () {
@@ -474,7 +459,7 @@ class _ViewServiceListState extends State<ViewServiceList> {
                                                 confirmCallback: () {
                                                   serviceController.deleteService(
                                                       serviceId: serviceData.id ?? '',
-                                                      isFromEarnWithBlueEra: isFromEarnWithBlueEra
+                                                      isFromEarnWithBlueEra: false
                                                   );
                                                 },
                                                 cancelCallback: () {
