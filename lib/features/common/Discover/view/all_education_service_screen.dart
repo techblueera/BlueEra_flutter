@@ -42,10 +42,14 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
   ScrollController scrollController = ScrollController();
 
   final List<String> _bannerImages = const [
-    "https://img.freepik.com/free-photo/happy-students-classroom_23-2149207191.jpg?w=1380",
-    "https://img.freepik.com/free-photo/group-college-students-studying-library_329181-15025.jpg?w=1380",
-    "https://img.freepik.com/free-photo/group-young-students-with-books-chalkboard_1303-20932.jpg?w=1380",
-  ];
+ "https://img.magnific.com/free-vector/education-horizontal-typography-banner-set-with-learning-knowledge-symbols-flat-illustration_1284-29493.jpg",
+ "https://img.magnific.com/premium-psd/school-education-admission-youtube-thumbnail-web-banner-template_475351-415.jpg?semt=ais_hybrid&w=740&q=80",
+ "https://c8.alamy.com/comp/P70PTA/school-banner-with-education-items-P70PTA.jpg" ];
+  // final List<String> _bannerImages = const [
+  //   "https://img.freepik.com/free-photo/happy-students-classroom_23-2149207191.jpg?w=1380",
+  //   "https://img.freepik.com/free-photo/group-college-students-studying-library_329181-15025.jpg?w=1380",
+  //   "https://img.freepik.com/free-photo/group-young-students-with-books-chalkboard_1303-20932.jpg?w=1380",
+  // ];
 
   @override
   initState() {

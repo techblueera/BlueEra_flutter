@@ -937,9 +937,10 @@ const String CELEBRATION_EVENT_SERVICES = "CELEBRATION";
 const String SCHOOL_EDUCATION = "SCHOOL_EDUCATION";
 const String COLLEGE_UNIVERSITY = "COLLEGE_UNIVERSITY";
 const String TECHNICAL_SKILL_TRAINING = "TECHNICAL_SKILL_TRAINING";
-const String COACHING_EXAM_PREPARATION = "COACHING_EXAM_PREPARATION";
-const String CREATIVE_SPORT_HOBBY = "CREATIVE_SPORT_HOBBY";
-const String PROFESSIONAL_SUPPORT_EDUCATION = "PROFESSIONAL_SUPPORT_EDUCATION";
+const String COACHING_INSTITUTE = "COACHING_INSTITUTE";
+const String SPORTS_HOBBY = "SPORTS_HOBBY";
+const String PROFESSIONAL_LEARN = "PROFESSIONAL_LEARN";
+const String SKILL_TRAINING = "SKILL_TRAINING";
 
 double calculateDistanceKm(double lat1, double lon1, double lat2, double lon2) {
   const R = 6371; // Radius of Earth in kilometers
@@ -1322,25 +1323,25 @@ businessOnboardingEducationTrainingCategories = [
       businessType: BusinessType.Siksha),
   OnboardingCategoryModel(
       name: AppStrings.coachingInstitute,
-      slugId: COACHING_EXAM_PREPARATION,
+      slugId: COACHING_INSTITUTE,
       icon: OnboardingBusinessAssets.EduCoaching,
       accountType: AppConstants.business,
       businessType: BusinessType.Siksha),
   OnboardingCategoryModel(
       name: AppStrings.sportsAndHobby,
-      slugId: CREATIVE_SPORT_HOBBY,
+      slugId: SPORTS_HOBBY,
       icon: OnboardingBusinessAssets.EduSports,
       accountType: AppConstants.business,
       businessType: BusinessType.Siksha),
   OnboardingCategoryModel(
       name: AppStrings.professionalLearn,
-      slugId: PROFESSIONAL_SUPPORT_EDUCATION,
+      slugId: PROFESSIONAL_LEARN,
       icon: OnboardingBusinessAssets.EduProfessional,
       accountType: AppConstants.business,
       businessType: BusinessType.Siksha),
   OnboardingCategoryModel(
       name: AppStrings.skillTraining,
-      slugId: TECHNICAL_SKILL_TRAINING,
+      slugId: SKILL_TRAINING,
       icon: OnboardingBusinessAssets.EduSkill,
       accountType: AppConstants.business,
       businessType: BusinessType.Siksha),

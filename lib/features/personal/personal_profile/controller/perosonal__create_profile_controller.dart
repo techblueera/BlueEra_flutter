@@ -138,6 +138,9 @@ class PersonalCreateProfileController extends GetxController {
       }
     } catch (e) {
       updateUserProfileResponse = ApiResponse.error('Update failed');
+      // Surface the failure — a swallowed throw here reads to the user as
+      // "nothing happened" after a profile/cover image update.
+      commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {
       updateBtnLoading.value = false;
     }

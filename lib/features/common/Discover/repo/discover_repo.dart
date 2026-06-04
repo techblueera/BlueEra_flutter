@@ -81,6 +81,9 @@ class DiscoverRepo extends BaseService {
   }) async {
     final response = await ApiBaseHelper().getHTTP(
       'user-service/business/filter',
+      // 'user-service/business/filter?typeOfBusiness=Siksha&category=SPORTS_HOBBY',
+      // 'user-service/business/filter?typeOfBusiness=Siksha',
+
       showProgress: false,
       params: queryParams,
       onError: (error) {},
