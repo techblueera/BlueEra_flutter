@@ -11,6 +11,7 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/multipart_image_service.dart';
 import 'package:BlueEra/core/services/photo_picker_service.dart';
@@ -327,9 +328,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen> with RouteAware
     );
   }
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // TAB CONTENT
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   List<Widget> _buildTabContent() {
     switch (_selectedTab) {
       case _orderIndex:
@@ -843,14 +842,32 @@ class _RiderServiceScreenState extends State<RiderServiceScreen> with RouteAware
                 return CommonProfileImage(
                   imagePath: _personalCtrl.imagePath?.value ?? '',
                   onImageUpdate: (image) async {
+                    // Reflect the freshly-picked photo immediately.
                     _personalCtrl.imagePath?.value = image;
                     // Only upload freshly-picked local files; a network URL is
                     // an already-saved image and has nothing to re-upload.
                     if (isNetworkImage(image)) return;
-                    dynamic dataImage = await multiPartImage(imagePath: image);
-                    if (dataImage == null) return;
-                    var reqProfile = {ApiKeys.profile_image: dataImage};
-                    await _personalCtrl.updateUserProfileDetails(params: reqProfile, isFromProfileOnly: true);
+                    // Surface every failure: this callback is fire-and-forget
+                    // (selectImage doesn't await it), so an un-caught throw or
+                    // a bare `return` here is invisible to the user and reads
+                    // as "nothing happened after crop".
+                    try {
+                      if (image.isEmpty || !await File(image).exists()) {
+                        commonSnackBar(message: 'Could not read the selected image. Please try again.');
+                        return;
+                      }
+                      final dataImage = await multiPartImage(imagePath: image);
+                      if (dataImage == null) {
+                        commonSnackBar(message: 'Could not prepare the image for upload.');
+                        return;
+                      }
+                      await _personalCtrl.updateUserProfileDetails(
+                        params: {ApiKeys.profile_image: dataImage},
+                        isFromProfileOnly: true,
+                      );
+                    } catch (e) {
+                      commonSnackBar(message: 'Profile photo upload failed. Please try again.');
+                    }
                   },
                   dialogTitle: AppStrings.uploadProfilePicture,
                   showProfileBorder: false,
