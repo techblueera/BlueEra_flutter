@@ -1,5 +1,6 @@
 import 'dart:developer';
 
+import 'package:BlueEra/core/services/app_notification.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -26,6 +27,23 @@ class AppLifecycleHandler extends WidgetsBindingObserver {
     if (state == AppLifecycleState.resumed) {
       // Reconnect chat socket if it was disconnected (e.g. after returning from CallActivity)
       _reconnectChatSocketIfNeeded();
+
+      // Re-sync FCM token on resume — Google may rotate the token while the
+      // app is backgrounded, and onTokenRefresh doesn't fire on a cold
+      // foreground. Without this the backend keeps routing pushes to a dead
+      // token, which is exactly why iOS notifications go silent after a long
+      // background. Only attempt while authenticated.
+      if (isLoggedIn()) {
+        AppNotificationHandler.getFcmToken().then((t) {
+          if (t != null && t.isNotEmpty) {
+            AppNotificationHandler.syncCurrentToken(t);
+          }
+        });
+        // iOS: re-register the VoIP/PushKit token too. Without a current VoIP
+        // token on the server, incoming calls reach iOS only as plain FCM
+        // banners that can't trigger CallKit in background/terminated state.
+        AppNotificationHandler.syncVoipToken();
+      }
 
       if (await LocationService().isLocationAvailable()) {
         log("Permission granted after returning from settings.");

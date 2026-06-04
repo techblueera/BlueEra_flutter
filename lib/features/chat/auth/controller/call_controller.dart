@@ -701,6 +701,25 @@ class CallController extends GetxController {
 
     callStatus.value = CallStatus.accepting;
 
+    // Make accept feel instant: swap the incoming screen for the active call
+    // screen the MOMENT the user taps Accept — before the permission request,
+    // socket wait and `/call/accept` round-trip below. Without this the user
+    // stares at the incoming screen's "Connecting…" spinner for the full accept
+    // handshake. Both '/IncomingCallScreen' and '/CallRoomScreen' resolve to the
+    // same CallActivityRoomScreen (route_helper.dart:2135-2142), so this only
+    // swaps the route name and hands us a FRESH widget — which clears the
+    // screen's stuck local `_isAccepting` spinner and renders the active-call
+    // layout straight from callStatus=accepting. Scoped to iOS + foreground:
+    // Android main-engine launches a separate CallActivity below, and
+    // killed-state accepts (currentRoute != '/IncomingCallScreen') rely on the
+    // native CallKit UI. The later same-guarded Get.offNamed at the
+    // post-API point is now a no-op fallback (route is already /CallRoomScreen).
+    if (Platform.isIOS &&
+        !isFareCall.value &&
+        Get.currentRoute == '/IncomingCallScreen') {
+      Get.offNamed('/CallRoomScreen');
+    }
+
     // Request permissions (wrapped in try-catch to avoid PlatformException
     // when another permission request is already in progress)
     if(isVideoCall!=null){
@@ -853,6 +872,10 @@ class CallController extends GetxController {
     // iOS stays on IncomingCallScreen forever showing its "Connecting…" loader
     // even after the peer connection reaches Connected — because the screen's
     // _isAccepting flag only clears on accept failure.
+    // NOTE: On iOS the early-accept navigation above already swapped to
+    // /CallRoomScreen, so this guard is false there and this is now a no-op
+    // fallback. It still fires for the CallActivity-engine path that reaches
+    // here from /IncomingCallScreen without the iOS early nav.
     if (!isFareCall.value && Get.currentRoute == '/IncomingCallScreen') {
       Get.offNamed('/CallRoomScreen');
     }
