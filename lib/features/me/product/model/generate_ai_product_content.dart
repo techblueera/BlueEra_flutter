@@ -1,509 +1,309 @@
-// class GenerateAiProductContent {
-//   final String? name;
-//   final String? description;
-//   final String? brand;
-//   final String? userGuide;
-//   final num? mrpPerUnit;
-//   final ExpiryTime? expiryTime;
-//   final ProductWarranty? productWarranty;
-//   final List<String>? tags;
-//   final List<AddMoreDetail>? addMoreDetails;
-//   final List<AddProductFeature>? addProductFeatures;
-//   final LinkOrReferralWebsite? linkOrReferealWebsite;
-//   final List<Varient>? varient;
-//
-//   GenerateAiProductContent({
-//     this.name,
-//     this.description,
-//     this.brand,
-//     this.userGuide,
-//     this.productWarranty,
-//     this.mrpPerUnit,
-//     this.expiryTime,
-//     this.tags,
-//     this.addMoreDetails,
-//     this.addProductFeatures,
-//     this.linkOrReferealWebsite,
-//     this.varient,
-//   });
-//
-//   factory GenerateAiProductContent.fromJson(Map<String, dynamic> json) {
-//     return GenerateAiProductContent(
-//       name: json['name'],
-//       description: json['description'],
-//       brand: json['brand'],
-//       userGuide: json['user_guide'],
-//       mrpPerUnit: json['mrp_per_unit'],
-//       productWarranty: json['productWarrenty'] != null
-//           ? ProductWarranty.fromJson(json['productWarrenty'])
-//           : null,
-//       expiryTime: json['expiry_time'] != null
-//           ? ExpiryTime.fromJson(json['expiry_time'])
-//           : null,
-//       tags: (json['tags'] as List?)?.map((e) => e.toString()).toList(),
-//       addMoreDetails: (json['addMoreDetails'] as List?)
-//           ?.map((e) => AddMoreDetail.fromJson(e))
-//           .toList(),
-//       addProductFeatures: (json['addProductFeatures'] as List?)
-//           ?.map((e) => AddProductFeature.fromJson(e))
-//           .toList(),
-//       linkOrReferealWebsite: json['linkOrReferealWebsite'] != null
-//           ? LinkOrReferralWebsite.fromJson(json['linkOrReferealWebsite'])
-//           : null,
-//       varient: (json['varient'] as List?)
-//           ?.map((e) => Varient.fromJson(e))
-//           .toList(),
-//     );
-//   }
-//
-//   Map<String, dynamic> toJson() {
-//     return {
-//       'name': name,
-//       'description': description,
-//       'brand': brand,
-//       'user_guide': userGuide,
-//       'productWarrenty': productWarranty?.toJson,
-//       'mrp_per_unit': mrpPerUnit,
-//       'expiry_time': expiryTime?.toJson(),
-//       'tags': tags,
-//       'addMoreDetails': addMoreDetails?.map((e) => e.toJson()).toList(),
-//       'addProductFeatures': addProductFeatures?.map((e) => e.toJson()).toList(),
-//       'linkOrReferealWebsite': linkOrReferealWebsite?.toJson(),
-//       'varient': varient?.map((e) => e.toJson()).toList(),
-//     };
-//   }
-//
-//   GenerateAiProductContent copyWith({
-//     String? name,
-//     String? description,
-//     String? brand,
-//     String? userGuide,
-//     ProductWarranty? productWarrenty,
-//     num? mrpPerUnit,
-//     ExpiryTime? expiryTime,
-//     List<String>? tags,
-//     List<AddMoreDetail>? addMoreDetails,
-//     List<AddProductFeature>? addProductFeatures,
-//     LinkOrReferralWebsite? linkOrReferealWebsite,
-//     List<Varient>? varient,
-//   }) {
-//     return GenerateAiProductContent(
-//       name: name ?? this.name,
-//       description: description ?? this.description,
-//       brand: brand ?? this.brand,
-//       userGuide: userGuide ?? this.userGuide,
-//       productWarranty: productWarrenty ?? this.productWarranty,
-//       mrpPerUnit: mrpPerUnit ?? this.mrpPerUnit,
-//       expiryTime: expiryTime ?? this.expiryTime,
-//       tags: tags ?? this.tags,
-//       addMoreDetails: addMoreDetails ?? this.addMoreDetails,
-//       addProductFeatures: addProductFeatures ?? this.addProductFeatures,
-//       linkOrReferealWebsite: linkOrReferealWebsite ?? this.linkOrReferealWebsite,
-//       varient: varient ?? this.varient,
-//     );
-//   }
-// }
-//
-// class ProductWarranty {
-//   final int? date;
-//   final int? month;
-//   final int? year;
-//   final int? week;
-//   final bool? lifetime;
-//
-//   ProductWarranty({this.date, this.month, this.year, this.week, this.lifetime});
-//
-//   factory ProductWarranty.fromJson(Map<String, dynamic> json) {
-//     return ProductWarranty(
-//       date: json['date'],
-//       month: json['month'],
-//       year: json['year'],
-//       week: json['week'],
-//       lifetime: json['lifetime'],
-//     );
-//   }
-//
-//   Map<String, dynamic> toJson() {
-//     return {
-//       'date': date,
-//       'month': month,
-//       'year': year,
-//       'week': week,
-//       'lifetime': lifetime,
-//     };
-//   }
-//
-//   ProductWarranty copyWith({
-//     int? date,
-//     int? month,
-//     int? year,
-//     int? week,
-//     bool? lifetime,
-//   }) {
-//     return ProductWarranty(
-//       date: date ?? this.date,
-//       month: month ?? this.month,
-//       year: year ?? this.year,
-//       week: week ?? this.week,
-//       lifetime: lifetime ?? this.lifetime,
-//     );
-//   }
-//
-//   /// Convert to human-readable string
-//   String get asText {
-//     // if (lifetime == true) return "Lifetime";
-//
-//     if (year != null && year! > 0) {
-//       return year == 1 ? "1 Year" : "$year Years";
-//     }
-//     if (month != null && month! > 0) {
-//       return month == 1 ? "1 Month" : "$month Months";
-//     }
-//     if (week != null && week! > 0) {
-//       return week == 1 ? "1 Week" : "$week Weeks";
-//     }
-//     if (date != null && date! > 0) {
-//       return date == 1 ? "1 Day" : "$date Days";
-//     }
-//     return "No Expiry";
-//   }
-//
-//   /// Convert to dropdown binding (durationType + value)
-//   Map<String, dynamic> get asDropdownBinding {
-//     // if (lifetime == true) {
-//     //   return {"type": "Life Time", "value": 1};
-//     // }
-//     if (year != null && year! > 0) {
-//       return {"type": "Year", "value": year};
-//     }
-//     if (month != null && month! > 0) {
-//       return {"type": "Month", "value": month};
-//     }
-//     if (week != null && week! > 0) {
-//       return {"type": "Week", "value": week};
-//     }
-//     if (date != null && date! > 0) {
-//       return {"type": "Day", "value": date};
-//     }
-//     return {"type": "Day", "value": 1};
-//   }
-// }
-//
-// class ExpiryTime {
-//   final int? date;
-//   final int? month;
-//   final int? year;
-//   final int? week;
-//   final bool? lifetime;
-//
-//   ExpiryTime({this.date, this.month, this.year, this.week, this.lifetime});
-//
-//   factory ExpiryTime.fromJson(Map<String, dynamic> json) {
-//     return ExpiryTime(
-//       date: json['date'],
-//       month: json['month'],
-//       year: json['year'],
-//       week: json['week'],
-//       lifetime: json['lifetime'],
-//     );
-//   }
-//
-//   Map<String, dynamic> toJson() {
-//     return {
-//       'date': date,
-//       'month': month,
-//       'year': year,
-//       'week': week,
-//       'lifetime': lifetime,
-//     };
-//   }
-//
-//   ExpiryTime copyWith({
-//     int? date,
-//     int? month,
-//     int? year,
-//     int? week,
-//     bool? lifetime,
-//   }) {
-//     return ExpiryTime(
-//       date: date ?? this.date,
-//       month: month ?? this.month,
-//       year: year ?? this.year,
-//       week: week ?? this.week,
-//       lifetime: lifetime ?? this.lifetime,
-//     );
-//   }
-//
-//   /// Convert to human-readable string
-//   String get asText {
-//     if (lifetime == true) return "Lifetime";
-//
-//     if (year != null && year! > 0) {
-//       return year == 1 ? "1 Year" : "$year Years";
-//     }
-//     if (month != null && month! > 0) {
-//       return month == 1 ? "1 Month" : "$month Months";
-//     }
-//     if (week != null && week! > 0) {
-//       return week == 1 ? "1 Week" : "$week Weeks";
-//     }
-//     if (date != null && date! > 0) {
-//       return date == 1 ? "1 Day" : "$date Days";
-//     }
-//     return "No Expiry";
-//   }
-//
-//   /// Convert to dropdown binding (durationType + value)
-//   Map<String, dynamic> get asDropdownBinding {
-//     if (lifetime == true) {
-//       return {"type": "Life Time", "value": 1};
-//     }
-//     if (year != null && year! > 0) {
-//       return {"type": "Year", "value": year};
-//     }
-//     if (month != null && month! > 0) {
-//       return {"type": "Month", "value": month};
-//     }
-//     if (week != null && week! > 0) {
-//       return {"type": "Week", "value": week};
-//     }
-//     if (date != null && date! > 0) {
-//       return {"type": "Day", "value": date};
-//     }
-//     return {"type": "Day", "value": 1};
-//   }
-// }
-//
-// class AddMoreDetail {
-//     final String? title;
-//     final String? details;
-//
-//     AddMoreDetail({this.title, this.details});
-//
-//     factory AddMoreDetail.fromJson(Map<String, dynamic> json) {
-//       return AddMoreDetail(
-//         title: json['title'],
-//         details: json['details'],
-//       );
-//     }
-//
-//     Map<String, dynamic> toJson() {
-//       return {
-//         'title': title,
-//         'details': details,
-//       };
-//     }
-//
-//     AddMoreDetail copyWith({
-//       String? title,
-//       String? details,
-//     }) {
-//       return AddMoreDetail(
-//         title: title ?? this.title,
-//         details: details ?? this.details,
-//       );
-//     }
-//   }
-//
-// class AddProductFeature {
-//   final String? title;
-//
-//   AddProductFeature({this.title});
-//
-//   factory AddProductFeature.fromJson(Map<String, dynamic> json) {
-//     return AddProductFeature(title: json['title']);
-//   }
-//
-//   Map<String, dynamic> toJson() {
-//     return {'title': title};
-//   }
-//
-//   AddProductFeature copyWith({String? title}) {
-//     return AddProductFeature(title: title ?? this.title);
-//   }
-// }
-//
-// class LinkOrReferralWebsite {
-//   final String? title;
-//
-//   LinkOrReferralWebsite({this.title});
-//
-//   factory LinkOrReferralWebsite.fromJson(Map<String, dynamic> json) {
-//     return LinkOrReferralWebsite(title: json['title']);
-//   }
-//
-//   Map<String, dynamic> toJson() {
-//     return {'title': title};
-//   }
-//
-//   LinkOrReferralWebsite copyWith({String? title}) {
-//     return LinkOrReferralWebsite(title: title ?? this.title);
-//   }
-// }
-//
-// class Varient {
-//   final Attributes? attributes;
-//   final String? sku;
-//   final String? hsn;
-//   final num? sellingPrice;
-//   final num? mrp;
-//
-//   Varient({
-//     this.attributes,
-//     this.sku,
-//     this.hsn,
-//     this.sellingPrice,
-//     this.mrp,
-//   });
-//
-//   factory Varient.fromJson(Map<String, dynamic> json) {
-//     return Varient(
-//       attributes: json['attributes'] != null
-//           ? Attributes.fromJson(json['attributes'])
-//           : null,
-//       sku: json['sku'],
-//       hsn: json['hsn'],
-//       sellingPrice: json['sellingPrice'],
-//       mrp: json['mrp'],
-//     );
-//   }
-//
-//   Map<String, dynamic> toJson() {
-//     return {
-//       'attributes': attributes?.toJson(),
-//       'sku': sku,
-//       'hsn': hsn,
-//       'sellingPrice': sellingPrice,
-//       'mrp': mrp,
-//     };
-//   }
-//
-//   Varient copyWith({
-//     Attributes? attributes,
-//     String? sku,
-//     String? hsn,
-//     num? sellingPrice,
-//     num? mrp,
-//   }) {
-//     return Varient(
-//       attributes: attributes ?? this.attributes,
-//       sku: sku ?? this.sku,
-//       hsn: hsn ?? this.hsn,
-//       sellingPrice: sellingPrice ?? this.sellingPrice,
-//       mrp: mrp ?? this.mrp,
-//     );
-//   }
-// }
-//
-// class Attributes {
-//   final String? color;
-//   final String? size;
-//
-//   Attributes({this.color, this.size});
-//
-//   factory Attributes.fromJson(Map<String, dynamic> json) {
-//     return Attributes(
-//       color: json['color'],
-//       size: json['size'],
-//     );
-//   }
-//
-//   Map<String, dynamic> toJson() {
-//     return {
-//       'color': color,
-//       'size': size,
-//     };
-//   }
-//
-//   Attributes copyWith({
-//     String? color,
-//     String? size,
-//   }) {
-//     return Attributes(
-//       color: color ?? this.color,
-//       size: size ?? this.size,
-//     );
-//   }
-// }
-
-
+/// AI-generated product content returned by the "generate via AI" endpoint.
+///
+/// New response shape:
+/// ```json
+/// {
+///   "productData": { name, type, currencySymbol, description, brand, category,
+///       tags[], mrpPerUnit, warranty, isReturnable, returnDays, expiryDuration,
+///       guidelines[], additionalDetails[{title, details}], features[{title}],
+///       countryOfOrigin, manufacturerDetails{name, address, customerCare} },
+///   "variantData": [ { variantName, value, attributes{}, unit, quantity,
+///       pricing[{mrp, sellingPrice, currency}], weight, dimensions{l,w,h},
+///       specification{}, isActive } ]
+/// }
+/// ```
 class GenerateAiProductContent {
-  final String? productName;
-  final String? description;
-  final String? brand;
-  final String? brandWebsite;
-  final String? amazonCategory;
-  final List<String>? userGuide;
-  final String? warranty;
-  final String? durationOfExpiryFromManufacture;
-  final num? mrp;
-  final List<String>? tags;
-  final List<String>? features;
-  final List<Specification>? specifications;
-  final Map<String, List<dynamic>>? variant; // single object
+  final AiProductData? productData;
+  final List<AiVariantData> variantData;
 
   GenerateAiProductContent({
-    this.productName,
-    this.description,
-    this.brand,
-    this.brandWebsite,
-    this.amazonCategory,
-    this.userGuide,
-    this.warranty,
-    this.durationOfExpiryFromManufacture,
-    this.mrp,
-    this.tags,
-    this.features,
-    this.specifications,
-    this.variant,
+    this.productData,
+    this.variantData = const [],
   });
 
   factory GenerateAiProductContent.fromJson(Map<String, dynamic> json) {
-    // Convert variants object to Map<String, List<String>>
-    Map<String, List<dynamic>>? variantMap;
-    if (json['variants'] != null && json['variants'] is Map<String, dynamic>) {
-      variantMap = (json['variants'] as Map<String, dynamic>).map(
-            (key, value) => MapEntry(
-          key,
-          value is List ? List<dynamic>.from(value) : [],
-        ),
-      );
-    }
-
     return GenerateAiProductContent(
-      productName: json['product_name'],
-      description: json['description'],
-      brand: json['brand'],
-      brandWebsite: json['brand_website'],
-      amazonCategory: json['amazon_category'],
-      userGuide: json['user_guide'] != null ? List<String>.from(json['user_guide']) : null,
-      warranty: json['warranty'],
-      durationOfExpiryFromManufacture: json['duration_of_expiry_from_manufacture'],
-      mrp: json['mrp'],
-      tags: json['tags'] != null ? List<String>.from(json['tags']) : null,
-      features: json['features'] != null ? List<String>.from(json['features']) : null,
-      specifications: json['specifications'] != null
-          ? (json['specifications'] as List).map((e) => Specification.fromJson(e)).toList()
+      productData: json['productData'] != null
+          ? AiProductData.fromJson(
+              Map<String, dynamic>.from(json['productData']))
           : null,
-      variant: variantMap,
+      variantData: (json['variantData'] as List?)
+              ?.map((e) =>
+                  AiVariantData.fromJson(Map<String, dynamic>.from(e)))
+              .toList() ??
+          const [],
     );
   }
 
   Map<String, dynamic> toJson() => {
-    'product_name': productName,
-    'description': description,
-    'brand': brand,
-    'brand_website': brandWebsite,
-    'amazon_category': amazonCategory,
-    'user_guide': userGuide,
-    'warranty': warranty,
-    'duration_of_expiry_from_manufacture': durationOfExpiryFromManufacture,
-    'mrp': mrp,
-    'tags': tags,
-    'features': features,
-    'specifications': specifications?.map((e) => e.toJson()).toList(),
-    'variants': variant,
-  };
+        'productData': productData?.toJson(),
+        'variantData': variantData.map((e) => e.toJson()).toList(),
+      };
+
+  // ── Convenience accessors used by the Add-Product (AI) step 2 screen ──────
+  String? get productName => productData?.name;
+  String? get description => productData?.description;
+  String? get brand => productData?.brand;
+  String? get category => productData?.category;
+  String? get currencySymbol => productData?.currencySymbol;
+  String? get countryOfOrigin => productData?.countryOfOrigin;
+  num? get mrp => productData?.mrpPerUnit;
+  String? get warranty => productData?.warranty;
+  String? get durationOfExpiryFromManufacture => productData?.expiryDuration;
+  bool get isReturnable => productData?.isReturnable ?? false;
+  int get returnDays => productData?.returnDays ?? 0;
+  List<String>? get tags => productData?.tags;
+  List<String>? get features => productData?.features;
+  List<Specification>? get specifications => productData?.additionalDetails;
+  List<String>? get userGuide => productData?.guidelines;
+  AiManufacturerDetails? get manufacturerDetails =>
+      productData?.manufacturerDetails;
+
+  /// Attribute name → distinct values collected across every variant
+  /// (variant attributes + specification). Drives the variant chips shown on
+  /// the step 2 review screen. Null when there are no variants.
+  Map<String, List<dynamic>>? get variant {
+    if (variantData.isEmpty) return null;
+    final map = <String, List<dynamic>>{};
+    void collect(Map<String, dynamic> src) {
+      src.forEach((key, value) {
+        if (value == null) return;
+        final list = map.putIfAbsent(key, () => <dynamic>[]);
+        final str = value.toString();
+        if (str.isNotEmpty && !list.contains(str)) list.add(str);
+      });
+    }
+
+    for (final v in variantData) {
+      collect(v.attributes);
+      collect(v.specification);
+    }
+    return map.isEmpty ? null : map;
+  }
+}
+
+class AiProductData {
+  final String? name;
+  final String? type;
+  final String? currencySymbol;
+  final String? description;
+  final String? brand;
+  final String? category;
+  final List<String> tags;
+  final num? mrpPerUnit;
+  final String? warranty;
+  final bool isReturnable;
+  final int returnDays;
+  final String? expiryDuration;
+  final List<String> guidelines;
+  final List<Specification> additionalDetails;
+  final List<String> features;
+  final String? countryOfOrigin;
+  final AiManufacturerDetails? manufacturerDetails;
+
+  AiProductData({
+    this.name,
+    this.type,
+    this.currencySymbol,
+    this.description,
+    this.brand,
+    this.category,
+    this.tags = const [],
+    this.mrpPerUnit,
+    this.warranty,
+    this.isReturnable = false,
+    this.returnDays = 0,
+    this.expiryDuration,
+    this.guidelines = const [],
+    this.additionalDetails = const [],
+    this.features = const [],
+    this.countryOfOrigin,
+    this.manufacturerDetails,
+  });
+
+  factory AiProductData.fromJson(Map<String, dynamic> json) {
+    return AiProductData(
+      name: json['name'],
+      type: json['type'],
+      currencySymbol: json['currencySymbol'],
+      description: json['description'],
+      brand: json['brand'],
+      category: json['category'],
+      tags: (json['tags'] as List?)?.map((e) => e.toString()).toList() ??
+          const [],
+      mrpPerUnit: json['mrpPerUnit'],
+      warranty: json['warranty'],
+      isReturnable: json['isReturnable'] ?? false,
+      returnDays: (json['returnDays'] as num?)?.toInt() ?? 0,
+      expiryDuration: json['expiryDuration'],
+      guidelines:
+          (json['guidelines'] as List?)?.map((e) => e.toString()).toList() ??
+              const [],
+      additionalDetails: (json['additionalDetails'] as List?)
+              ?.map((e) =>
+                  Specification.fromJson(Map<String, dynamic>.from(e)))
+              .toList() ??
+          const [],
+      // features arrive as [{title: ...}] — flatten to plain strings.
+      features: (json['features'] as List?)
+              ?.map((e) => e is Map
+                  ? (e['title']?.toString() ?? '')
+                  : e.toString())
+              .where((s) => s.isNotEmpty)
+              .toList() ??
+          const [],
+      countryOfOrigin: json['countryOfOrigin'],
+      manufacturerDetails: json['manufacturerDetails'] != null
+          ? AiManufacturerDetails.fromJson(
+              Map<String, dynamic>.from(json['manufacturerDetails']))
+          : null,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'name': name,
+        'type': type,
+        'currencySymbol': currencySymbol,
+        'description': description,
+        'brand': brand,
+        'category': category,
+        'tags': tags,
+        'mrpPerUnit': mrpPerUnit,
+        'warranty': warranty,
+        'isReturnable': isReturnable,
+        'returnDays': returnDays,
+        'expiryDuration': expiryDuration,
+        'guidelines': guidelines,
+        'additionalDetails':
+            additionalDetails.map((e) => e.toJson()).toList(),
+        'features': features.map((e) => {'title': e}).toList(),
+        'countryOfOrigin': countryOfOrigin,
+        'manufacturerDetails': manufacturerDetails?.toJson(),
+      };
+}
+
+class AiManufacturerDetails {
+  final String? name;
+  final String? address;
+  final String? customerCare;
+
+  AiManufacturerDetails({this.name, this.address, this.customerCare});
+
+  factory AiManufacturerDetails.fromJson(Map<String, dynamic> json) =>
+      AiManufacturerDetails(
+        name: json['name'],
+        address: json['address'],
+        customerCare: json['customerCare'],
+      );
+
+  Map<String, dynamic> toJson() => {
+        'name': name,
+        'address': address,
+        'customerCare': customerCare,
+      };
+}
+
+class AiVariantData {
+  final String? variantName;
+  final String? value;
+  final Map<String, dynamic> attributes;
+  final String? unit;
+  final String? quantity;
+  final List<AiPricing> pricing;
+  final num? weight;
+  final AiDimensions? dimensions;
+  final Map<String, dynamic> specification;
+  final bool isActive;
+
+  AiVariantData({
+    this.variantName,
+    this.value,
+    this.attributes = const {},
+    this.unit,
+    this.quantity,
+    this.pricing = const [],
+    this.weight,
+    this.dimensions,
+    this.specification = const {},
+    this.isActive = true,
+  });
+
+  factory AiVariantData.fromJson(Map<String, dynamic> json) {
+    return AiVariantData(
+      variantName: json['variantName'],
+      value: json['value'],
+      attributes: json['attributes'] != null
+          ? Map<String, dynamic>.from(json['attributes'])
+          : const {},
+      unit: json['unit'],
+      quantity: json['quantity']?.toString(),
+      pricing: (json['pricing'] as List?)
+              ?.map((e) => AiPricing.fromJson(Map<String, dynamic>.from(e)))
+              .toList() ??
+          const [],
+      weight: json['weight'],
+      dimensions: json['dimensions'] != null
+          ? AiDimensions.fromJson(Map<String, dynamic>.from(json['dimensions']))
+          : null,
+      specification: json['specification'] != null
+          ? Map<String, dynamic>.from(json['specification'])
+          : const {},
+      isActive: json['isActive'] ?? true,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'variantName': variantName,
+        'value': value,
+        'attributes': attributes,
+        'unit': unit,
+        'quantity': quantity,
+        'pricing': pricing.map((e) => e.toJson()).toList(),
+        'weight': weight,
+        'dimensions': dimensions?.toJson(),
+        'specification': specification,
+        'isActive': isActive,
+      };
+}
+
+class AiPricing {
+  final num? mrp;
+  final num? sellingPrice;
+  final String? currency;
+
+  AiPricing({this.mrp, this.sellingPrice, this.currency});
+
+  factory AiPricing.fromJson(Map<String, dynamic> json) => AiPricing(
+        mrp: json['mrp'],
+        sellingPrice: json['sellingPrice'],
+        currency: json['currency'],
+      );
+
+  Map<String, dynamic> toJson() => {
+        'mrp': mrp,
+        'sellingPrice': sellingPrice,
+        'currency': currency,
+      };
+}
+
+class AiDimensions {
+  final num? length;
+  final num? width;
+  final num? height;
+
+  AiDimensions({this.length, this.width, this.height});
+
+  factory AiDimensions.fromJson(Map<String, dynamic> json) => AiDimensions(
+        length: json['length'],
+        width: json['width'],
+        height: json['height'],
+      );
+
+  Map<String, dynamic> toJson() => {
+        'length': length,
+        'width': width,
+        'height': height,
+      };
 }
 
 class Specification {
@@ -513,61 +313,12 @@ class Specification {
   Specification({this.title, this.details});
 
   factory Specification.fromJson(Map<String, dynamic> json) => Specification(
-    title: json['title'],
-    details: json['details'],
-  );
+        title: json['title'],
+        details: json['details'],
+      );
 
   Map<String, dynamic> toJson() => {
-    'title': title,
-    'details': details,
-  };
+        'title': title,
+        'details': details,
+      };
 }
-
-class Variant {
-  final Map<String, dynamic> data;
-
-  Variant({required this.data});
-
-  factory Variant.fromJson(Map<String, dynamic> json) {
-    final Map<String, dynamic> result = {};
-    json.forEach((key, value) {
-      if (value is List) {
-        // check if list is map or string
-        if (value.isNotEmpty && value.first is Map) {
-          result[key] = value; // keep list of maps as is
-        } else {
-          result[key] = value.map((e) => e.toString()).toList();
-        }
-      }
-    });
-    return Variant(data: result);
-  }
-
-  Map<String, dynamic> toJson() => data;
-}
-
-
-// class Variant {
-//   final Map<String, dynamic>? attributes;
-//
-//   Variant({this.attributes});
-//
-//   factory Variant.fromJson(Map<String, dynamic> json) => Variant(
-//     attributes: json['attributes'] != null ? Map<String, dynamic>.from(json['attributes']) : null,
-//   );
-//
-//   Map<String, dynamic> toJson() => {
-//     'attributes': attributes,
-//   };
-//
-//   /// Helper to get all attribute keys
-//   List<String> get keys => attributes?.keys.toList() ?? [];
-//
-//   /// Helper to get all attribute values
-//   List<dynamic> get values => attributes?.values.toList() ?? [];
-//
-//   /// Helper to get a list of key-value pairs
-//   List<MapEntry<String, dynamic>> get entries => attributes?.entries.toList() ?? [];
-// }
-
-

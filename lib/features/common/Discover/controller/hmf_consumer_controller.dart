@@ -8,13 +8,13 @@ import 'package:BlueEra/features/personal/personal_profile/view/self_employed/mo
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/repo/tiffin_repo.dart';
 import 'package:get/get.dart';
 
-/// Backs the consumer "Home Made Food" category screen ([HomeMadeFoodScreen]).
+/// Backs the consumer "Home Made Food" category screen ([HmfCategoryDiscoverScreen]).
 ///
 /// Category index 0 is the **Tiffin** tab (paginated tiffins across all
 /// stores, filtered by meal slot). Indices 1-4 map to the home-made food
 /// categories (Bakery / Sweets / Namkeen / Pickles), each a paginated list
 /// filtered by `foodKey`.
-class HomeMadeFoodConsumerController extends GetxController {
+class HmfConsumerController extends GetxController {
   final TiffinRepo _tiffinRepo = TiffinRepo();
   final FoodRepo _foodRepo = FoodRepo();
 

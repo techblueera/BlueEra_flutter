@@ -11,7 +11,7 @@ import 'package:BlueEra/features/common/service/controller/service_controller.da
 import 'package:BlueEra/features/common/service/model/get_service_model.dart';
 import 'package:BlueEra/features/common/service/view/service_details_view_screen.dart';
 import 'package:BlueEra/features/common/service/view/service_upload_screen.dart';
-import 'package:BlueEra/features/common/service/view/view_service_list.dart';
+import 'package:BlueEra/features/common/service/view/business_service_list.dart';
 import 'package:BlueEra/features/me/hospital/view/v2/widgets/empty_section_placeholder.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -37,7 +37,7 @@ class _OtherServicesTabV2State extends State<OtherServicesTabV2> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _serviceController.getServices({
+      _serviceController.getBusinessServices({
         ApiKeys.all: false,
         ApiKeys.type: AppConstants.service,
         ApiKeys.providerType: ProviderType.business.title,
@@ -86,7 +86,7 @@ class _OtherServicesTabV2State extends State<OtherServicesTabV2> {
                       ServiceHomeTitleWidget(title: AppStrings.ourServices.tr),
                       InkWell(
                         onTap: () => Get.to(
-                          () => ViewServiceList(
+                          () => BusinessServiceList(
                             providerType: ProviderType.business,
                             showScaffold: true,
                           ),

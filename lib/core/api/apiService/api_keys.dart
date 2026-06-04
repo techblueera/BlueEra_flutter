@@ -684,6 +684,7 @@ class ApiKeys {
   static const inventories = 'inventories';
   static const cityName = 'cityName';
   static const batches = 'batches';
+  static const productVariant = 'productVariant';
   static const quantity = 'quantity';
   static const categoryId = 'categoryId';
   static const subject = 'subject';

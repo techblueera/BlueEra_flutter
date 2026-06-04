@@ -6,51 +6,78 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_constant.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
+import 'package:BlueEra/features/me/product/model/get_product_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/model/earn_profile_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/repo/earn_profile_repo.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/self_employed/model/food_item_model.dart';
 import 'package:BlueEra/widgets/app_loader.dart';
 import 'package:get/get.dart';
 
-/// Shared cart for the home made food flow. Registered once at the list
+/// Shared cart for the home made product flow. Registered once at the list
 /// screen (the flow entry) so the floating cart bar on both the list and the
 /// store details screen — plus the cart page — all observe the same instance.
-/// A home made food cart belongs to a single kitchen ([store]); placing an
-/// order POSTs to `earn-service/homeFoodOrders` then opens the chat.
-class HomeMadeFoodCartController extends GetxController {
+/// A cart belongs to a single seller ([store]); placing an order POSTs to
+/// `earn-service/homeProductOrders` then opens the chat.
+class HmpCartController extends GetxController {
   final _repo = EarnProfileRepo();
 
-  /// The kitchen the current cart belongs to (set when the first item is
+  /// The seller the current cart belongs to (set when the first item is
   /// added). Null when the cart is empty.
   final Rxn<EarnProfileModel> store = Rxn<EarnProfileModel>();
 
-  /// food id -> quantity (reactive source of truth).
+  /// product id -> quantity (reactive source of truth).
   final RxMap<String, int> quantities = <String, int>{}.obs;
 
-  /// food id -> model (plain lookup; reactivity is driven by [quantities]).
-  final Map<String, FoodItemModel> _itemById = {};
+  /// product id -> model (plain lookup; reactivity is driven by [quantities]).
+  final Map<String, GetProductData> _itemById = {};
 
   final RxBool isPlacingOrder = false.obs;
 
+  // ── Field helpers off a [GetProductData] ──
+  static String idOf(GetProductData p) => p.product.details?.id ?? '';
+
+  static String nameOf(GetProductData p) => p.product.details?.name ?? '';
+
+  static String? imageOf(GetProductData p) {
+    final media = p.product.details?.media ?? const [];
+    return media.isNotEmpty ? media.first : null;
+  }
+
+  static Variant? _variantOf(GetProductData p) {
+    final variants = p.product.sellerClassification?.variants ?? const [];
+    return variants.isNotEmpty ? variants.first : null;
+  }
+
+  static double sellingPriceOf(GetProductData p) {
+    final v = _variantOf(p);
+    final sp = v?.sellingPrice ?? p.product.details?.mrpPerUnit ?? 0;
+    return sp.toDouble();
+  }
+
+  static double mrpOf(GetProductData p) {
+    final v = _variantOf(p);
+    final mrp = v?.mrp ?? p.product.details?.mrpPerUnit ?? 0;
+    return mrp.toDouble();
+  }
+
   int qty(String? id) => id == null ? 0 : (quantities[id] ?? 0);
 
-  /// Whether [fromStore] differs from the kitchen the cart already holds.
+  /// Whether [fromStore] differs from the seller the cart already holds.
   bool isDifferentStore(EarnProfileModel fromStore) =>
       quantities.isNotEmpty &&
       store.value != null &&
       store.value!.id != fromStore.id;
 
-  void add(FoodItemModel item, EarnProfileModel fromStore) {
-    final id = item.id;
-    if (id == null) return;
+  void add(GetProductData item, EarnProfileModel fromStore) {
+    final id = idOf(item);
+    if (id.isEmpty) return;
     store.value = fromStore;
     _itemById[id] = item;
     quantities[id] = (quantities[id] ?? 0) + 1;
   }
 
-  void remove(FoodItemModel item) {
-    final id = item.id;
-    if (id == null) return;
+  void remove(GetProductData item) {
+    final id = idOf(item);
+    if (id.isEmpty) return;
     final current = quantities[id] ?? 0;
     if (current <= 1) {
       quantities.remove(id);
@@ -61,21 +88,20 @@ class HomeMadeFoodCartController extends GetxController {
     if (quantities.isEmpty) store.value = null;
   }
 
-  List<FoodItemModel> get lines => quantities.keys
+  List<GetProductData> get lines => quantities.keys
       .map((id) => _itemById[id])
-      .whereType<FoodItemModel>()
+      .whereType<GetProductData>()
       .toList();
 
   bool get isEmpty => quantities.isEmpty;
 
   int get totalItems => quantities.values.fold(0, (sum, q) => sum + q);
 
-  double _num(String value) => double.tryParse(value) ?? 0;
-
   double get totalPrice {
     double total = 0;
     quantities.forEach((id, q) {
-      total += _num(_itemById[id]?.sellingPrice ?? '') * q;
+      final item = _itemById[id];
+      if (item != null) total += sellingPriceOf(item) * q;
     });
     return total;
   }
@@ -84,8 +110,9 @@ class HomeMadeFoodCartController extends GetxController {
     double total = 0;
     quantities.forEach((id, q) {
       final item = _itemById[id];
-      final mrp = _num(item?.mrpPrice ?? '');
-      final sp = _num(item?.sellingPrice ?? '');
+      if (item == null) return;
+      final mrp = mrpOf(item);
+      final sp = sellingPriceOf(item);
       total += (mrp > 0 ? mrp : sp) * q;
     });
     return total;
@@ -96,8 +123,7 @@ class HomeMadeFoodCartController extends GetxController {
     return s > 0 ? s : 0;
   }
 
-  List<String?> get previewImages =>
-      lines.take(3).map((e) => e.imageUrl).toList();
+  List<String?> get previewImages => lines.take(3).map(imageOf).toList();
 
   void clear() {
     quantities.clear();
@@ -110,8 +136,8 @@ class HomeMadeFoodCartController extends GetxController {
     return {
       'items': lines
           .map((item) => {
-                'homeMadeFood': item.id,
-                'quantity': qty(item.id),
+                'homeMadeProduct': idOf(item),
+                'quantity': qty(idOf(item)),
               })
           .toList(),
       'deliveryType': 'self-pickup',
@@ -120,15 +146,16 @@ class HomeMadeFoodCartController extends GetxController {
   }
 
   /// Place the order, clear the path back to the home shell, then open the
-  /// chat with the kitchen.
+  /// chat with the seller.
   Future<void> placeOrder() async {
-    final kitchen = store.value;
-    if (isEmpty || kitchen == null || isPlacingOrder.value) return;
+    final seller = store.value;
+    if (isEmpty || seller == null || isPlacingOrder.value) return;
     try {
       isPlacingOrder.value = true;
       AppLoader.show();
 
-      final response = await _repo.placeHomeFoodOrder(params: _buildPayload());
+      final response =
+          await _repo.placeHomeProductOrder(params: _buildPayload());
 
       if (!response.isSuccess) {
         AppLoader.hide();
@@ -140,7 +167,8 @@ class HomeMadeFoodCartController extends GetxController {
       AppLoader.hide();
 
       // Capture the order summary before clearing the cart.
-      final summary = lines.map((e) => '${e.foodName} x${qty(e.id)}').join(', ');
+      final summary =
+          lines.map((e) => '${nameOf(e)} x${qty(idOf(e))}').join(', ');
       final total = totalPrice;
 
       clear();
@@ -151,20 +179,20 @@ class HomeMadeFoodCartController extends GetxController {
       Get.until((route) =>
           route.settings.name == RouteConstant.BottomNavigationBarScreen);
 
-      // Open the chat with the kitchen so the buyer can coordinate pickup /
+      // Open the chat with the seller so the buyer can coordinate pickup /
       // delivery — same lane the store's chat icon opens.
       final chatViewController = getOrPut(() => ChatViewController());
       chatViewController.checkChatConnectionAndOpenChat(
-        userId: kitchen.userId ?? '',
-        name: kitchen.serviceName,
-        profile: kitchen.serviceLogo,
+        userId: seller.userId ?? '',
+        name: seller.serviceName,
+        profile: seller.serviceLogo,
         route: AppConstants.route_discover,
         prefilledMessage:
             'Hi! I just placed an order: $summary. Total ${AppConstants.rupeeSymbol}${total.toStringAsFixed(0)}.',
       );
     } catch (e) {
       AppLoader.hide();
-      log('Error placing home food order: $e');
+      log('Error placing home product order: $e');
       commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {
       isPlacingOrder.value = false;

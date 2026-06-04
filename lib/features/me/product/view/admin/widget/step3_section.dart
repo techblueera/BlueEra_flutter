@@ -25,7 +25,6 @@ class Step3Section extends StatefulWidget {
 
 class _Step3SectionState extends State<Step3Section> {
   late List<TextEditingController> tempUserGuideLineControllers;
-  late TextEditingController tempMrpController;
   late TextEditingController tempProductWarrantyController;
   late TextEditingController tempProductExpiryDurationController;
 
@@ -38,7 +37,6 @@ class _Step3SectionState extends State<Step3Section> {
         .map((c) => TextEditingController(text: c.text))
         .toList();
 
-    tempMrpController = TextEditingController(text: widget.controller.mrpController.text);
     tempProductWarrantyController = TextEditingController(text: widget.controller.productWarrantyController.text);
     tempProductExpiryDurationController = TextEditingController(text: widget.controller.productExpiryDurationController.text);
 
@@ -51,7 +49,6 @@ class _Step3SectionState extends State<Step3Section> {
       widget.controller.userGuideLineControllers.add(TextEditingController(text: c.text));
     }
 
-    widget.controller.mrpController.text = tempMrpController.text;
     widget.controller.productWarrantyController.text = tempProductWarrantyController.text;
     widget.controller.productExpiryDurationController.text = tempProductExpiryDurationController.text;
 
@@ -159,17 +156,6 @@ class _Step3SectionState extends State<Step3Section> {
                   //   showLabel: true,
                   // ),
                   // SizedBox(height: SizeConfig.size16),
-
-                  /// MRP
-                  CommonTextField(
-                    textEditController: widget.controller.mrpController,
-                    title: AppStrings.mrpOriginalPriceWithGst,
-                    hintText: AppStrings.egRs1499,
-                    keyBoardType: TextInputType.number,
-                    validator: ValidationMethod().validateMRP,
-                    showLabel: true,
-                  ),
-                  SizedBox(height: SizeConfig.size16),
 
                   // /// Selling Price
                   // CommonTextField(

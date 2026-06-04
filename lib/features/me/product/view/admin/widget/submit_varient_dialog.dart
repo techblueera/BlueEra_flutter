@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/features/me/product/controller/product_controller.dart';
+import 'package:BlueEra/features/me/product/model/generate_ai_product_content.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:flutter/material.dart';
@@ -69,7 +70,59 @@ class _SubmitVariantDialogState extends State<SubmitVariantDialog> {
             return value.toString();
           }
         }).join(', ');
+    _prefillPricing();
     super.initState();
+  }
+
+  /// Prefill MRP & selling price from the AI variant matching the selected
+  /// combination (falling back to the headline price). The user can edit it.
+  void _prefillPricing() {
+    final selected = widget.controller.selectedVariantValues;
+    final variants = widget.controller.aiVariantData;
+
+    AiVariantData? match;
+    for (final v in variants) {
+      final attrs = <String, dynamic>{...v.attributes, ...v.specification};
+      if (selected.isEmpty) break;
+      bool matches = true;
+      selected.forEach((k, val) {
+        final selVal = (k.toLowerCase() == 'color' && val is Map)
+            ? (val['color_name'] ?? val['name'])
+            : val;
+        if (attrs[k]?.toString() != selVal?.toString()) matches = false;
+      });
+      if (matches) {
+        match = v;
+        break;
+      }
+    }
+
+    final pricing = (match?.pricing.isNotEmpty ?? false)
+        ? match!.pricing.first
+        : (variants.isNotEmpty && variants.first.pricing.isNotEmpty
+            ? variants.first.pricing.first
+            : null);
+
+    if (pricing != null) {
+      if (pricing.mrp != null) productMrpController.text = pricing.mrp.toString();
+      if (pricing.sellingPrice != null) {
+        productPriceController.text = pricing.sellingPrice.toString();
+      }
+    } else {
+      // Fallback to the headline price captured on the preview.
+      final mrp = widget.controller.selectedProductOrVariantMrp.value.toString();
+      final price =
+          widget.controller.selectedProductOrVariantPrice.value.toString();
+      if (mrp.isNotEmpty && mrp != '00,000') productMrpController.text = mrp;
+      if (price.isNotEmpty && price != '00,000' && price != '00, 000') {
+        productPriceController.text = price;
+      }
+    }
+
+    discountPercent.value = calculateDiscount(
+      productPriceController.text,
+      productMrpController.text,
+    );
   }
 
   @override

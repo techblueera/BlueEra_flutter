@@ -30,13 +30,14 @@ class ProductRepo extends BaseService {
   }
 
   /// Update product inventory variant — PATCH only price/mrp etc.
+  /// `PATCH product-service/api/inventory/{id}`.
   Future<ResponseModel> updateInventoryVariantRepo({
     required String inventoryId,
     required String variantId,
     required Map<String, dynamic> params,
   }) async {
     return ApiBaseHelper().patchHTTP(
-      updateProductInventoryVariant(inventoryId, variantId),
+      updateProductInventory(inventoryId),
       params: params,
       showProgress: false,
     );
@@ -278,7 +279,7 @@ class ProductRepo extends BaseService {
   // Create Product (multipart)
   Future<ResponseModel> createProductViaAiApi({required Map<String, dynamic> params}) async {
     final response = await ApiBaseHelper().postHTTP(
-      createProductViaAi,
+      createProductAdmin,
       params: params,
       isMultipart: true,
       showProgress: false,
@@ -289,11 +290,12 @@ class ProductRepo extends BaseService {
   }
 
   ///Add Product To Inventory...
-  Future<ResponseModel> addProductToInventoryApi({required Map<String, dynamic> params}) async {
+  /// Body is a raw JSON array of inventory entries (one per variant).
+  Future<ResponseModel> addProductToInventoryApi({required dynamic params}) async {
     final response = await ApiBaseHelper().postHTTP(
       addProductToInventory,
       params: params,
-      isMultipart: true,
+      isArrayReq: true,
       showProgress: false,
       onError: (error) {},
       onSuccess: (data) {},
@@ -314,12 +316,13 @@ class ProductRepo extends BaseService {
     return response;
   }
 
+  /// Create variants on a product. Body is `{ variantData: [...] }`;
+  /// `productId` lives in the URL only.
   Future<ResponseModel> addUpdateProductVariantApi({
     required Map<String, dynamic> params,
     required String productId,
-
   }) async {
-    final response = await ApiBaseHelper().patchHTTP(
+    final response = await ApiBaseHelper().postHTTP(
       addUpdateProductVariant(productId),
       params: params,
       showProgress: false,
@@ -346,6 +349,18 @@ class ProductRepo extends BaseService {
       productNestedCategory,
       showProgress: false,
       params: queryParams,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
+  /// Fetch categories for a group (e.g. `homeMadeProduct`).
+  Future<ResponseModel> productCategoriesByGroupRepo(
+      {required String group}) async {
+    final response = await ApiBaseHelper().getHTTP(
+      productCategoriesByGroup(group),
+      showProgress: false,
       onError: (error) {},
       onSuccess: (data) {},
     );

@@ -12,14 +12,14 @@ import 'package:get/get.dart';
 /// details themselves are passed in from the listing screen — this only
 /// fetches the store's home made food items (Bakery / Sweets / Namkeen /
 /// Pickles) for the given earn profile [profileId], grouped by category.
-class HomeMadeFoodStoreDetailsController extends GetxController {
+class HmfStoreDetailsController extends GetxController {
   final EarnProfileRepo _repo = EarnProfileRepo();
   final TiffinRepo _tiffinRepo = TiffinRepo();
 
   /// The earn profile id whose food items we list.
   final String profileId;
 
-  HomeMadeFoodStoreDetailsController({required this.profileId});
+  HmfStoreDetailsController({required this.profileId});
 
   final RxBool isFoodLoading = false.obs;
 

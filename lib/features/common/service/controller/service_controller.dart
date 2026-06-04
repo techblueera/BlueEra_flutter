@@ -125,8 +125,33 @@ class ServiceController extends GetxController {
   int serviceDataPage = 1;
   bool serviceDataHasMore = true;
 
-  /// fetch services
-  Future<void> getServices(Map<String, dynamic> queryParams,  {bool isFromEarnWithBlueEra = false, bool isLoadMore = false}) async {
+  /// Fetch business services (`ServiceAiRepo`).
+  Future<void> getBusinessServices(Map<String, dynamic> queryParams,
+      {bool isLoadMore = false}) {
+    return _loadServices(
+      queryParams,
+      isLoadMore: isLoadMore,
+      fetch: (qp) => ServiceAiRepo().getServiceRepo(queryParams: qp),
+    );
+  }
+
+  /// Fetch earn-with-BlueEra services (`EarnServiceRepo`).
+  Future<void> getEarnServices(Map<String, dynamic> queryParams,
+      {bool isLoadMore = false}) {
+    return _loadServices(
+      queryParams,
+      isLoadMore: isLoadMore,
+      fetch: (qp) => EarnServiceRepo().getEarnServiceRepo(queryParams: qp),
+    );
+  }
+
+  /// Shared pagination + parsing pipeline for the service list. The caller
+  /// supplies the [fetch] that hits the right repo (business vs earn).
+  Future<void> _loadServices(
+    Map<String, dynamic> queryParams, {
+    required Future<ResponseModel> Function(Map<String, dynamic>) fetch,
+    bool isLoadMore = false,
+  }) async {
     if (isLoadMore) {
       if (isServiceDataLoadingMore.value || !serviceDataHasMore) return;
       isServiceDataLoadingMore.value = true;
@@ -139,12 +164,7 @@ class ServiceController extends GetxController {
     queryParams[ApiKeys.page] = serviceDataPage;
 
     try {
-      ResponseModel response;
-      if(!isFromEarnWithBlueEra){
-         response = await ServiceAiRepo().getServiceRepo(queryParams: queryParams);
-      }else{
-        response = await EarnServiceRepo().getEarnServiceRepo(queryParams: queryParams);
-      }
+      final ResponseModel response = await fetch(queryParams);
 
       if (response.isSuccess) {
         final responseData = response.response?.data;

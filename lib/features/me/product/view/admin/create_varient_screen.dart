@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
-import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
@@ -14,7 +13,6 @@ import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -651,7 +649,6 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
     );
   }
 
-
   void _openColorDialog(BuildContext context) {
     // Clone existing selected colors
     final existingColors = widget.controller.selectedColors.toList();
@@ -799,8 +796,8 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
     final existingValues =
         widget.controller.dynamicAttributes[attributeKey]?.toList() ?? [];
 
-    // Temp list for newly added values
-    List<String> newValues = [];
+    // Newly added values (key/value only).
+    final List<String> newValues = [];
 
     final textCtrl = TextEditingController();
     String inputText = '';
@@ -810,182 +807,296 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
       barrierDismissible: true,
       builder: (context) {
         return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: StatefulBuilder(
-              builder: (context, setState) {
-                return SizedBox(
-                  width: double.infinity,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      CustomText(
-                        "Add $attributeKey",
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.black,
-                      ),
-                      const SizedBox(height: 12),
+          insetPadding:
+              const EdgeInsets.symmetric(horizontal: 22, vertical: 24),
+          backgroundColor: Colors.transparent,
+          child: StatefulBuilder(
+            builder: (context, setState) {
+              void addValue() {
+                final val = inputText.trim();
+                if (val.isEmpty ||
+                    existingValues.contains(val) ||
+                    newValues.contains(val)) {
+                  return;
+                }
+                setState(() {
+                  newValues.add(val);
+                  inputText = '';
+                  textCtrl.clear();
+                });
+              }
 
-                      // Input field
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: SizeConfig.size16,
-                          vertical: SizeConfig.size10,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.white,
-                          boxShadow: [AppShadows.textFieldShadow],
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: AppColors.greyE5, width: 1),
-                        ),
-                        child: Row(
-                          children: [
-                            Image.asset("assets/icons/tag_icon.png"),
-                            SizedBox(width: SizeConfig.size12),
-                            Expanded(
-                              child: TextField(
-                                controller: textCtrl,
-                                onChanged: (val) => setState(() => inputText = val),
-                                decoration: InputDecoration(
-                                  hintText: "${AppStrings.add} $attributeKey",
-                                  hintStyle: TextStyle(
-                                    color: AppColors.grey9B,
-                                    fontSize: 14,
-                                  ),
-                                  border: InputBorder.none,
-                                  enabledBorder: InputBorder.none,
-                                  focusedBorder: InputBorder.none,
-                                  contentPadding: EdgeInsets.zero,
-                                  isDense: true,
-                                ),
-                              ),
-                            ),
-
-                            AnimatedSwitcher(
-                              duration: const Duration(milliseconds: 200),
-                              transitionBuilder: (child, anim) =>
-                                  ScaleTransition(scale: anim, child: child),
-                              child: inputText.isNotEmpty
-                                  ? InkWell(
-                                key: ValueKey("${AppStrings.add}_$attributeKey"),
-                                onTap: () {
-                                  final val = inputText.trim();
-                                  if (val.isNotEmpty &&
-                                      !existingValues.contains(val) &&
-                                      !newValues.contains(val)) {
-                                    setState(() {
-                                      newValues.add(val);
-                                      inputText = '';
-                                      textCtrl.clear();
-                                    });
-                                  }
-                                },
-                                child: LocalAssets(
-                                  imagePath: AppIconAssets.addBlueIcon,
-                                ),
-                              )
-                                  : SizedBox.shrink(
-                                  key: ValueKey("${AppStrings.empty.tr}_$attributeKey")),
-                            ),
-                          ],
+              return Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: AppColors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.black.withValues(alpha: 0.12),
+                      blurRadius: 28,
+                      offset: const Offset(0, 12),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // ── Header ──────────────────────────────────────────────
+                    Container(
+                      padding: const EdgeInsets.fromLTRB(20, 16, 10, 16),
+                      decoration: const BoxDecoration(
+                        border: Border(
+                          bottom: BorderSide(color: AppColors.greyE5, width: 1),
                         ),
                       ),
-
-                      const SizedBox(height: 12),
-
-                      // Chips display
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 2,
+                      child: Row(
                         children: [
-                          // Existing values (non-deletable)
-                          ...existingValues.map((val) {
-                            return Chip(
-                              label: Text(val),
-                              backgroundColor: AppColors.grey5B.withValues(alpha: 0.3),
-                              labelStyle: TextStyle(
-                                fontSize: SizeConfig.size14,
-                                color: Colors.black87,
+                          Container(
+                            width: 40,
+                            height: 40,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color:
+                                  AppColors.primaryColor.withValues(alpha: 0.10),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Icon(
+                              Icons.sell_outlined,
+                              color: AppColors.primaryColor,
+                              size: 20,
+                            ),
+                          ),
+                          SizedBox(width: SizeConfig.size12),
+                          Expanded(
+                            child: CustomText(
+                              "${AppStrings.add} $attributeKey",
+                              fontSize: SizeConfig.medium,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.mainTextColor,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          InkWell(
+                            onTap: () => Get.back(),
+                            borderRadius: BorderRadius.circular(30),
+                            child: const Padding(
+                              padding: EdgeInsets.all(6),
+                              child: Icon(
+                                Icons.close_rounded,
+                                color: AppColors.secondaryTextColor,
+                                size: 22,
                               ),
-                            );
-                          }),
-                          // Newly added values (deletable)
-                          ...newValues.map((val) {
-                            return Chip(
-                              label: Text(val),
-                              backgroundColor: AppColors.lightBlue,
-                              labelStyle: TextStyle(
-                                fontSize: SizeConfig.size14,
-                                color: Colors.black87,
-                              ),
-                              deleteIcon: const Icon(
-                                Icons.close,
-                                size: 20,
-                                color: AppColors.mainTextColor,
-                              ),
-                              onDeleted: () => setState(() => newValues.remove(val)),
-                            );
-                          }),
+                            ),
+                          ),
                         ],
                       ),
+                    ),
 
-                      const SizedBox(height: 16),
+                    // ── Body ────────────────────────────────────────────────
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Value input with inline add
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 12,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.white,
+                              boxShadow: [AppShadows.textFieldShadow],
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: inputText.trim().isNotEmpty
+                                    ? AppColors.primaryColor
+                                    : AppColors.greyE5,
+                                width: 1,
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Image.asset("assets/icons/tag_icon.png"),
+                                SizedBox(width: SizeConfig.size12),
+                                Expanded(
+                                  child: TextField(
+                                    controller: textCtrl,
+                                    onChanged: (val) =>
+                                        setState(() => inputText = val),
+                                    onSubmitted: (_) => addValue(),
+                                    textInputAction: TextInputAction.done,
+                                    decoration: InputDecoration(
+                                      hintText: "${AppStrings.add} $attributeKey",
+                                      hintStyle: TextStyle(
+                                        color: AppColors.grey9B,
+                                        fontSize: 14,
+                                      ),
+                                      border: InputBorder.none,
+                                      enabledBorder: InputBorder.none,
+                                      focusedBorder: InputBorder.none,
+                                      contentPadding: EdgeInsets.zero,
+                                      isDense: true,
+                                    ),
+                                  ),
+                                ),
+                                AnimatedSwitcher(
+                                  duration: const Duration(milliseconds: 200),
+                                  transitionBuilder: (child, anim) =>
+                                      ScaleTransition(scale: anim, child: child),
+                                  child: inputText.trim().isNotEmpty
+                                      ? InkWell(
+                                          key: ValueKey(
+                                              "${AppStrings.add}_$attributeKey"),
+                                          onTap: addValue,
+                                          child: const Icon(
+                                            Icons.add_circle_rounded,
+                                            color: AppColors.primaryColor,
+                                            size: 28,
+                                          ),
+                                        )
+                                      : SizedBox.shrink(
+                                          key: ValueKey(
+                                              "${AppStrings.empty.tr}_$attributeKey")),
+                                ),
+                              ],
+                            ),
+                          ),
 
-                      // Save button
-                      CustomBtn(
-                        onTap: () async {
+                          if (existingValues.isNotEmpty ||
+                              newValues.isNotEmpty) ...[
+                            SizedBox(height: SizeConfig.size16),
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: [
+                                // Existing values (locked, non-deletable)
+                                ...existingValues.map(
+                                  (val) => _lockedPill(val),
+                                ),
+                                // Newly added values (deletable)
+                                ...newValues.map(
+                                  (val) => _accentValuePill(
+                                    val,
+                                    () => setState(() => newValues.remove(val)),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
 
-                          final updatedValues = [
-                            ...existingValues,
-                            ...newValues,
-                          ];
+                          SizedBox(height: SizeConfig.size20 + 2),
 
-                          final Map<String, List<String>> dynamicAttributesCopy = widget.controller.dynamicAttributes.map(
-                                (key, value) => MapEntry(key, value.toList()),
-                          );
+                          // Save button
+                          Obx(
+                            () => CustomBtn(
+                              onTap: () async {
+                                if (newValues.isEmpty) {
+                                  Get.snackbar(
+                                    AppStrings.error.tr,
+                                    AppStrings.enterValue.tr,
+                                    snackPosition: SnackPosition.TOP,
+                                  );
+                                  return;
+                                }
 
-                          dynamicAttributesCopy[attributeKey] = updatedValues;
+                                final success = await widget.controller
+                                    .addAttributeVariantsApi(
+                                  attributeKey: attributeKey,
+                                  values: List<String>.from(newValues),
+                                );
 
-                          final success = await widget.controller.addUpdateProductVariantApi(
-                            allColors: widget.controller.selectedColors,
-                            allDynamicAttributes: dynamicAttributesCopy,
-                          );
-
-                          if(success){
-                            final updatedValues = [
-                              ...existingValues,
-                              ...newValues
-                            ];
-                            widget.controller.dynamicAttributes[attributeKey] = updatedValues.obs;
-                            widget.controller.dynamicAttributes.refresh();
-                            Get.back();
-                          }
-
-                        },
-                        title: widget.controller.isAddUpdateProductVariantLoading.value
-                            ? null
-                            : AppStrings.save,
-                        isLoading: widget.controller.isAddUpdateProductVariantLoading.value,
-                        bgColor: AppColors.primaryColor,
-                        borderColor: AppColors.primaryColor,
-                        radius: 10.0,
+                                // Display is refreshed from the API by the
+                                // controller on success.
+                                if (success) Get.back();
+                              },
+                              title: widget.controller
+                                      .isAddUpdateProductVariantLoading.value
+                                  ? null
+                                  : AppStrings.save,
+                              isLoading: widget.controller
+                                  .isAddUpdateProductVariantLoading.value,
+                              bgColor: AppColors.primaryColor,
+                              borderColor: AppColors.primaryColor,
+                              radius: 10.0,
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                );
-              },
-            ),
+                    ),
+                  ],
+                ),
+              );
+            },
           ),
         );
       },
     );
   }
 
+
+  /// Already-saved value — shown muted with a lock, cannot be removed here.
+  Widget _lockedPill(String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+      decoration: BoxDecoration(
+        color: AppColors.grey5B.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppColors.greyE5, width: 1),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.lock_outline_rounded,
+              size: 14, color: AppColors.secondaryTextColor),
+          const SizedBox(width: 6),
+          CustomText(
+            label,
+            fontSize: SizeConfig.small,
+            fontWeight: FontWeight.w500,
+            color: AppColors.secondaryTextColor,
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Newly added value — accent pill with a remove action.
+  Widget _accentValuePill(String label, VoidCallback onDelete) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(12, 7, 8, 7),
+      decoration: BoxDecoration(
+        color: AppColors.primaryColor.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: AppColors.primaryColor.withValues(alpha: 0.30),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          CustomText(
+            label,
+            fontSize: SizeConfig.small,
+            fontWeight: FontWeight.w600,
+            color: AppColors.primaryColor,
+          ),
+          const SizedBox(width: 6),
+          InkWell(
+            onTap: onDelete,
+            borderRadius: BorderRadius.circular(20),
+            child: Icon(Icons.close_rounded,
+                size: 16, color: AppColors.primaryColor),
+          ),
+        ],
+      ),
+    );
+  }
 
   List<PopupMenuEntry<String>> popupProductListedVariantMenuItems() {
     final items = <Map<String, dynamic>>[

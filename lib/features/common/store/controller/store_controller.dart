@@ -68,13 +68,6 @@ class StoreController extends GetxController{
   int productDataPage = 1;
   bool productDataHasMore = true;
 
-  /// All Food service data
-  RxList<GetFoodDetailsModel> foodDataList = <GetFoodDetailsModel>[].obs;
-  RxBool isFoodDataLoadingMore = false.obs;
-  RxBool isFoodDataFirstLoading = false.obs;
-  int foodDataPage = 1;
-  bool foodDataHasMore = true;
-
   /// Store Ai Variables
   TextEditingController sendMessageController = TextEditingController();
   RxBool isTextFieldEmpty = false.obs;
@@ -365,79 +358,6 @@ class StoreController extends GetxController{
         isProductDataLoadingMore.value = false;
       } else {
         isProductDataFirstLoading.value = false;
-      }
-    }
-  }
-
-  ///GET FOOD SERVICES ONLY....
-  Future<void> getAllFoodServiceNearBy({bool isLoadMore = false}) async {
-    if (isLoadMore) {
-      if (isFoodDataLoadingMore.value || !foodDataHasMore) return;
-      isFoodDataLoadingMore.value = true;
-    } else {
-      isFoodDataFirstLoading.value = true;
-      final cachedFood = await HiveServices().getAllStoreFoodServices(userId);
-      if (cachedFood != null && cachedFood.isNotEmpty) {
-        foodDataList.assignAll(cachedFood);
-        isFoodDataFirstLoading.value = false;
-      } else {
-        foodDataList.clear();
-      }
-      foodDataPage = 1;
-      foodDataHasMore = true;
-    }
-
-    try {
-      Map<String, dynamic> params = {
-        ApiKeys.page: foodDataPage,
-        ApiKeys.all: true,
-        ApiKeys.type: AppConstants.food,
-        ApiKeys.radius: kmRadius1000,
-        ApiKeys.limit: 20
-      };
-      ResponseModel responseModel = await FoodAiRepo().getFoodService(queryParam: params);
-      if (responseModel.isSuccess) {
-        getAllFoodServiceResponse.value = ApiResponse.complete(responseModel);
-
-        final data = responseModel.response?.data;
-        List<GetFoodDetailsModel> newItems = [];
-
-        if (data is List) {
-          // API returns raw array
-          newItems = data.map((e) => GetFoodDetailsModel.fromJson(e)).toList();
-        } else if (data is Map && data['data'] is List) {
-          newItems = (data['data'] as List)
-              .map((e) => GetFoodDetailsModel.fromJson(e))
-              .toList();
-        } else {
-          log("Unexpected API response: $data");
-        }
-
-        if (newItems.isNotEmpty) {
-          if (isLoadMore) {
-            foodDataList.addAll(newItems);
-          } else {
-            foodDataList.assignAll(newItems);
-            await HiveServices().saveAllStoreFoodServices(newItems, userId);
-          }
-
-          foodDataPage++;
-        } else {
-          foodDataHasMore = false;
-        }
-
-        log("Loaded ${newItems.length} items | Total: ${foodDataList.length}");
-      } else {
-        getAllFoodServiceResponse.value = ApiResponse.error('error');
-      }
-    } catch (e) {
-      getAllFoodServiceResponse.value = ApiResponse.error('error');
-      log("ERROR===== $e");
-    } finally{
-      if (isLoadMore) {
-        isFoodDataLoadingMore.value = false;
-      } else {
-        isFoodDataFirstLoading.value = false;
       }
     }
   }

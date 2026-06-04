@@ -2,30 +2,32 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_dashboard_view.dart';
 import 'package:BlueEra/features/common/Discover/controller/earn_profiles_discover_controller.dart';
-import 'package:BlueEra/features/common/Discover/controller/home_made_food_cart_controller.dart';
-import 'package:BlueEra/features/common/Discover/view/home_made_food_cart_screen.dart';
-import 'package:BlueEra/features/common/Discover/view/home_made_food_store_details_discover_screen.dart';
+import 'package:BlueEra/features/common/Discover/controller/hmp_cart_controller.dart';
+import 'package:BlueEra/features/common/Discover/view/hmp_cart_screen.dart';
+import 'package:BlueEra/features/common/Discover/view/hmp_store_details_discover_screen.dart';
 import 'package:BlueEra/features/common/Discover/widget/banner_carousel.dart';
 import 'package:BlueEra/features/common/Discover/widget/earn_profile_store_list.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/home_made_food_profile_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_dashboard_view.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/home_made_product_profile_screen.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/floating_cart_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
-class HomeMadeFoodStoreDiscoverScreen extends StatefulWidget {
-  const HomeMadeFoodStoreDiscoverScreen({super.key});
+class HmpDiscoverScreen extends StatefulWidget {
+  final bool isShowInGrid;
+
+  const HmpDiscoverScreen({super.key, this.isShowInGrid = false});
 
   @override
-  State<HomeMadeFoodStoreDiscoverScreen> createState() => _HomeMadeFoodStoreDiscoverScreenState();
+  State<HmpDiscoverScreen> createState() => _HmpDiscoverScreenState();
 }
 
-class _HomeMadeFoodStoreDiscoverScreenState extends State<HomeMadeFoodStoreDiscoverScreen> {
-  static const String _profileType = 'homeMadeFood';
+class _HmpDiscoverScreenState extends State<HmpDiscoverScreen> {
+  static const String _profileType = 'homeMadeProduct';
   static const Color _primary = AppColors.primaryColor;
   static const Color _primaryDark = AppColors.blue5CAF;
 
@@ -34,20 +36,20 @@ class _HomeMadeFoodStoreDiscoverScreenState extends State<HomeMadeFoodStoreDisco
     tag: _profileType,
   );
 
-  // Shared cart for the whole home made food flow — registered here (the
+  // Shared cart for the whole home made product flow — registered here (the
   // flow entry) so it survives entering / leaving the store details screen.
-  final cartController = getOrPut(() => HomeMadeFoodCartController());
+  final cartController = getOrPut(() => HmpCartController());
 
   final List<String> _bannerImages = const [
-    "https://img.freepik.com/free-photo/top-view-indian-food-arrangement_23-2148723455.jpg?w=1380",
-    "https://img.freepik.com/free-photo/high-angle-pakistani-meal-composition_23-2148825105.jpg?w=1380",
-    "https://img.freepik.com/free-photo/delicious-indian-dosa-composition_23-2149086052.jpg?w=1380",
+    "https://img.freepik.com/free-photo/arrangement-handmade-soap-bars_23-2148990916.jpg?w=1380",
+    "https://img.freepik.com/free-photo/composition-aromatic-handmade-candles_23-2148906327.jpg?w=1380",
+    "https://img.freepik.com/free-photo/handmade-pottery-arrangement-still-life_23-2149385017.jpg?w=1380",
   ];
 
   @override
   void dispose() {
     deleteIfRegistered<EarnProfilesDiscoverController>(tag: _profileType);
-    deleteIfRegistered<HomeMadeFoodCartController>();
+    deleteIfRegistered<HmpCartController>();
     super.dispose();
   }
 
@@ -114,9 +116,9 @@ class _HomeMadeFoodStoreDiscoverScreenState extends State<HomeMadeFoodStoreDisco
                     child: ElevatedButton(
                       onPressed: () {
                         Get.back();
-                        final kitchen = cartController.store.value;
-                        if (kitchen != null) {
-                          Get.to(() => HomeMadeFoodCartScreen(store: kitchen));
+                        final seller = cartController.store.value;
+                        if (seller != null) {
+                          Get.to(() => HmpCartScreen(store: seller));
                         }
                       },
                       style: ElevatedButton.styleFrom(
@@ -217,6 +219,29 @@ class _HomeMadeFoodStoreDiscoverScreenState extends State<HomeMadeFoodStoreDisco
     );
   }
 
+  // ── Floating cart bar (shared cart) ──────────────────────────────────────
+  Widget _buildCartBar() {
+    return Obx(() {
+      // ignore: unused_local_variable
+      final _ = cartController.quantities.length; // subscribe to changes
+      if (cartController.isEmpty) return const SizedBox.shrink();
+      final count = cartController.totalItems;
+      final seller = cartController.store.value;
+      return Center(
+        child: FloatingCartWidget(
+          itemCount: count,
+          displayImages: cartController.previewImages,
+          cartLabel: 'View Cart',
+          itemLabel:
+              '$count ${count == 1 ? 'item' : 'items'}  •  ${AppConstants.rupeeSymbol}${cartController.totalPrice.toStringAsFixed(0)}',
+          onTap: seller == null
+              ? () {}
+              : () => Get.to(() => HmpCartScreen(store: seller)),
+        ),
+      );
+    });
+  }
+
   Widget _buildContent() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -225,10 +250,11 @@ class _HomeMadeFoodStoreDiscoverScreenState extends State<HomeMadeFoodStoreDisco
         Expanded(
           child: EarnProfileStoreList(
             controller: controller,
-            footerLabel: 'View Kitchen Menu',
-            emptyMessage: 'No home made food kitchens found nearby.',
+            footerLabel: 'View Products',
+            emptyMessage: 'No home made product sellers found nearby.',
             bottomPadding: 96,
-            onStoreTap: (store) => Get.to(() => HomeMadeFoodStoreDetailsDiscoverScreen(store: store)),
+            onStoreTap: (store) =>
+                Get.to(() => HmpStoreDetailsDiscoverScreen(store: store)),
           ),
         ),
       ],
@@ -274,7 +300,7 @@ class _HomeMadeFoodStoreDiscoverScreenState extends State<HomeMadeFoodStoreDisco
                       color: _primary.withValues(alpha: 0.10),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Icon(Icons.soup_kitchen_rounded,
+                    child: const Icon(Icons.storefront_rounded,
                         color: _primary, size: 24),
                   ),
                   const SizedBox(width: 12),
@@ -283,7 +309,7 @@ class _HomeMadeFoodStoreDiscoverScreenState extends State<HomeMadeFoodStoreDisco
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         CustomText(
-                          'Add Your Own Home Made Food',
+                          'Add Your Own Home Made Product',
                           fontSize: 14.5,
                           fontWeight: FontWeight.w800,
                           color: AppColors.mainTextColor,
@@ -292,7 +318,7 @@ class _HomeMadeFoodStoreDiscoverScreenState extends State<HomeMadeFoodStoreDisco
                         ),
                         const SizedBox(height: 2),
                         CustomText(
-                          'Start your home kitchen & reach nearby foodies',
+                          'Start your home business & reach nearby buyers',
                           fontSize: 11.5,
                           fontWeight: FontWeight.w500,
                           color: AppColors.secondaryTextColor,
@@ -329,10 +355,10 @@ class _HomeMadeFoodStoreDiscoverScreenState extends State<HomeMadeFoodStoreDisco
         Get.isRegistered<ViewPersonalDetailsController>()
             ? Get.find<ViewPersonalDetailsController>()
             : getOrPut(() => ViewPersonalDetailsController(), permanent: true);
-    if (viewProfileController.earnProfileType.contains('homeMadeFood')) {
-      Get.to(() => const EarnServiceDashboardView(earnType: 'homeMadeFood'));
+    if (viewProfileController.earnProfileType.contains('homeMadeProduct')) {
+      Get.to(() => const EarnServiceDashboardView(earnType: 'homeMadeProduct'));
     } else {
-      Get.to(() => const HomeMadeFoodProfileScreen());
+      Get.to(() => const HomeProfileScreen());
     }
   }
 
@@ -349,7 +375,7 @@ class _HomeMadeFoodStoreDiscoverScreenState extends State<HomeMadeFoodStoreDisco
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           CustomText(
-            'Home Kitchens Near You',
+            'Home Product Sellers Near You',
             fontSize: 17,
             fontWeight: FontWeight.w800,
             color: AppColors.mainTextColor,
@@ -365,28 +391,5 @@ class _HomeMadeFoodStoreDiscoverScreenState extends State<HomeMadeFoodStoreDisco
         ],
       ),
     );
-  }
-
-  // ── Floating cart bar (shared cart) ──────────────────────────────────────
-  Widget _buildCartBar() {
-    return Obx(() {
-      // ignore: unused_local_variable
-      final _ = cartController.quantities.length; // subscribe to changes
-      if (cartController.isEmpty) return const SizedBox.shrink();
-      final count = cartController.totalItems;
-      final kitchen = cartController.store.value;
-      return Center(
-        child: FloatingCartWidget(
-          itemCount: count,
-          displayImages: cartController.previewImages,
-          cartLabel: 'View Cart',
-          itemLabel:
-              '$count ${count == 1 ? 'item' : 'items'}  •  ${AppConstants.rupeeSymbol}${cartController.totalPrice.toStringAsFixed(0)}',
-          onTap: kitchen == null
-              ? () {}
-              : () => Get.to(() => HomeMadeFoodCartScreen(store: kitchen)),
-        ),
-      );
-    });
   }
 }

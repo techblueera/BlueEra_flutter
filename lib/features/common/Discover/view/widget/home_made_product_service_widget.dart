@@ -4,7 +4,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/Discover/view/discover_screen.dart';
-import 'package:BlueEra/features/common/Discover/view/home_made_product_service_screen.dart';
+import 'package:BlueEra/features/common/Discover/view/hmp_discover_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/home_service_discover_screen.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -12,8 +12,8 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class HomeMadeProductWidget extends StatelessWidget {
-  const HomeMadeProductWidget({super.key});
+class HomeMadeProductAndServiceWidget extends StatelessWidget {
+  const HomeMadeProductAndServiceWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +42,7 @@ class HomeMadeProductWidget extends StatelessWidget {
                         if (categoryItem.slugId == SERVICE) {
                           Get.to(() => HomeServiceDiscoverScreen());
                         } else if (categoryItem.slugId == PRODUCT) {
-                          Get.to(() => HomeMadeProductServiceScreen());
+                          Get.to(() => HmpDiscoverScreen());
                         }
                       },
                       splashColor: AppColors.primaryColor.withValues(alpha: 0.18),

@@ -18,7 +18,7 @@ import 'package:BlueEra/features/common/Discover/view/widget/financial_sectors.d
 import 'package:BlueEra/features/common/Discover/view/widget/find_service_card_widget.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/grocery_card_widget.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/health_service_card_widget.dart';
-import 'package:BlueEra/features/common/Discover/view/widget/home_made_product_widget.dart';
+import 'package:BlueEra/features/common/Discover/view/widget/home_made_product_service_widget.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/hotel_stay_service_card.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/job_service_card_widget.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/professionals_card_widget.dart';
@@ -81,9 +81,8 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
       (widget: ProfessionalsCardWidget(), tabs: {2}),
       (widget: HealthServiceCardWidget(), tabs: {4}),
       (widget: ShoppingCardWidget(), tabs: {3}),
-      (widget: HomeMadeProductWidget(), tabs: {3}),
+      (widget: HomeMadeProductAndServiceWidget(), tabs: {3}),
       (widget: FindServiceCardWidget(), tabs: {4}),
-      // (widget: RentalCardWidget(), tabs: {4}),
       (widget: RentalCardWidget(), tabs: {4}),
       (widget: HotelStayServiceCard(isShowInGrid: inGrid), tabs: {1}),
       (widget: AutomotiveServiceCardWidget(), tabs: {4}),
