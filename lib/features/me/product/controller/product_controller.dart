@@ -748,7 +748,7 @@ class ProductController extends GetxController{
       dynamicAttributes: dynamicAttributes.map(
             (k, v) => MapEntry(k, v.toList()), // convert RxList -> List
       ),
-      variants: aiVariantData,
+      variants: aiVariantData, media: [],
     );
   }
 

@@ -73,7 +73,7 @@ class ProductPreviewArgs {
     this.selectedColors,
     this.dynamicAttributes,
     this.listedProducts,
-    this.variants,
+    this.variants, required List<String> media,
   });
 }
 
