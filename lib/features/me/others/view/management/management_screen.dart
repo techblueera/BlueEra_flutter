@@ -35,8 +35,7 @@ class ManagementScreen extends StatelessWidget {
                   ? ListView.separated(
                       padding: EdgeInsets.all(SizeConfig.size15),
                       itemCount: controller.managementList.length,
-                      separatorBuilder: (context, index) =>
-                          SizedBox(height: SizeConfig.size15),
+                      separatorBuilder: (context, index) => SizedBox(height: SizeConfig.size15),
                       itemBuilder: (context, index) {
                         final item = controller.managementList[index];
                         return _buildManagementCard(context, controller, item);
@@ -46,8 +45,7 @@ class ManagementScreen extends StatelessWidget {
             ),
             SafeArea(
               child: Padding(
-                padding: EdgeInsets.only(
-                    bottom: SizeConfig.size35, right: 20, left: 20),
+                padding: EdgeInsets.only(bottom: SizeConfig.size35, right: 20, left: 20),
                 child: AddMoreIconButton(onTapEvent: () {
                   controller.clearForm();
                   // _showFormDialog(context, controller);
@@ -62,8 +60,7 @@ class ManagementScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildManagementCard(BuildContext context,
-      ManagementController controller, ManagementData item) {
+  Widget _buildManagementCard(BuildContext context, ManagementController controller, ManagementData item) {
     return Container(
       padding: EdgeInsets.all(SizeConfig.size10),
       decoration: BoxDecoration(
@@ -129,8 +126,7 @@ class ManagementScreen extends StatelessWidget {
                               } else if (value == 'Delete') {
                                 commonConformationDialog(
                                   context: context,
-                                  text:
-                                      AppStrings.otherConfirmDeleteMember.tr,
+                                  text: AppStrings.otherConfirmDeleteMember.tr,
                                   confirmCallback: () {
                                     Get.back();
                                     controller.deleteManagement(item.sId ?? "");
@@ -140,10 +136,8 @@ class ManagementScreen extends StatelessWidget {
                               }
                             },
                             itemBuilder: (context) => [
-                              PopupMenuItem(
-                                  value: 'Edit', child: Text(AppStrings.edit.tr)),
-                              PopupMenuItem(
-                                  value: 'Delete', child: Text(AppStrings.delete.tr)),
+                              PopupMenuItem(value: 'Edit', child: Text(AppStrings.edit.tr)),
+                              PopupMenuItem(value: 'Delete', child: Text(AppStrings.delete.tr)),
                             ],
                           ),
                         )
@@ -160,8 +154,7 @@ class ManagementScreen extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                    if (item.qualification != null &&
-                        item.qualification!.isNotEmpty)
+                    if (item.qualification != null && item.qualification!.isNotEmpty)
                       Padding(
                         padding: const EdgeInsets.only(top: 2.0),
                         child: CustomText(
@@ -172,7 +165,6 @@ class ManagementScreen extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-
                   ],
                 ),
               ),
@@ -181,8 +173,8 @@ class ManagementScreen extends StatelessWidget {
           SizedBox(height: SizeConfig.size15),
           if (item.message != null && item.message!.isNotEmpty)
             ExpandableText(
-              text:"NTo remove the extra padding that PopupMenuButton forces on its surroundings, you have to tackle two things: the Button Padding and the Minimum Hitbox size.",
-              // text: item.message ?? "N/A",
+              // text:"NTo remove the extra padding that PopupMenuButton forces on its surroundings, you have to tackle two things: the Button Padding and the Minimum Hitbox size.",
+              text: item.message ?? "N/A",
               trimLines: 1,
               isReadMoreNewLine: false,
               expandMode: ExpandMode.dialog,
