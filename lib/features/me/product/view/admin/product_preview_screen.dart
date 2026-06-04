@@ -26,7 +26,7 @@ import 'package:get/get.dart';
 
 class ProductPreviewArgs {
   final String? productId;
-  final List<String>? media;
+  final List<String>? productImages;
   final String? name;
   final String? description;
   final List<String>? tags;
@@ -57,7 +57,7 @@ class ProductPreviewArgs {
 
   ProductPreviewArgs({
     this.productId,
-    this.media,
+    this.productImages,
     this.name,
     this.description,
     this.tags,
@@ -157,7 +157,7 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
     }
 
     // Reactive lists
-    controller.allProductImages.assignAll(args.media ?? []);
+    controller.allProductImages.assignAll(args.productImages ?? []);
     controller.tags.assignAll(args.tags ?? []);
 
     controller.featureControllers
@@ -1358,7 +1358,7 @@ class _ProductPreviewScreenState extends State<ProductPreviewScreen> {
           if (isSelected) {
             controller.selectedVariantIndex.value = -1;
             controller.allProductImages.value =
-                widget.productPreviewArgs?.media ?? [];
+                widget.productPreviewArgs?.productImages ?? [];
             controller.selectedProductOrVariantPrice.value = '00, 000';
             controller.selectedProductOrVariantMrp.value = '00,000';
             controller.selectedProductOrVariantDiscount.value = '0';

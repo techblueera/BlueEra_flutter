@@ -86,6 +86,7 @@ class ApiKeys {
   static const image_url = 'image_url';
   static const category_image = 'category_image';
   static const media = 'media';
+  static const productImages = 'productImages';
   static const latitude = 'latitude';
   static const longitude = 'longitude';
   static const altitude = 'altitude';

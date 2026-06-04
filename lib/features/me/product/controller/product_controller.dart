@@ -677,7 +677,7 @@ class ProductController extends GetxController{
               contentType: MediaType.parse(mimeType ?? 'application/octet-stream'),
             ));
       }
-      params[ApiKeys.media] = imageByPart;
+      params[ApiKeys.productImages] = imageByPart;
 
       final responseModel = await ProductRepo().createProductViaAiApi(params: params);
       // `message` is dynamic and is null for the success (201) response, so
@@ -731,7 +731,7 @@ class ProductController extends GetxController{
 
     return ProductPreviewArgs(
       productId: productId ?? '',
-      media: step2Images.toList(),
+      productImages: step2Images.toList(),
       name: productNameController.text.trim(),
       description: productDescriptionController.text.trim(),
       tags: tags,
