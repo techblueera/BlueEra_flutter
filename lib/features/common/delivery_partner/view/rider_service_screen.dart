@@ -844,7 +844,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen> with RouteAware
                   onImageUpdate: (image) async {
                     // Reflect the freshly-picked photo immediately.
                     _personalCtrl.imagePath?.value = image;
-                    // Only upload freshly-picked local files; a network URL is
+                    // Only upload freshly-picked local files; a network UzRL is
                     // an already-saved image and has nothing to re-upload.
                     if (isNetworkImage(image)) return;
                     // Surface every failure: this callback is fire-and-forget

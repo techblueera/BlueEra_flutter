@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:io';
 import 'dart:ui' as ui;
 
@@ -330,21 +329,30 @@ class PhotoPickerService {
     CropAspectRatio? cropAspectRatio,
     int page = 0,
   }) async {
-    final imageFile = File(filePath);
-    final fileImage = FileImage(imageFile);
+    final fileImage = FileImage(File(filePath));
 
+    // Pre-decode the image so the cropper opens without a blank frame.
+    // Dismiss the spinner via the root navigator (and a `finally`) so we
+    // never pop the wrong route or leave it stuck if precache throws.
+    final rootNavigator = Navigator.of(context, rootNavigator: true);
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (_) => const Center(child: CircularProgressIndicator()),
     );
-    await precacheImage(fileImage, context);
-    if (context.mounted) Navigator.of(context).pop();
-
-    final completer = Completer<String>();
+    try {
+      await precacheImage(fileImage, context);
+    } finally {
+      if (rootNavigator.canPop()) rootNavigator.pop();
+    }
 
     if (!context.mounted) return '';
-    showCupertinoImageCropper(
+
+    // Await the cropper's own result. With `shouldPopAfterCrop` the cropper
+    // pops itself with the CropImageResult on submit, or with null when the
+    // user backs out — so cancellation returns cleanly instead of hanging,
+    // and a successful crop always reaches us here.
+    final result = await showCupertinoImageCropper(
       context,
       locale: const Locale('en', 'US'),
       imageProvider: fileImage,
@@ -363,15 +371,16 @@ class PhotoPickerService {
               CropAspectRatio(width: 3, height: 4), // Common portrait
             ],
       showLoadingIndicatorOnSubmit: true,
-      postProcessFn: (result) async {
-        final savedFile = await _saveUiImageToFile(result.uiImage, page);
-        completer.complete(savedFile?.path ?? '');
-        return result;
-      },
       themeData: const CupertinoThemeData(),
     );
 
-    return completer.future;
+    if (result == null) return ''; // user cancelled the cropper
+
+    // Remember the framing so re-opening this slot restores the crop.
+    _cropMemory[page] = result.transformationsData;
+
+    final savedFile = await _saveUiImageToFile(result.uiImage, page);
+    return savedFile?.path ?? '';
   }
 
   // ─────────────────────────────────────────────────────────────
@@ -390,12 +399,16 @@ class PhotoPickerService {
     final XFile? pickedFile;
     try {
       pickedFile = await picker.pickImage(source: source);
+
     } on PlatformException catch (e) {
+
       _handlePickerError(e, source: source);
+
       return null;
     }
 
     if (pickedFile == null) return null;
+
     if (!context.mounted) return null;
 
     return _processImage(
@@ -419,23 +432,27 @@ class PhotoPickerService {
     required int page,
   }) async {
     final originalSize = await originalFile.length();
+
     final compressedFile = await compressImage(
       originalFile,
       quality: quality ?? 70,
       minWidth: minWidth,
       minHeight: minHeight,
     );
+
     final finalImage = compressedFile ?? originalFile;
     final newSize = await finalImage.length();
     _logCompression(originalSize, newSize, compressedFile != null);
 
     if (!context.mounted) return null;
+
     final croppedPath = await cropImage(
       context,
       finalImage.path,
       cropAspectRatio: cropAspectRatio,
       page: page,
     );
+
     return croppedPath.isEmpty ? null : croppedPath;
   }
 

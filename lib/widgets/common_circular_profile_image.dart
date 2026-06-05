@@ -104,14 +104,21 @@ class _CommonProfileImageState extends State<CommonProfileImage> {
 
   ///SELECT IMAGE AND SHOW DIALOG...
   selectImage(BuildContext context, String titleOfDialog) async {
-    widget.imagePath =
-        await PhotoPickerService.pickSinglePhoto(context, titleOfDialog);
-    print('image path-> ${widget.imagePath}');
-    if (widget.imagePath?.isNotEmpty ?? false) {
-      ///SET IMAGE PATH...
-      widget.onImageUpdate(widget.imagePath ?? "");
+    try {
+    String? myImg =
+          await PhotoPickerService.pickSinglePhoto(context, titleOfDialog);
+      print('image path myImg -> ${myImg}');
+      widget.imagePath=myImg;
+      print('image path-> ${widget.imagePath}');
+      if (widget.imagePath?.isNotEmpty ?? false) {
+        ///SET IMAGE PATH...
+        widget.onImageUpdate(widget.imagePath ?? "");
 
-      setState(() {});
+        setState(() {});
+      }
+    } on Exception catch (e) {
+      logs("ERROR IMG ==== ${e}");
+      // TODO
     }
   }
 }
