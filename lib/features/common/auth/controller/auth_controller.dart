@@ -427,7 +427,7 @@ class AuthController extends GetxController {
         ));
       }
       await Future.wait(pending);
-
+      // https://be.beapp.in/api/map-service/api/stores?page=1&limit=20&lat=21.1902733&lng=72.8644417&type=Service&radius=1500&category_id=CONSULTING_BUSINESS_SERVICES
       // Cascade settled — only now surface the success message so the
       // user sees it as a confirmation, not while the spinner is still
       // running.
@@ -551,6 +551,7 @@ class AuthController extends GetxController {
             final controller =
                 getOrPut(() => BusinessProfileFullController());
             reqBody['profileName'] = reqData[ApiKeys.business_name];
+            reqBody['type'] = "other";
             pending.add(
                 controller.createOtherProfileController(reqParm: reqBody));
           } else if (typeOfBusiness == "FINANCE" ||
