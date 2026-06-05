@@ -932,7 +932,7 @@ class _HomeMadeFoodHomePageState extends State<HomeMadeFoodHomePage> {
   // ─────────────────────────────────────────────
   Widget _section(String title, Widget child, {EdgeInsetsGeometry? margin}) {
     return CustomFormCard(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
       margin: margin ?? const EdgeInsets.symmetric(horizontal: 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

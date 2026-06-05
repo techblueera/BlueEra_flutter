@@ -17,6 +17,7 @@ import 'package:BlueEra/widgets/common_location_search_field.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_switch_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/use_current_location_button.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -164,6 +165,19 @@ class _HomeMadeFoodProfileScreenState extends State<HomeMadeFoodProfileScreen> {
                     _selectedLat = lat;
                     _selectedLng = lng;
                   },
+                ),
+                SizedBox(height: SizeConfig.size8),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: UseCurrentLocationButton(
+                    onResolved: (lat, lng, address) {
+                      setState(() {
+                        _addressController.text = address;
+                        _selectedLat = lat;
+                        _selectedLng = lng;
+                      });
+                    },
+                  ),
                 ),
                 SizedBox(height: SizeConfig.size16),
 

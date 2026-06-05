@@ -122,14 +122,9 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
         .join(' ');
   }
 
-  /// Effective price used for the Price (Low–High) sort.
-  /// `priceRange.min` for range pricing, `singlePrice` otherwise.
-  num _priceFor(ServiceData s) {
-    final pd = s.priceData;
-    if (pd == null) return 0;
-    if (pd.priceType == 'range') return pd.priceRange?.min ?? 0;
-    return pd.singlePrice ?? 0;
-  }
+  /// Effective price used for the Price (Low–High) sort — the range/single
+  /// minimum (handles both legacy `singlePrice` and the newer `priceRange`).
+  num _priceFor(ServiceData s) => s.priceData?.effectiveMin ?? 0;
 
   Widget _buildServicesMap(double statusBarHeight) {
     return DiscoverMapPreview(
@@ -153,14 +148,13 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
   /// [_SelfProfessionMapScreen] depending on where the marker was tapped.
   void _showServiceMapSheet(BuildContext hostContext, ServiceData service) {
     final priceData = service.priceData;
-    final isRange = priceData?.priceType == 'range';
+    final isRange = priceData?.effectiveIsRange ?? false;
     final priceDisplay = isRange
-        ? "₹${formatIndianNumber(priceData?.priceRange?.min ?? 0)}-${formatIndianNumber(priceData?.priceRange?.max ?? 0)}"
-        : "₹${formatIndianNumber(priceData?.singlePrice ?? 0)}";
-    final priceUnit =
-        (priceData?.perUnit?.trim().isNotEmpty ?? false)
-            ? priceData!.perUnit!
-            : 'Hour';
+        ? "₹${formatIndianNumber(priceData?.effectiveMin ?? 0)}-${formatIndianNumber(priceData?.effectiveMax ?? 0)}"
+        : "₹${formatIndianNumber(priceData?.effectiveMin ?? 0)}";
+    final priceUnit = (priceData?.unitLabel.isNotEmpty ?? false)
+        ? priceData!.unitLabel
+        : 'Hour';
     final ratingValue = service.rating != null && service.rating != 0
         ? service.rating.toString()
         : '0';
@@ -291,10 +285,11 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
                         Get.to(() => SelfEmployeeViewScreen(
                               service: service,
                               timingMap:
-                                  getMinMaxTimings(service.service?.timings),
+                                  getMinMaxTimings(service.service?.effectiveTimings),
                               priceDisplay: priceDisplay,
-                              priceBadgeText: priceData?.priceType
-                                      .toString()
+                              priceBadgeText: (priceData?.feeType ??
+                                          priceData?.priceType ??
+                                          '')
                                       .capitalizeFirst ??
                                   '',
                               priceBadgeColor: isRange
@@ -515,12 +510,11 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
 
     final rating = service.rating ?? 0;
     final priceData = service.priceData;
-    final isRange = priceData?.priceType == 'range';
-    final priceMin =
-        isRange ? (priceData?.priceRange?.min ?? 0) : (priceData?.singlePrice ?? 0);
-    final priceMax = isRange ? (priceData?.priceRange?.max ?? 0) : 0;
+    final isRange = priceData?.effectiveIsRange ?? false;
+    final priceMin = priceData?.effectiveMin ?? 0;
+    final priceMax = priceData?.effectiveMax ?? 0;
     final distance = (service.distance ?? 0).toDouble();
-    final timingMap = getMinMaxTimings(service.service?.timings);
+    final timingMap = getMinMaxTimings(service.service?.effectiveTimings);
     final timingStart = timingMap['start'] ?? '--';
     final timingEnd = timingMap['end'] ?? '--';
 
@@ -562,7 +556,8 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
         ? "₹${formatIndianNumber(priceMin)}-${formatIndianNumber(priceMax)}"
         : "₹${formatIndianNumber(priceMin)}";
     final badgeColor = isRange ? AppColors.green1A : AppColors.primaryColor;
-    final badgeText = priceData?.priceType.toString().capitalizeFirst ?? '';
+    final badgeText =
+        (priceData?.feeType ?? priceData?.priceType ?? '').capitalizeFirst ?? '';
 
     void openDetail() => Get.to(() => SelfEmployeeViewScreen(
           service: service,

@@ -92,6 +92,10 @@ class GetProductData {
       businessId ??= inventory['businessId']?.toString();
       synthesizedVariants.add({
         '_id': variant['_id'] ?? '',
+        // The inventory record's own id — the one the inventory-update
+        // endpoint (`PUT /inventory/{id}`) expects, distinct from the
+        // variant `_id`.
+        'inventory_id': inventory['_id'] ?? inventory['inventoryId'] ?? '',
         'attributes': variant['attributes'] ?? const <String, dynamic>{},
         'stock': inventory['isOutOfStock'] != true,
         'sellingPrice': firstPricing['sellingPrice'] ?? 0,
@@ -489,11 +493,17 @@ class Owner {
 class Variant {
   final Map<String, dynamic> attributes; // dynamic attributes
   final bool stock;
-  final num sellingPrice;
+  // Mutable so a successful price edit can be reflected in-memory without a
+  // full (and possibly stale) product refetch.
+  num sellingPrice;
+  num mrp;
+  bool variantIsActive;
   final List<String> mediaRelatedToVariant;
-  final num mrp;
-  final bool variantIsActive;
   final String id;
+
+  /// The inventory record id for this variant (distinct from the variant
+  /// `_id`). This is what `PUT /inventory/{id}` expects.
+  final String inventoryId;
 
   Variant({
     required this.attributes,
@@ -503,6 +513,7 @@ class Variant {
     required this.mrp,
     required this.variantIsActive,
     required this.id,
+    this.inventoryId = '',
   });
 
   factory Variant.fromJson(Map<String, dynamic> json) {
@@ -515,6 +526,8 @@ class Variant {
       mrp: json['mrp'] ?? 0,
       variantIsActive: json['varientIsActive'] ?? false,
       id: json['_id'] ?? '',
+      inventoryId:
+          (json['inventory_id'] ?? json['inventoryId'] ?? '').toString(),
     );
   }
 
@@ -527,6 +540,7 @@ class Variant {
       'mrp': mrp,
       'varientIsActive': variantIsActive,
       '_id': id,
+      'inventory_id': inventoryId,
     };
   }
 }

@@ -48,6 +48,9 @@ mixin ProductServiceApi {
   String updateProductInventory(String id) =>
       'product-service/api/inventory/$id';
 
+  /// Place a product order. `POST product-service/api/orders`.
+  final String placeProductOrder = 'product-service/api/orders';
+
   /// Mirrors grocery's `createNewProductVariant` — same `/products/<id>/variants`
   /// path, only the service prefix changes. Renamed here to avoid a mixin
   /// member clash with [GroceryServiceApi.createNewProductVariant].

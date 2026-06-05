@@ -8,8 +8,8 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/controller/earn_profile_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/home_made_food_home_page.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/home_made_product_home_page.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/hmf_home_page.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/hmp_home_page.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/home_service_home_page.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/earn_service_dashboard_header.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/earn_service_website_card.dart';
@@ -53,7 +53,12 @@ class _EarnServiceDashboardViewState extends State<EarnServiceDashboardView> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _earnProfileCtrl.fetchEarnProfile(activeType: widget.earnType);
+      // Only this dashboard's flavour is rendered here, so fetch just its
+      // profile rather than every owned earn type.
+      _earnProfileCtrl.fetchEarnProfile(
+        activeType: widget.earnType,
+        onlyActiveType: widget.earnType != null,
+      );
       _viewCtrl.shopStatusOpenClose.value =
           serviceProviderStatusGlobal.toUpperCase() ==
               AppConstants.OPEN.toUpperCase();

@@ -1,6 +1,6 @@
 import 'package:BlueEra/features/common/reel/controller/channel_controller.dart';
 import 'package:BlueEra/features/me/product/controller/inventory_controller.dart';
-import 'package:BlueEra/features/me/product/view/admin/widget/own_product_card.dart';
+import 'package:BlueEra/features/me/product/view/admin/widget/admin_product_card.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
@@ -60,7 +60,7 @@ class _ChannelProductListingState extends State<ChannelProductListing> {
                 final productData = productList[index];
                 return Padding(
                   padding: EdgeInsets.only(bottom: SizeConfig.size10),
-                  child: OwnProductCard(
+                  child: AdminProductCard(
                     product: productData,
                     isGridShow: false,
                     deleteProductApi: (){

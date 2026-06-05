@@ -693,7 +693,7 @@ class BusinessProfileHeaderView extends StatelessWidget {
       final newPath = await PhotoPickerService.pickSinglePhoto(
         context,
         AppStrings.editCoverPicture.tr,
-        cropAspectRatio: CropAspectRatio(width: 3, height: 1),
+        cropAspectRatio: CropAspectRatio(width: 3, height: 2),
       ).catchError((_) => null);
 
       if (newPath == null || newPath.isEmpty) {

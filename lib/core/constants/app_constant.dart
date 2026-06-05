@@ -2270,8 +2270,7 @@ final Map<String, String> individualProfessionIcons = {
   EVENT_PLANNER_DETECTIVE: OnboardingIndividualAssets.eventPlanDetective,
   PROPERTY_BROKER_ARCHITECT: OnboardingIndividualAssets.propertyBrokerArchitect,
   BUSINESS_HR_CONSULTANT: OnboardingIndividualAssets.businessHrConsultant,
-  INDUSTRY_QUALITY_CONSULTANT:
-      OnboardingIndividualAssets.industryQualityConsultant,
+  INDUSTRY_QUALITY_CONSULTANT: OnboardingIndividualAssets.industryQualityConsultant,
   TECH_DIGITAL_FREELANCER: OnboardingIndividualAssets.techDigitalFreelancer,
 };
 

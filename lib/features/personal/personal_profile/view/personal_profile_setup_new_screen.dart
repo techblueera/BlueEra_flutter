@@ -1757,7 +1757,7 @@ class _PersonalProfileSetupNewScreenState
                                 await PhotoPickerService.pickSinglePhoto(
                                     context, AppStrings.editCoverPicture,
                                     cropAspectRatio:
-                                        CropAspectRatio(width: 3, height: 1)
+                                        CropAspectRatio(width: 3, height: 2)
                                     // cropAspectRatio: CropAspectRatio(width: 16, height: 9)
                                     );
 

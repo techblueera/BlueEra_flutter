@@ -1,7 +1,7 @@
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/me/product/view/admin/widget/own_product_card.dart';
+import 'package:BlueEra/features/me/product/view/admin/widget/admin_product_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/controller/earn_service_controller.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
@@ -78,7 +78,10 @@ class _HomeMadeProductsViewAllScreenState
               final itemWidth =
                   (constraints.maxWidth - spacing - (2 * SizeConfig.size8)) /
                       crossAxisCount;
-              final childAspectRatio = itemWidth / SizeConfig.size240;
+              // Cell height tracks the card's own content so every card is the
+              // same height regardless of name length (see gridCardHeight).
+              final childAspectRatio =
+                  itemWidth / AdminProductCard.gridCardHeight;
 
               return GridView.builder(
                 controller: _scrollController,
@@ -107,11 +110,12 @@ class _HomeMadeProductsViewAllScreenState
                       ),
                     );
                   }
-                  return OwnProductCard(
+                  return AdminProductCard(
                     product: products[index],
                     deleteProductApi: () {},
                     width: itemWidth,
                     isGridShow: true,
+
                   );
                 },
               );

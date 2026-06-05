@@ -293,7 +293,7 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
 
     final productPreviewArgs = ProductPreviewArgs(
       productId: product.id,
-      media: product.media.isNotEmpty ? product.media : variant.media,
+      productImages: product.media.isNotEmpty ? product.media : variant.media,
       name: product.name,
       description: product.description,
       tags: product.tags,
