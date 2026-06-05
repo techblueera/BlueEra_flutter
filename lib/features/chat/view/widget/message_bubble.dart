@@ -17,6 +17,7 @@ import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/controller/chat_view_controller.dart';
 import '../order_main_chat_screen.dart';
 import 'component_widgets.dart';
+import 'phone_user_preview.dart';
 class MessageBubble extends StatefulWidget {
   final String message;
   final String time;
@@ -130,11 +131,18 @@ class _MessageBubbleState extends State<MessageBubble> {
       ),
     );
   }
-  /// Splits [text] into inline spans, rendering any standalone 10-digit Indian
-  /// mobile number (starts 6–9) as a tappable link. Tapping resolves the
-  /// number to a BlueEra user and opens the details bottom sheet.
+  /// Splits [text] into inline spans, rendering any Indian mobile number as a
+  /// tappable link. Matches the bare 10-digit form (starts 6–9) as well as
+  /// numbers written with a `+91` / `91` / `0` country/trunk code and/or
+  /// spaces or dashes between digit groups (e.g. `+91 89806 97555`). Tapping
+  /// resolves the number to a BlueEra user (the lookup itself strips the code /
+  /// separators and keeps the last 10 digits) and opens the details sheet.
   List<InlineSpan> _buildPhoneAwareSpans(String text, TextStyle baseStyle) {
-    final phoneReg = RegExp(r'(?<!\d)([6-9]\d{9})(?!\d)');
+    // Optional country/trunk code, then a 10-digit national number whose first
+    // digit is 6–9, allowing a single space/dash between any two digits.
+    final phoneReg = RegExp(
+      r'(?<!\d)(?:\+?91[\s-]?|0)?[6-9]\d(?:[\s-]?\d){8}(?!\d)',
+    );
     final matches = phoneReg.allMatches(text).toList();
     if (matches.isEmpty) {
       return [TextSpan(text: text, style: baseStyle)];
@@ -146,18 +154,12 @@ class _MessageBubbleState extends State<MessageBubble> {
         spans.add(TextSpan(text: text.substring(last, m.start), style: baseStyle));
       }
       final phone = m.group(0)!;
-      spans.add(TextSpan(
-        text: phone,
-        style: baseStyle.copyWith(
-          color: AppColors.primaryColor,
-          fontWeight: FontWeight.w600,
-          decoration: TextDecoration.underline,
-        ),
-        recognizer: TapGestureRecognizer()
-          ..onTap = () {
-            FocusScope.of(context).unfocus();
-            chatViewController.openUserDetailsByPhone(phone);
-          },
+      // Inline preview: shows the BlueEra user's DP + name when the number
+      // belongs to a BlueEra account (looked up once, cached), otherwise the
+      // plain tappable underlined number.
+      spans.add(WidgetSpan(
+        alignment: PlaceholderAlignment.middle,
+        child: PhoneUserPreview(rawPhone: phone, baseStyle: baseStyle),
       ));
       last = m.end;
     }

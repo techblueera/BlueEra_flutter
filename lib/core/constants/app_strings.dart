@@ -5129,6 +5129,12 @@ class AppStrings {
   static const String selectLabel = "selectLabel";
   static const String copiedLabel = "copiedLabel";
   static const String messageCopied = "messageCopied";
+  static const String starLabel = "starLabel";
+  static const String unstarLabel = "unstarLabel";
+  static const String starredMessagesLabel = "starredMessagesLabel";
+  static const String messageStarred = "messageStarred";
+  static const String messageUnstarred = "messageUnstarred";
+  static const String noStarredMessages = "noStarredMessages";
   static const String tapToView = "tapToView";
   static const String documentLabel = "documentLabel";
   static const String contactLabel = "contactLabel";

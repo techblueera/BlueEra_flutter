@@ -221,11 +221,12 @@ class GrocerySelfPickupConsumerController extends GetxController {
       controller.onChangeIndex(2);
 
       ChatViewController  chatViewController = getOrPut(() => ChatViewController());
-      chatViewController.emitEvent(ChatEmitEvents.ChatList, {ApiKeys.type: AppConstants.business_Chat_Type},);
       // Land on the Inquiry (business) tab — the placed order is a buyer-side
       // business chat, so it surfaces there under the merged BusinessChatsList.
       chatViewController.onSelectChatTab(1);
       Get.until((route) => route.settings.name ==  RouteConstant.BottomNavigationBarScreen);
+      chatViewController.emitEvent(ChatEmitEvents.ChatList, {ApiKeys.type: AppConstants.business_Chat_Type},);
+
       placeBulkGroceryOrderResponse.value = ApiResponse.complete(response);
       AppLoader.hide();
       selectedGroceriesVariants.clear();

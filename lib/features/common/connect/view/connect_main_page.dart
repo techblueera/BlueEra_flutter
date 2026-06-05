@@ -22,6 +22,7 @@ import 'package:BlueEra/features/chat/view/flag_chat/personal_flagged_chats_scre
 import 'package:BlueEra/features/chat/view/personal_chat/chat_search_screen.dart';
 import 'package:BlueEra/features/chat/view/personal_chat/personal_chat_list.dart';
 import 'package:BlueEra/features/chat/view/reminder_chat/reminder_todo_screen.dart';
+import 'package:BlueEra/features/chat/view/starred_chat/starred_messages_screen.dart';
 import 'package:BlueEra/features/chat/view/symbol_view/symbol_view_images.dart';
 import 'package:BlueEra/features/chat/view/wallet_chat/wallet_chat_screen.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
@@ -35,6 +36,7 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_upgrade_version/flutter_upgrade_version.dart';
 import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -347,14 +349,42 @@ class _ConnectMainPageState extends State<ConnectMainPage> with SingleTickerProv
     );
   }
 
-  /// Action row for the Inquiry (business) tab — the flag affordance that
-  /// previously lived in `OrderMainChatScreen`'s header.
+  /// Action row for the Inquiry (business) tab — basket + rider shortcuts and
+  /// the flag affordance that previously lived in `OrderMainChatScreen`'s
+  /// header. Shown only on the Inquiry tab.
   Widget _buildInquiryTabActions() {
     return Padding(
       padding: const EdgeInsets.only(top: 10, right: 14.0),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
+
+          InkWell(
+            onTap: () {
+              // TODO: wire to the rider destination.
+              commonSnackBar(message: "Coming soon....");
+            },
+            borderRadius: BorderRadius.circular(20),
+            child: SvgPicture.asset(
+              AppIconAssets.riderIcon,
+              width: 34,
+              height: 26,
+              colorFilter:
+                  const ColorFilter.mode(Colors.blue, BlendMode.srcIn),
+            ),
+          ),
+          const SizedBox(width: 16),
+
+          InkWell(
+            onTap: () {
+              // TODO: wire to the basket/orders destination.
+              commonSnackBar(message: "Coming soon....");
+            },
+            borderRadius: BorderRadius.circular(20),
+            child: const Icon(Icons.shopping_cart_outlined,
+                size: 24, color: Colors.black),
+          ),
+          const SizedBox(width: 16),
           InkWell(
             onTap: () => Get.to(() => const OrderFlaggedChatsScreen()),
             borderRadius: BorderRadius.circular(20),
@@ -547,6 +577,9 @@ class _ConnectMainPageState extends State<ConnectMainPage> with SingleTickerProv
                       // order" from a customer), emptying the tab.
                       BusinessChatsList(
                         isForwardUI: false,
+                        // Flag conversations created in the last 4 hours with a
+                        // "New" label below the time in the Inquiry tab.
+                        showNewIfRecentlyCreated: true,
                       ),
                       // Call tab. CallHistoryScreen owns its own scrollable;
                       // detach it from the parent NestedScrollView's inherited
@@ -911,6 +944,17 @@ class _ConnectMainPageState extends State<ConnectMainPage> with SingleTickerProv
                             Get.to(() => LockedChatsScreen(
                                   initialIsBusiness: selectedIndex == 1,
                                 ));
+                          },
+                        ),
+                        _menuDivider(),
+                        _drawerMenuItem(
+                          icon: Icons.star_rounded,
+                          label: AppStrings.starredMessagesLabel.tr,
+                          iconColor: const Color(0xFFE8B100),
+                          bgColor: const Color(0xFFFFF8E1),
+                          onTap: () {
+                            Navigator.pop(context);
+                            Get.to(() => const StarredMessagesScreen());
                           },
                         ),
                         _menuDivider(),

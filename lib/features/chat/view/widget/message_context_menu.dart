@@ -6,9 +6,11 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 import '../../../../core/api/apiService/api_keys.dart';
+import '../../../../core/constants/getx_utils.dart';
 import '../../../../core/services/chat_media_storage_service.dart';
 import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/controller/chat_view_controller.dart';
+import '../../auth/controller/starred_message_controller.dart';
 import '../../auth/model/GetListOfMessageData.dart';
 import '../forward_screen/chat_forward_screen.dart';
 import 'common_delete_message.dart';
@@ -256,6 +258,9 @@ class _ContextMenuCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final chatViewController = Get.find<ChatViewController>();
     final chatThemeController = Get.find<ChatThemeController>();
+    final starredController = getOrPut(() => StarredMessageController());
+    final bool isStarred =
+        starredController.isStarred(message, conversationId: conversationId);
 
     return Container(
       width: 220,
@@ -305,6 +310,33 @@ class _ContextMenuCard extends StatelessWidget {
                 Navigator.of(context).pop();
                 chatThemeController.activateSelection(message);
                 Get.to(() => ChatForwardScreen());
+              },
+            ),
+
+            _divider(),
+            _menuItem(
+              icon: isStarred ? Icons.star_rounded : Icons.star_outline_rounded,
+              label: isStarred
+                  ? AppStrings.unstarLabel.tr
+                  : AppStrings.starLabel.tr,
+              onTap: () async {
+                Navigator.of(context).pop();
+                final nowStarred = await starredController.toggleStar(
+                  message,
+                  conversationId: conversationId,
+                  conversationName: conversationName ?? name,
+                  conversationProfileImage:
+                      conversationProfileImage ?? profileImage,
+                  userId: userId,
+                );
+                Get.snackbar(
+                  AppStrings.starredMessagesLabel.tr,
+                  nowStarred
+                      ? AppStrings.messageStarred.tr
+                      : AppStrings.messageUnstarred.tr,
+                  snackPosition: SnackPosition.BOTTOM,
+                  duration: const Duration(seconds: 1),
+                );
               },
             ),
 
